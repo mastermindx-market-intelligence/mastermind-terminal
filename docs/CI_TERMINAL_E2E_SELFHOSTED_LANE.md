@@ -1,7 +1,8 @@
 # Terminal e2e self-hosted lane (ubuntu0)
 
 Mastermind #917, phase 9. The `terminal-e2e` matrix job in `.github/workflows/ci.yml`
-can route its selected Playwright shards to ubuntu0 instead of `ubuntu-latest`.
+can route its selected Playwright shards to ubuntu0 instead of the GitHub-hosted
+`ubuntu-24.04` runner.
 The accepted dynamic selector chooses the matrix; a full selection has twelve shards.
 Trusted docs-only and native merge-group skips retain their existing separate rules.
 The switch is a repository variable, so the lane is **inert until an administrator
@@ -43,7 +44,7 @@ ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0'
      && (github.event_name != 'pull_request'
          || github.event.pull_request.head.repo.full_name == github.repository))
     && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]')
-    || 'ubuntu-latest' }}
+    || 'ubuntu-24.04' }}
 ```
 
 Safety properties, each pinned by `tests/test_ci_e2e_selfhosted_lane.py` unless
@@ -60,8 +61,11 @@ marked otherwise:
   it. The host fence is procedural and is described under *Administrator
   precondition* below. Fork runs are additionally held by the
   `all_external_contributors` approval policy (repository setting, not pinned here).
-- **The hosted fallback is a literal** (`'ubuntu-latest'`), so an expression error
-  cannot select the host. GitHub compares the variable case-insensitively, so
+- **The hosted fallback is a literal** (`'ubuntu-24.04'`, a GitHub-hosted image),
+  so an expression error cannot select the host. It must not be `'ubuntu-latest'`:
+  the fleet runners also carry that label, so it sent "hosted" shards to a shared
+  fleet host (2026-11-10: 16/26 fleet shard jobs failed versus 11/273 hosted).
+  GitHub compares the variable case-insensitively, so
   `Ubuntu0` also selects the host; the exported lane env is always the literal
   `ubuntu0`.
 - **No workflow expression is spliced into a `run:` block.** The job exports

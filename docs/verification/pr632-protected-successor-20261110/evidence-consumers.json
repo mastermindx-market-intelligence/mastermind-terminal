@@ -1,0 +1,44 @@
+{
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+    "lib/__tests__/visualIntelligenceEvidence.test.ts",
+    "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+    "lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+    "lib/__tests__/pineBootPendingEvidence.test.ts",
+    "lib/__tests__/b_pl_6Batch3Evidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/docs/verification/pr632-protected-successor-20261110/evidence-consumers-report.json"
+  ],
+  "completedAt": "2026-11-10T09:30:49.755834+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "04174f0c329f74ca3315cd2bf501f206d5ac4d8a8750d08affbb28b18e8a7b0a"
+  },
+  "exit": 0,
+  "logSha256": "ab80b6dbad3cb0b7a995c1f365239aee9a26392f59049a1a7dcbb88b56ad3b95",
+  "nodeOptions": "--no-experimental-webstorage",
+  "reportSha256": "a4a7e51902c406181e07fa67179a290dfeab040da42033c1735fb6bdc48e52e0",
+  "schema": "terminal_pr632_current_evidence_consumers.v1",
+  "seconds": 54.41,
+  "selectedEnvSha256": "95af0518b93cac2c23047c9bccc4dbfe502552dc22b36e6b6f8f5704c7de0363",
+  "sourceEntries": 2006,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T09:29:55.347807+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "numFailedTests": 0,
+    "numPassedTests": 45,
+    "numPendingTests": 0,
+    "numTotalTests": 45,
+    "success": true
+  }
+}

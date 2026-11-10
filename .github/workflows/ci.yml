@@ -183,6 +183,7 @@ jobs:
                   for project, old_count, new_count, before, after in (
                       ("desktop", 5, 6, "fifths", "sixths"),
                       ("tablet", 3, 4, "thirds", "quarters"),
+                      ("mobile", 3, 5, "thirds", "fifths"),
                   ):
                       rows = matrix["include"]
                       if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
@@ -215,7 +216,7 @@ jobs:
               {"shard": f"{name}-{i}",
                "projects": f"--project={name} --shard={i}/{total}",
                "specs": ""}
-              for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 3))
+              for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 5))
               for i in range(1, total + 1)
           ]
           matrix.append({
@@ -244,11 +245,12 @@ jobs:
     if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
-    # Existing stages had20min. Add bounded10min browser setup +55min captures
-    # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
-    # before the24layout cases; this90min cap is not a hosted timing claim.
+    # Existing stages had20min. Allow10min setup +55min incumbent captures,
+    # +30min conditional full EOD capture +5min retention. Original30-case M2
+    # report took1,018,995ms (~17min) before24layout cases. These120min bounds
+    # are not a claim that126 EOD captures finish within their30min allowance.
     # See8f1dc846: terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--report.json.
-    timeout-minutes: 90
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: terminal
@@ -281,6 +283,25 @@ jobs:
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
         run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
+      - name: Record PR-touched paths for the evidence drift gate
+        # The planner below fails a pull request whose OWN diff drifted an
+        # evidence-locked source without a recaptured, committed lock — the
+        # same drift the merge-group backstop discovers only after merge
+        # qualification starts. HEAD^1 of the pull_request synthetic merge
+        # commit is the exact base tip this candidate received (the same
+        # identity the plain-language guard below relies on); the depth-2
+        # checkout already fetches it. Non-PR events skip this step and the
+        # gate stays silent for them.
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          BASE=$(git rev-parse HEAD^1)
+          git diff --name-only --no-renames "${BASE}" HEAD > "${RUNNER_TEMP}/evidence-pr-touched.txt"
+          {
+            echo "EVIDENCE_PR_TOUCHED_FILE<<__mmx-evidence-touched-eof__"
+            cat "${RUNNER_TEMP}/evidence-pr-touched.txt"
+            echo "__mmx-evidence-touched-eof__"
+          } >> "${GITHUB_ENV}"
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
@@ -295,7 +316,7 @@ jobs:
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
-        timeout-minutes: 55
+        timeout-minutes: 85
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
         timeout-minutes: 20
@@ -438,6 +459,15 @@ jobs:
             terminal/test-results/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/*.png
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/native-packet.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture-*
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture.log
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/source-contract.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/history.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/EVIDENCE.before.yml
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/qualified-root/
             terminal/docs/pr-crops/b-pl-6-batch-2/
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
             terminal/docs/pr-crops/options-level-axis-labels/*.png
@@ -470,7 +500,16 @@ jobs:
     # values (workers, ports, browser store) are bound by
     # .github/scripts/terminal_e2e_lane.sh from env, never spliced into a run block.
     # tests/test_ci_e2e_selfhosted_lane.py pins this contract with mutation tests.
-    runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]') || 'ubuntu-latest' }}
+    # 2026-11-10: the hosted fallback is `ubuntu-24.04`, not `ubuntu-latest`. The
+    # fleet runners also carry `ubuntu-latest` (intentionally kept), so the old
+    # fallback sent "hosted" shards to a shared fleet host. On 2026-11-10 (00:00-08:20
+    # UTC) 16/26 PR shard jobs failed there (62%) versus 11/273 on GitHub-hosted runners
+    # (4%). Job logs show two causes: the fixed localhost port 3108 was already
+    # used by a neighbouring slot sharing the host, and `npx playwright install
+    # --with-deps` stalled on the shared host's apt state. `ubuntu-24.04` is a
+    # GitHub-hosted image label that no fleet runner carries; the ubuntu0-e2e
+    # branch above is unchanged and still owns all fleet e2e capacity.
+    runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]') || 'ubuntu-24.04' }}
     env:
       TERMINAL_E2E_LANE: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'ubuntu0' || 'hosted' }}
       TERMINAL_E2E_LANE_WORKERS: ${{ vars.TERMINAL_E2E_WORKERS }}
@@ -489,6 +528,12 @@ jobs:
     # the single CI worker at 09:49:29, and was still passing with no assertion
     # failure when the host cancelled it at 10:48:24 (60m17s), so mobile runs in
     # thirds below.
+    # On 2026-11-10 mobile thirds still reached the unchanged cap (#1411): run
+    # 42753497499, mobile-1 took 54 min and mobile-3 took 58 min, while mobile-2 was
+    # cancelled at the 60-minute cap twice with ZERO test failures — on attempt 2 the
+    # suite itself took 58.0 min on the single CI worker (416 passed, 144 skipped) and
+    # the job was cancelled during the artifact upload that follows.
+    # So mobile now runs in fifths below, same cap untouched.
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
@@ -569,7 +614,7 @@ jobs:
           CI: '1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
-          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts e2e/discover-focus-continuity.spec.ts
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
@@ -729,7 +774,11 @@ jobs:
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
-        run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+        run: |
+          ingest_python_env="$(mktemp -d "${RUNNER_TEMP:?}/terminal-ingest-python.XXXXXX")"
+          python -m venv "$ingest_python_env"
+          "$ingest_python_env/bin/python" -m pip --isolated install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+          printf '%s\n' "$ingest_python_env/bin" >> "$GITHUB_PATH"
       # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
       # The dedicated upstream Investigation job remains an additional gate.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}

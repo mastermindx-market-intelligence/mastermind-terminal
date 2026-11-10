@@ -80,6 +80,39 @@ live tree is continuously refreshed. The policy pins the exact Git tree shape, v
 and never treats mutable data content as implementation source. None of these exceptions permits an
 `rsync --delete` over host-owned runtime state.
 
+### When the installed builder is itself the blocker (self-update deadlock)
+
+Both the `vps-main-deploy` workflow and the manual command above execute the **installed** copy at
+`/opt/terminal/terminal-build.sh`, and only step 8 of a **successful production** deploy reinstalls it
+from the just-deployed generation ("effective next run"). Beta deploys never install it
+(`INSTALLS_GLOBAL_RUNTIME` is production-only), so beta traffic alone never advances the box copy.
+The production source-audit policy additionally pins that copy: the `terminal-build-wrapper` mapping
+compares `/opt/terminal/terminal-build.sh` **byte-exact** against the accepted generation's
+`ops/terminal-build.sh` blob, so an out-of-band replacement of the box copy fails the next
+current-generation preflight with `TRACKED_MODIFIED` before admission ever runs.
+
+That coupling can deadlock when a merged master change to the builder is *required* for the next
+production admission to pass. It happened once: the operator-installed `hardening.conf` /
+`storage.conf` `ExecStartPre` guards are refused outright by the pre-#1328 installed builder
+(`unsupported-service-launch-hook`), while master since #1328–#1340 admits exactly that pinned pair —
+so every `vps-main-deploy` run since the workflow's first execution (30/30 failures,
+2026-11-09T11:11Z → 2026-11-10T02:55Z; e.g.
+[run 42743708853](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42743708853))
+was refused by a box copy that predated the fix it needed.
+
+To identify which builder a failed run actually executed: the `source preflight CLEAN: accepted=<sha>`
+log line names the deployed generation, and the installed builder is byte-exact that generation's
+`git show <accepted>:ops/terminal-build.sh`. Read the refusal logic from that revision — not from
+current master — before changing any source.
+
+Breaking the deadlock (one-time release-owner action; never edit the box copy in place): verify a
+candidate copy of current master's `ops/terminal-build.sh` against its git blob, then run it **from a
+staging path** on the VPS with `--target production --target-sha <current protected master>`. The
+staging run performs the ordinary deploy end-to-end: the current-generation preflight still audits the
+untouched installed copy (CLEAN), the new admission code qualifies the pinned guards, and the
+deploy's own step 8 re-pins `/opt/terminal/terminal-build.sh` in-band. After that single run the
+workflow is self-sustaining again.
+
 ### Suite-event alerts cron (`ingest/suite_alerts.ts` → `ingest/dist/suite_alerts.mjs`)
 
 The Node sidecar that fires `{type:"suite_event"}` alerts by running the REAL premium-suite

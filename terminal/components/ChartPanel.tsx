@@ -1,5 +1,5 @@
 "use client";
-import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
+import { boatsChartHistoryFromResponse, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { resolveChartAppearance } from "@/lib/chartSettingsUi";
 import { syncOptionsPricePin, removeOptionsPricePin, layoutOptionsReferenceBadges, optionsPinVisibility, optionsPinRevealRange, type OptionsPinViewport, type OptionsPricePin } from "@/lib/optionsChartPin";
@@ -265,6 +265,8 @@ export type LiveQuote = {
   extReceivedTs?: number;
   extPublishedTs?: number;
   extExpiresTs?: number;
+  extCaptureId?: string;
+  extGeneration?: number;
   live?: boolean;
   suspended?: boolean;
   lagMs?: number | null;
@@ -5882,6 +5884,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       paneKey?: string | null;
     };
     let pending: PendingDrawing | null = null;
+    let consumeNextDblClick = false;
     cancelPendingDrawingRef.current = () => {
       const current = pending;
       pending = null;
@@ -7042,6 +7045,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     };
     // right-click context menu (D1 — TV-style, rebuilt on every open to reflect current state)
     const ctxm = document.createElement("div"); ctxm.className = "ctx-menu"; ctxm.style.display = "none"; wrap.appendChild(ctxm); ctxRef.current = ctxm;
+    // Keep this chart-owned menu above the engine's pane-resize hit targets (z-index: 50).
+    ctxm.style.zIndex = "51";
     let ctxPt: { t: string; p: number } = { t: "", p: 0 };
     const hideCtx = () => { if (ctxRef.current) ctxRef.current.style.display = "none"; };
     // submenu state for Chart template
@@ -8705,7 +8710,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       } else {
         lastTextPress = null;
       }
-      sel = id; renderDraw();
+      // Keep the current hit node alive through a fresh double-click on the
+      // already selected drawing; an unchanged selection needs no repaint.
+      if (sel !== id) { sel = id; renderDraw(); }
       if (d0.locked) return;
       const prec = precRef.current;
       // Editing an indicator-pane object works in that pane's value space, which
@@ -8895,8 +8902,14 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       try { svg.setPointerCapture(ev.pointerId); } catch {}
       renderDraw();
     });
+    // A fresh press restores ordinary editing after the prior completion gesture.
+    // Capture also observes presses on child nodes and when creation is inactive.
+    svg.addEventListener("pointerdown", () => { consumeNextDblClick = false; }, true);
     // Double-click finishes variable segmented tools and edits text in cursor mode.
     svg.addEventListener("dblclick", (ev) => {
+      if (consumeNextDblClick) {
+        consumeNextDblClick = false; ev.stopPropagation(); ev.preventDefault(); return;
+      }
       if (!activeRef.current) return;
       const activeTool = toolRef.current, spec = getDrawingTool(activeTool);
       if (activeTool && spec?.creation.mode === "variable-multi" && pending?.kind === activeTool && pending.mode === "multi") {
@@ -8987,7 +9000,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         const required = spec?.creation.mode === "fixed-multi" && typeof spec.creation.pointCount === "number" ? spec.creation.pointCount : Infinity;
         const repeatedFinish = repeatedAnchor && spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.minPoints;
         if (current.points.length >= required || repeatedFinish || (spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.maxPoints)) {
-          const points = [...current.points]; pending = null; commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
+          const points = [...current.points]; pending = null;
+          // The completed gesture owns its trailing native double-click once.
+          if (spec?.creation.mode === "variable-multi") consumeNextDblClick = true;
+          commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
         }
         // Both exits repaint: the committed shape used to reach the layer only as
         // a side effect of the toolbar clearing the active tool, which never
@@ -9457,7 +9473,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       //    signal/compare overlays (those are "YYYY-MM-DD" keyed). Indicators are bar-agnostic → kept. ──
       if (intraday) {
         let bars: any[] = [];
-        let historyBars = 0;
+        let historyEvidence: unknown = null;
         let daytimePending = false;
         let daytimeIncomplete = false;
         let initialCaptureMs = 0;
@@ -9467,7 +9483,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           const j = adoptFirstPaint ? firstPaint!.body : await r!.json().catch(() => null);
           const ok = adoptFirstPaint || r!.ok;
           bars = Array.isArray(j?.bars) ? j.bars : [];
-          historyBars = ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
+          historyEvidence = ok && overnightHours ? j?.boats_history : null;
           // A warm complete assembly stays paintable while another refresh is
           // pending. Only cold/incomplete pending data must remain Loading.
           daytimePending = ok && overnightHours && j?.daytime_cache?.refresh_pending === true
@@ -9477,7 +9493,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           if (!ok || j?.error) feedErr = String(j?.error || `HTTP ${r?.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
-        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: historyBars });
+        onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, historyEvidence,
+          { pending: daytimePending, error: feedErr !== null || daytimeIncomplete }));
         onDataOriginRef.current?.(originNotCovered(symbol, "INTRADAY_NOT_IN_V1"));
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
@@ -9858,7 +9875,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         }
         if (!previous.length) {
           overnightCaptureRef.current = accepted.captureMs;
-          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+          onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, body?.boats_history));
           if (body?.daytime_cache?.refresh_pending !== true) {
             showIntradayEmpty(symbol, effectiveTimeframe, !!body?.error || body?.daytime_cache?.refresh_error != null);
           }
@@ -9873,7 +9890,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           if (accepted.appliedTradeMs > 0) {
             liveTickRef.current = { basis: "tiingo_boats", stamp: accepted.appliedTradeMs };
           }
-          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+          onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, body?.boats_history));
         };
         if (previous.length === accepted.bars.length && previous.every((bar, i) => {
           const next = accepted.bars[i];

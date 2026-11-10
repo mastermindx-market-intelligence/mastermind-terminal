@@ -1,4 +1,5 @@
 "use client";
+import "../../app/observatory.css";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 import "./investor-shell-preview.css";

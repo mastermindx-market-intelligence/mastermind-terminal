@@ -1,0 +1,13 @@
+{
+  "schema": "terminal_pr632_qualified_dependency_clone.v1",
+  "startedAt": "2026-11-10T08:38:49.039778+00:00",
+  "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-702-protected-successor/terminal/node_modules",
+  "target": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/node_modules",
+  "packageLockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "method": "cp -cR APFS clone into fresh owned checkout; no shared writable symlink",
+  "state": "APPLIED",
+  "exit": 0,
+  "seconds": 19.03,
+  "completedAt": "2026-11-10T08:39:08.069371+00:00",
+  "stderr": ""
+}

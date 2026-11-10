@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
 import { acquireScrollLock } from "@/lib/scrollLock";
+import { createNewerModalFocusGuard, rememberDialogReturnTarget, restoreDialogFocus, type DialogFocusSession } from "@/lib/dialogFocusReturn";
 
 export interface MobileSheetProps {
   open: boolean;
@@ -37,6 +38,8 @@ export interface MobileSheetProps {
    * the existing byte-for-byte behaviour for every other caller.
    */
   keepMounted?: boolean;
+  /** Opt-in opener/modal provenance shared across presentations of one open UI task. */
+  focusSessionRef?: RefObject<DialogFocusSession>;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -108,6 +111,7 @@ export default function MobileSheet({
   initialFocus = "first",
   escapeKey = "close",
   keepMounted = false,
+  focusSessionRef,
 }: MobileSheetProps) {
   // Track mount so createPortal only fires client-side.
   const [mounted, setMounted] = useState(false);
@@ -127,6 +131,7 @@ export default function MobileSheet({
   const closeTimerRef = useRef<number | null>(null);
   const onCloseRef = useRef(onClose);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const focusGuardRef = useRef<ReturnType<typeof createNewerModalFocusGuard> | undefined>(undefined);
   // Latest `keepMounted` so the focus-effect cleanup can tell parking from a real close.
   const keepMountedRef = useRef(keepMounted);
   useLayoutEffect(() => { keepMountedRef.current = keepMounted; }, [keepMounted]);
@@ -194,14 +199,23 @@ export default function MobileSheet({
     const sheet = sheetRef.current;
     if (!sheet) return;
 
+    focusGuardRef.current = focusSessionRef ? createNewerModalFocusGuard(sheet, focusSessionRef) : undefined;
+
     // Re-presenting must NOT overwrite the opener we snap back to on the FINAL close.
     if (!previousFocusRef.current) {
       previousFocusRef.current = document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
     }
+    if (!focusGuardRef.current?.(sheet.ownerDocument.activeElement)) {
+      rememberDialogReturnTarget(focusSessionRef, sheet, previousFocusRef.current);
+    }
 
     const focusFrame = window.requestAnimationFrame(() => {
+      if (focusGuardRef.current?.(sheet.ownerDocument.activeElement)) return;
+      // A cold opener can receive focus after the portal attaches. Capture it
+      // before moving inward, without replacing an existing session opener.
+      rememberDialogReturnTarget(focusSessionRef, sheet, document.activeElement);
       // Prefer the last inner element the user focused (re-presentation after parking).
       const remembered = lastInnerFocusRef.current;
       // React reconciles the children when re-rendering inside the same root, so the
@@ -227,7 +241,11 @@ export default function MobileSheet({
     };
     sheet.addEventListener("focusin", onInnerFocus);
 
+    const newerModalOwnsEvent = (event: KeyboardEvent) => focusGuardRef.current?.(
+      event.target instanceof Element ? event.target : sheet.ownerDocument.activeElement,
+    ) ?? false;
     const onKeyDown = (event: KeyboardEvent) => {
+      if (newerModalOwnsEvent(event)) return;
       if (event.key === "Escape") {
         if (escapeKey === "bubble") return;
         event.preventDefault();
@@ -266,6 +284,7 @@ export default function MobileSheet({
     };
 
     const onBubbledEscape = (event: KeyboardEvent) => {
+      if (newerModalOwnsEvent(event)) return;
       if (event.key === "Escape" && !event.defaultPrevented) {
         event.preventDefault(); onCloseRef.current();
       }
@@ -282,10 +301,11 @@ export default function MobileSheet({
       if (!keepMountedRef.current) {
         const previousFocus = previousFocusRef.current;
         previousFocusRef.current = null;
-        if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+        if (previousFocus) restoreDialogFocus(previousFocus, focusSessionRef, focusGuardRef.current);
+        focusGuardRef.current = undefined;
       }
     };
-  }, [mounted, open, initialFocus, escapeKey]);
+  }, [mounted, open, initialFocus, escapeKey, focusSessionRef]);
 
   // A final close taken straight from parking (`open` stays false while `keepMounted`
   // flips true→false) does not re-run the focus effect above — none of its deps changed —
@@ -299,8 +319,9 @@ export default function MobileSheet({
     const previousFocus = previousFocusRef.current;
     previousFocusRef.current = null;
     lastInnerFocusRef.current = null;
-    if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
-  }, [open, keepMounted]);
+    if (previousFocus) restoreDialogFocus(previousFocus, focusSessionRef, focusGuardRef.current);
+    focusGuardRef.current = undefined;
+  }, [open, keepMounted, focusSessionRef]);
 
   function clearCloseTimer() {
     if (closeTimerRef.current === null) return;

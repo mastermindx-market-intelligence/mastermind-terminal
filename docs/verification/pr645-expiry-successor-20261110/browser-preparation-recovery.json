@@ -1,0 +1,11 @@
+{
+  "browserOutputAbsent": true,
+  "browserValidationAbsent": true,
+  "captureAttemptStarted": false,
+  "error": "JavaScript replacement-string dollar substitution corrupted Python regex string; parser rejected before module execution",
+  "failedScriptSha256": "2bd14eab9de57e05bd52ffdad53b03db04859d06dd5ca4e6ab16a8faf1681f63",
+  "portClosed": true,
+  "repairedScriptSha256": "364494b75b7e2fcaf1cb30c710e856042728bcab18c316e727a218492c799a09",
+  "schema": "terminal_pr645_browser_preparation_recovery.v1",
+  "state": "SYNTAX_FAILURE_BEFORE_EXECUTION_REPAIRED"
+}

@@ -7,6 +7,17 @@ import pytest
 # Reporter activates only for the canonical CI Ingest job; test selection is unchanged.
 pytest_plugins = ["scripts.ci_pytest_results"]
 
+
+@pytest.fixture(scope="session", autouse=True)
+def _fixture_creation_umask():
+    """Give fresh test fixtures safe defaults while preserving explicit modes."""
+    previous = os.umask(0o022)
+    try:
+        yield
+    finally:
+        os.umask(previous)
+
+
 _INTRADAY_RUN_DATE_MODULES = frozenset({
     "test_backfill_intraday",
     "test_backfill_intraday_breaker",
