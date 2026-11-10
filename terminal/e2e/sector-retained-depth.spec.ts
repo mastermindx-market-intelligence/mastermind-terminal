@@ -124,12 +124,33 @@ test("calls contract board: keyboard show-more and trace disclosure", async ({ p
 });
 
 test("navigation out flows through the onNavigate callback with the exact href", async ({ page }) => {
-  // N4 href law, live: the captured generation's rows carry owner hrefs
-  // WITHOUT a leading slash (sector/…, basket/…) — non-conforming, so the
-  // captured board renders NO detail control at all, in either form.
+  // Navigate-target law (R3-N2), live: the captured generation's rows carry
+  // owner hrefs WITHOUT a leading slash (sector/…, basket/…) — non-conforming,
+  // so no href string is ever handed on; but every row with a valid identity
+  // (slug + ticker) still gets a callback control whose target routes by
+  // kind + id with href null. No anchor fallback exists for these rows.
   const captured = page.locator('[data-h-section="calls"]');
-  await expect(captured.getByRole("button", { name: /Open detail|打开详情/ })).toHaveCount(0);
+  await expect(captured.getByRole("button", { name: /Open detail|打开详情/ })).toHaveCount(3);
   await expect(captured.locator("a[href]")).toHaveCount(0);
+  // Clicking a captured control logs the identity route (href is null in the
+  // target, so the harness log line falls back to "kind/id").
+  const capturedLog = page.locator('[data-harness="navlog"]');
+  const capturedBefore = await capturedLog.locator("li").count();
+  const capturedDetail = captured
+    .getByRole("button", { name: /Open detail|打开详情/ })
+    .first();
+  if (mobile(page)) {
+    // Stand aside is the only lane with rows on the captured board; open its
+    // accordion first (settled closed on phones).
+    const aside = captured.locator('[data-lane="stand_aside"]');
+    await expect(aside).toHaveAttribute("data-open", "false");
+    await aside.getByRole("button", { name: /Stand aside|观望/i }).click();
+    await expect(aside).toHaveAttribute("data-open", "true");
+  }
+  await expect(capturedDetail).toBeVisible();
+  await capturedDetail.click();
+  await expect(capturedLog.locator("li")).toHaveCount(capturedBefore + 1);
+  await expect(capturedLog.locator("li").last()).toContainText(/^theme\/[A-Za-z0-9_.\-]+$/);
   // The wired instance with conforming hrefs is the contract-derived
   // emergence board (its rows carry /sector/…, /basket/…, /company/… paths).
   const section = page.locator('[data-h-section="calls-emergence"]');

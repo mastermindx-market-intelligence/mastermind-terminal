@@ -116,18 +116,36 @@ export type BoardLaneKey =
  * (COO ruling 2026-11-10 14:45Z), but Terminal may still need the exact
  * destination. Emitted ONLY for hrefs that pass the N4 same-site law. */
 export interface CallsNavigateTarget {
-  /** Same-site owner destination, exactly as carried (N4-checked). */
-  href: string;
+  /** Same-site owner destination (N4-checked) — `null` when the carried href
+   *  is relative or hostile (today's owner hrefs are relative, so real rows
+   *  navigate by identity): the consumer routes by `kind` + `id` and never
+   *  receives a hostile href as a string. */
+  href: string | null;
   /** The row's entity kind: "theme" (curated basket) or "sector". */
   kind: CallRow["kind"];
-  /** The row's slug — the stable entity id used for Terminal-side routing. */
+  /** The row's slug — the stable entity id used for Terminal-side routing.
+   *  A VALIDATED identifier: the board only emits a target when it matches
+   *  NAVIGABLE_ID_RE (see isNavigableId). */
   id: string;
-  /** The row's ticker (symbol-keyed routing; for themes this is the basket id). */
+  /** The row's ticker (symbol-keyed routing; for themes this is the basket
+   *  id). A VALIDATED identifier under the same law as `id`. */
   ticker: string;
 }
 
 /** The calls board's outbound navigation callback signature. */
 export type CallsNavigateHandler = (target: CallsNavigateTarget) => void;
+
+/** R3-N3: the identity law for everything handed to a host router. A slug or
+ * ticker must be a plain bounded identifier — the real values are
+ * `test_theme`, `theme_1`, `syn_*` — so a lane-3 consumer can compose routes
+ * (`router.push("/x/" + id)`) without inheriting untrusted text. A row whose
+ * identity fails this renders as a row but yields no navigation control. */
+const NAVIGABLE_ID_RE = /^[A-Za-z0-9_.\-]{1,64}$/;
+
+/** Whether a row identity (slug or ticker) may be handed to the host. */
+export function isNavigableId(value: string): boolean {
+  return NAVIGABLE_ID_RE.test(value);
+}
 
 /** Deterministic left-to-right order of the five board columns. */
 export const BOARD_LANE_ORDER: readonly BoardLaneKey[] = [
