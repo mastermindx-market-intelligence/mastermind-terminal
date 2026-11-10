@@ -35,11 +35,13 @@ import {
   sortGroups,
   toggleExpanded,
   universePresence,
+  universeWordMatches,
 } from "../sectorDepthUniverses";
 import type {
   FreshnessKind,
   UniverseData,
   UniverseGroup,
+  UniverseId,
 } from "../sectorDepthUniverses";
 
 /* Synthetic contract fixture — clearly marked, never a real generation. */
@@ -766,12 +768,56 @@ describe("absent capability vs no-access vs zero groups are three distinct state
     expect(universePresence("subsectors", noAccessWithRows)).toBe("no_access");
     const zeroWithOk: UniverseData = { ...sub, subsectors: [] };
     expect(universePresence("subsectors", zeroWithOk)).toBe("zero_groups");
-    const states = new Set(
-      [undefined, U.russell, zeroWithOk, sub].map((d) =>
-        universePresence("subsectors", d as UniverseData | undefined),
-      ),
-    );
+    // Each payload is mounted under ITS OWN tab: since R2-S1 a payload whose
+    // owner word names another universe classifies as absent (refused), so a
+    // cross-mounted payload no longer demonstrates the no_access state.
+    const states = new Set([
+      universePresence("subsectors", undefined),
+      universePresence("russell", U.russell),
+      universePresence("subsectors", zeroWithOk),
+      universePresence("subsectors", sub),
+    ]);
     expect(states.size).toBe(4);
+  });
+});
+
+describe("R2-S1 — a payload whose owner word names another universe is refused", () => {
+  it("groupsOf tables ZERO rows for a cross-mounted payload — never the other universe's rows", () => {
+    // The review's exact scenario: the S&P file (sp500_subsectors word, 65
+    // groups) mounted under the Nasdaq tab.
+    expect(sub.universe).toBe("sp500_subsectors");
+    expect(groupsOf("subsectors", sub).length).toBeGreaterThan(0);
+    expect(groupsOf("nasdaq", sub)).toEqual([]);
+    expect(groupsOf("russell", sub)).toEqual([]);
+    // A payload claiming nasdaq's word while carrying the S&P array is refused
+    // under the S&P tab (its word no longer matches). KNOWN LIMIT: under the
+    // nasdaq tab that lying payload is undetectable — the word matches and the
+    // `subsectors` array key is nasdaq's own; only the owner can fix a payload
+    // that mislabels itself. The word check catches mis-KEYED MOUNTS, which is
+    // the failure mode a mount bug produces.
+    const mislabeled: UniverseData = { ...sub, universe: "nasdaq_subsectors" };
+    expect(groupsOf("subsectors", mislabeled)).toEqual([]);
+  });
+
+  it("universePresence classifies a cross-mounted payload as absent (honest unavailable)", () => {
+    expect(universePresence("nasdaq", sub)).toBe("absent");
+    expect(universePresence("russell", sub)).toBe("absent");
+    expect(universePresence("subsectors", sub)).toBe("live");
+    // Each tab accepts exactly its own word — the four owner words, one each.
+    const WORDS: Array<[UniverseId, string]> = [
+      ["subsectors", "sp500_subsectors"],
+      ["nasdaq", "nasdaq_subsectors"],
+      ["russell", "russell_subsectors"],
+      ["baskets", "curated_baskets"],
+    ];
+    for (const [tab, word] of WORDS) {
+      expect(universeWordMatches(tab, { ...sub, universe: word })).toBe(true);
+      expect(universePresence(tab, { ...sub, universe: word })).not.toBe("absent");
+    }
+    // An unknown word is a mismatch on every tab.
+    expect(universeWordMatches("subsectors", { ...sub, universe: "friendly_universe" })).toBe(
+      false,
+    );
   });
 });
 

@@ -107,6 +107,28 @@ export type BoardLaneKey =
   | "take_profits"
   | "stand_aside";
 
+/** Navigation target handed to the calls board's row callback (lane-3 consumer
+ * delta, COO order 2026-11-10): the owner's same-site href PLUS the row's
+ * entity identity. `kind` and `id` let the workspace route internally — the
+ * id is the row's `slug` (the stable entity id), and `ticker` rides along for
+ * symbol-keyed routing. The href stays first-class: owner link targets are
+ * relative Macro static-site paths and stay unlinked text in Terminal
+ * (COO ruling 2026-11-10 14:45Z), but Terminal may still need the exact
+ * destination. Emitted ONLY for hrefs that pass the N4 same-site law. */
+export interface CallsNavigateTarget {
+  /** Same-site owner destination, exactly as carried (N4-checked). */
+  href: string;
+  /** The row's entity kind: "theme" (curated basket) or "sector". */
+  kind: CallRow["kind"];
+  /** The row's slug — the stable entity id used for Terminal-side routing. */
+  id: string;
+  /** The row's ticker (symbol-keyed routing; for themes this is the basket id). */
+  ticker: string;
+}
+
+/** The calls board's outbound navigation callback signature. */
+export type CallsNavigateHandler = (target: CallsNavigateTarget) => void;
+
 /** Deterministic left-to-right order of the five board columns. */
 export const BOARD_LANE_ORDER: readonly BoardLaneKey[] = [
   "buy_now",
@@ -617,6 +639,11 @@ export function actionBoardFromCarried(payload: unknown): ActionBoardData | null
     if (!Array.isArray(lane.rows) || !lane.rows.every(validCallRow)) return null;
     if (!isCount(lane.total)) return null;
     if (!isCount(lane.locked)) return null;
+    // R2-N5: rows are the owner's carried subset of the lane's population, so
+    // a lane claiming FEWER names than it carries rows is inconsistent — both
+    // real payloads carry total ≥ rows (contract take_profits 7/5, captured
+    // hold 4/3). Refuse rather than render contradicting counts.
+    if (lane.total < lane.rows.length) return null;
   }
   // Every field has been individually validated above; this is a sound cast.
   return payload as unknown as ActionBoardData;

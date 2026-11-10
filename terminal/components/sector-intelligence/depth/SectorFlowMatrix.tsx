@@ -5,6 +5,7 @@ import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode, Ref
 import { useLang } from "@/lib/i18n";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import {
+  cellFocusSelector,
   cellIntensity,
   FLOW_WINDOW_LABEL,
   phoneModel,
@@ -107,17 +108,14 @@ export function SectorFlowMatrix({
           .find((r) => r.ticker === sel.ticker)
           ?.cells.find((c) => c.window === sel.window) ?? null);
 
-  /** N7: a ticker interpolated into a quoted attribute selector must have its
-   * quotes and backslashes escaped, or a ticker containing `"` throws inside
-   * the rAF callback. The window id is a closed enum and needs no escape. */
+  /** N7: the cell selector is built by cellFocusSelector (lib), which escapes
+   * the ticker for a quoted attribute value — or a ticker containing `"`
+   * throws inside the rAF callback. The window id is a closed enum. */
   const focusCell = (next: CellSel): void => {
     setSel(next);
-    const ticker = next.ticker.replace(/["\\]/g, "\\$&");
     requestAnimationFrame(() => {
       document
-        .querySelector<HTMLTableCellElement>(
-          `td[data-cell-ticker="${ticker}"][data-cell-window="${next.window}"]`,
-        )
+        .querySelector<HTMLTableCellElement>(cellFocusSelector(next.ticker, next.window))
         ?.focus();
     });
   };

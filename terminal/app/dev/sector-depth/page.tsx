@@ -22,7 +22,11 @@ import callsContractFixture from "@/lib/__tests__/fixtures/sectorDepthCallsContr
 import flowsContractFixture from "@/lib/__tests__/fixtures/sectorDepthFlowsContract.v1.json";
 import flowsCarriedFixture from "@/lib/__tests__/fixtures/sectorDepthFlowsCarried.v1.json";
 import universesContractFixture from "@/lib/__tests__/fixtures/sectorDepthUniversesContract.v1.json";
-import type { ActionBoardData, BottomingWatchData } from "@/lib/sectorDepthCalls";
+import type {
+  ActionBoardData,
+  BottomingWatchData,
+  CallsNavigateTarget,
+} from "@/lib/sectorDepthCalls";
 import { flowsFromCarriedBlock, type FlowsData } from "@/lib/sectorDepthFlows";
 import type { UniverseData, UniverseId } from "@/lib/sectorDepthUniverses";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
@@ -147,10 +151,18 @@ function HarnessBody() {
   const t = useSectorDepthT();
   const { lang } = useLang();
   const [navLog, setNavLog] = useState<NavEntry[]>([]);
-  /** Shared onNavigate sink — the e2e asserts clicks land here verbatim. */
-  const onNavigate = useCallback((href: string) => {
-    setNavLog((prev) => [...prev, { id: prev.length + 1, label: href }]);
-  }, []);
+  /** Shared onNavigate sink — the e2e asserts clicks land here verbatim. The
+   * calls board hands a CallsNavigateTarget (href + entity identity, lane-3
+   * consumer delta); the log line stays the href so the e2e pattern is
+   * unchanged. Other surfaces still pass a bare href string. */
+  const onNavigate = useCallback(
+    (hrefOrTarget: string | CallsNavigateTarget) => {
+      const href =
+        typeof hrefOrTarget === "string" ? hrefOrTarget : hrefOrTarget.href;
+      setNavLog((prev) => [...prev, { id: prev.length + 1, label: href }]);
+    },
+    [],
+  );
 
   useEffect(() => {
     // Default the harness to EN/west ink unless the boot script already chose.

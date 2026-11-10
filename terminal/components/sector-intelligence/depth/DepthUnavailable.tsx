@@ -14,6 +14,7 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   etf_flows: "siDepthFieldEtfFlows",
   confluence: "siDepthFieldConfluence",
   theme_table: "siThemeTableTitle",
+  rs_history: "siDepthFieldRsHistory",
 };
 
 /** Reader-facing owner names for the owner ids callers pass. */

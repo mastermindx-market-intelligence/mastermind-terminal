@@ -888,3 +888,80 @@ describe("S3/S4 — carried-block strictness (reviewer probe, made permanent)", 
     }
   });
 });
+
+describe("r2 — prototype-named keys, empty flow_mn, and real calendar dates", () => {
+  const base = JSON.parse(JSON.stringify(carriedFile.cases.realFull)) as Record<string, unknown>;
+  const variant = (mutate: (b: Record<string, unknown>) => void): unknown => {
+    const b = JSON.parse(JSON.stringify(base)) as Record<string, unknown>;
+    mutate(b);
+    return b;
+  };
+  const fund = (b: Record<string, unknown>, i: number) =>
+    (b.funds as { ticker: string; flow_mn: Record<string, unknown> }[])[i]!;
+
+  it("R2-N1 — prototype-named keys in flow_mn/net_flow_mn are NOT labels: the block is null", () => {
+    for (const bad of ["constructor", "toString", "hasOwnProperty", "__proto__"]) {
+      // Own key on a plain object (JSON.parse would produce an own "__proto__").
+      expect(
+        flowsFromCarriedBlock(
+          variant((b) => {
+            fund(b, 0).flow_mn = { [bad]: 9 };
+          }),
+        ),
+        bad,
+      ).toBeNull();
+      expect(
+        flowsFromCarriedBlock(
+          variant((b) => {
+            b.net_flow_mn = { [bad]: 1 };
+          }),
+        ),
+        `net ${bad}`,
+      ).toBeNull();
+    }
+    // A window-label "constructor" in the windows array is equally refused.
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => {
+          (b.windows as { label: string }[])[0].label = "constructor";
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it("S3 — flow_mn: [] is malformed (pins the non-object/array check: an empty array has no unknown keys)", () => {
+    // With the Array.isArray check removed this exact input would be ACCEPTED
+    // as an all-no-reading row — the [] case is the only pin for it.
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => {
+          fund(b, 2).flow_mn = [] as unknown as Record<string, unknown>;
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it("R2-N5 — as_of must be a real calendar date, not ten digits with dashes", () => {
+    for (const bad of [
+      "2026-13-45", // both fields impossible
+      "2026-13-01", // month 13
+      "2026-00-10", // month 0
+      "2026-02-30", // February 30
+      "2026-02-29", // 2026 is not a leap year
+      "2026-11-00", // day 0
+      "2026-11-31", // November has 30 days
+    ]) {
+      expect(
+        flowsFromCarriedBlock(variant((b) => { b.as_of = bad; })),
+        bad,
+      ).toBeNull();
+    }
+    // Real dates still pass, leap day included on a leap year.
+    for (const good of ["2026-11-05", "2024-02-29", "2026-02-28"]) {
+      expect(
+        flowsFromCarriedBlock(variant((b) => { b.as_of = good; }))?.asof,
+        good,
+      ).toBe(good);
+    }
+  });
+});
