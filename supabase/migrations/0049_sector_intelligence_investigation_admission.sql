@@ -174,12 +174,12 @@ select public.valid_investigation_manifest_v2(
       $1='macro.sector' and $2='sector_observation' then 'xlf'
       when $1='macro.sector' and $2='basket_observation' then 'b-us_defensives'
       when $1='theme_graph.curation_assertion' and $2='curation_assertion' then 'ev:0123456789abcdef'
-      else 'XLK/2026-10-16/450/gamma/one:2026-10-17' end),
+      else 'XLK/2026-10-16/450/gamma/one:2026-10-17' end,
     'mode','pinned',
     'version_ref',case when
       $1='theme_graph.curation_assertion' and $2='curation_assertion' then 'gmirca_0123456789abcdef0123456789abcdef'
       when $1='macro.sector' and $2 in ('sector_observation','basket_observation') then 'captured-sector-1'
-      else 'exposure_chart_request.v1:7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6' end),
+      else 'exposure_chart_request.v1:7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6' end,
     'fingerprint','7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6')),
    'continuation',pg_catalog.jsonb_build_object()))
 $$;

@@ -255,6 +255,26 @@ def test_full_paired_manifest_corpus_after_sector_admission(sector_pg):
     _assert_paired_manifest_corpus(sector_pg, g1_only=False)
 
 
+@pytest.mark.parametrize(
+    ("owner", "object_type", "expected"),
+    [
+        ("macro.sector", "sector_observation", "t"),
+        ("macro.sector", "basket_observation", "t"),
+        ("theme_graph.curation_assertion", "curation_assertion", "t"),
+        ("earnings.workspace_generation", "event_workspace", "t"),
+        ("terminal.options_exposure", "options_matrix_selection", "t"),
+        ("macro.sector", "event_workspace", "f"),
+        ("unadmitted.owner", "sector_observation", "f"),
+    ],
+)
+def test_sector_evidence_admission_probe_executes(sector_pg, owner, object_type, expected):
+    assert sector_pg(
+        "select public.investigation_evidence_admitted_v2("
+        + quote(owner) + "," + quote(object_type) + ");",
+        role="authenticated",
+    ) == expected
+
+
 def test_backup_restore_preserves_owner_rows_receipts_and_read_only_rollback(pg):
     for binary in ('pg_dump', 'pg_restore'):
         assert shutil.which(binary), f'restore proof requires {binary}'
