@@ -18,13 +18,31 @@ import { notFound } from "next/navigation";
 import { LangProvider, useLang } from "@/lib/i18n";
 import { sectorRotationHistory } from "@/lib/sectorIntelligence";
 import capturedFixture from "@/lib/__tests__/fixtures/sector_generation.captured.preview.v1.json";
+import callsContractFixture from "@/lib/__tests__/fixtures/sectorDepthCallsContract.v1.json";
+import type { ActionBoardData, BottomingWatchData } from "@/lib/sectorDepthCalls";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
+import { SectorCallsBoard } from "@/components/sector-intelligence/depth/SectorCallsBoard";
+import { SectorBottomingWatch } from "@/components/sector-intelligence/depth/SectorBottomingWatch";
 import { SectorThemeCompare } from "@/components/sector-intelligence/depth/SectorThemeCompare";
 import { DepthUnavailable } from "@/components/sector-intelligence/depth/DepthUnavailable";
 import styles from "./page.module.css";
 
 const captured = capturedFixture as unknown as {
   projection: { data: Record<string, unknown> };
+};
+
+/** The captured generation's real action board (hold lane populated, total 4,
+ * locked 1). Cast directly: lane 3's parser does not expose action_board yet
+ * (see the lane-7 PR shared-file request) — the payload shape is the admitted
+ * ActionBoardData contract. */
+const capturedBoard = captured.projection.data.action_board as unknown as ActionBoardData;
+
+/** Synthetic contract fixture for the board paths the captured generation
+ * cannot reach (populated buy/buy-soon/take-profit lanes, withheld rows,
+ * locked>0) and for the real bottoming_watch payload shape. */
+const callsContract = callsContractFixture as unknown as {
+  action_board: ActionBoardData;
+  bottoming_watch_payload: BottomingWatchData;
 };
 
 /** The captured generation's real parsed rotation history (11 × 252). */
@@ -113,7 +131,7 @@ function HarnessBody() {
 
       {/* ── real captured generation ─────────────────────────────────────── */}
       <HarnessSection id="calls" title="Calls board · captured generation">
-        {null /* wired after the calls-board contract lands */}
+        <SectorCallsBoard board={capturedBoard} onNavigate={onNavigate} />
       </HarnessSection>
 
       <HarnessSection id="watch" title="Bottoming Watch · captured generation">
@@ -134,10 +152,12 @@ function HarnessBody() {
 
       {/* ── synthetic contract fixtures (clearly labelled) ────────────────── */}
       <HarnessSection id="calls-contract" title="Calls board · CONTRACT fixture (synthetic)" synthetic>
-        {null}
+        {/* No onNavigate here on purpose: this instance proves the exact-anchor
+            fallback path (<a href> verbatim from the payload). */}
+        <SectorCallsBoard board={callsContract.action_board} />
       </HarnessSection>
       <HarnessSection id="watch-contract" title="Bottoming Watch · CONTRACT fixture (synthetic)" synthetic>
-        {null}
+        <SectorBottomingWatch watch={callsContract.bottoming_watch_payload} />
       </HarnessSection>
       <HarnessSection id="flows-contract" title="Flow matrix · CONTRACT fixture (synthetic)" synthetic>
         {null}

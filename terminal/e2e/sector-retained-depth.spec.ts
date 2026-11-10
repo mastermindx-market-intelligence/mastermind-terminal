@@ -61,8 +61,11 @@ test("calls board renders the captured board: five columns, full counts, locked"
   // Board total (six source lanes) and locked count from the real fixture.
   await expect(calls).toContainText("4");
   await expect(calls).toContainText("1");
-  // The three captured theme rows are real, with exact hrefs preserved.
-  const links = calls.locator("a[href]");
+  // The exact-anchor fallback path: the CONTRACT instance mounts without
+  // onNavigate, so its detail controls are real <a href> elements carrying
+  // the payload hrefs verbatim.
+  const contract = page.locator('[data-h-section="calls-contract"]');
+  const links = contract.locator("a[href]");
   const count = await links.count();
   expect(count).toBeGreaterThanOrEqual(3);
   const hrefs = await links.evaluateAll((els) =>
@@ -94,7 +97,9 @@ test("navigation out flows through the onNavigate callback with the exact href",
   const log = page.locator('[data-harness="navlog"]');
   await expect(log).toBeVisible();
   const before = await log.locator("li").count();
-  await section.locator("a[href]").first().click();
+  // The captured section mounts WITH onNavigate: its detail control is a
+  // button that must call back with the row href verbatim.
+  await section.getByRole("button", { name: /Open detail|打开详情/ }).first().click();
   await expect(log.locator("li")).toHaveCount(before + 1);
 });
 
