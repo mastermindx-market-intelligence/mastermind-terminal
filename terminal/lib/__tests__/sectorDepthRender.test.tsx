@@ -625,6 +625,12 @@ describe("rows increment — universes board from carried blocks (static renders
     expect(firstCount).not.toBeNull();
     expect(firstCount![1]).toContain("not stated");
     expect(firstCount![1]).not.toMatch(/\b0\b/);
+    // The standalone N COLUMN cell (fmtCount, not fmtCountNoun) on the same
+    // row: the word alone — a null-coercing regression there prints a bare
+    // "0" (review r1 mutation M9 survived the noun-span assertions alone).
+    const firstNCell = markup.match(/data-label="N"[^>]*><span class="[^"]*num[^"]*">([^<]*)/);
+    expect(firstNCell).not.toBeNull();
+    expect(firstNCell![1]).toBe("not stated");
     G.__SD_LANG = "zh";
     try {
       const zh = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
@@ -632,6 +638,9 @@ describe("rows increment — universes board from carried blocks (static renders
       expect(zhFirst).not.toBeNull();
       expect(zhFirst![1]).toContain("未载明");
       expect(zhFirst![1]).not.toContain("0 ");
+      const zhNCell = zh.match(/data-label="数"[^>]*><span class="[^"]*num[^"]*">([^<]*)/);
+      expect(zhNCell).not.toBeNull();
+      expect(zhNCell![1]).toBe("未载明");
     } finally {
       G.__SD_LANG = "en";
     }
