@@ -202,6 +202,39 @@ test("phone company search keeps its scope in both languages and dismisses by to
 });
 
 
+for (const lang of ["en", "zh"] as const) {
+  test(`SS12 unknown-page recovery opens company search and returns keyboard focus at 320px (${lang})`, async ({ page }, info) => {
+    test.skip(info.project.name !== "mobile", "Original 320px phone recovery");
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.addInitScript(language => localStorage.setItem("mm.lang", language), lang);
+    const response = await page.goto("/__beta_missing_route_ui_probe");
+    expect(response?.status()).toBe(404);
+    await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
+    const zh = lang === "zh";
+    if (zh) {
+      const theme = page.getByRole("button", { name: "浅色主题", exact: true });
+      if (await theme.getAttribute("aria-pressed") !== "true") await theme.click();
+    }
+    await expect(page.locator("html")).toHaveAttribute("data-theme", zh ? "light" : "dark");
+    const recovery = page.getByRole("main");
+    const opener = recovery.getByRole("button", { name: zh ? "搜索公司" : "Search companies", exact: true });
+    await expect(recovery.getByRole("heading", { name: zh ? "还记得公司名称吗？" : "Remember the company name?" })).toBeVisible();
+    await opener.scrollIntoViewIfNeeded();
+    expect((await opener.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    await page.screenshot({ animations: "disabled", path: info.outputPath(`ss12-company-recovery-${lang}.png`) });
+    const href = page.url();
+    await opener.press("Enter");
+    const dialog = page.getByRole("dialog", { name: zh ? "搜索公司和工具" : "Search companies and tools" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("region", { name: zh ? "公司结果" : "Company results", exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    expect(page.url()).toBe(href);
+    await noOverflow(page);
+  });
+}
+
 test("Tools opens an admitted public page and Back restores query, scope and selection",async({page},info)=>{
  // /learn is an existing canonical public native member, not a fabricated fixture route.
  // Its real static page needs neither an entitlement appointment nor a data response.

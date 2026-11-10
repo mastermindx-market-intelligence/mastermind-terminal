@@ -55,7 +55,31 @@
 
 :global(.shared-shell) .mark { display: none; }
 
+.companyRecovery { display: none; }
+
 @media (max-width: 600px) {
+  :global(.shared-shell) .companyRecovery {
+    display: block;
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid var(--line-3);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .companyRecovery h2 { margin: 0; font-size: 17px; line-height: 1.35; }
+  .companyRecovery p { margin: 8px 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .companyAction {
+    min-width: 44px;
+    max-width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .companyAction:hover { background: var(--panel-2); }
   .page { padding: 32px 20px; }
   .card { margin: 0 auto; }
   .title { font-size: 28px; }
