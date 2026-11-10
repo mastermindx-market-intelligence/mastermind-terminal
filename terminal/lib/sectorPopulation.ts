@@ -109,6 +109,9 @@ export type PopulationGroupDescriptor = {
 export type PopulationGroupIndexEntry = {
   groupId: string; name: string | null; membersListed: number;
   configuredCurrent: number | null; unserved: number;
+  /** Optional zh twin of `name` (COO 19:15Z item 6): null when absent or stated
+   * null — the zh picker then falls back exactly as before, never the raw id. */
+  nameZh: string | null;
   refusedByOwner: boolean; /** explicit when the wire carries it, else the three-part test */
   refusedExplicit: boolean;
 };
@@ -354,9 +357,14 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
     if (!Array.isArray(page.group_index) || page.group_index.length > 512) return null;
     groupIndex = [];
     for (const entry of page.group_index) {
-      if (!closed(entry, ["group_id", "name", "n_members_listed", "n_configured_current", "n_unserved"], ["refused_by_owner"])
+      if (!closed(entry, ["group_id", "name", "n_members_listed", "n_configured_current", "n_unserved"], ["refused_by_owner", "name_zh"])
         || typeof entry.group_id !== "string" || !POPULATION_GROUP_ID.test(entry.group_id)
-        || !strOrNull(entry.name, 200) || !int(entry.n_members_listed, 0, 1_000_000)
+        || !strOrNull(entry.name, 200)
+        // item 6 (COO 19:15Z): name_zh is the ONE new optional key — null or a
+        // 1..160 string; empty, over-long or non-string refuses the page, and no
+        // other new key is admitted (closed rule above).
+        || (entry.name_zh !== undefined && !strOrNull(entry.name_zh, 160))
+        || !int(entry.n_members_listed, 0, 1_000_000)
         || !(entry.n_configured_current === null || int(entry.n_configured_current, 0, 1_000_000))
         || !int(entry.n_unserved, 0, 1_000_000)
         || (entry.refused_by_owner !== undefined && !bool(entry.refused_by_owner))) return null;
@@ -370,6 +378,7 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
       });
       groupIndex.push({ groupId: entry.group_id, name: entry.name, membersListed: entry.n_members_listed,
         configuredCurrent: entry.n_configured_current, unserved: entry.n_unserved,
+        nameZh: entry.name_zh ?? null,
         refusedByOwner, refusedExplicit: explicit });
     }
   }

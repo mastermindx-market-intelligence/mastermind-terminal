@@ -281,6 +281,64 @@ describe("sectorPopulationPage — wire v1.1 follow-up (COO 14:10Z, LANE1_WIRE_V
   });
 });
 
+describe("sectorPopulationPage — group_index name_zh admission (COO 19:15Z item 6)", () => {
+  const page = (value: Record<string, unknown>) => value.page as Record<string, unknown>;
+  const gi = (value: Record<string, unknown>) =>
+    page(value).group_index as Array<Record<string, unknown>>;
+
+  it("absent keeps today's behaviour exactly: the entry admits with a null zh name", () => {
+    const read = sectorPopulationPage(clone())!;
+    expect(read.groupIndex![0].nameZh).toBeNull();
+  });
+
+  it("null is a stated absent: the page admits and the zh name stays null", () => {
+    const mutated = clone();
+    gi(mutated)[0].name_zh = null;
+    const read = sectorPopulationPage(mutated)!;
+    expect(read.groupIndex![0].nameZh).toBeNull();
+  });
+
+  it("a valid zh string is carried for the Chinese picker label", () => {
+    const mutated = clone();
+    gi(mutated)[0].name_zh = "住房产业链";
+    const read = sectorPopulationPage(mutated)!;
+    expect(read.groupIndex![0].nameZh).toBe("住房产业链");
+  });
+
+  it("an empty string refuses the page", () => {
+    const mutated = clone();
+    gi(mutated)[0].name_zh = "";
+    expect(sectorPopulationPage(mutated)).toBeNull();
+  });
+
+  it("a 161-character string refuses the page (160 is the bound)", () => {
+    const mutated = clone();
+    gi(mutated)[0].name_zh = "宅".repeat(160);
+    expect(sectorPopulationPage(mutated)).not.toBeNull();
+    const over = clone();
+    gi(over)[0].name_zh = "宅".repeat(161);
+    expect(sectorPopulationPage(over)).toBeNull();
+  });
+
+  it("a non-string zh value refuses the page", () => {
+    const mutated = clone();
+    gi(mutated)[0].name_zh = 42;
+    expect(sectorPopulationPage(mutated)).toBeNull();
+  });
+
+  it("prototype-named extra keys on a group_index entry are still refused", () => {
+    // JSON.parse creates an OWN "__proto__" key (assignment would set the
+    // prototype instead) — the closed-key rule must refuse it as an unknown key.
+    const proto = clone();
+    gi(proto)[0] = JSON.parse(
+      JSON.stringify({ ...gi(proto)[0], }).replace(/^\{/, '{"__proto__":1,'),) as Record<string, unknown>;
+    expect(sectorPopulationPage(proto)).toBeNull();
+    const ctor = clone();
+    gi(ctor)[0].constructor = "no";
+    expect(sectorPopulationPage(ctor)).toBeNull();
+  });
+});
+
 describe("sectorPopulationPage — internal consistency (review S2)", () => {
   const page = (value: Record<string, unknown>) => value.page as Record<string, unknown>;
   const pop = (value: Record<string, unknown>) =>

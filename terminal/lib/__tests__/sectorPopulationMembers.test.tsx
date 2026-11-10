@@ -300,6 +300,35 @@ describe("SectorPopulationMembers — r2 SF-4/N-B/S1 render gates", () => {
     });
   });
 
+  it("item 6: an index name_zh names the zh picker option for a group not on the page (zh)", async () => {
+    // The index carries a zh twin for a group whose page descriptor is absent
+    // (the fixture page lists housing only): the zh option reads the index's zh
+    // name — never the English name, never the raw id. The page descriptor's
+    // own name_zh still wins for the group that IS on the page (housing).
+    pageMutate = page => {
+      (page as { group_index: Array<Record<string, unknown>> }).group_index.push(
+        { group_id: "precious", name: "Precious Metals", name_zh: "贵金属矿商",
+          n_members_listed: 4, n_configured_current: 4, n_unserved: 0 });
+    };
+    await withZh(async ({ container }) => {
+      expect(optionText(container, "precious")).toContain("贵金属矿商");
+      expect(optionText(container, "precious")).not.toContain("Precious Metals");
+      expect(optionText(container, "housing")).toContain("住房产业链"); // descriptor still wins
+    });
+  });
+
+  it("item 6: with no zh anywhere the option keeps the generic fallback, never the raw id (zh)", async () => {
+    pageMutate = page => {
+      (page as { group_index: Array<Record<string, unknown>> }).group_index.push(
+        { group_id: "no_zh_probe", name: "Named Group", name_zh: null,
+          n_members_listed: 2, n_configured_current: 2, n_unserved: 0 });
+    };
+    await withZh(async ({ container }) => {
+      expect(optionText(container, "no_zh_probe")).toContain("Named Group");
+      expect(optionText(container, "no_zh_probe")).not.toContain("no_zh_probe");
+    });
+  });
+
   it("N-A: a capture rollover never leaves the picker disabled while a group is set", async () => {
     // First page: capture C1 with group_index (fixture default). After the
     // reader chooses a basket, the owner's answer comes from a NEW capture

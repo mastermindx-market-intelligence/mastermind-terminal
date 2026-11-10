@@ -165,12 +165,13 @@ export default function SectorPopulationMembers() {
   const searchInvalid = query.trim() !== "" && !POPULATION_QUERY.test(query.trim());
   const localize = (value: string | null | undefined, zh: string | null | undefined): string =>
     lang === "zh" ? zh || value || "—" : value || "—";
-  // N-B (r2): a picker option is named by the owner — the zh descriptor name
-  // any loaded page's group descriptor carries, else the index name, else the
-  // generic "Unnamed group"; the raw group id is never reader-facing.
+  // N-B (r2) + item 6 (COO 19:15Z): a picker option is named by the owner — the
+  // zh descriptor name any loaded page's group descriptor carries, else the
+  // index entry's own name_zh twin, else the index name, else the generic
+  // "Unnamed group"; the raw group id is never reader-facing.
   const groupNamesZh = new Map(pages.flatMap(page => page.groups.map(entry => [entry.groupId, entry.nameZh])));
   const groupOptionName = (entry: PopulationGroupIndexEntry): string =>
-    (lang === "zh" ? (groupNamesZh.get(entry.groupId) || entry.name) : entry.name) ?? t("siPopulationGroupNameUnnamed");
+    (lang === "zh" ? (groupNamesZh.get(entry.groupId) || entry.nameZh || entry.name) : entry.name) ?? t("siPopulationGroupNameUnnamed");
 
   return <section className={styles.card} data-testid="sector-population-members">
     <h2 className={styles.cardTitle}>{t("siPopulationTitle")}</h2>
