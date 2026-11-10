@@ -1,0 +1,100 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ❯ lib/__tests__/compareSettingsAccessibility.test.tsx (5 tests | 5 failed) 142ms
+   × comparison settings interaction > opens one native modal, contains sequential focus and restores the opener 77ms
+     → expected null to be an instance of HTMLDialogElement
+   × comparison settings interaction > shows the actual RGB color and preserves its saved opacity when choosing a swatch 16ms
+     → expected '#888888' to be '#19c2c2' // Object.is equality
+   × comparison settings interaction > exposes selected controls, bounds thickness and preserves unrelated comparison terms 13ms
+     → expected null to be 'true' // Object.is equality
+   × comparison settings interaction > keeps live changes and focus through owner rerenders, then closes through Done 28ms
+     → Done: expected undefined to be defined
+   × comparison settings interaction > keeps dialog keystrokes out of page-level symbol search 7ms
+     → Cannot read properties of null (reading 'dispatchEvent')
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/compareSettingsAccessibility.test.tsx > comparison settings interaction > opens one native modal, contains sequential focus and restores the opener
+AssertionError: expected null to be an instance of HTMLDialogElement
+ ❯ lib/__tests__/compareSettingsAccessibility.test.tsx:65:20
+     63|     const oldOverflow = document.body.style.overflow;
+     64|     const dialog = open();
+     65|     expect(dialog).toBeInstanceOf(HTMLDialogElement);
+       |                    ^
+     66|     expect(dialog.open).toBe(true);
+     67|     expect(document.activeElement).toBe(dialog);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  lib/__tests__/compareSettingsAccessibility.test.tsx > comparison settings interaction > shows the actual RGB color and preserves its saved opacity when choosing a swatch
+AssertionError: expected '#888888' to be '#19c2c2' // Object.is equality
+
+Expected: "#19c2c2"
+Received: "#888888"
+
+ ❯ lib/__tests__/compareSettingsAccessibility.test.tsx:80:80
+     78|   it("shows the actual RGB color and preserves its saved opacity when …
+     79|     open();
+     80|     expect(host.querySelector<HTMLInputElement>('input[type="color"]')…
+       |                                                                                ^
+     81|     expect(button("Color: #19c2c2").getAttribute("aria-pressed")).toBe…
+     82|     act(() => button("Color: #26c281").click());
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  lib/__tests__/compareSettingsAccessibility.test.tsx > comparison settings interaction > exposes selected controls, bounds thickness and preserves unrelated comparison terms
+AssertionError: expected null to be 'true' // Object.is equality
+
+- Expected: 
+"true"
+
++ Received: 
+null
+
+ ❯ lib/__tests__/compareSettingsAccessibility.test.tsx:89:59
+     87|   it("exposes selected controls, bounds thickness and preserves unrela…
+     88|     open();
+     89|     expect(button("Dashed").getAttribute("aria-pressed")).toBe("true");
+       |                                                           ^
+     90|     act(() => button("Dotted").click());
+     91|     expect(changed).toHaveBeenLastCalledWith({ lineStyle: 1 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  lib/__tests__/compareSettingsAccessibility.test.tsx > comparison settings interaction > keeps live changes and focus through owner rerenders, then closes through Done
+AssertionError: Done: expected undefined to be defined
+ ❯ button lib/__tests__/compareSettingsAccessibility.test.tsx:49:23
+     47| function button(name: string): HTMLButtonElement {
+     48|   const found = [...host.querySelectorAll<HTMLButtonElement>("button")…
+     49|   expect(found, name).toBeDefined(); return found!;
+       |                       ^
+     50| }
+     51| function open() {
+ ❯ lib/__tests__/compareSettingsAccessibility.test.tsx:110:15
+ ❯ Proxy.process.env.NODE_ENV.exports.act ../../../2fe663974ce0/validation-pr1326/terminal/node_modules/react/cjs/react.development.js:814:22
+ ❯ lib/__tests__/compareSettingsAccessibility.test.tsx:110:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  lib/__tests__/compareSettingsAccessibility.test.tsx > comparison settings interaction > keeps dialog keystrokes out of page-level symbol search
+TypeError: Cannot read properties of null (reading 'dispatchEvent')
+ ❯ lib/__tests__/compareSettingsAccessibility.test.tsx:58:18
+     56| function key(el: HTMLElement, value: string, shiftKey = false) {
+     57|   const event = new KeyboardEvent("keydown", { key: value, shiftKey, b…
+     58|   act(() => { el.dispatchEvent(event); }); return event;
+       |                  ^
+     59| }
+     60| 
+ ❯ Proxy.process.env.NODE_ENV.exports.act ../../../2fe663974ce0/validation-pr1326/terminal/node_modules/react/cjs/react.development.js:814:22
+ ❯ key lib/__tests__/compareSettingsAccessibility.test.tsx:58:3
+ ❯ lib/__tests__/compareSettingsAccessibility.test.tsx:118:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  08:28:50
+   Duration  1.68s (transform 393ms, setup 0ms, collect 509ms, tests 142ms, environment 574ms, prepare 84ms)
+

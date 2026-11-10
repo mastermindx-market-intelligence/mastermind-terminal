@@ -1,0 +1,259 @@
+{
+  "artifacts": {
+    "artifacts/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/saved-theme-cold-return-json-5d855564471b79ff2f8d1a8b99464352a1afd65b.json": "587bace7d392770c58a658249a7d11483688348b979d640e49b3fce5d583a6ab",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/synthetic-light-control-s14-dark-control-json-de0f3325aeb465667739b4a0cf1b1639757eb7db.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/synthetic-light-control-s14-first-intent-json-ef66087ec93028cf9c45e1f05bf5d6edfb90095e.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-cold-return.json": "587bace7d392770c58a658249a7d11483688348b979d640e49b3fce5d583a6ab",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-main-reloaded.png": "ee1e34a06c1a5314513d5e2db99d7cf3e16209b67f27b5553361c255522111aa",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-return-reloaded.png": "713139601cdd5d47da6b2c753875a9101719dcf6b0bd4d905469d3656594b82f",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/saved-theme-cold-return-json-643944557e0d3805e8682ef88a4f6b72435c0d0f.json": "5adc0f95c6ff90913904644cd753d1f011c02df3fd58810641db2b9093246e9f",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/synthetic-light-control-s14-dark-control-json-85f296657b36811d0e27dcfa5cd50df60b1199dc.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/synthetic-light-control-s14-first-intent-json-effff2d3f802f55e1673c631dc37cecc2e1b6fd2.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-cold-return.json": "5adc0f95c6ff90913904644cd753d1f011c02df3fd58810641db2b9093246e9f",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-main-reloaded.png": "0a1144b85bb49b5ab981d737ce103aaaa5a9b76618be63cc65f8ca2143729435",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-return-reloaded.png": "e059fb5d259869ce8421342686f51bf2176ffc426e5c96f8bea7d9f72cf4ea8b",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/saved-theme-cold-return-json-f29db454e609605d161cbe02373fd0b6eb260ba0.json": "803f85acadd181f0448381fce4b2c4cc2726a4a7b8e6783fc8165db63851a285",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/synthetic-light-control-s14-dark-control-json-2871a26e86d4df027fc8d317fd2d47770f76584e.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/synthetic-light-control-s14-first-intent-json-79116feaf3f78b2936b9bfce35e9778ae561fd20.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-cold-return.json": "803f85acadd181f0448381fce4b2c4cc2726a4a7b8e6783fc8165db63851a285",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-main-reloaded.png": "2a95cad03197c900c51f901d3e4542654fec4ec20039edf793402dd0e1b0b048",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-return-reloaded.png": "c69150fc7244e68c34aa4237506cf495d7c13eb88890f285bfaf5e2f86702797",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-exposure-surface-context-json-25560422142279b6fdfbfbdc3ef60845fdc8b118.json": "88b3ad396682bd4a4b2ed9b4db4a17869416ab3672c2d8b0bb07a73bec46e22c",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-ma-paint-contract-json-5440867af85d5fd9190dd2286cca5a128eccf1f1.json": "13abe6cdb52d203a08218eedc2c88bebd0d4f2d36df3db95be352ee9cf2c14bd",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-ma-strip-contract-json-749cd11c203aeca1a491ec6247afeade8dad4ffe.json": "0123a9ccadb95a898545b63bf05122df3e772ed6f67d03376bcefa5eac554e06",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-main-chart-owner-json-f193e08bc0fab1f374d7458e9e68173e6bafae08.json": "5685d946625fc3713d265176882ee27e2a08b96109e66e46c1d83a3fb3db014d",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-main-chart-reveal-json-c5d9ba11cc310047a7a30fcd446fdc57ac820720.json": "813e0ea4803f58ee8ed3bdca76aeb5c91ad868d673af8c71683d6775b8815d65",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-network-isolation-json-146fff149bdf785ae5da00a60bfc1be66193629a.json": "8456c2f9886c876d3b7b63264450deb1343860f0fed0f931fce749fbc89c491e",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-reference-badge-contract-json-0de521d7a77c971a7563fe9862d82810da6c98d5.json": "a3d661683b438e9261e32d144eb37bcf7c025cb99a3aaf444dfa8062aeff37a7",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-surface-screen-geometry-json-6afbcac6601d125df072e3b442dcbf51cc9434e0.json": "d8bb4cd94a7ffdfac618c32bdd7864949ba4392655600e42f955ca1e428087a8",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-exposure-surface-context.json": "88b3ad396682bd4a4b2ed9b4db4a17869416ab3672c2d8b0bb07a73bec46e22c",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-ma-paint-contract.json": "13abe6cdb52d203a08218eedc2c88bebd0d4f2d36df3db95be352ee9cf2c14bd",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-ma-strip-contract.json": "0123a9ccadb95a898545b63bf05122df3e772ed6f67d03376bcefa5eac554e06",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-main-chart-owner.json": "5685d946625fc3713d265176882ee27e2a08b96109e66e46c1d83a3fb3db014d",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-main-chart-reveal.json": "813e0ea4803f58ee8ed3bdca76aeb5c91ad868d673af8c71683d6775b8815d65",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-network-isolation.json": "8456c2f9886c876d3b7b63264450deb1343860f0fed0f931fce749fbc89c491e",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-reference-badge-contract.json": "a3d661683b438e9261e32d144eb37bcf7c025cb99a3aaf444dfa8062aeff37a7",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-surface-screen-geometry.json": "d8bb4cd94a7ffdfac618c32bdd7864949ba4392655600e42f955ca1e428087a8",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-exposure-surface-context-json-aba62b3f7f2747cea56d1c9ee7e68decd51421b4.json": "f5745325ae88da8e8c3e51688c42fee03afe336abb511101db7155d7446a3c63",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-contract-json-f1d83974848567f3aee5b205fc9314b4140bc522.json": "ee4e825796f353e0cec9dd5a30022811a6c5735fac1b99feda30f6a869c5d33c",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-narrow320-json-55e64ec1b098a482a9e7c43f75bb4c5d76f6d652.json": "f1b75234d37699fe2441204cafde94d9bb8a6be10aa36ef3f5d7bfb797335105",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-restored390-json-b9c04b86a6fcaa0b0bef06284ff6cd662f6150ea.json": "0fb1d0c42013074b32741bab8b20230e6de1f4f28c98c74f1c32ceb6c79e22e7",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-contract-json-550abc29dd53dd3cba1e4b0560e93a00f0957146.json": "c8ca2d0a81a7c9a200e8520340ad1960ced8387b8a07c094bf69a9f282105444",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-narrow320-json-fb3d6bf0c2917c4f55e3d21f3c1e1c1a29a31889.json": "e660427d1e4483cd621fb26335d34e8c79eacc696479e3615e2925a339956dac",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-restored390-json-49b6618ecfb5fc89def11c0e8b9068aaa59d8555.json": "748f304b5d57996068b3b3e9c15b2144689c661be819d08d5ec5241361533368",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-main-chart-owner-json-6eb8898601d7729b526b07d152624aacd26295ec.json": "f2d80f474fa8404e9eed7bcee280bf222c0d7ba95ed4b8999bdd9c301b71efd0",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-main-chart-reveal-json-e7cc7ce6e0911de1307e9e288bcd9b40ceedabb4.json": "25e2961e883cfb3b57026757214fa8ddf9987cf34119050baf0302845ae4700a",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-network-isolation-json-e9d5477d97cba284afc875f2ed73022bfd011bad.json": "8456c2f9886c876d3b7b63264450deb1343860f0fed0f931fce749fbc89c491e",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-exit-json-d3d42d36edc4d5a3b57a8005d55342e4ff3625e5.json": "32db8feefa78f09918655b12dd99505a000c3a2451fe962bf0be6c4c3506edd1",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-fullscreen-json-cd724bc71e19cdad9deb0f72cecb95e2cee80da0.json": "bc15aed4dcc2b8a2c836f5bf700d138a05ebec3f80933cfacfb60162e6a47b26",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-narrow320-exit-json-c209b5ef6333867b071e91965e0097b688b2c83f.json": "2d1dfef2515c35b79f7f5bd44882cd2db9d8111e1ace02b2b984415250409bc2",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-narrow320-fullscreen-json-4ebe7423a6e00a87e06cfd48ce145b25b8daf9c5.json": "469bae2fae26291cd60f33cd3c07ac6f463cbfab8bb47cbe52f6e81d5ed4ccd7",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-contract-json-2ea84afe1fb5ed117b1da9ab53b1c99b7e412a64.json": "32db8feefa78f09918655b12dd99505a000c3a2451fe962bf0be6c4c3506edd1",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-narrow320-json-83917644f698cbe4da0a24a9275ef5e5c0866b60.json": "2d1dfef2515c35b79f7f5bd44882cd2db9d8111e1ace02b2b984415250409bc2",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-restored390-json-fe5cca45655bb28688adf42b16be68116d4f552f.json": "32db8feefa78f09918655b12dd99505a000c3a2451fe962bf0be6c4c3506edd1",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-surface-320-geometry-json-9f461aa6ab062a9d867b343b2f2f4b1150f6070b.json": "43409c033d3f61e911afba4e0e763357efe5560a87176552539b20d1d4b300af",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-surface-screen-geometry-json-f841039058db0a015755c898f0fa31005c69a6d0.json": "a35e26c72721b5a2d5bac6681e20dfb9813defe7bd7a41ae63b997a10986a530",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-exposure-surface-context.json": "f5745325ae88da8e8c3e51688c42fee03afe336abb511101db7155d7446a3c63",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-paint-contract.json": "ee4e825796f353e0cec9dd5a30022811a6c5735fac1b99feda30f6a869c5d33c",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-paint-narrow320.json": "f1b75234d37699fe2441204cafde94d9bb8a6be10aa36ef3f5d7bfb797335105",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-paint-restored390.json": "0fb1d0c42013074b32741bab8b20230e6de1f4f28c98c74f1c32ceb6c79e22e7",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-strip-contract.json": "c8ca2d0a81a7c9a200e8520340ad1960ced8387b8a07c094bf69a9f282105444",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-strip-narrow320.json": "e660427d1e4483cd621fb26335d34e8c79eacc696479e3615e2925a339956dac",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-strip-restored390.json": "748f304b5d57996068b3b3e9c15b2144689c661be819d08d5ec5241361533368",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-main-chart-owner.json": "f2d80f474fa8404e9eed7bcee280bf222c0d7ba95ed4b8999bdd9c301b71efd0",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-main-chart-reveal.json": "25e2961e883cfb3b57026757214fa8ddf9987cf34119050baf0302845ae4700a",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-network-isolation.json": "8456c2f9886c876d3b7b63264450deb1343860f0fed0f931fce749fbc89c491e",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-chart-reference-exit.json": "32db8feefa78f09918655b12dd99505a000c3a2451fe962bf0be6c4c3506edd1",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-chart-reference-fullscreen.json": "bc15aed4dcc2b8a2c836f5bf700d138a05ebec3f80933cfacfb60162e6a47b26",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-chart-reference-narrow320-exit.json": "2d1dfef2515c35b79f7f5bd44882cd2db9d8111e1ace02b2b984415250409bc2",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-chart-reference-narrow320-fullscreen.json": "469bae2fae26291cd60f33cd3c07ac6f463cbfab8bb47cbe52f6e81d5ed4ccd7",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-contract.json": "32db8feefa78f09918655b12dd99505a000c3a2451fe962bf0be6c4c3506edd1",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-narrow320.json": "2d1dfef2515c35b79f7f5bd44882cd2db9d8111e1ace02b2b984415250409bc2",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-restored390.json": "32db8feefa78f09918655b12dd99505a000c3a2451fe962bf0be6c4c3506edd1",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-surface-320-geometry.json": "43409c033d3f61e911afba4e0e763357efe5560a87176552539b20d1d4b300af",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-surface-screen-geometry.json": "a35e26c72721b5a2d5bac6681e20dfb9813defe7bd7a41ae63b997a10986a530",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-exposure-surface-context-json-87350a9ee443d475cce8a795f3c4953dee30b136.json": "f6657aa9d5edec32e85fdf58f23b4066aa84b7b06efccea793c832ea33a33ecc",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-ma-paint-contract-json-721f664f3325fd5a64793e4b3e8106af01d38ee0.json": "43adb7f9021ba42ef74a2b0ae17deaa4d682d394917cfcf3383e922846a71c58",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-ma-strip-contract-json-81bc93fbd780ed4b80e5b356c1375263905091e5.json": "c581a8732551e655e0ed4902ba8cd6e076cb44f543e20e2d85dfa624ae28412e",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-main-chart-owner-json-52cf23a64e7dd8794a337921b1555d9115deba62.json": "c1674039669f3b3526608742657b019957dbd1d557b7108b590f09027f370c30",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-main-chart-reveal-json-1d5c9c26f4ab15d2bf28f3fb0d235f3a5d701a0e.json": "86e9c30f51c5a0f33d9ce1f15043053af05f109f6af8150e50837835e0e143bf",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-network-isolation-json-1f678f8de5ee37ce24faf457fd67b2c6964f86cb.json": "8456c2f9886c876d3b7b63264450deb1343860f0fed0f931fce749fbc89c491e",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-chart-reference-exit-json-22958d711442080964a289547c1401284ae94f45.json": "4b00c7ff08c14ddb8cef78667d2a282b1f068fa328b2eb4a516c6c30971b70be",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-chart-reference-fullscreen-json-1e212c29552fe4452917d88a53b3fec74384a494.json": "e36d3610eb46ea5711174b8a708bd68807ce8f389d928829ca72e09556095a5f",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-contract-json-3e001678097e952e7d7561726f9a4177838307a4.json": "4b00c7ff08c14ddb8cef78667d2a282b1f068fa328b2eb4a516c6c30971b70be",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-surface-screen-geometry-json-4973c22a30736571966e063a26c7f6327043a2d0.json": "94beb31f5ea4e194f9252a499a922540046279541bfa01cf18f500917ea81b8b",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-exposure-surface-context.json": "f6657aa9d5edec32e85fdf58f23b4066aa84b7b06efccea793c832ea33a33ecc",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-ma-paint-contract.json": "43adb7f9021ba42ef74a2b0ae17deaa4d682d394917cfcf3383e922846a71c58",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-ma-strip-contract.json": "c581a8732551e655e0ed4902ba8cd6e076cb44f543e20e2d85dfa624ae28412e",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-main-chart-owner.json": "c1674039669f3b3526608742657b019957dbd1d557b7108b590f09027f370c30",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-main-chart-reveal.json": "86e9c30f51c5a0f33d9ce1f15043053af05f109f6af8150e50837835e0e143bf",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-network-isolation.json": "8456c2f9886c876d3b7b63264450deb1343860f0fed0f931fce749fbc89c491e",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-reference-badge-chart-reference-exit.json": "4b00c7ff08c14ddb8cef78667d2a282b1f068fa328b2eb4a516c6c30971b70be",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-reference-badge-chart-reference-fullscreen.json": "e36d3610eb46ea5711174b8a708bd68807ce8f389d928829ca72e09556095a5f",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-reference-badge-contract.json": "4b00c7ff08c14ddb8cef78667d2a282b1f068fa328b2eb4a516c6c30971b70be",
+    "artifacts/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-surface-screen-geometry.json": "94beb31f5ea4e194f9252a499a922540046279541bfa01cf18f500917ea81b8b"
+  },
+  "branchHead": "11409f7bf60125280c4e419738bd66d226a35321",
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|synthetic exposure surface journey en"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|synthetic exposure saved theme cold return en"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|synthetic exposure surface journey en"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|synthetic exposure saved theme cold return en"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|synthetic exposure surface journey en"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|synthetic exposure saved theme cold return en"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|Main chart rejects a book corrected during navigation"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|Main chart rejects a book corrected during navigation"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|Main chart rejects a book corrected during navigation"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/options-exposure-workspace.spec.ts",
+    "e2e/options-exposure-surface-journey.spec.ts",
+    "--grep",
+    "(Main chart rejects a book corrected during navigation|synthetic exposure surface journey en|synthetic exposure saved theme cold return en)$",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-integration/terminal/test-results/pr768-b5c-browser-supplement"
+  ],
+  "completedAt": "2026-11-10T03:29:27.498946+00:00",
+  "exit": 0,
+  "expectedCases": [
+    "desktop|Main chart rejects a book corrected during navigation",
+    "desktop|synthetic exposure saved theme cold return en",
+    "desktop|synthetic exposure surface journey en",
+    "mobile|Main chart rejects a book corrected during navigation",
+    "mobile|synthetic exposure saved theme cold return en",
+    "mobile|synthetic exposure surface journey en",
+    "tablet|Main chart rejects a book corrected during navigation",
+    "tablet|synthetic exposure saved theme cold return en",
+    "tablet|synthetic exposure surface journey en"
+  ],
+  "lifecycleSha256": "0ffe50ef97d839beebacdcf306a31939bb9b2bc29b21c906016d8e3aed669e31",
+  "logSha256": "d8f8f89b869b4b0465eb4904633253ef5cd785b50a5de0f5a55405aed134db86",
+  "overrides": {
+    "EXPOSURE_NATIVE_WITNESS": null,
+    "EXPOSURE_P09_CURRENT_WITNESS": null,
+    "EXPOSURE_P09_PREVIOUS_WITNESS": null,
+    "TERMINAL_EVIDENCE_COMPOSITION": null,
+    "TERMINAL_EVIDENCE_MODE": null,
+    "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE": null,
+    "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE": null,
+    "TERMINAL_EXPOSURE_PAINT_PROBE": null,
+    "TERMINAL_PL6_EVIDENCE_OPERATION_ID": null
+  },
+  "ownedServerStopped": true,
+  "port": 47468,
+  "profile": {
+    "build": "next-dev",
+    "fixture": "terminal-e2e.v1",
+    "investorPreview": "0",
+    "sharedShell": "0",
+    "source": "synthetic:options-exposure-surface-journey/v1",
+    "sourceSession": "2026-10-19",
+    "surfaceFixtureClock": "2026-10-19T20:30:00Z",
+    "themes": "Dark surface journey; Light cold return then Dark preference"
+  },
+  "protectedMaster": "b5c242f9f02b322b57a5cfbaf4ae5bd9d525849e",
+  "reportErrors": [],
+  "schema": "terminal_pr768_b5c_consumer_supplement.v1",
+  "seconds": 314.86,
+  "selectionLogSha256": "bb1796ad84513014faf9054bddbb40dfbee695f76dd9cfe42bfe38ec24da5175",
+  "sourceEntries": 2003,
+  "sourceStable": true,
+  "sourceTree": "fc5fa62a49368bc7522c094870c120c7a81742e2",
+  "startedAt": "2026-11-10T03:24:12.630461+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 304307.46599999996,
+    "expected": 9,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T03:24:13.497Z",
+    "unexpected": 0
+  }
+}

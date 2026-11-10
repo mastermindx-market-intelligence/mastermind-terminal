@@ -1,0 +1,10 @@
+{
+  "requested": "dark",
+  "before": "light",
+  "theme": "dark",
+  "presentationOwner": null,
+  "chartAppearanceOwner": null,
+  "researchAppearanceOwner": "lab",
+  "bodyBackground": "rgb(10, 11, 14)",
+  "sourceRoot": "SPY"
+}

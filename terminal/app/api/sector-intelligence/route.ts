@@ -1,3 +1,4 @@
+import { intelligenceResponse } from "@/lib/shared-shell/intelligenceResponse";
 import { qualifyFinvizMembershipManifest } from "@/lib/finvizMembershipManifest";
 import { normalizeFinviz, TIMEFRAMES } from "@/lib/finvizThemes";
 import { isAdminRequest } from "@/lib/adminGate";
@@ -9,6 +10,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { NW_BASE } from "@/lib/upstreams";
 import { qualifyRiskEnvelope } from "@/lib/marketRisk";
 import { object, number, feedSourceStamp, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
+import { SECTOR_GENERATION_PATH, sectorNativeGeneration } from "@/lib/sectorNativeGeneration";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +18,7 @@ const HEADERS = { "Cache-Control": "private, no-store", Vary: "Cookie" };
 // Transport of existing owner outputs only. No dossier composition or inference.
 const PATHS: Record<SectorFeed, string> = {
   sector: "/sectordata/sector_central.json",
+  generation: SECTOR_GENERATION_PATH,
   confluence: "/marketdata/subsector_confluence.json",
   themes: "/neuralwebdata/theme_state.json",
   heatmap: "/marketdata/sp500_heatmap.json",
@@ -158,7 +161,7 @@ export type FeedFailure =
   /** The body arrived but is not the owner envelope. */
   | "payload_invalid";
 
-export async function GET(req: Request): Promise<Response> {
+async function readIncumbent(req: Request): Promise<Response> {
   const source = new URL(req.url).searchParams.get("source") || "";
   // own-property test excludes __proto__/constructor and all user-supplied URLs.
   if (!Object.hasOwn(PATHS, source)) {
@@ -251,10 +254,12 @@ export async function GET(req: Request): Promise<Response> {
       if (error instanceof InterruptedOwnerBody) throw error;
       return failure(502, "invalid", "payload_invalid");
     }
-    if (!readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid", "payload_invalid");
+    const generation = key === "generation" ? sectorNativeGeneration(parsed.data) : null;
+    if (key === "generation" ? !generation : !readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid", "payload_invalid");
     const riskRead = key === "risk" ? qualifyRiskEnvelope(parsed.data) : null;
     const receipt: FeedReceipt = { ...baseReceipt, status: "ready", asOf: feedSourceStamp(key, parsed.data),
-      observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true || riskRead?.qualified === false,
+      observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true || riskRead?.qualified === false
+        || (generation !== null && generation.receipt.qualification === "stale"),
       contentHash: parsed.hash, ...(riskRead ? { qualificationReasons: riskRead.reasons } : {}) };
     // Transport factual identity/membership/measurements only, never vendor prose.
     const owner = object(parsed.data);
@@ -285,4 +290,12 @@ export async function GET(req: Request): Promise<Response> {
     return failure(502, "error", "upstream_transport");
   }
   finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
+}
+
+/** Compact display view over the same authenticated reader; ordinary responses are unchanged. */
+export async function GET(req: Request): Promise<Response> {
+  const response = await readIncumbent(req);
+  const params = new URL(req.url).searchParams;
+  return params.get("view") === "intelligence" && params.get("source") === "history"
+    ? intelligenceResponse(response, "cycles") : response;
 }

@@ -59,7 +59,7 @@ describe("Today watchlist attention", () => {
     expect(container.textContent).toContain("XOM"); expect(container.textContent).toContain("CVX");
     expect(container.querySelector('[data-testid="event-child"]')).toBeNull();
     expect(child.mounts).toHaveLength(0);
-    expect(container.textContent).toContain("Choose a saved symbol");
+    expect(container.textContent).toContain("Saved-list order, not ranked alerts");
     expect(held.every(request => request.url === "/api/watchlist")).toBe(true);
   });
 
@@ -204,7 +204,7 @@ describe("Today watchlist attention", () => {
     i18n.lang = "zh";
     await renderOwner(A);
     await answer(0, { lists: [watchRow("wl-a", "能源", 0, ["XOM"])] });
-    expect(container.textContent).toContain("关注事项");
+    expect(container.textContent).toContain("你的关注列表");
     expect(container.textContent).toContain("核对事件证据");
     expect(container.textContent).toContain("打开监控");
     expect(Array.from(container.querySelectorAll("button")).filter(node => node.textContent?.includes("刷新列表"))).toHaveLength(1);

@@ -1,12 +1,15 @@
+# sourceCompositionTree: 04d0d4ebb0c2b8ca0b0d4dd421ea92f23977f96c
+# protectedBase: d0578d1237a818e554d2ac52dc54e371f02c2770
+# execution: terminal/docs/verification/pr900-workspace-successor-20261110/workspace-current/execution.json
 # B-F12-B5-2 team-shared workspaces — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 9a3b166921c1dc015be147a99a2e4f42cdaedb18
-# capturedAt: 2026-11-09T12:37:11.736Z
+# capturedAtHead: 90ed31ba6e5ddbc39d58913b3416159b7c511874
+# capturedAt: 2026-11-10T13:01:36.973Z
 # capturedAtHead is informational until the code commit that the pixels depict is known.
 # Rebuild crops after that commit and set capturedAtHead to it. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/LayoutMenu.tsx: "5ff005a544904a63a46928a33356f9d839ed4335319765916aa67d9a3fc5b83c"
+  terminal/components/LayoutMenu.tsx: "eb392466ee95195dea79eff75c238aa0747ef69ecd9868cff9ef7e263888c657"
   terminal/lib/teamSharedWorkflow.ts: "1604fbf4eb28e119211a55acb1f70278339876d30e56ff3cda0cad1de68312df"
   terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
   terminal/app/dev/workspaces/page.tsx: "320f7983a913e212249dbfc65a18c1807f1fca9f6de9305f595a855ad4b9f1b5"

@@ -11,7 +11,6 @@ import {
   NewsReviewTag,
   NewsSavedBasis,
 } from "@/components/news/NewsCatchup";
-import NewsFlowStrip from "@/components/news/NewsFlowStrip";
 import NewsLiveDot from "@/components/news/NewsLiveDot";
 import { useNewsCatchup } from "@/components/news/useNewsCatchup";
 
@@ -24,7 +23,7 @@ import {
   type TickerNewsStory,
   type TickerNewsStoryRow,
 } from "@/lib/newsContract";
-import { formatRailTime, reportSourceLabel, sourceLabel } from "@/lib/newsDisplay";
+import { decodeNewsText, formatRailTime, reportSourceLabel, sourceLabel } from "@/lib/newsDisplay";
 import { newsEditorialText } from "@/lib/newsEditorialLex";
 import { newsFlowText } from "@/lib/newsFlowLex";
 import { ladderSteps, newsLadderText, nextCheck, topicFamily } from "@/lib/newsLadderLex";
@@ -204,27 +203,17 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
     panel.querySelector<HTMLButtonElement>('[data-news-filter][aria-pressed="true"]')?.focus();
   }, [reviewFocusTurn, reviewFocusContext, snapshot]);
 
-  // Wave B3: the news-flow strip rides on page one of a ready snapshot only. It is
-  // hidden for a null flow (old API, cursor page), no_accessible_sources, an empty
-  // feed (the empty state already speaks), restricted/unavailable panel states, and
-  // while the snapshot describes a different symbol than the one on screen — a stale
-  // strip describes the wrong security.
-  const flow = loadState === "ready" && snapshot ? snapshot.flow : null;
+  // The snapshot's ticker must be the symbol on screen. A snapshot that describes a
+  // different security mints no detail token for it, so a stale read can never open
+  // another security's evidence under this symbol.
   const symbolsMatch = (() => {
     if (!snapshot) return false;
     try {
       return normalizeTickerNewsSymbol(snapshot.ticker) === normalizeTickerNewsSymbol(symbol);
     } catch {
-      return false; // an odd symbol never throws the panel; the strip is simply hidden
+      return false; // an odd symbol never throws the panel; no detail token is minted for it
     }
   })();
-  const showFlow =
-    flow !== null &&
-    flow.reason !== "no_accessible_sources" &&
-    presented.length > 0 &&
-    state !== "restricted" &&
-    state !== "unavailable" &&
-    symbolsMatch;
 
   // Group sequence changes when any member changes. Policy also belongs to the
   // detail identity: a rolling deployment must not retain pre-curation members.
@@ -348,10 +337,6 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
         </div>
       )}
 
-      {showFlow && flow && snapshot ? (
-        <NewsFlowStrip key={snapshot.ticker} flow={flow} lang={lang} />
-      ) : null}
-
       {presented.length > 0 && (
         <NewsCatchupBar
           catchup={catchup}
@@ -380,6 +365,10 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
           const cached = details[row.story_id];
           const detail = cached && cached.token === detailTokens.get(row.story_id) ? cached.story : null;
           const timeRaw = row.updated_at || row.published_at || row.received_at;
+          // Feed bodies arrive entity-encoded. The row renders the decoded text; the
+          // URL, story id and revision stay exactly as the feed sent them.
+          const headline = decodeNewsText(row.title);
+          const teaser = row.teaser ? decodeNewsText(row.teaser) : "";
           const review = catchup.classify(row);
           const topic = topicFamily(row.annotation?.event_type ?? null, lang);
           const nextKey = nextCheck(row, state, detail?.members ?? null);
@@ -409,14 +398,14 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                 )}
               </div>
               {row.url ? (
-                <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>
+                <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{headline}</a>
               ) : (
                 <>
-                  <span data-news-headline tabIndex={-1} className={`${styles.headline} ${styles.headlineStatic}`}>{row.title}</span>
+                  <span data-news-headline tabIndex={-1} className={`${styles.headline} ${styles.headlineStatic}`}>{headline}</span>
                   <span className={styles.srOnly}>{copy.sourceUnavailable}</span>
                 </>
               )}
-              {row.teaser && <p className={styles.teaser}>{row.teaser}</p>}
+              {teaser && <p className={styles.teaser}>{teaser}</p>}
               <NewsReviewChange cls={review} lang={lang} />
               <NewsSavedBasis drift={catchup.drift(row.story_id)} lang={lang} onOpenCurrent={() => void toggleStory(row)} />
               {row.item_count > 1 ? (
@@ -458,7 +447,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                         className={styles.sourceLink}
                         title={member.publisher}
                       >
-                        <span>{reportSourceLabel(member.source, member.content_kind, lang)}</span><span>{member.title}</span>
+                        <span>{reportSourceLabel(member.source, member.content_kind, lang)}</span><span>{decodeNewsText(member.title)}</span>
                       </a>
                     ) : (
                       <div
@@ -466,7 +455,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                         key={JSON.stringify([member.source, member.source_item_id])}
                         title={member.publisher}
                       >
-                        <span>{reportSourceLabel(member.source, member.content_kind, lang)}</span><span>{member.title}</span>
+                        <span>{reportSourceLabel(member.source, member.content_kind, lang)}</span><span>{decodeNewsText(member.title)}</span>
                       </div>
                     )
                   ))}
@@ -491,7 +480,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                 cls={review}
                 lang={lang}
                 onMark={(event) => markWithFocus(event.currentTarget, () => catchup.markStory(row.story_id), row.story_id)}
-                title={row.title}
+                title={headline}
               />
             </article>
           );

@@ -1,0 +1,406 @@
+{
+  "README.md": {
+    "sha256": "4ea88da9a1f9391e917cca8b4a4aba38bace1af4a1172a3a4e04491c1160bbd8",
+    "bytes": 5601
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip": {
+    "sha256": "fea245d91fba3d466ad432f2139dee17e2bff4c2ad2f4da2fd8b27c5320aaddf",
+    "bytes": 1011890
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png": {
+    "sha256": "9151a2225aa67a4d1eec69392c77f9dda4c96e76c8e99c70ffbaf0c26ce1da3f",
+    "bytes": 40066
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png": {
+    "sha256": "289bc70aabbdfeb42d50e3c8832f6155af4c771dd289c0028a0dbf2c5eff39e3",
+    "bytes": 91775
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip": {
+    "sha256": "786d8b99811cb29b277025ee155e28a7c565001783d1dc37902700feb4c7e684",
+    "bytes": 1125702
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png": {
+    "sha256": "394968d41b331ca380a49b5323a75adbbde16f867c756d6feb1de79774249e94",
+    "bytes": 39956
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png": {
+    "sha256": "659deeff451fdf2b4b8e6b09f2782d8d71833c78f5e23663265e12e2780b253f",
+    "bytes": 146149
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip": {
+    "sha256": "ccf017aa623376f4731b689a7f7b5892ee5f4c95d5f12c43cc2522cd25d2ff74",
+    "bytes": 1031767
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png": {
+    "sha256": "3a45ab91307a14958b97f5ef12db8049c119817f25e07710e7302e8d480030b9",
+    "bytes": 40485
+  },
+  "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png": {
+    "sha256": "c376e46186da69bf65d2ac3a4e73914d069327723af828f28fd669c1f3b221d0",
+    "bytes": 154707
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png": {
+    "sha256": "9151a2225aa67a4d1eec69392c77f9dda4c96e76c8e99c70ffbaf0c26ce1da3f",
+    "bytes": 40066
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png": {
+    "sha256": "289bc70aabbdfeb42d50e3c8832f6155af4c771dd289c0028a0dbf2c5eff39e3",
+    "bytes": 91775
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip": {
+    "sha256": "dd434fe019196202275a1d321059ba1d226731a1fdb4f54925a558750abab044",
+    "bytes": 907948
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png": {
+    "sha256": "394968d41b331ca380a49b5323a75adbbde16f867c756d6feb1de79774249e94",
+    "bytes": 39956
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png": {
+    "sha256": "659deeff451fdf2b4b8e6b09f2782d8d71833c78f5e23663265e12e2780b253f",
+    "bytes": 146149
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip": {
+    "sha256": "97b895ac22907d70df18f2f76f9a2d4e8dd728e35b6c487167bde1f9374c1f98",
+    "bytes": 985417
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png": {
+    "sha256": "3a45ab91307a14958b97f5ef12db8049c119817f25e07710e7302e8d480030b9",
+    "bytes": 40485
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png": {
+    "sha256": "c376e46186da69bf65d2ac3a4e73914d069327723af828f28fd669c1f3b221d0",
+    "bytes": 154707
+  },
+  "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip": {
+    "sha256": "51979e49aebaf3550de1a2fae9fc95cbfd1f49ca56e3a91d750f2dbf37ce76c7",
+    "bytes": 1013538
+  },
+  "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png": {
+    "sha256": "1ce56c8f79cd5bade3c5bb7b8ac5610121ba15d7f3fab5c5070961440e910a7f",
+    "bytes": 88535
+  },
+  "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip": {
+    "sha256": "9a0ca96bbd1134501aa03ac9c5b0fc88163df6b44933bfb66520629fb11fe85e",
+    "bytes": 988208
+  },
+  "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png": {
+    "sha256": "5b76c191f55c1ed844f963f29f2221164f1f06da9628abc3239485e0b3cfd090",
+    "bytes": 103727
+  },
+  "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip": {
+    "sha256": "ad303e867456cf033b3e4b87265d1724a0ba74160c63e73f488888492bcfb3ba",
+    "bytes": 1154545
+  },
+  "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png": {
+    "sha256": "a36fe641e5f9b311d9b08816d66256f82dc8eb566a05cb6668b5586264dddbcc",
+    "bytes": 103098
+  },
+  "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip": {
+    "sha256": "255ce9cdc9c56dc919a443411cb4a1ccfbf635aa7f13fe9f84b547067c34cab1",
+    "bytes": 984051
+  },
+  "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png": {
+    "sha256": "92cf822a357e3a91f7f39786eb35939b12bef6d14b0c41917213739b5da0106d",
+    "bytes": 39780
+  },
+  "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip": {
+    "sha256": "035c0eddc8fdc69453cffd655234cbfb0bd64852dfe50f7fb318c72179961a8e",
+    "bytes": 723634
+  },
+  "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png": {
+    "sha256": "50c7cd08ee0a715f4d8386710ceb343d76948dad7b68a3f904a7f5e21039ed9a",
+    "bytes": 39547
+  },
+  "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip": {
+    "sha256": "b210a30358b0a2c1b9d593164486fc049841eeba703e0d3f7de3f76d078b5ad5",
+    "bytes": 932949
+  },
+  "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png": {
+    "sha256": "ddd7a6ef30d769fa67a027ce367d84b0f91d2c9fcfca5e749e739fa5f260bdc7",
+    "bytes": 40218
+  },
+  "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip": {
+    "sha256": "215a64fdec0efb821fb6fc808a822e8812df21ac09642f05d72a886ce40e6393",
+    "bytes": 782647
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/exposure-entry.png": {
+    "sha256": "fbd542fbecd85d771e1350f6d03cb6fc9e0b20adcbafe6bd4b2564a4f5a72037",
+    "bytes": 264692
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/history-controls.png": {
+    "sha256": "01e1c5da12534a0ac2d33745a5aac7762ce3c189a89b5f54c8584b7cc83370dd",
+    "bytes": 236474
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-details.png": {
+    "sha256": "a6aec85a16425649153131e6d9f476d980da07f0ca54b04790cb0a943e3f07a7",
+    "bytes": 273461
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-passport.png": {
+    "sha256": "3cd65450243c7d2ffe4462950023e571a710821216e5104b075a977ddb513f24",
+    "bytes": 220821
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/trace.zip": {
+    "sha256": "e5baec28f7c659cbc24b2f836720a931e6c2e18dc9b6db9167591e52a93d88c1",
+    "bytes": 3416848
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/exposure-entry.png": {
+    "sha256": "3e68f961bec504cb14a846290063e66ac8bc3499e517c9fddb2483357747a5b6",
+    "bytes": 105877
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/history-controls.png": {
+    "sha256": "5ffffdcfdaaa4719ff23b9b9c8654dcbe6a634ddd12ac5dde51b475dd5d5d929",
+    "bytes": 108913
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-details.png": {
+    "sha256": "0e8e3f8e432ed2c1c5ba51fe19a193c8a02706c421fbf8dfbeda186d2b5f8320",
+    "bytes": 116316
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-passport.png": {
+    "sha256": "b4bc5b57cc155a997c0ad58cfbb3a499def0095974b4421e00222db26f1bd39c",
+    "bytes": 111737
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/trace.zip": {
+    "sha256": "322425a736dda77bcf1f34655933d0cfadc9f601fa662e337145cb49f460d1ec",
+    "bytes": 3518465
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/exposure-entry.png": {
+    "sha256": "c0b586f5e5614dd6711e2631ddcae4f5e99082c073da7b152a8c01a6da6c02fe",
+    "bytes": 214459
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/history-controls.png": {
+    "sha256": "60fa8610a6038da7bbd0d277706259647ecb419ed08941e87c7c6eb748ab4289",
+    "bytes": 186977
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-details.png": {
+    "sha256": "bf16315d359e520c49a854f7fbf5151340ae9b66cf29c3353fa410ddb42cf8b5",
+    "bytes": 184587
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-passport.png": {
+    "sha256": "095e82248c2aa003022b7bb740071aa22c278cb31ed67a16b9e648cf38bc909f",
+    "bytes": 184511
+  },
+  "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/trace.zip": {
+    "sha256": "0f7a43ba377c4a5d609eed433a1e576edd7763a6b6abaa9098d26e106487d539",
+    "bytes": 2381674
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip": {
+    "sha256": "6dac8fe87273a504b61c702417d2de217dad4b7e24e2c5dece6901100412dc7f",
+    "bytes": 1002227
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png": {
+    "sha256": "9151a2225aa67a4d1eec69392c77f9dda4c96e76c8e99c70ffbaf0c26ce1da3f",
+    "bytes": 40066
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png": {
+    "sha256": "289bc70aabbdfeb42d50e3c8832f6155af4c771dd289c0028a0dbf2c5eff39e3",
+    "bytes": 91775
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip": {
+    "sha256": "0beb8a87c7b602cff57dd8d68d1bbf7b4f0e7fc0379a9990604488c3fc42b061",
+    "bytes": 944643
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png": {
+    "sha256": "3f197e0703c8280d1fc9a4791feea8649837a84f2346e05752fbe1034217e6ff",
+    "bytes": 39947
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png": {
+    "sha256": "69f7ac621eb123a5d34baa6b3b184539cfe9c9211a40586fad02144d9f67e777",
+    "bytes": 42331
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip": {
+    "sha256": "d3061934fe916b01de6e3feec04ab34abc66d274a34dc8524a5bc24d92c4740c",
+    "bytes": 1097480
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png": {
+    "sha256": "3a45ab91307a14958b97f5ef12db8049c119817f25e07710e7302e8d480030b9",
+    "bytes": 40485
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png": {
+    "sha256": "3b11cb7588fbb976de76f088d027f4e1679b295a4a18ff7e8de17142a2b22ca5",
+    "bytes": 86206
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png": {
+    "sha256": "9151a2225aa67a4d1eec69392c77f9dda4c96e76c8e99c70ffbaf0c26ce1da3f",
+    "bytes": 40066
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png": {
+    "sha256": "3d098b7208a94b4516109cab887d67eb239751d70e9d77727113cfeecd94d2b1",
+    "bytes": 91718
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip": {
+    "sha256": "4baabd240e8d07bbefc5f48f887ee02fec8fd42d122e837e5d7977609a79884c",
+    "bytes": 929052
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png": {
+    "sha256": "3f197e0703c8280d1fc9a4791feea8649837a84f2346e05752fbe1034217e6ff",
+    "bytes": 39947
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png": {
+    "sha256": "69f7ac621eb123a5d34baa6b3b184539cfe9c9211a40586fad02144d9f67e777",
+    "bytes": 42331
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip": {
+    "sha256": "bf012b59c11ff1c04f36d4add6d3a75257df1e25eb26748839b4f579dad0ab2d",
+    "bytes": 1008780
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png": {
+    "sha256": "3a45ab91307a14958b97f5ef12db8049c119817f25e07710e7302e8d480030b9",
+    "bytes": 40485
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png": {
+    "sha256": "026b19f3eb9d68a64f47cd03a5441f1827c953076562732c898371a88d2537cc",
+    "bytes": 86220
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip": {
+    "sha256": "90ec128680799f21d071959c45d5b59f109d837e72789beaae6315f27e12ffdd",
+    "bytes": 1044006
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png": {
+    "sha256": "1ce56c8f79cd5bade3c5bb7b8ac5610121ba15d7f3fab5c5070961440e910a7f",
+    "bytes": 88535
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip": {
+    "sha256": "0075f3b63b5ccc83aedf44049f08fa0209b2871b83589331679b3ff920f7876f",
+    "bytes": 1030886
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png": {
+    "sha256": "ad4ca288dec696445f30ec73039acdc3e44ba70d0dbe536a64383e1673077a88",
+    "bytes": 42953
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip": {
+    "sha256": "95727e1aeb2ab9037ab45bd0fd6e1cbaec6696e33d35fec4e82ed4ef48d2ce9c",
+    "bytes": 985963
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png": {
+    "sha256": "10fd463611114e7015a101e9de602855beabdfc3cb51e740fad1a8b5a0553bfd",
+    "bytes": 93534
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip": {
+    "sha256": "b18ce952050ef2a5295d4590851c6e61c83eb42c891a6a7183916f41564beb1a",
+    "bytes": 1119228
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png": {
+    "sha256": "92cf822a357e3a91f7f39786eb35939b12bef6d14b0c41917213739b5da0106d",
+    "bytes": 39780
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip": {
+    "sha256": "a3712c9692885413de414f1542991ae018171c4baa03f98e0142b67aee08b6cc",
+    "bytes": 715838
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png": {
+    "sha256": "471affc361925c8fd47b39c8c1eb887176524cae55e6b77be4f422031d99ad7a",
+    "bytes": 39858
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip": {
+    "sha256": "0b5a2f11bec65d4afa74ece69ef615a254b7fe3f4d5fad3c51b50c05b0de469e",
+    "bytes": 736230
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png": {
+    "sha256": "ddd7a6ef30d769fa67a027ce367d84b0f91d2c9fcfca5e749e739fa5f260bdc7",
+    "bytes": 40218
+  },
+  "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip": {
+    "sha256": "82e1eaa5342f6e8888c5fb3cb9838ab708bc64e0a4528dc347441aec2706775f",
+    "bytes": 799352
+  },
+  "browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-desktop/trace.zip": {
+    "sha256": "b22e656538189af8c460e1f683a454ac0d5626236b797c23c8e7b41e94a1fa14",
+    "bytes": 1099411
+  },
+  "browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-mobile/trace.zip": {
+    "sha256": "73bf85307336761b991d87602604fcceda48fbb25ee11915c0082fd329ec6202",
+    "bytes": 1163576
+  },
+  "browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-tablet/trace.zip": {
+    "sha256": "df7b9f79a91923efcf47a6291e7ab67f88aa7e2c22a54e15cb35cf5273831277",
+    "bytes": 1294169
+  },
+  "original/browser-artifacts.json": {
+    "sha256": "54235e0beba6e3672d13b2dff8135c2e6aa806f7a110e0f22bdaea88f010427d",
+    "bytes": 7221
+  },
+  "original/browser-receipt.json": {
+    "sha256": "2b9d5f55a1046a8e78efb7996aac2b351a10f3dff1b1102daaaa507fbb7957d3",
+    "bytes": 661
+  },
+  "original/browser-server.log": {
+    "sha256": "8fa43b49bb67eb286828298a7de73a405f676bf94495f92c5973a567219f4ebd",
+    "bytes": 12563
+  },
+  "original/browser-source-after.json": {
+    "sha256": "9263e790b0b2fcdb4668c6dc5fac0db2dd8ae6e461b835c4b750bc21e3fa0235",
+    "bytes": 362426
+  },
+  "original/browser-source-before.json": {
+    "sha256": "9263e790b0b2fcdb4668c6dc5fac0db2dd8ae6e461b835c4b750bc21e3fa0235",
+    "bytes": 362426
+  },
+  "original/browser.log": {
+    "sha256": "46954e95d731f934b5c708c680181cd71287030998a17778bf9dba70f15329f2",
+    "bytes": 2590
+  },
+  "original/evidence.json": {
+    "sha256": "627f2cba2876dabbdf21593353a9a8372f7c40ade25e0a3a4b02cf7b990de61e",
+    "bytes": 296
+  },
+  "original/evidence.log": {
+    "sha256": "1d1b026a761ddb24b4e9168645fbd370fb491220fb22072f7f8eafe9fd165071",
+    "bytes": 816
+  },
+  "original/lint.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "original/static-results.json": {
+    "sha256": "79acb51cce3478cb6fb434fb3ab97e27fa944512c889ba24c035de825070181c",
+    "bytes": 1311
+  },
+  "original/typescript.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "original/unit-final.log": {
+    "sha256": "51e7af5853868a4dfdab1a6dfde895847bf12abbf97701e72e3701888db42d3e",
+    "bytes": 669
+  },
+  "preview/browser-artifacts.json": {
+    "sha256": "45bd151f1c36a2fab811e61d04ea702f5991537806ad3a12c1568bac70a1d189",
+    "bytes": 11491
+  },
+  "preview/browser-receipt.json": {
+    "sha256": "468a9786f0f0bda1c3807b7a86ef305959a03c94badc3dcfc3ca7ff4a6448870",
+    "bytes": 839
+  },
+  "preview/browser-server.log": {
+    "sha256": "1def9d7fe4608c41b7e7aed4b73af9db43c6b11296bba77049fe95a4823710c4",
+    "bytes": 20179
+  },
+  "preview/browser-source-after.json": {
+    "sha256": "1d726df70162de8637b2b8d7daced9dd84d95189c8ed8429d6c844be272f0799",
+    "bytes": 374285
+  },
+  "preview/browser-source-before.json": {
+    "sha256": "1d726df70162de8637b2b8d7daced9dd84d95189c8ed8429d6c844be272f0799",
+    "bytes": 374285
+  },
+  "preview/browser.log": {
+    "sha256": "4bdb69b014e624d39d69054e08b4a6c03d74a1daeb0a28657e4d146c22069396",
+    "bytes": 3496
+  },
+  "protected-impact.json": {
+    "sha256": "e9a876c5121c794a7c09e4fc547041e9373274e63e6a54ce8e78c5cda4587926",
+    "bytes": 1582
+  },
+  "qualification.json": {
+    "sha256": "badead763130c555f1257c1c5ca29f0737b19cd55b8ae575e617ce6e824ffae9",
+    "bytes": 5683
+  },
+  "reproduction/qualify-retained-capture.py": {
+    "sha256": "23be92a9782612adbe4b850797eabd5b94ba32e980f21992dce5a789afede3db",
+    "bytes": 4470
+  },
+  "reproduction/verify-browser.py": {
+    "sha256": "9c0f9dc2fe1dd49e6a51b048f7f33eb61de627a4e080e056c8a5762dd18e6470",
+    "bytes": 4468
+  }
+}

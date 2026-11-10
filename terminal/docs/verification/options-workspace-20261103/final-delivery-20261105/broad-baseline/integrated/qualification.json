@@ -1,0 +1,74 @@
+{
+  "schema": "options_final_unit_typecheck.v1",
+  "profile": "preview",
+  "completed_at": "2026-11-05T09:18:43.162648+00:00",
+  "source_stable": true,
+  "source_count": 3130,
+  "source_map_sha256": "9baf4dc0f37fd30c9cdbb98209cc58f425dc7b6cfd97053e25c0a5cbc27b30b5",
+  "checks": [
+    {
+      "check": "typegen",
+      "command": [
+        "./node_modules/.bin/next",
+        "typegen"
+      ],
+      "exit": 0,
+      "seconds": 0.712,
+      "log_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "generated_next_env_sha256": "7b550dda9686c16f36a17bf9051d5dbf31e98555b30d114ac49fc49a1e712651"
+    },
+    {
+      "check": "typecheck",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 2,
+      "seconds": 63.05,
+      "log_sha256": "3a0c9589347650e51841a59bdf8d404255685a0fa8c81045181816b8d441cff8"
+    },
+    {
+      "check": "unit",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "--maxWorkers=4",
+        "--minWorkers=2",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/final-unit-typecheck-preview-r4/unit-report.json"
+      ],
+      "exit": 1,
+      "seconds": 284.653,
+      "log_sha256": "180cf0f2506c92bb798681658b643b1aa7259dfee490041294408cd715112848",
+      "summary": {
+        "success": false,
+        "numTotalTestSuites": 4332,
+        "numPassedTestSuites": 4328,
+        "numFailedTestSuites": 4,
+        "numTotalTests": 18873,
+        "numPassedTests": 18817,
+        "numFailedTests": 2,
+        "numPendingTests": 50,
+        "numTodoTests": 4
+      }
+    },
+    {
+      "check": "plain-language-self-check",
+      "command": [
+        "node",
+        "scripts/check_plain_language.mjs",
+        "--self-check"
+      ],
+      "exit": 0,
+      "seconds": 0.454,
+      "log_sha256": "24cda5f8f3b651c996f217787394bdaeed8d89c8d2deb739191fc0fc7eacb83f"
+    }
+  ],
+  "typegen_generated_declaration_restored": true,
+  "browser_source_profile_preserved": true,
+  "workers": "4 maximum / 2 minimum; no concurrent owned Next server",
+  "all_checks_passed": false
+}

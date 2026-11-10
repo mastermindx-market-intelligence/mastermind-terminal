@@ -1,3 +1,4 @@
+import { intelligenceResponse } from "@/lib/shared-shell/intelligenceResponse";
 import { NextResponse } from "next/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { getLiveOptionsAccess } from "@/lib/entitlement";
@@ -52,7 +53,7 @@ function revalidateFlow(f: string): Promise<Revalidation> {
   return request;
 }
 
-export async function GET(req: Request): Promise<Response> {
+async function readIncumbent(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow" });
   if (!rl.ok) return tooMany(rl);
   // Options data is a PAID feature — enforced SERVER-SIDE against the macro-api
@@ -211,4 +212,12 @@ export async function GET(req: Request): Promise<Response> {
     });
   }
   return NextResponse.json(stale, { headers: { "Cache-Control": "no-store" } });
+}
+
+/** Compact display view over the same authenticated reader; ordinary responses are unchanged. */
+export async function GET(req: Request): Promise<Response> {
+  const response = await readIncumbent(req);
+  const params = new URL(req.url).searchParams;
+  return params.get("view") === "intelligence" && params.get("f") === "prophet_idx"
+    ? intelligenceResponse(response, "prophet") : response;
 }

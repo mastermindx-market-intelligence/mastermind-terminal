@@ -1,0 +1,118 @@
+{
+  "admission": "Existing auto-merge retained.",
+  "changes": [
+    {
+      "afterSha256": "05318e78d26eb148c234f752a898dfb5cccec6a128912cd72708e60f19f23add",
+      "beforeSha256": "5b464ee9e395df7cfa4befecb2a7774d3ba3633a454a931f766a1b08e5d24689",
+      "mode": "100755",
+      "path": ".github/scripts/selfhosted_canary_inputs.sh",
+      "preimageBlob": "baf017b3fdc276ff3fe63f0c10561ffe5cccb369",
+      "sha": "da6cbe78648ff0e90751f3c15adda92261675b18",
+      "type": "blob"
+    },
+    {
+      "afterSha256": "ebc492993abae1b8585e580b16e3067a39110dd4023a72fedc375307b691384d",
+      "beforeSha256": "720222ba2cb10aa37f182bd547f05ac6a9e8e97e876d4ca4fae06a448c7bb72f",
+      "mode": "100644",
+      "path": ".github/workflows/ci.yml",
+      "preimageBlob": "91577eaa508f5514b56f5ea08bda59ed9c602c1c",
+      "sha": "05d88e88524d3235f0f916e6aec19b17460fdaac",
+      "type": "blob"
+    },
+    {
+      "afterSha256": "97564aa33b12f698de6b503b4b0181b57ff53344eefa480632ae076654d1e3ed",
+      "beforeSha256": "bec453cc2f19bd56822a39eff90e34bd7869fc445bc489cfc1d6fc08dc535d26",
+      "mode": "100644",
+      "path": ".github/workflows/selfhosted-e2e-canary.yml",
+      "preimageBlob": "012150b10984c71eae10c0ee8ba37ae18c58f028",
+      "sha": "729ecc591cf30f699a5482564aa5a7d033923cc0",
+      "type": "blob"
+    },
+    {
+      "afterSha256": "fb8dcbf0ea6d2ce1a2999131bac4a2d8638f61661805b6502974719e4a31067e",
+      "beforeSha256": "6a3fd3b6fc3765b3ef6806dd06dcd8ab48bad583c93e8d39e6991e24c971a314",
+      "mode": "100644",
+      "path": "scripts/ci_e2e_scope.py",
+      "preimageBlob": "1ae2f98b6534ec1ec76f5d1b264a041a8b399b82",
+      "sha": "41b932f4202545a5321f44273dac2339981cca38",
+      "type": "blob"
+    },
+    {
+      "afterSha256": "c62c2e2defd058771b83ea3a2e29c75149d3a83836d93bab62cd08e196799fb2",
+      "beforeSha256": "56a9d12fdabe61f2a330d155385be0d8434d4d8ef5b07c308e343c7eaff888f3",
+      "mode": "100644",
+      "path": "tests/test_ci_e2e_scope.py",
+      "preimageBlob": "6182f381d0ad314b675fb1786d49ab99d1e4f0c4",
+      "sha": "6755f1eab54e22c9078388b8e92e6798b01923e0",
+      "type": "blob"
+    },
+    {
+      "afterSha256": "e48edca993fec55ee758872492fd7e81067ed085127a74f38763a3190bf10f7e",
+      "beforeSha256": "bf505712d95e40cf484c67f8cea0ed9ff15c8161ac4f160efa785ce119fb68ca",
+      "mode": "100644",
+      "path": "tests/test_ci_e2e_shards.py",
+      "preimageBlob": "e95a30fe4e2aad625926f99e782a6aaf6806622b",
+      "sha": "4a273015178467cc1b602b86699155103722a991",
+      "type": "blob"
+    },
+    {
+      "afterSha256": "344e00f073c65f5886be678b7b57dc980004694c10a7d69fda4dc0244544e9ac",
+      "beforeSha256": "b82da3654eb8de333518638ed4dadff92bab1c6a260283030129f0a1db031d78",
+      "mode": "100644",
+      "path": "tests/test_merge_group_fast_lane_contract.py",
+      "preimageBlob": "83a4b675165ca0589ebcac9ab9ed506e304dc5ce",
+      "sha": "c48025c13301609be89c0841c0af53ff775145c9",
+      "type": "blob"
+    },
+    {
+      "afterSha256": "345893fcbe34cbf1dd5aff40a5cde5868528279d9410be465ca11bf17842d249",
+      "beforeSha256": "f14022aa31038d7bb4d992047e08f7feffbc4f7c397d647c39aac7b726ae10dc",
+      "mode": "100644",
+      "path": "tests/test_selfhosted_canary_workflow.py",
+      "preimageBlob": "21950b42f70c2a85bf833b4aef18d7b9f661d8ad",
+      "sha": "d6c1e3f8ac345c874869d79dbd0e2b9a74159c6b",
+      "type": "blob"
+    }
+  ],
+  "commitAncestry": "Single parent: the prior published head. This copies the eight exact protected CI postimages; it does not claim integration of the complete current protected branch.",
+  "originalHead": "268c102e1d5d4bf53def54b618d710322eb65d30",
+  "originalTree": "ee84ff5c7d21994c90bef506588cbf333b60815c",
+  "priorCi": {
+    "attempt": 1,
+    "mobileCancelledJobs": [
+      129699205061,
+      129699205055
+    ],
+    "mobileJobDurationsSeconds": [
+      3618,
+      3617
+    ],
+    "noUnchangedRetry": true,
+    "otherCause": null,
+    "runId": 42776233920
+  },
+  "protectedDeltaBase": "e5a467a191652b34d793e552f4d70f5e1f8fc29c",
+  "protectedValidation": {
+    "mergeGroupRun": 42774721510,
+    "result": "Merged after successful source and protected merge-group validation. Exact eight-file source and test delta is reused.",
+    "sourceCiRun": 42768211535,
+    "sourceHead": "48920359eaf05e7b170e3e2d2da9372f5416820c",
+    "sourcePullRequest": 1418
+  },
+  "purpose": "Consume the already-merged complete mobile 3-to-5 partition under the unchanged 60-minute job cap.",
+  "recordedAt": "2026-11-10T09:23:23.268851+00:00",
+  "remainingBoundary": "Separate #1421 runner-routing repair remains with its owner; no unpublished outcome consumed. New-head CI, merge, deployment and live product acceptance are not claimed.",
+  "schema": "terminal_pr1397_protected_mobile_shard_repair.v1",
+  "sourceApplicabilityMethod": "Whole terminal subtree and prior proof subtree equality, plus exhaustive nine-path delta. Prior evidence retains its original source/CI scope; new-head CI must establish its own outcome.",
+  "sourceProtectedCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "unchangedSubtrees": {
+    "docs/verification/pr1397-protected-successor-20261110": {
+      "after": "9a098b9314b92449f364802e5dd11939c2209f49",
+      "before": "9a098b9314b92449f364802e5dd11939c2209f49"
+    },
+    "terminal": {
+      "after": "26fc2396d1612e2cf68e6c1b5bf399b8367d243c",
+      "before": "26fc2396d1612e2cf68e6c1b5bf399b8367d243c"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/2fe663974ce0/validation-pr654/terminal
+
+ ✓ lib/__tests__/drawingSidebarTooltipLifetime.test.tsx (4 tests) 338ms
+ ✓ lib/__tests__/drawingsSheetAcceptedRecent.test.tsx (3 tests) 283ms
+ ✓ lib/__tests__/drawingSidebarAcceptedTool.test.tsx (5 tests) 476ms
+ ✓ lib/__tests__/drawingSidebarReadiness.test.tsx (6 tests) 358ms
+
+ Test Files  4 passed (4)
+      Tests  18 passed (18)
+   Start at  01:12:42
+   Duration  2.72s (transform 914ms, setup 0ms, collect 3.33s, tests 1.46s, environment 2.08s, prepare 372ms)
+
