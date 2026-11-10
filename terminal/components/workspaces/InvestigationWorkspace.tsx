@@ -76,12 +76,16 @@ const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type===
  * `?x=` form opens the retained capture the token names; the bare form opens
  * the CURRENT capture. `openByIdentity` is deliberately unset — no
  * open-by-identity path exists. Refusals classify by lane 1's table so the
- * decision module (sectorInvestigationReopen) reads owner semantics. */
+ * decision module (sectorInvestigationReopen) reads owner semantics.
+ * A rejected fetch or an unreadable body is a transport failure, never an
+ * exception into the caller: it classifies as `error`, which the decision
+ * module renders as the retry state with a Retry control (r2 SF-2) — the
+ * card can never stick on "Reopening…". */
 async function classifyReopenAnswer(response:Response):Promise<TransportAnswer> {
+ if(response.ok) { const body = await response.json().catch(() => null); return body ? { kind: "ok", body: body as SectorPopulationRead } : { kind: "error" }; }
  let body:unknown=null;
  try{body=await response.json()}catch{body=null}
  const code=record(body)&&typeof body.code==="string"?body.code:null;
- if(response.ok&&record(body))return {kind:"ok",body:body as SectorPopulationRead};
  if(response.status===401)return {kind:"signed_out"};
  if(response.status===404&&code==="ORIGINAL_UNAVAILABLE")return {kind:"original_unavailable"};
  if(response.status===409&&code==="CURSOR_RESET")return {kind:"cursor_reset"};
@@ -89,9 +93,15 @@ async function classifyReopenAnswer(response:Response):Promise<TransportAnswer> 
  if(response.status===403||response.status===404)return {kind:"denied"};
  return {kind:"error"};
 }
-const SECTOR_REOPEN_TRANSPORT: SectorReopenTransport = {
- openByContextRef: async contextRef => classifyReopenAnswer(await fetch(`/api/sector-intelligence?x=${encodeURIComponent(contextRef)}`,{cache:"no-store"})),
- openCurrent: async () => classifyReopenAnswer(await fetch("/api/sector-intelligence",{cache:"no-store"})),
+export const SECTOR_REOPEN_TRANSPORT: SectorReopenTransport = {
+ openByContextRef: async contextRef => {
+  try { return classifyReopenAnswer(await fetch(`/api/sector-intelligence?x=${encodeURIComponent(contextRef)}`,{cache:"no-store"})); }
+  catch { return {kind:"error"}; }
+ },
+ openCurrent: async () => {
+  try { return classifyReopenAnswer(await fetch("/api/sector-intelligence",{cache:"no-store"})); }
+  catch { return {kind:"error"}; }
+ },
 };
 
 export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision}:Props) {
@@ -209,22 +219,28 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  // SP14 reopen: the saved sector observation reopens through its retained
  // reference only; identity is verified by the decision module on every answer.
- // The ticket drops a reply that lands after another open (or an account
- // change, which aborts scope), so a stale reopen can never paint this record.
+ // A reply is dropped when a newer open has taken the ticket, or when this
+ // open's scope controller is no longer the live one — an owner change
+ // REPLACES scope.current with a new live controller, and the auth listener
+ // aborts the old one, so both fences are checked against the controller
+ // captured BEFORE the await (r2 N-C): a stale reopen can never paint this
+ // record, and an aborted scope cannot sneak through a replacement.
  async function openSectorContext(opened:Detail) {
   const ticket=++sectorSeq.current;
   const saved=savedSectorCaptures(opened.manifest);
   if(!saved.length) { if(ticket===sectorSeq.current)setSectorReopen("none"); return; }
   if(ticket===sectorSeq.current)setSectorReopen("loading");
+  const scopeController=scope.current;
   const outcome=await reopenOriginal(saved[0].identity,saved[0].contextRef,SECTOR_REOPEN_TRANSPORT);
-  if(ticket!==sectorSeq.current||scope.current?.signal.aborted)return;
+  if(ticket!==sectorSeq.current||scopeController!==scope.current||scopeController?.signal.aborted)return;
   setSectorReopen(outcome);
  }
  async function openCurrentSectorContext() {
   const ticket=++sectorSeq.current;
   if(ticket===sectorSeq.current)setSectorReopen("loading");
+  const scopeController=scope.current;
   const outcome=await reopenCurrent(SECTOR_REOPEN_TRANSPORT);
-  if(ticket!==sectorSeq.current||scope.current?.signal.aborted)return;
+  if(ticket!==sectorSeq.current||scopeController!==scope.current||scopeController?.signal.aborted)return;
   setSectorReopen(outcome);
  }
  async function settle(response:unknown) {  const previous=stateRef.current;
