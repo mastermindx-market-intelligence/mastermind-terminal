@@ -146,7 +146,8 @@ describe("DossierDepth calls-board navigation mount â€” third review rules (a)â€
    * the board's closed-shape admission still passes. */
   const hostileBoardWire = (): Record<string, unknown> => {
     const wire = JSON.parse(JSON.stringify(capturedDoc)) as typeof capturedDoc;
-    const hold = (wire.projection.data.action_board.lanes as Record<string, { rows: unknown[]; total: number }>).hold;
+    const board = wire.projection.data.action_board as { lanes: Record<string, { rows: unknown[]; total: number }> };
+    const hold = board.lanes.hold;
     const seed = JSON.parse(JSON.stringify(hold.rows[0])) as Record<string, unknown>;
     const row = (over: Record<string, unknown>) => ({ ...JSON.parse(JSON.stringify(seed)), ...over });
     hold.rows = [

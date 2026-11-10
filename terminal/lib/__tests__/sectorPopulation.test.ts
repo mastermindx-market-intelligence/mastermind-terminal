@@ -148,6 +148,13 @@ describe("sectorPopulationPage — closed admission refuses mutations", () => {
     ["limit above the wire maximum", (value: Record<string, unknown>) => {
       (value.page as Record<string, unknown>).limit = 201;
     }],
+    // Typecheck-gate repair (Part 2 gates): B-1's clock probe ran BEFORE the
+    // closed() guard, so a null population threw Object.hasOwn's TypeError out
+    // of the reader instead of refusing the page. Refusal, never a throw.
+    ["capture population null", (value: Record<string, unknown>) => {
+      const capture = (value.page as Record<string, unknown>).capture as Record<string, unknown>;
+      capture.population = null;
+    }],
   ])("refuses %s", (_name, mutate) => {
     const mutated = clone();
     mutate(mutated);

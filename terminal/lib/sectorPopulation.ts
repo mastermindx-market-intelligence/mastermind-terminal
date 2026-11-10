@@ -396,7 +396,10 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
   // B-1 (third review): the #10965 producer sends `unaccounted: null` beside
   // every non-agree roster clock. A carried clock admits null; the pre-#10965
   // wire (no clock key at all) keeps today's exact rule — an integer.
-  const clockCarried = Object.hasOwn(population, "roster_clock");
+  // The record() conjunct keeps the probe behind the page's fail-closed law:
+  // a non-object population (null included) reads "no clock" here and the
+  // closed() guard below refuses the page — never Object.hasOwn's TypeError.
+  const clockCarried = record(population) && Object.hasOwn(population, "roster_clock");
   if (!closed(population, ["configured_current", "served", "accounted_unserved", "unaccounted", "complete", "complete_rule", "unserved_reason_note", "unserved_reasons", "groups", "unserved_members", "removed_members", "eligible", "measured", "entitled_visibility_scope"], ["roster_clock"])
     // F1: configured_current/complete are NULL when the capture has no readable
     // roster — null is unknown, never zero, never complete.
@@ -547,7 +550,7 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
   // than the filter's own total_matching.
   if ((page.complete === true) !== (page.next_cursor === null)) return null;
   if (population.configured_current !== null && population.served > population.configured_current) return null;
-  if (population.complete === true && (population.unaccounted ?? 0) > 0) return null;
+  if (population.complete === true && typeof population.unaccounted === "number" && population.unaccounted > 0) return null;
   if (rows.length > page.total_matching) return null;
 
   // B-1/N-4 one stated rule (third review): the configured count and the
@@ -568,7 +571,10 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
       // The guard above proved the literal; the cast only re-states it for TS.
       retainedResolverRefDurability: ownerRefRaw.retained_resolver_ref_durability as PopulationOwnerRef["retainedResolverRefDurability"] },
     counts: { configuredCurrent: population.configured_current, served: population.served,
-      accountedUnserved: population.accounted_unserved, unaccounted: population.unaccounted,
+      // The guard above proved unaccounted is a number, or null beside a
+      // carried clock (B-1); the typeof re-statement is exact for both.
+      accountedUnserved: population.accounted_unserved,
+      unaccounted: typeof population.unaccounted === "number" ? population.unaccounted : null,
       countsStated,
       complete: population.complete, groups: population.groups,
       unservedMembers: (population.unserved_members as unknown[]).map(entry => unservedEntry(entry)!),
