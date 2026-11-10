@@ -115,7 +115,7 @@ def run_lane(env_overrides: dict[str, str], tmp_path: Path) -> tuple[int, dict[s
 
 HOSTED = {
     "lane": "hosted",
-    "workers": "1",
+    "workers": "2",
     "port": "3108",
     "port_investor": "31991",
     "port_shared": "31992",
@@ -132,8 +132,9 @@ def test_script_is_executable_and_strict() -> None:
 def test_hosted_lane_is_todays_behaviour(tmp_path: Path) -> None:
     rc, out, _ = run_lane({}, tmp_path)
     assert rc == 0
-    assert out == HOSTED, "hosted lane must reproduce today's literal values and export nothing to GITHUB_ENV"
-    # The hosted lane ignores the workers variable: today's hosted job runs one worker.
+    assert out == HOSTED, "hosted lane must emit its literal values and export nothing to GITHUB_ENV"
+    # The hosted lane ignores the workers variable: the hosted job runs two workers on a
+    # 4-vCPU public-repository runner; the variable sizes only the self-hosted lane.
     rc, out2, _ = run_lane({"TERMINAL_E2E_LANE": "hosted", "TERMINAL_E2E_LANE_WORKERS": "8"}, tmp_path)
     assert rc == 0 and out2 == out
 

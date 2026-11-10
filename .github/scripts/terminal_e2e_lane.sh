@@ -7,8 +7,13 @@
 #   TERMINAL_E2E_LANE_WORKERS  repository variable TERMINAL_E2E_WORKERS; empty = default
 #   RUNNER_NAME                set by the runner; names the ubuntu0 slot (ubuntu0-e2e-N)
 #
-# hosted  -> exactly today's behaviour: ONE Playwright worker and the config's default
-#            ports (3108 for the sharded projects, 31991/31992 for the serial opt-ins).
+# hosted  -> TWO Playwright workers and the config's default ports (3108 for the sharded
+#            projects, 31991/31992 for the serial opt-ins). The config's CI cap of one
+#            worker was set for a 2-vCPU runner; this repository is public, so its
+#            GitHub-hosted Linux runners have 4 vCPUs. With one worker each shard's test
+#            step took 23-47 min (run 42780585799, 2026-11-10: 338 mobile tests in 30.7m,
+#            281 desktop tests in 46.6m). The serial opt-ins keep their explicit
+#            --workers=1. The repository variable stays host-lane only.
 # ubuntu0 -> one 32-core host serves several runner slots at once, so every slot owns a
 #            disjoint port set derived from its slot number N (1..9): 3200+N for the shard,
 #            32000+10N+1 / +2 for the serial opt-ins. Workers default to 4 (measured
@@ -32,7 +37,7 @@ reject() {
 
 case "$lane" in
   hosted)
-    workers=1
+    workers=2
     port=3108
     port_investor=31991
     port_shared=31992
@@ -77,3 +82,5 @@ else
 fi
 printf 'lane=%s\nworkers=%s\nport=%s\nport_investor=%s\nport_shared=%s\nbrowsers_path=%s\ncache_suffix=%s\n' \
   "$lane" "$workers" "$port" "$port_investor" "$port_shared" "$browsers_path" "$cache_suffix" >> "$out"
+# Record the machine the workers count was chosen for, so a runner-size change shows in the log.
+printf 'terminal-e2e lane=%s workers=%s cpus=%s\n' "$lane" "$workers" "$(nproc 2>/dev/null || echo unknown)" >&2

@@ -49,9 +49,11 @@ ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0'
 Safety properties, each pinned by `tests/test_ci_e2e_selfhosted_lane.py` unless
 marked otherwise:
 
-- **The hosted lane is today's job.** With the variable unset the script emits
-  workers 1, ports 3108 / 31991 / 31992, the literal cache path and today's cache
-  key, and exports nothing; `runs-on` is pinned by exact equality.
+- **The hosted lane is today's job, with two workers.** With the variable unset the
+  script emits workers 2 (a public repository's hosted Linux runner has 4 vCPUs; the
+  serial opt-ins keep `--workers=1`), ports 3108 / 31991 / 31992, the literal cache
+  path and today's cache key, and exports nothing; `runs-on` is pinned by exact
+  equality.
 - **The fork guard is routing only.** A `pull_request` whose head repository is
   not this one is routed to the hosted runner by this unmodified job. It is **not a
   host fence**: a `pull_request` runs the workflow file from the PR's merge ref, so
