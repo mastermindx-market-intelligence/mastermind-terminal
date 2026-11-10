@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
 
 async function openLayers(page: Page, lang = "en") {
   await page.addInitScript((locale) => {
@@ -19,10 +18,10 @@ async function openLayers(page: Page, lang = "en") {
 
 test("chart layers can be found, hidden, restored and removed without losing keyboard focus", async ({ page }, info) => {
   const panel = await openLayers(page);
-  mkdirSync("docs/pr-crops/chart-layers-ux-20260922", { recursive: true });
-  await page.screenshot({ path: `docs/pr-crops/chart-layers-ux-20260922/${info.project.name}-open.png` });
+  await page.screenshot({ path: info.outputPath(`${info.project.name}-layers-open.png`) });
   const search = panel.getByRole("searchbox");
-  await expect(search).toBeFocused();
+  if (info.project.use.hasTouch) await expect(panel.getByRole("button", { name: "Close", exact: true })).toBeFocused();
+  else await expect(search).toBeFocused();
   await search.fill("Moving Averages");
   await expect(panel.locator("[data-layer-key]")).toHaveCount(1);
   const row = panel.locator('[data-layer-key="ema"]');
@@ -62,8 +61,7 @@ test("[zh] layer controls remain visible and touch-sized without hiding their me
     }
   }
   await page.emulateMedia({ reducedMotion: "reduce" });
-  mkdirSync("docs/pr-crops/chart-layers-ux-20260922", { recursive: true });
-  await page.screenshot({ path: `docs/pr-crops/chart-layers-ux-20260922/${info.project.name}-zh.png` });
+  await page.screenshot({ path: info.outputPath(`${info.project.name}-layers-zh.png`) });
   await panel.getByRole("button", { name: "关闭", exact: true }).click();
   await expect(panel).toHaveCount(0); expect(errors).toEqual([]);
 });

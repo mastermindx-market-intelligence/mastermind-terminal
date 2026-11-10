@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
 import type { SavedLayout } from "@/lib/layouts";
 import { interpolateTeam } from "@/lib/teamSharedWorkflow";
@@ -104,6 +104,7 @@ export default function LayoutMenu({
   teams = [], teamRead = { ok: true }, onShare, onUnshare, pendingShare = null, onConfirmShare, onCancelShare,
 }: LayoutMenuProps) {
   const t = useT();
+  const menuId = useId();
   const writableTeams = teams.filter((team) => team.role === "owner" || team.role === "admin");
   const canShare = writableTeams.length > 0;
   // A team-directory outage arrives as `teams: []` plus `teamRead.ok: false`. That is unavailable,
@@ -138,7 +139,7 @@ export default function LayoutMenu({
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const moreRefs = useRef<Record<string, HTMLSpanElement | null>>({});
+  const moreRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const firstActionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const renameGroupRef = useRef<HTMLDivElement | null>(null);
   const requestedRenameRef = useRef<{ id: string; name: string } | null>(null);
@@ -236,36 +237,45 @@ export default function LayoutMenu({
             </button>
           </div>
         ) : (
-          <Row type="button" {...(rowAs === "button" ? { role: "menuitem" } : {})}
-               className="menu-row" disabled={blocked}
-               onClick={blocked ? undefined : () => { onLoad(l); onPicked?.(); }}>
-            <span className="ws-name">{l.name}</span>
-            {shared && <span className="ws-badge" data-ws-badge="team">{t("wsSharedBadge")}</span>}
-            {l.rowState === "unsupported_floor" && <span className="ws-badge warn">{t("wsBadgeNewer")}</span>}
-            {l.rowState === "unsupported_schema" && <span className="ws-badge">{t("wsBadgeUnreadable")}</span>}
-            <span className="ws-more" role="button" tabIndex={0}
-                  ref={(el) => { moreRefs.current[l.id] = el; }}
-                  aria-label={`${t("wsRowActions")}: ${l.name}`}
-                  aria-expanded={open} aria-controls={`ws-subs-${l.id}`}
-                  data-ws-more={l.name}
-                  onClick={(e) => { e.stopPropagation(); toggleRow(l.id); }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggleRow(l.id); }
-                    else if (e.key === "Escape" && open) { e.stopPropagation(); closeRow(l.id); }
-                  }}>
-              <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
-            </span>
-          </Row>
+          <div className="ws-heading">
+            <Row type="button" {...(rowAs === "button" ? { role: "menuitem" } : {})}
+                 className="menu-row ws-open" disabled={blocked} data-ws-open={l.name}
+                 aria-label={`${t("wsOpen")}: ${l.name}`}
+                 aria-describedby={blocked ? `${menuId}-hint-${l.id}` : undefined}
+                 onClick={blocked ? undefined : () => { onLoad(l); onPicked?.(); }}>
+              <span className="ws-row-copy">
+                <span className="ws-name">{l.name}</span>
+                {(shared || blocked) && <span className="ws-badges">
+                  {shared && <span className="ws-badge" data-ws-badge="team">{t("wsSharedBadge")}</span>}
+                  {l.rowState === "unsupported_floor" && <span className="ws-badge warn">{t("wsBadgeNewer")}</span>}
+                  {l.rowState === "unsupported_schema" && <span className="ws-badge">{t("wsBadgeUnreadable")}</span>}
+                </span>}
+              </span>
+            </Row>
+            <button type="button" className="ws-more" {...(rowAs === "button" ? { role: "menuitem" } : {})}
+                    ref={(el) => { moreRefs.current[l.id] = el; }}
+                    aria-label={`${t("wsRowActions")}: ${l.name}`}
+                    aria-expanded={open} aria-controls={`${menuId}-subs-${l.id}`}
+                    aria-describedby={blocked ? `${menuId}-hint-${l.id}` : undefined}
+                    data-ws-more={l.name}
+                    onClick={(e) => { e.stopPropagation(); toggleRow(l.id); }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") e.stopPropagation();
+                      else if (e.key === "Escape" && open) { e.stopPropagation(); closeRow(l.id); }
+                    }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+            </button>
+          </div>
         )}
 
         {blocked && (
-          <div className="ws-hint" data-ws-hint>
+          <div className="ws-hint" id={`${menuId}-hint-${l.id}`} data-ws-hint>
             {l.rowState === "unsupported_floor" ? t("wsNeedsNewer") : t("wsCantOpen")}
           </div>
         )}
 
         {open && (
-          <div className="ws-subs" id={`ws-subs-${l.id}`} role="group" aria-label={l.name}
+          <div className="ws-subs" id={`${menuId}-subs-${l.id}`} role="group" aria-label={l.name}
                onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); closeRow(l.id); } }}>
             {!blocked && <>
               <button type="button" role="menuitem" className="menu-row" data-ws-act="open"

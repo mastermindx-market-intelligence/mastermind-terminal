@@ -26,6 +26,7 @@ export default function ChartObjectTree({ symbol, entries, onEye, onRemove, onCl
   const id = useId();
   const root = useRef<HTMLElement>(null);
   const search = useRef<HTMLInputElement>(null);
+  const close = useRef<HTMLButtonElement>(null);
   const pendingFocus = useRef<{ removed: string; next: string | null } | null>(null);
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
@@ -49,7 +50,8 @@ export default function ChartObjectTree({ symbol, entries, onEye, onRemove, onCl
       }
     };
     syncLayer(); media?.addEventListener("change", syncLayer);
-    search.current?.focus({ preventScroll: true });
+    const touchFirst = typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+    (touchFirst ? close.current : search.current)?.focus({ preventScroll: true });
     return () => {
       media?.removeEventListener("change", syncLayer);
       if (element && typeof element.hidePopover === "function" && element.matches(":popover-open")) element.hidePopover();
@@ -74,13 +76,15 @@ export default function ChartObjectTree({ symbol, entries, onEye, onRemove, onCl
   const visible = entries.filter((entry) => !entry.hidden).length;
   return <section ref={root} className={`ot-root ${styles.root}`} aria-labelledby={`${id}-title`} onKeyDown={(event) => {
     if (event.key !== "Escape") return;
+    // Composition owns Escape; keep it local without cancelling the IME default.
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) { event.stopPropagation(); return; }
     event.preventDefault(); event.stopPropagation();
     if (query) clear(); else onClose();
   }}>
     <header className={styles.header}>
       <div><h2 id={`${id}-title`}>{t("objectTree")}</h2>
         <p>{symbol}<span aria-hidden="true"> · </span>{entries.length} {t("smIndicators")}</p></div>
-      <button type="button" className={styles.action} aria-label={t("smClose")} title={t("smClose")} onClick={onClose}><Icon path={CLOSE} /></button>
+      <button ref={close} type="button" className={styles.action} aria-label={t("smClose")} title={t("smClose")} onClick={onClose}><Icon path={CLOSE} /></button>
     </header>
     <div className={styles.search}>
       <Icon path="M10.5 3a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15M16 16l5 5" />

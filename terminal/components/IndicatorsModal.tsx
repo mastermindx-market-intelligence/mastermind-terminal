@@ -4,6 +4,7 @@ import {
   Fragment,
   useDeferredValue,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -203,13 +204,18 @@ export default function IndicatorsModal({
   const st = useStudyTemplatesT();
   const [cat, setCat] = useState<string>(ALL_INDICATORS);
   const [query, setQuery] = useState("");
-  const [renaming, setRenaming] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<{ id: string; token: number } | null>(null);
   const [draft, setDraft] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const restoreFocusRef = useRef(true);
+  const renameActionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const renameSessionRef = useRef<{ id: string; token: number } | null>(null);
+  const renameSequenceRef = useRef(0);
+  const renameReturnRef = useRef<{ id: string; from: Element } | null>(null);
+  const lostRenameFocusRef = useRef<HTMLButtonElement | null>(null);
   const copy = (en: string, zh: string) => (lang === "zh" ? zh : en);
 
   useEffect(() => {
@@ -321,10 +327,37 @@ export default function IndicatorsModal({
     listRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [cat, normalizedDeferredQuery, open]);
 
+  useLayoutEffect(() => {
+    if (!open || suspended) {
+      renameReturnRef.current = null;
+      lostRenameFocusRef.current = null;
+      if (!open) renameSessionRef.current = null;
+      return;
+    }
+    const pending = renameReturnRef.current;
+    const lost = lostRenameFocusRef.current;
+    renameReturnRef.current = null;
+    lostRenameFocusRef.current = null;
+    const active = document.activeElement;
+    const available = (element: HTMLElement | null | undefined) =>
+      element?.isConnected && element.getClientRects().length > 0 && !element.closest("[hidden], [inert]");
+    if (pending && renaming === null && (active === document.body || active === pending.from)) {
+      const action = renameActionRefs.current[pending.id];
+      const target = available(action) ? action : searchRef.current;
+      if (available(target)) target?.focus({ preventScroll: true });
+    } else if (lost && !lost.isConnected && (active === document.body || active === lost)) {
+      // A successful async rename can remove the returned action from filtered results.
+      if (available(searchRef.current)) searchRef.current?.focus({ preventScroll: true });
+    }
+  });
+
   if (!open) return null;
 
   const closeModal = (restoreFocus = true) => {
     restoreFocusRef.current = restoreFocus;
+    renameSessionRef.current = null;
+    renameReturnRef.current = null;
+    lostRenameFocusRef.current = null;
     setQuery("");
     setRenaming(null);
     onClose();
@@ -335,10 +368,15 @@ export default function IndicatorsModal({
     setQuery("");
   };
 
-  const commitRename = (id: string) => {
-    const name = draft.trim();
-    if (name) onRenameScript?.(id, name);
+  const finishRename = (id: string, token: number | undefined, input: HTMLInputElement, save: boolean, restoreFocus = false) => {
+    // Consume before callbacks or focus changes: an explicit finish may also trigger blur.
+    const session = renameSessionRef.current;
+    if (!session || session.id !== id || session.token !== token) return;
+    renameSessionRef.current = null;
+    renameReturnRef.current = restoreFocus && input === document.activeElement ? { id, from: input } : null;
+    const name = input.value.trim();
     setRenaming(null);
+    if (save && name) onRenameScript?.(id, name);
   };
 
   const searchResultButtons = () =>
@@ -356,7 +394,7 @@ export default function IndicatorsModal({
   };
 
   const handleDialogKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (event.nativeEvent.isComposing) return;
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) { event.stopPropagation(); return; }
 
     const target = event.target as HTMLElement;
     const editable = target.matches("input, textarea, select, [contenteditable='true']");
@@ -623,7 +661,7 @@ export default function IndicatorsModal({
       const on = !!enabled?.has(script.id);
       return (
         <div key={script.id} className={`li li-script${on ? " on" : ""}`}>
-          {renaming === script.id ? (
+          {renaming?.id === script.id ? (
             <input
               className="li-rename"
               autoFocus
@@ -631,13 +669,17 @@ export default function IndicatorsModal({
               aria-label={t("rename")}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") commitRename(script.id);
-                else if (event.key === "Escape") {
+                if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
                   event.stopPropagation();
-                  setRenaming(null);
+                  return;
+                }
+                if (event.key === "Enter" || event.key === "Escape") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  finishRename(script.id, renaming?.token, event.currentTarget, event.key === "Enter", true);
                 }
               }}
-              onBlur={() => commitRename(script.id)}
+              onBlur={(event) => finishRename(script.id, renaming?.token, event.currentTarget, true)}
             />
           ) : (
             <button
@@ -664,11 +706,19 @@ export default function IndicatorsModal({
               <button
                 type="button"
                 className="li-ic"
+                ref={(element) => {
+                  const previous = renameActionRefs.current[script.id];
+                  if (!element && previous === document.activeElement) lostRenameFocusRef.current = previous;
+                  renameActionRefs.current[script.id] = element;
+                }}
                 title={t("rename")}
                 aria-label={`${t("rename")}: ${script.name}`}
                 onClick={() => {
+                  const session = { id: script.id, token: ++renameSequenceRef.current };
+                  renameSessionRef.current = session;
+                  renameReturnRef.current = null;
                   setDraft(script.name);
-                  setRenaming(script.id);
+                  setRenaming(session);
                 }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">

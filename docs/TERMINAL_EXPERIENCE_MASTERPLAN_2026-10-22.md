@@ -401,7 +401,7 @@ This choice solves the observed failure without replacing search scoring, compan
 
 ### 9 November 2026 — workspace and study controls
 
-The current Chairman assignment continues this programme through a bounded EX-06/EX-16/EX-20/EX-45 slice: [workspace and study control refinement](terminal-workspace-study-refinement-20261109.md). The new operation is `terminal-experience-refinement-20261109-sol-01`, based on protected `57ab4281d87ccb9e01e3bafcd42350034de1b222`, in its own managed source branch. It repairs native workspace actions, composition-safe script renaming, touch targets and Chart Layers focus. Existing source owners and in-flight polish PRs are preserved. Implementation, responsive proof and release are pending; no whole-row or programme acceptance is claimed.
+The current Chairman assignment continues this programme through a bounded EX-06/EX-16/EX-20/EX-45 slice: [workspace and study control refinement](terminal-workspace-study-refinement-20261109.md). The new operation is `terminal-experience-refinement-20261109-sol-01`, based on protected `57ab4281d87ccb9e01e3bafcd42350034de1b222`, in its own managed source branch. It repairs native workspace actions, composition-safe script renaming, touch targets and Chart Layers focus. Existing source owners and in-flight polish PRs are preserved. Implementation and 128 focused unit checks are complete. Responsive verification has covered desktop/tablet/phone and EN/ZH; the final focused pass, canonical capture publication and protected release remain in progress. No whole-row or programme acceptance is claimed.
 
 ### Earlier EX-03 / EX-08 history
 

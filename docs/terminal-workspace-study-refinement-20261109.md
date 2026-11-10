@@ -24,6 +24,29 @@ Then publish exact source and proof, qualify mandatory hosted CI, request normal
 
 Current browser limitation: the connected Chrome reports another extension UI blocking automation. No production browser proof is claimed. The selected browser is retained; no alternate browser or login workaround is authorized by that error.
 
-## Evidence
+## Implemented result
 
-Pending implementation and verification. Evidence will be recorded here and in the original PR, with exact source and test identities.
+- Workspace names and truthful status badges have a clear reading hierarchy. Open and Actions are sibling native buttons with instance-specific accessible relationships. Disabling Open no longer disables Export or permitted row management. Existing workspace rename, team restrictions, accordion focus and staged Escape remain owned by the existing component.
+- Script rename has one synchronous session guard. Enter commits once; Escape cancels locally; composition events remain owned by the input method. Explicit completion restores Rename, while natural blur retains the actual next focus destination. A focused Rename action removed by an asynchronous filtered result returns focus to search.
+- Secondary study controls use 44px targets on touch/narrow layouts. Phone actions occupy their own row, and touch layouts wrap long names. Available Guide/Settings controls use normal readable text and subtle neutral button surfaces even when adding a study is restricted. Entitlement logic is unchanged.
+- Chart Layers opens on Close for coarse pointers and on Search for fine pointers. Composition Escape does not clear or dismiss it. Existing visibility, removal, responsive top-layer behavior and focus return are preserved.
+
+## Verification at source checkpoint
+
+The six focused Vitest files pass **128 tests**: workspace creation/rename/actions, team-read restrictions, operation contracts, localization, script rename and Chart Layers. Command: `NODE_OPTIONS=--no-experimental-webstorage npx vitest run lib/__tests__/{layoutRenameFocus,chartObjectTree,indicatorsScriptRename}.test.tsx lib/__tests__/{layoutMenuTeamRead,workspaceMenuOps,workspaceMenuLex}.test.ts --maxWorkers=1 --minWorkers=1`. The flag disables the host Node 26 experimental server-side Web Storage so jsdom owns browser storage; it changes no product runtime.
+
+TypeScript passed on the implemented component changes. Focused lint has one pre-existing `react-hooks/set-state-in-effect` error in the workspace team-selection effect, reproduced from protected base through ESLint stdin; no new lint finding remains. Final static verification after test-only changes is running.
+
+The responsive suite exercised 1440x900, 820x1180 and 390x844, EN/ZH, touch target measurements, reduced motion, keyboard focus, workspace save/cancel/reload, layer hide/show/remove and script rename/reload. First complete matrix: **34 passed, six intentionally inapplicable cases skipped, two test-expectation failures**. Those two expected a desktop/tablet popover to remain open after a programmatic export download. The export succeeded; the corrected check now reopens through the existing menu owner and compares the downloaded JSON with the exact stored unreadable payload. A focused final matrix also covers the final touch-name wrapping and enabled-action treatment. Its result remains pending at this checkpoint.
+
+The account-script fixture deliberately implements reads only. Rename browser proof therefore uses the existing real guest script store, including a fresh reload; it does not claim an authenticated Supabase write. Composition checks exercise browser event signals, not an operating-system IME. Touch checks exercise coarse-pointer browser contexts, not a physical phone keyboard.
+
+Actual dark-theme desktop/tablet/phone captures were inspected. The read-only design critic accepted the tablet composition and identified subdued enabled study actions; the source now addresses that finding. Final captures include the existing light-theme token contract. No human usability study or production browser acceptance is claimed.
+
+## Release frontier
+
+The source remains on its original managed branch and operation. Current protected master advanced to `1442a9431ed01bbda4762864e05d6e278f4a5a6b` through a disjoint News selector theme change; no owned component, governing instruction or imported dependency overlaps. No ancestry-only merge is needed.
+
+Public branch metadata confirms the three protected check contexts, and ruleset `24411653` confirms the active merge queue with no bypass actors. The GitHub integration's administration-only branch-protection detail read returned 403; approval-rule detail remains unknown and must not be inferred from an empty review request list. No denied read is replayed through another account or tool.
+
+Next: finish the focused final matrix and static readback; publish final captures and evidence; qualify the original PR/head, effective native review decision, explicit holds and required CI; request only the permitted protected release path when qualified. Read back actual merge and the existing git-gated deployment result before any deployment claim. Connected Chrome remains blocked by another extension UI, so the live browser lane needs that UI obstruction cleared. Parent EX-06/EX-16/EX-20/EX-45 and the wider programme remain open until their actual acceptance obligations are met.

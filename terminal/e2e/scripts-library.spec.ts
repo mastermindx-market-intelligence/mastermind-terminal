@@ -1,6 +1,7 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { openIndicatorLibrary } from "./phoneChrome";
-import { useLang } from "./layoutStore";
+import { renderAsGuest, useLang } from "./layoutStore";
+import { expectTapTarget } from "./tapTarget";
 
 // C6/C7 at the surface the user actually sees: the Indicator Library's "My Scripts" list.
 //
@@ -83,3 +84,79 @@ test.describe("My Scripts", () => {
     await expect(modal.locator("[data-scripts-retry]")).toHaveText("重试");
   });
 });
+
+for (const lang of ["en", "zh"] as const) {
+  test(`script rename and touch actions keep the whole task intact (${lang})`, async ({ page, baseURL }, info) => {
+    test.setTimeout(90_000);
+    // Exercise the real guest persistence owner. The account fixture intentionally supports
+    // reads only, so its synthetic account cannot prove an authenticated save.
+    await renderAsGuest(page, baseURL); await useLang(page, lang);
+    await page.addInitScript(() => {
+      if (localStorage.getItem("mm.guestScripts") === null) {
+        localStorage.setItem("mm.guestScripts", JSON.stringify([{
+          id: "guest-research-study", name: "My Momentum", source: "//@version=6\nindicator('x')\nplot(close)",
+          lang: "pine", params: {}, updated_at: "2026-11-09T00:00:00Z",
+        }]));
+      }
+    });
+    await gotoTerminal(page);
+    const modal = await openMyScripts(page);
+    const row = modal.locator(".li-script").filter({ hasText: MINE });
+    const rename = row.locator('.li-acts button:not(.del)');
+    await rename.click();
+    const input = modal.locator(".li-rename");
+    const longName = lang === "zh" ? "长期动量研究与风险管理观察脚本——每日工作流程" : "Long-horizon momentum and risk management research workspace";
+    await input.fill(longName);
+    for (const signal of [{ isComposing: true }, { keyCode: 229 }]) {
+      for (const key of ["Enter", "Escape"]) {
+        expect(await input.evaluate((element, options) => element.dispatchEvent(new KeyboardEvent("keydown", {
+          ...options, bubbles: true, cancelable: true,
+        })), { key, ...signal })).toBe(true);
+        await expect(input).toBeFocused(); await expect(input).toHaveValue(longName);
+        await expect(modal).toBeVisible();
+      }
+    }
+    await input.press("Escape");
+    await expect(input).toHaveCount(0); await expect(rename).toBeFocused();
+    await expect(row.locator(".li-nm")).toHaveText(MINE);
+    await rename.click(); await input.fill(longName); await input.press("Enter");
+    const saved = modal.locator(".li-script").filter({ hasText: longName });
+    await expect(saved.locator(".li-nm")).toHaveText(longName);
+    await expect(saved.locator(".li-acts button:not(.del)")).toBeFocused();
+
+    if (info.project.use.hasTouch) {
+      for (const action of await saved.locator(".li-acts button, .li-acts a").all()) {
+        await expectTapTarget(action, { width: 44, height: 44 });
+      }
+      await expectTapTarget(modal.locator(".im-nav-item.on"), { height: 44 });
+    }
+    expect(await modal.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    await modal.screenshot({ path: info.outputPath(`scripts-${info.project.name}-${lang}.png`) });
+
+    // The existing async save removes this row from the current search. Focus remains usable.
+    const search = modal.locator(".im-search-input");
+    await search.fill(longName);
+    await saved.locator(".li-acts button:not(.del)").click();
+    const finalName = lang === "zh" ? "已确认的研究脚本" : "Confirmed research script";
+    await input.fill(finalName); await input.press("Enter");
+    await expect(saved).toHaveCount(0); await expect(search).toBeFocused();
+    await search.fill("TP1");
+    const moduleRow = modal.locator(".imod-row").first();
+    await expect(moduleRow).toBeVisible();
+    if (info.project.use.hasTouch) {
+      for (const action of await moduleRow.locator(".imod-action").all()) {
+        await expectTapTarget(action, { width: 44, height: 44 });
+      }
+    }
+    expect(await modal.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    await modal.screenshot({ path: info.outputPath(`study-actions-${info.project.name}-${lang}.png`) });
+    // Render the same enabled actions with the existing light-theme token contract.
+    await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+    await modal.screenshot({ path: info.outputPath(`study-actions-${info.project.name}-${lang}-light.png`) });
+
+    await page.reload(); await expect(page.locator(".mm-ptag")).toBeVisible();
+    const refreshed = await openMyScripts(page);
+    await expect(refreshed.locator(".li-nm").filter({ hasText: finalName })).toBeVisible();
+    await expect(refreshed.locator(".li-nm").filter({ hasText: longName })).toHaveCount(0);
+  });
+}
