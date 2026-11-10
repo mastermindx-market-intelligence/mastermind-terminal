@@ -597,8 +597,6 @@ jobs:
       - name: Qualify investor shell opt-in
         if: matrix.shard == 'serial'
         env:
-          # Temporary PR737 diagnostic: retain the previously discarded second-server startup output.
-          DEBUG: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 737 && 'pw:webserver' || '' }}
           MMX_INVESTOR_SHELL_PREVIEW: '1'
           CI: '1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_investor }}
