@@ -21,10 +21,14 @@ Rules (Meta-CEO ruling 2026-09-05, under issue #485):
 
 | Spec:line | Test title | Project | Evidence runs | Owner | Re-enable condition |
 | --- | --- | --- | --- | --- | --- |
+| terminal/e2e/intl-history-date-intent.spec.ts:19 | History accepts real date intent, compares exact reconstruction and returns with supported context | serial (desktop, tablet) | 42571976409 (route.fulfill disposed in real-next-legacy-transport), 42564412411 (scrollIntoViewIfNeeded timeout), 42559135163 (empty scenario-contribution text), 42516865791 (history-tab click never visible) — four failed runs in 36 h, four different mechanisms, so rule 1's harness-race clause, not one product defect. Coverage given up: the entire shared-shell History date-intent journey (exact reconstruction + return-context + retained-fixture provenance assertions) leaves the serial shard. | ci-lightning (Terminal CI program) | Re-enable when the serial lane's transport/visibility races are stabilized (fleet lane or legacy-transport fixture rework), then hold on 3 consecutive green full runs. |
+| terminal/e2e/options-exposure-surface-journey.spec.ts:1413 | synthetic exposure saved theme cold return en + zh | desktop, tablet, mobile | 42647618300 (desktop-4, mobile-2, tablet-3), 42516865791 (desktop-3, mobile-2, tablet-2) — six shards across two failed runs, every attempt timing out at the canonical-fixture poll's 5 s default with authReads 0 while data-chart-ready (30 s gate) had already passed. Coverage given up: saved-theme persistence across Exposure cold navigation in both languages. | ci-lightning (Terminal CI program) | The same PR raises that poll to 30 s; re-enable once 3 consecutive full-matrix runs are green with the raised poll (or sooner by principal ruling). |
+| terminal/e2e/drawing-system.spec.ts:2173 | a cross-pane price gesture clamps on a logarithmic price scale | desktop | 42634428249 (desktop-2) — initial attempt and every retry failed at the same line: the pane midpoint still read linear after the shipped Alt+l toggle, so rule 1's deterministic single-run clause. Coverage given up: the cross-pane clamp contract on a logarithmic scale (anchor-inside-band + endpoint-clamped-to-pane-bottom assertions in the same body). | ci-lightning (Terminal CI program) | Re-enable after #1401's chart-keyboard rework shows 3 consecutive green full runs for both cross-pane titles. |
+| terminal/e2e/drawing-system.spec.ts:2203 | a cross-pane price gesture clamps on an inverted price scale | desktop | 42634428249 (desktop-2) — same run and same clause as the logarithmic sibling: every attempt failed at the precondition line (Alt+i left the scale un-inverted at calibration time). Coverage given up: the inverted-orientation clamp contract (larger-price target + no Math.min shortcut). | ci-lightning (Terminal CI program) | Same as the logarithmic sibling row above. |
+| terminal/e2e/boats-display.spec.ts:48 | coalesced trailing null clears BOATS and a later failure cannot revive it | tablet, mobile | 42347628408 — failed mobile-1 with BOTH retries at the same line (rule 1's deterministic clause): the coalesced catch-up request count read 4 against the contract's exactly-3, racing #864's request coalescing against the test's held-request choreography; the same run's tablet-1 shard saw it pass only after a retry. Coverage given up: trailing-null clearing, no-revive-on-failure, and freshness-not-expired contracts in one body. | ci-lightning (Terminal CI program) | Re-enable when the ext-quote coalescing count assertion is made deterministic or after 3 consecutive green full runs. |
 
-No journey is quarantined. The last row — `drawing-system.spec.ts:992` ("flagship geometry,
-editing, and path limits survive adversarial interaction", desktop, evidence run 33942726252) —
-was closed under rule 2 on 2026-10-18: the Path tool's double-click finisher was repaired in
+Previously closed under rule 2 on 2026-10-18: the row `drawing-system.spec.ts:992` ("flagship geometry,
+editing, and path limits survive adversarial interaction", desktop, evidence run 33942726252). The Path tool's double-click finisher was repaired in
 `terminal/components/ChartPanel.tsx` (40 changed lines) and the whole test body, including the
 nine contracts that the `test.fixme` had been aborting, asserts again. The defect was real and
 position-dependent, not a harness race: the `pointerup` finish check compared the RAW pointer
@@ -33,7 +37,11 @@ centre appended a fifth anchor instead of finishing, and the repaint that follow
 element the mousedown was recorded on, which makes Blink drop the native `click`/`dblclick` pair
 outright. `e2e/drawing-system.spec.ts` ends with a regression test that places the finishing
 double-click deliberately off-centre on a coarse monthly grid; it fails on the unrepaired
-component.
+component. A second rule-2 close, 2026-11-10: `drawing-system.spec.ts:1480` ("a tool refused
+while account drawings are unavailable never becomes the group's shown tool", evidence run
+42575913131) clicked a menu trigger that the product correctly keeps disabled while account
+drawings are unavailable; #1401 reworked the test to assert the disabled fence instead of
+clicking through it.
 
 ## Observed but NOT quarantined (watch list — no coverage given up)
 
@@ -62,3 +70,5 @@ an unannotated citation elsewhere in this table records a locally-observed flake
 | terminal/e2e/layout-integrity.spec.ts:162 | Saved Layouts menu timeout | 33787644981 (pre-#505) | Owned by PR #496 |
 | terminal/e2e/washout-retro.spec.ts:617 | 30s test timeout | 33787644981 (pre-#505) | #492 (`86a75b68`) already landed the fix; green on both post-heal runs |
 | terminal/e2e/watchlist-bulk-actions.spec.ts:143, terminal/e2e/portfolio-positions.spec.ts:326, terminal/e2e/drawing-system.spec.ts:1586 | assorted timeouts | 33787644981 / 33599177226 / 33787644981 (all pre-#505) | Contention set cured by #505/#506 |
+| terminal/e2e/mobile-chart-chrome.spec.ts:447 | phone: tapping the symbol wheel opens the ticker picker as a drawer | 42591635037 (mobile-2), 42516865791 (mobile-2) — both retry-pass flaky buckets, never red | Two runs 2026-11-08/09. A third sighting or any failed bucket reopens the quarantine question |
+| terminal/e2e/drawing-save-concurrency.spec.ts:161 | superseded replay parks queued edits and use-cloud clears the recovered symbol | 42347628408 — tablet-1 FAILED bucket (red), mobile-1 retry-pass | Not in the 2026-11-09 quarantine set (no same-line retry evidence captured). Quarantine-eligible on its next failed run or on captured retry evidence |

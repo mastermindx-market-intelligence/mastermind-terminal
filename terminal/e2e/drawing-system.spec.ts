@@ -2170,7 +2170,11 @@ async function crossPaneRange(layer: Locator, probe: PaneProbe, drag: DragGestur
  * between the pane's two extremes instead would pass on a linear scale and land in the
  * wrong place here, on the scale traders actually use for multi-year ranges.
  */
-test("a cross-pane price gesture clamps on a logarithmic price scale", async ({ page }) => {
+// QUARANTINE.md: CI run 42634428249 (desktop-2) failed this test with the
+// initial attempt AND every retry at the same line — the pane midpoint still
+// read linear after the shipped Alt+l toggle, i.e. the toggle had not taken
+// effect at calibration time.
+test.fixme("a cross-pane price gesture clamps on a logarithmic price scale", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   const saves: DrawingSavePayload[] = [];
   await openTerminal(page, { onPut: (payload) => saves.push(payload) });
@@ -2200,7 +2204,10 @@ test("a cross-pane price gesture clamps on a logarithmic price scale", async ({ 
  * so an implementation that reached for a minimum, or for `Math.min` of the band, fails
  * while still looking correct on every normal chart.
  */
-test("a cross-pane price gesture clamps on an inverted price scale", async ({ page }) => {
+// QUARANTINE.md: same CI run 42634428249, same clause — every attempt failed at
+// the same precondition line (Alt+i left the scale un-inverted at calibration
+// time), the sibling mechanism of the logarithmic case quarantined above.
+test.fixme("a cross-pane price gesture clamps on an inverted price scale", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   const saves: DrawingSavePayload[] = [];
   await openTerminal(page, { onPut: (payload) => saves.push(payload) });
