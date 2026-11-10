@@ -556,7 +556,8 @@ shared_shell_status_verified(){
   # interpreter's stdin is the heredoc carrying the validator itself, so a piped
   # body would read as empty — and an empty body must never be mistaken for a
   # healthy endpoint.
-  python3 -I - "$want_sha" "$url" "$response" "$contracts_file" "$routes_file" <<'PY_STATUS' || rc=$?
+  python3 -I - "$want_sha" "$url" "$response" "$contracts_file" "$routes_file" \
+      >"$temporary/verdict" <<'PY_STATUS' || rc=$?
 import json
 import os
 import re
@@ -660,6 +661,10 @@ print(
     f"registry={admitted['registrySha256'][:12]}... build={build_id[:12]}"
 )
 PY_STATUS
+  # The validator's one success line is written to a file and relayed here: with
+  # PIPE ignored, a closed deploy channel would otherwise fail that write and turn
+  # a verified generation into a refused one. The verdict is the exit status only.
+  { cat "$temporary/verdict"; } 2>/dev/null || true
   rm -rf "$temporary"
   return "$rc"
 }
@@ -1728,6 +1733,8 @@ admit_target_sha(){
 #   pre-swap failure    -> cleanup_deploy_attempt restores it
 #   post-swap rollback  -> deploy_generation_abort restores it before any restart
 #   acceptance          -> the deploy body discards it after deploy_generation_commit
+#                          (cleanup_deploy_attempt finishes that discard when a
+#                          signal lands between the commit and it)
 # A restore only puts things back. The directory it emptied still holds this
 # attempt's failed tree, and deleting a full node_modules is the slowest step of
 # a recovery, so it never stands ahead of something that matters: a restored
@@ -6276,7 +6283,9 @@ DEPLOY_SIGNALS_TRAPPED=0
 # 1 once a production run's deploy_generation_begin has returned, until
 # deploy_generation_abort takes it. Together with the rollback records on disk
 # (which deploy_generation_commit removes) it tells the exit path that a
-# generation is open, uncommitted and has not been rolled back.
+# generation is open, uncommitted and has not been rolled back. `opening` while
+# begin itself is running: if it never returns, the exit path decides from the
+# marker and the record on disk (deploy_generation_opening_resolved).
 DEPLOY_GENERATION_OPEN=0
 # deploy_generation_begin and the assignment above must not be separated by a
 # signal: begun-but-unflagged would exit through the pre-swap recovery with the
@@ -6312,6 +6321,25 @@ deploy_take_signal_traps(){
   trap '' PIPE
 }
 
+# deploy_generation_begin did not return: one of its commands failed under
+# `set -e`. Its last command is the rename that advances the marker, and a
+# signal sent to the whole process group can kill that `mv` after the rename has
+# happened. So the disk decides. The generation is open exactly when the live
+# marker now reads the target AND the record of what it replaced is whole: the
+# prior marker saved as a well-formed, different identity, or the note that
+# there was none. Anything else (the copy or the install failed, the rename
+# never happened) moved nothing live and stays a pre-swap failure; a half
+# written record is never rolled back from.
+deploy_generation_opening_resolved(){
+  local app=$1 want_sha=$2 live prior
+  [ -n "$want_sha" ] || return 1
+  live=$(read_live_deployment_marker "$app/.deployment-id" 2>/dev/null) || return 1
+  [ "$live" = "$want_sha" ] || return 1
+  if [ -e "$app/.deployment-id.absent" ]; then return 0; fi
+  prior=$(read_live_deployment_marker "$app/.deployment-id.bak" 2>/dev/null) || return 1
+  [ "$prior" != "$want_sha" ]
+}
+
 cleanup_deploy_attempt(){
   local rc=$? live_marker restored_head dirty archive_cleanup_failed=0
   local swapped
@@ -6321,6 +6349,13 @@ cleanup_deploy_attempt(){
   if [ "$rc" -ne 0 ] && [ "$TARGET" = beta ] && \
       { [ "${BETA_TXN_ACTIVE:-0}" = 1 ] || [ "${DEMOTE_ON_FAILURE:-0}" = 1 ]; }; then
     beta_txn_abort "nonzero exit or trapped interruption (status=$rc)" || true
+  fi
+  if [ "${DEPLOY_GENERATION_OPEN:-0}" = opening ]; then
+    DEPLOY_GENERATION_OPEN=0
+    if deploy_generation_opening_resolved "$APP" "${FULL_SHA:-}"; then
+      DEPLOY_GENERATION_OPEN=1
+      CANONICAL_RECOVERY_ARMED=0
+    fi
   fi
   # A production generation that is open here — begun, not committed (its
   # rollback records are still on disk) and not already rolled back — was
@@ -6360,6 +6395,18 @@ cleanup_deploy_attempt(){
   # refuses. After that point deploy_generation_abort owns the restore; a snapshot
   # still open here was interrupted mid-activation or could not be restored, and
   # is kept for attended recovery rather than guessed at.
+  #
+  # One snapshot open here is NOT a failure: the generation was accepted and
+  # committed (verdict reached, rollback records removed) and a signal landed
+  # before the acceptance path's own deps_snapshot_discard. The saved inputs are
+  # the replaced generation's; kept under the unresolved name they would report
+  # an accepted deploy as unrecoverable and invite a restore that downgrades the
+  # dependencies under the accepted build. Finish the discard instead.
+  if [ -n "${DEPS_SNAPSHOT_DIR:-}" ] && [ "$TARGET" = production ] \
+      && [ "${DEPLOY_GENERATION_OPEN:-0}" = 1 ] && [ "${DEPLOY_OK:-0}" = 1 ] \
+      && [ ! -e "$APP/.deployment-id.bak" ] && [ ! -e "$APP/.deployment-id.absent" ]; then
+    deps_snapshot_discard
+  fi
   if [ -n "${DEPS_SNAPSHOT_DIR:-}" ]; then
     [ "$rc" -ne 0 ] || rc=1
     if [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
@@ -6500,6 +6547,15 @@ fi
 # path guards run immediately behind it and stay exactly as strict.
 deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET" || exit $?
 trap cleanup_deploy_attempt EXIT
+# From the first moment the lock is held, for EITHER profile: a cancelled caller
+# closes the deploy channel without sending a signal, and the next write raises
+# SIGPIPE. bash 5.3 then dies without its EXIT trap: the lock stays held, the
+# canonical checkout stays on the unaccepted target and the stage leaks. bash 5.2
+# enters the trap with status 0, so it skips the recovery and dies again on its
+# own next log line: the checkout is still left on the unaccepted target.
+# Ignored (never trapped, see deploy_take_signal_traps) the write just fails,
+# `log` discards that, and the run reaches its own verdict and its cleanup.
+trap '' PIPE
 if [ "$TARGET" = beta ]; then
   trap 'exit 129' HUP
   trap 'exit 130' INT
@@ -6820,6 +6876,12 @@ elif [ "$TARGET" = production ]; then
   # begin and its flag are one step to a signal; see DEPLOY_SIGNAL_DEFER.
   deploy_take_signal_traps
   DEPLOY_SIGNAL_DEFER=1
+  # `opening` until begin returns. A begin that fails under `set -e` leaves it
+  # for the exit path to resolve from the disk: a signal sent to the whole
+  # process group can kill the final `mv` after its rename has happened.
+  # (Begin is NOT called in a `||` list: that would switch errexit off inside
+  # it, and a failed `cp` of the rollback record would run on into the move.)
+  DEPLOY_GENERATION_OPEN=opening
   deploy_generation_begin "$APP" "$STAGE/.deployment-id"
   DEPLOY_GENERATION_OPEN=1
   CANONICAL_RECOVERY_ARMED=0

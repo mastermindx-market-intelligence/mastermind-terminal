@@ -3,7 +3,7 @@
 The original qualified harness was read for its fixture conventions. Its real-Git
 Owner is deliberately not run under this assignment's no-Git-effects restriction.
 """
-import hashlib,json,os,pathlib,pwd,re,shlex,shutil,subprocess,tempfile
+import hashlib,json,os,pathlib,pwd,re,shlex,shutil,subprocess,tempfile,time
 import unittest
 
 HERE=pathlib.Path(__file__).resolve().parent
@@ -336,6 +336,84 @@ kill -KILL "$$"
  assert 'pending' in out2.stdout+out2.stderr
 
 
+# The PIPE ignore taken with the build lock (both profiles).
+EARLY_PIPE_IGNORE="\ntrap '' PIPE\nif [ \"$TARGET\" = beta ]; then\n"
+
+def closed_channel_upgrade(box):
+ """The B upgrade with its output on a pipe. Parked in the stage step, the
+ reader goes away (a cancelled caller: no signal, the next write raises
+ SIGPIPE), then the stage step is released. Returns the exit status."""
+ box.flag('hold_stage');box.flag('fail_build')
+ reader,writer=os.pipe()
+ proc=subprocess.Popen(['bash',str(box.owner),'--target','beta','--target-sha',B],
+                       env=box.env,stdout=writer,stderr=writer)
+ os.close(writer)
+ try:
+  deadline=time.monotonic()+20
+  while not (box.root/'hold_stage.started').exists():
+   assert proc.poll() is None,'beta run ended before its stage step'
+   assert time.monotonic()<deadline,'beta run never reached its stage step'
+   time.sleep(0.05)
+  assert (box.base/'.terminal-build-resource.lock'/'hold').is_dir(),'fixture: the build lock is not where the case looks'
+  os.close(reader);reader=None
+  box.flag('hold_stage.release')
+  return proc.wait(timeout=25)
+ finally:
+  box.flag('hold_stage.release')
+  if reader is not None: os.close(reader)
+  if proc.poll() is None: proc.kill();proc.wait()
+  assert digest_tree(box.prod)==box.production_before,'beta mutated production fixture bytes'
+
+def _case_closed_deploy_channel_during_stage_still_reaches_the_build_and_cleanup(box):
+ box.bootstrap();prior=(box.target/'.runtime-accepted').resolve()
+ start=len(box.effects())
+ status=closed_channel_upgrade(box)
+ later=box.effects()[start:]
+ # The run went on past the closed channel to its own verdict (the injected
+ # build failure) and left through its cleanup, not through a signal.
+ assert 'npm:run build' in later,later
+ assert status>0,status
+ assert not (box.base/'.terminal-build-resource.lock'/'hold').exists(),'the build lock was never released'
+ assert not list(box.target.glob('.stage.*')),'the stage was left behind'
+ assert any(' reset ' in v and A in v for v in later),later
+ assert box.read('head')==A
+ assert box.accepted()['accepted_sha']==A
+ assert (box.target/'.runtime-accepted').resolve()==prior
+ assert not (box.target/'.release-pending').exists()
+ assert (box.app/'.deployment-id').read_text().strip()==A
+ assert (box.app/'.next/fixture-build-sha').read_text().strip()==A
+ assert box.read('enabled')=='enabled' and box.read('active')=='active'
+
+def _case_mutant_without_the_early_pipe_ignore_never_reaches_the_beta_build(box):
+ # Only the cut-short run is asserted: what the dying shell still does (EXIT
+ # trap or not, and with which status) differs between bash 5.2 and 5.3.
+ script=box.owner.read_text()
+ assert script.count(EARLY_PIPE_IGNORE)==1,'mutation anchor vanished from ops/terminal-build.sh'
+ box.owner.write_text(script.replace(EARLY_PIPE_IGNORE,'\n:  # MUTANT: PIPE keeps its default disposition\nif [ "$TARGET" = beta ]; then\n'))
+ box.bootstrap()
+ start=len(box.effects())
+ status=closed_channel_upgrade(box)
+ later=box.effects()[start:]
+ assert 'npm:run build' not in later,'mutation was inert: the run survived the closed channel (status=%r)'%status
+ assert not any(' reset ' in v and A in v for v in later),later
+
+# The status validator's success line goes to a file and is relayed by the shell.
+VERDICT_RELAY=" \\\n      >\"$temporary/verdict\" <<'PY_STATUS' || rc=$?\n"
+
+def _case_mutant_without_the_verdict_relay_cannot_verify_the_rollback_on_a_closed_channel(box):
+ # With PIPE ignored the validator's own print fails on the closed channel, so
+ # the rollback restores A but cannot prove it and leaves beta unresolved.
+ script=box.owner.read_text()
+ assert script.count(VERDICT_RELAY)==1,'mutation anchor vanished from ops/terminal-build.sh'
+ box.owner.write_text(script.replace(VERDICT_RELAY," <<'PY_STATUS' || rc=$?\n"))
+ box.bootstrap()
+ start=len(box.effects())
+ closed_channel_upgrade(box)
+ later=box.effects()[start:]
+ assert 'npm:run build' in later,later
+ assert (box.target/'.release-pending').exists(),'mutation was inert: the rollback was verified without the relay'
+ assert box.read('active')!='active',box.read('active')
+
 def _case_post_commit_enable_failure_preserves_B_and_does_not_attempt_rollback(box):
  box.bootstrap();box.flag('fail_enable')
  out=box.run(B)
@@ -505,6 +583,9 @@ for failure in ['fail_status_sha','interrupt_start','fail_source_sync']:
 for mode in ['bootstrap','upgrade']:
  register(_case_final_restart_failure_stops_without_acceptance,mode)
 register(_case_hard_interruption_retains_pending_state_and_disables_automatic_start)
+register(_case_closed_deploy_channel_during_stage_still_reaches_the_build_and_cleanup)
+register(_case_mutant_without_the_early_pipe_ignore_never_reaches_the_beta_build)
+register(_case_mutant_without_the_verdict_relay_cannot_verify_the_rollback_on_a_closed_channel)
 register(_case_post_commit_enable_failure_preserves_B_and_does_not_attempt_rollback)
 register(_case_complete_orphan_provision_record_is_reusable_without_overwriting_it)
 register(_case_production_generation_library_and_restart_branch_are_unchanged,fixture=False)
