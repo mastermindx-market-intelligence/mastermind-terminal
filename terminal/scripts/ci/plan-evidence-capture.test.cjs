@@ -163,3 +163,29 @@ test("historical EOD checkout identity remains reusable when its complete inputs
   fs.writeFileSync(f.eodManifest, f.eodText.replace("a".repeat(40), "9".repeat(40)));
   assert.deepEqual(planEvidenceCapture(f.root), {capture: false, reason: "locked-source-match", stale: []});
 });
+
+test("batch3-only producer or fixture drift cannot skip the existing capture owner", t => {
+  const f = fixture(t);
+  const batch3 = MANIFESTS.find(manifest => manifest.includes("b-pl-6-batch-3"));
+  assert.ok(batch3, "batch3 is registered in the existing planner");
+  const input = "terminal/e2e/fixtures/heatmap-price-only-tile.json";
+  const file = path.join(f.root, input);
+  fs.mkdirSync(path.dirname(file), {recursive: true});
+  const original = Buffer.from('{"source":"bundled"}\n');
+  fs.writeFileSync(file, original);
+  fs.writeFileSync(path.join(f.root, batch3), f.render([...f.paths, input],
+    [...f.hashes, crypto.createHash("sha256").update(original).digest("hex")]));
+  assert.equal(planEvidenceCapture(f.root).capture, false);
+  fs.appendFileSync(file, "changed fixture\n");
+  assert.deepEqual(planEvidenceCapture(f.root), {capture: true, reason: "source-drift", stale: [input]});
+});
+
+test("missing or malformed batch3 evidence cannot authorize a merge-group capture skip", t => {
+  const f = fixture(t), batch3 = MANIFESTS.find(manifest => manifest.includes("b-pl-6-batch-3"));
+  assert.ok(batch3);
+  const file = path.join(f.root, batch3);
+  fs.rmSync(file);
+  assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+  fs.writeFileSync(file, "layoutFiles:\n  tampered: x\n");
+  assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+});

@@ -1,7 +1,7 @@
 "use strict";
 // Fail-closed source-lock planner for the expensive immutable browser evidence
 // capture. Native merge_group may reuse checked-in legacy evidence only when
-// the original PL6/VI locks and the exact EOD packet match the integrated tree.
+// all registered screenshot-packet locks and the exact EOD packet match the integrated tree.
 // A missing/altered manifest, file, conflicting lock, or hash mismatch orders
 // fresh, fully validated captures. No false-green source hash overrides.
 const fs = require("node:fs");
@@ -13,6 +13,7 @@ const ROOT = path.resolve(__dirname, "../../..");
 const MANIFESTS = [
   "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
   "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+  "terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml",
 ];
 
 function manifestLocks(root, relative) {

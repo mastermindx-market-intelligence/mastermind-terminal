@@ -1,3 +1,4 @@
+import { intelligenceResponse } from "@/lib/shared-shell/intelligenceResponse";
 import { qualifyFinvizMembershipManifest } from "@/lib/finvizMembershipManifest";
 import { normalizeFinviz, TIMEFRAMES } from "@/lib/finvizThemes";
 import { isAdminRequest } from "@/lib/adminGate";
@@ -158,7 +159,7 @@ export type FeedFailure =
   /** The body arrived but is not the owner envelope. */
   | "payload_invalid";
 
-export async function GET(req: Request): Promise<Response> {
+async function readIncumbent(req: Request): Promise<Response> {
   const source = new URL(req.url).searchParams.get("source") || "";
   // own-property test excludes __proto__/constructor and all user-supplied URLs.
   if (!Object.hasOwn(PATHS, source)) {
@@ -285,4 +286,12 @@ export async function GET(req: Request): Promise<Response> {
     return failure(502, "error", "upstream_transport");
   }
   finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
+}
+
+/** Compact display view over the same authenticated reader; ordinary responses are unchanged. */
+export async function GET(req: Request): Promise<Response> {
+  const response = await readIncumbent(req);
+  const params = new URL(req.url).searchParams;
+  return params.get("view") === "intelligence" && params.get("source") === "history"
+    ? intelligenceResponse(response, "cycles") : response;
 }
