@@ -59,7 +59,10 @@ export function SectorBottomingWatch({
     >
       <header className={styles.head}>
         <div className={styles.headRow}>
-          <h3 className={styles.title}>{t("siWatchTitle")}</h3>
+          <h3 className={styles.title}>
+            {t("siWatchTitle")}
+            <span className={styles.count} data-count> · {watch.bottoming_watch.length}</span>
+          </h3>
           {watch.bottoming_authority.tier === "display" && (
             <span className={styles.badge}>{t("siDepthDisplayOnly")}</span>
           )}

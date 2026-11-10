@@ -24,6 +24,7 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siDepthUnavailableOwner: ["Missing field owner: {owner}", "缺失字段的所有者：{owner}"],
   siDepthAsOf: ["as of {date}", "截至 {date}"],
   siDepthDisplayOnly: ["Display-only", "仅供展示"],
+  siDepthLearnAccess: ["Learn about access →", "了解访问权限 →"],
 
   // ── calls board ────────────────────────────────────────────────────────────
   siCallsTitle: ["What to act on now", "当下行动指南"],
@@ -41,20 +42,33 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siCallsLaneTrimSub: ["Late in the cycle / topping — protect gains", "周期晚期／做顶 — 保护利润"],
   siCallsLaneAside: ["Stand aside", "观望"],
   siCallsLaneAsideSub: ["Hold what you own · no new buying", "持有勿动 · 不新开仓"],
-  siCallsEmptyBuyNow: [
-    "None today — nothing has fully confirmed a fresh cycle low.",
-    "今日无 — 尚无标的完全确认新的周期低点。",
+  siCallsEmptyDated: [
+    "No calls in this column on {date}. The board loaded in full; this is a measured zero.",
+    "{date} 此栏无建议。榜单已完整加载，这是实测的零。",
   ],
-  siCallsEmptyBuySoon: ["No imminent setups.", "暂无临近的构筑。"],
-  siCallsEmptyRun: ["Nothing extended right now.", "当前无过度延伸的标的。"],
-  siCallsEmptyTrim: ["Nothing topping.", "无标的做顶。"],
-  siCallsEmptyAside: ["Nothing to stand aside from.", "无需观望的标的。"],
   siCallsShowMore: ["Show more ({n})", "显示更多（{n}）"],
   siCallsShowLess: ["Show less", "收起"],
   siCallsMoreWithheld: [
-    "{n} more here — locked rows are withheld from your reading.",
-    "此处还有 {n} 个 — 锁定行未包含在你的读数中。",
+    "Another {n} · full access",
+    "另有 {n} 个 · 完整访问可见",
   ],
+  siCallsPreviewBanner: [
+    "Preview: {shown} of {total} names shown. Column counts are complete; the remaining {locked} names need full access.",
+    "预览：{total} 条建议中显示 {shown} 个名称。各栏计数完整，其余 {locked} 个名称需完整访问权限。",
+  ],
+  siCallsAsOfPill: ["Board as of {date} close", "榜单截至 {date} 收盘"],
+  siCallsGroupHold: ["Hold", "持有"],
+  siCallsGroupAvoid: ["Avoid", "回避"],
+  siCallsShowAllIn: ["Show all {n} in {group}", "显示{group}的全部 {n} 个"],
+  siCallsGroupWithheld: [
+    "{n} more ({h} hold · {a} avoid) · full access",
+    "另有 {n} 个（持有 {h} · 回避 {a}）· 完整访问可见",
+  ],
+  siCallsTraceWhy: [
+    "Why in this column · publish order {n} of {m}",
+    "为何在此栏 · 发布顺序第 {n} / {m}",
+  ],
+  siCallsHowItWorks: ["How calls work →", "建议如何产生 →"],
   siCallsBoardTotal: [
     "{total} qualified rows across the six source lanes",
     "六个来源分组共 {total} 行合格行",

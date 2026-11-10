@@ -37,6 +37,12 @@
   letter-spacing: -0.2px;
 }
 
+/* Header count rides the title (R5 C01: "Bottoming watch · 4"). */
+.count {
+  color: var(--text-2);
+  font: 650 13px var(--font-num);
+}
+
 .badge {
   padding: 3px 9px;
   border: 1px solid var(--line);

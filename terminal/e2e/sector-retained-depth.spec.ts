@@ -63,9 +63,16 @@ test("calls board renders the captured board: five columns, full counts, locked"
   await expect(calls).toContainText("1");
   // The exact-anchor fallback path: the CONTRACT instance mounts without
   // onNavigate, so its detail controls are real <a href> elements carrying
-  // the payload hrefs verbatim.
+  // the payload hrefs verbatim. (Phone accordions start collapsed — open a
+  // second column so the anchor count is viewport-stable.)
   const contract = page.locator('[data-h-section="calls-contract"]');
   const links = contract.locator("a[href]");
+  if ((await links.count()) < 3) {
+    await contract
+      .locator('[data-lane="buy_soon"]')
+      .getByRole("button", { name: /Almost ready|接近就绪/i })
+      .click();
+  }
   const count = await links.count();
   expect(count).toBeGreaterThanOrEqual(3);
   const hrefs = await links.evaluateAll((els) =>
@@ -78,8 +85,18 @@ test("calls board renders the captured board: five columns, full counts, locked"
 test("calls contract board: keyboard show-more and trace disclosure", async ({ page }) => {
   const section = page.locator('[data-h-section="calls-contract"]');
   await expect(section).toBeVisible();
-  // Keyboard-only: focus moves through real buttons.
+  // R5 C02: locked>0 renders the global preview banner — counts complete.
+  await expect(section.getByText(/Preview: \d+ of \d+ names shown/i)).toBeVisible();
+  // Keyboard-only: focus moves through real buttons. On the phone the
+  // non-primary columns start collapsed (R5 C03), so open one by keyboard.
   const showMore = section.getByRole("button", { name: /Show more/i }).first();
+  if (!(await showMore.isVisible())) {
+    const soonHead = section
+      .locator('[data-lane="buy_soon"]')
+      .getByRole("button", { name: /Almost ready|接近就绪/i });
+    await soonHead.focus();
+    await page.keyboard.press("Enter");
+  }
   await expect(showMore).toBeVisible();
   await showMore.focus();
   await page.keyboard.press("Enter");
@@ -89,6 +106,17 @@ test("calls contract board: keyboard show-more and trace disclosure", async ({ p
   await trace.focus();
   await page.keyboard.press("Enter");
   await expect(section.getByText(/20d vs market/i).first()).toBeVisible();
+  // R5 C04: the trace opens with its publish-order context line.
+  await expect(section.getByText(/publish order/i).first()).toBeVisible();
+  if (desktop(page)) {
+    // R5 C01: stand-aside groups keep named identity with group-scoped links,
+    // and a zero-total column is a dated measured zero, never a blank.
+    const showAllAvoid = section.getByRole("button", { name: /Show all \d+ in Avoid/i });
+    await expect(showAllAvoid).toBeVisible();
+    await expect(
+      section.locator('[data-lane="on_the_run"][data-empty="true"]'),
+    ).toContainText(/measured zero|实测的零/i);
+  }
   if (desktop(page)) await shot(page, "calls-trace");
 });
 
@@ -98,8 +126,16 @@ test("navigation out flows through the onNavigate callback with the exact href",
   await expect(log).toBeVisible();
   const before = await log.locator("li").count();
   // The captured section mounts WITH onNavigate: its detail control is a
-  // button that must call back with the row href verbatim.
-  await section.getByRole("button", { name: /Open detail|打开详情/ }).first().click();
+  // button that must call back with the row href verbatim. (The captured
+  // board populates only Stand aside, which starts collapsed on the phone.)
+  const detail = section.getByRole("button", { name: /Open detail|打开详情/ }).first();
+  if (!(await detail.isVisible())) {
+    await section
+      .locator('[data-lane="stand_aside"]')
+      .getByRole("button", { name: /Stand aside|观望/i })
+      .click();
+  }
+  await detail.click();
   await expect(log.locator("li")).toHaveCount(before + 1);
 });
 
@@ -250,5 +286,13 @@ test("mobile: calls board stacks with usable touch targets", async ({ page }) =>
     await showMore.tap();
     await expect(calls.getByRole("button", { name: /Show less/i }).first()).toBeVisible();
   }
+  // R5 C03: collapsed phone accordions open by tapping the full header row.
+  const asideHead = calls
+    .locator('[data-lane="stand_aside"]')
+    .getByRole("button", { name: /Stand aside|观望/i });
+  await asideHead.tap();
+  await expect(
+    calls.getByRole("button", { name: /Show all \d+ in Avoid/i }),
+  ).toBeVisible();
   await shot(page, "calls-mobile");
 });

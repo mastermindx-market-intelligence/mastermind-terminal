@@ -36,6 +36,8 @@ import {
   laneRowsSorted,
   previewSlice,
   sectorStat,
+  standAsideGroups,
+  standAsidePreview,
   traceModel,
   watchDisclosure,
   watchModel,
@@ -596,4 +598,67 @@ function makeLanes(over: Partial<Record<SourceLaneKey, LaneData>>): Record<Sourc
     hold: over.hold ?? empty,
     avoid: over.avoid ?? empty,
   };
+}
+
+describe("stand-aside groups (R5 C01) — hold/avoid keep named identity", () => {
+  it("exposes both source lanes with their OWN full totals for group headers", () => {
+    const groups = standAsideGroups(contract.action_board.lanes);
+    expect(groups.hold.total).toBe(contract.action_board.lanes.hold.total);
+    expect(groups.avoid.total).toBe(contract.action_board.lanes.avoid.total);
+    // Folding arithmetic is untouched: group totals sum to the merged column.
+    const folded = foldSixToFive(contract.action_board.lanes);
+    expect(groups.hold.total + groups.avoid.total).toBe(folded.stand_aside.total);
+  });
+
+  it("spends the merged budget exactly like columnPreview: hold first, avoid takes the remainder", () => {
+    // Fixture: hold 3 rows, avoid 2 → hold shows 3, avoid shows 0/hidden 2.
+    const preview = standAsidePreview(contract.action_board.lanes, false, false);
+    expect(preview.hold.shown.map((r) => r.ticker)).toEqual([
+      "SYN_HOLD_T1",
+      "SYN_HOLD_T2",
+      "SYN_HOLD_T3",
+    ]);
+    expect(preview.hold.hidden).toBe(0);
+    expect(preview.avoid.shown).toHaveLength(0);
+    expect(preview.avoid.hidden).toBe(2);
+    // Cross-check against the merged-list slice the plain column uses.
+    const merged = columnPreview("stand_aside", foldedStandAside().rows, false);
+    expect(preview.hold.shown.length + preview.avoid.shown.length).toBe(merged.shown.length);
+    expect(preview.hold.hidden + preview.avoid.hidden).toBe(merged.hidden);
+  });
+
+  it("expands each group independently — expanding Hold never re-collapses Avoid", () => {
+    // hold 9 / avoid 16, budget 3: collapsed shows hold 3, avoid 0.
+    const many = makeLanes({
+      hold: lane(Array.from({ length: 9 }, (_, i) => row({ ticker: `H${i}` })), 9),
+      avoid: lane(Array.from({ length: 16 }, (_, i) => row({ ticker: `A${i}` })), 16),
+    });
+    const collapsed = standAsidePreview(many, false, false);
+    expect(collapsed.hold.shown).toHaveLength(3);
+    expect(collapsed.avoid.shown).toHaveLength(0);
+    const holdOpen = standAsidePreview(many, true, false);
+    expect(holdOpen.hold.shown).toHaveLength(9);
+    expect(holdOpen.avoid.shown).toHaveLength(0); // budget arithmetic is a source property
+    const bothOpen = standAsidePreview(many, true, true);
+    expect(bothOpen.hold.shown).toHaveLength(9);
+    expect(bothOpen.avoid.shown).toHaveLength(16);
+  });
+
+  it("keeps the per-group display sort — themes first inside each group", () => {
+    const mixed = makeLanes({
+      hold: lane(
+        [row({ ticker: "H_SEC", kind: "sector" }), row({ ticker: "H_T", kind: "theme" })],
+        2,
+      ),
+      avoid: lane([row({ ticker: "A_SEC", kind: "sector" })], 1),
+    });
+    const preview = standAsidePreview(mixed, false, false);
+    expect(preview.hold.shown.map((r) => r.ticker)).toEqual(["H_T", "H_SEC"]);
+    // Hold spent 2 of the 3-row budget → avoid takes the 1-row remainder.
+    expect(preview.avoid.shown.map((r) => r.ticker)).toEqual(["A_SEC"]);
+  });
+});
+
+function foldedStandAside(): LaneData {
+  return foldSixToFive(contract.action_board.lanes).stand_aside;
 }

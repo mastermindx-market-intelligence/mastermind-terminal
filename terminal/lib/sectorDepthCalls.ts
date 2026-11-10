@@ -128,6 +128,62 @@ export function foldSixToFive(
   };
 }
 
+/** The two groups rendered INSIDE the Stand-aside column (R5 C01): the
+ * incumbent's hold and avoid lanes keep their own identity under the folded
+ * column — group headers carry each lane's own full total, never the merged
+ * one. Group rendering is display-only; folding arithmetic is unchanged. */
+export interface StandAsideGroups {
+  hold: LaneData;
+  avoid: LaneData;
+}
+
+/** Pass-through view of the two source lanes that folded into Stand-aside,
+ * for the grouped column rendering (C01/C02). */
+export function standAsideGroups(
+  lanes: Record<SourceLaneKey, LaneData>,
+): StandAsideGroups {
+  return { hold: lanes.hold, avoid: lanes.avoid };
+}
+
+export interface GroupPreviewSlice {
+  hold: PreviewSlice;
+  avoid: PreviewSlice;
+}
+
+/**
+ * The Stand-aside preview budget spent exactly as the incumbent slices the
+ * merged list (hold rows first, then avoid): hold spends from the front,
+ * avoid receives only what is left of the budget (zero when hold already
+ * consumed it). Each group expands independently via its own flag; the
+ * display sort (themes first) applies per group afterwards, mirroring
+ * columnPreview's semantics.
+ */
+export function standAsidePreview(
+  lanes: Record<SourceLaneKey, LaneData>,
+  holdExpanded: boolean,
+  avoidExpanded: boolean,
+  limit: number = PREVIEW_ROWS,
+): GroupPreviewSlice {
+  const holdRows = lanes.hold.rows;
+  const avoidRows = lanes.avoid.rows;
+  const holdShown = holdExpanded ? holdRows : holdRows.slice(0, Math.max(0, limit));
+  // The budget is a property of the SOURCE slice (hold rows first, avoid takes
+  // what is left), so avoid's collapsed share never depends on hold's
+  // expansion state — expanding Hold reveals Hold only.
+  const avoidBudget = Math.max(0, limit - Math.min(holdRows.length, limit));
+  const avoidShown = avoidExpanded ? avoidRows : avoidRows.slice(0, avoidBudget);
+  return {
+    hold: {
+      shown: laneRowsSorted("stand_aside", holdShown),
+      hidden: holdRows.length - holdShown.length,
+    },
+    avoid: {
+      shown: laneRowsSorted("stand_aside", avoidShown),
+      hidden: avoidRows.length - avoidShown.length,
+    },
+  };
+}
+
 /** Days-to-trigger sort key: absent/null days are treated as 99 (last),
  * the incumbent's `x.days ?? 99` semantics. */
 function daysSortKey(row: CallRow): number {
