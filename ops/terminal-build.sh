@@ -1146,6 +1146,128 @@ PY_BUNDLE
   return 66
 }
 
+# A bundle selected from the canonical checkout's own ops/ directory is valid for
+# exactly one generation: the commit that checkout held when it was selected.
+# This owner later moves that checkout (target reset, canonical-head recovery),
+# which rewrites the selected files in place. The pinned policy digest then no
+# longer describes the bytes on disk, and run_release_preflight correctly refuses
+# to execute them. Carrying the old pin forward is not an answer either: the
+# prior generation's policy cannot accept the target generation's tree.
+#
+# So the bundle that audits a generation is taken from THAT generation's commit
+# objects, extracted into a private owner-only directory nothing else can write,
+# admitted by the same selector (owner, modes, stable inodes, canonical digest),
+# and pinned again. The execution-time digest guard is unchanged and now compares
+# a pin against an immutable private copy, so any change between selection and
+# execution is still refused. A bundle selected from the authoring directory is
+# not rewritten by a checkout reset and is left exactly as selected.
+PREFLIGHT_BUNDLE_GENERATION_BOUND=0
+PREFLIGHT_GENERATION_BUNDLE_DIRS=()
+PREFLIGHT_POLICY_RECORD_PATH=
+PREFLIGHT_CURRENT_SCRIPT=
+PREFLIGHT_CURRENT_POLICY=
+PREFLIGHT_CURRENT_RUNTIME_DIR=
+PREFLIGHT_CURRENT_SCRIPT_SHA256=
+PREFLIGHT_CURRENT_POLICY_DIGEST=
+PREFLIGHT_CURRENT_RUNTIME_SHA256=
+
+# bind_preflight_bundle_to_generation <canonical repo> <full sha> <current|target>
+#   current: the checkout was restored to the live accepted generation; replace
+#            the selection with that generation's bundle.
+#   target:  the checkout is about to move to an admitted target; keep the
+#            current generation's selection for a later restoration audit and
+#            select the target generation's bundle for acceptance.
+# Runs before the checkout moves. Any failure leaves no selection and is fatal to
+# the caller; it never falls back to the stale pin.
+bind_preflight_bundle_to_generation(){
+  local repository=$1 generation=$2 role=${3:-} canonical private
+  if ! [[ "$generation" =~ ^[0-9a-f]{40}$ ]]; then
+    log "FATAL: a preflight bundle can only be bound to one full lower-case commit SHA"
+    return 64
+  fi
+  case "$role" in
+    current|target) ;;
+    *)
+      log "FATAL: unknown preflight bundle generation role"
+      return 64
+      ;;
+  esac
+  canonical=$(cd "$repository/ops" 2>/dev/null && pwd -P) || canonical=
+  if [ "$PREFLIGHT_BUNDLE_GENERATION_BOUND" != 1 ]; then
+    if [ -z "$canonical" ] \
+      || [ "$PREFLIGHT_SCRIPT" != "$canonical/terminal_release_preflight.py" ]; then
+      return 0
+    fi
+    # Durable lifecycle records keep naming the canonical policy file, which
+    # their later gates re-read. They never name a private per-run directory.
+    PREFLIGHT_POLICY_RECORD_PATH="$canonical/$PREFLIGHT_POLICY_BASENAME"
+  fi
+  if [ "$role" = target ]; then
+    PREFLIGHT_CURRENT_SCRIPT=$PREFLIGHT_SCRIPT
+    PREFLIGHT_CURRENT_POLICY=$PREFLIGHT_POLICY
+    PREFLIGHT_CURRENT_RUNTIME_DIR=$PREFLIGHT_RUNTIME_DIR
+    PREFLIGHT_CURRENT_SCRIPT_SHA256=$PREFLIGHT_SCRIPT_SHA256
+    PREFLIGHT_CURRENT_POLICY_DIGEST=$PREFLIGHT_POLICY_DIGEST
+    PREFLIGHT_CURRENT_RUNTIME_SHA256=$PREFLIGHT_RUNTIME_SHA256
+  fi
+  PREFLIGHT_BUNDLE_GENERATION_BOUND=1
+  # From here on the previous selection is withdrawn. If the generation's bundle
+  # cannot be produced and admitted, nothing is selected.
+  PREFLIGHT_SCRIPT=
+  PREFLIGHT_POLICY=
+  PREFLIGHT_RUNTIME_DIR=
+  PREFLIGHT_SCRIPT_SHA256=
+  PREFLIGHT_POLICY_DIGEST=
+  PREFLIGHT_RUNTIME_SHA256=
+  sanitize_git_environment
+  if ! private=$(mktemp -d /tmp/terminal-build-generation-bundle.XXXXXX); then
+    log "FATAL: could not allocate a private directory for the $role generation preflight bundle"
+    return 73
+  fi
+  PREFLIGHT_GENERATION_BUNDLE_DIRS+=("$private")
+  if ! git -C "$repository" -c tar.umask=0077 archive --format=tar "$generation" -- \
+    ops/terminal_release_preflight.py "ops/$PREFLIGHT_POLICY_BASENAME" ops/terminal_audit \
+    >"$private/bundle.tar"; then
+    log "FATAL: generation $generation carries no complete release-preflight bundle for target=$TARGET"
+    return 66
+  fi
+  if ! ( umask 077 && tar -xf "$private/bundle.tar" -C "$private" ) \
+    || ! rm -f "$private/bundle.tar"; then
+    log "FATAL: the $role generation preflight bundle could not be extracted into private custody"
+    return 66
+  fi
+  select_preflight_artifacts 0 "$private/ops" || return $?
+  log "preflight bundle bound to $role generation $generation: script_sha256=$PREFLIGHT_SCRIPT_SHA256 policy_digest=$PREFLIGHT_POLICY_DIGEST runtime_sha256=$PREFLIGHT_RUNTIME_SHA256"
+}
+
+# The restoration audit after a failed beta target must judge the PRIOR accepted
+# generation with the bundle that was selected for it, not the target's.
+restore_current_generation_preflight_bundle(){
+  [ -n "$PREFLIGHT_CURRENT_SCRIPT" ] || return 0
+  PREFLIGHT_SCRIPT=$PREFLIGHT_CURRENT_SCRIPT
+  PREFLIGHT_POLICY=$PREFLIGHT_CURRENT_POLICY
+  PREFLIGHT_RUNTIME_DIR=$PREFLIGHT_CURRENT_RUNTIME_DIR
+  PREFLIGHT_SCRIPT_SHA256=$PREFLIGHT_CURRENT_SCRIPT_SHA256
+  PREFLIGHT_POLICY_DIGEST=$PREFLIGHT_CURRENT_POLICY_DIGEST
+  PREFLIGHT_RUNTIME_SHA256=$PREFLIGHT_CURRENT_RUNTIME_SHA256
+}
+
+# Remove only the private directories this process created, by exact recorded
+# name and shape. A symlink or anything else at that name is left alone.
+preflight_generation_bundle_cleanup(){
+  local directory
+  for directory in ${PREFLIGHT_GENERATION_BUNDLE_DIRS[@]+"${PREFLIGHT_GENERATION_BUNDLE_DIRS[@]}"}; do
+    case "$directory" in
+      */terminal-build-generation-bundle.??????) ;;
+      *) continue ;;
+    esac
+    if [ -d "$directory" ] && [ ! -L "$directory" ]; then
+      rm -rf -- "$directory"
+    fi
+  done
+  PREFLIGHT_GENERATION_BUNDLE_DIRS=()
+}
+
 # Receipt publication is the only write admitted before source mutation. Never
 # chmod/chown unexplained existing state into compliance: inspect first, create
 # only missing directories, then inspect again. The W2A command performs its own
@@ -2859,13 +2981,58 @@ def action_attempt_begin(args):
     return 0
 
 
+PRIOR_POLICY_CAPTURE = "prior-generation-policy-capture"
+
+
+def generation_policy_digest(repo, sha, basename):
+    # The canonical digest of the audit policy one generation COMMITTED, read
+    # from that commit's own object. Every failure is None, which matches no
+    # digest: an unreadable, oversized, non-object or duplicate-key policy can
+    # never stand in for a captured or selected one.
+    import subprocess
+    if not isinstance(sha, str) or not SHA_RE.match(sha):
+        return None
+    environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    environment.update({
+        "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_SYSTEM": "/dev/null", "GIT_NO_REPLACE_OBJECTS": "1",
+        "GIT_TERMINAL_PROMPT": "0", "GIT_LITERAL_PATHSPECS": "1"})
+    try:
+        blob = subprocess.run(
+            ["git", "-C", repo, "cat-file", "blob", f"{sha}:ops/{basename}"],
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            env=environment, timeout=60, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if blob.returncode != 0 or not 0 < len(blob.stdout) <= MAX_JSON_BYTES:
+        return None
+
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate JSON key: {key}")
+            result[key] = value
+        return result
+
+    try:
+        payload = json.loads(blob.stdout.decode("utf-8"), object_pairs_hook=unique_object)
+    except (ValueError, UnicodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    return hashlib.sha256(canonical(payload)).hexdigest()
+
 
 def recovery_candidate(args):
     (target_root, state_dir, app_root, repo, sha, policy_digest, production_app,
-     identifier, expected_id) = args
+     identifier, expected_id, policy_basename) = args
     full_sha(sha, "recovery target SHA")
     hex64(expected_id, "expected failed attempt record")
     hex64(policy_digest, "recovery policy digest")
+    if (not policy_basename or "/" in policy_basename or policy_basename in {".", ".."}
+            or TOKEN_RE.fullmatch(policy_basename) is None):
+        fail("recovery policy basename must be one plain file name")
     old_path, attempt = read_attempt(target_root, state_dir, identifier)
     if record_id(attempt) != expected_id:
         fail("pending attempt is not the exact failed record selected for recovery")
@@ -2874,9 +3041,24 @@ def recovery_candidate(args):
             or attempt.get("recovery_from_record_id") is not None):
         fail("only an original failed dirty upgrade may consume one recovery entrance")
     for key, value in (("app_root", norm(app_root)), ("canonical_repo", norm(repo)),
-                       ("target_sha", sha), ("policy_digest", policy_digest)):
+                       ("target_sha", sha)):
         if attempt.get(key) != value:
             fail(f"recovery cannot change the captured {key}")
+    policy_basis = None
+    if attempt.get("policy_digest") != policy_digest:
+        # One exact exception, and only one. An attempt begun by an owner that
+        # pinned its policy before the checkout moved captured the PRIOR
+        # generation's policy digest for a target whose committed policy differs.
+        # That capture is admitted only when it is byte-for-byte the canonical
+        # digest of the policy the captured prior generation committed, AND the
+        # policy selected now is the one the captured target committed. Any other
+        # difference is a changed policy and is refused exactly as before.
+        captured, prior_sha = attempt.get("policy_digest"), attempt.get("prior_sha")
+        if (not isinstance(captured, str) or HEX_RE.match(captured) is None
+                or generation_policy_digest(repo, prior_sha, policy_basename) != captured
+                or generation_policy_digest(repo, sha, policy_basename) != policy_digest):
+            fail("recovery cannot change the captured policy_digest")
+        policy_basis = PRIOR_POLICY_CAPTURE
     current, _ = pointer_destination(target_root, RUNTIME_POINTER)
     if norm(current) != attempt.get("prior_runtime_record"):
         fail("prior accepted pointer changed before recovery")
@@ -2911,23 +3093,29 @@ def recovery_candidate(args):
             fail("retained build evidence does not match the captured generation")
         retained[name] = {"build_id": build, "deployment_id": expected_sha,
                           "server_manifest_sha256": hashlib.sha256(raw).hexdigest()}
-    return old_path, attempt, retained
+    return old_path, attempt, retained, policy_basis
 
 
 def action_attempt_recovery_check(args):
-    _, attempt, _ = recovery_candidate(args)
+    _, attempt, _, _ = recovery_candidate(args)
     print("RECOVERABLE\t" + attempt["attempt_id"])
     return 0
 
 
 def action_attempt_recover(args):
-    old_path, attempt, retained = recovery_candidate(args)
+    old_path, attempt, retained, policy_basis = recovery_candidate(args)
     original_id = record_id(attempt)
     attempt.pop("record_id", None)
     attempt.update({"phase": "recovering", "recovery_from_record": old_path,
                     "recovery_from_record_id": original_id,
                     "recovery_retained_builds": retained,
                     "recovery_build_id": None})
+    if policy_basis:
+        # The captured policy_digest stays as immutable history. The recovering
+        # record names, once, the target generation's committed policy that this
+        # one recovery is bound to; acceptance must present exactly that digest.
+        attempt.update({"recovery_policy_digest": args[5],
+                        "recovery_policy_basis": policy_basis})
     path = publish(args[1], f"attempt-{attempt['attempt_id']}-recovering-{record_id(attempt)[:16]}.json", attempt)
     replace_pointer(args[0], ATTEMPT_POINTER, path, old_path)
     print("RECOVERY\t{}\t{}\t{}\t{}".format(
@@ -3032,8 +3220,16 @@ def action_runtime(args):
     full_sha(sha, "requested target SHA")
     hex64(policy_digest, "selected policy digest")
     _, attempt = read_attempt(target_root, state_dir, attempt_id)
+    # Acceptance presents the attempt's own policy. Only a recovery admitted on
+    # the prior-generation-policy-capture basis is bound to the target policy
+    # digest its recovering record named instead.
+    attempt_policy = attempt.get("policy_digest")
+    if attempt.get("recovery_from_record_id") and "recovery_policy_digest" in attempt:
+        if attempt.get("recovery_policy_basis") != PRIOR_POLICY_CAPTURE:
+            fail("runtime publication is not the validated pending beta transaction")
+        attempt_policy = attempt["recovery_policy_digest"]
     if (attempt.get("phase") != "committing" or attempt.get("target_sha") != sha
-            or (attempt.get("recovery_build_id") if attempt.get("recovery_from_record_id") else attempt.get("build_id")) != build_id or attempt.get("policy_digest") != policy_digest
+            or (attempt.get("recovery_build_id") if attempt.get("recovery_from_record_id") else attempt.get("build_id")) != build_id or attempt_policy != policy_digest
             or attempt.get("app_root") != norm(app_root) or attempt.get("canonical_repo") != norm(repo)):
         fail("runtime publication is not the validated pending beta transaction")
     destination, provenance = provision_anchor(target_root, state_dir, app_root, repo, production_app)
@@ -3074,6 +3270,9 @@ def action_runtime(args):
     if attempt.get("recovery_from_record_id"):
         payload.update({key: attempt[key] for key in (
             "recovery_from_record", "recovery_from_record_id", "recovery_retained_builds")})
+        if "recovery_policy_digest" in attempt:
+            payload.update({"recovery_policy_basis": attempt["recovery_policy_basis"],
+                            "recovery_captured_policy_digest": attempt.get("policy_digest")})
     path = publish(state_dir, runtime_filename(sha, record_id(payload)[:16]), payload)
     replace_pointer(target_root, RUNTIME_POINTER, path, expected_previous)
     print(path)
@@ -3306,7 +3505,8 @@ beta_bootstrap_provision(){
     log "beta bootstrap resume verified: recorded SHA, digest, paths and trees all match"
   else
     if ! observed=$(beta_statectl begin "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
-        "$APP" "$target_sha" "$PREFLIGHT_POLICY_DIGEST" "$SRC" "$PREFLIGHT_POLICY" \
+        "$APP" "$target_sha" "$PREFLIGHT_POLICY_DIGEST" "$SRC" \
+        "${PREFLIGHT_POLICY_RECORD_PATH:-$PREFLIGHT_POLICY}" \
         "$trees_file" "$PRODUCTION_APP_DEFAULT" 2>&1); then
       log "FATAL: could not publish the source-provisioned authorization:"
       printf '%s\n' "$observed" | while IFS= read -r line; do log "  $line"; done
@@ -3398,7 +3598,8 @@ beta_publish_runtime_accepted(){
   local want_sha=$1 build_id=$2 outcome
   [ "$TARGET" = beta ] || return 0
   if ! outcome=$(beta_statectl runtime "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
-      "$APP" "$SRC" "$want_sha" "$PREFLIGHT_POLICY_DIGEST" "$PREFLIGHT_POLICY" \
+      "$APP" "$SRC" "$want_sha" "$PREFLIGHT_POLICY_DIGEST" \
+      "${PREFLIGHT_POLICY_RECORD_PATH:-$PREFLIGHT_POLICY}" \
       "$PRODUCTION_APP_DEFAULT" "${RUNTIME_RECORD_PATH:-}" "${PREFLIGHT_RECEIPT_PATH:-}" \
       "${PREFLIGHT_RECEIPT_ID:-}" "${PREFLIGHT_SOURCE_RECEIPT_ID:-}" "$build_id" "$BETA_TXN_ID" 2>&1); then
     log "FATAL: the beta runtime acceptance record could not be published: $outcome"
@@ -4610,7 +4811,7 @@ beta_recovery_check(){
   }
   beta_statectl attempt-recovery-check "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
     "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
-    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" >/dev/null
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" "$PREFLIGHT_POLICY_BASENAME" >/dev/null
 }
 
 beta_txn_recover(){
@@ -4618,7 +4819,7 @@ beta_txn_recover(){
   beta_recovery_check || return $?
   outcome=$(beta_statectl attempt-recover "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
     "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
-    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID") || return $?
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" "$PREFLIGHT_POLICY_BASENAME") || return $?
   IFS=$'\t' read -r tag BETA_PRIOR_RECORD BETA_PRIOR_RECORD_ID BETA_PRIOR_SHA BETA_PRIOR_BUILD <<<"$outcome"
   [ "$tag" = RECOVERY ] || return 75
   RUNTIME_RECORD_PATH=$BETA_PRIOR_RECORD
@@ -4775,6 +4976,7 @@ beta_txn_abort(){
     fi
     deploy_identity_verified "$APP" "$BETA_PRIOR_SHA" "$BETA_PRIOR_BUILD" || rc=1
     shared_shell_status_verified "$BETA_STATUS_URL" "$BETA_PRIOR_SHA" "$SRC" || rc=1
+    restore_current_generation_preflight_bundle || rc=1
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" || rc=1
     [ "$PREFLIGHT_ACCEPTED_SHA" = "$BETA_PRIOR_SHA" ] || rc=1
   fi
@@ -6456,6 +6658,7 @@ cleanup_deploy_attempt(){
       rc=74
     fi
   fi
+  preflight_generation_bundle_cleanup || true
   # Ordinary exits release only this process's verified hold, including guarded
   # failures and a bare set-e abort. Unexplained archive custody instead retains
   # the hold for attended recovery; neither profile may clear another owner.
@@ -6604,6 +6807,9 @@ if [ "$BOOTSTRAP_REQUESTED" != 1 ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   if [ "$PREFLIGHT_RECOVERY_REQUIRED" = 1 ]; then
     log "current-generation preflight admitted the sole canonical-head mismatch recovery state"
     recover_canonical_head_mismatch "$SRC" "$DEPLOYMENT_MARKER" || exit $?
+    # The checkout now holds the live accepted generation, so a bundle selected
+    # from the mismatched HEAD no longer describes the files that will execute.
+    bind_preflight_bundle_to_generation "$SRC" "$PREFLIGHT_ACCEPTED_SHA" current || exit $?
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
   fi
 
@@ -6623,6 +6829,12 @@ if [ "$BOOTSTRAP_REQUESTED" != 1 ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   # before any candidate source/build/marker mutation or start. Old targets are
   # decided absent here and keep the incumbent behavior verbatim.
   require_investigation_closed_before_start "$TARGET_SHA" || exit $?
+  if [ "$TARGET" = beta ]; then
+    # Beta acceptance audits the TARGET generation after the checkout moves, so
+    # it must run the target generation's bundle. Production never audits after
+    # the reset and keeps its current-generation selection untouched.
+    bind_preflight_bundle_to_generation "$SRC" "$TARGET_SHA" target || exit $?
+  fi
   CANONICAL_RECOVERY_SHA=$PREFLIGHT_ACCEPTED_SHA
   CANONICAL_RECOVERY_ARMED=1
   git -C "$SRC" reset -q --hard "$TARGET_SHA"
@@ -6642,6 +6854,9 @@ elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
   admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
   require_investigation_closed_before_start "$TARGET_SHA" || exit $?
+  # The provisioned record and every later bootstrap gate are bound to the
+  # TARGET generation's policy, not to whatever the checkout held before it.
+  bind_preflight_bundle_to_generation "$SRC" "$TARGET_SHA" target || exit $?
   sanitize_git_environment
   git -C "$SRC" reset -q --hard "$TARGET_SHA" || exit $?
   git -C "$SRC" clean -qfd || exit $?
@@ -6658,6 +6873,9 @@ elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   if [ "$PREFLIGHT_RECOVERY_REQUIRED" = 1 ]; then
     log "current-generation preflight admitted the sole canonical-head mismatch recovery state"
     recover_canonical_head_mismatch "$SRC" "$DEPLOYMENT_MARKER" || exit $?
+    # The checkout now holds the live accepted generation, so a bundle selected
+    # from the mismatched HEAD no longer describes the files that will execute.
+    bind_preflight_bundle_to_generation "$SRC" "$PREFLIGHT_ACCEPTED_SHA" current || exit $?
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
   fi
 else
