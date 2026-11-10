@@ -186,6 +186,31 @@ describe("forecast heads reader (FIXTURE wire: sector_cycles.forecast_heads.v1)"
     }
   });
 
+  it("NOTE-3 (r3): horizon_sessions must be a safe integer within the 2520-session cap", () => {
+    // The producer emits a fixed HORIZON_SESSIONS = 20 and states no maximum
+    // (engine/sector_heads.py:32) — the cap is therefore the reviewer's 2520
+    // (ten trading years), not a producer-stated bound. Anything beyond a
+    // safe integer, non-positive, fractional, stringly or over the cap is a
+    // contract violation for that head.
+    for (const hz of [1e308, 2 ** 53 + 2, 2521, 0, -1, 20.5, "20", null]) {
+      const r = forecastHeadsReading({
+        forecast_heads: wireBlock({ adverse_tail: mkHead({ horizon_sessions: hz }) }),
+      });
+      const at = r.heads.find((h) => h.key === "adverse_tail")!;
+      expect(at.reasonCode, String(hz)).toBe("payload_invalid");
+      expect(at.horizonSessions, String(hz)).toBeNull();
+    }
+    // The producer's own value and the cap itself stay valid.
+    for (const hz of [20, 2520]) {
+      const r = forecastHeadsReading({
+        forecast_heads: wireBlock({ adverse_tail: mkHead({ horizon_sessions: hz }) }),
+      });
+      const at = r.heads.find((h) => h.key === "adverse_tail")!;
+      expect(at.reasonCode, String(hz)).not.toBe("payload_invalid");
+      expect(at.horizonSessions, String(hz)).toBe(hz);
+    }
+  });
+
   it("degrading ONE head touches only that head; siblings keep their own reasons (SP10)", () => {
     const r = forecastHeadsReading({
       forecast_heads: wireBlock({ transition_time: mkHead({ status: "garbage" }) }),
