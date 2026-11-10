@@ -141,10 +141,14 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     aggregate = jobs["terminal"]
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
-    assert set(aggregate["needs"]) == {"pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e"}
+    assert set(aggregate["needs"]) == {
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e",
+        "terminal-e2e-build", "terminal-e2e-prodbuild",
+    }
     run = next(step["run"] for step in aggregate["steps"]
                if step["name"] == "Assert all event-required Terminal checks passed")
-    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-e2e:$E2E"]:
+    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-e2e:$E2E",
+                "terminal-e2e-build:$BUILD", "terminal-e2e-prodbuild:$PRODBUILD"]:
         assert dep in run
     assert '[ "$fail" -eq 0 ] || exit 1' in run
     assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope"]
@@ -620,7 +624,10 @@ def _execute_required_aggregate(**overrides):
     env = {
         **os.environ,
         "EVENT": "pull_request", "PR_SCOPE": "success", "PR_MODE": "full",
-        "SCOPE": "success", "UNIT": "success", "E2E": "success", **overrides,
+        "SCOPE": "success", "UNIT": "success", "E2E": "success",
+        # The production-build lane of an ordinary full run: built, four shards.
+        "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
+        **overrides,
     }
     return subprocess.run(
         ["bash", "-e", "-o", "pipefail", "-c", step["run"]],
@@ -677,6 +684,7 @@ def test_docs_qualification_never_excuses_a_failed_or_cancelled_test(status, job
 def test_native_merge_group_keeps_only_its_accepted_browser_skip():
     result = _execute_required_aggregate(
         EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped",
+        BUILD="skipped", PRODBUILD="skipped", PRODBUILD_COUNT="0",
     )
     assert result.returncode == 0, result.stdout
     result = _execute_required_aggregate(

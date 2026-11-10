@@ -5,8 +5,9 @@
  * from `npm run dev` to `npm run start`. The fixture env block is inherited as-is
  * (NEXT_PUBLIC_* keys are already inlined by the build step that produced .next).
  *
- * Used only by .github/workflows/e2e-prodbuild-canary.yml; never referenced by
- * playwright.config.ts or any other workflow.
+ * Used by .github/workflows/e2e-prodbuild-canary.yml and the allowlisted
+ * terminal-e2e-prodbuild lane in .github/workflows/ci.yml; the dev lane keeps
+ * using playwright.config.ts unchanged.
  */
 import { defineConfig } from "@playwright/test";
 import baseConfig from "./playwright.config";
