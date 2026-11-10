@@ -48,7 +48,7 @@ const context: SectorNativeContext = {
 type Probe = () => Response | Promise<Response>;
 let probe: Probe;
 let saveAnswer: () => Response | Promise<Response>;
-let calls: { url: string; method: string; body: unknown; owner: string | null }[];
+let calls: { url: string; method: string; body: { id: string; operation_id: string } | null; owner: string | null }[];
 
 beforeEach(() => {
   session.identity = { kind: "account", userId: A, email: "a@example.test" };
@@ -142,7 +142,7 @@ describe("SectorNativeActions save command re-mints for a switched account (N-D)
     const posts = calls.filter(call => call.method === "POST");
     expect(posts).toHaveLength(2);
     expect(posts[1].owner).toBe(B);
-    expect(posts[1].body.id).not.toBe(posts[0].body.id);
-    expect(posts[1].body.operation_id).not.toBe(posts[0].body.operation_id);
+    expect(posts[1].body!.id).not.toBe(posts[0].body!.id);
+    expect(posts[1].body!.operation_id).not.toBe(posts[0].body!.operation_id);
   });
 });
