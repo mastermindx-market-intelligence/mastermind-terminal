@@ -144,8 +144,11 @@ export type PopulationFirstKnown =
   | { carried: true; status: "unavailable" };
 /** `roster_clock`: null when the wire carries no clock (today); any carried
  * non-agree — mismatch, unavailable or malformed — reads not_agree, and the
- * surface must treat the completeness figures as not stated. */
-export type PopulationRosterClock = { status: "agree" } | { status: "not_agree" };
+ * surface must treat the completeness figures as not stated. `agree` MEANS the
+ * two clock strings are exactly equal, so `asOf` is the ONE capture-session
+ * date the page states (r3 N-8 ruling: it is the only date a reader surface
+ * may print; carried exactly, never reformatted). */
+export type PopulationRosterClock = { status: "agree"; asOf: string } | { status: "not_agree" };
 /** `taxonomy_revision`: the one statement lane 1 makes today is that the
  * classification labels are current-basis, not point-in-time. */
 export type PopulationTaxonomyRevision = { currentNotPointInTime: boolean };
@@ -346,7 +349,7 @@ function readRosterClock(value: unknown): PopulationRosterClock | null {
     && typeof value.roster_as_of === "string" && str(value.roster_as_of, 32)
     && typeof value.capture_effective_as_of === "string" && str(value.capture_effective_as_of, 32)
     && value.roster_as_of === value.capture_effective_as_of) {
-    return { status: "agree" };
+    return { status: "agree", asOf: value.capture_effective_as_of };
   }
   return { status: "not_agree" };
 }

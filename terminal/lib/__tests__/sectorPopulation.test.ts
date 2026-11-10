@@ -450,11 +450,11 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
       } });
   });
 
-  it("roster_clock rides capture.population without refusing the page; agree reads agree", () => {
+  it("roster_clock rides capture.population without refusing the page; agree reads agree with its one stated date", () => {
     const mutated = clone();
     population(mutated).roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-06" };
     const read = sectorPopulationPage(mutated)!;
-    expect(read.rosterClock).toEqual({ status: "agree" });
+    expect(read.rosterClock).toEqual({ status: "agree", asOf: "2026-11-06" });
   });
 
   it("every non-agree roster_clock reads not_agree — mismatch forms, unavailable forms, malformed — never a refusal", () => {
@@ -537,7 +537,7 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     pop.roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-06" };
     pop.unaccounted = null;
     const read = sectorPopulationPage(mutated)!;
-    expect(read.rosterClock).toEqual({ status: "agree" });
+    expect(read.rosterClock).toEqual({ status: "agree", asOf: "2026-11-06" });
     expect(read.counts.unaccounted).toBeNull();
     expect(read.counts.countsStated).toBe(false);
   });
