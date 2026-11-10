@@ -6,7 +6,8 @@
 // deep cycles publication, the legacy rs-history feed, and the rotation
 // events feed, with lang/theme/generation toggles for EN/ZH, light/dark and
 // the incompatible-generation path. Fixture data is clearly labelled as such
-// in the page itself (scFixtureChip).
+// by the hard-coded "Fixture data — not live evidence" line in the harness
+// header below (dev-only page; never rendered in production).
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { notFound } from "next/navigation";
@@ -40,9 +41,13 @@ function historySector(id: string, ticker: string, phase: number) {
     ticker,
     rs_history: wave.map((v, i) => ({ date: day(i), rs_21d: v, rs_63d: +(v * 0.6 + Math.sin(i * 0.09) * 3).toFixed(2) })),
     turns: [
-      { date: day(20), k: "trough", major: true, provisional: false, mag_pct: 12.5 },
-      { date: day(80), k: "peak", major: true, provisional: false, mag_pct: 15.1 },
-      { date: day(150), k: "trough", major: true, provisional: false, mag_pct: 11.2 },
+      /* v1.1 SP11: confirmed_at is the producer's name for the first-known
+       * date — strictly after the pivot (a turn is confirmed only by later
+       * price action). The provisional turn is not yet confirmed, so it
+       * carries no confirmed_at at all. */
+      { date: day(20), k: "trough", major: true, provisional: false, mag_pct: 12.5, confirmed_at: day(23) },
+      { date: day(80), k: "peak", major: true, provisional: false, mag_pct: 15.1, confirmed_at: day(83) },
+      { date: day(150), k: "trough", major: true, provisional: false, mag_pct: 11.2, confirmed_at: day(153) },
       { date: day(200), k: "peak", major: false, provisional: true, mag_pct: null },
     ],
   };
@@ -159,6 +164,93 @@ const cyclesPayload = {
   ],
 };
 
+/* ── v1.1 per-head forecast capabilities: the lane-8 producer
+ * (engine/sector_heads.py @d70025383c2d) EXACTLY as it can emit today.
+ * head_capabilities() writes status "withheld" for every head with its own
+ * reason from the eight-code precedence ladder — remaining-return failed the
+ * research test; the other three are research-qualified but no live record
+ * carries the protocol's turn epoch. Baskets: membership is not
+ * point-in-time. `withdraw()` likewise writes only "withheld" plus a
+ * caller-supplied reason code — the withdrawn state below is its REAL output
+ * shape (no withdrawn status, no withdrawn_asof; an unmapped caller reason
+ * such as parity_lost renders the generic line). Dispositions are per-head
+ * regardless of record kind. No head carries a number. */
+type HeadsState = "today" | "withdrawn" | "absent";
+
+function forecastHeadsBlock(opts: { withdrawn?: boolean; basket?: boolean } = {}) {
+  const PROTOCOL = "research/sector_completion_20261021/B12_V11_HEADS_PROTOCOL.md";
+  const REPORT = "research/sector_completion_20261021/b12/v11_heads_result.json";
+  const RESULTS = "research/sector_completion_20261021/B12_V11_HEADS_RESULTS.md";
+  // TARGETS verbatim from the producer's TARGETS dict.
+  const TARGETS: Record<string, string> = {
+    remaining_return_distribution:
+      "quantiles 10/25/50/75/90 of the ETF's 20-session total return minus SPY's over the same closes, less a 10 bp round trip (percentage-point difference, not alpha)",
+    adverse_tail:
+      "probability that the cumulative total return from entry falls to -1.5 x trailing 20-session volatility within 20 sessions",
+    target_before_invalidation:
+      "probability that the cumulative total return from entry reaches +1 x trailing 20-session volatility before -1 x, within 20 sessions",
+    transition_time:
+      "probability that the next turn becomes first-known (confirmed_at, not pivot date) within 20 sessions",
+  };
+  // HEAD_RESEARCH dispositions verbatim: per-head, regardless of record kind.
+  const DISPOSITIONS: Record<string, [string, string[]]> = {
+    remaining_return_distribution: [
+      "WITHHELD_FAILED",
+      ["skill_ci90_includes_or_below_zero", "fails_bh_fdr_q0.10", "skill_positive_in_under_60pct_of_years"],
+    ],
+    adverse_tail: ["QUALIFIED_RESEARCH", []],
+    target_before_invalidation: ["QUALIFIED_RESEARCH", []],
+    transition_time: ["QUALIFIED_RESEARCH", []],
+  };
+  const head = (key: string, baseReason: string) => ({
+    // `withdraw()` output shape: still "withheld", with the caller's reason.
+    status: "withheld",
+    reason_code: opts.basket
+      ? "membership_not_point_in_time"
+      : opts.withdrawn && key === "adverse_tail"
+        ? "parity_lost"
+        : baseReason,
+    research_disposition: DISPOSITIONS[key][0],
+    research_reasons: DISPOSITIONS[key][1],
+    evidence: { protocol: PROTOCOL, report_ref: REPORT, results_doc: RESULTS },
+    target: TARGETS[key],
+    horizon_sessions: 20,
+    market: "US",
+  });
+  return {
+    schema: "sector_cycles.forecast_heads.v1",
+    observed_cycles: "shown",
+    protocol: PROTOCOL,
+    report_ref: REPORT,
+    heads: {
+      remaining_return_distribution: head("remaining_return_distribution", "research_withheld_failed"),
+      adverse_tail: head("adverse_tail", "live_state_not_protocol_epoch"),
+      target_before_invalidation: head("target_before_invalidation", "live_state_not_protocol_epoch"),
+      transition_time: head("transition_time", "live_state_not_protocol_epoch"),
+    },
+    may_rank: false,
+    may_gate: false,
+    may_size: false,
+    may_trade: false,
+    may_escalate: false,
+  };
+}
+
+const cyclesPayloadFor = (heads: HeadsState) =>
+  heads === "absent"
+    ? cyclesPayload
+    : {
+        ...cyclesPayload,
+        sectors: cyclesPayload.sectors.map((r) => ({
+          ...r,
+          forecast_heads: forecastHeadsBlock({ withdrawn: heads === "withdrawn" }),
+        })),
+        baskets: cyclesPayload.baskets.map((r) => ({
+          ...r,
+          forecast_heads: forecastHeadsBlock({ basket: true }),
+        })),
+      };
+
 const historyPayload = {
   meta: { asOf: AS_OF, rs_history: cyclesPayload.meta.rs_history },
   sectors: SECTORS.map((sec, idx) => historySector(sec.id, sec.ticker, idx * 1.7)),
@@ -189,7 +281,9 @@ export default function SectorCyclesHarness() {
   const [lang, setLang] = useState<"en" | "zh">("en");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [generationState, setGenerationState] = useState<"current" | "replaced">("current");
+  const [headsState, setHeadsState] = useState<HeadsState>("today");
   const captureRef = useRef<SectorCycleCaptureHandle>(null);
+  const cyclesData = useMemo(() => cyclesPayloadFor(headsState), [headsState]);
 
   const generation = useMemo(
     () =>
@@ -266,6 +360,33 @@ export default function SectorCyclesHarness() {
             />{" "}
             Generation replaced
           </label>
+          <label>
+            <input
+              type="radio"
+              name="harness-heads"
+              checked={headsState === "today"}
+              onChange={() => setHeadsState("today")}
+            />{" "}
+            Heads today
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="harness-heads"
+              checked={headsState === "withdrawn"}
+              onChange={() => setHeadsState("withdrawn")}
+            />{" "}
+            One head withdrawn
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="harness-heads"
+              checked={headsState === "absent"}
+              onChange={() => setHeadsState("absent")}
+            />{" "}
+            Heads absent
+          </label>
         </div>
         <SectorCycleLens
           generation={generation}
@@ -274,7 +395,7 @@ export default function SectorCyclesHarness() {
           accessGeneration={generation.accessGeneration}
           returnBinding="self"
           captureRef={captureRef}
-          cyclesFeed={{ state: "ready", data: cyclesPayload }}
+          cyclesFeed={{ state: "ready", data: cyclesData }}
           historyFeed={{ state: "ready", data: historyPayload }}
           eventsFeed={{ state: "ready", data: eventsPayload }}
         />

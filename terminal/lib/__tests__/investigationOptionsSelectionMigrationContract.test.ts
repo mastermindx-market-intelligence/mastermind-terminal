@@ -84,6 +84,21 @@ function registry(): Record<string, string[]> {
   for (const adapter of INVESTIGATION_ADMISSION.evidence ?? []) out[adapter.owner] = [...adapter.object_types].sort();
   return out;
 }
+function subjectRegistry(): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const adapter of INVESTIGATION_ADMISSION.subjects ?? []) out[adapter.owner] = [...adapter.kinds].sort();
+  return out;
+}
+/** `(r->>'owner'='X' and r->>'kind'='Y')` and `(... r->>'kind' in ('a','b'))` of the validator's subject check. */
+function subjectAllowList(body: string): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  const re = /r->>'owner'='([^']+)'\s+and\s+r->>'kind'(?:='([^']+)'|\s+in\s+\(([^)]*)\))/g;
+  for (const m of body.matchAll(re)) {
+    const kinds = m[2] ? [m[2]] : (m[3] ?? "").split(",").map(k => k.trim().replace(/^'|'$/g, "")).filter(Boolean);
+    out[m[1]] = [...(out[m[1]] ?? []), ...kinds].sort();
+  }
+  return out;
+}
 /** The one validator definition, from its `create or replace` line through its `end $function$;`. */
 function validatorBody(text: string): string {
   const at = text.indexOf("create or replace function public.valid_investigation_manifest_v2");
@@ -166,13 +181,38 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(downBody(sql).toLowerCase()).toContain("drop function if exists public.investigation_evidence_admitted_v2(text,text);");
   });
 
-  it("keeps the SQL allow-list and the Terminal registry exactly equal", () => {
-    const fromSql = allowList(liveBody(sql));
-    const fromRegistry = registry();
-    expect(Object.keys(fromSql).sort()).toEqual(Object.keys(fromRegistry).sort());
-    expect(fromSql).toEqual(fromRegistry);
-    expect(fromSql["terminal.options_exposure"]).toEqual(["exposure_chart_request", "options_matrix_selection", "rotation_measurement", "sector_origin"]);
-    expect(fromSql["earnings.workspace_generation"]).toEqual(["event_workspace"]);
+  it("registry and SQL admit exactly the same pairs, except the named pending pairs of parked migrations 0052/0053", () => {
+    // Strict equality "SQL allow-list == Terminal registry" is the 0047 invariant. The Terminal
+    // registry (lib/investigations.ts INVESTIGATION_ADMISSION) now also lists Sector / theme-graph pairs
+    // that are admitted by migrations 0052 and 0053, which are NOT on master (parked in PRs #1410 / #1425:
+    // their files, and therefore their contract tests, are not in this tree). Until they merge, the
+    // difference (registry - SQL) must be EXACTLY the named pairs below and (SQL - registry) must be empty,
+    // so any other drift - a fifth pair, a removed pair, a renamed type - still fails here.
+    // When 0052/0053 land, their contract tests own those pairs and this list is deleted.
+    const pending = {
+      evidence: [
+        "macro.sector/sector_observation", "macro.sector/basket_observation", "theme_graph.curation_assertion/curation_assertion",
+      ],
+      subjects: [
+        "macro.sector/sector", "theme_graph.identity/theme", "theme_graph.identity/basket", "theme_graph.identity/company",
+      ],
+    };
+    const flat = (map: Record<string, string[]>) => Object.entries(map).flatMap(([owner, types]) => types.map(type => `${owner}/${type}`)).sort();
+    const minus = (a: string[], b: string[]) => a.filter(pair => !b.includes(pair));
+
+    const evidenceSql = flat(allowList(liveBody(sql)));
+    const evidenceRegistry = flat(registry());
+    expect(minus(evidenceSql, evidenceRegistry), "SQL-admitted evidence pairs missing from the registry").toEqual([]);
+    expect(minus(evidenceRegistry, evidenceSql), "registry evidence pairs the SQL does not admit").toEqual([...pending.evidence].sort());
+
+    const subjectsSql = flat(subjectAllowList(liveBody(sql)));
+    const subjectsRegistry = flat(subjectRegistry());
+    expect(subjectsSql.length).toBeGreaterThan(0);
+    expect(minus(subjectsSql, subjectsRegistry), "SQL-admitted subject pairs missing from the registry").toEqual([]);
+    expect(minus(subjectsRegistry, subjectsSql), "registry subject pairs the SQL does not admit").toEqual([...pending.subjects].sort());
+
+    expect(allowList(liveBody(sql))["terminal.options_exposure"]).toEqual(["exposure_chart_request", "options_matrix_selection", "rotation_measurement", "sector_origin"]);
+    expect(allowList(liveBody(sql))["earnings.workspace_generation"]).toEqual(["event_workspace"]);
   });
 
   it("differs from the 0042 validator by the one allow-list widening only", () => {

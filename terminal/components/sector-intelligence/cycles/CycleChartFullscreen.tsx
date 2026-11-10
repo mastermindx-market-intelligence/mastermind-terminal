@@ -10,6 +10,7 @@ import {
 } from "@/components/charts/svgChart";
 import { formatValue, type SectorRotationHistoryCycleTurn } from "@/lib/sectorIntelligence";
 import { useSectorCycleT } from "@/lib/sectorCycleLex";
+import { type SeriesFirstKnown, firstKnownAt } from "@/lib/sectorCycleTurnKnowledge";
 import type { CycleSeriesData } from "./CycleChartPanel";
 import s from "../SectorCycleLens.module.css";
 
@@ -33,6 +34,8 @@ export interface CycleChartFullscreenProps {
   cursor: string | null;
   onCursor: (date: string | null) => void;
   benchmark: string;
+  /** Event date → first-known (confirmed-at) date, SP11. Distinct facts. */
+  firstKnown?: SeriesFirstKnown;
 }
 
 export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
@@ -263,6 +266,8 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
               const t0 = stamp(turn.date);
               if (!Number.isFinite(t0) || t0 < domain[0] || t0 > domain[1]) return null;
               const cx = x(t0);
+              // SP11: this series' OWN confirmation date only (per-series map).
+              const fk = firstKnownAt(props.firstKnown, turn.date, turn.kind);
               return (
                 <path
                   key={turn.date + turn.kind}
@@ -273,7 +278,7 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
                       : `M${cx - 4} ${padT + 8} L${cx} ${padT + 2} L${cx + 4} ${padT + 8} Z`
                   }
                 >
-                  <title>{`${turn.date} · ${turn.kind}${turn.provisional ? " · " + t("scProvisional") : ""}`}</title>
+                  <title>{`${turn.date} · ${turn.kind}${turn.provisional ? " · " + t("scProvisional") : ""}${fk ? " · " + t("scTurnKnownSince", { date: fk }) : ""}`}</title>
                 </path>
               );
             })}

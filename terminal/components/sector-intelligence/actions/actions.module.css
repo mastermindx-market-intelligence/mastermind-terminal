@@ -1,0 +1,16 @@
+/* Sector Intelligence investigation actions — props-only surfaces (packet SI-P16-LANE6).
+   They reuse the shared shell tokens only; every string arrives through props, and no
+   colored edge, accent stripe or engineer-only text appears in the customer UI. */
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.row button, .row input { min-height: 44px; }
+.button { padding: 9px 14px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel); color: var(--link); font: 600 12px var(--font-ui); cursor: pointer; }
+.button:disabled { color: var(--text-2); cursor: default; }
+.ghost { border-color: transparent; background: transparent; }
+.status { margin: 0; color: var(--text-2); font-size: 11px; line-height: 1.5; }
+.status strong { color: var(--text); font-weight: 650; }
+.field { display: flex; flex-direction: column; gap: 6px; color: var(--text-2); font-size: 11px; }
+.field input { width: 110px; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel); color: var(--text); font: 13px var(--font-ui); }
+.note textarea { width: min(360px, 100%); min-height: 74px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel); color: var(--text); font: 13px/1.5 var(--font-ui); }
+.note textarea::placeholder { color: var(--text-2); }
+:is(.button, .field input, .note textarea):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
