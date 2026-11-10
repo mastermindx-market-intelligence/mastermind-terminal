@@ -11,12 +11,13 @@ let strict = false;
 let callbacks: Map<number, FrameRequestCallback>;
 let nextFrame: number;
 let testEpoch = 0;
-const childEvents = { enter: vi.fn(), leave: vi.fn(), focus: vi.fn(), blur: vi.fn(), click: vi.fn() };
+const childEvents = { enter: vi.fn(), leave: vi.fn(), focus: vi.fn(), blur: vi.fn(), click: vi.fn(), key: vi.fn() };
 
 function render(disabled = false, label = "Trend line") {
   const element = <Tip label={label} delay={200} disabled={disabled}>
     <button type="button" data-testid="tool" onMouseEnter={childEvents.enter} onMouseLeave={childEvents.leave}
-      onFocus={childEvents.focus} onBlur={childEvents.blur} onClick={childEvents.click}>Draw</button>
+      onFocus={childEvents.focus} onBlur={childEvents.blur} onClick={childEvents.click}
+      onKeyDown={event => { childEvents.key(event.key); event.stopPropagation(); }}>Draw</button>
   </Tip>;
   act(() => root.render(strict ? <StrictMode>{element}</StrictMode> : element));
   mounted = true;
@@ -45,6 +46,72 @@ afterEach(() => {
   if (mounted) act(() => root.unmount());
   host.remove(); expect(document.querySelector("[role=tooltip]")).toBeNull();
   expect(fetch).not.toHaveBeenCalled(); vi.useRealTimers(); vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+describe("Tip follows the active interaction", () => {
+  const dismiss = (reason: "Escape" | "scroll" | "resize") => act(() => {
+    if (reason === "Escape") trigger().dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    else if (reason === "scroll") host.dispatchEvent(new Event("scroll"));
+    else window.dispatchEvent(new Event("resize"));
+  });
+
+  it.each(["Escape", "scroll", "resize"] as const)("cancels a pending delay on %s without warming or resurrecting it", reason => {
+    render(); hover(); advance(80); dismiss(reason);
+    expect(tooltip()).toBeNull(); expect(vi.getTimerCount()).toBe(0);
+    render(false, "Updated label"); advance(30); expect(tooltip()).toBeNull();
+    hover(); expect(tooltip()).toBeNull(); advance(199); expect(tooltip()).toBeNull();
+    advance(1); expect(tooltip()?.textContent).toBe("Updated label");
+  });
+
+  it.each(["Escape", "scroll", "resize"] as const)("dismisses an open tooltip on %s and preserves focus and warm-open", reason => {
+    render(); focus(); frame(); expect(tooltip()).not.toBeNull();
+    dismiss(reason); expect(tooltip()).toBeNull(); expect(document.activeElement).toBe(trigger());
+    expect(trigger().getAttribute("aria-describedby")).toBeNull();
+    advance(100); hover(); expect(tooltip()).not.toBeNull(); expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("observes Escape without consuming the child's key or click handlers", () => {
+    render(); focus();
+    act(() => trigger().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })));
+    expect(tooltip()).not.toBeNull();
+    const escape = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+    act(() => trigger().dispatchEvent(escape));
+    expect(tooltip()).toBeNull(); expect(escape.defaultPrevented).toBe(false);
+    expect(childEvents.key.mock.calls.map(call => call[0])).toEqual(["ArrowRight", "Escape"]);
+    act(() => trigger().click()); expect(childEvents.click).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores unrelated pane scrolling but dismisses when the anchor's ancestor scrolls", () => {
+    const sibling = document.createElement("div"); document.body.append(sibling);
+    render(); focus(); act(() => sibling.dispatchEvent(new Event("scroll")));
+    expect(tooltip()).not.toBeNull(); dismiss("scroll"); expect(tooltip()).toBeNull(); sibling.remove();
+  });
+
+  it("retires visual viewport movement during pending and open interactions", () => {
+    const viewport = new EventTarget(); vi.stubGlobal("visualViewport", viewport);
+    render(); hover(); act(() => viewport.dispatchEvent(new Event("scroll")));
+    advance(500); expect(tooltip()).toBeNull();
+    focus(); expect(tooltip()).not.toBeNull(); act(() => viewport.dispatchEvent(new Event("resize")));
+    expect(tooltip()).toBeNull(); expect(document.activeElement).toBe(trigger());
+  });
+
+  it("cancels the queued enter frame when dismissed and requires a fresh trigger", () => {
+    render(); focus(); expect(callbacks.size).toBe(1); dismiss("Escape");
+    expect(callbacks.size).toBe(0); frame(); advance(500); render(false, "New label"); expect(tooltip()).toBeNull();
+  });
+
+  it("installs no idle listeners and cleans active listeners on disable and StrictMode unmount", () => {
+    const add = vi.spyOn(window, "addEventListener"); const remove = vi.spyOn(window, "removeEventListener");
+    const relevant = (calls: typeof add.mock.calls) => calls.filter(call => ["keydown", "scroll", "resize"].includes(call[0]));
+    strict = true; render(); expect(relevant(add.mock.calls)).toHaveLength(0);
+    hover(); expect(relevant(add.mock.calls)).toHaveLength(3);
+    render(true); expect(relevant(remove.mock.calls)).toHaveLength(3); expect(vi.getTimerCount()).toBe(0);
+    render(); focus(); expect(tooltip()).not.toBeNull();
+    act(() => root.unmount()); mounted = false;
+    expect(relevant(add.mock.calls)).toHaveLength(relevant(remove.mock.calls).length);
+    for (const [name, callback] of relevant(add.mock.calls)) expect(relevant(remove.mock.calls).some(call => call[0] === name && call[1] === callback)).toBe(true);
+  });
 });
 
 describe("Tip disabled lifetime at the preserved DrawingSidebar breakpoint boundary", () => {

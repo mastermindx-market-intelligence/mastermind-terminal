@@ -205,7 +205,12 @@ SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
 # Desktop1/5 reached its fixed cap again in #801 run42550254306/job128946320810.
 # The annotation proves the one-hour cancellation; no late-progress claim is made.
 # Six full shards reduce allocation while preserving every case and the same cap.
-MIN_SHARDS = {"desktop": 6, "tablet": 4, "mobile": 3}
+# Mobile's minimum is now five, not three: #1411 run 42753497499 on 2026-11-10 had
+# mobile-1 at 54 min and mobile-3 at 58 min, while mobile-2 was cancelled at the
+# 60-minute cap twice with ZERO test failures — on attempt 2 the suite alone took
+# 58.0 min on the single CI worker, leaving no room for artifact upload. Fifths shrink each
+# mobile allocation under the same cap while keeping every case.
+MIN_SHARDS = {"desktop": 6, "tablet": 4, "mobile": 5}
 
 
 @pytest.mark.parametrize("project", SPLIT_PROJECTS)
@@ -221,6 +226,18 @@ def test_each_large_project_is_split_so_no_single_job_carries_it_whole(project):
         any(SHARD_FLAG.match(token) for token in str(item["projects"]).split())
         for item in entries
     ), f"every {project} entry must carry a --shard=i/N flag"
+
+
+def test_mobile_runs_in_exactly_five_shards():
+    # #1411: mobile thirds hit the unchanged 60-minute cap with zero failures
+    # (run 42753497499; mobile-2 cancelled twice; suite alone 58.0 min). Fifths
+    # shrink each allocation without raising the cap or dropping a case.
+    entries = [
+        item for item in e2e_matrix(ci_workflow())
+        if "--project=mobile" in str(item["projects"]).split()
+    ]
+    assert [item["shard"] for item in entries] == [f"mobile-{i}" for i in range(1, 6)]
+    assert [shard_coordinates(item) for item in entries] == [(i, 5) for i in range(1, 6)]
 
 
 def test_the_required_aggregate_still_gates_every_e2e_shard():
@@ -383,10 +400,15 @@ def test_the_two_standalone_projects_run_whole_in_their_own_row():
     assert chain_row["shard"] != row["shard"], (chain_row, row)
 
 
-def test_the_two_opt_in_qualifications_still_run_only_in_the_serial_row():
+def test_all_opt_in_qualifications_still_run_only_in_the_serial_row():
     steps = ci_workflow()["jobs"]["terminal-e2e"]["steps"]
     opt_ins = [step for step in steps if str(step.get("name", "")).startswith("Qualify ")]
-    assert len(opt_ins) == 2, opt_ins
+    assert len(opt_ins) == 3, opt_ins
+    assert {step["name"] for step in opt_ins} == {
+        "Qualify investor shell opt-in",
+        "Qualify Shared Shell beta presentation",
+        "Qualify Intelligence native beta routes (fixture browser)",
+    }
     for step in opt_ins:
         assert step.get("if") == "matrix.shard == 'serial'", step
 
@@ -397,7 +419,12 @@ def test_e2e_artifacts_stay_distinct_per_matrix_row():
         step for step in steps
         if str(step.get("uses", "")).startswith("actions/upload-artifact")
     ]
-    assert len(uploads) == 2, uploads
+    assert len(uploads) == 3, uploads
+    assert {step["name"] for step in uploads} == {
+        "Retain bounded Shared Shell outcome",
+        "Upload Intelligence fixture-browser evidence",
+        "Upload responsive QA screenshots",
+    }
     by_name = {step["name"]: step for step in uploads}
     general = by_name["Upload responsive QA screenshots"]
     assert general["if"] == "always()"
@@ -409,6 +436,15 @@ def test_e2e_artifacts_stay_distinct_per_matrix_row():
         "steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_ready == 'true' }}"
     )
     assert "-serial-safe-summary-" in summary["with"]["name"]
+    intelligence = by_name["Upload Intelligence fixture-browser evidence"]
+    assert intelligence["if"] == "always() && matrix.shard == 'serial'"
+    assert intelligence["with"]["name"] == (
+        "intelligence-beta-qa-${{ github.run_id }}-${{ github.run_attempt }}"
+    )
+    assert intelligence["with"]["path"] == (
+        "terminal/docs/pr-crops/shared-shell-intelligence-20261103/"
+        "ci-intelligence-${{ github.run_id }}-${{ github.run_attempt }}"
+    )
     shards = [item["shard"] for item in e2e_matrix(ci_workflow())]
     assert len(set(shards)) == len(shards), shards
 

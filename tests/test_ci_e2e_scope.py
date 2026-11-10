@@ -17,11 +17,11 @@ MERGE_REF = "refs/pull/123/merge"
 
 
 def test_full_and_focused_shard_contracts():
-    assert len(scope.FULL_MATRIX) == 15
+    assert len(scope.FULL_MATRIX) == 17
     assert {x["shard"] for x in scope.FULL_MATRIX} == {
         *(f"desktop-{i}" for i in range(1, 7)),
         *(f"tablet-{i}" for i in range(1, 5)),
-        *(f"mobile-{i}" for i in range(1, 4)),
+        *(f"mobile-{i}" for i in range(1, 6)),
         "serial", "serial-standalone",
     }
     assert all(item["specs"] == "" for item in scope.FULL_MATRIX)
@@ -479,9 +479,33 @@ def test_real_workflow_expands_old_protected_desktop_without_losing_other_rows(t
     assert "split protected full desktop fifths into sixths" in stdout
 
 
-def test_real_workflow_expands_both_old_protected_classifier_partitions(tmp_path):
+def _legacy_full_mobile_matrix():
+    rows = [dict(row) for row in scope.FULL_MATRIX
+            if "--project=mobile" not in row["projects"].split()]
+    first = next(i for i, row in enumerate(scope.FULL_MATRIX) if row["shard"] == "mobile-1")
+    rows[first:first] = [
+        {"shard": f"mobile-{i}", "projects": f"--project=mobile --shard={i}/3", "specs": ""}
+        for i in range(1, 4)
+    ]
+    return rows
+
+
+def test_real_workflow_expands_old_protected_mobile_thirds_into_fifths(tmp_path):
+    old = _legacy_full_mobile_matrix()
+    old.append({"shard": "future-owner", "projects": "--project=future-owner",
+                "specs": "", "owner_metadata": {"preserve": True}})
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source("full", old),
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX + [old[-1]]
+    assert "split protected full mobile thirds into fifths" in stdout
+
+
+def test_real_workflow_expands_every_old_protected_classifier_partition(tmp_path):
     source = (ROOT / "scripts" / "ci_e2e_scope.py").read_text()
-    for project, old_count, new_count in [("desktop", 5, 6), ("tablet", 3, 4)]:
+    for project, old_count, new_count in [("desktop", 5, 6), ("tablet", 3, 4), ("mobile", 3, 5)]:
         current = ('{"shard": f"' + project + '-{i}", "projects": f"--project=' + project
                    + ' --shard={i}/' + str(new_count) + '", "specs": ""}\n'
                    + '    for i in range(1, ' + str(new_count + 1) + ')')
@@ -496,6 +520,7 @@ def test_real_workflow_expands_both_old_protected_classifier_partitions(tmp_path
     assert matrix == scope.FULL_MATRIX
     assert "split protected full desktop fifths into sixths" in stdout
     assert "split protected full tablet thirds into quarters" in stdout
+    assert "split protected full mobile thirds into fifths" in stdout
 
 
 @pytest.mark.parametrize("variant", ["focused", "extra-desktop", "filtered", "incomplete", "metadata"])

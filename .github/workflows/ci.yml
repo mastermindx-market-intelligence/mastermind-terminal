@@ -183,6 +183,7 @@ jobs:
                   for project, old_count, new_count, before, after in (
                       ("desktop", 5, 6, "fifths", "sixths"),
                       ("tablet", 3, 4, "thirds", "quarters"),
+                      ("mobile", 3, 5, "thirds", "fifths"),
                   ):
                       rows = matrix["include"]
                       if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
@@ -241,7 +242,7 @@ jobs:
               {"shard": f"{name}-{i}",
                "projects": f"--project={name} --shard={i}/{total}",
                "specs": ""}
-              for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 3))
+              for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 5))
               for i in range(1, total + 1)
           ]
           # The Company dependency chain stays atomic. Independent projects run
@@ -273,11 +274,12 @@ jobs:
     if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
-    # Existing stages had20min. Add bounded10min browser setup +55min captures
-    # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
-    # before the24layout cases; this90min cap is not a hosted timing claim.
+    # Existing stages had20min. Allow10min setup +55min incumbent captures,
+    # +30min conditional full EOD capture +5min retention. Original30-case M2
+    # report took1,018,995ms (~17min) before24layout cases. These120min bounds
+    # are not a claim that126 EOD captures finish within their30min allowance.
     # See8f1dc846: terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--report.json.
-    timeout-minutes: 90
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: terminal
@@ -322,7 +324,7 @@ jobs:
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
-        timeout-minutes: 55
+        timeout-minutes: 85
         run: node e2e/tools/capture_ci_evidence.cjs
       # F11 is a separate real-component contract, not an extra case in PL6/VI50.
       # Business inputs are intercepted as unavailable before reaching API/provider code.
@@ -471,6 +473,15 @@ jobs:
             terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/*.png
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/native-packet.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture-*
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture.log
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/source-contract.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/history.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/EVIDENCE.before.yml
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/qualified-root/
             terminal/docs/pr-crops/b-pl-6-batch-2/
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
             terminal/docs/pr-crops/options-level-axis-labels/*.png
@@ -522,6 +533,12 @@ jobs:
     # the single CI worker at 09:49:29, and was still passing with no assertion
     # failure when the host cancelled it at 10:48:24 (60m17s), so mobile runs in
     # thirds below.
+    # On 2026-11-10 mobile thirds still reached the unchanged cap (#1411): run
+    # 42753497499, mobile-1 took 54 min and mobile-3 took 58 min, while mobile-2 was
+    # cancelled at the 60-minute cap twice with ZERO test failures — on attempt 2 the
+    # suite itself took 58.0 min on the single CI worker (416 passed, 144 skipped) and
+    # the job was cancelled during the artifact upload that follows.
+    # So mobile now runs in fifths below, same cap untouched.
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
@@ -602,7 +619,7 @@ jobs:
           CI: '1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
-          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts e2e/discover-focus-continuity.spec.ts
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
@@ -626,6 +643,24 @@ jobs:
         with:
           name: responsive-qa-${{ github.run_id }}-serial-safe-summary-${{ github.run_attempt }}
           path: ${{ steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_path }}
+          if-no-files-found: warn
+      # This opt-in route family is not exercised by the generic shell test above.
+      # Run the existing loopback-only browser journey on the checked-out source;
+      # its fixture authorization is not authenticated beta/production acceptance.
+      - name: Qualify Intelligence native beta routes (fixture browser)
+        if: matrix.shard == 'serial'
+        timeout-minutes: 20
+        env:
+          CI: '1'
+          INTELLIGENCE_TEST_PORT: '31993'
+          INTELLIGENCE_TEST_VARIANT: ci-intelligence-${{ github.run_id }}-${{ github.run_attempt }}
+        run: node e2e/tools/qualify_shared_shell_intelligence.cjs
+      - name: Upload Intelligence fixture-browser evidence
+        if: always() && matrix.shard == 'serial'
+        uses: actions/upload-artifact@v4
+        with:
+          name: intelligence-beta-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: terminal/docs/pr-crops/shared-shell-intelligence-20261103/ci-intelligence-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
       - name: Upload responsive QA screenshots
         if: always()
@@ -744,7 +779,11 @@ jobs:
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
-        run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+        run: |
+          ingest_python_env="$(mktemp -d "${RUNNER_TEMP:?}/terminal-ingest-python.XXXXXX")"
+          python -m venv "$ingest_python_env"
+          "$ingest_python_env/bin/python" -m pip --isolated install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+          printf '%s\n' "$ingest_python_env/bin" >> "$GITHUB_PATH"
       # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
       # The dedicated upstream Investigation job remains an additional gate.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}

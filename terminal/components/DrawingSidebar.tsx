@@ -37,8 +37,8 @@ type FavoritePositions = { desktop: FavoritePosition; compact: FavoritePosition 
 
 export type DrawingSidebarProps = {
   tool: DrawKind | null;
-  /** Drawing creation is retired while Replay or a multi-chart grid is active. */
-  creationDisabledReason: "replay" | "multi-chart" | null;
+  /** Creation follows the shell's readiness fence and Replay/multi-chart restrictions. */
+  creationDisabledReason: "loading" | "replay" | "multi-chart" | null;
   magnet: DrawingMagnetMode;
   /** Effective keep-active state: global Stay, a per-tool pin, or freehand auto-stay. */
   sticky: boolean;
@@ -926,7 +926,8 @@ export default function DrawingSidebar({
               : labeled(mainButton, shownLabel, {
                   shortcut: shown.shortcut?.label,
                   hint: creationDisabled
-                    ? t(creationDisabledReason === "replay" ? "drawingUnavailableReplay" : "drawingUnavailableMultiChart")
+                    ? t(creationDisabledReason === "loading" ? "loading"
+                      : creationDisabledReason === "replay" ? "drawingUnavailableReplay" : "drawingUnavailableMultiChart")
                     : autoKeepsActive
                       ? t("drawingFreehandStaysActive")
                       : t(pinned && active ? "drawingDoubleClickUnlock" : "drawingDoubleClickKeepActive"),

@@ -1,0 +1,36 @@
+[warmup] /terminal?symbol=NVDA → 200 in 414ms
+[warmup] /options → 200 in 200ms
+[warmup] /portfolio → 200 in 802ms
+[warmup] /alerts → 200 in 750ms
+[warmup] /analysis → 200 in 1893ms
+[warmup] /discover → 200 in 1937ms
+[warmup] /admin → 200 in 784ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 813ms
+[warmup] /login → 200 in 400ms
+[warmup] /reset-password → 200 in 1349ms
+[warmup] /api/me → 200 in 1111ms
+[warmup] /api/watchlist → 200 in 808ms
+[warmup] /api/layouts → 200 in 604ms
+[warmup] /api/watchlist/annotations → 409 in 984ms
+[warmup] /api/quote?view=regular&syms=NVDA → 200 in 861ms
+[warmup] /api/drawings?symbol=NVDA → 200 in 730ms
+[warmup] /api/scripts/list → 200 in 659ms
+[warmup] /api/study-templates → 200 in 725ms
+[warmup] /api/ext-quote?syms=NVDA → 503 in 632ms
+[warmup] /api/flow?f=gexstate%3ANVDA → 200 in 1039ms
+[warmup] /api/brain/me → 200 in 3619ms
+[warmup] /api/brain/chart/state → 404 in 14ms
+[warmup] /api/collect → 405 in 1910ms
+[warmup] /data/NVDA.opts.json → 404 in 1450ms
+[warmup] 24 routes compiled in 24s
+
+Running 6 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (10.0s)
+  ✓  2 [desktop] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (8.2s)
+  ✓  3 [tablet] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (8.6s)
+  ✓  4 [tablet] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (8.2s)
+  ✓  5 [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (7.4s)
+  ✓  6 [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (6.7s)
+
+  6 passed (1.4m)

@@ -18,7 +18,7 @@
 
 const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
-const { closeSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } = require("node:fs");
+const { closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { trackOwnedServer, prepareNamespace } = require("./f11_owned_server.cjs");
 const { scriptMetadata } = require("./f11_script_metadata.cjs");
@@ -371,10 +371,32 @@ async function openAnalysis(page, lang, viewport) {
     waitUntil: "domcontentloaded",
     timeout: 90_000,
   });
-  // Wait for the context bar and the theses control to be visible.
-  const entry = page.getByLabel(lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA");
+  // Keep the protected compact toolbar closed in the crop. On phones, exercise
+  // its real disclosure first so the exact localized thesis destination is observed.
+  const compact = viewport.width <= 640;
+  const label = lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA";
+  const disclosure = page.locator(".analysis-context-actions");
+  const trigger = page.locator(".analysis-context-actions > summary");
+  const entry = page.locator(compact
+    ? ".analysis-context-actions-menu > a[aria-label]"
+    : ".analysis-context-bar > .analysis-context-theses[aria-label]");
+  let disclosureBounds;
+  if (compact) {
+    await trigger.waitFor({ state: "visible", timeout: 45_000 });
+    if (await trigger.count() !== 1
+        || await trigger.getAttribute("aria-label") !== (lang === "zh" ? "研究操作" : "Research actions")
+        || await disclosure.getAttribute("open") !== null) {
+      throw new Error("F11_RESEARCH_DISCLOSURE_MISMATCH");
+    }
+    disclosureBounds = await trigger.boundingBox();
+    if (!disclosureBounds || disclosureBounds.width <= 0 || disclosureBounds.height <= 0) {
+      throw new Error("F11_RESEARCH_DISCLOSURE_EMPTY");
+    }
+    await trigger.click();
+  }
   await entry.waitFor({ state: "visible", timeout: 45_000 });
   if (await entry.count() !== 1) throw new Error("F11_THESES_ENTRY_NOT_UNIQUE");
+  if (await entry.getAttribute("aria-label") !== label) throw new Error("F11_THESES_ENTRY_LABEL_MISMATCH");
   const href = new URL(await entry.getAttribute("href"), BASE);
   if (href.origin !== BASE || href.pathname !== "/analysis"
       || href.searchParams.get("view") !== "theses" || href.searchParams.get("symbol") !== SYM) {
@@ -382,7 +404,14 @@ async function openAnalysis(page, lang, viewport) {
   }
   const bounds = await entry.boundingBox();
   if (!bounds || bounds.width <= 0 || bounds.height <= 0) throw new Error("F11_THESES_ENTRY_EMPTY");
-  return { symbol: SYM, lang, state: "context-bar-with-theses-control", href: href.pathname + href.search, entryBounds: bounds };
+  if (compact) {
+    await trigger.click();
+    await entry.waitFor({ state: "hidden", timeout: 45_000 });
+    if (await disclosure.getAttribute("open") !== null) throw new Error("F11_RESEARCH_DISCLOSURE_NOT_CLOSED");
+  }
+  return { symbol: SYM, lang, state: "context-bar-with-theses-control", href: href.pathname + href.search,
+    entryBounds: bounds, entryPresentation: compact ? "compact-research-actions" : "inline",
+    ...(compact ? { disclosureBounds, captureDisclosure: "closed" } : {}) };
 }
 
 async function shoot(page, file, out = OUT) {
@@ -532,6 +561,20 @@ async function captureCaseWithFailureArtifact(shot, out, capturedAtHead, capture
   }
 }
 
+function writeEvidenceManifest(evidence, out = OUT) {
+  // Subsequent accepted recaptures append provenance after the generated file list.
+  // A new capture must retain those historical receipts rather than erase them.
+  const evidencePath = join(out, "EVIDENCE.yml");
+  const previous = existsSync(evidencePath) ? readFileSync(evidencePath, "utf8") : "";
+  const appendixBoundary = `  - ${SHOTS[SHOTS.length - 1].file}\n`;
+  const appendixStart = previous.indexOf(appendixBoundary);
+  if (previous && appendixStart < 0) {
+    throw new Error("Existing evidence appendix boundary is missing; refusing to overwrite historical receipts");
+  }
+  const appendix = previous ? previous.slice(appendixStart + appendixBoundary.length) : "";
+  writeFileSync(evidencePath, `${evidence.join("\n")}\n${appendix}`);
+}
+
 async function runCapture(mode) {
   if (!["canonical-six", "diagnostic-mobile-zh"].includes(mode)) throw new Error("F11_CAPTURE_MODE");
   const diagnosticOnly = mode === "diagnostic-mobile-zh";
@@ -619,7 +662,7 @@ async function runCapture(mode) {
     "files:",
     ...SHOTS.map((s) => `  - ${s.file}`),
   ];
-  writeFileSync(join(OUT, "EVIDENCE.yml"), `${evidence.join("\n")}\n`);
+  writeEvidenceManifest(evidence);
   // Publish eligibility last, after all six observations and evidence metadata.
   writeSuccessArtifact(OUT, files, fixturePayload);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);

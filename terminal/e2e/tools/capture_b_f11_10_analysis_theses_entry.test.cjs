@@ -7,6 +7,111 @@ const os = require("node:os");
 const path = require("node:path");
 const { assertNoCaptureDotenv, captureServerEnv } = require("./capture_b_f11_10_analysis_theses_entry.cjs");
 
+function presentationModuleForTest() {
+  const source = fs.readFileSync(path.join(__dirname, "capture_b_f11_10_analysis_theses_entry.cjs"), "utf8");
+  const sandboxModule = { exports: {} };
+  require("node:vm").runInNewContext(source + "\nmodule.exports.openForTest=openAnalysis; module.exports.evidenceForTest=writeEvidenceManifest;", {
+    module: sandboxModule, exports: sandboxModule.exports, require, __dirname,
+    process: { env: {} }, console, Buffer, URL,
+  });
+  return sandboxModule.exports;
+}
+
+function analysisPresentationDouble(width, lang, overrides = {}) {
+  const compact = width <= 640;
+  const calls = [];
+  let open = overrides.initiallyOpen ?? false;
+  const box = { x: 12, y: 90, width: 180, height: 32 };
+  const trigger = {
+    async waitFor({ state }) { assert.equal(state, "visible"); assert.equal(compact, true); },
+    async count() { return overrides.triggerCount ?? 1; },
+    async getAttribute(name) { assert.equal(name, "aria-label"); return overrides.triggerLabel ?? (lang === "zh" ? "研究操作" : "Research actions"); },
+    async boundingBox() { return box; },
+    async click() { open = !open; calls.push(open ? "open" : "close"); },
+  };
+  const entry = {
+    async waitFor({ state }) {
+      calls.push("entry-" + state);
+      assert.equal(compact ? open : true, state === "visible");
+    },
+    async count() { return overrides.entryCount ?? 1; },
+    async getAttribute(name) {
+      if (name === "aria-label") return overrides.entryLabel ?? (lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA");
+      assert.equal(name, "href"); return overrides.href ?? "/analysis?symbol=NVDA&view=theses";
+    },
+    async boundingBox() { return box; },
+  };
+  const page = {
+    async setViewportSize(viewport) { assert.equal(viewport.width, width); },
+    async addInitScript(_script, language) { assert.equal(language, lang); },
+    async goto(url) { assert.equal(new URL(url).pathname, "/analysis"); },
+    getByLabel() { throw new Error("UNSCOPED_THESIS_LINK_IS_AMBIGUOUS"); },
+    locator(selector) {
+      if (selector === ".analysis-context-actions") return { async getAttribute(name) { assert.equal(name, "open"); return open ? "" : null; } };
+      if (selector === ".analysis-context-actions > summary") return trigger;
+      assert.equal(selector, compact ? ".analysis-context-actions-menu > a[aria-label]" : ".analysis-context-bar > .analysis-context-theses[aria-label]");
+      return entry;
+    },
+  };
+  return { page, calls, isOpen: () => open };
+}
+
+for (const width of [1440, 820, 390]) for (const lang of ["en", "zh"]) {
+  test(`thesis entry observes the ${width}px ${lang} presentation and leaves its real disclosure closed`, async () => {
+    const double = analysisPresentationDouble(width, lang);
+    const result = await presentationModuleForTest().openForTest(double.page, lang, { width, height: 900 });
+    assert.equal(result.href, "/analysis?symbol=NVDA&view=theses");
+    assert.equal(result.entryPresentation, width <= 640 ? "compact-research-actions" : "inline");
+    assert.equal(double.isOpen(), false);
+    assert.deepEqual(double.calls, width <= 640 ? ["open", "entry-visible", "close", "entry-hidden"] : ["entry-visible"]);
+    if (width <= 640) {
+      assert.equal(result.captureDisclosure, "closed");
+      assert.ok(result.disclosureBounds.width > 0);
+    } else assert.equal(Object.hasOwn(result, "captureDisclosure"), false);
+  });
+}
+
+test("thesis entry refuses a different destination, symbol, view or localized identity", async () => {
+  const api = presentationModuleForTest();
+  for (const href of ["https://other.invalid/analysis?symbol=NVDA&view=theses", "/research?symbol=NVDA&view=theses", "/analysis?symbol=AAPL&view=theses", "/analysis?symbol=NVDA&view=company"]) {
+    const double = analysisPresentationDouble(820, "en", { href });
+    await assert.rejects(api.openForTest(double.page, "en", { width: 820 }), /F11_THESES_ENTRY_IDENTITY_MISMATCH/);
+  }
+  for (const [overrides, error] of [[{ entryLabel: "Your theses on AAPL" }, /F11_THESES_ENTRY_LABEL_MISMATCH/], [{ entryCount: 2 }, /F11_THESES_ENTRY_NOT_UNIQUE/]]) {
+    const double = analysisPresentationDouble(820, "en", overrides);
+    await assert.rejects(api.openForTest(double.page, "en", { width: 820 }), error);
+  }
+});
+
+test("compact thesis capture refuses an already open or ambiguous research disclosure", async () => {
+  for (const overrides of [{ initiallyOpen: true }, { triggerCount: 2 }, { triggerLabel: "Other action" }]) {
+    const double = analysisPresentationDouble(390, "zh", overrides);
+    await assert.rejects(presentationModuleForTest().openForTest(double.page, "zh", { width: 390 }), /F11_RESEARCH_DISCLOSURE_MISMATCH/);
+    assert.deepEqual(double.calls, []);
+  }
+});
+
+test("new F11 evidence retains the complete prior appendix after the six-file boundary", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "f11-evidence-history-"));
+  try {
+    const target = path.join(root, "EVIDENCE.yml");
+    const appendix = "\nrecapture_history:\n  - original: accepted\nlex_projection: retained\n";
+    fs.writeFileSync(target, "old_header: true\nfiles:\n  - mobile-zh.png\n" + appendix);
+    presentationModuleForTest().evidenceForTest(["new_header: true", "files:", "  - mobile-zh.png"], root);
+    assert.equal(fs.readFileSync(target, "utf8"), "new_header: true\nfiles:\n  - mobile-zh.png\n" + appendix);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test("an unrecognized evidence appendix refuses without changing historical bytes", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "f11-evidence-refusal-"));
+  try {
+    const target = path.join(root, "EVIDENCE.yml"), prior = "unknown_prior_format: preserve\n";
+    fs.writeFileSync(target, prior);
+    assert.throws(() => presentationModuleForTest().evidenceForTest(["new_header: true"], root), /Existing evidence appendix boundary is missing/);
+    assert.equal(fs.readFileSync(target, "utf8"), prior);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
 for (const indicatorCount of [0, 1]) {
   test(`indicator observation preserves the page and ${indicatorCount ? "refuses a visible control" : "accepts an empty portal host"}`, async () => {
     const source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
@@ -531,3 +636,4 @@ test("failed or unclosed case stops sequence and cannot yield partial success",a
     await assert.rejects(operation);assert.deepEqual(calls,SIX_FILES.slice(0,2));
   }
 });
+
