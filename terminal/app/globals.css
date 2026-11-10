@@ -906,8 +906,9 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 .im-state-lock{width:28px;height:28px;margin-left:auto;display:grid;place-items:center;flex:none;border:1px solid var(--line-2);border-radius:50%;background:color-mix(in srgb,var(--panel-3) 64%,transparent);color:var(--muted)}
 .im-state-lock svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .imod-actions{display:flex;align-items:center;gap:3px;padding:8px 8px 8px 3px}
-.imod-action{height:30px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 8px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--panel-2);color:var(--text-2);font:600 10px/1 var(--font-ui);cursor:pointer;transition:background var(--t-fast),border-color var(--t-fast),color var(--t-fast)}
+.imod-action{height:30px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 8px;border:1px solid var(--line-3);border-radius:var(--r);background:var(--panel-2);color:var(--text);font:600 10px/1 var(--font-ui);cursor:pointer;transition:background var(--t-fast),border-color var(--t-fast),color var(--t-fast)}
 .imod-action.icon{width:30px;padding:0}
+.imod-action.icon span{display:none}
 .imod-action:hover{background:var(--panel-3);border-color:var(--line);color:var(--text)}
 .imod-action svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .imodal .li{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r-md);background:color-mix(in srgb,var(--panel-2) 38%,transparent);color:var(--text);font:13px/1.2 var(--font-ui);text-align:left;cursor:pointer;transition:background var(--t-fast),border-color var(--t-fast)}
@@ -1020,6 +1021,11 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
   .im-section-head small{display:none}
   .li-ic{width:32px;height:32px}
 }
+/* These task surfaces follow the incumbent presentation owner's light palette.
+   Keep the existing dark glass material and all other popover consumers unchanged. */
+:root:is([data-terminal-appearance="1"],[data-mmx-shared-shell="1"])[data-theme="light"] :is(.imodal-library,.phone-workspaces-sheet){
+  background:var(--panel);border-color:var(--line);box-shadow:var(--pop-shadow-modal)
+}
 /* Keep dense desktop browsing, with full-size controls for touch and narrow layouts. */
 @media (max-width:700px),(pointer:coarse){
   .imodal-library .li-ic{width:44px;height:44px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--text-2)}
@@ -1037,7 +1043,10 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
   .imodal-library .li-script-main{min-height:44px}
   .imodal-library .li-acts{gap:4px}
   .imodal-library .imod-row{grid-template-columns:minmax(0,1fr)}
-  .imodal-library .imod-actions{justify-content:flex-end;gap:4px;padding:0 8px 6px}
+  .imodal-library .imod-actions{justify-content:flex-end;gap:6px;padding:0 8px 8px}
+  .imodal-library .imod-action,.imodal-library .imod-action.icon{width:auto;padding:0 12px;font-size:11.5px}
+  .imodal-library .imod-action span{display:inline}
+  .imodal-library .imod-action svg{width:16px;height:16px}
   .imodal-library .imod-titleline strong{white-space:normal;overflow-wrap:anywhere}
 }
 @media (prefers-reduced-motion:reduce){
@@ -1632,8 +1641,8 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 /* CJK never wants tracking; uppercase is a no-op there but the letter-spacing is not. */
 [data-lang="zh"] .ws-hd,[data-lang="zh"] .ws-badge{letter-spacing:0}
 
-.ws-open:disabled{color:var(--text-dim);cursor:default}
-.ws-open:disabled:hover{background:none;color:var(--text-dim)}
+.ws-heading .ws-open:disabled{opacity:1;color:var(--text-2);cursor:default}
+.ws-heading .ws-open:disabled:hover{background:none;color:var(--text-2)}
 .ws-hint{margin:0 7px 5px 26px;font:400 var(--fs-label)/1.4 var(--font-ui);color:var(--muted);white-space:normal}
 
 /* Two valid versions exist. A neutral card keeps the recovery choices clear. */

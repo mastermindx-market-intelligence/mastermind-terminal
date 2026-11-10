@@ -158,6 +158,8 @@ test("unreadable workspace actions stay keyboard accessible without opening the 
   if (await actions.getAttribute("aria-expanded") !== "true") await actions.click();
   expect(await reopened.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
   await reopened.screenshot({ path: info.outputPath(`workspace-actions-${info.project.name}.png`) });
+  const darkSurface = await reopened.evaluate(element => getComputedStyle(element).backgroundColor);
   await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+  await expect.poll(() => reopened.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe(darkSurface);
   await reopened.screenshot({ path: info.outputPath(`workspace-actions-${info.project.name}-light.png`) });
 });

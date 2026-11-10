@@ -150,13 +150,18 @@ for (const lang of ["en", "zh"] as const) {
     }
     expect(await modal.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
     await modal.screenshot({ path: info.outputPath(`study-actions-${info.project.name}-${lang}.png`) });
-    // Render the same enabled actions with the existing light-theme token contract.
-    await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
-    await modal.screenshot({ path: info.outputPath(`study-actions-${info.project.name}-${lang}-light.png`) });
-
+    const darkSurface = await modal.evaluate(element => getComputedStyle(element).backgroundColor);
+    // Reload through the existing guest presentation owner, not an alternate theme applier.
+    await page.evaluate(() => localStorage.setItem("mmx.shell.theme", "light"));
     await page.reload(); await expect(page.locator(".mm-ptag")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     const refreshed = await openMyScripts(page);
     await expect(refreshed.locator(".li-nm").filter({ hasText: finalName })).toBeVisible();
     await expect(refreshed.locator(".li-nm").filter({ hasText: longName })).toHaveCount(0);
+    await expect.poll(() => refreshed.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe(darkSurface);
+    await refreshed.screenshot({ path: info.outputPath(`scripts-${info.project.name}-${lang}-light.png`) });
+    await refreshed.locator(".im-search-input").fill("TP1");
+    await expect(refreshed.locator(".imod-row")).toHaveCount(1);
+    await refreshed.screenshot({ path: info.outputPath(`study-actions-${info.project.name}-${lang}-light.png`) });
   });
 }

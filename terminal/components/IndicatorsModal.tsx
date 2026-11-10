@@ -610,7 +610,7 @@ export default function IndicatorsModal({
                 onOpenModuleSettings(entry.id);
               }}
             >
-              <SettingsMark />
+              <SettingsMark /><span>{t("settings", "Settings")}</span>
             </button>
           )}
         </span>
