@@ -259,13 +259,13 @@ function validResponse(overrides: { currentReceiptId?: string; candidates?: Reco
 
 type JsonRecord = Record<string, unknown>;
 
-function schemaValidSyntheticContext(revisionId: string) {
+function schemaValidSyntheticContext(revisionId: string, ticker = "SPY") {
   return {
     schema: "options.alpha_candidate_campaign_context/v1",
     campaign_revision_id: revisionId,
     group: {
       session_date: "2026-08-13",
-      ticker: "SPY",
+      ticker,
       right: "C",
       expiration: "2026-08-15",
       strike: 450,
@@ -276,11 +276,11 @@ function schemaValidSyntheticContext(revisionId: string) {
   };
 }
 
-function schemaValidSyntheticResponse(contextRevision?: string) {
+function schemaValidSyntheticResponse(contextRevision?: string, ticker = "SPY") {
   const feed = structuredClone(candidateFeedJson) as JsonRecord;
   const formed = (feed.formed_candidates as JsonRecord[])[0];
   const firstRevision = String(formed.first_qualifying_campaign_revision_id);
-  formed.campaign_context = schemaValidSyntheticContext(contextRevision ?? firstRevision);
+  formed.campaign_context = schemaValidSyntheticContext(contextRevision ?? firstRevision, ticker);
   const ajv = new Ajv({ allErrors: true, strict: true });
   addFormats(ajv);
   expect(ajv.compile(feedSchema)(feed)).toBe(true);
@@ -818,6 +818,23 @@ describe("P18.T1 underlying chart action", () => {
       );
     });
   }
+
+  it.each([
+    { ticker: "BRK.B", href: "/terminal?symbol=BRK.B" },
+    { ticker: "-SPY", href: null },
+  ])("uses only chartable roots from frozen context ($ticker)", async ({ ticker, href }) => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: schemaValidSyntheticResponse(undefined, ticker) }));
+    renderPanel();
+    await flushMicrotasks(8);
+
+    const card = host!.querySelector('[data-testid="options-alpha-candidate-item"]');
+    expect(card?.querySelector('[data-testid="options-alpha-candidate-heading"]')?.textContent).toContain(ticker);
+    expect(card?.querySelector('[data-testid="options-alpha-candidate-context"]')).toBeTruthy();
+    const link = card?.querySelector('[data-testid="options-alpha-candidate-chart-link"]');
+    const caption = card?.querySelector('[data-testid="options-alpha-candidate-chart-caption"]');
+    expect(link?.getAttribute("href") ?? null).toBe(href);
+    expect(Boolean(caption)).toBe(href !== null);
+  });
 
   it("withholds the chart action when campaign context is absent", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: fixtureFeedWithoutContext() }));

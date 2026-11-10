@@ -19,8 +19,8 @@ FULL_MATRIX = [
     {"shard": f"desktop-{i}", "projects": f"--project=desktop --shard={i}/5", "specs": ""}
     for i in range(1, 6)
 ] + [
-    {"shard": f"tablet-{i}", "projects": f"--project=tablet --shard={i}/3", "specs": ""}
-    for i in range(1, 4)
+    {"shard": f"tablet-{i}", "projects": f"--project=tablet --shard={i}/4", "specs": ""}
+    for i in range(1, 5)
 ] + [
     {"shard": f"mobile-{i}", "projects": f"--project=mobile --shard={i}/3", "specs": ""}
     for i in range(1, 4)

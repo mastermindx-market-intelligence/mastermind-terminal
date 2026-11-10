@@ -798,3 +798,14 @@ ascPineBuildEvidence20261103:
   operationSha256: "2059b401bf0ed609be6d090c39f16428616c71844f06d7dcf8807d45023eb584"
   actualCases: 30
   scope: "Current synthetic fixture captures qualify the Pine build configuration source. Earlier capture timestamps and image files remain historical; current screenshots, execution report and source snapshots are in the immutable operation above. No real-market reference or production acceptance."
+
+
+# Historical Prophet fixture result at its original source; this is not the current composed-source lock.
+prophetForecastPulseRecapture20261102:
+  sourceHead: "6065cc744e081083eeee61bd00cfa8e15442a34d"
+  chartPanelSha256: "09eb4b24955b7e71a4c6c356f1db6ca8876ec2ff3ceaee22318cced06ef5e631"
+  actualBrowserResult: "30 passed; 0 failed, skipped, flaky or retries; EN/ZH desktop/tablet/mobile"
+  actualReportSha256: "bfebb3ca70634498fb96df12b4dad759f893bc08e835365eb8d5af04fc0d2854"
+  evidence: "../../verification/prophet-marker-20261102/README.md"
+  cropDisposition: "Six actual context captures performed. Four tablet/mobile images byte-identical to prior accepted; two desktop captures differ in bytes and are retained as local diagnostics. Accepted PNG and report hashes remain historical and unchanged; only source binding updated. This fixture has no Prophet receipt, so no new icon was claimed visible in these screenshots."
+  productionProof: false

@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang, type Lang } from "@/lib/i18n";
+import { canonicalChartSymbol } from "@/lib/terminalBoot";
 import { makeProphetT, type ProphetKey } from "./prophetStrings";
 import {
   isCandidateFeedResponse,
@@ -365,6 +366,7 @@ function CandidateCard({
   const frozen = item.frozen_formation;
   const micro = item.measured;
   const heading = contractHeading(item, t);
+  const chartSymbol = canonicalChartSymbol(item.campaign_context?.group.ticker);
   const firstConsumerClock = displayFirstConsumerClock(receiptEntry, currentReceiptId, externalLastModified, t);
   return (
     <article className="obs-card obs-options-alpha-candidate is-candidate" data-testid="options-alpha-candidate-item">
@@ -408,11 +410,11 @@ function CandidateCard({
         <ReasonList reasons={item.current_disposition.reasons} t={t} zh={zh} />
       )}
       <CampaignContextBlock item={item} t={t} />
-      {item.campaign_context ? (
+      {chartSymbol ? (
         <>
           <a
             className="obs-chip obs-options-alpha-chart-link"
-            href={`/terminal?symbol=${encodeURIComponent(item.campaign_context.group.ticker)}`}
+            href={`/terminal?symbol=${encodeURIComponent(chartSymbol)}`}
             target="_blank"
             rel="noopener noreferrer"
             data-testid="options-alpha-candidate-chart-link"

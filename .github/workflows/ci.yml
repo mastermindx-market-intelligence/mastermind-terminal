@@ -166,6 +166,41 @@ jobs:
           fi
           if [ -n "${TRUSTED}" ]; then
             python3 "${TRUSTED}"
+            # The protected selector still owns full vs focused scope. An older
+            # base can emit the complete tablet thirds that exhausted the cap
+            # in run42547252309. Split only that exact set; retain every other
+            # protected row and never run the candidate's selector here.
+            python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["GITHUB_OUTPUT"])
+          fields = dict(line.split("=", 1) for line in output.read_text().splitlines() if "=" in line)
+          if fields.get("mode") == "full":
+              matrix = json.loads(fields["matrix"])
+              legacy = [
+                  {"shard": f"tablet-{i}", "projects": f"--project=tablet --shard={i}/3", "specs": ""}
+                  for i in range(1, 4)
+              ]
+              if isinstance(matrix, dict) and set(matrix) == {"include"}:
+                  rows = matrix["include"]
+                  if isinstance(rows, list) and all(isinstance(row, dict) for row in rows):
+                      tablet = [row for row in rows if str(row.get("shard", "")).startswith("tablet-")
+                                or "--project=tablet" in str(row.get("projects", "")).split()]
+                      if tablet == legacy:
+                          first = rows.index(tablet[0])
+                          quarters = [
+                              {"shard": f"tablet-{i}", "projects": f"--project=tablet --shard={i}/4", "specs": ""}
+                              for i in range(1, 5)
+                          ]
+                          matrix["include"] = rows[:first] + quarters + [
+                              row for row in rows[first:] if row not in legacy
+                          ]
+                          with output.open("a", encoding="utf-8") as target:
+                              target.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+                          print("e2e-scope: split protected full tablet thirds into quarters; all cases retained")
+          PY
           else
             python3 - <<'PY'
           import json
@@ -175,7 +210,7 @@ jobs:
               {"shard": f"{name}-{i}",
                "projects": f"--project={name} --shard={i}/{total}",
                "specs": ""}
-              for name, total in (("desktop", 5), ("tablet", 3), ("mobile", 3))
+              for name, total in (("desktop", 5), ("tablet", 4), ("mobile", 3))
               for i in range(1, total + 1)
           ]
           matrix.append({
@@ -398,6 +433,7 @@ jobs:
             terminal/test-results/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/b-pl-6-batch-2/
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
             terminal/docs/pr-crops/options-level-axis-labels/*.png
           if-no-files-found: warn

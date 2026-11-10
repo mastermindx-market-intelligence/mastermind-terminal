@@ -70,6 +70,10 @@ def _protection(api, app_id):
 def _proof(api, run_id, app_id):
     value = api.request("GET", f"/repos/{REPO}/actions/runs/{positive(run_id)}")
     rid, attempt, wid, head, branch, event, repo_id = _run_identity(value)
+    # Supplementary issuance may run while CI is active or failed. Transferring
+    # the existing enforcement still requires a completed, successful CI proof.
+    require(value.get("status") == "completed" and value.get("conclusion") == "success",
+            "original CI has not passed")
     workflow = api.request("GET", f"/repos/{REPO}/actions/workflows/{wid}")
     require(positive(workflow.get("id")) == wid and workflow.get("path") == WORKFLOW
             and workflow.get("state") == "active" and workflow.get("name") == "CI", "wrong proof workflow")
