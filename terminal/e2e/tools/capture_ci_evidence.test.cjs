@@ -6,7 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { createHash } = require("node:crypto");
 const { EventEmitter } = require("node:events");
-const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions, batch2Plan } = require("./capture_ci_evidence.cjs");
+const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions, batch2Plan, EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS, eodPacket, nativeDefinition, nativeSources, verifyNativeHistory, superviseNative } = require("./capture_ci_evidence.cjs");
 
 const { LAYOUT_FILES, EXPECTED_FILES, assertCompletePacket, assertCaptureNavigation, cropBox } = require("./capture_pl6_batch2.cjs");
 const batch2Relative = "terminal/docs/pr-crops/b-pl-6-batch-2";
@@ -27,16 +27,119 @@ function packetText(repoRoot, { legacy = false, head = "0".repeat(40), historica
   return lines.join("\n");
 }
 
+// Synthetic PNGs, sources and IPC boundaries exercise orchestration only.
+// Production keeps the incumbent visualEvidence.imageInfo decoder and real Playwright.
+function seedNative(repoRoot, change) {
+  const definitions = ["eod", "gex"].map(nativeDefinition);
+  const result = {};
+  for (const definition of definitions) {
+    const family = definition.family, directory = path.join(repoRoot, definition.directory);
+    fs.mkdirSync(directory, { recursive: true });
+    const sources = nativeSources(repoRoot, definition.producer.LAYOUT_FILES);
+    if ((change.nativeStale || []).includes(family)) sources[definition.producer.LAYOUT_FILES[0]] = "0".repeat(64);
+    const prior = definition.producer.renderEvidence({ files: definition.files, layoutFiles: sources, capturedAtHead: "a".repeat(40) })
+      + "currentCacheQualification:\n  sourceHead: historical-only\n";
+    fs.writeFileSync(path.join(directory, "EVIDENCE.yml"), prior);
+    for (const file of definition.files) fs.writeFileSync(path.join(directory, file), `SYNTHETICPNG:prior:${file}`);
+    fs.mkdirSync(path.join(directory, "before"));
+    fs.writeFileSync(path.join(directory, "before/BEFORE.yml"), "historical before-fix identity\n");
+    fs.writeFileSync(path.join(directory, "before/before.png"), "SYNTHETICPNG:before");
+    if (change.missingManifest === family) fs.rmSync(path.join(directory, "EVIDENCE.yml"));
+    if (change.invalidManifest === family) fs.writeFileSync(path.join(directory, "EVIDENCE.yml"), "invalid but retained prior manifest\n");
+    result[family] = { definition, directory, prior };
+  }
+  return result;
+}
+
+function nativeSpawn(f, change) {
+  return (command, args, options) => {
+    const family = args[0].includes("capture_eod_") ? "eod" : "gex";
+    const { definition, directory } = f.nativeFixture[family];
+    f.nativeCalls.push({ family, command, args, options });
+    assert.equal(options.env.CAPTURE_ONLY, ""); assert.equal(options.env.UPDATE_HEATMAP_EVIDENCE, "");
+    assert.equal(options.env.TERMINAL_CROP_OUTPUT_DIR, ""); assert.equal(options.env.CAPTURE_HEAD, "");
+    assert.equal(options.env.TERMINAL_CROP_PORT, definition.port);
+    assert.ok(definition.files.every(file => !fs.existsSync(path.join(directory, file))), "old root PNGs cannot count as fresh output");
+    if (change.nativeThrow) throw new Error("original native spawn exception");
+    const child = new EventEmitter(); child.pid = 424240 + 2 * f.nativeCalls.length; child.unref = () => {};
+    queueMicrotask(() => {
+      const server = { captureId: options.env.TERMINAL_NATIVE_CAPTURE_ID, pid: child.pid + 1, pgid: child.pid + 1 };
+      child.emit("message", { nativeCaptureServer: { ...server, phase: "started" } });
+      let previous = null;
+      try { previous = fs.readFileSync(path.join(directory, "EVIDENCE.yml")); }
+      catch (error) { if (error.code !== "ENOENT") throw error; }
+      const history = previous ? { file: `EVIDENCE.history-${hash(previous)}.yml`, sha256: hash(previous) } : null;
+      if (history) fs.writeFileSync(path.join(directory, history.file), previous);
+      const files = definition.files.map((file, index) => {
+        const bytes = Buffer.from(`SYNTHETICPNG:new:${file}`);
+        if (!(change.missingNativeImage && index === 0)) fs.writeFileSync(path.join(directory, file), bytes);
+        return { file, sha256: hash(bytes) };
+      });
+      const sources = nativeSources(f.repoRoot, definition.producer.LAYOUT_FILES);
+      let after = definition.producer.renderEvidence({ files: definition.files, layoutFiles: sources, capturedAtHead: "a".repeat(40), history });
+      if (change.badNativeManifest) after += "files:\n  - duplicate.png\n";
+      if (change.nativePartialManifest) after = after.replace("  - " + definition.files[0] + "\n", "");
+      fs.writeFileSync(path.join(directory, "EVIDENCE.yml"), after);
+      const receipt = { family, captureId: options.env.TERMINAL_NATIVE_CAPTURE_ID, capturedAtHead: "a".repeat(40),
+        files, history, manifestSha256: hash(after) };
+      if (change.nativeWrongFamily) receipt.family = "other";
+      if (change.nativeWrongAttempt) receipt.captureId = "different-attempt";
+      if (change.nativeWrongHead) receipt.capturedAtHead = "c".repeat(40);
+      if (change.nativePartialReceipt) receipt.files = files.slice(1);
+      if (change.nativeDuplicateMember) receipt.files[1] = receipt.files[0];
+      if (change.nativeImageHash) receipt.files[0].sha256 = "0".repeat(64);
+      if (change.nativeBadImage) fs.writeFileSync(path.join(directory, files[0].file), "not an image");
+      if (change.nativeSourceDrift) fs.appendFileSync(path.join(f.repoRoot, definition.producer.LAYOUT_FILES[0]), "source moved");
+      if (change.nativeControlDrift) fs.appendFileSync(path.join(f.repoRoot, definition.script), "control moved");
+      if (change.nativeHistoryDrift) fs.appendFileSync(path.join(f.diagnostics, `${receipt.captureId}.prior-packet/EVIDENCE.yml`), "history moved");
+      if (change.nativeHistoryCopyDrift && history) fs.appendFileSync(path.join(directory, history.file), "history moved");
+      if (family === "eod" && change.nativeFirstMutatesSecondControl) fs.appendFileSync(path.join(f.repoRoot, f.nativeFixture.gex.definition.script), "changed peer control");
+      if (family === "eod" && change.nativeFirstMutatesSecondSource) {
+        const source = f.nativeFixture.gex.definition.producer.LAYOUT_FILES.find(file => !definition.producer.LAYOUT_FILES.includes(file));
+        assert.ok(source); fs.appendFileSync(path.join(f.repoRoot, source), "changed peer source");
+      }
+      if (family === "eod" && change.nativeFirstMutatesSecondImage) fs.writeFileSync(path.join(f.nativeFixture.gex.directory, f.nativeFixture.gex.definition.files[0]), "SYNTHETICPNG:changed peer image");
+      if (change.nativeReaderDrift) fs.appendFileSync(path.join(f.repoRoot, "terminal/e2e/tools/optionsExposureEvidence.cjs"), "changed reader");
+      if (family === "gex" && change.nativeSecondMutatesFirstArchive) fs.appendFileSync(path.join(f.diagnostics, f.ids.prefix + "-eod.prior-packet/EVIDENCE.yml"), "changed first archive");
+      if (family === "gex" && change.nativeSecondMutatesFirstHistory) {
+        const historyFile = fs.readdirSync(f.nativeFixture.eod.directory).find(file => file.startsWith("EVIDENCE.history-"));
+        assert.ok(historyFile); fs.appendFileSync(path.join(f.nativeFixture.eod.directory, historyFile), "changed first history");
+      }
+      if (family === "gex" && change.nativeSecondMutatesFirstSource) fs.appendFileSync(path.join(f.repoRoot, f.nativeFixture.eod.definition.producer.LAYOUT_FILES[1]), "changed after first qualification");
+      if (family === "gex" && change.nativeSecondMutatesFirstImage) fs.writeFileSync(path.join(f.nativeFixture.eod.directory, f.nativeFixture.eod.definition.files[0]), "SYNTHETICPNG:changed after first qualification");
+      if (family === "gex" && change.nativeSecondMutatesComposition) fs.appendFileSync(path.join(f.repoRoot,
+        `terminal/docs/pr-crops/b-pl-6-batch-1/ci-${f.env.GITHUB_RUN_ID}-${f.env.GITHUB_RUN_ATTEMPT}-current.composition.json`), "changed");
+      const completion = `wrote ${definition.count} crops + EVIDENCE.yml (head ${"a".repeat(40)})\n`;
+      if (!change.nativeMissingCompletion) fs.writeSync(options.stdio[1], completion);
+      if (change.nativeDuplicateCompletion) fs.writeSync(options.stdio[1], completion);
+      if (!change.nativeMissingReceipt) fs.writeSync(options.stdio[1], JSON.stringify({ nativeEvidence: receipt }) + "\n");
+      if (change.nativeDuplicateReceipt) fs.writeSync(options.stdio[1], JSON.stringify({ nativeEvidence: receipt }) + "\n");
+      fs.writeSync(options.stdio[2], "original native capture diagnostic\n");
+      child.emit("message", { nativeCaptureServer: { ...server, phase: "stopped" } });
+      if (change.nativeError) child.emit("error", change.nativeError);
+      child.emit("close", change.nativeStatus ?? 0, change.nativeSignal ?? null);
+    });
+    return child;
+  };
+}
+
 function fixture(t, change = {}) {
   const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ci-evidence-synthetic-"));
   t.after(() => fs.rmSync(repoRoot, { recursive: true, force: true }));
   const env = { GITHUB_RUN_ID: "41600914408", GITHUB_RUN_ATTEMPT: "2", GITHUB_ENV: path.join(repoRoot, "github-env"), RUNNER_TEMP: path.join(repoRoot, "runner-temp") };
-  const ids = operationIds(env), calls = [], inputs = [];
+  const ids = operationIds(env), calls = [], inputs = [], nativeCalls = [];
   const diagnostics = path.join(env.RUNNER_TEMP, "terminal-ci-evidence");
   const profile = { fixture: "terminal-e2e.v1", buildMode: "next-dev", sharedShell: "0", investorShellPreview: "0", theme: "dark" };
   const requirements = packet => Array.from({ length: packet === "pl6" ? 20 : 30 }, (_, n) => ({ packet, key: `${packet}:${n}` }));
   const evidence = {
     PACKETS: { pl6: "terminal/docs/pr-crops/b-pl-6-batch-1", vi: "terminal/docs/pr-crops/terminal-visual-intelligence" },
+    readComposition(input) {
+      assert.equal(input.compositionPath, `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`);
+      assert.deepEqual(input.expectedProfile, profile);
+      if (change.nativeCompositionReferencedBytes) throw new Error("CI_EVIDENCE_REFERENCED_BYTES_CHANGED");
+      return { id: ids.composition, cases: Array(50).fill({}), operations: ["pl6", "vi"].map(packet => ({
+        id: ids[packet], packet, cases: Array(packet === "pl6" ? 24 : 30).fill({}) })) };
+    },
     profile: () => profile, requirements, canonical: JSON.stringify,
     writeComposition(input) {
       inputs.push(input);
@@ -53,7 +156,8 @@ function fixture(t, change = {}) {
           cases: Array(packet === "pl6" ? (change.pl6Count ?? 24) : 30).fill({}) })) };
     },
   };
-  const checkout = () => ({ actualCheckout: { commit: "a".repeat(40), tree: "b".repeat(40) },
+  let checkoutReads = 0;
+  const checkout = () => ({ actualCheckout: { commit: change.nativeCheckoutDrift && nativeCalls.length > 0 && ++checkoutReads > 0 ? "c".repeat(40) : "a".repeat(40), tree: "b".repeat(40) },
     githubEvent: { sha: "c".repeat(40), pullRequestBase: "d".repeat(40), pullRequestHead: "e".repeat(40) } });
   const spawn = (command, args, options) => {
     const packet = args[0].includes("batch2") ? "batch2" : calls.length === 0 ? "pl6" : "vi";
@@ -99,10 +203,13 @@ function fixture(t, change = {}) {
   ].join("\n");
   const optionsDirectory = "terminal/docs/pr-crops/options-level-axis-labels";
   const optionsPath = path.join(repoRoot, optionsDirectory, "manifest.json");
-  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
+  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/pricePaneSvgScope.ts", "lib/priceTagPlacement.ts"];
   const optionsFiles = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
   for (const file of new Set([
-    ...LAYOUT_FILES,
+    ...LAYOUT_FILES, ...["eod", "gex"].flatMap(family => {
+      const definition = nativeDefinition(family);
+      return [...definition.producer.LAYOUT_FILES, definition.script];
+    }), "terminal/e2e/tools/capture_ci_evidence.cjs", "terminal/e2e/tools/optionsExposureEvidence.cjs",
     ...packets.flatMap(packet => [...packet.sources, ...packet.controls]),
     ...optionsSources.map(file => "terminal/" + file), "terminal/e2e/tools/capture_pl6_batch1.cjs", optionsDirectory + "/capture.mjs",
   ])) write(file, "synthetic source: " + file);
@@ -117,7 +224,7 @@ function fixture(t, change = {}) {
     historical: change.batch2Legacy ? null : seedHistory }));
   const priorManifest = fs.readFileSync(manifest);
   for (const definition of packets) {
-    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, Boolean(change.legacyStale)));
+    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, change.legacyStale === true || change.legacyStale === definition.packet));
     for (const file of definition.files) write(definition.directory + "/" + file, "old synthetic image " + file);
   }
   const writeOptions = (stale, sourceHead = "a".repeat(40)) => {
@@ -129,10 +236,22 @@ function fixture(t, change = {}) {
     write(optionsDirectory + "/manifest.json", JSON.stringify(manifest));
     return captures;
   };
+  if (change.legacyChangedSource) fs.appendFileSync(path.join(repoRoot, change.legacyChangedSource), "changed capture input\n");
   writeOptions(Boolean(change.optionsStale));
-  if (change.optionsChanged) fs.appendFileSync(path.join(repoRoot, "terminal/" + optionsSources[0]), "changed source\n");
   write(optionsDirectory + "/coverage-audit-summary.json", "unchanged historical audit");
-  evidence.imageInfo = bytes => ({ sha256: hash(bytes), width: 10, height: 10 });
+  const nativeFixture = seedNative(repoRoot, change);
+  const eodDirectory = nativeFixture.eod.directory, eodManifest = path.join(eodDirectory, "EVIDENCE.yml");
+  const eodPrior = Buffer.from(nativeFixture.eod.prior);
+  if (change.optionsChanged) fs.appendFileSync(path.join(repoRoot, "terminal/" + optionsSources[0]), "changed source\n");
+  if (change.optionsScopeChanged) fs.appendFileSync(path.join(repoRoot, "terminal/lib/pricePaneSvgScope.ts"), "changed scope\n");
+  if (change.eodChanged) fs.appendFileSync(path.join(repoRoot, EOD_LAYOUT_FILES[4]), "changed copy\n");
+  evidence.imageInfo = bytes => {
+    const text = bytes.toString(), pngHeader = Buffer.from("89504e470d0a1a0a", "hex");
+    if (!text.startsWith("SYNTHETICPNG:") && !text.includes("synthetic image") &&
+        !text.includes("synthetic options image") && !bytes.subarray(0, 8).equals(pngHeader))
+      throw new Error("PNG_INVALID");
+    return { sha256: hash(bytes), width: 10, height: 10 };
+  };
   const legacyCalls = [];
   const spawnLegacy = (_command, args, options) => {
     const definition = packets.find(packet => packet.script === args[0]);
@@ -169,11 +288,12 @@ function fixture(t, change = {}) {
     }
     return result;
   };
-  const invoke = () => run({ repoRoot, env, evidence, checkout, spawn: combinedSpawn, spawnLegacy,
-    failurePackets: { plan: () => [] } });
+  const spawnNative = nativeSpawn({ repoRoot, env, ids, nativeCalls, nativeFixture, diagnostics }, change);
+  const invoke = () => run({ repoRoot, env, evidence, checkout, spawn: combinedSpawn, spawnLegacy, spawnNative });
   const diagnostic = () => JSON.parse(fs.readFileSync(path.join(diagnostics, `${ids.prefix}.json`)));
   const selected = () => fs.existsSync(env.GITHUB_ENV) ? fs.readFileSync(env.GITHUB_ENV, "utf8") : "";
-  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest };
+  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest,
+    eodDirectory, eodManifest, eodPrior, nativeCalls, nativeFixture };
 }
 
 test("runs complete original captures, retains24PL6, selects20+30 and exact returned hashes", async t => {
@@ -206,6 +326,19 @@ test("changed Options source opts only PL6 into one capture and retains actual c
   assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
   assert.notEqual(r.optionsAxis.receipt.capturedAtHead, r.githubEvent.pullRequestHead);
   assert.equal(r.optionsAxis.manifestSha256, createHash("sha256").update(fs.readFileSync(f.optionsPath)).digest("hex"));
+  assert.equal(r.composition.selectedCases, 50);
+});
+
+test("helper-only Options source drift requests the existing five-case capture", async t => {
+  const f = fixture(t, { optionsScopeChanged: true });
+  const r = await f.invoke();
+  assert.deepEqual(f.calls.map(c => c.options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE), ["1", "0"]);
+  const prior = JSON.parse(fs.readFileSync(path.join(r.optionsAxis.prior.path, "manifest.json"), "utf8"));
+  const changed = Object.keys(prior.sourceFiles).filter(file => prior.sourceFiles[file] !== r.optionsAxis.sources[`terminal/${file}`]);
+  assert.deepEqual(changed, ["lib/pricePaneSvgScope.ts"]);
+  assert.equal(r.optionsAxis.images.length, 5);
+  assert.equal(r.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
   assert.equal(r.composition.selectedCases, 50);
 });
 
@@ -341,9 +474,9 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
   assert.equal(Boolean(f.selected()), !failure);
 });
 
-test("the stale Pine packet runs all30 cases, retain complete prior bytes and leave validation with native readers", async t => {
+test("stale Pine and batch3 packets run all50 cases and preserve complete prior bytes", async t => {
   const f = fixture(t, { legacyStale: true }), result = await f.invoke();
-  assert.deepEqual(f.legacyCalls, ["pine"]);
+  assert.deepEqual(f.legacyCalls, ["pine", "batch3"]);
   assert.equal(f.calls.length, 2);
   assert.equal(result.composition.selectedCases, 50);
   let cases = 0;
@@ -356,8 +489,25 @@ test("the stale Pine packet runs all30 cases, retain complete prior bytes and le
     assert.equal(fs.readFileSync(path.join(packet.returned.path, image), "utf8"), "fresh synthetic image " + image);
     assert.equal(packet.receipt.captureId, f.ids.prefix + "-" + definition.packet);
   }
-  assert.equal(cases, 30);
+  assert.equal(cases, 50);
 });
+
+test("batch3-only source drift recaptures all20 files while Pine is reused", async t => {
+  const f = fixture(t, { legacyStale: "batch3" }), result = await f.invoke();
+  assert.deepEqual(f.legacyCalls, ["batch3"]);
+  assert.equal(result.legacyPackets.batch3.images.length, 20);
+  assert.equal(result.legacyPackets.pine.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
+});
+
+for (const source of ["terminal/e2e/tools/capture_pl6_batch3.cjs",
+  "terminal/e2e/fixtures/heatmap-price-only-tile.json"]) {
+  test("batch3 capture input drift requires fresh20: " + source, async t => {
+    const f = fixture(t, { legacyChangedSource: source }), result = await f.invoke();
+    assert.deepEqual(f.legacyCalls, ["batch3"]);
+    assert.equal(result.legacyPackets.batch3.images.length, 20);
+    assert.equal(result.legacyPackets.pine.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
+  });
+}
 
 test("current packets preserve their old capture identity and do not launch replacement captures", async t => {
   const f = fixture(t), result = await f.invoke();
@@ -367,22 +517,22 @@ test("current packets preserve their old capture identity and do not launch repl
   assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
 });
 
-for (const [name, change, expected] of [
+for (const packetName of ["pine", "batch3"]) for (const [name, change, expected] of [
   ["nonzero producer", { legacyStatus: 1 }, /CHILD_FAILED_OR_UNSETTLED/],
   ["missing current receipt", { missingLegacyReceipt: true }, /RECEIPT_COUNT/],
   ["partial fresh inventory", { partialLegacy: true }, /RECEIPT_BINDING/],
   ["different attempt", { wrongAttempt: true }, /RECEIPT_BINDING/],
   ["changed image bytes", { imageMismatch: true }, /IMAGE_BINDING/],
   ["source changed during capture", { mutateLegacySource: true }, /SOURCE_CHANGED/],
-]) test(name + " keeps diagnostics and refuses selector export", async t => {
-  const f = fixture(t, { legacyStale: true, ...change });
+]) test(packetName + ": " + name + " keeps diagnostics and refuses selector export", async t => {
+  const f = fixture(t, { legacyStale: packetName, ...change });
   await assert.rejects(f.invoke, expected);
   assert.equal(f.selected(), ""); assert.equal(f.diagnostic().state, "FAILED");
   const packet = f.diagnostic().legacyPackets[f.legacyCalls.at(-1)];
   assert.ok(fs.existsSync(packet.prior.path));
   assert.ok(fs.existsSync(packet.returned.path));
   assert.notEqual(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
-  assert.deepEqual(f.legacyCalls, ["pine"]);
+  assert.deepEqual(f.legacyCalls, [packetName]);
 });
 
 test("Options uses the full PL6 owner, records five fresh images, and preserves its historical audit", async t => {
@@ -392,7 +542,7 @@ test("Options uses the full PL6 owner, records five fresh images, and preserves 
   assert.equal(result.optionsAxis.images.length, 5);
   assert.equal(result.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
   assert.deepEqual(result.optionsAxis.prior.files["coverage-audit-summary.json"], result.optionsAxis.returned.files["coverage-audit-summary.json"]);
-  assert.equal(Object.keys(result.optionsAxis.sources).length, 3);
+  assert.equal(Object.keys(result.optionsAxis.sources).length, 4);
 });
 
 test("an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure", async t => {
@@ -544,8 +694,9 @@ test("supervisor retains spawn error and waits for its close event", async () =>
   assert.equal(result.closed, true); assert.match(result.error.message, /ENOENT/);
 });
 
-function serverReport(child, phase, captureId = 'synthetic-attempt') {
-  child.emit('message', { legacyCaptureServer: { captureId, phase, pid: 424243, pgid: 424243 } });
+function serverReport(child, phase, captureId = 'synthetic-attempt', protocol = 'legacy') {
+  const field = protocol === 'native' ? 'nativeCaptureServer' : 'legacyCaptureServer';
+  child.emit('message', { [field]: { captureId, phase, pid: 424243, pgid: 424243 } });
 }
 
 test('normal producer completion binds its stopped server to this attempt without another termination', async () => {
@@ -793,89 +944,363 @@ test("producer observes the clean DOM before its deterministic crop and retains 
   assert.deepEqual(order, ["observed", "captured"]);
 });
 
-// Source snapshot compatibility and artifact-path negative controls run in the required tool check.
-require("./visualEvidenceSourcePaths.test.cjs");
+test("changed EOD source uses the complete native supervisor and preserves both composition operations", async t => {
+  const f = fixture(t, { eodChanged: true });
+  Object.assign(f.env, { UPDATE_HEATMAP_EVIDENCE: "1", TERMINAL_CROP_OUTPUT_DIR: "/unrelated",
+    CAPTURE_HEAD: "e".repeat(40), TERMINAL_CROP_PORT: "9999" });
+  const r = await f.invoke(), child = f.nativeCalls[0];
+  assert.equal(f.calls.length, 2); assert.equal(f.nativeCalls.length, 1);
+  assert.deepEqual(child.args, ["e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"]);
+  assert.equal(child.options.detached, true); assert.equal(child.options.stdio[3], "ipc");
+  for (const key of ["CAPTURE_ONLY", "UPDATE_HEATMAP_EVIDENCE", "TERMINAL_CROP_OUTPUT_DIR", "CAPTURE_HEAD"])
+    assert.equal(child.options.env[key], "");
+  assert.equal(child.options.env.TERMINAL_CROP_PORT, "3566");
+  assert.equal(child.options.env.TERMINAL_NATIVE_CAPTURE_ID, f.ids.prefix + "-eod");
+  assert.equal(r.native.eod.state, "QUALIFIED");
+  assert.equal(r.native.eod.images.length, 126);
+  assert.deepEqual(fs.readFileSync(path.join(r.native.eod.history.archiveRoot, "EVIDENCE.yml")), f.eodPrior);
+  assert.equal(r.native.eod.priorManifestSha256, hash(f.eodPrior));
+  assert.equal(r.native.eod.manifestSha256, hash(fs.readFileSync(f.eodManifest)));
+  assert.equal(f.inputs[0].operations.length, 2); assert.equal(r.composition.selectedCases, 50);
+  assert.ok(f.selected());
+});
 
+test("matching EOD layout does not invent a new capture receipt", async t => {
+  const f = fixture(t), r = await f.invoke();
+  assert.equal(f.calls.length, 2); assert.equal(f.nativeCalls.length, 0);
+  assert.equal(r.native.eod.state, "CURRENT"); assert.equal(r.native.eod.images.length, 126);
+  assert.equal(r.native.eod.history, undefined);
+});
 
-const failurePackets = require("./gex_failure_capture.cjs");
-const { PNG } = require("pngjs");
-const tinyPng = () => PNG.sync.write(new PNG({ width: 1, height: 1 }));
-function failureFixture(t) {
-  const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gex-preparation-control-"));
-  t.after(() => fs.rmSync(repoRoot, { recursive: true, force: true }));
-  const packets = failurePackets.contracts();
-  for (const packet of packets) for (const rel of packet.layoutFiles) {
-    const file = path.join(repoRoot, rel); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, "controlled " + rel);
-  }
-  const text = (packet, head = "a".repeat(40)) => "# capturedAtHead: " + head + "\nlayoutFiles:\n"
-    + Object.entries(failurePackets.sourceMap(repoRoot, packet)).map(([rel, hash]) => `  ${rel}: "${hash}"`).join("\n")
-    + "\nharness:\n" + packet.files.map(file => `  ${file}: { state: controlled }`).join("\n")
-    + "\nfiles:\n" + packet.files.map(file => "  - " + file).join("\n") + "\n";
-  for (const packet of packets) {
-    const dir = path.join(repoRoot, "terminal/docs/pr-crops", packet.directory); fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, "EVIDENCE.yml"), text(packet));
-    if (packet.id === "eod") {
-      const before = path.join(dir, "before"); fs.mkdirSync(before); fs.writeFileSync(path.join(before, "BEFORE.yml"), "historical before only");
-      for (let n = 0; n < 24; n++) fs.writeFileSync(path.join(before, `historical-${n}.png`), tinyPng());
-    }
-  }
-  return { repoRoot, packets, text };
+for (const [name, change, error] of [
+  ["partial manifest with historical images", { nativePartialManifest: true }, /FILES_MEMBERSHIP/],
+  ["timed out child", { nativeError: Object.assign(new Error("original timeout"), { code: "ETIMEDOUT" }) }, /CHILD_FAILED_OR_UNSETTLED/],
+  ["spawn exception", { nativeThrow: true }, /CHILD_FAILED_OR_UNSETTLED/],
+]) test("EOD " + name + " fails once after composition and before selection", async t => {
+  const f = fixture(t, { eodChanged: true, ...change });
+  await assert.rejects(f.invoke, error);
+  assert.equal(f.calls.length, 2); assert.equal(f.nativeCalls.length, 1);
+  assert.equal(f.inputs.length, 1); assert.equal(f.selected(), "");
+  assert.equal(f.diagnostic().state, "FAILED");
+});
+
+for (const malformed of ["missing", "duplicate", "unrelated", "missing-source"]) test("EOD malformed " + malformed + " manifest cannot authorize planner reuse", async t => {
+  const f = fixture(t, { eodChanged: true });
+  let text = fs.readFileSync(f.eodManifest, "utf8");
+  if (malformed === "missing") text = text.replace("layoutFiles:", "oldLayoutFiles:");
+  if (malformed === "duplicate") { const row = text.split("\n").find(row => row.startsWith("  terminal/")); text = text.replace(row, row + "\n" + row); }
+  if (malformed === "unrelated") text = text.replace(EOD_LAYOUT_FILES[0], "../outside");
+  if (malformed === "missing-source") text = text.split("\n").filter(row => !row.startsWith("  " + EOD_LAYOUT_FILES[0] + ":")).join("\n");
+  fs.writeFileSync(f.eodManifest, text);
+  assert.throws(() => eodPacket(f.repoRoot), /CI_EOD_MANIFEST/);
+  assert.equal(f.calls.length, 0); assert.equal(f.selected(), "");
+});
+
+test("missing current EOD source fails before capture", async t => {
+  const f = fixture(t);
+  fs.unlinkSync(path.join(f.repoRoot, EOD_LAYOUT_FILES[0]));
+  await assert.rejects(f.invoke, /ENOENT/);
+  assert.equal(f.calls.length, 0); assert.equal(f.selected(), "");
+});
+
+for (const [change, error] of [
+  [{ nativeFirstMutatesSecondControl: true }, /SOURCE_CHANGED/],
+  [{ nativeFirstMutatesSecondSource: true }, /SOURCE_CHANGED/],
+  [{ nativeFirstMutatesSecondImage: true }, /PACKET_CHANGED/],
+  [{ nativeReaderDrift: true }, /SOURCE_CHANGED/],
+]) test("the first native producer cannot redefine its peer or reader: " + JSON.stringify(change), async t => {
+  const f = fixture(t, { nativeStale: ["eod"], ...change });
+  await assert.rejects(f.invoke, error); assert.equal(f.nativeCalls.length, 1); assert.equal(f.selected(), "");
+});
+
+function nativeServerReport(child, phase, captureId = "synthetic-attempt") {
+  serverReport(child, phase, captureId, "native");
 }
 
-test("real script contracts keep114/126 and matching raw maps do not request recapture", t => {
-  const f = failureFixture(t), plans = failurePackets.plan(f.repoRoot);
-  assert.deepEqual(plans.map(p => p.files.length), [114, 126]);
-  assert.deepEqual(plans.map(p => p.required), [false, false]);
-  assert.deepEqual(plans.map(p => p.layoutFiles.length), [11, 12]);
-  fs.appendFileSync(path.join(f.repoRoot, "terminal/components/gexdesk/GexDeskView.tsx"), " changed");
-  const changed = failurePackets.plan(f.repoRoot);
-  assert.ok(changed.every(p => p.required));
-  assert.ok(changed.every(p => JSON.stringify(p.changed) === JSON.stringify(["terminal/components/gexdesk/GexDeskView.tsx"])));
+test("matching EOD/GEX packets preserve the existing two-operation selection without another capture", async t => {
+  const f = fixture(t), result = await f.invoke();
+  assert.equal(f.nativeCalls.length, 0);
+  assert.deepEqual(Object.values(result.native).map(value => value.state), ["CURRENT", "CURRENT"]);
+  assert.deepEqual(Object.values(result.native).map(value => value.images.length), [126, 114]);
+  assert.equal(f.inputs[0].operations.length, 2); assert.equal(f.inputs[0].selections.length, 50);
 });
 
-test("malformed, empty or partial source inventories cannot authorize a skip", t => {
-  const f = failureFixture(t), file = path.join(f.repoRoot, "terminal/docs/pr-crops", f.packets[0].directory, "EVIDENCE.yml");
-  for (const text of ["", "layoutFiles:\n", "layoutFiles:\n  /caller/path: a\n"]) {
-    fs.writeFileSync(file, text); assert.throws(() => failurePackets.plan(f.repoRoot), /GEX_CAPTURE_LAYOUT/);
+for (const change of [
+  { nativeStale: ["eod", "gex"] }, { missingManifest: "eod" }, { invalidManifest: "gex" },
+]) test(`complete original native matrices qualify only after settled execution: ${JSON.stringify(change)}`, async t => {
+  const f = fixture(t, change);
+  f.env.UPDATE_HEATMAP_EVIDENCE = "1"; f.env.TERMINAL_CROP_OUTPUT_DIR = "unrelated"; f.env.CAPTURE_HEAD = "unrelated";
+  const result = await f.invoke();
+  assert.equal(result.state, "SELECTED");
+  assert.equal(f.inputs[0].operations.length, 2); assert.equal(f.inputs[0].selections.length, 50);
+  const expected = change.nativeStale || [change.missingManifest || change.invalidManifest];
+  assert.deepEqual(f.nativeCalls.map(value => value.family), expected);
+  for (const family of expected) {
+    const current = result.native[family], old = f.nativeFixture[family];
+    assert.equal(current.state, "QUALIFIED"); assert.equal(current.images.length, old.definition.count);
+    verifyNativeHistory(current.history);
+    assert.equal(current.history.originalLogicalBase, old.definition.directory);
+    assert.equal(fs.readFileSync(path.join(old.directory, "before/BEFORE.yml"), "utf8"), "historical before-fix identity\n");
+    assert.equal(fs.readFileSync(path.join(current.history.archiveRoot, "before/before.png"), "utf8"), "SYNTHETICPNG:before");
+    if (!change.missingManifest && !change.invalidManifest) {
+      assert.equal(fs.readFileSync(path.join(current.history.archiveRoot, "EVIDENCE.yml"), "utf8"), old.prior);
+      assert.match(old.prior, /currentCacheQualification/);
+    }
+    assert.ok(result.children.find(child => child.packet === family).serverReportedStopped);
   }
 });
 
-for (const defect of ["none", "status", "signal", "missing", "corrupt", "cleanup", "source", "reader", "before"]) test(`full raw preparation ${defect} retains exact scope and never selects uncommitted evidence`, async t => {
-  const f = failureFixture(t); fs.appendFileSync(path.join(f.repoRoot, "terminal/components/gexdesk/GexDeskView.tsx"), " changed");
-  const calls = [], env = { GITHUB_RUN_ID: "91", GITHUB_RUN_ATTEMPT: "1", RUNNER_TEMP: path.join(f.repoRoot, "runner"), GITHUB_ENV: path.join(f.repoRoot, "env") };
-  const checkout = () => ({ actualCheckout: { commit: "a".repeat(40), tree: "b".repeat(40) } });
-  const spawn = (_node, args, options) => {
-    calls.push(args);
-    if (args[0] === "node_modules/vitest/vitest.mjs") {
-      assert.deepEqual(args.slice(1), ["run", "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts", "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"]);
-      return { status: defect === "reader" ? 1 : 0, signal: null };
-    }
-    assert.equal(options.env.CAPTURE_ONLY, ""); assert.equal(options.env.UPDATE_HEATMAP_EVIDENCE, "");
-    const packet = f.packets.find(p => args[0].endsWith(p.script)); assert.ok(packet);
-    if (defect === "source") fs.appendFileSync(path.join(f.repoRoot, packet.layoutFiles[0]), " mutation");
-    const dir = options.env.TERMINAL_CROP_OUTPUT_DIR;
-    fs.writeFileSync(path.join(dir, "EVIDENCE.yml"), f.text(packet));
-    for (const file of packet.files) fs.writeFileSync(path.join(dir, file), tinyPng());
-    if (defect === "missing") fs.unlinkSync(path.join(dir, packet.files[0]));
-    if (defect === "corrupt") fs.writeFileSync(path.join(dir, packet.files[0]), Buffer.from("not a PNG"));
-    if (defect === "before" && packet.id === "eod") fs.appendFileSync(path.join(f.repoRoot, "terminal/docs/pr-crops", packet.directory, "before/BEFORE.yml"), " changed");
-    fs.writeSync(options.stdio[1], JSON.stringify({ gexFailureCleanup: { pid: 12345, closeObserved: defect !== "cleanup", processGroupAbsent: true, exitSuccess: "NOT_ASSERTED" } }) + "\n");
-    return { status: defect === "status" ? 1 : 0, signal: defect === "signal" ? "SIGTERM" : null };
-  };
-  const invoke = () => run({ repoRoot: f.repoRoot, env, checkout, spawn, evidence: { profile: () => ({ fixture: true }) } });
-  await assert.rejects(invoke, defect === "none" ? /REVIEW_IMPORT_REQUIRED/ : undefined);
-  assert.equal(fs.existsSync(env.GITHUB_ENV), false);
-  const record = JSON.parse(fs.readFileSync(path.join(env.RUNNER_TEMP, "terminal-ci-evidence/ci-91-1.json")));
-  assert.equal(record.state, defect === "none" ? "REVIEW_IMPORT_REQUIRED" : "FAILED");
-  assert.ok(calls.every(args => !args[0].includes("capture_pl6") && !args[0].includes("capture_visual_evidence")));
-  if (defect === "none") {
-    assert.equal(calls.length, 3);
-    assert.deepEqual(record.failurePackets.map(p => p.outputs.length), [115, 127]);
-    assert.ok(record.failurePackets.every(p => p.state === "VALIDATED_AWAITING_REVIEW_IMPORT"));
-    assert.equal(Object.keys(record.failurePackets[1].historicalBefore).length, 25);
-    assert.ok(fs.existsSync(path.join(record.failurePackets[1].outputDirectory, "before/BEFORE.yml")));
-  } else if (!["reader", "before"].includes(defect)) assert.equal(calls.length, 1);
+for (const [name, change, error] of [
+  ["nonzero producer", { nativeStatus: 1 }, /CHILD_FAILED_OR_UNSETTLED/],
+  ["signalled producer", { nativeSignal: "SIGTERM" }, /CHILD_FAILED_OR_UNSETTLED/],
+  ["wrong family", { nativeWrongFamily: true }, /RESULT_BINDING/],
+  ["wrong attempt", { nativeWrongAttempt: true }, /RESULT_BINDING/],
+  ["wrong head", { nativeWrongHead: true }, /RESULT_BINDING/],
+  ["partial receipt", { nativePartialReceipt: true }, /RESULT_BINDING/],
+  ["duplicate member", { nativeDuplicateMember: true }, /RESULT_BINDING/],
+  ["wrong image digest", { nativeImageHash: true }, /IMAGE_BINDING/],
+  ["missing fresh image", { missingNativeImage: true }, /ENOENT/],
+  ["invalid image", { nativeBadImage: true }, /PNG_INVALID/],
+  ["ambiguous manifest", { badNativeManifest: true }, /MANIFEST/],
+  ["changed layout", { nativeSourceDrift: true }, /SOURCE_CHANGED/],
+  ["changed capture control", { nativeControlDrift: true }, /SOURCE_CHANGED/],
+  ["changed checkout", { nativeCheckoutDrift: true }, /SOURCE_CHANGED/],
+  ["changed archived packet", { nativeHistoryDrift: true }, /HISTORY_CHANGED/],
+  ["changed history link", { nativeHistoryCopyDrift: true }, /HISTORY_BINDING/],
+  ["missing completion", { nativeMissingCompletion: true }, /COMPLETION/],
+  ["duplicate completion", { nativeDuplicateCompletion: true }, /COMPLETION/],
+  ["missing receipt", { nativeMissingReceipt: true }, /RECEIPT_COUNT/],
+  ["duplicate receipt", { nativeDuplicateReceipt: true }, /RECEIPT_COUNT/],
+]) test(`native ${name} preserves failure and cannot select CI evidence`, async t => {
+  const f = fixture(t, { nativeStale: ["eod"], ...change });
+  await assert.rejects(f.invoke, error);
+  assert.equal(f.selected(), ""); assert.equal(f.diagnostic().state, "FAILED");
+  assert.equal(f.nativeCalls.length, 1);
 });
+
+test("native source symlinks are refused before any native child starts", async t => {
+  const f = fixture(t), def = nativeDefinition("eod");
+  const file = path.join(f.repoRoot, def.producer.LAYOUT_FILES[0]);
+  fs.rmSync(file); fs.symlinkSync(path.join(f.repoRoot, def.producer.LAYOUT_FILES[1]), file);
+  await assert.rejects(f.invoke, /CI_NATIVE_PATH/);
+  assert.equal(f.nativeCalls.length, 0); assert.equal(f.selected(), "");
+});
+
+test("a historical packet symlink is never followed during fresh qualification", async t => {
+  const f = fixture(t, { nativeStale: ["eod"] }), old = f.nativeFixture.eod;
+  fs.symlinkSync(path.join(f.repoRoot, "terminal"), path.join(old.directory, "unrelated-directory"));
+  await assert.rejects(f.invoke, /CI_NATIVE_HISTORY_PATH/);
+  assert.equal(f.nativeCalls.length, 0); assert.equal(f.selected(), "");
+});
+
+for (const [change, error] of [
+  [{ nativeSecondMutatesFirstSource: true }, /SOURCE_CHANGED/],
+  [{ nativeSecondMutatesFirstImage: true }, /PACKET_CHANGED/],
+  [{ nativeSecondMutatesFirstArchive: true }, /HISTORY_CHANGED/],
+  [{ nativeSecondMutatesFirstHistory: true }, /PACKET_CHANGED|HISTORY_BINDING/],
+  [{ nativeSecondMutatesComposition: true }, /COMPOSITION_BYTES/],
+  [{ nativeCompositionReferencedBytes: true }, /REFERENCED_BYTES_CHANGED/],
+]) test(`the final selection rechecks prior owners after the second native producer: ${JSON.stringify(change)}`, async t => {
+  const f = fixture(t, { nativeStale: ["eod", "gex"], ...change });
+  await assert.rejects(f.invoke, error);
+  assert.equal(f.nativeCalls.length, 2); assert.equal(f.selected(), "");
+});
+
+for (const family of ["eod", "gex"]) for (const code of ["EPERM", "EACCES"]) {
+  test(`${family} producer ${code} propagates to its parent without another server probe or signal`, async () => {
+    const producer = nativeDefinition(family).producer, child = supervisorChild(), calls = [];
+    const captureId = "synthetic-refused-attempt", server = { pid: 424243, pgid: 424243, captureId };
+    const pending = superviseNative("node", [], { env: { TERMINAL_NATIVE_CAPTURE_ID: captureId } }, {
+      spawn: () => child, deadlineMs: 1000,
+      kill: (...args) => { calls.push(args); throw new Error("A denied server group must not be probed again"); },
+    });
+    child.emit("message", { nativeCaptureServer: { ...server, phase: "started" } });
+    const denied = Object.assign(new Error("original server permission refusal"), { code });
+    await assert.rejects(() => producer.settleNativeServer(server, {
+      stop: async () => { throw denied; },
+      report: async (actual, phase, actualCode) => {
+        assert.equal(actual, server); assert.equal(phase, "refused"); assert.equal(actualCode, code);
+        child.emit("message", { nativeCaptureServer: { ...server, phase, code: actualCode } });
+      },
+    }), error => error === denied);
+    child.emit("close", 1, null);
+    const result = await pending;
+    assert.equal(result.serverRefused, code); assert.equal(result.serverSettled, false);
+    assert.equal(result.error.code, code); assert.equal(result.closed, true); assert.deepEqual(calls, []);
+  });
+}
+
+
+for (const family of ["eod", "gex"]) {
+  const producer = nativeDefinition(family).producer;
+test(`${family} producer cleanup waits for the owned group after its npm leader has closed`, async () => {
+  let clock = 0, alive = true;
+  const signals = [], child = { pid: 424242, closed: Promise.resolve(0) };
+  const options = {
+    now: () => clock,
+    wait: async ms => { clock += ms; },
+    kill: (pid, signal) => {
+      assert.equal(pid, -424242);
+      if (!alive) throw Object.assign(new Error("gone"), { code: "ESRCH" });
+      if (signal) signals.push(signal);
+      if (signal === "SIGKILL") alive = false;
+    },
+  };
+  const first = producer.stopServer(child, options);
+  assert.equal(producer.stopServer(child, options), first);
+  await first;
+  assert.deepEqual(signals, ["SIGTERM", "SIGKILL"]);
+  assert.equal(alive, false);
+  assert.equal(clock, 8_000);
+});
+
+test(`${family} producer cleanup refuses an owned group that survives both bounded signals`, async () => {
+  let clock = 0;
+  await assert.rejects(() => producer.stopServer({ pid: 424242, closed: Promise.resolve(0) }, {
+    now: () => clock, wait: async ms => { clock += ms; }, kill: () => {},
+  }), /GROUP_UNSETTLED/);
+  assert.equal(clock, 13_000);
+});
+
+test(`${family} producer cleanup does not treat permission failure or absent close proof as success`, async () => {
+  const signals = [];
+  await assert.rejects(() => producer.stopServer({ pid: 424242, closed: Promise.resolve(0) }, {
+    kill: (_pid, signal) => { signals.push(signal); throw Object.assign(new Error("denied"), { code: "EPERM" }); },
+  }), /denied/);
+  assert.deepEqual(signals, [0]);
+  await assert.rejects(() => producer.stopServer({ pid: 424242 }), /IDENTITY_OR_CLOSE_MISSING/);
+});
+
+}
+test("Native supervisor observes close, not merely a process exit", async () => {
+  const child = supervisorChild(); let closed = false;
+  const pending = superviseNative("node", [], {}, { spawn: () => child, deadlineMs: 1000 });
+  pending.then(() => { closed = true; });
+  child.emit("exit", 0, null); await Promise.resolve(); assert.equal(closed, false);
+  child.emit("close", 0, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.status, 0); assert.equal(result.timedOut, false);
+});
+
+test("native: a late exit-zero after the capture deadline remains a timeout failure", async () => {
+  const child = supervisorChild(), signals = [];
+  const result = await superviseNative("node", [], {}, {
+    spawn: () => child, deadlineMs: 5, graceMs: 5, killMs: 5,
+    kill: (pid, signal) => { assert.equal(pid, -424242); signals.push(signal); queueMicrotask(() => child.emit("close", 0, null)); },
+  });
+  assert.equal(result.status, 0); assert.equal(result.closed, true); assert.equal(result.timedOut, true);
+  assert.deepEqual(signals, ["SIGTERM"]);
+});
+
+test("native: a child that never closes is bounded and remains unsettled after hard termination", async () => {
+  const child = supervisorChild(), signals = [];
+  const result = await superviseNative("node", [], {}, {
+    spawn: () => child, deadlineMs: 5, graceMs: 5, killMs: 5, kill: (_pid, signal) => signals.push(signal),
+  });
+  assert.equal(result.closed, false); assert.equal(result.timedOut, true); assert.equal(child.unrefCount, 1);
+  assert.deepEqual(signals, ["SIGTERM", "SIGKILL"]);
+  child.emit("close", 0, null); assert.equal(result.closed, false);
+});
+
+test("native: supervisor permission refusal stops termination attempts", async () => {
+  const child = supervisorChild(), signals = [];
+  const result = await superviseNative("node", [], {}, {
+    spawn: () => child, deadlineMs: 5, graceMs: 5, killMs: 5,
+    kill: (_pid, signal) => { signals.push(signal); throw Object.assign(new Error("denied"), { code: "EPERM" }); },
+  });
+  assert.equal(result.closed, false); assert.equal(result.error.code, "EPERM");
+  assert.deepEqual(signals, ["SIGTERM"]);
+});
+
+test("native: supervisor retains spawn error and waits for its close event", async () => {
+  const child = supervisorChild();
+  const pending = superviseNative("node", [], {}, { spawn: () => child, deadlineMs: 1000 });
+  child.emit("error", new Error("fixture ENOENT")); child.emit("close", -2, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.match(result.error.message, /ENOENT/);
+});
+for (const family of ["eod", "gex"]) {
+  const producer = nativeDefinition(family).producer;
+for (const count of [0, 1]) test(`${family} dev-indicator count${count} is inspected without removing DOM`, async () => {
+  let inspected = 0;
+  const page = {
+    waitForTimeout: async () => {},
+    evaluate: () => { throw new Error("DOM removal is forbidden"); },
+    locator: selector => { assert.equal(selector, "[data-nextjs-dev-tools-button]"); return { count: async () => { inspected++; return count; } }; },
+  };
+  if (count) await assert.rejects(() => producer.assertNoNextIndicator(page, "test.png"), /still mounted/);
+  else await producer.assertNoNextIndicator(page, "test.png");
+  assert.equal(inspected, 1);
+});
+
+}
+test('native: normal producer completion binds its stopped server to this attempt without another termination', async () => {
+  const child = supervisorChild();
+  const pending = superviseNative('node', [], { env: { TERMINAL_NATIVE_CAPTURE_ID: 'synthetic-attempt' } }, {
+    spawn: () => child, deadlineMs: 1000, kill: () => { throw new Error('No second cleanup after a proven stop'); },
+  });
+  nativeServerReport(child, 'started'); nativeServerReport(child, 'stopped'); child.emit('close', 0, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.serverPid, 424243);
+  assert.equal(result.serverReportedStopped, true); assert.equal(result.serverSettled, true);
+});
+
+for (const survives of [false, true]) test(`native: hard producer termination reconciles its distinct server group, survives=${survives}`, async () => {
+  const child = supervisorChild(), signals = []; let alive = true, tick = 0;
+  const pending = superviseNative('node', [], { env: { TERMINAL_NATIVE_CAPTURE_ID: 'synthetic-attempt' } }, {
+    spawn: () => child, deadlineMs: 5, graceMs: 5, killMs: 5,
+    serverGraceMs: 5, serverKillMs: 5, now: () => tick, wait: async ms => { tick += ms; },
+    kill: (pid, signal) => {
+      if (pid === -424242) {
+        signals.push([pid, signal]);
+        if (signal === 'SIGKILL') queueMicrotask(() => child.emit('close', null, 'SIGKILL'));
+        return;
+      }
+      assert.equal(pid, -424243);
+      if (!alive) throw Object.assign(new Error('gone'), { code: 'ESRCH' });
+      if (signal !== 0) signals.push([pid, signal]);
+      if (signal === 'SIGKILL' && !survives) alive = false;
+    },
+  });
+  nativeServerReport(child, 'started');
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.timedOut, true);
+  assert.equal(result.serverReportedStopped, false); assert.equal(result.serverSettled, !survives);
+  assert.deepEqual(signals, [[-424242, 'SIGTERM'], [-424242, 'SIGKILL'], [-424243, 'SIGTERM'], [-424243, 'SIGKILL']]);
+});
+
+test('native: a producer close without an original server identity remains unsettled', async () => {
+  const child = supervisorChild();
+  const pending = superviseNative('node', [], {}, { spawn: () => child, deadlineMs: 1000,
+    kill: () => { throw new Error('No guessed server group'); } });
+  child.emit('close', 0, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.serverPid, null); assert.equal(result.serverSettled, false);
+});
+
+test('native: a server identity from another capture attempt is refused without signalling it', async () => {
+  const child = supervisorChild();
+  const pending = superviseNative('node', [], { env: { TERMINAL_NATIVE_CAPTURE_ID: 'synthetic-attempt' } }, {
+    spawn: () => child, deadlineMs: 1000, kill: () => { throw new Error('No unrelated server group'); },
+  });
+  nativeServerReport(child, 'started', 'another-attempt'); child.emit('close', 0, null);
+  const result = await pending;
+  assert.match(result.error.message, /SERVER_REPORT/); assert.equal(result.serverPid, null); assert.equal(result.serverSettled, false);
+});
+
+test('native: server permission refusal leaves reconciliation unresolved and sends no termination signal', async () => {
+  const child = supervisorChild(), signals = [];
+  const pending = superviseNative('node', [], { env: { TERMINAL_NATIVE_CAPTURE_ID: 'synthetic-attempt' } }, {
+    spawn: () => child, deadlineMs: 1000,
+    kill: (pid, signal) => { signals.push([pid, signal]); throw Object.assign(new Error('denied'), { code: 'EPERM' }); },
+  });
+  nativeServerReport(child, 'started'); child.emit('close', 1, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.serverSettled, false); assert.equal(result.error.code, 'EPERM');
+  assert.deepEqual(signals, [[-424243, 0]]);
+});
+
+require("./optionsExposureEvidence.cases.cjs");
 
 async function fullPageControl(name, source = fs.readFileSync(path.join(__dirname, name), "utf8"), replies = {}) {
   const vm = require("node:vm"), routes = [], pageRoutes = [], sockets = [];
@@ -886,7 +1311,7 @@ async function fullPageControl(name, source = fs.readFileSync(path.join(__dirnam
   const load = n => n === "node:fs" ? fakeFs : n === "node:child_process" ? { spawn() { throw Error("unexpected spawn"); }, execFileSync() { throw Error("unexpected git"); } }
     : n === "@playwright/test" ? { chromium: {} } : require(n);
   vm.runInNewContext(source + "\nmodule.exports.newPageForControl = newPage;", { module: mod, exports: mod.exports, require: load, __dirname, process: { env: {} }, URL, Buffer, console, setTimeout });
-  await mod.exports.newPageForControl({ newContext: async () => context }, 1440, "en", "heatmap", replies, false);
+  await mod.exports.newPageForControl({ newContext: async options => { assert.equal(options.serviceWorkers, "block"); return context; } }, 1440, "en", "heatmap", replies, false);
   async function dispatch(raw, method = "GET", selectedReplies) {
     if (selectedReplies) return (await fullPageControl(name, source, selectedReplies)).dispatch(raw, method);
     const result = { transport: 0, aborted: 0, status: null };
@@ -912,62 +1337,4 @@ for (const name of ["capture_gex_levels_heatmap_load_failure.cjs", "capture_eod_
   for (const raw of [base.replace("http:", "ws:") + "/_next/webpack-hmr?id=fixture-request-1", "wss://provider.invalid/stream", base.replace("http:", "ws:") + "/api/flow/stream", base.replace("http:", "ws:") + "/_next/webpack-hmr?id=a&target=provider"])
     f.sockets[0]({ url: () => raw, connectToServer() { connected++; }, close() { closed++; } });
   assert.equal(connected, 1); assert.equal(closed, 3);
-});
-
-
-// Execute the actual full-script main/start/stop/publication path. Only process,
-// filesystem and browser/crop I/O are fake; no child, browser or HTTP is created.
-async function fullMainControl(name, defect = "none", source = fs.readFileSync(path.join(__dirname, name), "utf8")) {
-  const vm = require("node:vm"), events = [], writes = [], child = new EventEmitter();
-  child.pid = 12345; child.stdout = new EventEmitter(); child.stderr = new EventEmitter();
-  let reads = 0, captures = 0;
-  const contract = require("./" + name).captureContract, fakeProcess = { env: {}, stdout: { write() {} }, exitCode: 0 };
-  const browser = { close: async () => { events.push("browser-close"); } };
-  const load = n => n === "node:fs" ? { mkdirSync() {},
-    readFileSync() { reads++; return Buffer.from(defect === "source" && reads > contract.layoutFiles.length ? "changed" : "same"); },
-    writeFileSync(file) { writes.push(file); events.push("write"); } }
-    : n === "node:child_process" ? { spawn() { events.push("spawn"); return child; }, execFileSync() { return "a".repeat(40); } }
-    : n === "@playwright/test" ? { chromium: { launch: async () => { events.push("browser-start"); return browser; } } }
-    : n === "./f11_owned_server.cjs" ? { trackOwnedServer(actual) { assert.equal(actual, child); return {
-      stop: async () => { events.push("stop"); await Promise.resolve(); if (["cleanup", "primarycleanup"].includes(defect)) throw Error("owned-cleanup-unknown"); events.push("stopped"); },
-      settlement: () => ({ pid: child.pid, closeObserved: true, processGroupAbsent: true }),
-    }; } } : require(n);
-  const mod = { exports: {} }, fakeConsole = { log() {}, error() {} };
-  vm.runInNewContext(source + `
-    waitForServer = async () => { if (["startup", "primarycleanup"].includes(controlDefect)) throw Error("original-startup"); };
-    newPage = async () => ({ context: { close: async () => {} }, page: { goto: async () => {}, screenshot: async () => {} } });
-    assertNoNextIndicator = async () => {};
-    for (const board of Object.keys(CAPTURE)) CAPTURE[board] = async () => controlCapture();
-    module.exports.mainForControl = main;`, {
-    module: mod, exports: mod.exports, require: load, __dirname, process: fakeProcess, URL, Buffer, console: fakeConsole, setTimeout,
-    fetch: async raw => { assert.match(raw, /^http:\/\/127\.0\.0\.1:3566\/api\/flow\?f=flow_idx$/); return { ok: true, json: async () => ({ controlled: true }) }; },
-    controlDefect: defect, controlCapture() { if (++captures === 1 && defect === "crop") throw Error("original-crop"); },
-  });
-  let error; try { await mod.exports.mainForControl(); } catch (e) { error = e; }
-  return { captures, events, writes, error, exitCode: fakeProcess.exitCode };
-}
-for (const name of ["capture_gex_levels_heatmap_load_failure.cjs", "capture_eod_heatmap_flowdesk_load_failure.cjs"]) {
-  for (const defect of ["none", "crop", "source", "startup", "cleanup", "primarycleanup"]) test(`${name} actual main ${defect} awaits owned cleanup and refuses incomplete/source-changed publication`, async () => {
-    const result = await fullMainControl(name, defect);
-    assert.equal(result.events.filter(event => event === "spawn").length, 1);
-    assert.equal(result.events.filter(event => event === "stop").length, 1);
-    if (defect === "none") {
-      assert.equal(result.error, undefined); assert.equal(result.captures, name.startsWith("capture_gex") ? 114 : 126);
-      assert.equal(result.writes.length, 1); assert.ok(result.events.indexOf("write") > result.events.indexOf("stopped"));
-    } else {
-      assert.equal(result.writes.length, 0);
-      if (defect === "crop") assert.equal(result.exitCode, 1);
-      else assert.match(result.error.message, ["startup", "primarycleanup"].includes(defect) ? /original-startup/ : defect === "cleanup" ? /owned-cleanup-unknown/ : /SOURCE_CHANGED/);
-    }
-    if (defect === "primarycleanup") assert.match(result.error.cleanupError.message, /owned-cleanup-unknown/);
-  });
-}
-
-test("cleanup records require the exact finite settlement, not truthy fields or ambiguous multiple events", () => {
-  const value = { pid: 12345, closeObserved: true, processGroupAbsent: true, exitSuccess: "NOT_ASSERTED" };
-  const line = v => JSON.stringify({ gexFailureCleanup: v });
-  assert.deepEqual(failurePackets.cleanupFromLog(line(value)), value);
-  for (const invalid of [{ ...value, pid: undefined }, { ...value, closeObserved: "true" }, { ...value, processGroupAbsent: "true" }, { ...value, exitSuccess: "guessed" }])
-    assert.throws(() => failurePackets.cleanupFromLog(line(invalid)), /CLEANUP_UNPROVED/);
-  assert.throws(() => failurePackets.cleanupFromLog(line(value) + "\n" + line(value)), /CLEANUP_UNPROVED/);
 });

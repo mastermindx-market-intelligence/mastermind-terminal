@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useLayoutEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
-import { useActiveSymbol } from "@/lib/activeSymbol";
+import { normalizeActiveSymbol, useActiveSymbol } from "@/lib/activeSymbol";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import ShellSearch from "./ShellSearch";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
@@ -29,8 +29,20 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
       window.removeEventListener("mmx:shell-location", update);
     };
   }, [path, params]);
-  const companySymbol = path === "/analysis" ? normalizeAnalysisSymbol(params.get("symbol") ?? undefined) : null;
-  const invalidCompany = path === "/analysis" && params.has("symbol") && !companySymbol;
+  let legacyCompany: string | null = null;
+  if (path === "/stock.html") {
+    try {
+      const current = new URL(returnHref);
+      // stock.html owns this hash, with ?ticker= as its established entry alias.
+      // Read that explicit selection without publishing a second shared cursor.
+      legacyCompany = normalizeActiveSymbol(current.hash
+        ? decodeURIComponent(current.hash.slice(1)) : current.searchParams.get("ticker"));
+    } catch { /* Malformed selection must not open an unrelated previous chart. */ }
+  }
+  const companySymbol = path === "/analysis"
+    ? normalizeAnalysisSymbol(params.get("symbol") ?? undefined) : legacyCompany;
+  const invalidCompany = (path === "/analysis" && params.has("symbol") && !companySymbol)
+    || (path === "/stock.html" && !legacyCompany);
   // A URL-selected Company owns this entry even before its cursor-publishing effect runs.
   const terminalHref = sharedShellTerminalHref(returnHref, companySymbol ?? symbol);
   return <div className="shared-shell-toolbar">

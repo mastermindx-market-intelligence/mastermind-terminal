@@ -1,5 +1,5 @@
-import { qualifyFinvizMembershipManifest } from "@/lib/finvizMembershipManifest";
 import { intelligenceResponse } from "@/lib/shared-shell/intelligenceResponse";
+import { qualifyFinvizMembershipManifest } from "@/lib/finvizMembershipManifest";
 import { normalizeFinviz, TIMEFRAMES } from "@/lib/finvizThemes";
 import { isAdminRequest } from "@/lib/adminGate";
 import { createHash } from "node:crypto";
@@ -288,8 +288,7 @@ async function readIncumbent(req: Request): Promise<Response> {
   finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
 }
 
-// This compact view reads the same canonical history result after member/source checks.
-// It never substitutes a relative-strength feed for the published cycle model.
+/** Compact display view over the same authenticated reader; ordinary responses are unchanged. */
 export async function GET(req: Request): Promise<Response> {
   const response = await readIncumbent(req);
   const params = new URL(req.url).searchParams;

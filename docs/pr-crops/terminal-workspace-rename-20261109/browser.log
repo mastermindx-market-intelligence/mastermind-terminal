@@ -1,0 +1,17 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 9 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/workspace-rename-focus.spec.ts:6:7 › workspace rename keeps the keyboard task intact (en) (17.3s)
+  ✓  2 [desktop] › e2e/workspace-rename-focus.spec.ts:6:7 › workspace rename keeps the keyboard task intact (zh) (15.9s)
+  ✓  3 [desktop] › e2e/workspace-rename-focus.spec.ts:75:5 › late rename success never replays while a newer draft is being typed (7.5s)
+  ✓  4 [tablet] › e2e/workspace-rename-focus.spec.ts:6:7 › workspace rename keeps the keyboard task intact (en) (17.7s)
+  ✓  5 [tablet] › e2e/workspace-rename-focus.spec.ts:6:7 › workspace rename keeps the keyboard task intact (zh) (19.8s)
+  -  6 [tablet] › e2e/workspace-rename-focus.spec.ts:75:5 › late rename success never replays while a newer draft is being typed
+  ✓  7 [mobile] › e2e/workspace-rename-focus.spec.ts:6:7 › workspace rename keeps the keyboard task intact (en) (21.6s)
+  ✓  8 [mobile] › e2e/workspace-rename-focus.spec.ts:6:7 › workspace rename keeps the keyboard task intact (zh) (20.0s)
+  -  9 [mobile] › e2e/workspace-rename-focus.spec.ts:75:5 › late rename success never replays while a newer draft is being typed
+
+  2 skipped
+  7 passed (2.2m)

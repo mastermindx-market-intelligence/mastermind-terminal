@@ -4,7 +4,6 @@ vi.mock("@/lib/rateLimit",()=>({rateLimit:state.rate,tooMany:()=>new Response("r
 vi.mock("@/lib/entitlement",()=>({getLiveOptionsAccess:state.access}));
 vi.mock("@/lib/flowSource",()=>({isValidF:()=>true,fixtureFor:vi.fn(),attachFlowScores:()=>{},tryFetchUpstreamResult:state.upstream}));
 vi.mock("@/lib/optionsAlphaCandidatePair",()=>({fetchOptionsAlphaCandidatePair:vi.fn()}));
-vi.mock("@/lib/ndxFamilyAdmission",()=>({isGexFamilyFeed:()=>false,isUnadmittedGexFamilyArtifact:()=>false}));
 const url="http://localhost/api/flow?f=prophet_idx";
 const source={schema:"prophet.index/v1",asof:"2026-11-02",source_asof:"2026-10-30",open_count:0,plans:[],internal_history:"not an overview field"};
 beforeEach(()=>{vi.resetModules();vi.clearAllMocks();vi.stubEnv("FLOW_FIXTURE","0");state.rate.mockReturnValue({ok:true});state.access.mockResolvedValue("allowed");state.upstream.mockResolvedValue({status:"data",data:source});});

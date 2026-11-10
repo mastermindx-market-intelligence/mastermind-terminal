@@ -1,0 +1,33 @@
+[warmup] /terminal?symbol=NVDA → 200 in 572ms
+[warmup] /options → 200 in 212ms
+[warmup] /portfolio → 200 in 2968ms
+[warmup] /alerts → 200 in 3078ms
+[warmup] /analysis → 200 in 582ms
+[warmup] /discover → 200 in 238ms
+[warmup] /admin → 200 in 2871ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 8667ms
+[warmup] /login → 200 in 582ms
+[warmup] /reset-password → 200 in 3318ms
+[warmup] /api/me → 200 in 3166ms
+[warmup] /api/watchlist → 200 in 2806ms
+[warmup] /api/layouts → 200 in 2506ms
+[warmup] /api/watchlist/annotations → 409 in 2719ms
+[warmup] 14 routes compiled in 34s
+[exposure-module-prewarm] actual Options → chart entry ready; disposable context closed before scored tests
+
+Running 12 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total (7.7s)
+  ✓   2 [desktop] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total (4.6s)
+  ✓   3 [desktop] › e2e/exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot (3.7s)
+  ✓   4 [desktop] › e2e/options-research-continuity.spec.ts:12:5 › saved research keeps the Options references and reports each source's state on every reopen (40.8s)
+  ✓   5 [desktop] › e2e/sector-exposure-journey.spec.ts:12:5 › a holding opens its exposure with a bounded sector origin and returns to the exact selection (7.4s)
+  ✓   6 [desktop] › e2e/sector-exposure-journey.spec.ts:38:5 › a deep link survives reload and steps the same cohort through Back and Forward (10.7s)
+  ✓   7 [desktop] › e2e/sector-exposure-journey.spec.ts:66:5 › a changed sector roster pauses stepping but keeps the way back (5.3s)
+  ✓   8 [desktop] › e2e/sector-exposure-journey.spec.ts:79:5 › an absent options source keeps the origin and the return address (4.4s)
+  ✓   9 [desktop] › e2e/sector-exposure-journey.spec.ts:90:5 › an unsupported origin schema is ignored without touching the exposure view (5.8s)
+  ✓  10 [desktop] › e2e/sector-exposure-journey.spec.ts:100:5 › the main chart carries the origin and Return to Exposure brings it back (20.6s)
+  ✓  11 [desktop] › e2e/sector-exposure-journey.spec.ts:126:7 › archived Exposure replay and sector cohort navigation stay source-bound (en) (12.3s)
+  ✓  12 [desktop] › e2e/sector-exposure-journey.spec.ts:126:7 › archived Exposure replay and sector cohort navigation stay source-bound (zh) (12.9s)
+
+  12 passed (3.5m)

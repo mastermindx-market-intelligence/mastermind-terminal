@@ -619,3 +619,136 @@ describe("Shared Shell committed navigation", () => {
     expect(container.textContent).toContain("shellRefreshTitle");
   });
 });
+
+describe("Shared Shell status revalidation", () => {
+  const failure = () => container.querySelector("main")?.getAttribute("data-shared-shell-failure");
+  async function visibleAgain() {
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    await act(async () => { document.dispatchEvent(new Event("visibilitychange")); });
+  }
+  async function retryFrame() {
+    const button = Array.from(container.querySelectorAll("button")).find(node => ["retry", "shellRetry"].includes(node.textContent ?? ""));
+    expect(button).toBeDefined();
+    await act(async () => { button!.click(); });
+    await resolveGate();
+    await loadFrame();
+    await childMessage(readyBody(INITIAL));
+    expectVisible(true);
+  }
+  it("keeps an expired frame hidden until a fresh retry is admitted", async () => {
+    vi.useFakeTimers();
+    try {
+      await renderCommittedRoute(INITIAL, "replace"); await resolveGate(); await loadFrame();
+      const oldGeneration = latestFrameNavigation().generation;
+      await act(async () => { await vi.advanceTimersByTimeAsync(15001); });
+      expect(failure()).toBe("deadline"); expectVisible(false);
+      await childMessage(readyBody(INITIAL), oldGeneration);
+      expectVisible(false); expect(failure()).toBe("deadline");
+      await retryFrame();
+      expect(latestFrameNavigation().generation).not.toBe(oldGeneration);
+      expect(browserHref()).toBe(INITIAL);
+    } finally { vi.useRealTimers(); }
+  });
+  it("aborts a pending admission request when its original deadline expires", async () => {
+    vi.useFakeTimers();
+    try {
+      await renderCommittedRoute(INITIAL, "replace");
+      const gate = requests.at(-1)!;
+      await act(async () => { await vi.advanceTimersByTimeAsync(15001); });
+      expect(gate.signal.aborted).toBe(true);
+      await resolveGate(gate);
+      expect(replaceFrame).not.toHaveBeenCalled(); expectVisible(false);
+    } finally { vi.useRealTimers(); }
+  });
+  it("does not let a late READY erase a rejected child version", async () => {
+    await start();
+    await childMessage({ ...readyBody(INITIAL), bridgeVersion: "different-bridge" });
+    expect(failure()).toBe("ready-version"); expectVisible(false);
+    await childMessage(readyBody(INITIAL));
+    expectVisible(false); expect(failure()).toBe("ready-version");
+  });
+  it("does not let a late READY erase an explicit child error", async () => {
+    await start();
+    await childMessage({ type: "ERROR", code: "initialization_failed" });
+    expect(failure()).toBe("child-error");
+    await childMessage(readyBody(INITIAL));
+    expectVisible(false); expect(failure()).toBe("child-error");
+  });
+  it("offers a route-preserving retry rather than a false version refresh after HTTP 503", async () => {
+    await start();
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) } as Response);
+    await visibleAgain();
+    expectVisible(false); expect(failure()).toBe("gate-http");
+    expect(container.textContent).not.toContain("shellRefreshTitle");
+    await retryFrame(); expect(browserHref()).toBe(INITIAL);
+  });
+  it("keeps a verified server version change fenced against old frame messages", async () => {
+    await start(); await visibleAgain();
+    await resolveGate(requests.at(-1)!, { buildId: "new-server-generation" });
+    expect(failure()).toBe("gate-mismatch"); expectVisible(false);
+    await childMessage(readyBody(INITIAL));
+    expectVisible(false); expect(failure()).toBe("gate-mismatch");
+  });
+  it("ignores a superseded visibility check instead of hiding a freshly confirmed page", async () => {
+    await start(); await visibleAgain(); const old = requests.at(-1)!;
+    await visibleAgain(); const current = requests.at(-1)!;
+    expect(current).not.toBe(old);
+    await resolveGate(current);
+    await resolveGate(old, { buildId: "obsolete-status-response" });
+    expectVisible(true); expect(failure()).toBe("none");
+    expect(old.signal?.aborted).toBe(true);
+  });
+  it("bounds an unresolved visibility check and ignores its late success", async () => {
+    vi.useFakeTimers();
+    try {
+      await start(); await visibleAgain(); const check = requests.at(-1)!;
+      await act(async () => { await vi.advanceTimersByTimeAsync(15001); });
+      expectVisible(false); expect(failure()).toBe("deadline");
+      expect(check.signal?.aborted).toBe(true);
+      await resolveGate(check); await childMessage(readyBody(INITIAL));
+      expectVisible(false);
+    } finally { vi.useRealTimers(); }
+  });
+  it("cancels the old status request when navigation selects another document", async () => {
+    await start(); await visibleAgain(); const old = requests.at(-1)!;
+    await navigate("/about.html");
+    expect(old.signal.aborted).toBe(true);
+    await resolveGate(); await loadFrame(); await childMessage(readyBody("/about.html"));
+    await resolveGate(old, { buildId: "stale-before-navigation" });
+    expectVisible(true); expect(failure()).toBe("none");
+    expect(browserHref()).toBe("/about.html");
+  });
+  it("cancels a pending status check on hiding without retiring the admitted page", async () => {
+    await start(); await visibleAgain(); const old = requests.at(-1)!;
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    await act(async () => { document.dispatchEvent(new Event("visibilitychange")); });
+    expect(old.signal.aborted).toBe(true);
+    await resolveGate(old, { enabled: false }); expectVisible(true);
+    await visibleAgain(); await resolveGate(); expectVisible(true);
+  });
+  it("bounds a stalled status response body, not only receipt of HTTP headers", async () => {
+    vi.useFakeTimers();
+    try {
+      await start(); let release!: (value: typeof healthyGate) => void;
+      vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: () => new Promise(resolve => { release = resolve; }) } as Response);
+      await visibleAgain();
+      const signal = vi.mocked(fetch).mock.calls.at(-1)?.[1]?.signal;
+      await act(async () => { await vi.advanceTimersByTimeAsync(15001); });
+      expect(signal?.aborted).toBe(true); expectVisible(false); expect(failure()).toBe("deadline");
+      await act(async () => { release(healthyGate); }); expectVisible(false);
+    } finally { vi.useRealTimers(); }
+  });
+  it("keeps transport errors recoverable without displaying internal exception text", async () => {
+    await start(); vi.mocked(fetch).mockRejectedValueOnce(new Error("private-upstream-diagnostic"));
+    await visibleAgain(); expectVisible(false); expect(failure()).toBe("gate-network");
+    expect(container.textContent).not.toContain("private-upstream-diagnostic");
+    await retryFrame(); expect(browserHref()).toBe(INITIAL);
+  });
+  it("requires literal enabled true during revalidation, matching initial admission", async () => {
+    await start();
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ ...healthyGate, enabled: "true" }) } as Response);
+    await visibleAgain(); expectVisible(false); expect(failure()).toBe("gate-mismatch");
+    expect(container.textContent).toContain("shellRefreshTitle");
+    await childMessage(readyBody(INITIAL)); expectVisible(false);
+  });
+});

@@ -11,7 +11,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const sameNames = (a, b) => same([...a].sort(), [...b].sort()) && new Set(a).size === a.length;
 const sameMap = (a, b) => sameNames(Object.keys(a), Object.keys(b)) && Object.keys(a).every(key => a[key] === b[key]);
 const OPTIONS_PACKET = "terminal/docs/pr-crops/options-level-axis-labels";
-const OPTIONS_SOURCES = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
+const OPTIONS_SOURCES = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/pricePaneSvgScope.ts", "lib/priceTagPlacement.ts"];
 const OPTIONS_FILES = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
 const CONTROL = "terminal/e2e/tools/capture_ci_evidence.cjs";
 
@@ -75,14 +75,15 @@ function archivePacket(repoRoot, relative, destination) {
 function legacyPackets() {
   return [
     ["pine", "pine-boot-pending-state", "capture_pine_boot_pending.cjs", "3571"],
+    ["batch3", "b-pl-6-batch-3", "capture_pl6_batch3.cjs", "3572"],
   ].map(([packet, directory, script, port]) => {
     const producer = require("./" + script); // Import-safe; --checkout-only never loads producers.
     return { packet, directory: "terminal/docs/pr-crops/" + directory, script: "e2e/tools/" + script, port,
       sources: producer.LAYOUT_FILES, files: producer.FILES,
       controls: [CONTROL, "terminal/e2e/tools/" + script, "terminal/next.config.ts"],
-      // Twelve original page flows include ~192 seconds of deliberate boot waiting.
-      // This bounded Pine allowance stays inside the unchanged overall capture deadline.
-      deadlineMs: 12 * 60_000 };
+      // Pine includes ~192 seconds of deliberate boot waiting; batch3 uses the
+      // existing eight-minute child budget. Both obey the unchanged overall deadline.
+      deadlineMs: (packet === "pine" ? 12 : 8) * 60_000 };
   });
 }
 
@@ -373,10 +374,18 @@ async function waitLegacyServer(child, url, timeoutMs) {
 }
 
 
+const CAPTURE_PROTOCOLS = Object.freeze({
+  legacy: Object.freeze({ field: "legacyCaptureServer", attempt: "TERMINAL_LEGACY_CAPTURE_ID", error: "CI_LEGACY" }),
+  native: Object.freeze({ field: "nativeCaptureServer", attempt: "TERMINAL_NATIVE_CAPTURE_ID", error: "CI_NATIVE" }),
+});
+
 function superviseLegacy(command, args, options, { spawn = spawnAsync, deadlineMs = 8 * 60_000,
+  protocol = "legacy",
   graceMs = 45_000, killMs = 15_000, serverGraceMs = 8_000, serverKillMs = 5_000,
   serverRequired = true, onState = () => {}, kill = process.kill.bind(process), now = Date.now,
   wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)) } = {}) {
+  if (!Object.hasOwn(CAPTURE_PROTOCOLS, protocol)) return Promise.reject(new Error("CI_CAPTURE_PROTOCOL"));
+  const wire = CAPTURE_PROTOCOLS[protocol];
   return new Promise(resolve => {
     let child, error = null, timedOut = false, settled = false;
     let serverPid = null, serverReportedStopped = false, serverRefused = null;
@@ -433,21 +442,21 @@ function superviseLegacy(command, args, options, { spawn = spawnAsync, deadlineM
     child.once("error", cause => { error = cause; });
     child.once("close", (status, signal) => finish(status, signal, true));
     child.on("message", message => {
-      if (settled || !message || !Object.hasOwn(message, "legacyCaptureServer")) return;
-      const report = message.legacyCaptureServer;
-      const identity = report && report.captureId === options.env?.TERMINAL_LEGACY_CAPTURE_ID
+      if (settled || !message || !Object.hasOwn(message, wire.field)) return;
+      const report = message[wire.field];
+      const identity = report && report.captureId === options.env?.[wire.attempt]
         && typeof report.captureId === "string" && report.captureId.length > 0
         && Number.isInteger(report.pid) && report.pid > 1 && report.pgid === report.pid
         && report.pid !== child.pid && report.pid !== process.pid;
       if (identity && report.phase === "refused" && report.pid === serverPid && !serverReportedStopped && !serverRefused
           && ["EPERM", "EACCES"].includes(report.code)) {
         serverRefused = report.code;
-        error ||= Object.assign(new Error(`CI_LEGACY_SERVER_REFUSED: ${report.code}`), { code: report.code });
+        error ||= Object.assign(new Error(`${wire.error}_SERVER_REFUSED: ${report.code}`), { code: report.code });
         onState({ serverPid, serverReportedStopped, serverRefused }); return;
       }
       if (!identity || serverRefused || (report.phase === "started" ? serverPid !== null
         : report.phase !== "stopped" || report.pid !== serverPid || serverReportedStopped)) {
-        error ||= new Error("CI_LEGACY_SERVER_REPORT"); return;
+        error ||= new Error(wire.error + "_SERVER_REPORT"); return;
       }
       if (report.phase === "started") serverPid = report.pid;
       else serverReportedStopped = true;
@@ -464,6 +473,404 @@ function superviseLegacy(command, args, options, { spawn = spawnAsync, deadlineM
   });
 }
 
+
+const NATIVE_PACKETS = Object.freeze({
+  eod: { directory: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure", producer: "capture_eod_heatmap_flowdesk_load_failure.cjs", count: 126, port: "3566" },
+  gex: { directory: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure", producer: "capture_gex_levels_heatmap_load_failure.cjs", count: 114, port: "3564" },
+});
+
+function nativeDefinition(family) {
+  const config = NATIVE_PACKETS[family];
+  if (!config) throw new Error("CI_NATIVE_FAMILY");
+  const producer = require(`./${config.producer}`);
+  const files = producer.expectedFiles();
+  if (files.length !== config.count || new Set(files).size !== config.count) throw new Error("CI_NATIVE_MATRIX");
+  return { ...config, family, producer, files, script: `terminal/e2e/tools/${config.producer}` };
+}
+
+function boundedNativeFile(repoRoot, relative, maximum = 24 * 1024 * 1024) {
+  const pieces = relative.split("/");
+  let current = repoRoot;
+  for (const [index, piece] of pieces.entries()) {
+    if (!piece || piece === "." || piece === ".." || piece.includes("\\")) throw new Error("CI_NATIVE_PATH");
+    current = path.join(current, piece);
+    const stat = fs.lstatSync(current);
+    if (stat.isSymbolicLink() || (index < pieces.length - 1 ? !stat.isDirectory() : !stat.isFile())) throw new Error("CI_NATIVE_PATH");
+    if (index === pieces.length - 1 && stat.size > maximum) throw new Error("CI_NATIVE_FILE_BOUND");
+  }
+  const bytes = fs.readFileSync(current);
+  if (bytes.length > maximum) throw new Error("CI_NATIVE_FILE_BOUND");
+  return bytes;
+}
+
+function nativeSources(repoRoot, paths) {
+  return Object.fromEntries(paths.map(relative => [relative, sha256(boundedNativeFile(repoRoot, relative, 2 * 1024 * 1024))]));
+}
+
+function qualifiedNativePacket(repoRoot, definition) {
+  const { optionalQualifiedOptionsExposurePacket } = require("./optionsExposureEvidence.cjs");
+  const selected = optionalQualifiedOptionsExposurePacket(repoRoot, definition.family, definition.files);
+  if (!selected) return null;
+  const relative = path.relative(path.resolve(repoRoot), selected.evidence).split(path.sep).join("/");
+  if (!relative.startsWith(definition.directory + "/operations/") || relative.split("/").includes(".."))
+    throw new Error("CI_NATIVE_QUALIFIED_PATH");
+  const bytes = boundedNativeFile(repoRoot, relative, 1024 * 1024), text = bytes.toString("utf8");
+  const layout = Object.fromEntries(selected.layout.map(file => [file, selected.sources[file]]));
+  if (!sameNames(Object.keys(layout), definition.producer.LAYOUT_FILES)) throw new Error("CI_NATIVE_QUALIFIED_LAYOUT");
+  return { bytes, text, sha256: sha256(bytes), head: text.match(/^# capturedAtHead: ([a-f0-9]{40})$/m)?.[1] || null,
+    layout, files: [...definition.files], selection: "qualified", path: relative,
+    directory: path.posix.dirname(relative), sourceFiles: selected.sources,
+    descriptorSha256: selected.descriptorSha256, captureRevision: selected.captureRevision };
+}
+
+function readNativePacket(repoRoot, definition) {
+  const bytes = boundedNativeFile(repoRoot, `${definition.directory}/EVIDENCE.yml`, 1024 * 1024);
+  const text = bytes.toString("utf8");
+  const section = name => {
+    const matches = [...text.matchAll(new RegExp(`^${name}:\\n((?:  [^\\n]*\\n)*)`, "gm"))];
+    if (matches.length !== 1 || !matches[0][1]) throw new Error(`CI_NATIVE_MANIFEST: ${name}`);
+    return matches[0][1].trimEnd().split("\n");
+  };
+  for (const [key, value] of [["theme", "dark"], ["languages", "[en, zh]"], ["capture_flag", "TERMINAL_E2E_FIXTURE"]]) {
+    const lines = text.split("\n").filter(line => line.startsWith(`${key}:`));
+    if (lines.length !== 1 || lines[0] !== `${key}: ${value}`) throw new Error("CI_NATIVE_PROFILE");
+  }
+  if (!text.includes("capturedAtHead is informational. The lock is layoutFiles.")
+      || !text.includes("DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06")
+      || !text.includes("DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR")) throw new Error("CI_NATIVE_PROFILE");
+  const heads = [...text.matchAll(/^# capturedAtHead: ([0-9a-f]{40})$/gm)];
+  if (heads.length !== 1) throw new Error("CI_NATIVE_CAPTURE_HEAD");
+  const layout = {};
+  for (const line of section("layoutFiles")) {
+    const match = line.match(/^  (terminal\/[A-Za-z0-9_./-]+): "([0-9a-f]{64})"$/);
+    if (!match || Object.hasOwn(layout, match[1])) throw new Error("CI_NATIVE_LAYOUT");
+    layout[match[1]] = match[2];
+  }
+  if (!sameNames(Object.keys(layout), definition.producer.LAYOUT_FILES)) throw new Error("CI_NATIVE_LAYOUT_MEMBERSHIP");
+  const files = section("files").map(line => {
+    const match = line.match(/^  - ([a-z0-9-]+\.png)$/);
+    if (!match) throw new Error("CI_NATIVE_FILES");
+    return match[1];
+  });
+  if (!sameNames(files, definition.files)) throw new Error("CI_NATIVE_FILES_MEMBERSHIP");
+  const rows = section("harness");
+  if (!sameNames(rows, definition.files.map(file => `  ${definition.producer.harnessRow(file).trimStart()}`))) throw new Error("CI_NATIVE_HARNESS");
+  const viewports = ["desktop", "tablet", "mobile"].map((name, index) => {
+    const width = [1440, 820, 390][index], size = definition.producer.VIEWPORTS[width];
+    return `  - { name: ${name}, width: ${size.width}, height: ${size.height} }`;
+  });
+  if (!sameNames(section("viewports"), viewports)) throw new Error("CI_NATIVE_VIEWPORTS");
+  return { bytes, text, sha256: sha256(bytes), head: heads[0][1], layout, files };
+}
+
+function nativeImages(repoRoot, definition, evidence, expected) {
+  return definition.files.map(file => {
+    const info = evidence.imageInfo(boundedNativeFile(repoRoot, `${definition.directory}/${file}`));
+    const width = Number(file.match(/-(1440|820|390)(?:-zh)?\.png$/)?.[1]);
+    const viewport = definition.producer.VIEWPORTS[width];
+    if (!viewport || info.width > viewport.width || info.height > viewport.height
+        || (expected && info.sha256 !== expected[file])) throw new Error("CI_NATIVE_IMAGE_BINDING");
+    return { file, ...info };
+  });
+}
+
+function nativePacketInventory(repoRoot, definition) {
+  const root = path.join(repoRoot, definition.directory), files = [];
+  let total = 0;
+  const visit = relative => {
+    const directory = path.join(root, relative);
+    let entries;
+    try {
+      const stat = fs.lstatSync(directory);
+      if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error("CI_NATIVE_HISTORY_PATH");
+      entries = fs.readdirSync(directory, { withFileTypes: true });
+    } catch (error) { if (error.code === "ENOENT" && !relative) return; throw error; }
+    for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+      const child = relative ? relative + "/" + entry.name : entry.name;
+      if (entry.isSymbolicLink() || (!entry.isDirectory() && !entry.isFile())) throw new Error("CI_NATIVE_HISTORY_PATH");
+      if (entry.isDirectory()) { visit(child); continue; }
+      const bytes = boundedNativeFile(repoRoot, definition.directory + "/" + child);
+      total += bytes.length;
+      if (total > 512 * 1024 * 1024 || files.length >= 4096) throw new Error("CI_NATIVE_HISTORY_BOUND");
+      files.push({ file: child, bytes: bytes.length, sha256: sha256(bytes) });
+    }
+  };
+  visit("");
+  return { files, bytes: total };
+}
+
+function archiveNativePacket({ repoRoot, definition, diagnostics, captureId, checkout, expected }) {
+  const sourceRoot = path.join(repoRoot, definition.directory);
+  const archiveRoot = path.join(diagnostics, captureId + ".prior-packet");
+  const inventory = nativePacketInventory(repoRoot, definition);
+  if (expected && !same(inventory, expected)) throw new Error("CI_NATIVE_PACKET_CHANGED");
+  fs.mkdirSync(archiveRoot, { recursive: false });
+  for (const file of inventory.files) {
+    const bytes = boundedNativeFile(repoRoot, definition.directory + "/" + file.file);
+    if (bytes.length !== file.bytes || sha256(bytes) !== file.sha256) throw new Error("CI_NATIVE_PACKET_CHANGED");
+    const target = path.join(archiveRoot, file.file); fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, bytes, { flag: "wx" });
+  }
+  const record = { originalLogicalBase: definition.directory, sourceCheckout: checkout,
+    archiveRoot, ...inventory,
+    referenceRule: "This byte-exact packet snapshot retains its original logical base; external repository references bind sourceCheckout. It never reinterprets historical references as the new root images." };
+  fs.writeFileSync(path.join(diagnostics, captureId + ".prior-packet.json"), JSON.stringify(record, null, 2) + "\n", { flag: "wx" });
+  // Removing only expected root outputs prevents an old PNG from satisfying a new capture.
+  for (const file of definition.files) {
+    try {
+      boundedNativeFile(repoRoot, definition.directory + "/" + file);
+      fs.unlinkSync(path.join(sourceRoot, file));
+    } catch (error) { if (error.code !== "ENOENT") throw error; }
+  }
+  return record;
+}
+
+function verifyNativeHistory(history) {
+  for (const file of history.files) {
+    const bytes = boundedNativeFile(history.archiveRoot, file.file);
+    if (bytes.length !== file.bytes || sha256(bytes) !== file.sha256) throw new Error("CI_NATIVE_HISTORY_CHANGED");
+  }
+}
+
+function prepareNativePlans({ repoRoot, evidence }) {
+  return ["eod", "gex"].map(family => {
+    const definition = nativeDefinition(family);
+    const controls = [definition.script, CONTROL, "terminal/e2e/tools/optionsExposureEvidence.cjs"];
+    const sources = nativeSources(repoRoot, definition.producer.LAYOUT_FILES), controlSources = nativeSources(repoRoot, controls);
+    // Qualification failures are outside the legacy repair catch and cannot authorize overwrite.
+    const selected = qualifiedNativePacket(repoRoot, definition);
+    let before = selected, reason = null, images;
+    if (selected) {
+      if (!sameMap(selected.layout, sources)) throw new Error("CI_NATIVE_QUALIFIED_SOURCE");
+      images = nativeImages(repoRoot, { ...definition, directory: selected.directory }, evidence);
+    } else {
+      try {
+        before = readNativePacket(repoRoot, definition);
+        if (!sameMap(before.layout, sources)) reason = "LAYOUT_SOURCE_CHANGED";
+        else images = nativeImages(repoRoot, definition, evidence);
+      } catch (error) {
+        if ((error.code && error.code !== "ENOENT") || error.message === "CI_NATIVE_PATH") throw error;
+        reason = error.message;
+      }
+    }
+    const state = { state: reason ? "CAPTURE_REQUIRED" : "CURRENT", reason,
+      selection: selected ? "qualified" : "legacy", priorManifestSha256: before?.sha256 || null,
+      selectedManifest: selected ? { path: selected.path, sha256: selected.sha256,
+        descriptorSha256: selected.descriptorSha256, captureRevision: selected.captureRevision } : null,
+      sources, controls: controlSources };
+    if (!reason) { state.images = images; state.manifestSha256 = before.sha256; }
+    return { definition, controls, sources, controlSources, before, reason, state,
+      inventory: nativePacketInventory(repoRoot, definition) };
+  });
+}
+
+function verifyNativePlans(repoRoot, plans) {
+  for (const plan of plans) {
+    const { definition, state } = plan;
+    if (!sameMap(nativeSources(repoRoot, Object.keys(state.sources)), state.sources)
+        || !sameMap(nativeSources(repoRoot, Object.keys(state.controls)), state.controls)) throw new Error("CI_NATIVE_SOURCE_CHANGED");
+    if (!same(nativePacketInventory(repoRoot, definition), plan.inventory)) throw new Error("CI_NATIVE_PACKET_CHANGED");
+    if (state.history) {
+      verifyNativeHistory(state.history);
+      const prior = state.history.files.find(file => file.file === "EVIDENCE.yml");
+      if (prior && !boundedNativeFile(repoRoot, definition.directory + "/EVIDENCE.history-" + prior.sha256 + ".yml", 1024 * 1024)
+          .equals(boundedNativeFile(state.history.archiveRoot, "EVIDENCE.yml", 1024 * 1024))) throw new Error("CI_NATIVE_HISTORY_BINDING");
+    }
+  }
+}
+
+async function qualifyNativeEvidence({ repoRoot, env, evidence, checkout, spawnNative, diagnostics, ids, record, save,
+  captureDeadline = Date.now() + 39 * 60_000, plans = prepareNativePlans({ repoRoot, evidence }) }) {
+  record.native = Object.fromEntries(plans.map(plan => [plan.definition.family, plan.state]));
+  // Baselines precede every child, including PL6/VI when run supplies its initial plans.
+  verifyNativePlans(repoRoot, plans); save();
+  for (const plan of plans) {
+    const { definition, controls, sources, controlSources, before, reason, state } = plan;
+    const family = definition.family, captureId = ids.prefix + "-" + family;
+    verifyNativePlans(repoRoot, plans);
+    if (!reason) continue;
+    state.history = archiveNativePacket({ repoRoot, definition, diagnostics, captureId, checkout: record.actualCheckout, expected: plan.inventory });
+    // Even a malformed prior manifest is preserved and bound; no synthetic replacement is made.
+    const prior = state.history.files.find(file => file.file === "EVIDENCE.yml");
+    state.priorManifestSha256 = prior?.sha256 || null;
+    const child = { packet: family, captureId, command: [process.execPath, definition.script.slice("terminal/".length)],
+      state: "RUNNING", stdoutPath: path.join(diagnostics, `${captureId}.stdout.log`), stderrPath: path.join(diagnostics, `${captureId}.stderr.log`) };
+    record.children.push(child); save();
+    const deadlineMs = Math.min(18 * 60_000 + 45_000, captureDeadline - Date.now() - 90_000);
+    if (deadlineMs <= 0) throw new Error("CI_CAPTURE_BUDGET_EXHAUSTED");
+    let out, err, result;
+    try {
+      out = fs.openSync(child.stdoutPath, "wx"); err = fs.openSync(child.stderrPath, "wx");
+      result = await superviseNative(process.execPath, child.command.slice(1), {
+        cwd: path.join(repoRoot, "terminal"), stdio: ["ignore", out, err, "ipc"],
+        env: { ...env, CAPTURE_ONLY: "", UPDATE_HEATMAP_EVIDENCE: "", TERMINAL_CROP_OUTPUT_DIR: "", CAPTURE_HEAD: "",
+          TERMINAL_CROP_PORT: definition.port, TERMINAL_NATIVE_CAPTURE_ID: captureId },
+      }, { spawn: spawnNative, deadlineMs, onState: value => { Object.assign(child, value); save(); } });
+    } finally { if (out !== undefined) fs.closeSync(out); if (err !== undefined) fs.closeSync(err); }
+    Object.assign(child, { state: result.closed && result.serverSettled ? "CLOSED" : "UNSETTLED", status: result.status,
+      signal: result.signal, timedOut: result.timedOut, error: result.error?.message || null, errorCode: result.error?.code || null }); save();
+    if (result.error || result.signal || result.status !== 0 || result.timedOut || !result.closed || !result.serverSettled) throw new Error("CI_NATIVE_CHILD_FAILED_OR_UNSETTLED");
+    if (!sameMap(checkout(repoRoot, env).actualCheckout, record.actualCheckout)
+        || !sameMap(nativeSources(repoRoot, definition.producer.LAYOUT_FILES), sources)
+        || !sameMap(nativeSources(repoRoot, controls), controlSources)) throw new Error("CI_NATIVE_SOURCE_CHANGED");
+    verifyNativeHistory(state.history);
+    const stdout = boundedNativeFile(diagnostics, path.basename(child.stdoutPath), 16 * 1024 * 1024).toString("utf8");
+    const completions = stdout.split(/\r?\n/).filter(line => /^wrote \d+ crops \+ EVIDENCE\.yml /.test(line));
+    if (completions.length !== 1 || completions[0] !== `wrote ${definition.count} crops + EVIDENCE.yml (head ${record.actualCheckout.commit})`) throw new Error("CI_NATIVE_COMPLETION");
+    const receipts = stdout.split(/\r?\n/).flatMap(line => {
+      try { const value = JSON.parse(line); return value && Object.hasOwn(value, "nativeEvidence") ? [value.nativeEvidence] : []; }
+      catch { return []; }
+    });
+    if (receipts.length !== 1) throw new Error("CI_NATIVE_RECEIPT_COUNT");
+    const receipt = receipts[0], after = readNativePacket(repoRoot, definition);
+    if (!receipt || receipt.family !== family || receipt.captureId !== captureId || receipt.capturedAtHead !== record.actualCheckout.commit
+        || after.head !== record.actualCheckout.commit || !sameMap(after.layout, sources) || receipt.manifestSha256 !== after.sha256
+        || !Array.isArray(receipt.files) || !sameNames(receipt.files.map(file => file?.file), definition.files)
+        || receipt.files.some(file => !/^[0-9a-f]{64}$/.test(file.sha256 || ""))) throw new Error("CI_NATIVE_RESULT_BINDING");
+    if (prior) {
+      const historyFile = `EVIDENCE.history-${prior.sha256}.yml`;
+      if (receipt.history?.file !== historyFile || receipt.history?.sha256 !== prior.sha256
+          || !after.text.includes(`# priorManifest: ${historyFile}\n`) || !after.text.includes(`# priorManifestSha256: ${prior.sha256}\n`)
+          || !boundedNativeFile(repoRoot, `${definition.directory}/${historyFile}`, 1024 * 1024)
+            .equals(boundedNativeFile(state.history.archiveRoot, "EVIDENCE.yml", 1024 * 1024))) throw new Error("CI_NATIVE_HISTORY_BINDING");
+    } else if (receipt.history !== null) throw new Error("CI_NATIVE_HISTORY_BINDING");
+    state.images = nativeImages(repoRoot, definition, evidence, Object.fromEntries(receipt.files.map(file => [file.file, file.sha256])));
+    state.state = "QUALIFIED"; state.manifestSha256 = after.sha256;
+    plan.inventory = nativePacketInventory(repoRoot, definition); save();
+  }
+  // The second producer may not stale the first packet, its history, or its source before selection.
+  verifyNativePlans(repoRoot, plans);
+  if (!sameMap(checkout(repoRoot, env).actualCheckout, record.actualCheckout)) throw new Error("CI_NATIVE_SOURCE_CHANGED");
+  for (const family of ["eod", "gex"]) {
+    const definition = nativeDefinition(family), state = record.native[family];
+    if (!sameMap(nativeSources(repoRoot, Object.keys(state.sources)), state.sources)
+        || !sameMap(nativeSources(repoRoot, Object.keys(state.controls)), state.controls)) throw new Error("CI_NATIVE_SOURCE_CHANGED");
+    const selected = state.selection === "qualified" ? qualifiedNativePacket(repoRoot, definition) : null;
+    if (state.selection === "qualified" && (!selected || selected.path !== state.selectedManifest.path ||
+        selected.descriptorSha256 !== state.selectedManifest.descriptorSha256 ||
+        selected.captureRevision !== state.selectedManifest.captureRevision)) throw new Error("CI_NATIVE_QUALIFIED_CHANGED");
+    if ((selected || readNativePacket(repoRoot, definition)).sha256 !== state.manifestSha256) throw new Error("CI_NATIVE_MANIFEST_CHANGED");
+    nativeImages(repoRoot, selected ? { ...definition, directory: selected.directory } : definition,
+      evidence, Object.fromEntries(state.images.map(file => [file.file, file.sha256])));
+  }
+}
+
+function superviseNative(command, args, options, settings = {}) {
+  return superviseLegacy(command, args, options, { ...settings, protocol: "native", serverRequired: true,
+    deadlineMs: settings.deadlineMs ?? 18 * 60_000 + 45_000 });
+}
+
+const EOD_PACKET = "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure";
+const EOD_PRODUCER = "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs";
+const EOD_LAYOUT_FILES = [...nativeDefinition("eod").producer.LAYOUT_FILES];
+const EOD_STATES = [
+  "eod-darkpool-unavailable", "eod-darkpool-retried", "eod-darkpool-absent",
+  "eod-structure-partial", "eod-structure-retried", "eod-structure-unavailable", "eod-structure-absent",
+  "chainheat-unavailable", "chainheat-retried", "chainheat-absent", "chainheat-refresh-failed",
+  "heatmap-flow-unavailable", "heatmap-flow-retried", "heatmap-flow-absent", "heatmap-flow-auth",
+  "heatmap-flow-refresh-failed", "heatmap-flow-persisted-refresh-failed",
+  "heatmap-flow-persisted-refresh-refused", "heatmap-flow-persisted-retried",
+  "heatmap-live-failed", "heatmap-no-match",
+];
+const EOD_CROPS = EOD_STATES.flatMap(state => [1440, 820, 390]
+  .flatMap(width => [state + "-" + width + ".png", state + "-" + width + "-zh.png"])).sort();
+
+// Share declared-packet qualification with the native reader; only undeclared legacy roots may recapture.
+function eodPacket(repoRoot) {
+  const { optionalQualifiedOptionsExposurePacket } = require("./optionsExposureEvidence.cjs");
+  const selected = optionalQualifiedOptionsExposurePacket(repoRoot, "eod", EOD_CROPS);
+  if (selected) {
+    const manifest = fs.readFileSync(selected.evidence);
+    const relative = path.relative(path.resolve(repoRoot), selected.evidence).split(path.sep).join("/");
+    if (!relative.startsWith(EOD_PACKET + "/operations/") || relative.split("/").includes(".."))
+      throw new Error("CI_EOD_QUALIFIED_PATH");
+    const layoutFiles = Object.fromEntries(selected.layout.map(file => [file, selected.sources[file]]));
+    return { selection: "qualified", path: relative, sha256: sha256(manifest),
+      descriptorSha256: selected.descriptorSha256 || null, captureRevision: selected.captureRevision || null,
+      sourceFiles: selected.sources, layoutFiles, actual: { ...layoutFiles }, files: [...EOD_CROPS],
+      capturedAtHead: manifest.toString("utf8").match(/^# capturedAtHead: ([a-f0-9]{40})$/m)?.[1] || null,
+      plan: { required: false, changed: [] } };
+  }
+  const relative = EOD_PACKET + "/EVIDENCE.yml";
+  const bytes = fs.readFileSync(path.join(repoRoot, relative));
+  const text = bytes.toString("utf8");
+  const section = name => {
+    const marker = "\n" + name + ":\n";
+    if (text.split(marker).length !== 2) throw new Error("CI_EOD_MANIFEST_SECTION: " + name);
+    const rows = [];
+    for (const row of text.slice(text.indexOf(marker) + marker.length).split("\n")) {
+      if (!row.startsWith("  ")) break;
+      rows.push(row);
+    }
+    return rows;
+  };
+  const layoutFiles = {};
+  for (const row of section("layoutFiles")) {
+    const match = row.match(/^  (terminal\/[A-Za-z0-9_./-]+): "?([a-f0-9]{64})"?$/);
+    if (!match || !EOD_LAYOUT_FILES.includes(match[1]) || Object.hasOwn(layoutFiles, match[1]))
+      throw new Error("CI_EOD_MANIFEST_SOURCE: " + row);
+    layoutFiles[match[1]] = match[2];
+  }
+  if (!sameMap(Object.fromEntries(EOD_LAYOUT_FILES.map(file => [file, true])),
+      Object.fromEntries(Object.keys(layoutFiles).map(file => [file, true]))))
+    throw new Error("CI_EOD_MANIFEST_SOURCES");
+  const files = section("files").map(row => {
+    const match = row.match(/^  - ([a-z0-9-]+\.png)$/);
+    if (!match) throw new Error("CI_EOD_MANIFEST_FILE: " + row);
+    return match[1];
+  }).sort();
+  if (JSON.stringify(files) !== JSON.stringify(EOD_CROPS)) throw new Error("CI_EOD_MANIFEST_CASES");
+  if (!fs.statSync(path.join(repoRoot, EOD_PRODUCER)).isFile()
+      || fs.readFileSync(path.join(repoRoot, EOD_PRODUCER)).length === 0)
+    throw new Error("CI_EOD_PRODUCER");
+  const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  for (const file of EOD_CROPS) {
+    const image = fs.readFileSync(path.join(repoRoot, EOD_PACKET, file));
+    if (image.length <= png.length || !image.subarray(0, png.length).equals(png))
+      throw new Error("CI_EOD_CROP: " + file);
+  }
+  const actual = Object.fromEntries(EOD_LAYOUT_FILES.map(file =>
+    [file, sha256(fs.readFileSync(path.join(repoRoot, file)))]));
+  const changed = EOD_LAYOUT_FILES.filter(file => actual[file] !== layoutFiles[file]);
+  return { path: relative, sha256: sha256(bytes), layoutFiles, actual, files,
+    capturedAtHead: text.match(/^# capturedAtHead: ([a-f0-9]{40})$/m)?.[1] || null,
+    plan: { required: changed.length > 0, changed } };
+}
+
+function gexPacket(repoRoot) {
+  const definition = nativeDefinition("gex"), selected = qualifiedNativePacket(repoRoot, definition);
+  if (selected) return { ...selected, layoutFiles: selected.layout, actual: { ...selected.layout },
+    capturedAtHead: selected.head, plan: { required: false, changed: [] } };
+  const before = readNativePacket(repoRoot, definition), actual = nativeSources(repoRoot, definition.producer.LAYOUT_FILES);
+  if (!boundedNativeFile(repoRoot, definition.script).length) throw new Error("CI_NATIVE_PRODUCER");
+  const png = Buffer.from("89504e470d0a1a0a", "hex");
+  for (const file of definition.files) {
+    const bytes = boundedNativeFile(repoRoot, definition.directory + "/" + file);
+    if (bytes.length <= png.length || !bytes.subarray(0, png.length).equals(png)) throw new Error("CI_NATIVE_IMAGE");
+  }
+  const changed = definition.producer.LAYOUT_FILES.filter(file => actual[file] !== before.layout[file]);
+  return { path: definition.directory + "/EVIDENCE.yml", sha256: before.sha256, layoutFiles: before.layout,
+    actual, files: before.files, capturedAtHead: before.head, plan: { required: changed.length > 0, changed } };
+}
+
+function eodReceipt(repoRoot, before, stdout, checkoutCommit) {
+  const returned = [...stdout.matchAll(/^wrote 126 crops \+ EVIDENCE\.yml \(head ([a-f0-9]{40})\)$/gm)];
+  if (returned.length !== 1 || returned[0][1] !== checkoutCommit) throw new Error("CI_EOD_COMPLETION");
+  const after = eodPacket(repoRoot);
+  if (after.capturedAtHead !== checkoutCommit || !sameMap(before.actual, after.actual)
+      || !sameMap(before.actual, after.layoutFiles) || after.plan.required)
+    throw new Error("CI_EOD_CHECKOUT_BINDING");
+  const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const crops = {};
+  for (const file of EOD_CROPS) {
+    const bytes = fs.readFileSync(path.join(repoRoot, EOD_PACKET, file));
+    if (bytes.length <= png.length || !bytes.subarray(0, png.length).equals(png))
+      throw new Error("CI_EOD_CROP: " + file);
+    crops[file] = { bytes: bytes.length, sha256: sha256(bytes) };
+  }
+  return { state: "CAPTURED_AWAITING_NATIVE_VALIDATION", path: after.path, sha256: after.sha256,
+    capturedAtHead: after.capturedAtHead, layoutFiles: after.layoutFiles, actualCases: EOD_CROPS.length, crops };
+}
 
 function operationIds(env) {
   for (const name of ["GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"])
@@ -619,8 +1026,7 @@ function recordCheckout({ repoRoot = path.resolve(__dirname, "../../.."), env = 
 }
 
 async function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env,
-  evidence, spawn = spawnSync, spawnLegacy = spawnAsync, checkout = checkoutIdentity,
-  failurePackets = require("./gex_failure_capture.cjs") } = {}) {
+  evidence, spawn = spawnSync, spawnLegacy = spawnAsync, spawnNative = spawnAsync, checkout = checkoutIdentity } = {}) {
   evidence ||= require("./visualEvidence.cjs");
   const ids = operationIds(env), terminal = path.join(repoRoot, "terminal");
   const diagnostics = diagnosticDirectory(env);
@@ -637,8 +1043,23 @@ async function run({ repoRoot = path.resolve(__dirname, "../../.."), env = proce
     Object.assign(record, checkout(repoRoot, env));
     const captureProfile = evidence.profile(env);
     record.profile = captureProfile;
-    const capture = (packet, args, extraEnv, rawId) => {
-      const childId = rawId || ids[packet] || (ids.prefix + "-" + packet);
+    // Preserve both complete native baselines before any capture can change a peer.
+    const nativePlans = prepareNativePlans({ repoRoot, evidence });
+    const batch2 = batch2Plan(repoRoot);
+    record.batch2 = { ...batch2, state: batch2.required ? "CAPTURE_REQUIRED" : "EXISTING_PACKET_AWAITING_NATIVE_VALIDATION" };
+    if (batch2.required) {
+      const prior = fs.readFileSync(batch2.manifestPath);
+      if (sha256(prior) !== batch2.manifestSha256) throw new Error("CI_BATCH2_HISTORY_CHANGED");
+      const historyPath = path.join(diagnostics, ids.prefix + ".batch2.previous-manifest.yml");
+      fs.writeFileSync(historyPath, prior, { flag: "wx" });
+      record.batch2.historicalDiagnostic = historyPath;
+    }
+    const captureDeadline = Date.now() + 84 * 60_000;
+    record.optionsAxis = prepareOptions({ repoRoot, diagnostics, ids });
+    save();
+    record.state = "CAPTURING"; save();
+    const capture = (packet, args, extraEnv) => {
+      const childId = ids[packet] || (ids.prefix + "-" + packet);
       const stdoutPath = path.join(diagnostics, `${childId}.stdout.log`);
       const stderrPath = path.join(diagnostics, `${childId}.stderr.log`);
       const child = { packet, command: [process.execPath, ...args], stdoutPath, stderrPath, state: "RUNNING" };
@@ -656,59 +1077,9 @@ async function run({ repoRoot = path.resolve(__dirname, "../../.."), env = proce
       if (result.error || result.signal || result.status !== 0)
         throw new Error(`CI_EVIDENCE_CHILD_FAILED: ${packet}: status=${result.status} signal=${result.signal || "none"} error=${result.error?.message || "none"}`);
       if (fs.statSync(stdoutPath).size > 16 * 1024 * 1024) throw new Error("CI_EVIDENCE_LOG_LIMIT");
-      if (rawId) return { stdoutPath, stderrPath };
       const stdout = fs.readFileSync(stdoutPath, "utf8");
       return packet === "batch2" ? stdout : reference(stdout, packet, ids[packet], evidence);
     };
-    // Raw GEX/EOD packets are committed source evidence, unlike the transient
-    // PL6/VI selector. Prepare a missing source prerequisite, retain it, and stop
-    // for the existing owner to inspect/import the actual complete packet.
-    record.failurePackets = failurePackets.plan(repoRoot);
-    const changedPackets = record.failurePackets.filter(packet => packet.required);
-    if (changedPackets.length) {
-      record.state = "PREPARING_RAW_FAILURE_PACKETS"; save();
-      for (const packet of changedPackets) {
-        const id = `${ids.prefix}-${packet.id}-full`, directory = path.join(diagnostics, id);
-        fs.mkdirSync(directory, { mode: 0o700 });
-        packet.outputDirectory = directory; packet.state = "CAPTURING"; save();
-        const before = failurePackets.historicalBefore(repoRoot, packet);
-        const logs = capture(packet.id, [`e2e/tools/${packet.script}`], {
-          TERMINAL_CROP_PORT: packet.port, TERMINAL_CROP_OUTPUT_DIR: directory,
-          UPDATE_HEATMAP_EVIDENCE: "", CAPTURE_ONLY: "",
-        }, id);
-        packet.cleanup = failurePackets.cleanupFromLog(fs.readFileSync(logs.stdoutPath, "utf8"));
-        const current = checkout(repoRoot, env).actualCheckout;
-        if (current.commit !== record.actualCheckout.commit || current.tree !== record.actualCheckout.tree)
-          throw new Error("CI_GEX_CHECKOUT_CHANGED");
-        packet.outputs = failurePackets.validate(repoRoot, packet, directory, record.actualCheckout.commit);
-        packet.historicalBefore = failurePackets.preserveBefore(repoRoot, packet, directory, before);
-        failurePackets.materializeForReaders(repoRoot, packet, directory, packet.outputs);
-        packet.state = "CAPTURED_AWAITING_READERS"; save();
-      }
-      const readerFiles = changedPackets.map(packet => `lib/__tests__/${packet.reader}`);
-      capture("gex-readers", ["node_modules/vitest/vitest.mjs", "run", ...readerFiles], {}, `${ids.prefix}-gex-readers`);
-      for (const packet of changedPackets) {
-        if (JSON.stringify(failurePackets.sourceMap(repoRoot, packet)) !== JSON.stringify(packet.sourceFiles))
-          throw new Error("CI_GEX_SOURCE_CHANGED");
-        packet.state = "VALIDATED_AWAITING_REVIEW_IMPORT";
-      }
-      record.state = "REVIEW_IMPORT_REQUIRED"; save();
-      // Never advertise product green from fresh but uncommitted raw locks.
-      const pending = new Error("CI_GEX_REVIEW_IMPORT_REQUIRED"); pending.reviewImportRequired = true; throw pending;
-    }
-    const batch2 = batch2Plan(repoRoot);
-    record.batch2 = { ...batch2, state: batch2.required ? "CAPTURE_REQUIRED" : "EXISTING_PACKET_AWAITING_NATIVE_VALIDATION" };
-    if (batch2.required) {
-      const prior = fs.readFileSync(batch2.manifestPath);
-      if (sha256(prior) !== batch2.manifestSha256) throw new Error("CI_BATCH2_HISTORY_CHANGED");
-      const historyPath = path.join(diagnostics, ids.prefix + ".batch2.previous-manifest.yml");
-      fs.writeFileSync(historyPath, prior, { flag: "wx" });
-      record.batch2.historicalDiagnostic = historyPath;
-    }
-    const captureDeadline = Date.now() + 54 * 60_000;
-    record.optionsAxis = prepareOptions({ repoRoot, diagnostics, ids });
-    save();
-    record.state = "CAPTURING"; save();
     const refs = [];
     let pl6Error;
     try {
@@ -753,19 +1124,33 @@ async function run({ repoRoot = path.resolve(__dirname, "../../.."), env = proce
       id: ids.composition, profile: captureProfile, operations: refs, selections });
     if (!bytes.equals(Buffer.from(expected))) throw new Error("CI_EVIDENCE_COMPOSITION_BYTES");
     record.composition = { path: compositionPath, sha256: crypto.createHash("sha256").update(bytes).digest("hex"), selectedCases: 50 };
+    // Native qualification uses the same supervised owner after the exact PL6/VI bytes exist.
+    // Neither producer may change the other family or that already-validated composition.
+    await qualifyNativeEvidence({ repoRoot, env, evidence, checkout, spawnNative, diagnostics, ids, record, save, captureDeadline, plans: nativePlans });
+    if (!fs.readFileSync(path.join(repoRoot, compositionPath)).equals(bytes)) throw new Error("CI_EVIDENCE_COMPOSITION_BYTES_CHANGED");
+    // JSON identity alone cannot prove that referenced operation, image and current-source bytes survived.
+    const revalidated = evidence.readComposition({ repoRoot, compositionPath, expectedProfile: captureProfile });
+    if (revalidated.id !== ids.composition || revalidated.cases.length !== 50 || revalidated.operations.length !== 2
+        || ["pl6", "vi"].some(packet => {
+          const ops = revalidated.operations.filter(op => op.id === ids[packet] && op.packet === packet);
+          return ops.length !== 1 || ops[0].cases.length !== (packet === "pl6" ? 24 : 30);
+        })) throw new Error("CI_EVIDENCE_COMPOSITION");
+    record.eod = { ...record.native.eod, state: record.native.eod.selection === "qualified" ? "QUALIFIED_UNCHANGED" : record.native.eod.state };
     record.state = "VALIDATED"; save();
     // Only successful full validation can select records for subsequent unit steps.
     fs.appendFileSync(env.GITHUB_ENV, `TERMINAL_EVIDENCE_MODE=records\nTERMINAL_EVIDENCE_COMPOSITION=${compositionPath}\n`);
     record.state = "SELECTED"; save();
     return record;
   } catch (error) {
-    record.state = error.reviewImportRequired ? "REVIEW_IMPORT_REQUIRED" : "FAILED";
-    record.error = { message: error.message, stack: error.stack };
+    record.state = "FAILED"; record.error = { message: error.message, stack: error.stack };
     save(); throw error;
   }
 }
 
 module.exports = { operationIds, reference, checkoutIdentity, recordCheckout, run, batch2Plan, verifyBatch2Capture,
+  eodPacket, eodReceipt, gexPacket, EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS,
+  NATIVE_PACKETS, nativeDefinition, nativeSources, readNativePacket, qualifiedNativePacket,
+  nativeImages, nativePacketInventory, prepareNativePlans, archiveNativePacket, verifyNativeHistory, qualifyNativeEvidence, superviseNative,
   legacyPackets, readLegacyPacket, snapshotPacket, archivePacket, prepareOptions, finishOptions,
   qualifyLegacyPackets, emitLegacyReceipt, captureOptions, captureRefusal, superviseLegacy,
   startLegacyServer, stopLegacyServer, settleLegacyServer, reportLegacyServer, waitLegacyServer };

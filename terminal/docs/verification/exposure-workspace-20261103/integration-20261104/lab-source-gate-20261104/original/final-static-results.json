@@ -1,0 +1,38 @@
+[
+  {
+    "mode": "original",
+    "check": "evidence",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"
+    ],
+    "logSha256": "3b71030d2e684cc9a1a315bd8a96bd22804787e4183829adec40b1fcde99c662"
+  },
+  {
+    "mode": "original",
+    "check": "typescript",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "-p",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/original-lab-integration-20261104/source-tsconfig.json"
+    ],
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "mode": "original",
+    "check": "lint",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/eslint",
+      "e2e/options-lab-source-state.spec.ts",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"
+    ],
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

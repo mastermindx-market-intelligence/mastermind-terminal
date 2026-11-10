@@ -294,7 +294,7 @@ async function readMarkers(
   at: { plain: string; retro: string; waived: string },
 ): Promise<Record<"plain" | "retro" | "waived", MarkerRead | null>> {
   return page.locator("[data-sig-layer]").first().evaluate((svg, dates) => {
-    const groups = [...svg.querySelectorAll("g")];
+    const groups = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')];
     const textsOf = (g: Element) => [...g.querySelectorAll("text")].map((t) => t.textContent ?? "");
     const titleOf = (g: Element) => g.querySelector("title")?.textContent ?? "";
     const read = (g: Element | undefined): MarkerRead | null => {
@@ -328,7 +328,7 @@ async function readMarkers(
  *  are legible side by side, so the receipt has to show them side by side. */
 async function cropThreeMarkers(page: Page, path: string) {
   const clip = await page.locator("[data-sig-layer]").first().evaluate((svg, dates) => {
-    const groups = [...svg.querySelectorAll("g")];
+    const groups = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')];
     const titleOf = (g: Element) => g.querySelector("title")?.textContent ?? "";
     const wanted = dates
       .map((d) => groups.find((g) => titleOf(g).startsWith(`${d} ·`)))
@@ -646,7 +646,7 @@ test("a slice that lands after the ready edge draws its refusal into the same ge
 
   const wrap = page.locator('.chart-wrap[data-slice-symbol="COST"]').first();
   const refusal = page.locator('[data-sig-layer] circle[fill="none"]');
-  const markerGroups = page.locator("[data-sig-layer] g");
+  const markerGroups = page.locator('[data-sig-layer] [data-price-pane-local="signals"] > g');
   const chip = page.locator(".statusline > .mm").first().locator(":scope > span");
   const readyEvents = () => page.evaluate(() =>
     ((window as Window & { __mmVisualReadyEvents?: VisualReadyDetail[] }).__mmVisualReadyEvents ?? [])

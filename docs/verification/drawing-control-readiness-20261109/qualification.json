@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-11-09T06:15:24.085937+00:00",
+  "parent": "0716d1c48d486305a7953ebb6f8c42984616da7f",
+  "sourceFiles": {
+    "terminal/components/TerminalShell.tsx": "9904e87940ac5002b638bd3b872f3910274f88e56a883cd7507af2d01cb957d9",
+    "terminal/components/DrawingSidebar.tsx": "27ea7ba8c6ea02136f36429f787ad5011d07ab7916376c5f08c802a124451ad2",
+    "terminal/lib/__tests__/drawingSidebarReadiness.test.tsx": "ebde47907c68eb6559329682d0abf5384e95e824e6e5b61703afc86c52db6a58",
+    "terminal/lib/__tests__/drawingSidebarAcceptedTool.test.tsx": "fa24ea2eb0963cbb7f16ac72fe4b2a6383830ab79cc9f62e8741aeaed17d2188"
+  },
+  "baseline": {
+    "sourceHead": "0716d1c48d486305a7953ebb6f8c42984616da7f",
+    "failed": 4,
+    "passed": 2,
+    "log": "baseline.log",
+    "note": "Initial regression exposed missing-cache, failed-load, owner-transition and open-flyout availability. Final favorite coverage uses the real favorite toggle and hydration frame."
+  },
+  "focused": {
+    "files": 4,
+    "passed": 18,
+    "log": "focused.log"
+  },
+  "typecheck": {
+    "exit": 0,
+    "log": "typecheck.log"
+  },
+  "scope": "Actual source-extracted owner/load effects, ref publication, admission and Sidebar prop expressions with real React DOM and Sidebar/Tip; held-read plus rejection only. Successful cloud/save helpers are fail-if-called spies asserted unused.",
+  "localBrowserRun": false,
+  "e2eAssertionsChanged": false,
+  "productionAccepted": false,
+  "requiredNextProof": "Natural exact-head CI, including unchanged full drawing concurrency/merge/save/recovery E2E cases",
+  "priorBoundaries": [
+    "D7 no local viewport/denied browser retry",
+    "VPS public-key refusal",
+    "#483/#622 build/production",
+    "signed-in iOS/WebKit/performance"
+  ],
+  "rawLogs": {
+    "baseline.log": {
+      "bytes": 5511,
+      "sha256": "571bc56edc9ac88f875d95145842275a69034a223da5f389510dfa7e5cf93a45"
+    },
+    "focused.log": {
+      "bytes": 699,
+      "sha256": "910afed05603b35538f032861f580e487d57a867e9f7aaa3968f47eba65c2b62"
+    },
+    "typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

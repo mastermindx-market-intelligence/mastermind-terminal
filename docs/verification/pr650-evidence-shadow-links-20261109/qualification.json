@@ -1,0 +1,28 @@
+{
+  "changedTerminalFiles": [
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts"
+  ],
+  "legacyBoundaryCasesPassed": 5,
+  "lintFiles": 1,
+  "nativeAndBrowserEvidenceUnchanged": true,
+  "parents": [
+    "0e7e6ddc5eb40345909e4acff47fb13609052aa2"
+  ],
+  "pr": 650,
+  "preparedAt": "2026-11-09T18:34:44.751753+00:00",
+  "productSourceUnchanged": true,
+  "productionAccepted": false,
+  "readerTestsPassed": 61,
+  "records": {
+    "current-consumers-r1/execution.json": "db45d4847c2f348f3f560f9297f854b112f1c8a5e54feb3ad57018dc1e4a1543",
+    "dependencies.json": "dd49095ea1f12f2278046b767f4aeb2c8a00dc2e73a18ac410c8e2ed4004b3e6",
+    "regression-preparation.json": "e3c8d653d08d5ca522f66efb5e5b1f609ee6304d236de56805a7206c72d029ea",
+    "regression-red-r1/execution.json": "d84dada20bae022dd9d8e53ec2336ef10eeddebe7d9650a98c634a3c382366fc",
+    "shadow-link-repair.json": "a88340b585166d9abf9fa75f6127ceca8ced781fc70dd26efb43ad0401c3703f"
+  },
+  "schema": "terminal_evidence_shadow_fixture_qualification.v1",
+  "sourceEntries": 1931,
+  "sourceSnapshotSha256": "a80396cfb29b92f19d70b58577d9ecb446da7fb41b03fd1efa1f0ca81025f44b",
+  "state": "TEST_FIXTURE_AND_CURRENT_CONSUMERS_QUALIFIED",
+  "typecheckSeconds": 43.11
+}

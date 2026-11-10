@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import SettingsPanelBoundary from "./SettingsPanelBoundary";
 import { createClient } from "@/lib/supabase/client";
 import {
   GUEST_IDENTITY, identityOwnerKey, isAccountOwner, ownerUserId, type AccountIdentity,
@@ -158,17 +159,19 @@ export function SettingsProvider({
     <SettingsCtx.Provider value={api}>
       {children}
       {everOpened && (
-        <SettingsPanel
-          visible={isOpen}
-          openSeq={openSeq}
-          section={section}
-          onSection={setSection}
-          onClose={close}
-          identity={identity}
-          user={user}
-          onPatchMeta={patchMeta}
-          onRefreshUser={refreshUser}
-        />
+        <SettingsPanelBoundary key={`${owner}:${openSeq}`} visible={isOpen} onClose={close} onRetry={() => setOpenSeq(n => n + 1)}>
+          <SettingsPanel
+            visible={isOpen}
+            openSeq={openSeq}
+            section={section}
+            onSection={setSection}
+            onClose={close}
+            identity={identity}
+            user={user}
+            onPatchMeta={patchMeta}
+            onRefreshUser={refreshUser}
+          />
+        </SettingsPanelBoundary>
       )}
     </SettingsCtx.Provider>
   );

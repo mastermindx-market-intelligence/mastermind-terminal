@@ -40,6 +40,7 @@ export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
   shellRefreshTitle: (lang) => pick(lang, "Your workspace has been updated","您的工作区已更新"),
   shellRefreshBody: (lang) => pick(lang, "Refresh to load the current version and continue.","请刷新以加载当前版本并继续。"),
   shellRefresh: (lang) => pick(lang, "Refresh workspace","刷新工作区"),
+  shellRetry: (lang) => pick(lang, "Try again","重试"),
   shellOpenOriginal: (lang) => pick(lang, "Open original page","打开原始页面"),
   shellDirectoryIntro: (lang) => pick(lang, "Explore your workspaces, markets, research, and tools.","探索工作区、市场、研究及工具。"),
   shellFindPage: (lang) => pick(lang, "Find a page or tool…","查找页面或工具…"),

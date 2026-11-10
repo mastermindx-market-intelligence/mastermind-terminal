@@ -1,0 +1,194 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-ui/terminal
+
+ ❯ lib/__tests__/companySearchIdentity.test.tsx (3 tests | 1 failed) 237ms
+   × names and contains the company dialog and restores its opener after Escape from a tab 48ms
+     → expected <body><div></div>
+…(1)</body> to be <button></button> // Object.is equality
+ ❯ lib/__tests__/sharedShellLazyFocus.test.tsx (4 tests | 3 failed) 242ms
+   × restores a live search trigger after cold keyboard activation and Escape 171ms
+     → expected <body><div>…(2)</div></body> to be <button type="button" …(5)>…(3)</button> // Object.is equality
+   × restores a live search trigger after cold keyboard activation and close button 35ms
+     → expected <body><div>…(2)</div></body> to be <button type="button" …(5)>…(3)</button> // Object.is equality
+   × restores a real external opener after programmatic cold open 30ms
+     → expected <body><div>…(2)</div></body> to be <button data-external></button> // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/companySearchIdentity.test.tsx > names and contains the company dialog and restores its opener after Escape from a tab
+AssertionError: expected <body><div></div>
+…(1)</body> to be <button></button> // Object.is equality
+
+- Expected
++ Received
+
++ <body>
++   <div />
+    <button>
+      Search companies trigger
+    </button>
++ </body>
+
+ ❯ lib/__tests__/companySearchIdentity.test.tsx:59:33
+     57|  expect(close).toHaveBeenCalledTimes(1);
+     58|  await act(async()=>root.render(<LangProvider><SearchModal open={false…
+     59|  expect(document.activeElement).toBe(opener);opener.remove();
+       |                                 ^
+     60| });
+     61| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/__tests__/sharedShellLazyFocus.test.tsx > restores a live search trigger after cold keyboard activation and Escape
+ FAIL  lib/__tests__/sharedShellLazyFocus.test.tsx > restores a live search trigger after cold keyboard activation and close button
+AssertionError: expected <body><div>…(2)</div></body> to be <button type="button" …(5)>…(3)</button> // Object.is equality
+
+- Expected
++ Received
+
++ <body>
++   <div>
+      <button
++       data-external=""
++     >
++       Open companies
++     </button>
++     <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        aria-label="Search companies and tools"
+        class="sym-pick shared-shell-company-search"
+        title="Search companies and tools"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="sym-pick-mark"
+        >
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              cx="10.5"
+              cy="10.5"
+              r="6.5"
+            />
+            <path
+              d="m16 16 4 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="sym-pick-id"
+        >
+          <small>
+            shellSearchCompanies
+          </small>
+          <strong>
+            Search companies and tools
+          </strong>
+        </span>
+        <svg
+          aria-hidden="true"
+          class="sym-pick-car"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M6 9l6 6 6-6"
+          />
+        </svg>
+      </button>
++   </div>
++ </body>
+
+ ❯ lib/__tests__/sharedShellLazyFocus.test.tsx:32:33
+     30|  const trigger=host.querySelector<HTMLButtonElement>(".shared-shell-co…
+     31|  expect(trigger).not.toBe(placeholder);expect(trigger.isConnected).toB…
+     32|  expect(document.activeElement).toBe(trigger);
+       |                                 ^
+     33| });
+     34| it("restores a real external opener after programmatic cold open",asyn…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  lib/__tests__/sharedShellLazyFocus.test.tsx > restores a real external opener after programmatic cold open
+AssertionError: expected <body><div>…(2)</div></body> to be <button data-external></button> // Object.is equality
+
+- Expected
++ Received
+
++ <body>
++   <div>
+      <button
+        data-external=""
+      >
+        Open companies
+      </button>
++     <button
++       aria-expanded="false"
++       aria-haspopup="dialog"
++       aria-label="Search companies and tools"
++       class="sym-pick shared-shell-company-search"
++       title="Search companies and tools"
++       type="button"
++     >
++       <span
++         aria-hidden="true"
++         class="sym-pick-mark"
++       >
++         <svg
++           aria-hidden="true"
++           focusable="false"
++           viewBox="0 0 24 24"
++         >
++           <circle
++             cx="10.5"
++             cy="10.5"
++             r="6.5"
++           />
++           <path
++             d="m16 16 4 4"
++           />
++         </svg>
++       </span>
++       <span
++         class="sym-pick-id"
++       >
++         <small>
++           shellSearchCompanies
++         </small>
++         <strong>
++           Search companies and tools
++         </strong>
++       </span>
++       <svg
++         aria-hidden="true"
++         class="sym-pick-car"
++         viewBox="0 0 24 24"
++       >
++         <path
++           d="M6 9l6 6 6-6"
++         />
++       </svg>
++     </button>
++   </div>
++ </body>
+
+ ❯ lib/__tests__/sharedShellLazyFocus.test.tsx:36:118
+     34| it("restores a real external opener after programmatic cold open",asyn…
+     35|  const opener=host.querySelector<HTMLButtonElement>("[data-external]")…
+     36|  expect(document.body.querySelector('[role="dialog"]')).not.toBeNull()…
+       |                                                                                                                      ^
+     37| });
+     38| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 3 passed (7)
+   Start at  08:03:52
+   Duration  2.67s (transform 1.00s, setup 0ms, collect 1.74s, tests 479ms, environment 1.24s, prepare 284ms)
+

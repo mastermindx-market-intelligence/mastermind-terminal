@@ -1,9 +1,12 @@
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import PortfolioViewMount from "@/components/mounts/PortfolioViewMount";
 import SignupGate from "@/components/gates/SignupGate";
 import { readPositions } from "@/lib/portfolio";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
+
+export const metadata = workspaceMetadata("Portfolio", "Mastermind Terminal");
 
 // W5: this page is the user's REAL portfolio.
 //

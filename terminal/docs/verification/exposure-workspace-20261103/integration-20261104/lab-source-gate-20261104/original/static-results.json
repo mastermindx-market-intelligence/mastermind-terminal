@@ -1,0 +1,56 @@
+[
+  {
+    "check": "unit",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/ExposureOriginStrip.test.tsx",
+      "lib/__tests__/exposureChartLink.test.ts",
+      "lib/__tests__/exposureChartReference.test.tsx",
+      "lib/__tests__/exposureOrigin.test.ts",
+      "lib/__tests__/exposureReplay.test.tsx",
+      "lib/__tests__/exposureReplayFrames.test.ts",
+      "lib/__tests__/gexDeskLoadFailureState.test.tsx",
+      "lib/__tests__/gexDeskPartialData.test.tsx",
+      "lib/__tests__/gexDeskStateRace.test.tsx",
+      "lib/__tests__/optionsMarketMemory.test.tsx",
+      "lib/__tests__/researchLabAdapter.test.ts",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "lib/__tests__/researchLabView.test.tsx",
+      "lib/__tests__/researchReportedGamma.test.ts",
+      "lib/__tests__/researchReportedGammaMounted.test.tsx",
+      "lib/__tests__/sectorDepthReturn.test.ts",
+      "lib/__tests__/useExposureOriginRoster.test.tsx"
+    ],
+    "logSha256": "2616551459bb6ca884c6ae5b2962fce5da981763bdb50e4ef8d486c5312d3d20"
+  },
+  {
+    "check": "typescript",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "-p",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/original-lab-integration-20261104/source-tsconfig.json"
+    ],
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "check": "lint",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/eslint",
+      "components/gexdesk/GexDeskView.tsx",
+      "components/researchlab/OptionsResearchLab.tsx",
+      "components/options-companion/GexMarketMemory.tsx",
+      "components/researchlab/ResearchReportedGammaPanel.tsx",
+      "components/researchlab/researchReportedGamma.ts",
+      "lib/__tests__/researchReportedGamma.test.ts",
+      "lib/__tests__/researchReportedGammaMounted.test.tsx",
+      "e2e/options-lab-reported-gamma.spec.ts",
+      "e2e/options-lab-source-state.spec.ts"
+    ],
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

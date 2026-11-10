@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
@@ -9,7 +9,10 @@ import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@
 import { useLang, useT } from "@/lib/i18n";
 import { boatsChartCopy } from "@/lib/extQuoteCopy";
 import { pick } from "@/lib/finFormat";
+import { hasOpenModal, isTextEntryElement } from "@/lib/commandPalette/catalog";
 import overnightStyles from "./ChartOvernight.module.css";
+import quickSettingsStyles from "./ChartQuickSettings.module.css";
+import gotoStyles from "./ChartGotoDate.module.css";
 import DataOriginChip from "@/components/DataOriginChip";
 import type { DataOrigin } from "@/lib/dataOrigin";
 
@@ -215,6 +218,7 @@ function fmtHHMMSS(d: Date): string {
 type SubMenu = "labels" | "lines" | null;
 
 export default function ChartFrameBar({
+  isActive = true,
   timeframe,
   chartApi,
   settings,
@@ -226,6 +230,8 @@ export default function ChartFrameBar({
   dataOrigin,
   tradingCurrency,
 }: {
+  /** Global keys belong to the selected pane; direct controls remain pane-local. */
+  isActive?: boolean;
   timeframe: string;
   chartApi: ChartEngine | null;
   settings: ChartSettings;
@@ -255,7 +261,13 @@ export default function ChartFrameBar({
   const [gotoOpen, setGotoOpen] = useState(false);
   const [gotoDate, setGotoDate] = useState("");
   const gearRef = useRef<HTMLDivElement>(null);
+  const gearButtonRef = useRef<HTMLButtonElement>(null);
+  const gearMenuRef = useRef<HTMLDivElement>(null);
+  const quickSettingsId = useId();
   const gotoRef = useRef<HTMLInputElement>(null);
+  const gotoHostRef = useRef<HTMLDivElement>(null);
+  const gotoButtonRef = useRef<HTMLButtonElement>(null);
+  const gotoId = useId();
   // C8/CHART-08b — the native shell swaps the settings glyph for TV's hexagon nut. Read after mount
   // (the marker is stamped pre-paint on <html>, but this component is SSR'd) so the server output —
   // and therefore the whole browser web render — stays byte-identical under L2.
@@ -299,11 +311,16 @@ export default function ChartFrameBar({
     return () => window.removeEventListener("mousedown", h);
   }, [gearOpen]);
 
+  useEffect(() => {
+    if (gearOpen) gearMenuRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
+  }, [gearOpen]);
+
   // Keyboard shortcuts:
   //   ⌥I invert, ⌥P percent, ⌥L log (existing, unchanged),
   //   ←/→ pan (Shift = larger step), +/- zoom (TradingView-standard chart nav).
   // All guarded against typing contexts.
   useEffect(() => {
+    if (!isActive) return;
     // Pan/zoom the visible logical range. `frac` is signed for pan (fraction of visible
     // width to shift; +right/-left), and a magnitude for zoom around the range center.
     const panBy = (frac: number) => {
@@ -330,11 +347,12 @@ export default function ChartFrameBar({
     };
 
     const h = (e: KeyboardEvent) => {
-      const tgt = e.target as HTMLElement | null;
-      const tag = tgt?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.isComposing) return;
-      if (tgt?.isContentEditable) return;
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229 || e.ctrlKey || e.metaKey) return;
+      const target = e.target instanceof Element ? e.target : null;
+      const active = document.activeElement;
+      if (isTextEntryElement(target) || isTextEntryElement(active) || hasOpenModal(document)) return;
+      const controls = 'button, a, dialog, [role="button"], [role="link"], [role="tab"], [role="dialog"], [role="menu"], [role="listbox"], [role="slider"], [role="spinbutton"]';
+      if (target?.closest(controls) || active?.closest(controls)) return;
 
       // Existing ⌥-bindings (invert / percent / log) — unchanged.
       if (e.altKey) {
@@ -349,25 +367,6 @@ export default function ChartFrameBar({
           onSettings({ mode: settings.mode === EnginePriceScaleMode.Logarithmic ? EnginePriceScaleMode.Normal : EnginePriceScaleMode.Logarithmic });
         }
         return;
-      }
-
-      // Chart-nav keys: reject ctrl/meta/alt combos so ⌥-bindings + browser shortcuts stay
-      // untouched (Shift is the only permitted modifier, and only for the arrows).
-      if (e.ctrlKey || e.metaKey) return;
-
-      // Yield to focused controls / open modals so this window-level (bubble) listener does
-      // not double-fire with element-scoped arrow handlers. WorkspaceTabs' roving-tab arrows
-      // (its focused <button> is document.activeElement) and the tutorial coach dialog
-      // (aria-modal) are the two real bubble collisions; both are covered here.
-      const active = document.activeElement as HTMLElement | null;
-      if (active && active !== document.body) {
-        const atag = active.tagName;
-        if (
-          atag === "INPUT" || atag === "TEXTAREA" || atag === "SELECT" ||
-          atag === "BUTTON" || atag === "A" ||
-          active.isContentEditable ||
-          active.closest('[aria-modal="true"], [role="tab"], [role="dialog"]')
-        ) return;
       }
 
       switch (e.key) {
@@ -396,7 +395,7 @@ export default function ChartFrameBar({
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [settings, onSettings, chartApi]);
+  }, [isActive, settings, onSettings, chartApi]);
 
   // Only a NEW request opens the box: the value present at mount (a remount after an earlier
   // request) is not one.
@@ -407,10 +406,25 @@ export default function ChartFrameBar({
     setGotoOpen(true);
   }, [openGotoRequest]);
 
-  // Go-to-date: focus the input when it opens
-  useEffect(() => {
-    if (gotoOpen) setTimeout(() => gotoRef.current?.focus(), 50);
+  // The input is mounted before layout effects run. Focus immediately, without an
+  // uncancelled delayed callback that could reclaim a newer interaction.
+  useLayoutEffect(() => {
+    if (gotoOpen) gotoRef.current?.focus({ preventScroll: true });
   }, [gotoOpen]);
+
+  useEffect(() => {
+    if (!gotoOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !gotoHostRef.current?.contains(event.target)) setGotoOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [gotoOpen]);
+
+  function closeGoto() {
+    setGotoOpen(false);
+    gotoButtonRef.current?.focus({ preventScroll: true });
+  }
 
   function applyGotoDate() {
     if (!chartApi || !gotoDate) return;
@@ -429,13 +443,13 @@ export default function ChartFrameBar({
         ts.setVisibleRange({ from: from as any, to: to as any });
       }
     } catch {}
-    setGotoOpen(false);
+    closeGoto();
   }
 
   const s = settings;
 
   return (
-    <div className={`chart-frame-bar ${overnightStyles.frameBar}`}>
+    <div className={`chart-frame-bar ${overnightStyles.frameBar} ${gotoStyles.frame}`}>
       {/* LEFT: range buttons + go-to-date */}
       <div className="cfb-left">
         {RANGE_KEYS.map((rk) => (
@@ -445,24 +459,38 @@ export default function ChartFrameBar({
             onClick={() => chartApi && applyRange(rk, chartApi, isIntraday, s.rightOffsetBars)}
           >{rk}</button>
         ))}
-        <div style={{ position: "relative" }}>
-          <button className="cfb-cal" title={t("gotoDate")} onClick={(e) => { e.stopPropagation(); setGotoOpen((o) => !o); }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+        <div ref={gotoHostRef} style={{ position: "relative" }}
+          onBlur={(e) => { if (e.relatedTarget instanceof Node && !e.currentTarget.contains(e.relatedTarget)) setGotoOpen(false); }}
+          onKeyDown={(e) => {
+            if (gotoOpen && e.key === "Escape" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+              e.preventDefault(); e.stopPropagation(); closeGoto();
+            }
+          }}>
+          <button ref={gotoButtonRef} type="button" className={`cfb-cal ${gotoStyles.trigger}`} title={t("gotoDate")} aria-label={t("gotoDate")}
+            aria-expanded={gotoOpen} aria-controls={gotoOpen ? gotoId : undefined} aria-haspopup="dialog"
+            onClick={(e) => { e.stopPropagation(); if (gotoOpen) closeGoto(); else setGotoOpen(true); }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
               <rect x="1.5" y="2.5" width="13" height="12" rx="1.5" />
               <path d="M1.5 6h13M5 1.5v2M11 1.5v2" />
             </svg>
           </button>
           {gotoOpen && (
-            <div className="cfb-goto-pop" onClick={(e) => e.stopPropagation()}>
+            <div id={gotoId} className={`cfb-goto-pop ${gotoStyles.popup}`} role="dialog" aria-label={t("gotoDate")}
+              onClick={(e) => e.stopPropagation()}>
               <input
                 ref={gotoRef}
                 type="date"
                 className="cfb-date-input"
+                aria-label={t("gotoDate")}
                 value={gotoDate}
                 onChange={(e) => setGotoDate(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") applyGotoDate(); if (e.key === "Escape") setGotoOpen(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+                    e.preventDefault(); applyGotoDate();
+                  }
+                }}
               />
-              <button className="cfb-goto-go" onClick={applyGotoDate}>{t("go")}</button>
+              <button type="button" className="cfb-goto-go" disabled={!chartApi || !gotoDate} onClick={applyGotoDate}>{t("go")}</button>
             </div>
           )}
         </div>
@@ -500,10 +528,30 @@ export default function ChartFrameBar({
             : pick(lang === "zh", "Trading currency unavailable", "交易币种不可用")}
         >{tradingCurrency ?? pick(lang === "zh", "CCY?", "币种?")}</span>
         {/* Gear: quick settings */}
-        <div className="cfb-gear-host" ref={gearRef}>
+        <div className="cfb-gear-host" ref={gearRef}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setGearOpen(false);
+              setSubMenu(null);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== "Escape" || !gearOpen) return;
+            event.preventDefault();
+            event.stopPropagation();
+            setGearOpen(false);
+            setSubMenu(null);
+            gearButtonRef.current?.focus();
+          }}>
           <button
+            ref={gearButtonRef}
+            type="button"
             className={`cfb-gear${gearOpen ? " on" : ""}`}
             title={t("quickSettings")}
+            aria-label={t("quickSettings")}
+            aria-haspopup="dialog"
+            aria-expanded={gearOpen}
+            aria-controls={gearOpen ? quickSettingsId : undefined}
             onClick={(e) => { e.stopPropagation(); setGearOpen((o) => !o); if (gearOpen) setSubMenu(null); }}
           >
             {/* C8b — at the shell's 26×26 / 15px svg the eight straight radial strokes read as a
@@ -523,31 +571,32 @@ export default function ChartFrameBar({
           </button>
 
           {gearOpen && (
-            <div className="qsg-menu" onClick={(e) => e.stopPropagation()}>
+            <div ref={gearMenuRef} id={quickSettingsId} role="dialog" aria-label={t("quickSettings")}
+              className={`qsg-menu ${quickSettingsStyles.menu}`} onClick={(e) => e.stopPropagation()}>
               {/* Auto-scale: fits price data to the visible bar range.
                   lightweight-charts only exposes a boolean toggle — no ratio-lock API exists.
                   We expose a single honest "Auto-scale" checkbox; when unchecked the axis
                   keeps its last manual zoom (the only alternative the library supports). */}
-              <div className={`qsg-item${s.autoScale ? " checked" : ""}`} onClick={() => {
+              <button type="button" aria-pressed={s.autoScale} className={`qsg-item${s.autoScale ? " checked" : ""}`} onClick={() => {
                 const next = !s.autoScale;
                 onSettings({ autoScale: next });
                 try { if (chartApi) chartApi.priceScale(s.scaleLeft ? "left" : "right").setAutoScale(next); } catch {}
               }}>
-                <span className="qsg-check">{s.autoScale ? "✓" : ""}</span>
+                <span className="qsg-check" aria-hidden="true">{s.autoScale ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgAuto")}</span>
-              </div>
+              </button>
 
-              <div className="qsg-item qsg-disabled">
-                <span className="qsg-check" />
+              <button type="button" disabled className="qsg-item qsg-disabled">
+                <span className="qsg-check" aria-hidden="true" />
                 <span className="qsg-lbl">{t("qsgScaleChartOnly")}</span>
-              </div>
+              </button>
 
               {/* Invert scale ⌥I */}
-              <div className={`qsg-item${s.invertScale ? " checked" : ""}`} onClick={() => onSettings({ invertScale: !s.invertScale })}>
-                <span className="qsg-check">{s.invertScale ? "✓" : ""}</span>
+              <button type="button" aria-pressed={s.invertScale} aria-keyshortcuts="Alt+I" className={`qsg-item${s.invertScale ? " checked" : ""}`} onClick={() => onSettings({ invertScale: !s.invertScale })}>
+                <span className="qsg-check" aria-hidden="true">{s.invertScale ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgInvert")}</span>
-                <kbd className="qsg-kbd">⌥I</kbd>
-              </div>
+                <kbd className="qsg-kbd" aria-hidden="true">⌥I</kbd>
+              </button>
 
               <div className="qsg-sep" />
 
@@ -558,47 +607,55 @@ export default function ChartFrameBar({
                 [EnginePriceScaleMode.IndexedTo100, t("qsgIndexed"), ""],
                 [EnginePriceScaleMode.Logarithmic, t("qsgLog"), "⌥L"],
               ] as [EnginePriceScaleMode, string, string][]).map(([m, label, kbd]) => (
-                <div key={m} className={`qsg-item qsg-radio${s.mode === m ? " checked" : ""}`} onClick={() => onSettings({ mode: m })}>
-                  <span className="qsg-radio-dot">{s.mode === m ? "●" : "○"}</span>
+                <button key={m} type="button" aria-pressed={s.mode === m} className={`qsg-item qsg-radio${s.mode === m ? " checked" : ""}`} onClick={() => onSettings({ mode: m })}>
+                  <span className="qsg-radio-dot" aria-hidden="true">{s.mode === m ? "●" : "○"}</span>
                   <span className="qsg-lbl">{label}</span>
-                  {kbd && <kbd className="qsg-kbd">{kbd}</kbd>}
-                </div>
+                  {kbd && <kbd className="qsg-kbd" aria-hidden="true">{kbd}</kbd>}
+                </button>
               ))}
 
               <div className="qsg-sep" />
 
               {/* Move scale to left */}
-              <div className={`qsg-item${s.scaleLeft ? " checked" : ""}`} onClick={() => onSettings({ scaleLeft: !s.scaleLeft })}>
-                <span className="qsg-check">{s.scaleLeft ? "✓" : ""}</span>
+              <button type="button" aria-pressed={s.scaleLeft} className={`qsg-item${s.scaleLeft ? " checked" : ""}`} onClick={() => onSettings({ scaleLeft: !s.scaleLeft })}>
+                <span className="qsg-check" aria-hidden="true">{s.scaleLeft ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgScaleLeft")}</span>
-              </div>
+              </button>
 
               <div className="qsg-sep" />
 
               {/* Labels submenu */}
-              <div className="qsg-item qsg-has-sub" onClick={(e) => { e.stopPropagation(); setSubMenu(subMenu === "labels" ? null : "labels"); }}>
-                <span className="qsg-check" />
-                <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLabels")}</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+              <div>
+                <button type="button" className="qsg-item" aria-expanded={subMenu === "labels"}
+                  aria-controls={subMenu === "labels" ? `${quickSettingsId}-labels` : undefined}
+                  onClick={() => setSubMenu(subMenu === "labels" ? null : "labels")}>
+                  <span className="qsg-check" aria-hidden="true" />
+                  <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLabels")}</span><svg aria-hidden="true" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+                </button>
                 {subMenu === "labels" && (
-                  <div className="qsg-submenu" onClick={(e) => e.stopPropagation()}>
-                    <div className={`qsg-item${s.lastValueVisible ? " checked" : ""}`} onClick={() => onSettings({ lastValueVisible: !s.lastValueVisible })}>
-                      <span className="qsg-check">{s.lastValueVisible ? "✓" : ""}</span>
+                  <div id={`${quickSettingsId}-labels`} className={`qsg-submenu ${quickSettingsStyles.submenu}`}>
+                    <button type="button" aria-pressed={s.lastValueVisible} className={`qsg-item${s.lastValueVisible ? " checked" : ""}`} onClick={() => onSettings({ lastValueVisible: !s.lastValueVisible })}>
+                      <span className="qsg-check" aria-hidden="true">{s.lastValueVisible ? "✓" : ""}</span>
                       <span className="qsg-lbl">{t("qsgLastValueLabel")}</span>
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
 
               {/* Lines submenu */}
-              <div className="qsg-item qsg-has-sub" onClick={(e) => { e.stopPropagation(); setSubMenu(subMenu === "lines" ? null : "lines"); }}>
-                <span className="qsg-check" />
-                <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLines")}</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+              <div>
+                <button type="button" className="qsg-item" aria-expanded={subMenu === "lines"}
+                  aria-controls={subMenu === "lines" ? `${quickSettingsId}-lines` : undefined}
+                  onClick={() => setSubMenu(subMenu === "lines" ? null : "lines")}>
+                  <span className="qsg-check" aria-hidden="true" />
+                  <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLines")}</span><svg aria-hidden="true" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+                </button>
                 {subMenu === "lines" && (
-                  <div className="qsg-submenu" onClick={(e) => e.stopPropagation()}>
-                    <div className={`qsg-item${s.priceLineVisible ? " checked" : ""}`} onClick={() => onSettings({ priceLineVisible: !s.priceLineVisible })}>
-                      <span className="qsg-check">{s.priceLineVisible ? "✓" : ""}</span>
+                  <div id={`${quickSettingsId}-lines`} className={`qsg-submenu ${quickSettingsStyles.submenu}`}>
+                    <button type="button" aria-pressed={s.priceLineVisible} className={`qsg-item${s.priceLineVisible ? " checked" : ""}`} onClick={() => onSettings({ priceLineVisible: !s.priceLineVisible })}>
+                      <span className="qsg-check" aria-hidden="true">{s.priceLineVisible ? "✓" : ""}</span>
                       <span className="qsg-lbl">{t("qsgPriceLine")}</span>
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
@@ -606,10 +663,15 @@ export default function ChartFrameBar({
               <div className="qsg-sep" />
 
               {/* More settings — opens the full settings modal on the Scales and lines tab */}
-              <div className="qsg-item" onClick={() => { setGearOpen(false); onOpenSettingsModal?.("scales"); }}>
-                <span className="qsg-check" />
+              <button type="button" className="qsg-item" disabled={!onOpenSettingsModal} onClick={() => {
+                gearButtonRef.current?.focus();
+                setGearOpen(false);
+                setSubMenu(null);
+                onOpenSettingsModal?.("scales");
+              }}>
+                <span className="qsg-check" aria-hidden="true" />
                 <span className="qsg-lbl">{t("qsgMoreSettings")}</span>
-              </div>
+              </button>
             </div>
           )}
         </div>

@@ -63,6 +63,38 @@ test("chart settings own focus, expose named controls and support arrow navigati
   await expect(trigger).toBeFocused();
 });
 
+test("quick settings support keyboard toggles, disclosures and focus return", async ({ page }) => {
+  test.skip(page.viewportSize()!.width <= 640, "Phone opens full settings from its existing More sheet.");
+  const gear = page.locator(".cfb-gear").first();
+  await gear.focus();
+  await page.keyboard.press("Enter");
+  const popup = page.getByRole("dialog", { name: "Quick settings", exact: true });
+  const auto = popup.getByRole("button", { name: "Auto (fits data to screen)", exact: true });
+  await expect(auto).toBeFocused();
+  const wasAuto = await auto.getAttribute("aria-pressed");
+  await page.keyboard.press("Space");
+  await expect(auto).toHaveAttribute("aria-pressed", wasAuto === "true" ? "false" : "true");
+  // Native Tab must skip the disabled item and reach the next setting.
+  await page.keyboard.press("Tab");
+  await expect(popup.getByRole("button", { name: "Invert scale", exact: true })).toBeFocused();
+  const labels = popup.getByRole("button", { name: "Labels", exact: true });
+  for (let step = 0; step < 6; step += 1) await page.keyboard.press("Tab");
+  await expect(labels).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(labels).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Tab");
+  await expect(popup.getByRole("button", { name: "Last value label", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(popup).toHaveCount(0);
+  await expect(gear).toBeFocused();
+  await page.keyboard.press("Enter");
+  await popup.getByRole("button", { name: "More settings…", exact: true }).click();
+  const settings = page.locator("dialog.sm-backdrop");
+  await expect(settings.locator('[aria-selected="true"]')).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(gear).toBeFocused();
+});
+
 test("Cancel restores the opening snapshot while OK preserves edited settings", async ({ page }) => {
   let dialog = await openSettings(page);
   const before = await dialog.locator('input[type="checkbox"]').first().isChecked();

@@ -232,8 +232,7 @@ async function readIncumbent(req: Request): Promise<Response> {
   return NextResponse.json(stale, { headers: { "Cache-Control": "no-store" } });
 }
 
-// Optional display projection after the incumbent reader's access, rate and source gates.
-// The full response/cache and every other selection retain their existing contract.
+/** Compact display view over the same authenticated reader; ordinary responses are unchanged. */
 export async function GET(req: Request): Promise<Response> {
   const response = await readIncumbent(req);
   const params = new URL(req.url).searchParams;

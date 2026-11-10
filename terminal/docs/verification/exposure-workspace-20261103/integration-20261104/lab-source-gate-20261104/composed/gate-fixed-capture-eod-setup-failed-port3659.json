@@ -1,0 +1,42 @@
+{
+  "operation": "lab-source-gate-fix-20261104-c3",
+  "mode": "preview",
+  "kind": "eod",
+  "packet": "eod-heatmap-flowdesk-load-failure",
+  "selector": "^eod-",
+  "expected": 42,
+  "exit": -15,
+  "successful_files": 0,
+  "failed_frames": [],
+  "source_stable": true,
+  "source_sha256": {
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/eodcontext/DarkPoolMini.tsx": "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420",
+    "terminal/components/eodcontext/EodContextBelt.tsx": "7be644f8b402b36a0e6bf066a3f0c8bf7e8b4ffc743b6393ac3edf4f94003060",
+    "terminal/components/eodcontext/StructureStrip.tsx": "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4",
+    "terminal/components/eodcontext/eodStrings.ts": "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f",
+    "terminal/components/flowdesk/ChainHeat.module.css": "7a0393fecc5a10b09b95679fcbecc529afbf601e8fd8f5e3addc39641c9b6bc0",
+    "terminal/components/flowdesk/CommandWorkspace.module.css": "e064e4a85df0613f4eb913d1cbe867a919cbf02bb0aa0498d98ff5a865b9d390",
+    "terminal/components/flowdesk/FlowDeskView.tsx": "d4217612605cfa8fad398ed198b503a6e32b709982473ff6e03a5765650c1d4f",
+    "terminal/components/gexdesk/ExposureWorkspace.module.css": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+    "terminal/components/gexdesk/GexDeskView.tsx": "e2b1cea4319f0860321d86d3fc8d8fc133060ce11cd7e1bdc0768207613d0a98",
+    "terminal/components/heatmap/HeatmapView.tsx": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+    "terminal/components/options-companion/GexMarketMemory.tsx": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+    "terminal/components/researchlab/OptionsResearchLab.tsx": "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820",
+    "terminal/components/researchlab/ResearchReportedGammaPanel.tsx": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+    "terminal/components/researchlab/researchReportedGamma.ts": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "53aa8d13b25e9d2a6051a4ec79ef23ffb79ba5673b4bfdba4407b15b075cb094",
+    "terminal/lib/dataCache.ts": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+    "terminal/lib/eodContext.ts": "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7",
+    "terminal/lib/flowdeskStrings.ts": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+    "terminal/lib/heatmapStrings.ts": "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  },
+  "command": [
+    "node",
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  ],
+  "output_directory": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/protected4df-20261104/gate-fixed-capture-eod",
+  "log_sha256": "19d92f1850e789556030b4f4f98155dd975955aca0932550a43deb3af40275fe",
+  "image_sha256": {},
+  "manifest_written_by_harness": false
+}

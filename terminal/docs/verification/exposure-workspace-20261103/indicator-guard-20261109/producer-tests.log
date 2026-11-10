@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal
+
+ ✓ lib/__tests__/eodHeatmapScopedRecapture.test.ts (7 tests) 7ms
+ ✓ lib/__tests__/nativeCaptureIndicatorGate.test.ts (6 tests) 5ms
+
+ Test Files  2 passed (2)
+      Tests  13 passed (13)
+   Start at  04:51:43
+   Duration  1.69s (transform 102ms, setup 0ms, collect 1.04s, tests 11ms, environment 1ms, prepare 342ms)
+
+JSON report written to /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/test-results/pr1243-indicator-guard-20261109/producer-tests-report.json

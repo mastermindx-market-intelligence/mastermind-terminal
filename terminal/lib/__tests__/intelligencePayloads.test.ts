@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { projectProphetIntelligence, projectCycleIntelligence, decodeProphetIntelligence, decodeCycleIntelligence } from "../shared-shell/intelligencePayloads";
+import { intelligenceActiveKey } from "../shared-shell/intelligenceNavigation";
 const prophet = () => ({ schema: "prophet.index/v1", asof: "2026-11-02", source_asof: "2026-10-30", source_unknown: false,
   source_delayed: false, source_mixed_vintage: false, authority_tier: "display", gate_go: false, open_count: 1, active_count: 99,
   plans: [{ id: "OLD", asset: "OLD", closed: true, phase: "invalidated" },
@@ -57,6 +58,22 @@ describe("bounded intelligence projections", () => {
     expect(decodeCycleIntelligence({ schema: "mmx.intelligence.cycles.v1", rows: [] })).toBeNull();
   });
 });
+describe("shared intelligence navigation", () => {
+  it("recognizes first-class and incumbent deep links without capturing unrelated workspaces", () => {
+    expect(intelligenceActiveKey("/intelligence")).toBe("overview");
+    expect(intelligenceActiveKey("/macro.html")).toBe("macro");
+    expect(intelligenceActiveKey("/macro_rates_curves.html")).toBe("macro");
+    expect(intelligenceActiveKey("/prophet")).toBe("prophet");
+    expect(intelligenceActiveKey("/options", "tab=prophet")).toBe("prophet");
+    expect(intelligenceActiveKey("/options", "tab=tape")).toBeNull();
+    expect(intelligenceActiveKey("/sector_cycles_china.html")).toBe("cycles");
+    expect(intelligenceActiveKey("/discover", "tab=sectors&sectorWorkspace=rotation")).toBe("sectors");
+    expect(intelligenceActiveKey("/discover", "tab=heatmap")).toBeNull();
+    expect(intelligenceActiveKey("/sectors-impostor")).toBeNull();
+  });
+});
+
+
 describe("intelligence summary coherence", () => {
   it("rejects a summary whose preview contradicts its published count", () => {
     const value = projectProphetIntelligence(prophet())!;
