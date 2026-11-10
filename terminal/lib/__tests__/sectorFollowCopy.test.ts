@@ -24,6 +24,19 @@ describe("followCopyKey — the Follow line's copy decision (COO 19:15Z item 2)"
    * which the transport axis separates following from delivery_problem. */
   const open = (inputs: FollowInputs) => followState(inputs, true);
 
+  /** r4 N-4: a positive sent-claim in any common shape — "Notification sent.",
+   * "A notification has been sent.", "Notifications were sent." — while the
+   * honest negated copies ("no notification was sent", "no notification is
+   * claimed as sent", "不声称已发送任何通知") stay legal. Sentence-level rule:
+   * a sentence that names the notification AND asserts sending, without a
+   * negator anywhere in it, is a claim. */
+  const claimedSent = (line: string): boolean =>
+    line.split(/(?<=[.;!?。；！？])\s*/).some(sentence => {
+      const s = sentence.toLowerCase();
+      return /notif|通知/.test(s) && /sent|发送/.test(s)
+        && !/\b(no|not|never|without|none)\b|未|不|没有/.test(s);
+    });
+
   it("maps every machine state to its own named line", () => {
     expect(followCopyKey(followState())).toBe("siFollowClosed"); // today's census default
     expect(followCopyKey(open(admitted("queued", { producerAdmitted: false })))).toBe("siFollowPreferenceOnly");
@@ -76,12 +89,39 @@ describe("followCopyKey — the Follow line's copy decision (COO 19:15Z item 2)"
       // an UNNEGATED "notification was sent" — the lookbehind excludes the
       // negated form and bites on any positive claim.
       expect(en).not.toMatch(/(?<!no )notification was sent/i);
+      // r4 N-4: the same law, widened — the lookbehind form misses
+      // "Notification sent." / "A notification has been sent." /
+      // "Notifications were sent." and had no Chinese sent guard at all.
+      // The Chinese guard is the sentence-level claimedSent, NOT a raw
+      // 已发送 substring: the honest Unknown copy says 不声称已发送任何通知 —
+      // the substring inside a NEGATED claim is honest, so a naive
+      // not.toContain("已发送") would reject honest copy.
+      expect(claimedSent(en), en).toBe(false);
+      expect(claimedSent(zh), zh).toBe(false);
       expect(zh).not.toContain("已关注");
       // The problem is named in both languages, differently for failed vs unknown.
       expect(SECTOR_INTELLIGENCE_LEX.siFollowDeliveryFailed[0])
         .not.toBe(SECTOR_INTELLIGENCE_LEX.siFollowDeliveryUnknown[0]);
       expect(SECTOR_INTELLIGENCE_LEX.siFollowDeliveryFailed[1])
         .not.toBe(SECTOR_INTELLIGENCE_LEX.siFollowDeliveryUnknown[1]);
+    }
+  });
+
+  it("r4 N-4: the widened guard catches every probed claim shape and passes every honest follow line", () => {
+    // r4's three misses plus the one form the old guard already caught, and
+    // the Chinese equivalents of a sent claim.
+    for (const claim of [
+      "Notification sent.", "A notification has been sent.", "Notifications were sent.",
+      "A notification was sent.", "已发送通知。", "通知已发送。",
+    ]) {
+      expect(claimedSent(claim), `guard must catch ${claim}`).toBe(true);
+    }
+    // Every follow line in both languages is honest under the widened guard.
+    for (const key of ["siFollowClosed", "siFollowPreferenceOnly", "siFollowUnavailable",
+      "siFollowActive", "siFollowDeliveryFailed", "siFollowDeliveryUnknown"]) {
+      const [en, zh] = SECTOR_INTELLIGENCE_LEX[key];
+      expect(claimedSent(en), `${key} en`).toBe(false);
+      expect(claimedSent(zh), `${key} zh`).toBe(false);
     }
   });
 });
