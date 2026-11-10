@@ -311,6 +311,9 @@ function DossierDepth({ context, onSelect }: { context: SectorNativeContext; onS
   }, [generation]);
   const onCallsNavigate = useCallback((target: CallsNavigateTarget) => {
     const decision = callsNavigateDecision(target, isNavigableId);
+    // The "select" check is behaviourally redundant ({state:"none"} carries no
+    // kind, so the kind conjunct returns anyway) but it narrows the union for
+    // TS — removing it fails tsc, and it stays (r4 N-1 ruling).
     if (decision.state !== "select" || decision.kind !== "sector" || !sectorIds.has(decision.id)) return;
     onSelect?.(decision.id);
   }, [sectorIds, onSelect]);
