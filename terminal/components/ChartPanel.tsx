@@ -1,5 +1,5 @@
 "use client";
-import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
+import { boatsChartHistoryFromResponse, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { resolveChartAppearance } from "@/lib/chartSettingsUi";
 import { syncOptionsPricePin, removeOptionsPricePin, layoutOptionsReferenceBadges, optionsPinVisibility, optionsPinRevealRange, type OptionsPinViewport, type OptionsPricePin } from "@/lib/optionsChartPin";
@@ -81,6 +81,7 @@ import {
   type PriceAxisObstacle,
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
+import { appendPricePaneSvgScope } from "@/lib/pricePaneSvgScope";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
 import { candidatePaneIndex, nearestMagnetY } from "@/lib/crosshairMagnet";
 import { getJSON, getJSONResult, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome, type StaleServe } from "@/lib/dataCache";
@@ -264,6 +265,8 @@ export type LiveQuote = {
   extReceivedTs?: number;
   extPublishedTs?: number;
   extExpiresTs?: number;
+  extCaptureId?: string;
+  extGeneration?: number;
   live?: boolean;
   suspended?: boolean;
   lagMs?: number | null;
@@ -4418,6 +4421,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
 
     const wrap = el.parentElement as HTMLElement;
     wrapElRef.current = wrap;
+    const pricePaneScopeOwner = `mm-price-pane-${uid()}`;
     // indicator SVG overlay layer (z-index 2, below signals and drawings)
     const indSvg = mk("svg", { style: "position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none" }) as SVGSVGElement;
     wrap.appendChild(indSvg); indSvgRef.current = indSvg;
@@ -5412,13 +5416,23 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       };
       while (layer.firstChild) layer.removeChild(layer.firstChild);
       if (priceProjHidden()) return;   // sub-pane maximized → price-anchored markers stay cleared
+      const signalPaneGeometry = pricePaneGeometry();
+      // The bridge returns pane-local Y; the scope applies the live pane offset once.
+      const signalY = (price: number) => drawingBridge.priceToY(priceIdx(), price);
+      const signalScope = appendPricePaneSvgScope(layer, {
+        id: `${pricePaneScopeOwner}-signals`,
+        width: el!.clientWidth,
+        top: signalPaneGeometry.top,
+        height: signalPaneGeometry.height,
+        scope: "signals",
+      });
 
       // Prophet receipts stay independent of Oracle and its star/pill grammar.
       // The forecast pulse is a tiny sapphire lens with a rising trajectory, not
       // a letter stamped into a diamond. Reversal watches retain their R identity.
       for (const m of sigMarksRef.current) {
         if (m.type !== "PROPHET") continue;
-        const x = xOf(m.t), y = yOf(m.price); if (x == null || y == null) continue;
+        const x = xOf(m.t), y = signalY(m.price); if (x == null || y == null) continue;
         const cy = y + 22;
         const glyph = opportunityMarkerGlyph(m.source);
         const g = mk("g", { opacity: 0.98, "data-signal-source": glyph === "R" ? "reversal_watch" : "prophet_board" });
@@ -5438,7 +5452,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           const tEl = mk("text", { x, y: cy + 3.2, fill: "#fff", "font-size": 8.5, "font-weight": 900, "text-anchor": "middle", "font-family": "var(--font-ui)" });
           tEl.textContent = glyph; g.appendChild(tEl);
         }
-        addMarkerTitle(g, m); layer.appendChild(g);
+        addMarkerTitle(g, m); signalScope.group.appendChild(g);
       }
 
       // ── Gap Zones premade indicator ──────────────────────────────────────────────
@@ -5487,13 +5501,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
             const x1 = xOf(t1); if (x1 == null) continue;
             const t2 = g.fill ? dayToBar.get(g.fill) : null;
             const x2 = (t2 != null ? xOf(t2) : null) ?? lastX; if (x2 == null) continue;
-            const yHi = yOf(g.hi), yLo = yOf(g.lo); if (yHi == null || yLo == null) continue;
+            const yHi = signalY(g.hi), yLo = signalY(g.lo); if (yHi == null || yLo == null) continue;
             const col = (g.type === "up" ? gp.gapUpCol : gp.gapDownCol) as string;
             const filled = !!g.fill;
             const x = Math.min(x1, x2), w = Math.max(1, Math.abs(x2 - x1)), y = Math.min(yHi, yLo), h = Math.max(1, Math.abs(yLo - yHi));
             const grp = mk("g", {});
             grp.appendChild(mk("rect", { x, y, width: w, height: h, fill: col, "fill-opacity": filled ? 0.05 : 0.15, stroke: col, "stroke-opacity": filled ? 0.18 : 0.55, "stroke-width": 1 }));
-            layer.appendChild(grp);
+            signalScope.group.appendChild(grp);
           }
         }
       }
@@ -5517,7 +5531,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           const isDn = dirSum < 0;
           const col = isUp ? LAB_UP_COL : isDn ? LAB_DN_COL : LAB_NEU_COL;
           const glyph = isUp ? "▲" : isDn ? "▼" : "○";
-          const y = isUp ? yOf(b.l) : yOf(b.h);
+          const y = isUp ? signalY(b.l) : signalY(b.h);
           if (y == null) continue;
           const offset = isUp ? 14 : -14;
           const cy = y + offset;
@@ -5546,7 +5560,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           const titleEl = mk("title", {});
           titleEl.textContent = `${date}\n${names}`;
           g.appendChild(titleEl);
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
         }
       }
 
@@ -5559,14 +5573,14 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       for (const m of sigMarksRef.current) {
         if (m.type === "PROPHET") continue;
         if (m.type === "CUT") {
-          const x = xOf(m.t), y = yOf(m.price); if (x == null || y == null) continue;
+          const x = xOf(m.t), y = signalY(m.price); if (x == null || y == null) continue;
           const cy = y + 16;
           const g = mk("g", { opacity: 0.9 });
           g.appendChild(mk("circle", { cx: x, cy, r: 3.4, fill: "#ff8a3d" }));
           const tEl = mk("text", { x: x + 6, y: cy + 3, fill: "#ff8a3d", "font-size": 8.5, "font-weight": 700, "text-anchor": "start", "font-family": "var(--font-ui)", "letter-spacing": ".02em" });
           tEl.textContent = "caution";
           g.appendChild(tEl);
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
           continue;
         }
         // ── HK-O1: a REFUSED entry is an annotation, never buy geometry ──
@@ -5580,7 +5594,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         // entry geometry below. What it must never do is answer it silently — the entry
         // branch gives it a persistent, glance-tier `retro` tag for exactly that reason.
         if ((m.blocked || m.quality === "regime_blocked") && !m.retro) {
-          const x = xOf(m.t), y = yOf(m.price); if (x == null || y == null) continue;
+          const x = xOf(m.t), y = signalY(m.price); if (x == null || y == null) continue;
           const cy = y + 15, r = 5.4, k = r * 0.707;
           // ── washout-override candidate: the SAME ring-slash, promoted in weight only ──
           // Ratified 2026-08-10 (25% notch). It is still a refusal, so it keeps the ring and
@@ -5595,7 +5609,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           g.appendChild(mk("line", { x1: x - k, y1: cy + k, x2: x + k, y2: cy - k, stroke, "stroke-width": 1.3 }));
           if (ovr) g.appendChild(mk("circle", { cx: x, cy: cy - r - 4, r: 1.5, fill: AMBER }));
           addMarkerTitle(g, m);
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
           continue;
         }
         const stop = isStructureStop(m);
@@ -5607,7 +5621,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         const cfg: SigCfg = starter
           ? { dir: "up", fill: AMBER, tc: "#231800", txt: "STARTER" }
           : baseCfg;
-        const x = xOf(m.t), y = yOf(m.price); if (x == null || y == null) continue;
+        const x = xOf(m.t), y = signalY(m.price); if (x == null || y == null) continue;
         const star = !!cfg.star;
         // GC v2 quality: take=solid, block=hollow outline, pending=dim gray.
         // Softness gates on signalVerdict's SOFT_Q set (not the type) so an engine-refused mark of ANY
@@ -5691,7 +5705,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           bEl.textContent = badge;
           g.appendChild(bEl);
         }
-        layer.appendChild(g);
+        signalScope.group.appendChild(g);
       }
 
       // ── GC v2 side channels (toggleable via the "Signals detail" chip) ──
@@ -5700,21 +5714,21 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         for (const d of earlyDotsRef.current) {
           const x = xOf(d.t); if (x == null) continue;
           const b = barsRef.current[barIndex(d.t)];
-          const y = b ? yOf(b.l) : null; if (y == null) continue;
+          const y = b ? signalY(b.l) : null; if (y == null) continue;
           const g = mk("g", { opacity: 0.55 });
           g.appendChild(mk("circle", { cx: x, cy: y + 9, r: 2.2, fill: t2.mut }));
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
         }
         // warnings: ⚠ (arm) / ⛔ (confirm) small glyphs ABOVE the bar (structure-break anticipation).
         for (const w of warnMarksRef.current) {
           const x = xOf(w.t); if (x == null) continue;
           const b = barsRef.current[barIndex(w.t)];
-          const y = b ? yOf(b.h) : null; if (y == null) continue;
+          const y = b ? signalY(b.h) : null; if (y == null) continue;
           const g = mk("g", { opacity: 0.85 });
           const tEl = mk("text", { x, y: y - 8, "font-size": 11, "text-anchor": "middle", "font-family": "var(--font-ui)" });
           tEl.textContent = w.kind === "confirm" ? "⛔" : "⚠";
           g.appendChild(tEl);
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
         }
       }
     };
@@ -5870,6 +5884,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       paneKey?: string | null;
     };
     let pending: PendingDrawing | null = null;
+    let consumeNextDblClick = false;
     cancelPendingDrawingRef.current = () => {
       const current = pending;
       pending = null;
@@ -7030,6 +7045,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     };
     // right-click context menu (D1 — TV-style, rebuilt on every open to reflect current state)
     const ctxm = document.createElement("div"); ctxm.className = "ctx-menu"; ctxm.style.display = "none"; wrap.appendChild(ctxm); ctxRef.current = ctxm;
+    // Keep this chart-owned menu above the engine's pane-resize hit targets (z-index: 50).
+    ctxm.style.zIndex = "51";
     let ctxPt: { t: string; p: number } = { t: "", p: 0 };
     const hideCtx = () => { if (ctxRef.current) ctxRef.current.style.display = "none"; };
     // submenu state for Chart template
@@ -7409,9 +7426,17 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       }
       if (priceProjHidden()) { flushTables(); flushNativeObservations(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
-      const W = el!.clientWidth, H = el!.clientHeight;
+      const W = el!.clientWidth;
       const priceS = priceSeriesHandleRef.current;
       if (!priceS) { flushTables(); flushNativeObservations(); return; }
+      const priceOverlayPaneGeometry = pricePaneGeometry();
+      const priceOverlayScope = appendPricePaneSvgScope(svgEl, {
+        id: `${pricePaneScopeOwner}-price-overlays`,
+        width: W,
+        top: priceOverlayPaneGeometry.top,
+        height: priceOverlayPaneGeometry.height,
+        scope: "price-overlays",
+      });
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
 
@@ -7447,7 +7472,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
                 fill: isGreen ? ip.spanACol : ip.spanBCol,
                 stroke: "none",
               });
-              svgEl.appendChild(poly);
+              priceOverlayScope.group.appendChild(poly);
             }
           }
         }
@@ -7470,7 +7495,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           for (let i = 0; i < pts.length - 1; i++) {
             const p0 = pts[i], p1 = pts[i + 1];
             const fill = p0.state === "ribbonUp" ? rp.fillUp : p0.state === "ribbonDown" ? rp.fillDn : "rgba(139,147,163,0.07)";
-            svgEl.appendChild(mk("polygon", {
+            priceOverlayScope.group.appendChild(mk("polygon", {
               points: `${p0.x},${p0.yF} ${p1.x},${p1.yF} ${p1.x},${p1.yS} ${p0.x},${p0.yS}`,
               fill, stroke: "none",
             }));
@@ -7498,17 +7523,17 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
                 const isPoc = Math.abs(bin.priceMid - vp.poc) < (vp.bins[0]?.priceHi - vp.bins[0]?.priceLo) * 0.6;
                 const barH = Math.max(1, Math.abs(yLo - yHi));
                 const barY = Math.min(yHi, yLo);
-                svgEl.appendChild(mk("rect", {
+                priceOverlayScope.group.appendChild(mk("rect", {
                   x: W - barW, y: barY, width: barW, height: barH,
                   fill: isPoc ? "rgba(232,179,57,0.55)" : "rgba(77,130,255,0.25)",
                   stroke: "none",
                 }));
               }
               // POC gold price line
-              if (pocY != null) svgEl.appendChild(mk("line", { x1: W - maxBarW, y1: pocY, x2: W, y2: pocY, stroke: "#e8b339", "stroke-width": 1.5, "stroke-dasharray": "" }));
+              if (pocY != null) priceOverlayScope.group.appendChild(mk("line", { x1: W - maxBarW, y1: pocY, x2: W, y2: pocY, stroke: "#e8b339", "stroke-width": 1.5, "stroke-dasharray": "" }));
               // VAH/VAL dashed
-              if (vahY != null) svgEl.appendChild(mk("line", { x1: W - maxBarW, y1: vahY, x2: W, y2: vahY, stroke: "rgba(214,218,227,0.5)", "stroke-width": 1, "stroke-dasharray": "4 3" }));
-              if (valY != null) svgEl.appendChild(mk("line", { x1: W - maxBarW, y1: valY, x2: W, y2: valY, stroke: "rgba(214,218,227,0.5)", "stroke-width": 1, "stroke-dasharray": "4 3" }));
+              if (vahY != null) priceOverlayScope.group.appendChild(mk("line", { x1: W - maxBarW, y1: vahY, x2: W, y2: vahY, stroke: "rgba(214,218,227,0.5)", "stroke-width": 1, "stroke-dasharray": "4 3" }));
+              if (valY != null) priceOverlayScope.group.appendChild(mk("line", { x1: W - maxBarW, y1: valY, x2: W, y2: valY, stroke: "rgba(214,218,227,0.5)", "stroke-width": 1, "stroke-dasharray": "4 3" }));
             }
           }
         }
@@ -7534,7 +7559,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
             }
             if (upPts.length >= 2) {
               const pts = [...upPts, ...[...dnPts].reverse()].map((p) => `${p.x},${p.y}`).join(" ");
-              svgEl.appendChild(mk("polygon", { points: pts, fill: p.fillCol as string, stroke: "none" }));
+              priceOverlayScope.group.appendChild(mk("polygon", { points: pts, fill: p.fillCol as string, stroke: "none" }));
             }
           }
         }
@@ -7570,39 +7595,39 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
             if (sw < 3) continue;                           // too compressed to be legible — skip whole session
             const showDetail = sw > 40;                     // wide enough for extension rays + text labels
             // Shaded box over the opening range window
-            svgEl.appendChild(mk("rect", { x: x1, y: yHi, width: Math.max(0, x2 - x1), height: yLo - yHi, fill: p.boxCol as string, stroke: "none" }));
+            priceOverlayScope.group.appendChild(mk("rect", { x: x1, y: yHi, width: Math.max(0, x2 - x1), height: yLo - yHi, fill: p.boxCol as string, stroke: "none" }));
             // ORH solid ray to session end
-            svgEl.appendChild(mk("line", { x1: x1, y1: yHi, x2: rxEnd, y2: yHi, stroke: p.lineCol as string, "stroke-width": p.width, "stroke-dasharray": "" }));
+            priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yHi, x2: rxEnd, y2: yHi, stroke: p.lineCol as string, "stroke-width": p.width, "stroke-dasharray": "" }));
             // ORL solid ray to session end
-            svgEl.appendChild(mk("line", { x1: x1, y1: yLo, x2: rxEnd, y2: yLo, stroke: p.lineCol as string, "stroke-width": p.width, "stroke-dasharray": "" }));
+            priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yLo, x2: rxEnd, y2: yLo, stroke: p.lineCol as string, "stroke-width": p.width, "stroke-dasharray": "" }));
             // Mid dashed ray
             if (p.showMid) {
               const yMid = p2y(sess.mid); if (yMid != null) {
-                svgEl.appendChild(mk("line", { x1: x1, y1: yMid, x2: rxEnd, y2: yMid, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yMid, x2: rxEnd, y2: yMid, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
               }
             }
             // Extension rays + ±Nx labels — only when the session is wide enough on screen (declutter)
             if (showDetail) for (const ext of sess.exts) {
               const yUp = p2y(ext.up), yDn = p2y(ext.dn);
               if (yUp != null) {
-                svgEl.appendChild(mk("line", { x1: x1, y1: yUp, x2: rxEnd, y2: yUp, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yUp, x2: rxEnd, y2: yUp, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
                 // Label at right end
                 const lbl = mk("text", { x: rxEnd - 4, y: yUp - 3, fill: textColor, "font-size": 9, "text-anchor": "end", "font-family": "var(--font-ui)" });
                 lbl.textContent = `+${ext.k}x`;
-                svgEl.appendChild(lbl);
+                priceOverlayScope.group.appendChild(lbl);
               }
               if (yDn != null) {
-                svgEl.appendChild(mk("line", { x1: x1, y1: yDn, x2: rxEnd, y2: yDn, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yDn, x2: rxEnd, y2: yDn, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
                 const lbl2 = mk("text", { x: rxEnd - 4, y: yDn + 10, fill: textColor, "font-size": 9, "text-anchor": "end", "font-family": "var(--font-ui)" });
                 lbl2.textContent = `-${ext.k}x`;
-                svgEl.appendChild(lbl2);
+                priceOverlayScope.group.appendChild(lbl2);
               }
             }
             // ORH / ORL price labels — only when the session is wide enough (declutter)
             if (showDetail) {
               const orbLabelX = Math.min(x2 + 4, rxEnd - 4);
-              if (yHi != null) { const lh = mk("text", { x: orbLabelX, y: yHi - 3, fill: textColor, "font-size": 9, "text-anchor": "start", "font-family": "var(--font-ui)" }); lh.textContent = `ORH ${sess.hi.toFixed(2)}`; svgEl.appendChild(lh); }
-              if (yLo != null) { const ll = mk("text", { x: orbLabelX, y: yLo + 10, fill: textColor, "font-size": 9, "text-anchor": "start", "font-family": "var(--font-ui)" }); ll.textContent = `ORL ${sess.lo.toFixed(2)}`; svgEl.appendChild(ll); }
+              if (yHi != null) { const lh = mk("text", { x: orbLabelX, y: yHi - 3, fill: textColor, "font-size": 9, "text-anchor": "start", "font-family": "var(--font-ui)" }); lh.textContent = `ORH ${sess.hi.toFixed(2)}`; priceOverlayScope.group.appendChild(lh); }
+              if (yLo != null) { const ll = mk("text", { x: orbLabelX, y: yLo + 10, fill: textColor, "font-size": 9, "text-anchor": "start", "font-family": "var(--font-ui)" }); ll.textContent = `ORL ${sess.lo.toFixed(2)}`; priceOverlayScope.group.appendChild(ll); }
             }
           }
         }
@@ -7623,10 +7648,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
               if (x1 != null && x2 != null && yHi != null && yLo != null) {
                 const rx1 = Math.min(x1, x2), rx2 = Math.max(x1, x2);
                 // Shaded rect
-                svgEl.appendChild(mk("rect", { x: rx1, y: yHi, width: rx2 - rx1, height: yLo - yHi, fill: "rgba(232,179,57,0.09)", stroke: "#e8a33d", "stroke-width": 1, "stroke-dasharray": "" }));
+                priceOverlayScope.group.appendChild(mk("rect", { x: rx1, y: yHi, width: rx2 - rx1, height: yLo - yHi, fill: "rgba(232,179,57,0.09)", stroke: "#e8a33d", "stroke-width": 1, "stroke-dasharray": "" }));
                 // Top/bottom rails
-                svgEl.appendChild(mk("line", { x1: rx1, y1: yHi, x2: rx2, y2: yHi, stroke: "#e8a33d", "stroke-width": 1.5 }));
-                svgEl.appendChild(mk("line", { x1: rx1, y1: yLo, x2: rx2, y2: yLo, stroke: "#e8a33d", "stroke-width": 1.5 }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: rx1, y1: yHi, x2: rx2, y2: yHi, stroke: "#e8a33d", "stroke-width": 1.5 }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: rx1, y1: yLo, x2: rx2, y2: yLo, stroke: "#e8a33d", "stroke-width": 1.5 }));
                 // Resolution marker
                 if (vb.resolution != null && vb.resolutionIdx != null) {
                   const rx = t2x(vbRows[vb.resolutionIdx].time);
@@ -7634,7 +7659,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
                     const ry = vb.resolution === "up" ? yHi - 12 : yLo + 12;
                     const txt = mk("text", { x: rx, y: ry, fill: "#e8a33d", "font-size": 10, "text-anchor": "middle", "font-family": "var(--font-ui)" });
                     txt.textContent = vb.resolution === "up" ? "▲" : "▼";
-                    svgEl.appendChild(txt);
+                    priceOverlayScope.group.appendChild(txt);
                   }
                 }
               }
@@ -7654,35 +7679,11 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           const xi = (i: number): number | null => { try { const v = ts.logicalToCoordinate(i as any); return v == null || !isFinite(v as number) ? null : (v as number); } catch { return null; } };
           const xa = xi(0), xb = xi(1);
           const barW = xa != null && xb != null ? Math.max(0.5, xb - xa) : 6;
-          // IndicatorCanvas overlay suites use price-pane coordinates, but the SVG spans the
-          // entire multi-pane chart. Without a price-pane clip, off-scale TP/SL labels can land
-          // below pane 0 and visibly bleed into RSI/Stoch/etc. Resolve the live pane band (pane
-          // order is user-movable), offset pane-local price coordinates into root-SVG space, and
-          // render every price suite through one shared clip group.
-          let pricePaneTop = 0, pricePaneH = H;
-          try {
-            const paneEl = priceS.pane().getHTMLElement();
-            const wrapRect = wrapElRef.current?.getBoundingClientRect();
-            if (paneEl && wrapRect) {
-              const paneRect = paneEl.getBoundingClientRect();
-              pricePaneTop = paneRect.top - wrapRect.top;
-              pricePaneH = paneRect.height;
-            }
-          } catch { /* retain the single-pane fallback */ }
-          const priceSuiteY = (p: number): number | null => {
-            const y = p2y(p);
-            return y == null ? null : y + pricePaneTop;
-          };
-          const priceClipId = `ic-price-clip-${syncIdRef.current ?? "x"}`;
-          const priceDefs = mk("defs", {});
-          const priceClip = mk("clipPath", { id: priceClipId });
-          priceClip.appendChild(mk("rect", { x: 0, y: pricePaneTop, width: W, height: pricePaneH }));
-          priceDefs.appendChild(priceClip);
-          const priceSuiteGroup = mk("g", { "clip-path": `url(#${priceClipId})` }) as SVGGElement;
-          svgEl.appendChild(priceDefs);
-          svgEl.appendChild(priceSuiteGroup);
+          // IndicatorCanvas overlay suites already emit price-pane-local Y coordinates. Reuse
+          // the same translated + clipped price-overlay scope as the legacy fills above so every
+          // price-anchored SVG primitive obeys one live pane geometry contract.
           const m: CoordMapper = {
-            xi, y: priceSuiteY, W, H: pricePaneTop + pricePaneH,
+            xi, y: p2y, W, H: priceOverlayPaneGeometry.height,
             i0: lr ? lr.from : 0, i1: lr ? lr.to : barsRef.current.length - 1, barW,
           };
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
@@ -7694,7 +7695,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
             const bundle = visualOverlayBundle(context, visualSettings(chartSettingsRef.current), suiteColorsRef.current,
               m, selected, calendar, replayIdxRef.current !== null, lang);
             const group = mk("g", { "data-visual-intelligence-overlay": "" }) as SVGGElement;
-            priceSuiteGroup.appendChild(group);
+            priceOverlayScope.group.appendChild(group);
             renderPrims(group, bundle, { ...m, W: chart.timeScale().width() });
           }
           for (const k of activeSuites) {
@@ -7706,7 +7707,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang,
               }, userTierRef.current, suiteColorsRef.current);
-              renderPrims(priceSuiteGroup, bundle, m);
+              const suiteGroup = mk("g", { "data-price-suite-overlay": k }) as SVGGElement;
+              priceOverlayScope.group.appendChild(suiteGroup);
+              renderPrims(suiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
               rememberNativeSuite(k, def, renderedParams, bundle);
             } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] render skipped:`, e); }
@@ -8202,22 +8205,40 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
      *
      *  Nothing here enumerates marker CLASSES: any marker that has a title is hoverable, so a
      *  future class gets its tooltip for free and cannot be forgotten. */
+    const signalPaneClientBounds = () => {
+      const layer = sigRef.current;
+      const scope = layer?.querySelector<SVGGElement>('[data-price-pane-scope="signals"]');
+      if (!layer || !scope || priceProjHidden()) return null;
+      const top = Number(scope.getAttribute("data-pane-top"));
+      const height = Number(scope.getAttribute("data-pane-height"));
+      if (!Number.isFinite(top) || !Number.isFinite(height) || !(height > 0)) return null;
+      const root = layer.getBoundingClientRect();
+      return { left: root.left, right: root.right, top: root.top + top, bottom: root.top + top + height };
+    };
     const buildSigHits = (): MarkerHit[] => {
       const layer = sigRef.current;
       const out: MarkerHit[] = [];
-      if (!layer) return out;
-      for (const g of layer.querySelectorAll<SVGGElement>(":scope > g")) {
+      const visible = signalPaneClientBounds();
+      if (!layer || !visible) return out;
+      for (const g of layer.querySelectorAll<SVGGElement>('[data-price-pane-local="signals"] > g')) {
         const title = g.querySelector(":scope > title")?.textContent;
         if (!title) continue;
         let b: DOMRect;
         try { b = g.getBoundingClientRect(); } catch { continue; }
         if (!(b.width > 0) || !(b.height > 0)) continue;
+        const x = Math.max(b.left, visible.left), y = Math.max(b.top, visible.top);
+        const right = Math.min(b.right, visible.right), bottom = Math.min(b.bottom, visible.bottom);
+        if (!(right > x) || !(bottom > y)) continue;
+        // Only the visibly clipped portion may anchor a tooltip.
         // every title is emitted as `${m.t} · …`, so the prefix is the marker's bar date
-        out.push({ x: b.x, y: b.y, w: b.width, h: b.height, title, t: title.split(" ·")[0] });
+        out.push({ x, y, w: right - x, h: bottom - y, title, t: title.split(" ·")[0] });
       }
       return out;
     };
     const sigHitAt = (clientX: number, clientY: number, slack: number): MarkerHit | null => {
+      const visible = signalPaneClientBounds();
+      if (!visible || clientX < visible.left || clientX > visible.right
+          || clientY < visible.top || clientY > visible.bottom) return null;
       if (sigHits == null) sigHits = buildSigHits();
       return sigHits.length ? hitTestMarkers(sigHits, clientX, clientY, slack) : null;
     };
@@ -8689,7 +8710,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       } else {
         lastTextPress = null;
       }
-      sel = id; renderDraw();
+      // Keep the current hit node alive through a fresh double-click on the
+      // already selected drawing; an unchanged selection needs no repaint.
+      if (sel !== id) { sel = id; renderDraw(); }
       if (d0.locked) return;
       const prec = precRef.current;
       // Editing an indicator-pane object works in that pane's value space, which
@@ -8879,8 +8902,14 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       try { svg.setPointerCapture(ev.pointerId); } catch {}
       renderDraw();
     });
+    // A fresh press restores ordinary editing after the prior completion gesture.
+    // Capture also observes presses on child nodes and when creation is inactive.
+    svg.addEventListener("pointerdown", () => { consumeNextDblClick = false; }, true);
     // Double-click finishes variable segmented tools and edits text in cursor mode.
     svg.addEventListener("dblclick", (ev) => {
+      if (consumeNextDblClick) {
+        consumeNextDblClick = false; ev.stopPropagation(); ev.preventDefault(); return;
+      }
       if (!activeRef.current) return;
       const activeTool = toolRef.current, spec = getDrawingTool(activeTool);
       if (activeTool && spec?.creation.mode === "variable-multi" && pending?.kind === activeTool && pending.mode === "multi") {
@@ -8971,7 +9000,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         const required = spec?.creation.mode === "fixed-multi" && typeof spec.creation.pointCount === "number" ? spec.creation.pointCount : Infinity;
         const repeatedFinish = repeatedAnchor && spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.minPoints;
         if (current.points.length >= required || repeatedFinish || (spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.maxPoints)) {
-          const points = [...current.points]; pending = null; commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
+          const points = [...current.points]; pending = null;
+          // The completed gesture owns its trailing native double-click once.
+          if (spec?.creation.mode === "variable-multi") consumeNextDblClick = true;
+          commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
         }
         // Both exits repaint: the committed shape used to reach the layer only as
         // a side effect of the toolbar clearing the active tool, which never
@@ -9441,7 +9473,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       //    signal/compare overlays (those are "YYYY-MM-DD" keyed). Indicators are bar-agnostic → kept. ──
       if (intraday) {
         let bars: any[] = [];
-        let historyBars = 0;
+        let historyEvidence: unknown = null;
         let daytimePending = false;
         let daytimeIncomplete = false;
         let initialCaptureMs = 0;
@@ -9451,7 +9483,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           const j = adoptFirstPaint ? firstPaint!.body : await r!.json().catch(() => null);
           const ok = adoptFirstPaint || r!.ok;
           bars = Array.isArray(j?.bars) ? j.bars : [];
-          historyBars = ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
+          historyEvidence = ok && overnightHours ? j?.boats_history : null;
           // A warm complete assembly stays paintable while another refresh is
           // pending. Only cold/incomplete pending data must remain Loading.
           daytimePending = ok && overnightHours && j?.daytime_cache?.refresh_pending === true
@@ -9461,7 +9493,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           if (!ok || j?.error) feedErr = String(j?.error || `HTTP ${r?.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
-        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: historyBars });
+        onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, historyEvidence,
+          { pending: daytimePending, error: feedErr !== null || daytimeIncomplete }));
         onDataOriginRef.current?.(originNotCovered(symbol, "INTRADAY_NOT_IN_V1"));
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
@@ -9842,7 +9875,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         }
         if (!previous.length) {
           overnightCaptureRef.current = accepted.captureMs;
-          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+          onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, body?.boats_history));
           if (body?.daytime_cache?.refresh_pending !== true) {
             showIntradayEmpty(symbol, effectiveTimeframe, !!body?.error || body?.daytime_cache?.refresh_error != null);
           }
@@ -9857,7 +9890,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           if (accepted.appliedTradeMs > 0) {
             liveTickRef.current = { basis: "tiingo_boats", stamp: accepted.appliedTradeMs };
           }
-          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+          onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, body?.boats_history));
         };
         if (previous.length === accepted.bars.length && previous.every((bar, i) => {
           const next = accepted.bars[i];

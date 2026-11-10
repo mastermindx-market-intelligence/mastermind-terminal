@@ -1,0 +1,106 @@
+{
+  "classification": "SYNTHETIC LOCAL — no live account or production claim",
+  "source": "synthetic:options-exposure-surface-journey/v1",
+  "session": "2026-10-19",
+  "expiry": "2026-10-30",
+  "sourceVersion": "existing coherent four-cell fixture",
+  "witness": [
+    {
+      "stage": "initial Settings choice",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "49d53549-06b9-4ff7-a2d9-54316cd212c1"
+    },
+    {
+      "stage": "main-chart handoff without another Settings action",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": "1",
+      "documentId": "08f42d80-ce7a-436b-81f3-9ec6a0e4bde1"
+    },
+    {
+      "stage": "before main reload",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": "1",
+      "documentId": "08f42d80-ce7a-436b-81f3-9ec6a0e4bde1"
+    },
+    {
+      "stage": "main-chart document reload",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": "1",
+      "documentId": "a5a4b7df-bd6f-4af8-b368-95dbd0a121c6"
+    },
+    {
+      "stage": "reload witness",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": "1",
+      "documentId": "a5a4b7df-bd6f-4af8-b368-95dbd0a121c6"
+    },
+    {
+      "stage": "exact investigation return",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "92ad113d-fa63-42de-93e3-d45c5f7a9b20"
+    },
+    {
+      "stage": "before return reload",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "92ad113d-fa63-42de-93e3-d45c5f7a9b20"
+    },
+    {
+      "stage": "returned investigation document reload",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "13936248-002a-40b4-b2d7-f9d1b3f90704"
+    },
+    {
+      "stage": "return reload witness",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "13936248-002a-40b4-b2d7-f9d1b3f90704"
+    }
+  ],
+  "blockedOutside": [
+    "https://www.mastermind-x.com/mm_brain.js",
+    "https://www.mastermind-x.com/mm_brain.js"
+  ],
+  "authReads": 10,
+  "acknowledgedMetadataWrites": [
+    {
+      "theme": "light",
+      "theme_auto": "0",
+      "prefs": {
+        "theme": "light",
+        "themeAuto": "0",
+        "lang": "en"
+      }
+    },
+    {
+      "theme": "dark",
+      "theme_auto": "0",
+      "prefs": {
+        "theme": "dark",
+        "themeAuto": "0",
+        "lang": "en"
+      }
+    }
+  ]
+}

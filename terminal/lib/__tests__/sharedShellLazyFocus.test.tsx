@@ -18,8 +18,15 @@ vi.mock("next/dynamic",async()=>{const {default:SearchModal}=await import("@/com
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root,host:HTMLDivElement;
 function Harness(){const [open,setOpen]=useState(false);return <LangProvider><button data-external="" onClick={()=>setOpen(true)}>Open companies</button><ShellSearch open={open} onOpenChange={setOpen}/></LangProvider>;}
-beforeEach(async()=>{host=document.createElement("div");document.body.append(host);root=createRoot(host);await act(async()=>root.render(<Harness/>));});
-afterEach(async()=>{await act(async()=>root.unmount());host.remove();});
+beforeEach(async()=>{
+ // Model visible geometry for the external opener and the live trigger created by lazy loading.
+ vi.spyOn(HTMLElement.prototype,"getClientRects").mockImplementation(function(this:HTMLElement){
+  const hidden=!this.isConnected||this.closest("[hidden], [inert], [aria-hidden='true']")||getComputedStyle(this).display==="none";
+  return (hidden?[]:[new DOMRect(0,0,100,40)]) as unknown as DOMRectList;
+ });
+ host=document.createElement("div");document.body.append(host);root=createRoot(host);await act(async()=>root.render(<Harness/>));
+});
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.restoreAllMocks();});
 async function escape(){const dialog=document.body.querySelector<HTMLElement>('[role="dialog"]')!;await act(async()=>dialog.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true,cancelable:true})));}
 it.each(["Escape", "close button"])("restores a live search trigger after cold keyboard activation and %s",async(closeMode)=>{
  const placeholder=host.querySelector<HTMLButtonElement>(".shared-shell-company-search")!;placeholder.focus();

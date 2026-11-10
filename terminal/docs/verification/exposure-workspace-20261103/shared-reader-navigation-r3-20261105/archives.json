@@ -1,0 +1,18 @@
+{
+  "unit.log": {
+    "raw_sha256": "df3ba5040e303dee7bad225db9f5bd735d13bb80514c7cd088e8f12bf8b9f158",
+    "raw_bytes": 2910,
+    "archive": "unit.log.gz",
+    "archive_sha256": "3f6ed092a0e616bb600db11f842750b00e3f7b2eafdc7835ec45a7d09b66cc83",
+    "archive_bytes": 818,
+    "lossless_decompression_verified": true
+  },
+  "lint.log": {
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw_bytes": 0,
+    "archive": "lint.log.gz",
+    "archive_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "archive_bytes": 20,
+    "lossless_decompression_verified": true
+  }
+}
