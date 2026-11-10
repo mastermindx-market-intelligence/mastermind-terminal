@@ -68,7 +68,7 @@
 
 .segBtn.on {
   background: var(--brand);
-  color: #fff;
+  color: var(--text);
   font-weight: 650;
 }
 
