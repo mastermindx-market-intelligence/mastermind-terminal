@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import os
 import shutil
 import subprocess
@@ -488,6 +489,39 @@ def test_ordinary_allowance_root_must_match_declared_live_type(
     assert finding_codes(receipt) == ["ALLOWANCE_LIVE_TYPE_MISMATCH"]
     assert receipt["findings"][0]["expected_live_type"] == "file"
     assert receipt["findings"][0]["live_type"] == "directory"
+
+
+def test_retained_failed_generation_is_clean_under_the_production_allowance(
+    policy_fixture: dict[str, object],
+) -> None:
+    # A failed acceptance leaves the rejected build at .next.broken in the live app
+    # root. Without the production allowance every file under it is
+    # HOST_ONLY_UNTRACKED; with it the audit stays CLEAN.
+    live = policy_fixture["live"]
+    assert isinstance(live, Path)
+    broken = live / ".next.broken"
+    (broken / "server").mkdir(parents=True)
+    (broken / "BUILD_ID").write_text("build-failed\n", encoding="utf-8")
+    (broken / "server" / "page.js").write_text("module.exports = 1\n", encoding="utf-8")
+
+    receipt, exit_code = run(policy_fixture)
+    assert exit_code == EXIT_UNKNOWN_STOP
+    assert set(finding_codes(receipt)) == {"HOST_ONLY_UNTRACKED"}
+
+    production_path = (
+        Path(__file__).resolve().parents[1]
+        / "ops"
+        / "terminal_source_audit.production.json"
+    )
+    production = json.loads(production_path.read_text(encoding="utf-8"))
+    app = next(item for item in production["mappings"] if item["repo_path"] == "terminal")
+    allowance = next(item for item in app["allowances"] if item["path"] == ".next.broken")
+    policy = mapping_policy(policy_fixture)
+    allowances(policy).append(copy.deepcopy(allowance))
+
+    receipt, exit_code = run(policy_fixture, policy=policy)
+    assert exit_code == EXIT_CLEAN
+    assert finding_codes(receipt) == []
 
 
 def test_ordinary_allowance_root_symlink_never_counts_as_allowed(
