@@ -59,7 +59,10 @@ export default function SectorNativeActions({ context }: { context: SectorNative
   const principal = identity.kind === "account" && identity.userId ? identity.userId : null;
   const [admission, setAdmission] = useState<{ principal: string; subjectId: string; admitted: boolean } | null>(null);
   const [saveState, setSaveState] = useState<InvestigationSaveState | null>(null);
-  const command = useMemo(() => sectorReadingCommand(context), [context]);
+  // The command is minted for the CURRENT principal (r2 N-D): a switched
+  // account gets its own id/operation_id, never a replay of the first
+  // account's ids (an idempotency/id collision on the same sector).
+  const command = useMemo(() => sectorReadingCommand(context), [context, principal]);
   const subjectId = context.subject?.id ?? null;
   const symbol = context.subject?.ticker ?? "";
 
