@@ -62,14 +62,16 @@ const capturedBoard = captured.projection.data.action_board as unknown as Action
 const html = (el: React.ReactElement): string => renderToStaticMarkup(el);
 // Strip tags AND decode the basic entities, so an assertion on visible text
 // ("Memory, HBM & Storage") matches its escaped markup form (&amp;).
+// S6 (review r1, CodeQL js/double-escaping): &amp; decodes LAST — decoding it
+// first would turn a double-encoded "&amp;lt;" into "<" instead of "&lt;".
 const text = (h: string): string =>
   h
     .replace(/<[^>]+>/g, " ")
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#x27;/g, "'");
+    .replace(/&#x27;/g, "'")
+    .replace(/&amp;/g, "&");
 
 afterAll(() => {
   G.__SD_LANG = "en";
