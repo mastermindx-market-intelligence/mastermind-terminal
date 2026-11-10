@@ -739,7 +739,11 @@ jobs:
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
-        run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+        run: |
+          ingest_python_env="$(mktemp -d "${RUNNER_TEMP:?}/terminal-ingest-python.XXXXXX")"
+          python -m venv "$ingest_python_env"
+          "$ingest_python_env/bin/python" -m pip --isolated install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+          printf '%s\n' "$ingest_python_env/bin" >> "$GITHUB_PATH"
       # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
       # The dedicated upstream Investigation job remains an additional gate.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
