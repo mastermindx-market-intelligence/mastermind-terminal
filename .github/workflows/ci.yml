@@ -417,11 +417,9 @@ jobs:
           set -euo pipefail
           BASE=$(git rev-parse HEAD^1)
           git diff --name-only --no-renames "${BASE}" HEAD > "${RUNNER_TEMP}/evidence-pr-touched.txt"
-          {
-            echo "EVIDENCE_PR_TOUCHED_FILE<<__mmx-evidence-touched-eof__"
-            cat "${RUNNER_TEMP}/evidence-pr-touched.txt"
-            echo "__mmx-evidence-touched-eof__"
-          } >> "${GITHUB_ENV}"
+          # Keep the complete census in the file: large proof PRs can exceed
+          # the per-variable process-launch limit if paths enter GITHUB_ENV.
+          printf 'EVIDENCE_PR_TOUCHED_FILE=%s\n' "${RUNNER_TEMP}/evidence-pr-touched.txt" >> "${GITHUB_ENV}"
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
