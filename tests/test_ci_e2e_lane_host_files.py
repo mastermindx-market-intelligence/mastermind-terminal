@@ -286,9 +286,11 @@ def load_mint():
     return module
 
 
-def run_mint(api, capsys, name=NAME, labels=LABELS_A, per_page=None):
+def run_mint(api, capsys, name=NAME, labels=LABELS_A, per_page=None, host=None):
     mint = load_mint()
     mint._call = api
+    local = host if host is not None else name.split("-e2e-", 1)[0]
+    mint.socket = type("S", (), {"gethostname": staticmethod(lambda: local + ".lan")})
     if per_page:
         mint.PER_PAGE = per_page
     code = 0
@@ -328,6 +330,32 @@ def test_409_deletes_a_stale_registration_on_the_base_label_shape(capsys) -> Non
     api = FakeAPI([CONFLICT, OK], org=[runner(name=NAME_B, labels=BASE_LABEL_TUPLE)])
     assert run_mint(api, capsys, name=NAME_B, labels=LABELS_B) == (0, "JIT-BLOB")
     assert api.deletes == [f"/orgs/{ORG}/actions/runners/7"]
+
+
+def test_409_deletes_a_pre_multihost_registration_on_host_zero(capsys) -> None:
+    # The previous release's never-used digit-0 runner carries the old four labels
+    # (legacy host label, no shared lane label); it is still provably stale.
+    old = ("self-hosted", "linux", "x64", "ubuntu0-e2e")
+    api = FakeAPI([CONFLICT, OK], org=[runner(labels=old)], group=[runner(labels=old)])
+    assert run_mint(api, capsys) == (0, "JIT-BLOB")
+    assert api.deletes == [f"/orgs/{ORG}/actions/runners/7"]
+
+
+def test_pre_multihost_shape_is_not_stale_for_other_hosts(capsys) -> None:
+    old = ("self-hosted", "linux", "x64", "ubuntu0-e2e")
+    api = FakeAPI([CONFLICT, OK], org=[runner(name=NAME_B, labels=old)],
+                  group=[runner(name=NAME_B, labels=old)])
+    code, out = run_mint(api, capsys, name=NAME_B, labels=LABELS_B)
+    assert (code, out) == (3, "")
+    assert api.deletes == []
+
+
+def test_mint_refuses_a_name_for_another_host(capsys) -> None:
+    # A host must never mint another host's runner name (and with it, digit 0's
+    # transition label).
+    api = FakeAPI([OK])
+    assert run_mint(api, capsys, host=NAME_B.split("-e2e-", 1)[0]) == (2, "")
+    assert api.calls == []
 
 
 def test_409_candidate_found_on_a_later_page(capsys) -> None:
@@ -445,6 +473,7 @@ def test_bad_input_is_refused_before_any_call(capsys, name, labels) -> None:
 def test_network_error_is_transient(capsys, monkeypatch) -> None:
     mint = load_mint()
     monkeypatch.setattr(mint, "_token", lambda: "t")
+    monkeypatch.setattr(mint.socket, "gethostname", lambda: "ubuntu0")
 
     def refuse(*_args, **_kwargs):
         raise mint.urllib.error.URLError("down")

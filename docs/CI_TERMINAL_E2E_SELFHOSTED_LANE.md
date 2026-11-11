@@ -336,7 +336,11 @@ label no runner carries.
    `npx playwright install-deps chromium` once. Before any slot starts,
    `mint-jitconfig check <group-id>` (as `ghmint`) must show the group with
    selected-repository visibility, this repository as its only repository, and
-   public repositories allowed (this repository is public). **Re-provision the
+   public repositories allowed (this repository is public), and
+   `mint-jitconfig status <group-id>` must list no runner whose name starts with
+   the chosen `ubuntu<H>-` (a second host on the same digit would collide on
+   names). `mint` refuses any runner name that does not start with the host's own
+   short name. **Re-provision the
    pre-rename host from master** as well: the new slot script and mint add the
    shared `terminal-e2e` label beside the kept legacy one; restart its slot units
    only while idle. Additional hosts must never carry the legacy label.
