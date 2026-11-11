@@ -371,3 +371,52 @@ def test_unqualified_scope_can_never_pass_event_aggregate(
     )
     assert result.returncode != 0, (scope_result, event, result.stdout)
     assert "e2e-scope concluded" in result.stdout
+
+
+CAPTURE_SHARDS = ["pl6", "vi-desktop", "vi-tablet", "vi-mobile"]
+SELECTIVE = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+
+
+def test_evidence_capture_fans_out_and_terminal_unit_fans_in() -> None:
+    """PL6/legacy and three VI viewport captures run as one matrix on the same
+    SHA; terminal-unit downloads exactly those four shards and composes them."""
+    capture = jobs()["terminal-evidence-capture"]
+    assert capture["strategy"]["fail-fast"] is False
+    assert capture["strategy"]["matrix"]["shard"] == CAPTURE_SHARDS
+    by_name = {s["name"]: s for s in capture["steps"] if "name" in s}
+    assert by_name["Plan current-source evidence capture"]["run"] == "node scripts/ci/plan-evidence-capture.cjs"
+    run = by_name["Capture this evidence shard"]
+    assert run["run"] == "node e2e/tools/capture_ci_evidence.cjs --shard ${{ matrix.shard }}"
+    assert run["if"] == SELECTIVE and not run.get("continue-on-error", False)
+    upload = by_name["Retain this shard's bytes and receipt"]
+    assert upload["if"] == SELECTIVE
+    assert upload["with"]["name"] == "evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}"
+    assert upload["with"]["if-no-files-found"] == "error"
+    for step in capture["steps"]:
+        assert "TERMINAL_EVIDENCE" not in str(step.get("run", "")), "shards never select records"
+
+    steps = jobs()["terminal-unit"]["steps"]
+    names = [s.get("name") for s in steps]
+    unit = {s["name"]: s for s in steps if "name" in s}
+    downloads = [s for s in steps if str(s.get("uses", "")).startswith("actions/download-artifact")]
+    assert [d["with"]["name"] for d in downloads] == [
+        f"evidence-shard-${{{{ github.run_id }}}}-${{{{ github.run_attempt }}}}-{shard}" for shard in CAPTURE_SHARDS]
+    assert [d["with"]["path"] for d in downloads] == [
+        f"${{{{ runner.temp }}}}/terminal-ci-evidence-shards/{shard}" for shard in CAPTURE_SHARDS]
+    assert all(d["if"] == SELECTIVE and not d.get("continue-on-error", False) for d in downloads)
+    fan = unit["Capture and validate evidence on this checkout"]
+    assert fan["run"] == "node e2e/tools/capture_ci_evidence.cjs --fan-in" and fan["if"] == SELECTIVE
+    guard = names.index("Require every evidence capture shard")
+    first_download = steps.index(downloads[0])
+    assert guard < first_download < steps.index(downloads[-1]) < names.index("Capture and validate evidence on this checkout") \
+        < names.index("Validate fresh evidence through the unit readers")
+    assert "if" not in unit["Require every evidence capture shard"]
+
+
+@pytest.mark.parametrize("result", ["success", "failure", "cancelled", "skipped", ""])
+def test_fan_in_fails_unless_every_capture_shard_succeeded(result: str) -> None:
+    step = next(s for s in jobs()["terminal-unit"]["steps"] if s.get("name") == "Require every evidence capture shard")
+    assert step["env"] == {"SHARDS": "${{ needs.terminal-evidence-capture.result }}"}
+    completed = subprocess.run(["bash", "-e", "-c", step["run"]], env={**os.environ, "SHARDS": result},
+                               capture_output=True, text=True, check=False)
+    assert (completed.returncode == 0) is (result == "success"), completed.stdout

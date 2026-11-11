@@ -354,11 +354,71 @@ jobs:
               print(f"e2e-scope lane split: {len(prod)} prodbuild shard(s) ({reason})")
           PY
 
+  terminal-evidence-capture:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-evidence-capture-${{ matrix.shard }}
+      cancel-in-progress: true
+    # The PL6/legacy capture and one VI capture per viewport project, each on its
+    # own runner at this SHA. They only retain bytes plus a receipt; none selects
+    # records. terminal-unit is the fan-in and fails unless all four succeeded.
+    needs: [pr_scope, e2e-scope]
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    name: Terminal evidence capture (${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [pl6, vi-desktop, vi-tablet, vi-mobile]
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      # The same deterministic planner the fan-in runs on the same tree.
+      - name: Plan current-source evidence capture
+        id: evidence_plan
+        run: node scripts/ci/plan-evidence-capture.cjs
+      - name: Prepare Chromium for this capture shard
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        timeout-minutes: 10
+        run: |
+          timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+            || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      - name: Capture this evidence shard
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        timeout-minutes: 45
+        run: node e2e/tools/capture_ci_evidence.cjs --shard ${{ matrix.shard }}
+      - name: Retain this shard's bytes and receipt
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}
+          path: ${{ runner.temp }}/terminal-ci-evidence-bundle/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 3
+      - name: Retain shard diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-shard-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}
+          path: |
+            ${{ runner.temp }}/terminal-ci-evidence/
+            terminal/test-results/
+          if-no-files-found: warn
+
   terminal-unit:
     concurrency:
       group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-unit
       cancel-in-progress: true
-    needs: [pr_scope, e2e-scope]
+    needs: [pr_scope, e2e-scope, terminal-evidence-capture]
     # The browser selector stays mandatory. PR scope only grants the docs
     # exemption; its failure or absence falls back to normal qualification.
     if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
@@ -434,10 +494,49 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      # Fan-in. The PL6/legacy and three VI viewport captures ran in parallel in
+      # terminal-evidence-capture on this same SHA. A failed, skipped, cancelled
+      # or missing shard fails this job; the planner is deterministic on one
+      # tree, so every shard reached the same capture decision as this job.
+      - name: Require every evidence capture shard
+        env:
+          SHARDS: ${{ needs.terminal-evidence-capture.result }}
+        run: |
+          if [ "$SHARDS" != "success" ]; then
+            echo "::error title=terminal-ci::terminal-evidence-capture concluded '$SHARDS' (expected 'success')"
+            exit 1
+          fi
+      - name: Download the PL6 and legacy capture shard
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-pl6
+          path: ${{ runner.temp }}/terminal-ci-evidence-shards/pl6
+      - name: Download the VI desktop capture shard
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-vi-desktop
+          path: ${{ runner.temp }}/terminal-ci-evidence-shards/vi-desktop
+      - name: Download the VI tablet capture shard
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-vi-tablet
+          path: ${{ runner.temp }}/terminal-ci-evidence-shards/vi-tablet
+      - name: Download the VI mobile capture shard
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-vi-mobile
+          path: ${{ runner.temp }}/terminal-ci-evidence-shards/vi-mobile
+      # Verifies every shard receipt against this checkout (commit, tree, run,
+      # attempt, profile, per-file sha256), applies the exact bytes, then writes
+      # the composition and runs EOD/GEX native qualification on it here.
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 85
-        run: node e2e/tools/capture_ci_evidence.cjs
+        run: node e2e/tools/capture_ci_evidence.cjs --fan-in
       # F11 (provider-closed theses entry) runs in the parallel
       # terminal-f11-evidence job: it is a separate real-component contract
       # with its own port, output packet and sanitized server environment, and

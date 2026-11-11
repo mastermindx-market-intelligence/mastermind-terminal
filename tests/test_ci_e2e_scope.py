@@ -172,7 +172,9 @@ def test_required_check_never_launders_skipped_or_failed_scope():
                 "terminal-e2e-build:$BUILD", "terminal-e2e-prodbuild:$PRODBUILD"]:
         assert dep in run
     assert '[ "$fail" -eq 0 ] || exit 1' in run
-    assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope", "terminal-evidence-capture"]
+    assert jobs["terminal-evidence-capture"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-evidence-capture"]["if"] == jobs["terminal-unit"]["if"]
     assert jobs["terminal-typecheck"]["needs"] == ["pr_scope", "e2e-scope"]
     assert jobs["terminal-f11-evidence"]["needs"] == ["pr_scope", "e2e-scope"]
     assert jobs["terminal-f11-evidence"]["if"] == jobs["terminal-unit"]["if"]

@@ -879,7 +879,7 @@ function operationIds(env) {
   return { pl6: `${prefix}-pl6`, vi: `${prefix}-vi`, composition: `${prefix}-current`, prefix };
 }
 
-function reference(stdout, packet, id, evidence) {
+function reference(stdout, packet, id, evidence, cases) {
   const refs = [];
   for (const line of stdout.split(/\r?\n/)) {
     let value;
@@ -887,7 +887,8 @@ function reference(stdout, packet, id, evidence) {
     if (value && typeof value === "object" && Object.hasOwn(value, "visualEvidence")) refs.push(value);
   }
   if (refs.length !== 1) throw new Error(`CI_EVIDENCE_REFERENCE_COUNT: ${packet}:${refs.length}`);
-  const r = refs[0], expectedCases = packet === "pl6" ? 24 : 30;
+  // A VI viewport shard executes exactly its10 project cases; completeness is the fan-in's duty.
+  const r = refs[0], expectedCases = cases ?? (packet === "pl6" ? 24 : 30);
   // PL6 retains its four additional DiscoverLeaders cases; only its required20 are selected.
   if (r.visualEvidence !== `${evidence.PACKETS[packet]}/${id}--operation.json`
       || !/^[0-9a-f]{64}$/.test(r.sha256 || "") || r.actualCases !== expectedCases)
@@ -1025,129 +1026,390 @@ function recordCheckout({ repoRoot = path.resolve(__dirname, "../../.."), env = 
   return value;
 }
 
-async function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env,
-  evidence, spawn = spawnSync, spawnLegacy = spawnAsync, spawnNative = spawnAsync, checkout = checkoutIdentity } = {}) {
-  evidence ||= require("./visualEvidence.cjs");
+// The single-process path (run) and the CI fan-out path (runShard + runFanIn)
+// share these phases. Fan-out changes only WHERE each capture executes: every
+// shard binds its output to the exact checkout commit/tree, run and attempt,
+// and to sha256 digests of every byte it changed under docs/pr-crops. The
+// fan-in refuses any missing, extra, foreign or overlapping shard, applies the
+// exact bytes, and then runs the unchanged composition, native and re-validation.
+const PR_CROPS = "terminal/docs/pr-crops";
+const VI_PROJECTS = Object.freeze(["desktop", "tablet", "mobile"]);
+const SHARDS = Object.freeze(["pl6", ...VI_PROJECTS.map(project => "vi-" + project)]);
+const SHARD_SCHEMA = "terminal.ci-evidence-shard.v1";
+
+function shardOperationId(ids, shard) {
+  if (!SHARDS.includes(shard)) throw new Error("CI_SHARD_NAME");
+  return shard === "pl6" ? ids.pl6 : `${ids.vi}-${shard.slice(3)}`;
+}
+
+function treeSnapshot(repoRoot, relative = PR_CROPS) {
+  const files = {};
+  let total = 0, count = 0;
+  const walk = (directory, prefix) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const name = prefix + "/" + entry.name, at = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) throw new Error("CI_CAPTURE_SYMLINK");
+      if (entry.isDirectory()) { walk(at, name); continue; }
+      if (!entry.isFile()) throw new Error("CI_CAPTURE_FILE_TYPE");
+      const bytes = fs.readFileSync(at);
+      total += bytes.length; count += 1;
+      if (total > 4 * 1024 * 1024 * 1024 || count > 100_000) throw new Error("CI_CAPTURE_TREE_LIMIT");
+      files[name] = sha256(bytes);
+    }
+  };
+  const root = path.join(repoRoot, relative), stat = fs.lstatSync(root);
+  if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error("CI_CAPTURE_PACKET_DIRECTORY");
+  walk(root, relative);
+  return files;
+}
+
+function treeDelta(before, after) {
+  const delta = {};
+  for (const name of [...new Set([...Object.keys(before), ...Object.keys(after)])].sort())
+    if (before[name] !== after[name]) delta[name] = { before: before[name] || null, after: after[name] || null };
+  return delta;
+}
+
+// Each shard may only change the packets its own producers own. A VI shard may
+// only ADD its own immutable operation files; it never rewrites a shared byte.
+function shardScope(ids, shard) {
+  const id = shardOperationId(ids, shard);
+  if (shard !== "pl6") return name => name.startsWith(`${PR_CROPS}/terminal-visual-intelligence/${id}--`) && !name.slice(PR_CROPS.length + 1).split("/").slice(2).length;
+  const packets = [`${PR_CROPS}/b-pl-6-batch-1/`, OPTIONS_PACKET + "/", BATCH2_PACKET + "/",
+    ...legacyPackets().map(definition => definition.directory + "/")];
+  return name => packets.some(prefix => name.startsWith(prefix));
+}
+
+function verifyShardDelta(ids, shard, delta) {
+  const inScope = shardScope(ids, shard);
+  for (const [name, change] of Object.entries(delta)) {
+    if (!inScope(name)) throw new Error(`CI_SHARD_DELTA_SCOPE: ${shard}: ${name}`);
+    if (shard !== "pl6" && (change.before !== null || change.after === null)) throw new Error(`CI_SHARD_DELTA_SCOPE: ${shard}: ${name}`);
+    for (const value of [change.before, change.after])
+      if (value !== null && !/^[0-9a-f]{64}$/.test(value)) throw new Error("CI_SHARD_DELTA_DIGEST");
+  }
+}
+
+function shardBundleDirectory(env) {
+  if (!env.RUNNER_TEMP || !path.isAbsolute(env.RUNNER_TEMP)) throw new Error("CI_EVIDENCE_RUNNER_TEMP");
+  return path.join(env.RUNNER_TEMP, "terminal-ci-evidence-bundle");
+}
+
+function shardStagingDirectory(env) {
+  if (!env.RUNNER_TEMP || !path.isAbsolute(env.RUNNER_TEMP)) throw new Error("CI_EVIDENCE_RUNNER_TEMP");
+  return path.join(env.RUNNER_TEMP, "terminal-ci-evidence-shards");
+}
+
+function begin({ repoRoot, env, evidence, checkout, suffix = "", requireEnvFile = true }) {
   const ids = operationIds(env), terminal = path.join(repoRoot, "terminal");
   const diagnostics = diagnosticDirectory(env);
   fs.mkdirSync(diagnostics, { recursive: true });
-  const recordPath = path.join(diagnostics, `${ids.prefix}.json`);
+  const recordPath = path.join(diagnostics, `${ids.prefix}${suffix}.json`);
   const record = { operationIds: ids, state: "PREPARING", children: [] };
   // An accidental second invocation may not overwrite the first attempt's diagnostics.
   fs.writeFileSync(recordPath, JSON.stringify(record, null, 2) + "\n", { flag: "wx" });
   const save = () => fs.writeFileSync(recordPath, JSON.stringify(record, null, 2) + "\n");
+  const ctx = { repoRoot, env, evidence, checkout, ids, terminal, diagnostics, record, save };
   try {
     if ((env.CAPTURE_ONLY || "").trim()) throw new Error("CI_EVIDENCE_CAPTURE_FILTER");
     if (env.TERMINAL_EVIDENCE_COMPOSITION) throw new Error("CI_EVIDENCE_PRESELECTED");
-    if (!env.GITHUB_ENV) throw new Error("CI_EVIDENCE_ENV_FILE");
+    if (requireEnvFile && !env.GITHUB_ENV) throw new Error("CI_EVIDENCE_ENV_FILE");
     Object.assign(record, checkout(repoRoot, env));
-    const captureProfile = evidence.profile(env);
-    record.profile = captureProfile;
-    // Preserve both complete native baselines before any capture can change a peer.
-    const nativePlans = prepareNativePlans({ repoRoot, evidence });
-    const batch2 = batch2Plan(repoRoot);
-    record.batch2 = { ...batch2, state: batch2.required ? "CAPTURE_REQUIRED" : "EXISTING_PACKET_AWAITING_NATIVE_VALIDATION" };
-    if (batch2.required) {
-      const prior = fs.readFileSync(batch2.manifestPath);
-      if (sha256(prior) !== batch2.manifestSha256) throw new Error("CI_BATCH2_HISTORY_CHANGED");
-      const historyPath = path.join(diagnostics, ids.prefix + ".batch2.previous-manifest.yml");
-      fs.writeFileSync(historyPath, prior, { flag: "wx" });
-      record.batch2.historicalDiagnostic = historyPath;
-    }
-    const captureDeadline = Date.now() + 84 * 60_000;
-    record.optionsAxis = prepareOptions({ repoRoot, diagnostics, ids });
-    save();
-    record.state = "CAPTURING"; save();
-    const capture = (packet, args, extraEnv) => {
-      const childId = ids[packet] || (ids.prefix + "-" + packet);
-      const stdoutPath = path.join(diagnostics, `${childId}.stdout.log`);
-      const stderrPath = path.join(diagnostics, `${childId}.stderr.log`);
-      const child = { packet, command: [process.execPath, ...args], stdoutPath, stderrPath, state: "RUNNING" };
-      record.children.push(child); save();
-      const out = fs.openSync(stdoutPath, "wx");
-      let result, err;
-      try {
-        err = fs.openSync(stderrPath, "wx");
-        result = spawn(process.execPath, args, { cwd: terminal,
-          env: { ...env, CAPTURE_ONLY: "", TERMINAL_CI_OPTIONS_AXIS_CAPTURE: "0", ...extraEnv }, stdio: ["ignore", out, err],
-          ...(packet === "batch2" ? { timeout: 20 * 60_000, killSignal: "SIGTERM" } : {}) });
-      } finally { fs.closeSync(out); if (err !== undefined) fs.closeSync(err); }
-      Object.assign(child, { state: "RETURNED", status: result.status, signal: result.signal,
-        error: result.error?.message || null }); save();
-      if (result.error || result.signal || result.status !== 0)
-        throw new Error(`CI_EVIDENCE_CHILD_FAILED: ${packet}: status=${result.status} signal=${result.signal || "none"} error=${result.error?.message || "none"}`);
-      if (fs.statSync(stdoutPath).size > 16 * 1024 * 1024) throw new Error("CI_EVIDENCE_LOG_LIMIT");
-      const stdout = fs.readFileSync(stdoutPath, "utf8");
-      return packet === "batch2" ? stdout : reference(stdout, packet, ids[packet], evidence);
-    };
-    const refs = [];
-    let pl6Error;
-    try {
-      refs.push(capture("pl6", ["e2e/tools/capture_pl6_batch1.cjs"], {
-        TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: "3536",
-        TERMINAL_CI_OPTIONS_AXIS_CAPTURE: record.optionsAxis.required ? "1" : "0",
-        TERMINAL_CI_OPTIONS_CAPTURE_ID: `${ids.prefix}-options`,
-      }));
-    } catch (error) { pl6Error = error; throw error; }
-    finally {
-      if (record.optionsAxis.required) {
-        try { record.optionsAxis.returned = archivePacket(repoRoot, OPTIONS_PACKET, path.join(diagnostics, ids.prefix + "-options.returned")); }
-        catch (error) {
-          record.optionsAxis.archiveError = error.message;
-          if (!pl6Error) throw error;
-        } finally { save(); }
-      }
-    }
-    finishOptions({ repoRoot, diagnostics, ids, record, evidence });
-    save();
-    refs.push(capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", ids.vi, "--port", "3537"], {}));
-    if (batch2.required) {
-      const stdout = capture("batch2", ["e2e/tools/capture_pl6_batch2.cjs"], { TERMINAL_CROP_PORT: "3538" });
-      Object.assign(record.batch2, verifyBatch2Capture(repoRoot, batch2, stdout, record.actualCheckout.commit));
-      save();
-    }
-    await qualifyLegacyPackets({ repoRoot, env, evidence, checkout, spawnLegacy, diagnostics, ids, record, save, captureDeadline });
-    const required = [...evidence.requirements("pl6"), ...evidence.requirements("vi")];
-    if (required.length !== 50 || new Set(required.map(c => c.key)).size !== 50) throw new Error("CI_EVIDENCE_REQUIREMENTS");
-    const selections = required.map(c => ({ operationId: ids[c.packet], key: c.key }));
-    const input = { repoRoot, id: ids.composition, operations: refs, selections, profile: captureProfile };
-    record.state = "VALIDATING"; record.references = refs; save();
-    const validated = evidence.writeComposition(input); // Returns validation of its exact created bytes.
-    const compositionPath = `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`;
-    if (validated.id !== ids.composition || validated.cases.length !== 50 || validated.operations.length !== 2
-        || ["pl6", "vi"].some(packet => {
-          const ops = validated.operations.filter(op => op.id === ids[packet] && op.packet === packet);
-          return ops.length !== 1 || ops[0].cases.length !== (packet === "pl6" ? 24 : 30);
-        })) throw new Error("CI_EVIDENCE_COMPOSITION");
-    const bytes = fs.readFileSync(path.join(repoRoot, compositionPath));
-    const expected = evidence.canonical({ schema: "terminal.visual-composition.v2", mode: "records",
-      id: ids.composition, profile: captureProfile, operations: refs, selections });
-    if (!bytes.equals(Buffer.from(expected))) throw new Error("CI_EVIDENCE_COMPOSITION_BYTES");
-    record.composition = { path: compositionPath, sha256: crypto.createHash("sha256").update(bytes).digest("hex"), selectedCases: 50 };
-    // Native qualification uses the same supervised owner after the exact PL6/VI bytes exist.
-    // Neither producer may change the other family or that already-validated composition.
-    await qualifyNativeEvidence({ repoRoot, env, evidence, checkout, spawnNative, diagnostics, ids, record, save, captureDeadline, plans: nativePlans });
-    if (!fs.readFileSync(path.join(repoRoot, compositionPath)).equals(bytes)) throw new Error("CI_EVIDENCE_COMPOSITION_BYTES_CHANGED");
-    // JSON identity alone cannot prove that referenced operation, image and current-source bytes survived.
-    const revalidated = evidence.readComposition({ repoRoot, compositionPath, expectedProfile: captureProfile });
-    if (revalidated.id !== ids.composition || revalidated.cases.length !== 50 || revalidated.operations.length !== 2
-        || ["pl6", "vi"].some(packet => {
-          const ops = revalidated.operations.filter(op => op.id === ids[packet] && op.packet === packet);
-          return ops.length !== 1 || ops[0].cases.length !== (packet === "pl6" ? 24 : 30);
-        })) throw new Error("CI_EVIDENCE_COMPOSITION");
-    record.eod = { ...record.native.eod, state: record.native.eod.selection === "qualified" ? "QUALIFIED_UNCHANGED" : record.native.eod.state };
-    record.state = "VALIDATED"; save();
-    // Only successful full validation can select records for subsequent unit steps.
-    fs.appendFileSync(env.GITHUB_ENV, `TERMINAL_EVIDENCE_MODE=records\nTERMINAL_EVIDENCE_COMPOSITION=${compositionPath}\n`);
-    record.state = "SELECTED"; save();
-    return record;
-  } catch (error) {
-    record.state = "FAILED"; record.error = { message: error.message, stack: error.stack };
-    save(); throw error;
-  }
+    record.profile = evidence.profile(env);
+  } catch (error) { fail(ctx, error); }
+  return ctx;
 }
 
-module.exports = { operationIds, reference, checkoutIdentity, recordCheckout, run, batch2Plan, verifyBatch2Capture,
+function fail(ctx, error) {
+  ctx.record.state = "FAILED"; ctx.record.error = { message: error.message, stack: error.stack };
+  ctx.save(); throw error;
+}
+
+function makeCapture(ctx, spawn) {
+  const { ids, diagnostics, record, save, terminal, env, evidence } = ctx;
+  return (packet, args, extraEnv, { id = ids[packet], cases } = {}) => {
+    const childId = id || (ids.prefix + "-" + packet);
+    const stdoutPath = path.join(diagnostics, `${childId}.stdout.log`);
+    const stderrPath = path.join(diagnostics, `${childId}.stderr.log`);
+    const child = { packet, command: [process.execPath, ...args], stdoutPath, stderrPath, state: "RUNNING" };
+    record.children.push(child); save();
+    const out = fs.openSync(stdoutPath, "wx");
+    let result, err;
+    try {
+      err = fs.openSync(stderrPath, "wx");
+      result = spawn(process.execPath, args, { cwd: terminal,
+        env: { ...env, CAPTURE_ONLY: "", TERMINAL_CI_OPTIONS_AXIS_CAPTURE: "0", ...extraEnv }, stdio: ["ignore", out, err],
+        ...(packet === "batch2" ? { timeout: 20 * 60_000, killSignal: "SIGTERM" } : {}) });
+    } finally { fs.closeSync(out); if (err !== undefined) fs.closeSync(err); }
+    Object.assign(child, { state: "RETURNED", status: result.status, signal: result.signal,
+      error: result.error?.message || null }); save();
+    if (result.error || result.signal || result.status !== 0)
+      throw new Error(`CI_EVIDENCE_CHILD_FAILED: ${packet}: status=${result.status} signal=${result.signal || "none"} error=${result.error?.message || "none"}`);
+    if (fs.statSync(stdoutPath).size > 16 * 1024 * 1024) throw new Error("CI_EVIDENCE_LOG_LIMIT");
+    const stdout = fs.readFileSync(stdoutPath, "utf8");
+    return packet === "batch2" ? stdout : reference(stdout, packet, id, evidence, cases);
+  };
+}
+
+function preparePl6(ctx) {
+  const { repoRoot, diagnostics, ids, record, save } = ctx;
+  const batch2 = batch2Plan(repoRoot);
+  record.batch2 = { ...batch2, state: batch2.required ? "CAPTURE_REQUIRED" : "EXISTING_PACKET_AWAITING_NATIVE_VALIDATION" };
+  if (batch2.required) {
+    const prior = fs.readFileSync(batch2.manifestPath);
+    if (sha256(prior) !== batch2.manifestSha256) throw new Error("CI_BATCH2_HISTORY_CHANGED");
+    const historyPath = path.join(diagnostics, ids.prefix + ".batch2.previous-manifest.yml");
+    fs.writeFileSync(historyPath, prior, { flag: "wx" });
+    record.batch2.historicalDiagnostic = historyPath;
+  }
+  record.optionsAxis = prepareOptions({ repoRoot, diagnostics, ids });
+  save();
+  return batch2;
+}
+
+function capturePl6(ctx, capture) {
+  const { repoRoot, diagnostics, ids, record, save, evidence } = ctx;
+  let ref, pl6Error;
+  try {
+    ref = capture("pl6", ["e2e/tools/capture_pl6_batch1.cjs"], {
+      TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: "3536",
+      TERMINAL_CI_OPTIONS_AXIS_CAPTURE: record.optionsAxis.required ? "1" : "0",
+      TERMINAL_CI_OPTIONS_CAPTURE_ID: `${ids.prefix}-options`,
+    });
+  } catch (error) { pl6Error = error; throw error; }
+  finally {
+    if (record.optionsAxis.required) {
+      try { record.optionsAxis.returned = archivePacket(repoRoot, OPTIONS_PACKET, path.join(diagnostics, ids.prefix + "-options.returned")); }
+      catch (error) {
+        record.optionsAxis.archiveError = error.message;
+        if (!pl6Error) throw error;
+      } finally { save(); }
+    }
+  }
+  finishOptions({ repoRoot, diagnostics, ids, record, evidence });
+  save();
+  return ref;
+}
+
+function captureVi(capture, ids, project) {
+  if (!project) return capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", ids.vi, "--port", "3537"], {});
+  if (!VI_PROJECTS.includes(project)) throw new Error("CI_SHARD_NAME");
+  const id = `${ids.vi}-${project}`;
+  return capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", id, "--port", "3537", "--project", project], {},
+    { id, cases: 10 });
+}
+
+async function captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline }) {
+  const { repoRoot, env, evidence, checkout, diagnostics, ids, record, save } = ctx;
+  if (batch2.required) {
+    const stdout = capture("batch2", ["e2e/tools/capture_pl6_batch2.cjs"], { TERMINAL_CROP_PORT: "3538" });
+    Object.assign(record.batch2, verifyBatch2Capture(repoRoot, batch2, stdout, record.actualCheckout.commit));
+    save();
+  }
+  await qualifyLegacyPackets({ repoRoot, env, evidence, checkout, spawnLegacy, diagnostics, ids, record, save, captureDeadline });
+}
+
+function verifyOperations(result, ids, expected) {
+  if (result.id !== ids.composition || result.cases.length !== 50 || result.operations.length !== expected.length
+      || expected.some(({ id, packet, cases, project }) => {
+        const ops = result.operations.filter(op => op.id === id && op.packet === packet);
+        return ops.length !== 1 || ops[0].cases.length !== cases
+          || (project && ops[0].cases.some(c => c?.execution?.project !== project));
+      })) throw new Error("CI_EVIDENCE_COMPOSITION");
+}
+
+// Composition, native qualification and re-validation: one process, one checkout.
+async function finalize(ctx, { refs, selections, expected, nativePlans, spawnNative, captureDeadline }) {
+  const { repoRoot, env, evidence, checkout, diagnostics, ids, record, save } = ctx;
+  const captureProfile = record.profile;
+  const input = { repoRoot, id: ids.composition, operations: refs, selections, profile: captureProfile };
+  record.state = "VALIDATING"; record.references = refs; save();
+  const validated = evidence.writeComposition(input); // Returns validation of its exact created bytes.
+  const compositionPath = `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`;
+  verifyOperations(validated, ids, expected);
+  const bytes = fs.readFileSync(path.join(repoRoot, compositionPath));
+  const expectedBytes = evidence.canonical({ schema: "terminal.visual-composition.v2", mode: "records",
+    id: ids.composition, profile: captureProfile, operations: refs, selections });
+  if (!bytes.equals(Buffer.from(expectedBytes))) throw new Error("CI_EVIDENCE_COMPOSITION_BYTES");
+  record.composition = { path: compositionPath, sha256: crypto.createHash("sha256").update(bytes).digest("hex"), selectedCases: 50 };
+  // Native qualification uses the same supervised owner after the exact PL6/VI bytes exist.
+  // Neither producer may change the other family or that already-validated composition.
+  await qualifyNativeEvidence({ repoRoot, env, evidence, checkout, spawnNative, diagnostics, ids, record, save, captureDeadline, plans: nativePlans });
+  if (!fs.readFileSync(path.join(repoRoot, compositionPath)).equals(bytes)) throw new Error("CI_EVIDENCE_COMPOSITION_BYTES_CHANGED");
+  // JSON identity alone cannot prove that referenced operation, image and current-source bytes survived.
+  const revalidated = evidence.readComposition({ repoRoot, compositionPath, expectedProfile: captureProfile });
+  verifyOperations(revalidated, ids, expected);
+  record.eod = { ...record.native.eod, state: record.native.eod.selection === "qualified" ? "QUALIFIED_UNCHANGED" : record.native.eod.state };
+  record.state = "VALIDATED"; save();
+  // Only successful full validation can select records for subsequent unit steps.
+  fs.appendFileSync(env.GITHUB_ENV, `TERMINAL_EVIDENCE_MODE=records\nTERMINAL_EVIDENCE_COMPOSITION=${compositionPath}\n`);
+  record.state = "SELECTED"; save();
+  return record;
+}
+
+function singleSelections(evidence, ids) {
+  const required = [...evidence.requirements("pl6"), ...evidence.requirements("vi")];
+  if (required.length !== 50 || new Set(required.map(c => c.key)).size !== 50) throw new Error("CI_EVIDENCE_REQUIREMENTS");
+  return required;
+}
+
+async function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env,
+  evidence, spawn = spawnSync, spawnLegacy = spawnAsync, spawnNative = spawnAsync, checkout = checkoutIdentity } = {}) {
+  evidence ||= require("./visualEvidence.cjs");
+  const ctx = begin({ repoRoot, env, evidence, checkout });
+  const { ids, record, save } = ctx;
+  try {
+    // Preserve both complete native baselines before any capture can change a peer.
+    const nativePlans = prepareNativePlans({ repoRoot, evidence });
+    const batch2 = preparePl6(ctx);
+    const captureDeadline = Date.now() + 84 * 60_000;
+    record.state = "CAPTURING"; save();
+    const capture = makeCapture(ctx, spawn);
+    const refs = [capturePl6(ctx, capture)];
+    refs.push(captureVi(capture, ids));
+    await captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline });
+    const required = singleSelections(evidence, ids);
+    const selections = required.map(c => ({ operationId: ids[c.packet], key: c.key }));
+    return await finalize(ctx, { refs, selections, nativePlans, spawnNative, captureDeadline,
+      expected: [{ id: ids.pl6, packet: "pl6", cases: 24 }, { id: ids.vi, packet: "vi", cases: 30 }] });
+  } catch (error) { fail(ctx, error); }
+}
+
+// One capture shard on its own runner. It never selects records: it only
+// retains its exact output bytes and the receipt the fan-in verifies.
+async function runShard(shard, { repoRoot = path.resolve(__dirname, "../../.."), env = process.env,
+  evidence, spawn = spawnSync, spawnLegacy = spawnAsync, checkout = checkoutIdentity } = {}) {
+  evidence ||= require("./visualEvidence.cjs");
+  if (!SHARDS.includes(shard)) throw new Error("CI_SHARD_NAME");
+  const ctx = begin({ repoRoot, env, evidence, checkout, suffix: "-shard-" + shard, requireEnvFile: false });
+  const { ids, record, save } = ctx;
+  try {
+    const bundle = shardBundleDirectory(env);
+    fs.mkdirSync(bundle, { recursive: false });
+    const before = treeSnapshot(repoRoot);
+    const batch2 = shard === "pl6" ? preparePl6(ctx) : null;
+    record.state = "CAPTURING"; save();
+    const capture = makeCapture(ctx, spawn);
+    let ref;
+    if (shard === "pl6") {
+      ref = capturePl6(ctx, capture);
+      await captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline: Date.now() + 84 * 60_000 });
+    } else ref = captureVi(capture, ids, shard.slice(3));
+    if (!same(checkout(repoRoot, env).actualCheckout, record.actualCheckout)) throw new Error("CI_SHARD_CHECKOUT_CHANGED");
+    const delta = treeDelta(before, treeSnapshot(repoRoot));
+    verifyShardDelta(ids, shard, delta);
+    if (!delta[ref.path] || delta[ref.path].after !== ref.sha256) throw new Error("CI_SHARD_REFERENCE");
+    for (const [name, change] of Object.entries(delta)) {
+      if (change.after === null) continue;
+      const bytes = boundedFile(repoRoot, name);
+      if (sha256(bytes) !== change.after) throw new Error("CI_SHARD_BYTES");
+      const target = path.join(bundle, "files", name);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, bytes, { flag: "wx" });
+    }
+    const receipt = { schema: SHARD_SCHEMA, shard, runId: env.GITHUB_RUN_ID, runAttempt: env.GITHUB_RUN_ATTEMPT,
+      checkout: record.actualCheckout, profile: record.profile, operationId: shardOperationId(ids, shard),
+      reference: ref, delta };
+    fs.writeFileSync(path.join(bundle, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n", { flag: "wx" });
+    record.receipt = { path: path.join(bundle, "receipt.json"), changedFiles: Object.keys(delta).length };
+    record.state = "SHARD_RETAINED"; save();
+    return record;
+  } catch (error) { fail(ctx, error); }
+}
+
+function stagedFiles(root, relative = "") {
+  const out = [];
+  for (const entry of fs.readdirSync(path.join(root, relative), { withFileTypes: true })) {
+    const name = relative ? relative + "/" + entry.name : entry.name;
+    if (entry.isSymbolicLink()) throw new Error("CI_CAPTURE_SYMLINK");
+    if (entry.isDirectory()) out.push(...stagedFiles(root, name));
+    else if (entry.isFile()) out.push(name);
+    else throw new Error("CI_CAPTURE_FILE_TYPE");
+  }
+  return out;
+}
+
+// Verify every shard against this exact checkout before any byte is applied.
+function readShards({ repoRoot, env, ids, record, staging }) {
+  const present = fs.readdirSync(staging).sort();
+  if (!same(present, [...SHARDS].sort())) throw new Error(`CI_SHARD_SET: ${present.join(",")}`);
+  const shards = SHARDS.map(shard => {
+    const directory = path.join(staging, shard);
+    const receipt = JSON.parse(boundedFile(directory, "receipt.json", 16 * 1024 * 1024));
+    const id = shardOperationId(ids, shard), packet = shard === "pl6" ? "pl6" : "vi";
+    if (receipt.schema !== SHARD_SCHEMA || receipt.shard !== shard) throw new Error(`CI_SHARD_IDENTITY: ${shard}`);
+    if (receipt.runId !== env.GITHUB_RUN_ID || receipt.runAttempt !== env.GITHUB_RUN_ATTEMPT) throw new Error(`CI_SHARD_RUN: ${shard}`);
+    if (!same(receipt.checkout, record.actualCheckout)) throw new Error(`CI_SHARD_CHECKOUT: ${shard}`);
+    if (!same(receipt.profile, record.profile)) throw new Error(`CI_SHARD_PROFILE: ${shard}`);
+    if (receipt.operationId !== id || receipt.reference?.path !== `${PR_CROPS}/${packet === "pl6" ? "b-pl-6-batch-1" : "terminal-visual-intelligence"}/${id}--operation.json`
+        || !/^[0-9a-f]{64}$/.test(receipt.reference?.sha256 || "")) throw new Error(`CI_SHARD_OPERATION: ${shard}`);
+    if (!receipt.delta || typeof receipt.delta !== "object" || Array.isArray(receipt.delta)) throw new Error(`CI_SHARD_DELTA: ${shard}`);
+    verifyShardDelta(ids, shard, receipt.delta);
+    if (receipt.delta[receipt.reference.path]?.after !== receipt.reference.sha256) throw new Error(`CI_SHARD_OPERATION: ${shard}`);
+    const expectedFiles = Object.entries(receipt.delta).filter(([, change]) => change.after !== null).map(([name]) => "files/" + name).sort();
+    const actualFiles = stagedFiles(directory).filter(name => name !== "receipt.json").sort();
+    if (!same(actualFiles, expectedFiles)) throw new Error(`CI_SHARD_BYTES: ${shard}`);
+    for (const [name, change] of Object.entries(receipt.delta))
+      if (change.after !== null && sha256(boundedFile(directory, "files/" + name)) !== change.after) throw new Error(`CI_SHARD_BYTES: ${shard}`);
+    return { shard, packet, id, directory, receipt, project: packet === "vi" ? shard.slice(3) : null };
+  });
+  // Defense in depth: the per-shard scopes above are already disjoint.
+  const owners = new Map();
+  for (const { shard, receipt } of shards) for (const name of Object.keys(receipt.delta)) {
+    if (owners.has(name)) throw new Error(`CI_SHARD_OVERLAP: ${owners.get(name)},${shard}: ${name}`);
+    owners.set(name, shard);
+  }
+  return shards;
+}
+
+function applyShards(repoRoot, shards) {
+  const current = treeSnapshot(repoRoot);
+  // Every base digest must match this checkout before the first write.
+  for (const { shard, receipt } of shards) for (const [name, change] of Object.entries(receipt.delta))
+    if ((current[name] || null) !== change.before) throw new Error(`CI_SHARD_BASE: ${shard}: ${name}`);
+  for (const { directory, receipt } of shards) for (const [name, change] of Object.entries(receipt.delta)) {
+    const target = path.join(repoRoot, name);
+    if (change.before !== null) fs.rmSync(target);
+    if (change.after === null) continue;
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, boundedFile(directory, "files/" + name), { flag: "wx" });
+  }
+  const applied = treeSnapshot(repoRoot);
+  for (const { shard, receipt } of shards) for (const [name, change] of Object.entries(receipt.delta))
+    if ((applied[name] || null) !== change.after) throw new Error(`CI_SHARD_APPLY: ${shard}: ${name}`);
+  const touched = new Set(shards.flatMap(({ receipt }) => Object.keys(receipt.delta)));
+  for (const name of new Set([...Object.keys(current), ...Object.keys(applied)]))
+    if (!touched.has(name) && current[name] !== applied[name]) throw new Error(`CI_SHARD_APPLY: ${name}`);
+}
+
+async function runFanIn({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env,
+  evidence, spawnNative = spawnAsync, checkout = checkoutIdentity } = {}) {
+  evidence ||= require("./visualEvidence.cjs");
+  const ctx = begin({ repoRoot, env, evidence, checkout });
+  const { ids, record, save } = ctx;
+  try {
+    const shards = readShards({ repoRoot, env, ids, record, staging: shardStagingDirectory(env) });
+    record.shards = Object.fromEntries(shards.map(({ shard, receipt }) => [shard,
+      { operationId: receipt.operationId, reference: receipt.reference, changedFiles: Object.keys(receipt.delta).length }]));
+    // Native baselines precede every applied byte, exactly as they precede capture in run().
+    const nativePlans = prepareNativePlans({ repoRoot, evidence });
+    record.state = "APPLYING"; save();
+    applyShards(repoRoot, shards);
+    const required = singleSelections(evidence, ids);
+    const viByProject = Object.fromEntries(shards.filter(s => s.packet === "vi").map(s => [s.project, s.id]));
+    const selections = required.map(c => {
+      if (c.packet === "pl6") return { operationId: ids.pl6, key: c.key };
+      if (!viByProject[c.project]) throw new Error("CI_EVIDENCE_REQUIREMENTS");
+      return { operationId: viByProject[c.project], key: c.key };
+    });
+    const refs = shards.map(({ receipt }) => receipt.reference);
+    return await finalize(ctx, { refs, selections, nativePlans, spawnNative, captureDeadline: Date.now() + 84 * 60_000,
+      expected: shards.map(({ id, packet, project }) => ({ id, packet, cases: packet === "pl6" ? 24 : 10, project })) });
+  } catch (error) { fail(ctx, error); }
+}
+
+module.exports = { operationIds, reference, checkoutIdentity, recordCheckout, run, runShard, runFanIn, SHARDS, VI_PROJECTS,
+  shardOperationId, treeSnapshot, treeDelta, verifyShardDelta, readShards, applyShards, batch2Plan, verifyBatch2Capture,
   eodPacket, eodReceipt, gexPacket, EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS,
   NATIVE_PACKETS, nativeDefinition, nativeSources, readNativePacket, qualifiedNativePacket,
   nativeImages, nativePacketInventory, prepareNativePlans, archiveNativePacket, verifyNativeHistory, qualifyNativeEvidence, superviseNative,
@@ -1158,6 +1420,8 @@ if (require.main === module) {
   Promise.resolve().then(() => {
     if (process.argv.length === 3 && process.argv[2] === "--checkout-only") return recordCheckout();
     if (process.argv.length === 2) return run();
+    if (process.argv.length === 3 && process.argv[2] === "--fan-in") return runFanIn();
+    if (process.argv.length === 4 && process.argv[2] === "--shard") return runShard(process.argv[3]);
     throw new Error("CI_EVIDENCE_ARGUMENT");
   }).catch(error => { console.error(error.stack || error.message); process.exitCode = 1; });
 }
