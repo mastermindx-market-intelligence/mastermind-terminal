@@ -5,6 +5,7 @@ import type { Ack, ChartCommandTarget, ChartCommandV2 } from "../lib/chartBus";
 import { normalizeDrawings, type Drawing } from "../lib/drawings";
 import { AI_DRAWING_SCHEMA } from "../lib/drawingAiPersistence";
 import { parsePersistedDrawings, validDrawingOperationId } from "../lib/drawingPersistence";
+import { PACE_MS } from "../lib/conductorState";
 
 const clientErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -35,7 +36,7 @@ const point = (i: number, p: number) => ({ t: Date.parse(bars[i][0]) / 1000, p }
 const human = { id: "human_reference", source: "user", kind: "hline", color: "#94a3b8", width: 1,
   points: [{ t: bars[360][0], p: 105 }] };
 const structureParams = suiteDefaults("structure");
-for (const module of SUITE_META.structure.modules) structureParams[`${module.key}.on`] = false;
+for (const suiteModule of SUITE_META.structure.modules) structureParams[`${suiteModule.key}.on`] = false;
 Object.assign(structureParams, { "sr.on": true, "sr.sensitivity": "low", "sr.minTouches": 2, "sr.bufferZone": false, "sr.labels": true });
 
 type Step = Pick<ChartCommandV2, "op" | "args" | "id" | "caption">;
@@ -469,7 +470,12 @@ test("normal-motion queue completes 24 drawings and cancellation preserves the a
     args: { kind: "hline", points: [point(400, 100 + i)] }, caption: `Paced boundary ${i + 1}` }));
   const started = Date.now();
   await send(page, mirrors, "paced-full", commands);
-  await accepted(mirrors, "paced-full", 24, 20_000);
+  // Each command waits PACE_MS before applying. Allow a bounded 10s for the
+  // real drawing updates, rendering and state POSTs after that deliberate wait.
+  const completionBudgetMs = commands.length * PACE_MS + 10_000;
+  await accepted(mirrors, "paced-full", commands.length, completionBudgetMs);
+  expect(receipts(mirrors, "paced-full").map(ack => ack.seq).sort((a, b) => a - b))
+    .toEqual(commands.map((_, i) => i));
   expect(Date.now() - started).toBeGreaterThan(10_000);
   await expect(page.locator('.pane.on .drawing-layer [data-id^="ai_paced_"]')).toHaveCount(24);
   const next = commands.map((command, i) => ({ ...command, id: `ai_cancel_${i}` }));

@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-repair/terminal
+
+ ✓ lib/__tests__/chartQueueStopScope.test.ts (15 tests) 19ms
+ ✓ lib/__tests__/chartBus.test.ts (32 tests) 36ms
+ ✓ lib/__tests__/conductor.test.ts (22 tests) 79ms
+ ✓ lib/__tests__/chartCommandContinuation.test.tsx (21 tests) 44ms
+
+ Test Files  4 passed (4)
+      Tests  90 passed (90)
+   Start at  01:23:09
+   Duration  1.55s (transform 855ms, setup 0ms, collect 2.18s, tests 179ms, environment 604ms, prepare 386ms)
+
