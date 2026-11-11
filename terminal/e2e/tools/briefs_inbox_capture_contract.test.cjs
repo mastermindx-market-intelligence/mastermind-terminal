@@ -6,11 +6,39 @@ const assert = require("node:assert/strict");
 const { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, unlinkSync } = require("node:fs");
 const { tmpdir } = require("node:os");
 const { join, dirname } = require("node:path");
+const { runInNewContext } = require("node:vm");
 const { PNG } = require("pngjs");
+const { installInboxPreferences } = require("./capture_b_f11_7_recurring_briefs.cjs");
 const { SCHEMA, CONTRACT, PACKET_PATH, MANIFEST, SHOTS, VIEWPORTS, SOURCE_FILES, sha256,
   sourceHashes, validateInboxPacket, readInboxPacket } = require("./briefs_inbox_capture_contract.cjs");
 
 const versions = { next: "16.4.6", playwright: "1.61.1" };
+for (const lang of ["en", "zh"]) for (const rootExists of [false, true]) {
+  test(`serialized ${lang} preferences tolerate HTML root initially ${rootExists ? "present" : "absent"}`, () => {
+    const storage = new Map(), attributes = new Map(), listeners = [];
+    const root = { setAttribute: (key, value) => attributes.set(key, value) };
+    const document = { documentElement: rootExists ? root : null,
+      addEventListener: (name, callback, options) => listeners.push({ name, callback, options }) };
+    // Execute the same standalone function Playwright serializes, before a
+    // parser-created document element exists. This launches no browser.
+    runInNewContext(`(${installInboxPreferences.toString()})(${JSON.stringify(lang)})`, {
+      document, localStorage: { setItem: (key, value) => storage.set(key, value) },
+    });
+    assert.deepEqual(Object.fromEntries(storage), { "mm.lang": lang, theme: "dark", theme_auto: "0" });
+    if (!rootExists) {
+      assert.equal(attributes.size, 0);
+      assert.equal(listeners.length, 1);
+      assert.equal(listeners[0].name, "DOMContentLoaded");
+      assert.equal(listeners[0].options.once, true);
+      document.documentElement = root;
+      listeners[0].callback();
+    } else assert.equal(listeners.length, 0);
+    assert.deepEqual(Object.fromEntries(attributes), {
+      "data-theme": "dark", "data-lang": lang, lang: lang === "zh" ? "zh-CN" : "en",
+    });
+  });
+}
+
 function fixture() {
   const image = new PNG({ width: 3, height: 2 });
   image.data.fill(255);

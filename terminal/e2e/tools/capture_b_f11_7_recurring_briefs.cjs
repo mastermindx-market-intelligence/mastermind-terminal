@@ -131,6 +131,23 @@ async function assertState(page, shot) {
   return inbox;
 }
 
+function installInboxPreferences(lang) {
+  localStorage.setItem("mm.lang", lang);
+  localStorage.setItem("theme", "dark");
+  localStorage.setItem("theme_auto", "0");
+  const apply = () => {
+    const root = document.documentElement;
+    if (!root) return;
+    root.setAttribute("data-theme", "dark");
+    root.setAttribute("data-lang", lang);
+    root.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
+  };
+  // Playwright init scripts can run before the HTML root has been created.
+  // Storage still seeds the application before its scripts execute.
+  if (document.documentElement) apply();
+  else document.addEventListener("DOMContentLoaded", apply, { once: true });
+}
+
 async function captureCase(browser, shot, stage) {
   const viewport = VIEWPORTS[shot.viewport];
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1,
@@ -142,14 +159,7 @@ async function captureCase(browser, shot, stage) {
     page.setDefaultTimeout(45_000);
     page.on("pageerror", error => browserErrors.push(error.message));
     await installInputs(page, shot.kind === "list" ? LIST_DELIVERIES : [], reads, writes, invalidReads);
-    await page.addInitScript(lang => {
-      localStorage.setItem("mm.lang", lang);
-      localStorage.setItem("theme", "dark");
-      localStorage.setItem("theme_auto", "0");
-      document.documentElement.setAttribute("data-theme", "dark");
-      document.documentElement.setAttribute("data-lang", lang);
-      document.documentElement.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
-    }, shot.lang);
+    await page.addInitScript(installInboxPreferences, shot.lang);
     await page.goto(BASE + "/alerts?lang=" + shot.lang, { waitUntil: "domcontentloaded", timeout: 90_000 });
     const inbox = await assertState(page, shot);
     await page.evaluate(async () => { await document.fonts.ready; });
@@ -240,5 +250,5 @@ async function main(args = process.argv.slice(2)) {
     checkout, runtime, stage: stageRoot, producerActivation: false, productionAcceptance: false } }));
 }
 
-module.exports = { main };
+module.exports = { main, installInboxPreferences };
 if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });

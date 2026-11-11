@@ -1,0 +1,55 @@
+$ node --check e2e/tools/capture_b_f11_7_recurring_briefs.cjs
+
+exit=0
+$ node --test e2e/tools/briefs_inbox_capture_contract.test.cjs
+✔ serialized en preferences tolerate HTML root initially absent (4.37731ms)
+✔ serialized en preferences tolerate HTML root initially present (1.090597ms)
+✔ serialized zh preferences tolerate HTML root initially absent (1.15224ms)
+✔ serialized zh preferences tolerate HTML root initially present (0.982094ms)
+✔ accepts the exact synthetic eight-case matrix with separately bound crop geometry (6.346617ms)
+✔ rejects historical packet schema (1.59163ms)
+✔ rejects historical scope (0.563116ms)
+✔ rejects producer activation (0.53946ms)
+✔ rejects production acceptance (0.556565ms)
+✔ rejects unclosed browser (1.243106ms)
+✔ rejects unsettled server (0.671127ms)
+✔ rejects incomplete context cleanup (0.525529ms)
+✔ rejects missing case (0.518549ms)
+✔ rejects duplicate case (0.664547ms)
+✔ rejects path outside the exact inventory (0.64614ms)
+✔ rejects extra case (0.614382ms)
+✔ rejects source drift (0.397556ms)
+✔ rejects undeclared source (0.567692ms)
+✔ rejects image hash drift (0.431147ms)
+✔ rejects image dimension drift (1.093721ms)
+✔ rejects crop dimension drift (0.743786ms)
+✔ rejects viewport drift (0.52654ms)
+✔ rejects runtime drift (0.29265ms)
+✔ rejects missing contract (0.365348ms)
+✔ rejects no contract read (5.146126ms)
+✔ rejects fractional contract read count (0.870477ms)
+✔ rejects unexpected mutation (0.626491ms)
+✔ rejects subscription controls (0.590436ms)
+✔ rejects hidden development indicator (0.372219ms)
+✔ rejects browser error (0.343986ms)
+✔ rejects unsettled inbox (0.465169ms)
+✔ rejects changed state text (0.6729ms)
+✔ decodes and rejects a truncated PNG even when its recorded hash matches (0.548573ms)
+✔ decodes and rejects a corrupt PNG even when its recorded hash matches (0.43295ms)
+✔ reads only a complete regular-file packet on disk (5.46283ms)
+✔ rejects an extra file in the selected packet directory (1.617919ms)
+✔ rejects a symlink image instead of following it (2.565411ms)
+✔ rejects a symlink packet directory (1.393132ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 772.424381
+
+exit=0
+$ ./node_modules/.bin/eslint e2e/tools/capture_b_f11_7_recurring_briefs.cjs e2e/tools/briefs_inbox_capture_contract.test.cjs
+
+exit=0

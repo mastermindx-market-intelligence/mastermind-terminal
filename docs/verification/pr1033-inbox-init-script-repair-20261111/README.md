@@ -1,0 +1,7 @@
+# Correct the active-inbox capture initialization boundary
+
+The title-selector correction reached the real inbox on [CI42984818721](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42984818721). The capture then correctly refused a page error: `Cannot read properties of null (reading setAttribute)`. Digest-verified artifact13838549681 retains the exact failed proof at checkout `d52323a1cca4e03aff6aab5887d4e19d2371377e`, tree `fa9c34e9ae9a19d503265532e6f5172ce2c35289`. Browser and server cleanup completed; no qualified packet was imported.
+
+The producer init script directly accessed document.documentElement before the browser parser created it. Executing that exact prior serialized function against a null root reproduces the same TypeError. The correction seeds localStorage immediately, applies attributes immediately when a root exists, and otherwise applies them once at DOMContentLoaded. Both EN/ZH and both root states are covered by four new browser-free serialization regressions. All34 existing strict packet-contract tests also passed; Node syntax and affected ESLint passed.
+
+The original feature, selectors, eight-view matrix, state assertions, browser-error refusal, runtime/source/image locks, process owner and workflow invocation remain unchanged. No page error is suppressed. Hosted capture remains the next proof. Original mixed evidence and nullable language compatibility remain historical/current as previously documented; no subscription producer or production activation is claimed.
