@@ -638,6 +638,20 @@ describe("reliability", () => {
       not_stated: "siUniverseNotStated",
     });
   });
+
+  it("N-3 — reliability(null) reads not_stated, never a low coerced from 0", () => {
+    // The exported helper had no shipped consumer, but it is exactly the trap
+    // an integrator (lane 3) could import: a null count is NOT a measured 0 —
+    // same law as groupReliability. Real numbers keep the threshold
+    // derivation pinned by the boundaries test above; nothing else changes.
+    expect(reliability(null)).toBe("not_stated");
+    expect(reliability(undefined)).toBe("not_stated");
+    // A MEASURED 0 is still low; the derivation for real numbers is untouched.
+    expect(reliability(0)).toBe("low");
+    expect(reliability(5)).toBe("low");
+    expect(reliability(6)).toBe("med");
+    expect(reliability(12)).toBe("high");
+  });
 });
 
 describe("filterGroups", () => {
@@ -1212,6 +1226,21 @@ describe("rows increment — hostile rows never throw, soft cells never invalida
     const read = confluenceSp500FromCarriedBlock(carried(doc));
     // A duplicate key is an envelope failure: no partial row set, ever — the
     // key is the row's identity for hrefs, expansion state and leagues.
+    expect(read).toEqual({ state: "unavailable", reason: "invalid_shape" });
+  });
+
+  it("N-4 — a key repeated across TWO arrays of one block fails the whole block (invalid_shape)", () => {
+    // r2 N-4: the seenKeys set spans the block's named arrays (one identity
+    // space — the producer's detail pages all land in one key-keyed
+    // directory), so a sector key colliding with a subsector key is the same
+    // envelope failure as a within-array duplicate. The within-array case is
+    // pinned above; this pins the cross-array scope.
+    const doc = mutateSp500((data) => {
+      const rows = data.subsectors as Record<string, unknown>[];
+      const sectors = data.sectors as Record<string, unknown>[];
+      (sectors[0] as Record<string, unknown>).key = rows[0]!.key;
+    });
+    const read = confluenceSp500FromCarriedBlock(carried(doc));
     expect(read).toEqual({ state: "unavailable", reason: "invalid_shape" });
   });
 });

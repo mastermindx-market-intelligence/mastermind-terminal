@@ -24,7 +24,7 @@ vi.mock("@/lib/i18n", async (orig) => {
 
 import { SectorCallsBoard } from "@/components/sector-intelligence/depth/SectorCallsBoard";
 import { SectorFlowMatrix } from "@/components/sector-intelligence/depth/SectorFlowMatrix";
-import { SectorThemeCompare } from "@/components/sector-intelligence/depth/SectorThemeCompare";
+import { SectorThemeCompare, fmtThemeBreadth } from "@/components/sector-intelligence/depth/SectorThemeCompare";
 import { SectorConfluenceUniverses } from "@/components/sector-intelligence/depth/SectorConfluenceUniverses";
 import { DepthUnavailable } from "@/components/sector-intelligence/depth/DepthUnavailable";
 import type { ThemeRowsRead } from "@/lib/sectorDepthThemeRows";
@@ -193,6 +193,31 @@ describe("depth components, interactive mounts (jsdom)", () => {
     });
     host.remove();
     vi.unstubAllGlobals();
+  });
+
+  it("N7/O9 — the all-history window keeps the width-derived thinning gap between axis dates", async () => {
+    // r2 O9: reverting the thin gap to a fixed 56 survived the static suite —
+    // the DEFAULT window never gets dense enough at 640px for the gap to
+    // bind. The densest window (all history, 252 sessions over ~557px of
+    // plot) does: the gap between consecutive KEPT labels must stay at least
+    // one full label width (10 ISO chars ≈ 66px) plus air = 74px, exactly the
+    // value the component derives (xLabelW + 8). A 56px gap lets two dates
+    // sit closer than one label — the r1 collision ("2026-02-132026-03-06").
+    await mount(<SectorThemeCompare history={capturedHistory} labels={{}} />);
+    const all = Array.from(host.querySelectorAll("button")).find((b) =>
+      /All history|全部历史/.test(b.textContent ?? ""),
+    );
+    expect(all).toBeDefined();
+    await act(async () => {
+      all!.click();
+    });
+    const xs = [...host.innerHTML.matchAll(/class="[^"]*axisX[^"]*"[^>]*x="([0-9.]+)"/g)]
+      .map((m) => Number(m[1]))
+      .sort((a, b) => a - b);
+    expect(xs.length).toBeGreaterThan(6); // the densest window actually thins
+    for (let i = 1; i < xs.length; i++) {
+      expect(xs[i]! - xs[i - 1]!).toBeGreaterThanOrEqual(74);
+    }
   });
 
   it("R2-S1 — an S&P payload mounted under the Nasdaq tab shows the honest unavailable panel, never the S&P rows", async () => {
@@ -616,15 +641,16 @@ describe("rows increment — universes board from carried blocks (static renders
       subsectors: confluenceSp500FromCarriedBlock({ status: "available", value: doc }),
     };
     const markup = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
-    // The FIRST row's count span (rows render in payload order): the
-    // not-stated word — the old surface printed a bare dash here, and a null-
-    // coercing regression would print "0 names". (A measured 0 elsewhere —
-    // e.g. roll-up sector rows — legitimately keeps "0 names"; the assertion
-    // stays scoped to this row's span.)
+    // The FIRST row's count span (rows render in payload order): the BARE
+    // not-stated word — the old surface printed a bare dash here, a null-
+    // coercing regression would print "0 names", and r2's O12 mutation showed
+    // "not stated names" passing a mere substring check. The span's text node
+    // runs to the nested reliability span, so exact equality pins the word.
+    // (A measured 0 elsewhere — e.g. roll-up sector rows — legitimately keeps
+    // "0 names"; the assertion stays scoped to this row's span.)
     const firstCount = markup.match(/class="[^"]*nMembers[^"]*"[^>]*>([^<]*)/);
     expect(firstCount).not.toBeNull();
-    expect(firstCount![1]).toContain("not stated");
-    expect(firstCount![1]).not.toMatch(/\b0\b/);
+    expect(firstCount![1]).toBe("not stated · ");
     // The standalone N COLUMN cell (fmtCount, not fmtCountNoun) on the same
     // row: the word alone — a null-coercing regression there prints a bare
     // "0" (review r1 mutation M9 survived the noun-span assertions alone).
@@ -636,8 +662,7 @@ describe("rows increment — universes board from carried blocks (static renders
       const zh = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
       const zhFirst = zh.match(/class="[^"]*nMembers[^"]*"[^>]*>([^<]*)/);
       expect(zhFirst).not.toBeNull();
-      expect(zhFirst![1]).toContain("未载明");
-      expect(zhFirst![1]).not.toContain("0 ");
+      expect(zhFirst![1]).toBe("未载明 · ");
       const zhNCell = zh.match(/data-label="数"[^>]*><span class="[^"]*num[^"]*">([^<]*)/);
       expect(zhNCell).not.toBeNull();
       expect(zhNCell![1]).toBe("未载明");
@@ -929,6 +954,35 @@ describe("rows increment — the carried theme table from the real specimen", ()
     } finally {
       G.__SD_LANG = "en";
     }
+  });
+
+  it("N-11 — breadth prints ONE form at every value in [0,1] and the not-stated word outside it", () => {
+    const ns = "not stated";
+    // The column's own form everywhere is ONE decimal (0.0%, 91.7%, …) — the
+    // top of the range is no exception: 0.9996 and 1 both read "100.0%"
+    // (r2 N-11: the old >=100 branch printed a whole-number "100%" for 1
+    // while 0.9996 printed "100.0%").
+    expect(fmtThemeBreadth(0, ns)).toBe("0.0%");
+    expect(fmtThemeBreadth(0.9996, ns)).toBe("100.0%");
+    expect(fmtThemeBreadth(1, ns)).toBe("100.0%");
+    // Outside the 0-1 share the producer establishes (a share of members
+    // above their own 50-day MA cannot leave [0,1]): the not-stated word —
+    // never a figure above 100%, never a clamped figure.
+    expect(fmtThemeBreadth(1.0001, ns)).toBe(ns);
+    expect(fmtThemeBreadth(-0.01, ns)).toBe(ns);
+    expect(fmtThemeBreadth(null, ns)).toBe(ns);
+    expect(fmtThemeBreadth(Number.NaN, ns)).toBe(ns);
+    expect(fmtThemeBreadth("0.5" as unknown as number, ns)).toBe(ns);
+    // And the rendered cell wires the same law: an out-of-range breadth on a
+    // real row reads the localized not-stated word, with no percent figure.
+    const doc = structuredClone(themeRowsValueFx) as { rows: Record<string, unknown>[] };
+    const rid = doc.rows[0]!.id as string;
+    (doc.rows[0]!.state as Record<string, unknown>).breadth = 1.0001;
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    const cell = markup.split(`data-r-id="${rid}"`)[1]?.split('data-k="breadth"')[1]?.split("</td>")[0] ?? "";
+    expect(cell).toContain(">not stated");
+    expect(cell).not.toMatch(/\d/);
   });
 
   it("N6 — a lone relative number names its side (vs benchmark) in both locales", () => {
@@ -1238,12 +1292,14 @@ describe("S1 — rendered hrefs are published routes; the S&P sector roll-up doe
       await act(async () => {
         tab!.click();
       });
-      // Expand the first table row so its detail link renders too (rows are
-      // collapsed by default; the roll-up cards link unconditionally).
-      const expand = host.querySelector<HTMLButtonElement>("button[aria-expanded][aria-controls]");
-      if (expand) {
+      // SF-1 (r2): expand EVERY collapsed row on the tab — the same loop the
+      // hostile-key test uses — so every composed href is collected. The old
+      // first-only expansion checked 57 of the 169 hrefs (it never looked at
+      // any non-first subsector or basket detail link).
+      const expands = host.querySelectorAll<HTMLButtonElement>("button[aria-expanded][aria-controls]");
+      for (const b of expands) {
         await act(async () => {
-          expand.click();
+          b.click();
         });
       }
       for (const a of host.querySelectorAll("a[href]")) hrefs.push(a.getAttribute("href")!);
@@ -1252,7 +1308,12 @@ describe("S1 — rendered hrefs are published routes; the S&P sector roll-up doe
       <SectorThemeCompare history={capturedHistory} labels={{}} themeRows={themeRowsFromCarriedBlock(servedRows.theme_rows)} />,
     );
     for (const m of themeMarkup.matchAll(/href="([^"]+)"/g)) hrefs.push(m[1]!);
-    expect(hrefs.length).toBeGreaterThan(50); // 65 subsectors + 6 nasdaq + 49 theme after the fix
+    // SF-1: every row expanded on every tab — 65 S&P subsector detail + 6
+    // Nasdaq roll-up + 49 basket detail + 49 theme-table hrefs = 169 (the
+    // old first-only expansion collected 57: 1 + 6 + 0 + 1 + 49). The exact
+    // count pins that the expansion actually happened; the registry check
+    // below then covers every composed href, not a first-row sample.
+    expect(hrefs.length).toBe(169);
     const missing = hrefs.filter((h) => !registry.has(h));
     expect(missing).toEqual([]);
   });
