@@ -28,7 +28,7 @@ for (const lang of ["en", "zh"] as const) {
     }, { lang, theme: zh ? "light" : "dark" });
     await page.route(url => url.pathname === "/data/NVDA.fund.json", route => route.fulfill({ json: fund }));
     await page.goto("/analysis?symbol=NVDA&page=statements");
-    await page.getByRole("button", { name: zh ? "资产负债表" : "Balance sheet", exact: true }).click();
+    await page.getByRole("button", { name: zh ? "资产负债" : "Balance", exact: true }).click();
     const table = page.locator(".fin-table");
     const assets = zh ? "总资产" : "Total assets";
     const liabilities = zh ? "总负债" : "Total liabilities";
@@ -109,7 +109,7 @@ for (const lang of ["en", "zh"] as const) {
     }, { lang, theme: zh ? "light" : "dark" });
     await page.route(url => url.pathname === "/data/0700.HK.fund.json", route => route.fulfill({ json: historyFund }));
     await page.goto("/analysis?symbol=0700.HK&page=statements");
-    await page.getByRole("button", { name: zh ? "资产负债表" : "Balance sheet", exact: true }).click();
+    await page.getByRole("button", { name: zh ? "资产负债" : "Balance", exact: true }).click();
     await page.getByRole("button", { name: zh ? "季度" : "Quarterly", exact: true }).click();
     const table = page.locator(".fin-table");
     const pager = page.locator(".fin-table-pager");
