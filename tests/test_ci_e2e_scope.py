@@ -35,6 +35,17 @@ def test_full_and_focused_shard_contracts():
             assert (ROOT / "terminal" / name).is_file(), name
 
 
+def test_shared_screener_layout_covers_all_contract_viewports():
+    assert [row["projects"] for row in scope.SCREENER_LAYOUT_MATRIX] == [
+        "--project=desktop", "--project=tablet", "--project=mobile"
+    ]
+    assert [row["shard"] for row in scope.SCREENER_LAYOUT_MATRIX] == [
+        "screener-desktop", "screener-tablet", "screener-mobile"
+    ]
+    assert all(row["specs"].split() == list(scope.SCREENER_SPECS)
+               for row in scope.SCREENER_LAYOUT_MATRIX)
+
+
 @pytest.mark.parametrize("path", sorted(scope.SCOPED_PATHS))
 def test_only_reviewed_existing_paths_qualify(path):
     assert (ROOT / path).is_file(), path
@@ -230,14 +241,15 @@ def test_real_synthetic_pr_merge_uses_exact_parent_and_source_diff(tmp_path, mon
     merge_sha = call("rev-parse", "HEAD")
     monkeypatch.chdir(repo)
     assert scope.select("pull_request", MERGE_REF, merge_sha, head_sha) == (
-        "focused", "reviewed_screener_presentation_or_tests"
+        "focused", "reviewed_screener_shared_layout"
     )
     assert scope.select("merge_group", MERGE_REF, merge_sha, head_sha)[0] == "full"
 
 
 def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
                                            tamper_with_selector=False, delete_css=False,
-                                           base_selector_source=None, expected_exit=0):
+                                           base_selector_source=None, expected_exit=0,
+                                           modified_paths=None):
     """Run actual GitHub Actions shell after a synthetic two-parent PR merge."""
     import os
 
@@ -255,6 +267,12 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
     css = repo / "terminal" / "components" / "screener" / "CrossMarketStrip.module.css"
     css.parent.mkdir(parents=True)
     css.write_text(".x { padding: 1px; }\n")
+    if modified_paths is None:
+        modified_paths = ("terminal/components/screener/CrossMarketStrip.module.css",)
+    for relative in modified_paths:
+        source = repo / relative
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("baseline source\n")
     (repo / "README.md").write_text("root\n")
     if install_base_selector:
         script = repo / "scripts" / "ci_e2e_scope.py"
@@ -267,7 +285,8 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
     if delete_css:
         css.unlink()
     else:
-        css.write_text(".x { padding: 2px; }\n")
+        for relative in modified_paths:
+            (repo / relative).write_text("modified source\n")
     if tamper_with_selector:
         assert install_base_selector
         # Candidate script deliberately lies; immutable protected script must
@@ -302,6 +321,9 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
         assert output.read_text() == ""
         return None, None, result.stderr
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    if fields["mode"] == "focused":
+        assert json.loads(fields["prodbuild_matrix"]) == {"include": []}
+        assert fields["prodbuild_count"] == "0"
     return fields["mode"], json.loads(fields["matrix"])["include"], result.stdout
 
 
@@ -314,13 +336,61 @@ def test_real_workflow_bootstrap_cannot_use_new_unprotected_selector(tmp_path):
     assert "immutable protected selector unavailable" in stdout
 
 
-def test_real_workflow_uses_protected_selector_for_scoped_css(tmp_path):
+@pytest.mark.parametrize("path", [
+    "terminal/components/screener/fundamentalScreen.module.css",
+    "terminal/components/screener/CrossMarketStrip.module.css",
+    "terminal/components/screener/TechnicalScreenBar.module.css",
+])
+def test_real_workflow_uses_protected_selector_for_scoped_css(tmp_path, path):
     mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
-        tmp_path, install_base_selector=True
+        tmp_path, install_base_selector=True, modified_paths=(path,)
+    )
+    assert mode == "focused"
+    assert [row["projects"] for row in matrix] == [
+        "--project=desktop", "--project=tablet", "--project=mobile"
+    ]
+    assert "reviewed_screener_shared_layout" in stdout
+
+
+@pytest.mark.parametrize("path", [f"terminal/{name}" for name in scope.SCREENER_SPECS])
+def test_real_workflow_keeps_spec_only_changes_narrow(tmp_path, path):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, modified_paths=(path,)
     )
     assert mode == "focused"
     assert matrix == scope.FOCUSED_MATRIX
     assert "reviewed_screener_presentation_or_tests" in stdout
+
+
+@pytest.mark.parametrize("other,expected_mode", [
+    ("terminal/e2e/screener-cross-market.spec.ts", "focused"),
+    ("terminal/app/globals.css", "full"),
+])
+def test_real_workflow_shared_css_mixed_diff_preserves_scope(tmp_path, other, expected_mode):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, modified_paths=(
+            "terminal/components/screener/CrossMarketStrip.module.css", other,
+        ),
+    )
+    assert mode == expected_mode
+    if expected_mode == "focused":
+        assert matrix == scope.SCREENER_LAYOUT_MATRIX
+        assert "reviewed_screener_shared_layout" in stdout
+    else:
+        assert matrix == scope.FULL_MATRIX
+        assert "unknown_or_elevated_path" in stdout
+
+
+def test_unrecognized_focused_classification_falls_back_to_full(monkeypatch, tmp_path):
+    output = tmp_path / "output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    monkeypatch.setattr(scope, "select", lambda *args: ("focused", "unknown_reason"))
+    monkeypatch.setattr(scope, "ALLOWLIST_PATH", tmp_path / "no-allowlist")
+    scope.main()
+    fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    assert fields["mode"] == "full"
+    assert fields["reason"] == "unrecognized_focused_reason"
+    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
 
 
 def test_real_workflow_rejects_candidate_selector_tampering(tmp_path):

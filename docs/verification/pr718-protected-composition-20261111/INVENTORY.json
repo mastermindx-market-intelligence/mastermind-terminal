@@ -1,0 +1,14 @@
+{
+  "count": 2,
+  "files": {
+    "README.md": {
+      "bytes": 2279,
+      "sha256": "bdb79f0f61693d0eb0b176a106288666d8dcedfaeed6c39818c4c66f892d5480"
+    },
+    "composition.json": {
+      "bytes": 50475,
+      "sha256": "02ff40183bd1ecd69503df1e51722a44d66ac6764bf0918c2eef32dd18272d82"
+    }
+  },
+  "schema": "terminal.pr718.protected-composition-inventory.v1"
+}
