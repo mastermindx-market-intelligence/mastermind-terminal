@@ -1,0 +1,67 @@
+{
+  "archiveBytes": 444200,
+  "archiveSha256": "f145e91813acfbe36c9b29ea7def35ac7bedf46b97e868ee0ac8d0d88e23217c",
+  "files": {
+    "browser-command.json": {
+      "bytes": 882,
+      "sha256": "ce54bfc8bd78264edb2d9cc77edc5576423f74cb543c934bb8007269944ca1a5"
+    },
+    "browser-execution.json": {
+      "bytes": 320,
+      "sha256": "d91cdd5ed765122268254668e8ff3aa12579d9b4f36c8d7c9feaaaa552473ef0"
+    },
+    "browser-output/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "browser-report.json": {
+      "bytes": 19424,
+      "sha256": "a4d322002eb927a495703030d0455ebb2c68f9e2abf147d15a82a063eccea5a6"
+    },
+    "browser-source-after.json": {
+      "bytes": 521115,
+      "sha256": "dfc3c3f99d77fe5fdf3c8f3428005d2a79104c184d4407452df8734782ba5bae"
+    },
+    "browser-source-before.json": {
+      "bytes": 521115,
+      "sha256": "dfc3c3f99d77fe5fdf3c8f3428005d2a79104c184d4407452df8734782ba5bae"
+    },
+    "browser.log": {
+      "bytes": 2322,
+      "sha256": "405a6cb423af6915399ce29afc102dc62a0c04de6325a3cc79a859db205329d3"
+    },
+    "checks-final.json": {
+      "bytes": 678,
+      "sha256": "da424eb762b537fd3b8ed257ed971768e6ad1a2d8f4cd09dc2b8caaa284ec532"
+    },
+    "checks.json": {
+      "bytes": 520,
+      "sha256": "32c6cc10df80cc5a7dd88c215490c07a9dab94e0360379aec1b7f432af49a26d"
+    },
+    "lint-corrected.log": {
+      "bytes": 617,
+      "sha256": "2d8e4fc952d638c454ea401cc61a0db6f395f494d5520ddcd4288f8ec0eeb8cf"
+    },
+    "lint.log": {
+      "bytes": 962,
+      "sha256": "bb9bd8f76c8adb86946d0e511088048b7c432d880f4ca80752216ef3d889292c"
+    },
+    "natural-ci-diagnosis.json": {
+      "bytes": 902,
+      "sha256": "0d9d924d49b766fc9d191cb2f5fdc8d8b42b9c3348fe522ce3e675a92b5096f1"
+    },
+    "typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "typegen.log": {
+      "bytes": 59,
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    "unit.log": {
+      "bytes": 1681,
+      "sha256": "fc65870281c27009cc66258fe2c208df02d0c656bb9b74c9a68eb55ce8794a88"
+    }
+  },
+  "schema": "terminal_pr496_compare_evidence_inventory.v1"
+}

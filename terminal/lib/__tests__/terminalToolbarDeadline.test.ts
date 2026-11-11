@@ -180,6 +180,94 @@ describe("toolbar invocation deadline ownership", () => {
     expect(saveCalls.every((line) => /, toolbarBound\);(?:\s*\/\/.*)?\s*$/.test(line))).toBe(true);
   });
 
+
+  it("funds Saved Layouts after hosted read overhead while a late caller-bound invocation remains effect-free", async () => {
+    let nowMs = 1_000;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => nowMs);
+    const bound = createToolbarTestBound({ testStartedAtMs: nowMs, testTimeoutMs: 120_000 });
+    const fixture = () => {
+      let overflowOpen = false;
+      let savedLayoutsOpen = false;
+      let directReads = 0;
+      let overflowReads = 0;
+      const clicks: Array<{ target: string; timeout: number }> = [];
+      const hidden = { isVisible: async () => false, isEnabled: async () => false };
+      const snapshot = () => ({
+        mode: "overflow", revision: 3, settled: true, overflowOpen, backVisible: false,
+      });
+      const click = (target: string, effect: () => void) => ({
+        isVisible: async () => true,
+        isEnabled: async () => true,
+        click: async ({ timeout }: { timeout: number }) => {
+          clicks.push({ target, timeout });
+          nowMs += 250;
+          effect();
+        },
+      });
+      const directSave = { isVisible: async () => {
+        if (directReads++ === 0) nowMs += 1_800;
+        return false;
+      } };
+      const overflowSave = { isVisible: async () => {
+        if (overflowReads++ === 0) nowMs += 1_800;
+        return savedLayoutsOpen;
+      } };
+      const more = click("more", () => { overflowOpen = true; });
+      const layouts = click("layouts", () => { savedLayoutsOpen = true; });
+      const menu = {
+        isVisible: async () => overflowOpen,
+        locator: (selector: string) => {
+          if (selector === "[data-layout-save]") return overflowSave;
+          if (selector === '[data-toolbar-menu-action="layouts"]') return layouts;
+          return hidden;
+        },
+      } as unknown as Locator;
+      const page = {
+        isClosed: () => false,
+        viewportSize: () => ({ width: 1440, height: 900 }),
+        waitForFunction: async () => {
+          nowMs += 1_600;
+          return { jsonValue: async () => snapshot(), dispose: async () => {} };
+        },
+        getByTestId: () => more,
+        locator: (selector: string) => {
+          if (selector === ".chart-tabs") return { first: () => ({ evaluate: async () => snapshot() }) };
+          if (selector === '[data-toolbar-action="layouts"] .pop.show') return { locator: () => directSave };
+          if (selector === ".toolbar-overflow-pop.show") return menu;
+          return hidden;
+        },
+      } as unknown as Page;
+      return { page, menu, clicks, ready: () => savedLayoutsOpen };
+    };
+
+    try {
+      const funded = fixture();
+      const fundedIntent = createToolbarIntent(bound);
+      expect(fundedIntent.deadline).toBe(13_000);
+      await expect(openLayoutMenu(funded.page, fundedIntent)).resolves.toBe(funded.menu);
+      expect(funded.clicks.map(({ target }) => target)).toEqual(["more", "layouts"]);
+      expect(funded.clicks.every(({ timeout }) => timeout > 0)).toBe(true);
+      expect(funded.ready()).toBe(true);
+      expect(nowMs).toBeLessThan(fundedIntent.deadline);
+
+      // A fresh page keeps the original test clock; it cannot mint another 120 seconds.
+      nowMs = 110_000;
+      const late = fixture();
+      const lateIntent = createToolbarIntent(bound);
+      expect(lateIntent.deadline).toBe(118_000);
+      const failure = await openLayoutMenu(late.page, lateIntent)
+        .then(() => null, (error: Error) => error);
+      expect(failure).toBeInstanceOf(Error);
+      expect(failure!.message).toMatch(/^TOOLBAR_BUDGET_EXHAUSTED /);
+      expect(JSON.parse(failure!.message.slice(failure!.message.indexOf("{")))).toMatchObject({
+        mode: "overflow", revision: 3, settled: true, overflow_open: false,
+        budget_remaining_ms: 2_800, done: false, page_closed: false,
+      });
+      expect(late.clicks).toEqual([]);
+      expect(late.ready()).toBe(false);
+    } finally { clock.mockRestore(); }
+  });
+
   it("rejects a late W2-A menu route before effect instead of minting a fresh fallback window", async () => {
     const bound = createToolbarTestBound({
       testStartedAtMs: 1_000,

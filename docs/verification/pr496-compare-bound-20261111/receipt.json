@@ -1,0 +1,121 @@
+{
+  "schema": "terminal_pr496_compare_bound_repair.v1",
+  "operation": "terminal-pr-estate-support-20261111-c3",
+  "baseHead": "e9f7045e0fa06c5412e58e97e61b3ea73b470e2f",
+  "testedSourceTree": "815fba66fba0b2c41cec9847bf865979651cb8ce",
+  "sourceFiles": [
+    {
+      "path": "terminal/e2e/compare-anchor.spec.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "14e6bffe35e0a4a8b31f7d0efbe8e23f9ce4f186",
+      "sha256": "513976436e8879e6cfe07d7505eb85d61b9ecee5fcf79e88f8a4d9e8a066aefa"
+    },
+    {
+      "path": "terminal/lib/__tests__/terminalToolbarDeadline.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81c9e9d15a5b08c1297f8248d869f01e01f77e7d",
+      "sha256": "4bfe5c501978a5c64e8b5a56bdca00668d04b094715fb379583f84da05224c6f"
+    }
+  ],
+  "unitPassed": 37,
+  "controlledClockRegression": "The real desktop Saved Layouts route admits after 5,200 ms of initial reads within a 12-second invocation. A fresh page late in the same 120-second test rejects with 2,800 ms remaining before any click. This verifies the helper contract; the comparison browser cases verify consumer wiring.",
+  "browserCases": [
+    "desktop|pinned study: anchor + basis named, keyboard pins, scroll-proof, exact restore",
+    "desktop|falsifier: a later-loading leg never moves the anchor",
+    "desktop|withheld, missing and incompatible legs are disclosed",
+    "tablet|pinned study: anchor + basis named, keyboard pins, scroll-proof, exact restore",
+    "tablet|falsifier: a later-loading leg never moves the anchor",
+    "tablet|withheld, missing and incompatible legs are disclosed",
+    "mobile|pinned study: anchor + basis named, keyboard pins, scroll-proof, exact restore",
+    "mobile|falsifier: a later-loading leg never moves the anchor",
+    "mobile|withheld, missing and incompatible legs are disclosed"
+  ],
+  "browserExecution": {
+    "exit": 0,
+    "seconds": 510.31,
+    "sourceStable": true,
+    "sourceTreeStable": true,
+    "sourceTree": "815fba66fba0b2c41cec9847bf865979651cb8ce",
+    "lifecycle": {
+      "port": 57727,
+      "listenerReturncode": 1,
+      "listeners": "",
+      "listenerStderr": "",
+      "lockPathExists": true,
+      "lockOpenHandles": ""
+    }
+  },
+  "observedFiles": 4453,
+  "checks": [
+    {
+      "name": "lint-corrected",
+      "command": [
+        "npx",
+        "eslint",
+        "e2e/compare-anchor.spec.ts",
+        "lib/__tests__/terminalToolbarDeadline.test.ts"
+      ],
+      "exit": 0,
+      "seconds": 9.94,
+      "sourceTree": "815fba66fba0b2c41cec9847bf865979651cb8ce"
+    },
+    {
+      "name": "typegen",
+      "command": [
+        "npx",
+        "next",
+        "typegen"
+      ],
+      "exit": 0,
+      "seconds": 2.67,
+      "sourceTree": "815fba66fba0b2c41cec9847bf865979651cb8ce"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "seconds": 144.01,
+      "sourceTree": "815fba66fba0b2c41cec9847bf865979651cb8ce"
+    }
+  ],
+  "archiveSha256": "f145e91813acfbe36c9b29ea7def35ac7bedf46b97e868ee0ac8d0d88e23217c",
+  "originalFailure": {
+    "runId": 42993152340,
+    "attempt": 1,
+    "jobId": 130431691783,
+    "aggregateJobId": 130454716047,
+    "head": "e9f7045e0fa06c5412e58e97e61b3ea73b470e2f",
+    "mergeCheckout": "4e20d2f6c52087c7dfb0b87390d06911864cceb5",
+    "artifactId": 13845941992,
+    "artifactSha256": "49131620413b65553b97cae861223eb697dd594fb1c920d84d02c64f88cdf402",
+    "failedCase": "falsifier: a later-loading leg never moves the anchor",
+    "persistentAttempts": 3,
+    "neighborRetryPass": "pinned study: anchor + basis named, keyboard pins, scroll-proof, exact restore",
+    "toolbarClicksInFailedTraces": 0,
+    "initialReadSeconds": [
+      4.993,
+      5.184,
+      5.092,
+      5.185
+    ],
+    "remainingBudgetSeconds": [
+      2.311,
+      2.155,
+      2.165,
+      2.025
+    ],
+    "rootCause": "Unmigrated comparison callers minted unarmed 8s invocations; initial semantic/settled reads left less than the unchanged 3001ms two-stage admission floor."
+  },
+  "formalChangesRequested": [
+    5108504922,
+    5108886118
+  ],
+  "autoMergeEnabled": false,
+  "productionSourceChanged": false
+}
