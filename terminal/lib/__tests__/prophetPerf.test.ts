@@ -277,3 +277,88 @@ describe("Prophet PERF summary agrees with admitted plan rows", () => {
     expectUnchangedAdmission(value);
   });
 });
+
+describe("Prophet PERF calendar dates and source freshness", () => {
+  const planRows = (value: Record<string, unknown>) => value.plans as Array<Record<string, unknown>>;
+  const source = (value: Record<string, unknown>) => value.source as Record<string, unknown>;
+
+  function expectUnchangedAdmission(value: Record<string, unknown>) {
+    const before = cloneFixture(value);
+    const admitted = normalizeProphetPerfPayload(value);
+    expect(admitted).not.toBeNull();
+    expect(admitted!.source).toEqual(value.source);
+    expect(admitted!.plans).toEqual(value.plans);
+    expect(admitted!.summary).toEqual(value.summary);
+    expect(value).toEqual(before);
+    return admitted!;
+  }
+
+  it.each([
+    "2026-02-30", "1900-02-29", "2026-04-31", "2026-13-01",
+    "2026-00-01", "2026-01-00", "0000-01-01", "2026-9-18",
+    "2026-09-18T00:00:00Z", " 2026-09-18", "2026-09-18\n", "",
+  ])("rejects a noncanonical or nonexistent calendar date: %j", async (date) => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    planRows(value)[0].signal_date = date;
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it.each(["signal_date", "entry_date", "close_date", "asof"] as const)(
+    "validates the calendar for each admitted row's %s", async (field) => {
+      const value = cloneFixture(await fixtureFor("prophet_perf"));
+      planRows(value)[0][field] = "2026-13-01";
+      // Keep the same-field summary clock consistent so a clock mismatch does
+      // not hide missing calendar validation for close_date or asof.
+      if (field === "asof") source(value).latest_asof = "2026-13-01";
+      if (field === "close_date") source(value).latest_close_date = "2026-13-01";
+      expect(normalizeProphetPerfPayload(value)).toBeNull();
+    },
+  );
+
+  it.each([
+    ["latest_asof", "2026-09-17"],
+    ["latest_asof", "2026-09-19"],
+    ["latest_close_date", "2026-09-17"],
+    ["latest_close_date", "2026-09-19"],
+  ])("rejects a %s clock of %s that disagrees with the admitted rows", async (field, date) => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    expect(source(value)[field]).toBe("2026-09-18");
+    source(value)[field] = date;
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it.each(["2000-02-29", "2024-02-29", "0001-01-01", "9999-12-31"])(
+    "preserves a valid calendar date without inferring chronology: %s", async (date) => {
+      const value = cloneFixture(await fixtureFor("prophet_perf"));
+      planRows(value)[0].signal_date = date;
+      expectUnchangedAdmission(value);
+    },
+  );
+
+  it("preserves explicitly unavailable signal and entry dates", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    Object.assign(planRows(value)[0], {
+      signal_date: null, signal_date_unavailable_reason: "canonical_ledger_null",
+      entry_date: null, entry_date_unavailable_reason: "canonical_ledger_null",
+    });
+    expectUnchangedAdmission(value);
+  });
+
+  it("admits independent same-field maxima from different rows in any row order", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    planRows(value)[0].asof = "2026-09-25";
+    planRows(value)[1].close_date = "2026-09-27";
+    Object.assign(source(value), { latest_asof: "2026-09-25", latest_close_date: "2026-09-27" });
+    planRows(value).reverse();
+    expectUnchangedAdmission(value);
+  });
+
+  it("preserves stale and future-but-consistent source receipts without consulting today's date", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    value.stale = true;
+    planRows(value)[0].asof = "2999-01-02";
+    planRows(value)[0].close_date = "2999-01-01";
+    Object.assign(source(value), { latest_asof: "2999-01-02", latest_close_date: "2999-01-01" });
+    expect(expectUnchangedAdmission(value).stale).toBe(true);
+  });
+});

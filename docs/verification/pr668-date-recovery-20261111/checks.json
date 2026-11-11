@@ -1,0 +1,67 @@
+{
+  "schema": "prophet.perf-date-recovery.v1",
+  "base": "3192ddaec5f2a60ba4884306b57dc6f653d5edb9",
+  "sourceFiles": [
+    {
+      "path": "terminal/components/prophet/prophetPerfTypes.ts",
+      "beforeGitBlob": "116c3e3079aa319c58d88882f56446917c1ec356",
+      "beforeSha256": "48c956905e7bd1479e380143c3bcd3717409b41cdb6397b097edc977e98e9497",
+      "afterSha256": "57e93570d2466b795eab93c07e518b1ed3b8d259817e77335952b415a3cbac30"
+    },
+    {
+      "path": "terminal/lib/__tests__/prophetPerf.test.ts",
+      "beforeGitBlob": "8d52b8196f1bb2abf4c3b3e485d135df843651e1",
+      "beforeSha256": "19fb0eec617a14fd2843d622b75b7bd13516625214fb82760dbe714861f56b74",
+      "afterSha256": "eac2d7719cce346961c75969b7c45233405e5431a9c4321ff01bae5dc1051b9e"
+    }
+  ],
+  "beforeCases": {
+    "passed": 28,
+    "expectedRegressionFailures": 20,
+    "total": 48
+  },
+  "afterCases": {
+    "passed": 48,
+    "failed": 0
+  },
+  "unchangedPriorCases": 21,
+  "newNegativeCases": 20,
+  "newPositiveCases": 7,
+  "strictTypeScript": {
+    "exitCode": 0,
+    "scope": "Both changed files and their imported closure; no full-app typecheck claim."
+  },
+  "scopedESLint": {
+    "exitCode": 0,
+    "paths": [
+      "terminal/components/prophet/prophetPerfTypes.ts",
+      "terminal/lib/__tests__/prophetPerf.test.ts"
+    ]
+  },
+  "diffCheck": {
+    "exitCode": 0
+  },
+  "existingAuthoredBrowserLiteralFixtures": {
+    "passed": 2,
+    "sourceSpecGitBlob": "f720d28c4f98672da99be3182b5db2cfd726016f",
+    "sourceSummaryPlansAndInputsUnchanged": true,
+    "browserExecuted": false
+  },
+  "calendarBoundary": "Exactly YYYY-MM-DD, Gregorian year 0001..9999; valid nulls retained. No cross-field chronology or current-time comparison.",
+  "clockBoundary": "Each source clock equals the maximum of its corresponding admitted row field.",
+  "inputAndAdmittedWireValuesPreserved": true,
+  "heldSurfacesUntouched": [
+    "ProphetPerfPanel UI",
+    "ProphetView active writer",
+    "private transport",
+    "browser spec",
+    "fixtures",
+    "producer",
+    "release flags",
+    "benchmark arithmetic/authority",
+    "screen refinement"
+  ],
+  "fullPacketAAdopted": false,
+  "currentMasterIntegrationClaimed": false,
+  "productionAcceptance": false
+}

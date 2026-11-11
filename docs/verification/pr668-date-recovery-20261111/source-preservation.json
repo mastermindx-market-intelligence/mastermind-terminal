@@ -1,0 +1,14 @@
+{
+  "schema": "prophet.perf-date-preservation.v1",
+  "base": "3192ddaec5f2a60ba4884306b57dc6f653d5edb9",
+  "baseTree": "bebe2cc73fda5a91ba1b51d708f1e99ce1939b87",
+  "sourcePathsAllowed": [
+    "terminal/components/prophet/prophetPerfTypes.ts",
+    "terminal/lib/__tests__/prophetPerf.test.ts"
+  ],
+  "proofPrefixAllowed": "docs/verification/pr668-date-recovery-20261111/",
+  "unchangedOriginalEntries": 2813,
+  "priorRowCountRepairAndProofPreserved": true,
+  "allOtherOriginalBlobsAndModesPreserved": true,
+  "noRemovedPaths": true
+}

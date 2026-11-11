@@ -118,6 +118,21 @@ function hasExplicitAvailability<T>(
     : unavailableReason === null;
 }
 
+// Validate the calendar without inferring chronology or consulting today's date.
+function isCanonicalDate(value: string | null): boolean {
+  if (value === null) return true;
+  if (value.length !== 10) return false;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (year < 1 || month < 1 || month > 12) return false;
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return day >= 1 && day <= daysInMonth[month - 1];
+}
+
 function parsePlan(value: unknown): ProphetPerfPlan | null {
   const row = record(value);
   if (!row) return null;
@@ -151,6 +166,8 @@ function parsePlan(value: unknown): ProphetPerfPlan | null {
     optionResult === undefined || optionReason === undefined ||
     !asof
   ) return null;
+
+  if (![signalDate, entryDate, closeDate, asof].every(isCanonicalDate)) return null;
 
   if (
     !hasExplicitAvailability(signalDate, signalReason) ||
@@ -214,6 +231,8 @@ export function normalizeProphetPerfPayload(value: unknown): ProphetPerfPayload 
     sourceLatestClose === undefined ||
     sourceFreshnessReason === undefined
   ) return null;
+
+  if (![sourceLatestAsof, sourceLatestClose].every(isCanonicalDate)) return null;
 
   const terminalCount = count(summary.terminal_plan_count);
   const closedCount = count(summary.closed_plan_count);
@@ -335,6 +354,13 @@ export function normalizeProphetPerfPayload(value: unknown): ProphetPerfPayload 
         sourceFreshnessReason !== null
       )
   ) return null;
+
+  // Each source receipt describes the maximum of its own admitted row field.
+  const latest = (key: "asof" | "close_date"): string | null => plans.reduce<string | null>(
+    (max, plan) => max === null || plan[key] > max ? plan[key] : max,
+    null,
+  );
+  if (sourceLatestAsof !== latest("asof") || sourceLatestClose !== latest("close_date")) return null;
 
   // The v1 projection includes every terminal row. Summary counts must describe
   // that admitted population; successful validation preserves the wire values.
