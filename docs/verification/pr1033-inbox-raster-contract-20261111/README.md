@@ -1,0 +1,11 @@
+# Validate the actual locator screenshot raster
+
+The next natural [unit job130422606732 in run42990465968](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42990465968/job/130422606732) captured all eight current inbox views, preserved their before/after text and geometry, and closed all contexts, the browser and the server. Its final packet validation rejected `list-1440.png`: the element's fractional CSS height is253.3125 while the unmodified PNG height is255. The artifact ZIP digest and all15 capture source bindings were verified against published sourcee64a561…. Actual checkoutd6655d2… has canonical parents18fabe9… ande64a561…; raw receipts are retained unchanged.
+
+The exact locked Playwright1.61.1 implementation first adds observed document scroll offsets to the element bounding box, then rounds the left/top down and right/bottom up using epsilon0.001. It does not round width and height independently. The old plus/minus-one comparison therefore rejected legitimate endpoint enclosure while accepting a one-pixel padded or cropped image.
+
+The producer now observes document scroll offsets in its existing before/after state check and writes those observed values into each case. The validator requires finite offsets and compares decoded PNG dimensions to the exact document-edge raster at the already-required device scale factor1. It does not clamp a screenshot to the browser viewport, increase a tolerance, or weaken source/image/state/cleanup membership.
+
+Eleven new checks cover the recorded desktop/mobile fractional rectangles, synthetic fractional scroll offsets, Playwright's integer-edge epsilon, missing/non-finite/geometry-changing offsets, and four one-pixel incorrect images with internally consistent PNG hashes/dimensions. Ten of these fail against the old validator; the complete49-check suite passes after the repair. Syntax and ESLint also pass.
+
+This changes the source-bound producer and validator, so a genuine successor capture is required through the existing natural CI job. The complete but unpromoted prior packet remains diagnostic: no scroll offsets or source hashes are inferred or restamped into it. No new local browser, workflow owner, retry, timeout, activation or production action is introduced.
