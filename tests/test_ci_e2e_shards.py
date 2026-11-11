@@ -492,7 +492,8 @@ def test_required_aggregate_rejects_unsuccessful_expanded_matrix(matrix_result):
     result = subprocess.run(
         ["bash", "-c", step["run"]],
         env={**os.environ, "EVENT": "pull_request", "PR_SCOPE": "success",
-             "PR_MODE": "full", "SCOPE": "success", "UNIT": "success", "E2E": matrix_result,
+             "PR_MODE": "full", "SCOPE": "success", "UNIT": "success",
+             "TYPECHECK": "success", "UNITS": "success", "E2E": matrix_result,
              # The prod lane is held at its passing state so that the dev
              # matrix result alone decides this gate.
              "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4"},
@@ -1150,7 +1151,8 @@ def run_gate(**overrides: str) -> subprocess.CompletedProcess:
     env = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "EVENT": "pull_request", "PR_SCOPE": "success", "PR_MODE": "full",
-        "SCOPE": "success", "UNIT": "success", "E2E": "success",
+        "SCOPE": "success", "UNIT": "success", "TYPECHECK": "success",
+        "UNITS": "success", "E2E": "success",
         "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4", **overrides,
     }
     assert set(env) - {"PATH"} == set(step["env"])
