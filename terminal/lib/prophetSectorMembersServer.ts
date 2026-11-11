@@ -18,6 +18,8 @@ const HEADERS = { "Cache-Control": "private, no-store", Vary: "Authorization, Co
 function error(code: string, status: number): Response {
   return Response.json({ error: code }, { status, headers: HEADERS });
 }
+const record = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
 function origin(): string | null {
   try {
     const url = new URL(BILLING_BASE);
@@ -186,10 +188,26 @@ export async function handleProphetSectorMembersRequest(request: Request): Promi
         cache: "no-store", redirect: "error", signal: controller.signal,
       }));
     if (response.status !== 200) {
+      // The upstream endpoint is not deployed yet during the rollout window: a
+      // 404 that is NOT the contract's unknown_group/unknown_symbol refusal is
+      // an absent source, forwarded as unavailable (503) so the surface renders
+      // its designed "not available yet" state instead of a wrong-group error.
+      if (response.status === 404) {
+        let upstreamCode: string | null = null;
+        try {
+          const refusal = await readJSON(response, controller.signal);
+          if (record(refusal) && typeof refusal.code === "string") upstreamCode = refusal.code;
+        } catch { /* non-JSON refusal body — an absent endpoint reads unavailable */ }
+        if (controller.signal.aborted) return error("source_unavailable", 503);
+        if (upstreamCode === "unknown_group" || upstreamCode === "unknown_symbol") {
+          return Response.json({ error: upstreamCode, code: upstreamCode }, { status: 404, headers: HEADERS });
+        }
+        return error("source_unavailable", 503);
+      }
       void response.body?.cancel().catch(() => {});
       if (response.status === 401) return error("authentication_required", 401);
       if (response.status === 403) return error("entitlement_required", 403);
-      if (response.status === 404 || response.status === 422) return error(response.status === 404 ? "unknown_group" : "invalid_query", response.status);
+      if (response.status === 422) return error("invalid_query", 422);
       return error("source_unavailable", response.status === 429 ? 429 : response.status === 503 ? 503 : 502);
     }
     const raw = await readJSON(response, controller.signal);

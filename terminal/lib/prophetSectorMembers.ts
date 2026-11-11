@@ -62,7 +62,6 @@ const str = (value: unknown, max = 1024): value is string =>
   typeof value === "string" && value.length > 0 && value.length <= max;
 const strOrNull = (value: unknown, max = 1024): value is string | null =>
   value === null || str(value, max);
-const bool = (value: unknown): value is boolean => typeof value === "boolean";
 const pct = (value: unknown): value is number | null =>
   value === null || (typeof value === "number" && Number.isFinite(value) && Math.abs(value) <= 10_000);
 
@@ -472,7 +471,8 @@ export type SectorMembersRead =
   | { status: "denied" }       // 403
   | { status: "not_found"; code: string | null } // 404 unknown_group
   | { status: "invalid_request" } // 422 malformed query
-  | { status: "retry" }        // 5xx/429/network — never a sign-in prompt
+  | { status: "unavailable" }  // 5xx from the BFF — the reading is not published yet (designed degradation, never a broken page)
+  | { status: "retry" }        // 429/network — transient; never a sign-in prompt
   | { status: "invalid" };     // 200 with a body outside the wire contract
 
 export function classifySectorMembersResponse(status: number, body: unknown): SectorMembersRead {
@@ -485,6 +485,8 @@ export function classifySectorMembersResponse(status: number, body: unknown): Se
   if (status === 403) return { status: "denied" };
   if (status === 404) return { status: "not_found", code };
   if (status === 422) return { status: "invalid_request" };
+  if (status === 429) return { status: "retry" };
+  if (status >= 500) return { status: "unavailable" };
   return { status: "retry" };
 }
 
