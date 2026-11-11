@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-11T17:32:45.160893+00:00",
+  "args": [
+    "/opt/homebrew/bin/python3.12",
+    "-m",
+    "pytest",
+    "tests/test_ci_browser_setup.py",
+    "tests/test_ci_e2e_selfhosted_lane.py",
+    "tests/test_ci_e2e_lane_host_files.py",
+    "tests/test_merge_group_fast_lane_contract.py",
+    "-q"
+  ],
+  "rc": 0,
+  "log_sha256": "9820673a6e46be4c6a4961b41044d12370e44132402f7ce010ad4fd26ddb99f0"
+}

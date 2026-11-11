@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Fail-closed, source-bound Terminal browser scope selection.
 
-Only a short, reviewed set of Screener-local presentation/test files earns two
-focused responsive browser projects. Every other path, unknown event or uncertain
+Only a short, reviewed set of Screener-local presentation/test files earns
+focused responsive browser projects. Shared Screener CSS includes tablet;
+spec-only changes retain desktop/mobile. Every other path, unknown event or uncertain
 Git observation retains the complete existing matrix. A merge-group candidate
 runs only the production-build lane; the required Terminal aggregate owns its proof.
 This script selects tests only; it never changes the three protected CI contexts.
@@ -57,10 +58,17 @@ FOCUSED_MATRIX = [
      "specs": " ".join(SCREENER_SPECS)}
     for project in ("desktop", "mobile")
 ]
-SCOPED_PATHS = frozenset({
+SCREENER_LAYOUT_MATRIX = [
+    {"shard": f"screener-{project}", "projects": f"--project={project}",
+     "specs": " ".join(SCREENER_SPECS)}
+    for project in ("desktop", "tablet", "mobile")
+]
+SCREENER_LAYOUT_PATHS = frozenset({
     "terminal/components/screener/fundamentalScreen.module.css",
     "terminal/components/screener/CrossMarketStrip.module.css",
     "terminal/components/screener/TechnicalScreenBar.module.css",
+})
+SCOPED_PATHS = SCREENER_LAYOUT_PATHS | frozenset({
     *(f"terminal/{name}" for name in SCREENER_SPECS),
 })
 PR_MERGE_REF = re.compile(r"refs/pull/[1-9][0-9]*/merge\Z")
@@ -75,6 +83,8 @@ def classify_paths(paths: list[str]) -> tuple[str, str]:
         return "full", "duplicate_change_path"
     if any(path not in SCOPED_PATHS for path in paths):
         return "full", "unknown_or_elevated_path"
+    if any(path in SCREENER_LAYOUT_PATHS for path in paths):
+        return "focused", "reviewed_screener_shared_layout"
     return "focused", "reviewed_screener_presentation_or_tests"
 
 
@@ -226,11 +236,17 @@ def main() -> None:
         os.environ.get("PR_HEAD_SHA", ""),
     )
     assert mode in ("full", "focused")
-    matrix = FULL_MATRIX if mode == "full" else FOCUSED_MATRIX
+    focused_matrices = {
+        "reviewed_screener_presentation_or_tests": FOCUSED_MATRIX,
+        "reviewed_screener_shared_layout": SCREENER_LAYOUT_MATRIX,
+    }
+    if mode == "focused" and reason not in focused_matrices:
+        mode, reason = "full", "unrecognized_focused_reason"
+    matrix = FULL_MATRIX if mode == "full" else focused_matrices[reason]
     assert matrix and all(m["projects"] and m["shard"] for m in matrix)
     allowlist = read_prodbuild_allowlist() if ALLOWLIST_PATH.is_file() else []
     # Native merge groups run only the production lane; the dev matrix is skipped
-    # by its job condition. Focused PRs keep their two explicit dev rows. An empty
+    # by its job condition. Focused PRs keep their explicit dev rows. An empty
     # merge-group lane is rejected by the existing required Terminal aggregate.
     if mode == "full" and allowlist:
         dev_matrix, prodbuild_matrix = split_lanes(matrix, allowlist)

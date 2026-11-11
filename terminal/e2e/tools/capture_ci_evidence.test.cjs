@@ -1301,3 +1301,37 @@ test('native: server permission refusal leaves reconciliation unresolved and sen
 });
 
 require("./optionsExposureEvidence.cases.cjs");
+
+// Reject the old offscreen 8px clip and a valid PNG omitting library content.
+const { viewportClip: batch3ViewportClip } = require("./capture_pl6_batch3.cjs");
+
+test("batch3 rejects a target below the mobile viewport", () => {
+  assert.throws(() => batch3ViewportClip(
+    { x: 12, y: 900, width: 366, height: 400 }, { width: 390, height: 844 }, 6), /outside the viewport/);
+});
+
+test("batch3 rejects a valid fragment missing its library heading", () => {
+  assert.throws(() => batch3ViewportClip(
+    { x: 12, y: 800, width: 366, height: 400 }, { width: 390, height: 844 }, 6,
+    [{ label: "My Scripts", box: { x: 24, y: 880, width: 160, height: 20 } }]), /required content is outside crop/);
+});
+
+test("batch3 includes the visible library heading and final fixture row", () => {
+  assert.deepEqual(batch3ViewportClip(
+    { x: 12, y: 200, width: 366, height: 400 }, { width: 390, height: 844 }, 6,
+    [{ label: "My Scripts", box: { x: 24, y: 212, width: 160, height: 20 } },
+     { label: "last row", box: { x: 24, y: 480, width: 340, height: 44 } }]),
+  { x: 6, y: 194, width: 378, height: 412 });
+});
+
+test("batch3 intersects padded edges with the viewport", () => {
+  assert.deepEqual(batch3ViewportClip(
+    { x: -10, y: -20, width: 100, height: 100 }, { width: 390, height: 844 }, 6),
+  { x: 0, y: 0, width: 96, height: 86 });
+});
+
+test("batch3 refuses empty and non-finite crop geometry", () => {
+  for (const box of [{ x: 0, y: 0, width: 0, height: 100 },
+    { x: 0, y: 0, width: 100, height: Number.NaN }])
+    assert.throws(() => batch3ViewportClip(box, { width: 390, height: 844 }, 6), /invalid crop geometry/);
+});

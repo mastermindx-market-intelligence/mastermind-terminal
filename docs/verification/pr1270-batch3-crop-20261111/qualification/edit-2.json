@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-11T17:21:34.514065+00:00",
+  "old_sha256": "ba3891d8889dfac5e7d298c9f0159ba3bdced516208b5735d0dfaa43988b994a",
+  "new_sha256": "de721a684a3e53ea4d61e0c445b7aba097c97b35c61810f64b6605935bf51582",
+  "cause": "Pine diagnostics completion appends warnings above mobile library after an early scroll; wait for the existing done state before scroll. Restore screenshot-boundary indicator guard required by existing source contract.",
+  "negative_packet": "/tmp/terminal-pr1270-run43056180222/full-capture-1",
+  "actual_head": "7875b0277067efad82f8eb1a159295dd60b3c040",
+  "test_sha256": "71b580b7b7dd68545b12c9d8c214c28d2e5027e0bec1d82a84dfd2637acbc956"
+}

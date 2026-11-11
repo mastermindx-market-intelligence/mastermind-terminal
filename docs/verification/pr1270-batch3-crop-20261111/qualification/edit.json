@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-11T17:09:08.466822+00:00",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-batch3-crop-support-20261111-c3",
+  "base": "7875b0277067efad82f8eb1a159295dd60b3c040",
+  "changed": [
+    {
+      "path": "terminal/e2e/tools/capture_pl6_batch3.cjs",
+      "sha256": "ba3891d8889dfac5e7d298c9f0159ba3bdced516208b5735d0dfaa43988b994a"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "sha256": "71b580b7b7dd68545b12c9d8c214c28d2e5027e0bec1d82a84dfd2637acbc956"
+    }
+  ]
+}

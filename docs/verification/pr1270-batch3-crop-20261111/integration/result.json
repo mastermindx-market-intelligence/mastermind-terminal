@@ -1,0 +1,62 @@
+{
+  "at": "2026-11-11T17:32:06.041917+00:00",
+  "path_count": 11,
+  "changed": [
+    {
+      "path": ".github/scripts/terminal_e2e_lane.sh",
+      "sha256": "dda4693e023ef63940cd5e345a12cf15c6a3a20fbfc2b3ce3c7f22b9b2496bc4",
+      "git_blob": "dfbedcc08f07869285b4a55537d8c9a329db3c4b"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "db2f6cae51eba7efcea69d64eb9c24650782fdf07e8e374c56f0730cda2325f2",
+      "git_blob": "0c53398fce44812698a109981eb1b7566f61f0b1"
+    },
+    {
+      "path": ".github/workflows/e2e-prodbuild-canary.yml",
+      "sha256": "ccda39f5be7f199607e8c45bc80d695167981161c610065cdc0e8da3bc083c78",
+      "git_blob": "8671c2a2f15108b25d9ac7b485be68d1cb8d1f1f"
+    },
+    {
+      "path": "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md",
+      "sha256": "7ac56ed0a7bac08ecf38c1f60650bfa6b3e65a555acdd37ca31cf5100142d49c",
+      "git_blob": "1cf32f197c3f27e8368633f034af7664101ef354"
+    },
+    {
+      "path": "ops/terminal-e2e-lane/mint-jitconfig",
+      "sha256": "05c6d1854e538d1143ddeddba3ccc7b0462056b808c1b07675213ead9381d469",
+      "git_blob": "8f1343a5d0067256acdea8f3a3965e6d53c534ed"
+    },
+    {
+      "path": "ops/terminal-e2e-lane/provision.sh",
+      "sha256": "7f6dc8cab1c029e7a6dc5ce547bc5dfe6dd37416ece07cb8ff50ce7bdfae1183",
+      "git_blob": "adaa3d74f542ed1d9b55cbd81916f376d8a4b5d2"
+    },
+    {
+      "path": "ops/terminal-e2e-lane/terminal-e2e-slot",
+      "sha256": "58e4e0f04e708e186d62cb8fe45f39bc61daf22643e49454af20fe3117f84a5c",
+      "git_blob": "722f5248974a9fdf769b9771f57c7979fb9bac18"
+    },
+    {
+      "path": "ops/terminal-e2e-lane/terminal-e2e-slot@.service",
+      "sha256": "e6400276b893ed1a67b2d289f0a427608b140a73d3ebbbd52dd77d4d7e9d953d",
+      "git_blob": "7c2ad4d1c9170d8dd294b71abe15d0251edb0d54"
+    },
+    {
+      "path": "tests/test_ci_browser_setup.py",
+      "sha256": "07c37e5349280fe58abbbe89cc9a16aa480e67c982dff2f742220c4cf7988c8d",
+      "git_blob": "bef672f46379ee9e8283a4b5624d05f571e331e0"
+    },
+    {
+      "path": "tests/test_ci_e2e_lane_host_files.py",
+      "sha256": "f3340d1c95579c59923dcd466de33b391c62dedca6171eb993a83517218b1bc6",
+      "git_blob": "dc4ae0bfe6792a841ed8194533208f27bd4bdf94"
+    },
+    {
+      "path": "tests/test_ci_e2e_selfhosted_lane.py",
+      "sha256": "b33bedc8bdd42494f588a178225bcbb4e26ff093d849f28ce607f52eb5137d11",
+      "git_blob": "fc260a6ab8c70d13dbc879e310bbc268b2a14190"
+    }
+  ],
+  "capture_inputs_unchanged": true
+}

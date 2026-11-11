@@ -1,0 +1,13 @@
+{
+  "run": 43056180222,
+  "attempt": 1,
+  "job": 130647116165,
+  "pr_head": "db4e76452e6f8767b88fafa21981aead19dd0848",
+  "actual_checkout": "7875b0277067efad82f8eb1a159295dd60b3c040",
+  "actual_tree": "4e388c70b996f3c16f721c35dea911c6ea94c550",
+  "artifact": 13873227019,
+  "artifact_name": "unit-evidence-43056180222-1",
+  "artifact_bytes": 48245453,
+  "artifact_sha256": "44ae0d77ca750c045860cfbe062d28f5ab33a83b202233860b0a186dd4d87d38",
+  "classification": "settled child failure; batch3 19/20; mobile-ZH crop outside resulting image; no complete batch3 receipt"
+}

@@ -1,0 +1,345 @@
+{
+  "at": "2026-11-11T17:27:20.866205+00:00",
+  "rc": 0,
+  "source_unchanged": true,
+  "source_after": {
+    "terminal/components/options/OptionsFlowBoardView.tsx": "129d2b6289f8b2dbffbadc74f28f783c92146b5cb44af1121d7eb0263066ce1b",
+    "terminal/components/flowdesk/FiltersPanel.tsx": "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479",
+    "terminal/components/flowdesk/FlowCard.tsx": "cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37",
+    "terminal/components/alerts/AlertDetail.tsx": "006505becd068bead39026e856fd230e246e36ecec53e43bbebba236358e36dd",
+    "terminal/components/alerts/alerts.module.css": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+    "terminal/components/heatmap/HeatmapView.tsx": "1f43e9c1a8a4a92f4692bacc3835d5783b05b48078f65fead404776df357af94",
+    "terminal/components/heatmap/Treemap.tsx": "51b284e851011198374854f765c6efd6cb9f682450e7e52f62438adfb1bc995b",
+    "terminal/lib/heatmapStrings.ts": "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7",
+    "terminal/lib/flowdeskStrings.ts": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+    "terminal/lib/plainLabels.ts": "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a",
+    "terminal/lib/i18n.tsx": "05c52c714ae7a7fcb5a14d44c0fb6eb5ccabe21b0eb2ed8a1608cd2dfbf1f4e8",
+    "terminal/components/PineEditor.tsx": "651b8008d94d1b1d589a850def0dcac76016d881b68eb58def3411d1971830c1",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/e2e/tools/capture_pl6_batch3.cjs": "cbf08ee03bc0e857548ba4f03cd54b04732b3880d8c3a6934c333e42508ccb80",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/e2e/fixtures/heatmap-price-only-tile.json": "df837b000afc12af5d522287c83cf483f716c147ae5d170da138c62f539357ca"
+  },
+  "port_closed": true,
+  "actual_head_after": "7875b0277067efad82f8eb1a159295dd60b3c040",
+  "receipt_count": 1,
+  "receipts": [
+    {
+      "captureId": "terminal-batch3-crop-support-20261111-c3-full-3",
+      "packet": "batch3",
+      "capturedAtHead": "7875b0277067efad82f8eb1a159295dd60b3c040",
+      "manifestSha256": "7ebf5c8bd67b2f5ebb804c9cf2908a09bd13b2e4013b0cb943b48cb128544b84",
+      "files": [
+        {
+          "file": "OptionsFlowBoard-1440.png",
+          "sha256": "5d3993b0226dce8989bee4e65e2fd32f4e712045093397f17c7e22cc61acaf10"
+        },
+        {
+          "file": "FlowDesk-1440.png",
+          "sha256": "e020b0cb94fd3882751935faafe6f30ebb04c52aaaaf56eba0ec1250be830297"
+        },
+        {
+          "file": "AlertDetail-1440.png",
+          "sha256": "98da9ec03d32f0472403637e3559662dc49dc17efbfc56a32e981f4feaa8b02b"
+        },
+        {
+          "file": "HeatmapTreemap-1440.png",
+          "sha256": "5e7cd1416339adae93a22826464fc47fe2fe076572bd71149d3a4dfd5088a183"
+        },
+        {
+          "file": "PineLibrary-1440.png",
+          "sha256": "c4ed9e98a3abb8011a955a3734611c7f0eb762d1e748380190ad966d4defc46b"
+        },
+        {
+          "file": "OptionsFlowBoard-1440-zh.png",
+          "sha256": "fc0dcda5d0217ad4735fa1726e3423df1591b2bddcbd5b595589578d46cb655c"
+        },
+        {
+          "file": "FlowDesk-1440-zh.png",
+          "sha256": "07499465c95ac0bf530cc0ebd1d77de1a7dddaa43da21a07fa7de172c7509260"
+        },
+        {
+          "file": "AlertDetail-1440-zh.png",
+          "sha256": "bd8f4ffa3afc0a79e2a3674d38eb534bb93ccfa43c32ad120c7dfe1b5135c398"
+        },
+        {
+          "file": "HeatmapTreemap-1440-zh.png",
+          "sha256": "d774dd2c5941c19929d4ed0d90650c163aed0821433b1d7c68252199e3f50a13"
+        },
+        {
+          "file": "PineLibrary-1440-zh.png",
+          "sha256": "9a68b06a45195b79d3c8a52fb3ec660d672b02325552d2e7d1204d2319c3cab2"
+        },
+        {
+          "file": "OptionsFlowBoard-390.png",
+          "sha256": "a90614ecd649d1d1e6b5764b47ad5e180c61f5d183148611a764fc212a6ab0f7"
+        },
+        {
+          "file": "FlowDesk-390.png",
+          "sha256": "67549b9c1ec2db83a6ff7ff38a98e2c1b330051f7ab0dc09b479daa091e17e50"
+        },
+        {
+          "file": "AlertDetail-390.png",
+          "sha256": "5cf5bc6f0f93bc9a87b07eeeaa01870286316683bcbebc72532c6cb2e1086369"
+        },
+        {
+          "file": "HeatmapTreemap-390.png",
+          "sha256": "c6f2388d3eecdb3f2eaee098e3df3a60da92517ddcf956ab486c4bcd2098f394"
+        },
+        {
+          "file": "PineLibrary-390.png",
+          "sha256": "595fe00c2f56477511486033cf13baa30743ff0040b27c2a48a9a71766a4d028"
+        },
+        {
+          "file": "OptionsFlowBoard-390-zh.png",
+          "sha256": "e1cc2d0bf88b0fea7a136c75a677e77610c667bed2a97459d431f6f6da17d237"
+        },
+        {
+          "file": "FlowDesk-390-zh.png",
+          "sha256": "22f68c3ce945a4ba09c2e486aecf7555d09b688cd1d937f99369a72738b176d3"
+        },
+        {
+          "file": "AlertDetail-390-zh.png",
+          "sha256": "af0a73f602c13f98f4a5c38067379b631e0d1ba53b5431de74e3471178ce1127"
+        },
+        {
+          "file": "HeatmapTreemap-390-zh.png",
+          "sha256": "dda8151e0a5a9ee7ecab7e5a4f7ff7c5ab77e6093136531579ac11e861114c12"
+        },
+        {
+          "file": "PineLibrary-390-zh.png",
+          "sha256": "00276f48e42f1733a9ab848e7a555fe2170723f605e46d606413058faf7952a1"
+        }
+      ]
+    }
+  ],
+  "pine_geometry": [
+    {
+      "width": 1440,
+      "lang": "en",
+      "target": {
+        "x": 1140,
+        "y": 149,
+        "width": 300,
+        "height": 723
+      },
+      "clip": {
+        "x": 1130,
+        "y": 139,
+        "width": 310,
+        "height": 743
+      },
+      "required": [
+        {
+          "label": "My Scripts",
+          "box": {
+            "x": 1153,
+            "y": 161,
+            "width": 274,
+            "height": 16.796875
+          }
+        },
+        {
+          "label": "script row 1",
+          "box": {
+            "x": 1153,
+            "y": 186.796875,
+            "width": 274,
+            "height": 58
+          }
+        },
+        {
+          "label": "script row 2",
+          "box": {
+            "x": 1153,
+            "y": 244.796875,
+            "width": 274,
+            "height": 58
+          }
+        },
+        {
+          "label": "script row 3",
+          "box": {
+            "x": 1153,
+            "y": 302.796875,
+            "width": 274,
+            "height": 58
+          }
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "lang": "zh",
+      "target": {
+        "x": 1140,
+        "y": 149,
+        "width": 300,
+        "height": 723
+      },
+      "clip": {
+        "x": 1130,
+        "y": 139,
+        "width": 310,
+        "height": 743
+      },
+      "required": [
+        {
+          "label": "\u6211\u7684\u811a\u672c",
+          "box": {
+            "x": 1153,
+            "y": 161,
+            "width": 274,
+            "height": 16.796875
+          }
+        },
+        {
+          "label": "script row 1",
+          "box": {
+            "x": 1153,
+            "y": 186.796875,
+            "width": 274,
+            "height": 58
+          }
+        },
+        {
+          "label": "script row 2",
+          "box": {
+            "x": 1153,
+            "y": 244.796875,
+            "width": 274,
+            "height": 58
+          }
+        },
+        {
+          "label": "script row 3",
+          "box": {
+            "x": 1153,
+            "y": 302.796875,
+            "width": 274,
+            "height": 58
+          }
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "lang": "en",
+      "target": {
+        "x": 0,
+        "y": 308.78125,
+        "width": 390,
+        "height": 682.59375
+      },
+      "clip": {
+        "x": 0,
+        "y": 302,
+        "width": 390,
+        "height": 542
+      },
+      "required": [
+        {
+          "label": "My Scripts",
+          "box": {
+            "x": 13,
+            "y": 321.78125,
+            "width": 364,
+            "height": 16.796875
+          }
+        },
+        {
+          "label": "script row 1",
+          "box": {
+            "x": 13,
+            "y": 347.578125,
+            "width": 364,
+            "height": 58
+          }
+        },
+        {
+          "label": "script row 2",
+          "box": {
+            "x": 13,
+            "y": 405.578125,
+            "width": 364,
+            "height": 58
+          }
+        },
+        {
+          "label": "script row 3",
+          "box": {
+            "x": 13,
+            "y": 463.578125,
+            "width": 364,
+            "height": 58
+          }
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "lang": "zh",
+      "target": {
+        "x": 0,
+        "y": 309.09375,
+        "width": 390,
+        "height": 682.59375
+      },
+      "clip": {
+        "x": 0,
+        "y": 303,
+        "width": 390,
+        "height": 541
+      },
+      "required": [
+        {
+          "label": "\u6211\u7684\u811a\u672c",
+          "box": {
+            "x": 13,
+            "y": 322.09375,
+            "width": 364,
+            "height": 16.796875
+          }
+        },
+        {
+          "label": "script row 1",
+          "box": {
+            "x": 13,
+            "y": 347.890625,
+            "width": 364,
+            "height": 58
+          }
+        },
+        {
+          "label": "script row 2",
+          "box": {
+            "x": 13,
+            "y": 405.890625,
+            "width": 364,
+            "height": 58
+          }
+        },
+        {
+          "label": "script row 3",
+          "box": {
+            "x": 13,
+            "y": 463.890625,
+            "width": 364,
+            "height": 58
+          }
+        }
+      ]
+    }
+  ],
+  "stdout_sha256": "f78c5aa25c98a599b734215c1e6b567ec261505a8cca49764f4baef4c12b5642",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tail": [
+    "capture AlertDetail-390-zh.png \u2026 ok",
+    "capture HeatmapTreemap-390-zh.png \u2026 ok",
+    "capture PineLibrary-390-zh.png \u2026 PINE_LIBRARY_CROP {\"width\":390,\"lang\":\"zh\",\"target\":{\"x\":0,\"y\":309.09375,\"width\":390,\"height\":682.59375},\"clip\":{\"x\":0,\"y\":303,\"width\":390,\"height\":541},\"required\":[{\"label\":\"\u6211\u7684\u811a\u672c\",\"box\":{\"x\":13,\"y\":322.09375,\"width\":364,\"height\":16.796875}},{\"label\":\"script row 1\",\"box\":{\"x\":13,\"y\":347.890625,\"width\":364,\"height\":58}},{\"label\":\"script row 2\",\"box\":{\"x\":13,\"y\":405.890625,\"width\":364,\"height\":58}},{\"label\":\"script row 3\",\"box\":{\"x\":13,\"y\":463.890625,\"width\":364,\"height\":58}}]}",
+    "ok",
+    "{\"legacyEvidence\":{\"captureId\":\"terminal-batch3-crop-support-20261111-c3-full-3\",\"packet\":\"batch3\",\"capturedAtHead\":\"7875b0277067efad82f8eb1a159295dd60b3c040\",\"manifestSha256\":\"7ebf5c8bd67b2f5ebb804c9cf2908a09bd13b2e4013b0cb943b48cb128544b84\",\"files\":[{\"file\":\"OptionsFlowBoard-1440.png\",\"sha256\":\"5d3993b0226dce8989bee4e65e2fd32f4e712045093397f17c7e22cc61acaf10\"},{\"file\":\"FlowDesk-1440.png\",\"sha256\":\"e020b0cb94fd3882751935faafe6f30ebb04c52aaaaf56eba0ec1250be830297\"},{\"file\":\"AlertDetail-1440.png\",\"sha256\":\"98da9ec03d32f0472403637e3559662dc49dc17efbfc56a32e981f4feaa8b02b\"},{\"file\":\"HeatmapTreemap-1440.png\",\"sha256\":\"5e7cd1416339adae93a22826464fc47fe2fe076572bd71149d3a4dfd5088a183\"},{\"file\":\"PineLibrary-1440.png\",\"sha256\":\"c4ed9e98a3abb8011a955a3734611c7f0eb762d1e748380190ad966d4defc46b\"},{\"file\":\"OptionsFlowBoard-1440-zh.png\",\"sha256\":\"fc0dcda5d0217ad4735fa1726e3423df1591b2bddcbd5b595589578d46cb655c\"},{\"file\":\"FlowDesk-1440-zh.png\",\"sha256\":\"07499465c95ac0bf530cc0ebd1d77de1a7dddaa43da21a07fa7de172c7509260\"},{\"file\":\"AlertDetail-1440-zh.png\",\"sha256\":\"bd8f4ffa3afc0a79e2a3674d38eb534bb93ccfa43c32ad120c7dfe1b5135c398\"},{\"file\":\"HeatmapTreemap-1440-zh.png\",\"sha256\":\"d774dd2c5941c19929d4ed0d90650c163aed0821433b1d7c68252199e3f50a13\"},{\"file\":\"PineLibrary-1440-zh.png\",\"sha256\":\"9a68b06a45195b79d3c8a52fb3ec660d672b02325552d2e7d1204d2319c3cab2\"},{\"file\":\"OptionsFlowBoard-390.png\",\"sha256\":\"a90614ecd649d1d1e6b5764b47ad5e180c61f5d183148611a764fc212a6ab0f7\"},{\"file\":\"FlowDesk-390.png\",\"sha256\":\"67549b9c1ec2db83a6ff7ff38a98e2c1b330051f7ab0dc09b479daa091e17e50\"},{\"file\":\"AlertDetail-390.png\",\"sha256\":\"5cf5bc6f0f93bc9a87b07eeeaa01870286316683bcbebc72532c6cb2e1086369\"},{\"file\":\"HeatmapTreemap-390.png\",\"sha256\":\"c6f2388d3eecdb3f2eaee098e3df3a60da92517ddcf956ab486c4bcd2098f394\"},{\"file\":\"PineLibrary-390.png\",\"sha256\":\"595fe00c2f56477511486033cf13baa30743ff0040b27c2a48a9a71766a4d028\"},{\"file\":\"OptionsFlowBoard-390-zh.png\",\"sha256\":\"e1cc2d0bf88b0fea7a136c75a677e77610c667bed2a97459d431f6f6da17d237\"},{\"file\":\"FlowDesk-390-zh.png\",\"sha256\":\"22f68c3ce945a4ba09c2e486aecf7555d09b688cd1d937f99369a72738b176d3\"},{\"file\":\"AlertDetail-390-zh.png\",\"sha256\":\"af0a73f602c13f98f4a5c38067379b631e0d1ba53b5431de74e3471178ce1127\"},{\"file\":\"HeatmapTreemap-390-zh.png\",\"sha256\":\"dda8151e0a5a9ee7ecab7e5a4f7ff7c5ab77e6093136531579ac11e861114c12\"},{\"file\":\"PineLibrary-390-zh.png\",\"sha256\":\"00276f48e42f1733a9ab848e7a555fe2170723f605e46d606413058faf7952a1\"}]}}",
+    "capturedAtHead 7875b0277067efad82f8eb1a159295dd60b3c040",
+    "wrote 20 crops + EVIDENCE.yml to /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-batch3-crop-support-20261111-c3/terminal/docs/pr-crops/b-pl-6-batch-3"
+  ]
+}

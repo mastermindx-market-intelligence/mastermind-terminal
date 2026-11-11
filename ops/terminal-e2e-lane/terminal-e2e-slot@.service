@@ -1,5 +1,5 @@
 [Unit]
-Description=Terminal e2e JIT runner slot ubuntu0-e2e-%i
+Description=Terminal e2e JIT runner slot ubuntuH-e2e-%i (host from hostname)
 Documentation=https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/master/docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md
 Wants=network-online.target
 After=network-online.target

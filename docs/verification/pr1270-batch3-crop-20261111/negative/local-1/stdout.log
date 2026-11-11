@@ -1,0 +1,25 @@
+[dev] ✓ Ready in 400ms
+capture OptionsFlowBoard-1440.png … ok
+capture FlowDesk-1440.png … ok
+capture AlertDetail-1440.png … ok
+capture HeatmapTreemap-1440.png … ok
+capture PineLibrary-1440.png … PINE_LIBRARY_CROP {"width":1440,"lang":"en","target":{"x":1140,"y":149,"width":300,"height":723},"clip":{"x":1130,"y":139,"width":310,"height":743},"required":[{"label":"My Scripts","box":{"x":1153,"y":161,"width":274,"height":16.796875}},{"label":"script row 1","box":{"x":1153,"y":186.796875,"width":274,"height":58}},{"label":"script row 2","box":{"x":1153,"y":244.796875,"width":274,"height":58}},{"label":"script row 3","box":{"x":1153,"y":302.796875,"width":274,"height":58}}]}
+ok
+capture OptionsFlowBoard-1440-zh.png … ok
+capture FlowDesk-1440-zh.png … ok
+capture AlertDetail-1440-zh.png … ok
+capture HeatmapTreemap-1440-zh.png … ok
+capture PineLibrary-1440-zh.png … PINE_LIBRARY_CROP {"width":1440,"lang":"zh","target":{"x":1140,"y":149,"width":300,"height":723},"clip":{"x":1130,"y":139,"width":310,"height":743},"required":[{"label":"我的脚本","box":{"x":1153,"y":161,"width":274,"height":16.796875}},{"label":"script row 1","box":{"x":1153,"y":186.796875,"width":274,"height":58}},{"label":"script row 2","box":{"x":1153,"y":244.796875,"width":274,"height":58}},{"label":"script row 3","box":{"x":1153,"y":302.796875,"width":274,"height":58}}]}
+ok
+capture OptionsFlowBoard-390.png … ok
+capture FlowDesk-390.png … ok
+capture AlertDetail-390.png … ok
+capture HeatmapTreemap-390.png … ok
+capture PineLibrary-390.png … PINE_LIBRARY_CROP {"width":390,"lang":"en","target":{"x":0,"y":618.21875,"width":390,"height":682.59375},"clip":{"x":0,"y":612,"width":390,"height":232},"required":[{"label":"My Scripts","box":{"x":13,"y":631.21875,"width":364,"height":16.796875}},{"label":"script row 1","box":{"x":13,"y":657.015625,"width":364,"height":58}},{"label":"script row 2","box":{"x":13,"y":715.015625,"width":364,"height":58}},{"label":"script row 3","box":{"x":13,"y":773.015625,"width":364,"height":58}}]}
+ok
+capture OptionsFlowBoard-390-zh.png … ok
+capture FlowDesk-390-zh.png … ok
+capture AlertDetail-390-zh.png … ok
+capture HeatmapTreemap-390-zh.png … ok
+capture PineLibrary-390-zh.png … FAIL 我的脚本: required crop content is not exposed
+Partial or failed capture: EVIDENCE.yml and a complete receipt were not written

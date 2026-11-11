@@ -1,0 +1,2246 @@
+﻿2026-11-11T16:15:16.6279188Z Current runner version: '2.338.2'
+2026-11-11T16:15:16.6295537Z ##[group]Runner Image Provisioner
+2026-11-11T16:15:16.6295989Z Hosted Compute Agent
+2026-11-11T16:15:16.6296270Z Version: 20261028.624
+2026-11-11T16:15:16.6296570Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-11T16:15:16.6296924Z Build Date: 2026-10-28T21:51:42Z
+2026-11-11T16:15:16.6297255Z Worker ID: {e1d5c29b-ea42-45a8-9020-54037331218c}
+2026-11-11T16:15:16.6297595Z Region: westus3
+2026-11-11T16:15:16.6297851Z Cloud: Azure
+2026-11-11T16:15:16.6298101Z ##[endgroup]
+2026-11-11T16:15:16.6298763Z ##[group]Operating System
+2026-11-11T16:15:16.6299052Z Ubuntu
+2026-11-11T16:15:16.6299296Z 24.04.5
+2026-11-11T16:15:16.6299533Z LTS
+2026-11-11T16:15:16.6299770Z ##[endgroup]
+2026-11-11T16:15:16.6300026Z ##[group]Runner Image
+2026-11-11T16:15:16.6300459Z Image: ubuntu-24.04
+2026-11-11T16:15:16.6300725Z Version: 20261101.360.1
+2026-11-11T16:15:16.6301354Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-11T16:15:16.6302113Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-11T16:15:16.6302593Z ##[endgroup]
+2026-11-11T16:15:16.6303151Z ##[group]GITHUB_TOKEN Permissions
+2026-11-11T16:15:16.6304153Z Contents: read
+2026-11-11T16:15:16.6304421Z Metadata: read
+2026-11-11T16:15:16.6304685Z ##[endgroup]
+2026-11-11T16:15:16.6305836Z Secret source: Actions
+2026-11-11T16:15:16.6306259Z Cache mode: write
+2026-11-11T16:15:16.6306597Z Prepare workflow directory
+2026-11-11T16:15:16.6542756Z Prepare all required actions
+2026-11-11T16:15:16.6574958Z Getting action download info
+2026-11-11T16:15:16.9730336Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-11T16:15:17.0713730Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-11-11T16:15:17.1758606Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-11-11T16:15:17.3807023Z Complete job name: Terminal unit + typecheck (shard)
+2026-11-11T16:15:17.4435502Z ##[group]Run actions/checkout@v4
+2026-11-11T16:15:17.4435919Z with:
+2026-11-11T16:15:17.4436150Z   fetch-depth: 2
+2026-11-11T16:15:17.4436482Z   repository: mastermindx-market-intelligence/mastermind-terminal
+2026-11-11T16:15:17.4438706Z   token: ***
+2026-11-11T16:15:17.4438936Z   ssh-strict: true
+2026-11-11T16:15:17.4439172Z   ssh-user: git
+2026-11-11T16:15:17.4439411Z   persist-credentials: true
+2026-11-11T16:15:17.4439683Z   clean: true
+2026-11-11T16:15:17.4439928Z   sparse-checkout-cone-mode: true
+2026-11-11T16:15:17.4440336Z   fetch-tags: false
+2026-11-11T16:15:17.4440576Z   show-progress: true
+2026-11-11T16:15:17.4440819Z   lfs: false
+2026-11-11T16:15:17.4441044Z   submodules: false
+2026-11-11T16:15:17.4441289Z   set-safe-directory: true
+2026-11-11T16:15:17.4441567Z   allow-unsafe-pr-checkout: false
+2026-11-11T16:15:17.4441927Z ##[endgroup]
+2026-11-11T16:15:17.6734019Z Syncing repository: mastermindx-market-intelligence/mastermind-terminal
+2026-11-11T16:15:17.6736078Z ##[group]Getting Git version info
+2026-11-11T16:15:17.6736949Z Working directory is '/home/runner/work/mastermind-terminal/mastermind-terminal'
+2026-11-11T16:15:17.6738098Z [command]/usr/bin/git version
+2026-11-11T16:15:17.6834288Z git version 2.56.0
+2026-11-11T16:15:17.6848238Z ##[endgroup]
+2026-11-11T16:15:17.6856957Z Temporarily overriding HOME='/home/runner/work/_temp/662aff9d-7e01-4045-906a-a7541837c37a' before making global git config changes
+2026-11-11T16:15:17.6858467Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-11T16:15:17.6863017Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mastermind-terminal/mastermind-terminal
+2026-11-11T16:15:17.6947794Z Deleting the contents of '/home/runner/work/mastermind-terminal/mastermind-terminal'
+2026-11-11T16:15:17.6949327Z ##[group]Initializing the repository
+2026-11-11T16:15:17.6950358Z [command]/usr/bin/git init /home/runner/work/mastermind-terminal/mastermind-terminal
+2026-11-11T16:15:17.7067337Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-11T16:15:17.7068947Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-11T16:15:17.7070023Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-11T16:15:17.7071068Z hint: call:
+2026-11-11T16:15:17.7071580Z hint:
+2026-11-11T16:15:17.7072195Z hint: 	git config --global init.defaultBranch <name>
+2026-11-11T16:15:17.7072903Z hint:
+2026-11-11T16:15:17.7073599Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-11T16:15:17.7074629Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-11T16:15:17.7075487Z hint:
+2026-11-11T16:15:17.7075995Z hint: 	git branch -m <name>
+2026-11-11T16:15:17.7076557Z hint:
+2026-11-11T16:15:17.7077272Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-11T16:15:17.7079189Z Initialized empty Git repository in /home/runner/work/mastermind-terminal/mastermind-terminal/.git/
+2026-11-11T16:15:17.7107176Z [command]/usr/bin/git remote add origin https://github.com/mastermindx-market-intelligence/mastermind-terminal
+2026-11-11T16:15:17.7171056Z ##[endgroup]
+2026-11-11T16:15:17.7171919Z ##[group]Disabling automatic garbage collection
+2026-11-11T16:15:17.7175572Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-11T16:15:17.7212828Z ##[endgroup]
+2026-11-11T16:15:17.7213413Z ##[group]Setting up auth
+2026-11-11T16:15:17.7222213Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-11T16:15:17.7262520Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-11T16:15:17.7589290Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-11T16:15:17.7626881Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-11T16:15:17.7828867Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-11T16:15:17.7868162Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-11T16:15:17.8071483Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-11T16:15:17.8117568Z ##[endgroup]
+2026-11-11T16:15:17.8118514Z ##[group]Fetching the repository
+2026-11-11T16:15:17.8134280Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=2 origin +7875b0277067efad82f8eb1a159295dd60b3c040:refs/remotes/pull/1270/merge
+2026-11-11T16:16:40.2404468Z From https://github.com/mastermindx-market-intelligence/mastermind-terminal
+2026-11-11T16:16:40.2405022Z  * [new ref]           7875b0277067efad82f8eb1a159295dd60b3c040 -> pull/1270/merge
+2026-11-11T16:16:40.2408251Z ##[endgroup]
+2026-11-11T16:16:40.2408502Z ##[group]Determining the checkout info
+2026-11-11T16:16:40.2410396Z ##[endgroup]
+2026-11-11T16:16:40.2414808Z [command]/usr/bin/git sparse-checkout disable
+2026-11-11T16:16:40.2460769Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-11T16:16:40.2508044Z ##[group]Checking out the ref
+2026-11-11T16:16:40.2508821Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/1270/merge
+2026-11-11T16:16:41.5880057Z Updating files:  13% (3638/27239)
+2026-11-11T16:16:41.6285076Z Updating files:  14% (3814/27239)
+2026-11-11T16:16:41.6818444Z Updating files:  15% (4086/27239)
+2026-11-11T16:16:41.8043244Z Updating files:  16% (4359/27239)
+2026-11-11T16:16:41.8640617Z Updating files:  17% (4631/27239)
+2026-11-11T16:16:41.9554648Z Updating files:  18% (4904/27239)
+2026-11-11T16:16:42.0254636Z Updating files:  19% (5176/27239)
+2026-11-11T16:16:42.0599091Z Updating files:  20% (5448/27239)
+2026-11-11T16:16:42.0751176Z Updating files:  21% (5721/27239)
+2026-11-11T16:16:42.0964309Z Updating files:  22% (5993/27239)
+2026-11-11T16:16:42.1149027Z Updating files:  23% (6265/27239)
+2026-11-11T16:16:42.1342520Z Updating files:  24% (6538/27239)
+2026-11-11T16:16:42.1519512Z Updating files:  25% (6810/27239)
+2026-11-11T16:16:42.1736914Z Updating files:  26% (7083/27239)
+2026-11-11T16:16:42.2665452Z Updating files:  27% (7355/27239)
+2026-11-11T16:16:42.2737674Z Updating files:  28% (7627/27239)
+2026-11-11T16:16:42.3265851Z Updating files:  28% (7652/27239)
+2026-11-11T16:16:42.3526225Z Updating files:  29% (7900/27239)
+2026-11-11T16:16:42.3744031Z Updating files:  30% (8172/27239)
+2026-11-11T16:16:42.4195899Z Updating files:  31% (8445/27239)
+2026-11-11T16:16:42.4963565Z Updating files:  32% (8717/27239)
+2026-11-11T16:16:42.5363576Z Updating files:  33% (8989/27239)
+2026-11-11T16:16:42.6323026Z Updating files:  34% (9262/27239)
+2026-11-11T16:16:42.7427850Z Updating files:  35% (9534/27239)
+2026-11-11T16:16:42.7689824Z Updating files:  36% (9807/27239)
+2026-11-11T16:16:42.7976356Z Updating files:  37% (10079/27239)
+2026-11-11T16:16:42.8284975Z Updating files:  38% (10351/27239)
+2026-11-11T16:16:42.8588986Z Updating files:  39% (10624/27239)
+2026-11-11T16:16:42.8891535Z Updating files:  40% (10896/27239)
+2026-11-11T16:16:42.9187754Z Updating files:  41% (11168/27239)
+2026-11-11T16:16:42.9466340Z Updating files:  42% (11441/27239)
+2026-11-11T16:16:42.9787230Z Updating files:  43% (11713/27239)
+2026-11-11T16:16:43.0269117Z Updating files:  44% (11986/27239)
+2026-11-11T16:16:43.0902953Z Updating files:  45% (12258/27239)
+2026-11-11T16:16:43.1358001Z Updating files:  46% (12530/27239)
+2026-11-11T16:16:43.1731461Z Updating files:  47% (12803/27239)
+2026-11-11T16:16:43.2173873Z Updating files:  48% (13075/27239)
+2026-11-11T16:16:43.2624416Z Updating files:  49% (13348/27239)
+2026-11-11T16:16:43.2737658Z Updating files:  50% (13620/27239)
+2026-11-11T16:16:43.3050293Z Updating files:  50% (13679/27239)
+2026-11-11T16:16:43.3528096Z Updating files:  51% (13892/27239)
+2026-11-11T16:16:43.3936325Z Updating files:  52% (14165/27239)
+2026-11-11T16:16:43.4451271Z Updating files:  53% (14437/27239)
+2026-11-11T16:16:43.4920503Z Updating files:  54% (14710/27239)
+2026-11-11T16:16:43.6210463Z Updating files:  55% (14982/27239)
+2026-11-11T16:16:43.6857728Z Updating files:  56% (15254/27239)
+2026-11-11T16:16:43.7712435Z Updating files:  57% (15527/27239)
+2026-11-11T16:16:43.9179780Z Updating files:  58% (15799/27239)
+2026-11-11T16:16:43.9753587Z Updating files:  59% (16072/27239)
+2026-11-11T16:16:44.0198375Z Updating files:  60% (16344/27239)
+2026-11-11T16:16:44.1064538Z Updating files:  61% (16616/27239)
+2026-11-11T16:16:44.1807409Z Updating files:  62% (16889/27239)
+2026-11-11T16:16:44.2278954Z Updating files:  63% (17161/27239)
+2026-11-11T16:16:44.2618001Z Updating files:  64% (17433/27239)
+2026-11-11T16:16:44.2738195Z Updating files:  65% (17706/27239)
+2026-11-11T16:16:44.3152510Z Updating files:  65% (17805/27239)
+2026-11-11T16:16:44.3957874Z Updating files:  66% (17978/27239)
+2026-11-11T16:16:44.5758859Z Updating files:  67% (18251/27239)
+2026-11-11T16:16:44.6424881Z Updating files:  68% (18523/27239)
+2026-11-11T16:16:44.7471391Z Updating files:  69% (18795/27239)
+2026-11-11T16:16:44.7982871Z Updating files:  70% (19068/27239)
+2026-11-11T16:16:44.8658690Z Updating files:  71% (19340/27239)
+2026-11-11T16:16:44.9507936Z Updating files:  72% (19613/27239)
+2026-11-11T16:16:44.9831262Z Updating files:  73% (19885/27239)
+2026-11-11T16:16:45.0660440Z Updating files:  74% (20157/27239)
+2026-11-11T16:16:45.1265925Z Updating files:  75% (20430/27239)
+2026-11-11T16:16:45.1788835Z Updating files:  76% (20702/27239)
+2026-11-11T16:16:45.2051592Z Updating files:  77% (20975/27239)
+2026-11-11T16:16:45.2632826Z Updating files:  78% (21247/27239)
+2026-11-11T16:16:45.2765665Z Updating files:  79% (21519/27239)
+2026-11-11T16:16:45.3504420Z Updating files:  79% (21632/27239)
+2026-11-11T16:16:45.4061519Z Updating files:  80% (21792/27239)
+2026-11-11T16:16:45.4442931Z Updating files:  81% (22064/27239)
+2026-11-11T16:16:45.4826604Z Updating files:  82% (22336/27239)
+2026-11-11T16:16:45.5194602Z Updating files:  83% (22609/27239)
+2026-11-11T16:16:45.5649306Z Updating files:  84% (22881/27239)
+2026-11-11T16:16:45.5927828Z Updating files:  85% (23154/27239)
+2026-11-11T16:16:45.6344793Z Updating files:  86% (23426/27239)
+2026-11-11T16:16:45.6723983Z Updating files:  87% (23698/27239)
+2026-11-11T16:16:45.6912956Z Updating files:  88% (23971/27239)
+2026-11-11T16:16:45.7574269Z Updating files:  89% (24243/27239)
+2026-11-11T16:16:45.7754862Z Updating files:  90% (24516/27239)
+2026-11-11T16:16:45.7923609Z Updating files:  91% (24788/27239)
+2026-11-11T16:16:45.8078979Z Updating files:  92% (25060/27239)
+2026-11-11T16:16:45.8243503Z Updating files:  93% (25333/27239)
+2026-11-11T16:16:45.8415777Z Updating files:  94% (25605/27239)
+2026-11-11T16:16:45.8580851Z Updating files:  95% (25878/27239)
+2026-11-11T16:16:45.8775177Z Updating files:  96% (26150/27239)
+2026-11-11T16:16:45.8958219Z Updating files:  97% (26422/27239)
+2026-11-11T16:16:45.9179199Z Updating files:  98% (26695/27239)
+2026-11-11T16:16:45.9385711Z Updating files:  99% (26967/27239)
+2026-11-11T16:16:45.9385880Z Updating files: 100% (27239/27239)
+2026-11-11T16:16:45.9386034Z Updating files: 100% (27239/27239), done.
+2026-11-11T16:16:46.0524588Z Note: switching to 'refs/remotes/pull/1270/merge'.
+2026-11-11T16:16:46.0524902Z 
+2026-11-11T16:16:46.0525075Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-11T16:16:46.0525798Z changes and commit them, and you can discard any commits you make in this
+2026-11-11T16:16:46.0526196Z state without impacting any branches by switching back to a branch.
+2026-11-11T16:16:46.0526511Z 
+2026-11-11T16:16:46.0526664Z If you want to create a new branch to retain commits you create, you may
+2026-11-11T16:16:46.0527050Z do so (now or later) by using -c with the switch command. Example:
+2026-11-11T16:16:46.0527285Z 
+2026-11-11T16:16:46.0527676Z   git switch -c <new-branch-name>
+2026-11-11T16:16:46.0527822Z 
+2026-11-11T16:16:46.0527910Z Or undo this operation with:
+2026-11-11T16:16:46.0528042Z 
+2026-11-11T16:16:46.0528119Z   git switch -
+2026-11-11T16:16:46.0528210Z 
+2026-11-11T16:16:46.0528324Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-11T16:16:46.0528489Z 
+2026-11-11T16:16:46.0528681Z HEAD is now at 7875b027 Merge db4e76452e6f8767b88fafa21981aead19dd0848 into b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7
+2026-11-11T16:16:46.0839938Z ##[endgroup]
+2026-11-11T16:16:46.0887253Z [command]/usr/bin/git log -1 --format=%H
+2026-11-11T16:16:46.0922082Z 7875b0277067efad82f8eb1a159295dd60b3c040
+2026-11-11T16:16:46.1841533Z ##[group]Run actions/setup-node@v4
+2026-11-11T16:16:46.1841691Z with:
+2026-11-11T16:16:46.1865579Z   node-version: 20
+2026-11-11T16:16:46.1865786Z   cache: npm
+2026-11-11T16:16:46.1866021Z   cache-dependency-path: terminal/package-lock.json
+2026-11-11T16:16:46.1866294Z   always-auth: false
+2026-11-11T16:16:46.1866481Z   check-latest: false
+2026-11-11T16:16:46.1867956Z   token: ***
+2026-11-11T16:16:46.1868073Z ##[endgroup]
+2026-11-11T16:16:46.2799245Z Attempting to download 20...
+2026-11-11T16:16:46.2907720Z (node:2173) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T16:16:46.2908113Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T16:16:47.4997002Z Acquiring 20.20.2 - x64 from https://github.com/actions/node-versions/releases/download/20.20.2-23521894959/node-20.20.2-linux-x64.tar.gz
+2026-11-11T16:16:47.8872349Z Extracting ...
+2026-11-11T16:16:47.8976233Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/be7159ec-d153-4e43-9bb1-c27105515091 -f /home/runner/work/_temp/4231de3f-f74e-4696-9dbe-5501fe4b3365
+2026-11-11T16:16:48.8393912Z Adding to the cache ...
+2026-11-11T16:16:52.0451509Z ##[group]Environment details
+2026-11-11T16:16:52.2138665Z node: v20.20.2
+2026-11-11T16:16:52.2138913Z npm: 10.8.2
+2026-11-11T16:16:52.2139089Z yarn: 1.22.22
+2026-11-11T16:16:52.2139532Z ##[endgroup]
+2026-11-11T16:16:52.2151960Z [command]/opt/hostedtoolcache/node/20.20.2/x64/bin/npm config get cache
+2026-11-11T16:16:52.2871021Z /home/runner/.npm
+2026-11-11T16:16:52.4910357Z Cache hit for: node-cache-Linux-x64-npm-9e394b79118f59a2011ffa58fc050f70a9d0ea5fee457f3ab89821f08f961017
+2026-11-11T16:16:52.4973756Z (node:2173) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-11T16:16:53.7048391Z Received 83886080 of 208306740 (40.3%), 80.0 MBs/sec
+2026-11-11T16:16:54.4767246Z Received 208306740 of 208306740 (100.0%), 112.1 MBs/sec
+2026-11-11T16:16:54.4767889Z Cache Size: ~199 MB (208306740 B)
+2026-11-11T16:16:54.4861929Z [command]/usr/bin/tar -xf /home/runner/work/_temp/8ae3cb98-73b1-4edc-a8bf-607528ca22e5/cache.tzst -P -C /home/runner/work/mastermind-terminal/mastermind-terminal --use-compress-program unzstd
+2026-11-11T16:16:54.8264522Z Cache restored successfully
+2026-11-11T16:16:54.8363527Z Cache restored from key: node-cache-Linux-x64-npm-9e394b79118f59a2011ffa58fc050f70a9d0ea5fee457f3ab89821f08f961017
+2026-11-11T16:16:54.8570303Z ##[group]Run node e2e/tools/capture_ci_evidence.cjs --checkout-only
+2026-11-11T16:16:54.8570831Z [36;1mnode e2e/tools/capture_ci_evidence.cjs --checkout-only[0m
+2026-11-11T16:16:54.8592121Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:16:54.8592290Z ##[endgroup]
+2026-11-11T16:16:54.9062909Z ##[group]Run npm ci
+2026-11-11T16:16:54.9063148Z [36;1mnpm ci[0m
+2026-11-11T16:16:54.9081604Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:16:54.9081765Z ##[endgroup]
+2026-11-11T16:16:57.6709228Z npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+2026-11-11T16:17:26.9956272Z 
+2026-11-11T16:17:26.9957168Z added 480 packages, and audited 481 packages in 32s
+2026-11-11T16:17:26.9957431Z 
+2026-11-11T16:17:26.9957578Z 169 packages are looking for funding
+2026-11-11T16:17:26.9957997Z   run `npm fund` for details
+2026-11-11T16:17:27.1613091Z 
+2026-11-11T16:17:27.1614080Z 23 vulnerabilities (14 moderate, 7 high, 2 critical)
+2026-11-11T16:17:27.1614361Z 
+2026-11-11T16:17:27.1614584Z To address issues that do not require attention, run:
+2026-11-11T16:17:27.1614873Z   npm audit fix
+2026-11-11T16:17:27.1614991Z 
+2026-11-11T16:17:27.1615188Z To address all issues (including breaking changes), run:
+2026-11-11T16:17:27.1615617Z   npm audit fix --force
+2026-11-11T16:17:27.1615750Z 
+2026-11-11T16:17:27.1615853Z Run `npm audit` for details.
+2026-11-11T16:17:27.2477247Z ##[group]Run npx next typegen
+2026-11-11T16:17:27.2477437Z [36;1mnpx next typegen[0m
+2026-11-11T16:17:27.2494250Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:17:27.2494409Z ##[endgroup]
+2026-11-11T16:17:27.5998631Z Generating route types...
+2026-11-11T16:17:27.6218047Z ✓ Types generated successfully
+2026-11-11T16:17:27.6426533Z ##[group]Run npx tsc --noEmit
+2026-11-11T16:17:27.6426724Z [36;1mnpx tsc --noEmit[0m
+2026-11-11T16:17:27.6443294Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:17:27.6443441Z ##[endgroup]
+2026-11-11T16:18:31.4906314Z ##[group]Run node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
+2026-11-11T16:18:31.4907446Z [36;1mnode --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs[0m
+2026-11-11T16:18:31.4924474Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:18:31.4924628Z ##[endgroup]
+2026-11-11T16:18:31.5251980Z TAP version 13
+2026-11-11T16:18:31.6118363Z # Subtest: thesis entry observes the 1440px en presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6171783Z ok 1 - thesis entry observes the 1440px en presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6221260Z   ---
+2026-11-11T16:18:31.6242619Z   duration_ms: 4.012094
+2026-11-11T16:18:31.6243405Z   ...
+2026-11-11T16:18:31.6254463Z # Subtest: thesis entry observes the 1440px zh presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6255734Z ok 2 - thesis entry observes the 1440px zh presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6256448Z   ---
+2026-11-11T16:18:31.6323844Z   duration_ms: 1.024203
+2026-11-11T16:18:31.6324434Z   ...
+2026-11-11T16:18:31.6324993Z # Subtest: thesis entry observes the 820px en presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6325753Z ok 3 - thesis entry observes the 820px en presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6328360Z   ---
+2026-11-11T16:18:31.6329012Z   duration_ms: 1.741103
+2026-11-11T16:18:31.6329345Z   ...
+2026-11-11T16:18:31.6329897Z # Subtest: thesis entry observes the 820px zh presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6330857Z ok 4 - thesis entry observes the 820px zh presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6331454Z   ---
+2026-11-11T16:18:31.6331756Z   duration_ms: 0.920697
+2026-11-11T16:18:31.6332075Z   ...
+2026-11-11T16:18:31.6332616Z # Subtest: thesis entry observes the 390px en presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6333371Z ok 5 - thesis entry observes the 390px en presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6333875Z   ---
+2026-11-11T16:18:31.6334169Z   duration_ms: 1.184385
+2026-11-11T16:18:31.6334483Z   ...
+2026-11-11T16:18:31.6335017Z # Subtest: thesis entry observes the 390px zh presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6335775Z ok 6 - thesis entry observes the 390px zh presentation and leaves its real disclosure closed
+2026-11-11T16:18:31.6336280Z   ---
+2026-11-11T16:18:31.6336568Z   duration_ms: 1.462173
+2026-11-11T16:18:31.6336863Z   ...
+2026-11-11T16:18:31.6337362Z # Subtest: thesis entry refuses a different destination, symbol, view or localized identity
+2026-11-11T16:18:31.6338199Z ok 7 - thesis entry refuses a different destination, symbol, view or localized identity
+2026-11-11T16:18:31.6338774Z   ---
+2026-11-11T16:18:31.6339175Z   duration_ms: 2.353635
+2026-11-11T16:18:31.6339574Z   ...
+2026-11-11T16:18:31.6340265Z # Subtest: visible English SSR at 1440px waits for Chinese hydration in the original budget
+2026-11-11T16:18:31.6358822Z ok 8 - visible English SSR at 1440px waits for Chinese hydration in the original budget
+2026-11-11T16:18:31.6359209Z   ---
+2026-11-11T16:18:31.6359396Z   duration_ms: 1.674532
+2026-11-11T16:18:31.6359590Z   ...
+2026-11-11T16:18:31.6359994Z # Subtest: visible English SSR at 390px waits for Chinese hydration in the original budget
+2026-11-11T16:18:31.6360734Z ok 9 - visible English SSR at 390px waits for Chinese hydration in the original budget
+2026-11-11T16:18:31.6361083Z   ---
+2026-11-11T16:18:31.6361256Z   duration_ms: 0.857522
+2026-11-11T16:18:31.6361688Z   ...
+2026-11-11T16:18:31.6362029Z # Subtest: a visible SSR entry without localized hydration remains ineligible
+2026-11-11T16:18:31.6362520Z ok 10 - a visible SSR entry without localized hydration remains ineligible
+2026-11-11T16:18:31.6362834Z   ---
+2026-11-11T16:18:31.6363008Z   duration_ms: 0.875088
+2026-11-11T16:18:31.6363156Z   ...
+2026-11-11T16:18:31.6363397Z # Subtest: compact thesis capture refuses an already open or ambiguous research disclosure
+2026-11-11T16:18:31.6363759Z ok 11 - compact thesis capture refuses an already open or ambiguous research disclosure
+2026-11-11T16:18:31.6363983Z   ---
+2026-11-11T16:18:31.6364091Z   duration_ms: 2.471163
+2026-11-11T16:18:31.6364337Z   ...
+2026-11-11T16:18:31.6364622Z # Subtest: new F11 evidence retains the complete prior appendix after the six-file boundary
+2026-11-11T16:18:31.6364983Z ok 12 - new F11 evidence retains the complete prior appendix after the six-file boundary
+2026-11-11T16:18:31.6365204Z   ---
+2026-11-11T16:18:31.6365317Z   duration_ms: 5.890293
+2026-11-11T16:18:31.6365439Z   ...
+2026-11-11T16:18:31.6365686Z # Subtest: an unrecognized evidence appendix refuses without changing historical bytes
+2026-11-11T16:18:31.6366088Z ok 13 - an unrecognized evidence appendix refuses without changing historical bytes
+2026-11-11T16:18:31.6366308Z   ---
+2026-11-11T16:18:31.6366418Z   duration_ms: 1.542303
+2026-11-11T16:18:31.6366540Z   ...
+2026-11-11T16:18:31.6366778Z # Subtest: indicator observation preserves the page and accepts an empty portal host
+2026-11-11T16:18:31.6367120Z ok 14 - indicator observation preserves the page and accepts an empty portal host
+2026-11-11T16:18:31.6367334Z   ---
+2026-11-11T16:18:31.6367448Z   duration_ms: 2.075757
+2026-11-11T16:18:31.6367568Z   ...
+2026-11-11T16:18:31.6367790Z # Subtest: indicator observation preserves the page and refuses a visible control
+2026-11-11T16:18:31.6368117Z ok 15 - indicator observation preserves the page and refuses a visible control
+2026-11-11T16:18:31.6368327Z   ---
+2026-11-11T16:18:31.6368437Z   duration_ms: 1.770958
+2026-11-11T16:18:31.6368556Z   ...
+2026-11-11T16:18:31.6368805Z # Subtest: owned runtime startup or cleanup error leaves only a sanitized failure outcome
+2026-11-11T16:18:31.6369151Z ok 16 - owned runtime startup or cleanup error leaves only a sanitized failure outcome
+2026-11-11T16:18:31.6369366Z   ---
+2026-11-11T16:18:31.6369503Z   duration_ms: 1.635534
+2026-11-11T16:18:31.6369629Z   ...
+2026-11-11T16:18:31.6369887Z # Subtest: runtime failure recorder preserves unexpected outcome objects and does not follow them
+2026-11-11T16:18:31.6370535Z ok 17 - runtime failure recorder preserves unexpected outcome objects and does not follow them
+2026-11-11T16:18:31.6370935Z   ---
+2026-11-11T16:18:31.6371098Z   duration_ms: 0.758462
+2026-11-11T16:18:31.6371295Z   ...
+2026-11-11T16:18:31.6371758Z # Subtest: fixture child never inherits provider credentials, auth controls, NODE_OPTIONS or host flags
+2026-11-11T16:18:31.6372428Z ok 18 - fixture child never inherits provider credentials, auth controls, NODE_OPTIONS or host flags
+2026-11-11T16:18:31.6372835Z   ---
+2026-11-11T16:18:31.6373013Z   duration_ms: 0.37831
+2026-11-11T16:18:31.6373203Z   ...
+2026-11-11T16:18:31.6373548Z # Subtest: each Next development dotenv entrance refuses before any values are read
+2026-11-11T16:18:31.6373885Z ok 19 - each Next development dotenv entrance refuses before any values are read
+2026-11-11T16:18:31.6374203Z   ---
+2026-11-11T16:18:31.6374371Z   duration_ms: 1.26788
+2026-11-11T16:18:31.6374562Z   ...
+2026-11-11T16:18:31.6374947Z # Subtest: boundary refuses unsupported WebSocket control rather than silently weakening
+2026-11-11T16:18:31.6375519Z ok 20 - boundary refuses unsupported WebSocket control rather than silently weakening
+2026-11-11T16:18:31.6375886Z   ---
+2026-11-11T16:18:31.6376059Z   duration_ms: 0.972966
+2026-11-11T16:18:31.6376253Z   ...
+2026-11-11T16:18:31.6376719Z # Subtest: API/data requests never reach the app/server/provider; typed unavailable is a failing HTTP status
+2026-11-11T16:18:31.6377867Z ok 21 - API/data requests never reach the app/server/provider; typed unavailable is a failing HTTP status
+2026-11-11T16:18:31.6378310Z   ---
+2026-11-11T16:18:31.6378482Z   duration_ms: 1.240469
+2026-11-11T16:18:31.6378676Z   ...
+2026-11-11T16:18:31.6379116Z # Subtest: qualified real app/static responses use maxRedirects0 and preserve response; redirects abort
+2026-11-11T16:18:31.6379796Z ok 22 - qualified real app/static responses use maxRedirects0 and preserve response; redirects abort
+2026-11-11T16:18:31.6380380Z   ---
+2026-11-11T16:18:31.6380555Z   duration_ms: 1.496739
+2026-11-11T16:18:31.6380749Z   ...
+2026-11-11T16:18:31.6381212Z # Subtest: foreign routes and optimizer URLs abort without fetching, and sockets close without connecting
+2026-11-11T16:18:31.6382081Z ok 23 - foreign routes and optimizer URLs abort without fetching, and sockets close without connecting
+2026-11-11T16:18:31.6382487Z   ---
+2026-11-11T16:18:31.6382668Z   duration_ms: 0.452602
+2026-11-11T16:18:31.6382865Z   ...
+2026-11-11T16:18:31.6383312Z # Subtest: boundary owns and rejects the allowed-fetch callback failure without retaining raw error text
+2026-11-11T16:18:31.6383978Z ok 24 - boundary owns and rejects the allowed-fetch callback failure without retaining raw error text
+2026-11-11T16:18:31.6384368Z   ---
+2026-11-11T16:18:31.6384538Z   duration_ms: 0.880576
+2026-11-11T16:18:31.6384729Z   ...
+2026-11-11T16:18:31.6385181Z # Subtest: boundary owns and rejects the script-body callback failure without retaining raw error text
+2026-11-11T16:18:31.6385830Z ok 25 - boundary owns and rejects the script-body callback failure without retaining raw error text
+2026-11-11T16:18:31.6386214Z   ---
+2026-11-11T16:18:31.6386394Z   duration_ms: 0.661697
+2026-11-11T16:18:31.6386583Z   ...
+2026-11-11T16:18:31.6387032Z # Subtest: boundary owns and rejects the allowed-fulfill callback failure without retaining raw error text
+2026-11-11T16:18:31.6387718Z ok 26 - boundary owns and rejects the allowed-fulfill callback failure without retaining raw error text
+2026-11-11T16:18:31.6388118Z   ---
+2026-11-11T16:18:31.6388287Z   duration_ms: 1.587732
+2026-11-11T16:18:31.6388478Z   ...
+2026-11-11T16:18:31.6388944Z # Subtest: boundary owns and rejects the unavailable-fulfill callback failure without retaining raw error text
+2026-11-11T16:18:31.6389655Z ok 27 - boundary owns and rejects the unavailable-fulfill callback failure without retaining raw error text
+2026-11-11T16:18:31.6390070Z   ---
+2026-11-11T16:18:31.6390791Z   duration_ms: 0.296927
+2026-11-11T16:18:31.6390977Z   ...
+2026-11-11T16:18:31.6391263Z # Subtest: boundary owns and rejects the bad-status-abort callback failure without retaining raw error text
+2026-11-11T16:18:31.6391692Z ok 28 - boundary owns and rejects the bad-status-abort callback failure without retaining raw error text
+2026-11-11T16:18:31.6392184Z   ---
+2026-11-11T16:18:31.6392357Z   duration_ms: 0.271929
+2026-11-11T16:18:31.6392540Z   ...
+2026-11-11T16:18:31.6392979Z # Subtest: boundary owns and rejects the blocked-abort callback failure without retaining raw error text
+2026-11-11T16:18:31.6393669Z ok 29 - boundary owns and rejects the blocked-abort callback failure without retaining raw error text
+2026-11-11T16:18:31.6393999Z   ---
+2026-11-11T16:18:31.6394110Z   duration_ms: 0.36526
+2026-11-11T16:18:31.6394234Z   ...
+2026-11-11T16:18:31.6394540Z # Subtest: boundary owns and rejects the websocket-close callback failure without retaining raw error text
+2026-11-11T16:18:31.6394957Z ok 30 - boundary owns and rejects the websocket-close callback failure without retaining raw error text
+2026-11-11T16:18:31.6395203Z   ---
+2026-11-11T16:18:31.6395316Z   duration_ms: 0.209675
+2026-11-11T16:18:31.6395437Z   ...
+2026-11-11T16:18:31.6513060Z # Subtest: boundary drain has a bounded failure while preserving ownership of a late callback
+2026-11-11T16:18:31.6559196Z ok 31 - boundary drain has a bounded failure while preserving ownership of a late callback
+2026-11-11T16:18:31.6570968Z   ---
+2026-11-11T16:18:31.6571246Z   duration_ms: 28.868559
+2026-11-11T16:18:31.6571770Z   ...
+2026-11-11T16:18:31.6572292Z # Subtest: actual owned runtime settles browser/server before returning the pending-fetch outcome
+2026-11-11T16:18:31.6573028Z ok 32 - actual owned runtime settles browser/server before returning the pending-fetch outcome
+2026-11-11T16:18:31.6573478Z   ---
+2026-11-11T16:18:31.6573678Z   duration_ms: 14.277669
+2026-11-11T16:18:31.6573895Z   ...
+2026-11-11T16:18:31.6587932Z # Subtest: actual owned runtime settles browser/server before returning the primary-and-pending-fetch outcome
+2026-11-11T16:18:31.6588757Z ok 33 - actual owned runtime settles browser/server before returning the primary-and-pending-fetch outcome
+2026-11-11T16:18:31.6589454Z   ---
+2026-11-11T16:18:31.6589648Z   duration_ms: 1.577656
+2026-11-11T16:18:31.6589851Z   ...
+2026-11-11T16:18:31.6590465Z # Subtest: actual owned runtime settles browser/server before returning the primary-http-200 outcome
+2026-11-11T16:18:31.6591210Z ok 34 - actual owned runtime settles browser/server before returning the primary-http-200 outcome
+2026-11-11T16:18:31.6591623Z   ---
+2026-11-11T16:18:31.6591804Z   duration_ms: 1.573511
+2026-11-11T16:18:31.6592001Z   ...
+2026-11-11T16:18:31.6592439Z # Subtest: actual owned runtime settles browser/server before returning the context-close outcome
+2026-11-11T16:18:31.6593102Z ok 35 - actual owned runtime settles browser/server before returning the context-close outcome
+2026-11-11T16:18:31.6609992Z   ---
+2026-11-11T16:18:31.6610494Z   duration_ms: 1.536795
+2026-11-11T16:18:31.6610723Z   ...
+2026-11-11T16:18:31.6611245Z # Subtest: actual owned runtime settles browser/server before returning the context-close-undefined outcome
+2026-11-11T16:18:31.6612029Z ok 36 - actual owned runtime settles browser/server before returning the context-close-undefined outcome
+2026-11-11T16:18:31.6612492Z   ---
+2026-11-11T16:18:31.6612752Z   duration_ms: 1.469083
+2026-11-11T16:18:31.6613064Z   ...
+2026-11-11T16:18:31.6613626Z # Subtest: actual owned runtime settles browser/server before returning the server-stop outcome
+2026-11-11T16:18:31.6614629Z ok 37 - actual owned runtime settles browser/server before returning the server-stop outcome
+2026-11-11T16:18:31.6615194Z   ---
+2026-11-11T16:18:31.6615538Z   duration_ms: 1.478518
+2026-11-11T16:18:31.6615885Z   ...
+2026-11-11T16:18:31.6616441Z # Subtest: actual owned runtime settles browser/server before returning the success outcome
+2026-11-11T16:18:31.6617188Z ok 38 - actual owned runtime settles browser/server before returning the success outcome
+2026-11-11T16:18:31.6617721Z   ---
+2026-11-11T16:18:31.6618189Z   duration_ms: 1.403694
+2026-11-11T16:18:31.6618494Z   ...
+2026-11-11T16:18:31.6619082Z # Subtest: startup waits for the normal component interception event, without issuing a request
+2026-11-11T16:18:31.6619933Z ok 39 - startup waits for the normal component interception event, without issuing a request
+2026-11-11T16:18:31.6620627Z   ---
+2026-11-11T16:18:31.6620938Z   duration_ms: 6.520242
+2026-11-11T16:18:31.6621249Z   ...
+2026-11-11T16:18:31.6621830Z # Subtest: no-interception and blocked-script cases keep the positive guard failing
+2026-11-11T16:18:31.6622546Z ok 40 - no-interception and blocked-script cases keep the positive guard failing
+2026-11-11T16:18:31.6623115Z   ---
+2026-11-11T16:18:31.6623397Z   duration_ms: 1.26165
+2026-11-11T16:18:31.6623686Z   ...
+2026-11-11T16:18:31.6641047Z # Subtest: chrome, foreign and other-symbol reads never substitute for the actual NVDA component event
+2026-11-11T16:18:31.6651037Z ok 41 - chrome, foreign and other-symbol reads never substitute for the actual NVDA component event
+2026-11-11T16:18:31.6667849Z   ---
+2026-11-11T16:18:31.6668201Z   duration_ms: 1.649304
+2026-11-11T16:18:31.6668587Z   ...
+2026-11-11T16:18:31.6669209Z # Subtest: failed allowed responses retain bounded public resource family/type/status only
+2026-11-11T16:18:31.6669942Z ok 42 - failed allowed responses retain bounded public resource family/type/status only
+2026-11-11T16:18:31.6670676Z   ---
+2026-11-11T16:18:31.6670941Z   duration_ms: 0.500524
+2026-11-11T16:18:31.6672956Z   ...
+2026-11-11T16:18:32.2574006Z # Subtest: failed allowed response diagnostic cap never weakens200/redirect rejection or eventguard
+2026-11-11T16:18:32.2612935Z ok 43 - failed allowed response diagnostic cap never weakens200/redirect rejection or eventguard
+2026-11-11T16:18:32.2670713Z   ---
+2026-11-11T16:18:32.2681019Z   duration_ms: 2.080649
+2026-11-11T16:18:32.2699639Z   ...
+2026-11-11T16:18:32.2721487Z # Subtest: local script identity diagnostic strips origin query and fragment, accepts only static script names
+2026-11-11T16:18:32.2722630Z ok 44 - local script identity diagnostic strips origin query and fragment, accepts only static script names
+2026-11-11T16:18:32.2723860Z   ---
+2026-11-11T16:18:32.2724364Z   duration_ms: 0.208614
+2026-11-11T16:18:32.2724934Z   ...
+2026-11-11T16:18:32.2725664Z # Subtest: console diagnostics retain fixed classifications, never console content
+2026-11-11T16:18:32.2726579Z ok 45 - console diagnostics retain fixed classifications, never console content
+2026-11-11T16:18:32.2727217Z   ---
+2026-11-11T16:18:32.2727687Z   duration_ms: 0.433974
+2026-11-11T16:18:32.2728235Z   ...
+2026-11-11T16:18:32.2728957Z # Subtest: failure artifact is distinct from success and excludes raw error message
+2026-11-11T16:18:32.2729876Z ok 46 - failure artifact is distinct from success and excludes raw error message
+2026-11-11T16:18:32.2730746Z   ---
+2026-11-11T16:18:32.2731123Z   duration_ms: 0.520374
+2026-11-11T16:18:32.2731621Z   ...
+2026-11-11T16:18:32.2732371Z # Subtest: F11 source-component server explicitly selects supported webpack, without changing app or boundary flags
+2026-11-11T16:18:32.2733467Z ok 47 - F11 source-component server explicitly selects supported webpack, without changing app or boundary flags
+2026-11-11T16:18:32.2734240Z   ---
+2026-11-11T16:18:32.2734669Z   duration_ms: 0.228193
+2026-11-11T16:18:32.2735098Z   ...
+2026-11-11T16:18:32.2735853Z # Subtest: invocation start outcome invalidation clears only known stale outcome manifests, preserving images and evidence
+2026-11-11T16:18:32.2736973Z ok 48 - invocation start outcome invalidation clears only known stale outcome manifests, preserving images and evidence
+2026-11-11T16:18:32.2737681Z   ---
+2026-11-11T16:18:32.2738312Z   duration_ms: 1.133317
+2026-11-11T16:18:32.2738861Z   ...
+2026-11-11T16:18:32.2739617Z # Subtest: partial two-desktop-then-forced-tablet-failure outcome leaves no eligible success and only the current FAILURE
+2026-11-11T16:18:32.2741071Z ok 49 - partial two-desktop-then-forced-tablet-failure outcome leaves no eligible success and only the current FAILURE
+2026-11-11T16:18:32.2741775Z   ---
+2026-11-11T16:18:32.2742261Z   duration_ms: 1.276332
+2026-11-11T16:18:32.2742685Z   ...
+2026-11-11T16:18:32.2743382Z # Subtest: stable all-six outcome success publishes atomically via exclusive temp and clears stale failure
+2026-11-11T16:18:32.2744364Z ok 50 - stable all-six outcome success publishes atomically via exclusive temp and clears stale failure
+2026-11-11T16:18:32.2744984Z   ---
+2026-11-11T16:18:32.2745447Z   duration_ms: 2.554368
+2026-11-11T16:18:32.2745895Z   ...
+2026-11-11T16:18:32.2746666Z # Subtest: actual Next config composes exact F11 and closed-canonical modes without changing ordinary defaults
+2026-11-11T16:18:32.2747677Z ok 51 - actual Next config composes exact F11 and closed-canonical modes without changing ordinary defaults
+2026-11-11T16:18:32.2748421Z   ---
+2026-11-11T16:18:32.2748820Z   duration_ms: 574.605519
+2026-11-11T16:18:32.2749311Z   ...
+2026-11-11T16:18:32.2749999Z # Subtest: outcome unknown temporary preimage refuses without deleting or overwriting it
+2026-11-11T16:18:32.2750956Z ok 52 - outcome unknown temporary preimage refuses without deleting or overwriting it
+2026-11-11T16:18:32.2751648Z   ---
+2026-11-11T16:18:32.2752050Z   duration_ms: 0.572172
+2026-11-11T16:18:32.2752539Z   ...
+2026-11-11T16:18:32.2753154Z # Subtest: outcome failure-cleanup refusal cannot leave an eligible success
+2026-11-11T16:18:32.2754123Z ok 53 - outcome failure-cleanup refusal cannot leave an eligible success
+2026-11-11T16:18:32.2754751Z   ---
+2026-11-11T16:18:32.2755229Z   duration_ms: 0.475226
+2026-11-11T16:18:32.2755692Z   ...
+2026-11-11T16:18:32.2756326Z # Subtest: outcome atomic publisher does not promote one short write into success
+2026-11-11T16:18:32.2757135Z ok 54 - outcome atomic publisher does not promote one short write into success
+2026-11-11T16:18:32.2757730Z   ---
+2026-11-11T16:18:32.2758190Z   duration_ms: 3.220752
+2026-11-11T16:18:32.2758674Z   ...
+2026-11-11T16:18:32.2759299Z # Subtest: outcome invalidation precedes dependency-loader failure in the actual main
+2026-11-11T16:18:32.2760311Z ok 55 - outcome invalidation precedes dependency-loader failure in the actual main
+2026-11-11T16:18:32.2761130Z   ---
+2026-11-11T16:18:32.2761515Z   duration_ms: 1.926292
+2026-11-11T16:18:32.2762044Z   ...
+2026-11-11T16:18:32.2762952Z # Subtest: outcome failure writer refuses a linked marker without changing its target
+2026-11-11T16:18:32.2763789Z ok 56 - outcome failure writer refuses a linked marker without changing its target
+2026-11-11T16:18:32.2764432Z   ---
+2026-11-11T16:18:32.2764843Z   duration_ms: 0.661206
+2026-11-11T16:18:32.2765296Z   ...
+2026-11-11T16:18:32.2765887Z # Subtest: outcome publisher refuses an already present success instead of overwriting it
+2026-11-11T16:18:32.2766749Z ok 57 - outcome publisher refuses an already present success instead of overwriting it
+2026-11-11T16:18:32.2767420Z   ---
+2026-11-11T16:18:32.2767854Z   duration_ms: 0.428515
+2026-11-11T16:18:32.2768268Z   ...
+2026-11-11T16:18:32.2769021Z # Subtest: single-case diagnostic can never produce eligible six-case success or caller-chosen status
+2026-11-11T16:18:32.2769982Z ok 58 - single-case diagnostic can never produce eligible six-case success or caller-chosen status
+2026-11-11T16:18:32.2771199Z   ---
+2026-11-11T16:18:32.2771750Z   duration_ms: 0.568636
+2026-11-11T16:18:32.2772186Z   ...
+2026-11-11T16:18:32.2772975Z # Subtest: default canonical entrypoint remains exact6; diagnostic entrypoint has one named bounded case
+2026-11-11T16:18:32.2774026Z ok 59 - default canonical entrypoint remains exact6; diagnostic entrypoint has one named bounded case
+2026-11-11T16:18:32.2774692Z   ---
+2026-11-11T16:18:32.2775247Z   duration_ms: 0.37818
+2026-11-11T16:18:32.2775677Z   ...
+2026-11-11T16:18:32.2776247Z # Subtest: only diagnostic interception copies public-script bytes and emits typed metadata
+2026-11-11T16:18:32.2777007Z ok 60 - only diagnostic interception copies public-script bytes and emits typed metadata
+2026-11-11T16:18:32.2777517Z   ---
+2026-11-11T16:18:32.2777827Z   duration_ms: 0.826455
+2026-11-11T16:18:32.2778158Z   ...
+2026-11-11T16:18:32.2778686Z # Subtest: bootstrap diagnosis exposes only bounded script pathname/registration facts
+2026-11-11T16:18:32.2779451Z ok 61 - bootstrap diagnosis exposes only bounded script pathname/registration facts
+2026-11-11T16:18:32.2779959Z   ---
+2026-11-11T16:18:32.2780410Z   duration_ms: 1.383794
+2026-11-11T16:18:32.2780740Z   ...
+2026-11-11T16:18:32.2781424Z # Subtest: diagnostic delivery observations separate browser decode failures from upstream200 without leaking error text
+2026-11-11T16:18:32.2782405Z ok 62 - diagnostic delivery observations separate browser decode failures from upstream200 without leaking error text
+2026-11-11T16:18:32.2783025Z   ---
+2026-11-11T16:18:32.2783345Z   duration_ms: 0.423177
+2026-11-11T16:18:32.2783689Z   ...
+2026-11-11T16:18:32.2784220Z # Subtest: exact six cases use serial fully-settled independent runtime invocations
+2026-11-11T16:18:32.2784936Z ok 63 - exact six cases use serial fully-settled independent runtime invocations
+2026-11-11T16:18:32.2785434Z   ---
+2026-11-11T16:18:32.2785806Z   duration_ms: 0.560995
+2026-11-11T16:18:32.2786159Z   ...
+2026-11-11T16:18:32.2786699Z # Subtest: a pending first-case settlement prevents even starting the second runtime
+2026-11-11T16:18:32.2787438Z ok 64 - a pending first-case settlement prevents even starting the second runtime
+2026-11-11T16:18:32.2787944Z   ---
+2026-11-11T16:18:32.2788259Z   duration_ms: 0.217207
+2026-11-11T16:18:32.2820930Z   ...
+2026-11-11T16:18:32.2841012Z # Subtest: failed or unclosed case stops sequence and cannot yield partial success
+2026-11-11T16:18:32.2850877Z ok 65 - failed or unclosed case stops sequence and cannot yield partial success
+2026-11-11T16:18:32.2877282Z   ---
+2026-11-11T16:18:32.2877685Z   duration_ms: 0.539513
+2026-11-11T16:18:32.2878863Z   ...
+2026-11-11T16:18:34.1363720Z # Subtest: runs complete original captures, retains24PL6, selects20+30 and exact returned hashes
+2026-11-11T16:18:34.1385352Z ok 66 - runs complete original captures, retains24PL6, selects20+30 and exact returned hashes
+2026-11-11T16:18:34.1386084Z   ---
+2026-11-11T16:18:34.1387271Z   duration_ms: 151.107554
+2026-11-11T16:18:34.1387614Z   ...
+2026-11-11T16:18:34.1388220Z # Subtest: changed Options source opts only PL6 into one capture and retains actual checkout identity
+2026-11-11T16:18:34.1389038Z ok 67 - changed Options source opts only PL6 into one capture and retains actual checkout identity
+2026-11-11T16:18:34.1389559Z   ---
+2026-11-11T16:18:34.1389875Z   duration_ms: 123.141517
+2026-11-11T16:18:34.1410801Z   ...
+2026-11-11T16:18:34.1445903Z # Subtest: helper-only Options source drift requests the existing five-case capture
+2026-11-11T16:18:34.1447799Z ok 68 - helper-only Options source drift requests the existing five-case capture
+2026-11-11T16:18:34.1448213Z   ---
+2026-11-11T16:18:34.1448412Z   duration_ms: 104.41371
+2026-11-11T16:18:34.1448620Z   ...
+2026-11-11T16:18:34.1449021Z # Subtest: stale or event-head Options receipt cannot select a successful capture
+2026-11-11T16:18:34.1449641Z ok 69 - stale or event-head Options receipt cannot select a successful capture
+2026-11-11T16:18:34.1450022Z   ---
+2026-11-11T16:18:34.1450486Z   duration_ms: 62.349398
+2026-11-11T16:18:34.1450692Z   ...
+2026-11-11T16:18:34.1451065Z # Subtest: stale or event-head Options receipt cannot select a successful capture
+2026-11-11T16:18:34.1451613Z ok 70 - stale or event-head Options receipt cannot select a successful capture
+2026-11-11T16:18:34.1451964Z   ---
+2026-11-11T16:18:34.1452145Z   duration_ms: 59.531288
+2026-11-11T16:18:34.1452347Z   ...
+2026-11-11T16:18:34.1452817Z # Subtest: Options runs asynchronously against the owned server, preserving inherited fixture settings
+2026-11-11T16:18:34.1453540Z ok 71 - Options runs asynchronously against the owned server, preserving inherited fixture settings
+2026-11-11T16:18:34.1453950Z   ---
+2026-11-11T16:18:34.1454127Z   duration_ms: 1.761804
+2026-11-11T16:18:34.1454325Z   ...
+2026-11-11T16:18:34.1454744Z # Subtest: Options nonzero fails once without retrying or starting a replacement server
+2026-11-11T16:18:34.1455365Z ok 72 - Options nonzero fails once without retrying or starting a replacement server
+2026-11-11T16:18:34.1455748Z   ---
+2026-11-11T16:18:34.1455927Z   duration_ms: 0.474184
+2026-11-11T16:18:34.1456119Z   ...
+2026-11-11T16:18:34.1456574Z # Subtest: Options signal fails once without retrying or starting a replacement server
+2026-11-11T16:18:34.1457173Z ok 73 - Options signal fails once without retrying or starting a replacement server
+2026-11-11T16:18:34.1457538Z   ---
+2026-11-11T16:18:34.1457716Z   duration_ms: 0.214483
+2026-11-11T16:18:34.1457916Z   ...
+2026-11-11T16:18:34.1458300Z # Subtest: Options error fails once without retrying or starting a replacement server
+2026-11-11T16:18:34.1458872Z ok 74 - Options error fails once without retrying or starting a replacement server
+2026-11-11T16:18:34.1459231Z   ---
+2026-11-11T16:18:34.1459405Z   duration_ms: 0.350818
+2026-11-11T16:18:34.1459600Z   ...
+2026-11-11T16:18:34.1460008Z # Subtest: Options server-exit fails once without retrying or starting a replacement server
+2026-11-11T16:18:34.1460770Z ok 75 - Options server-exit fails once without retrying or starting a replacement server
+2026-11-11T16:18:34.1461148Z   ---
+2026-11-11T16:18:34.1461321Z   duration_ms: 0.307163
+2026-11-11T16:18:34.1461518Z   ...
+2026-11-11T16:18:34.1461853Z # Subtest: Options refuses an unowned or unready server before spawning
+2026-11-11T16:18:34.1462718Z ok 76 - Options refuses an unowned or unready server before spawning
+2026-11-11T16:18:34.1463041Z   ---
+2026-11-11T16:18:34.1463220Z   duration_ms: 0.307283
+2026-11-11T16:18:34.1463417Z   ...
+2026-11-11T16:18:34.1463783Z # Subtest: Options preserves the original EPERM refusal after child closure
+2026-11-11T16:18:34.1464308Z ok 77 - Options preserves the original EPERM refusal after child closure
+2026-11-11T16:18:34.1464633Z   ---
+2026-11-11T16:18:34.1464809Z   duration_ms: 0.382496
+2026-11-11T16:18:34.1465011Z   ...
+2026-11-11T16:18:34.1465373Z # Subtest: Options preserves the original EACCES refusal after child closure
+2026-11-11T16:18:34.1465897Z ok 78 - Options preserves the original EACCES refusal after child closure
+2026-11-11T16:18:34.1466394Z   ---
+2026-11-11T16:18:34.1466574Z   duration_ms: 0.221714
+2026-11-11T16:18:34.1466772Z   ...
+2026-11-11T16:18:34.1467200Z # Subtest: PL6 invokes Options only after its captures succeed and before its own server cleanup
+2026-11-11T16:18:34.1467847Z ok 79 - PL6 invokes Options only after its captures succeed and before its own server cleanup
+2026-11-11T16:18:34.1468236Z   ---
+2026-11-11T16:18:34.1468411Z   duration_ms: 0.729779
+2026-11-11T16:18:34.1468605Z   ...
+2026-11-11T16:18:34.1468960Z # Subtest: missing reference preserves failure and does not export selector
+2026-11-11T16:18:34.1469475Z ok 80 - missing reference preserves failure and does not export selector
+2026-11-11T16:18:34.1469810Z   ---
+2026-11-11T16:18:34.1469988Z   duration_ms: 67.204842
+2026-11-11T16:18:34.1483245Z   ...
+2026-11-11T16:18:34.1483676Z # Subtest: ambiguous reference preserves failure and does not export selector
+2026-11-11T16:18:34.1484238Z ok 81 - ambiguous reference preserves failure and does not export selector
+2026-11-11T16:18:34.1484599Z   ---
+2026-11-11T16:18:34.1484791Z   duration_ms: 68.326091
+2026-11-11T16:18:34.1485000Z   ...
+2026-11-11T16:18:34.1485350Z # Subtest: hash malformed preserves failure and does not export selector
+2026-11-11T16:18:34.1485871Z ok 82 - hash malformed preserves failure and does not export selector
+2026-11-11T16:18:34.1486184Z   ---
+2026-11-11T16:18:34.1486361Z   duration_ms: 43.018085
+2026-11-11T16:18:34.1486555Z   ...
+2026-11-11T16:18:34.1486898Z # Subtest: narrowed PL6 count preserves failure and does not export selector
+2026-11-11T16:18:34.1487407Z ok 83 - narrowed PL6 count preserves failure and does not export selector
+2026-11-11T16:18:34.1487719Z   ---
+2026-11-11T16:18:34.1487901Z   duration_ms: 54.555636
+2026-11-11T16:18:34.1488097Z   ...
+2026-11-11T16:18:34.1488450Z # Subtest: unrelated operation preserves failure and does not export selector
+2026-11-11T16:18:34.1488974Z ok 84 - unrelated operation preserves failure and does not export selector
+2026-11-11T16:18:34.1489310Z   ---
+2026-11-11T16:18:34.1489484Z   duration_ms: 40.529161
+2026-11-11T16:18:34.1489680Z   ...
+2026-11-11T16:18:34.1490003Z # Subtest: nonzero child preserves failure and does not export selector
+2026-11-11T16:18:34.1490618Z ok 85 - nonzero child preserves failure and does not export selector
+2026-11-11T16:18:34.1490936Z   ---
+2026-11-11T16:18:34.1491115Z   duration_ms: 41.306977
+2026-11-11T16:18:34.1491313Z   ...
+2026-11-11T16:18:34.1491649Z # Subtest: signalled child preserves failure and does not export selector
+2026-11-11T16:18:34.1492152Z ok 86 - signalled child preserves failure and does not export selector
+2026-11-11T16:18:34.1492475Z   ---
+2026-11-11T16:18:34.1492647Z   duration_ms: 38.751789
+2026-11-11T16:18:34.1492855Z   ...
+2026-11-11T16:18:34.1493186Z # Subtest: spawn error preserves failure and does not export selector
+2026-11-11T16:18:34.1493651Z ok 87 - spawn error preserves failure and does not export selector
+2026-11-11T16:18:34.1493950Z   ---
+2026-11-11T16:18:34.1494123Z   duration_ms: 36.288918
+2026-11-11T16:18:34.1494317Z   ...
+2026-11-11T16:18:34.1494641Z # Subtest: spawn throws preserves failure and does not export selector
+2026-11-11T16:18:34.1495120Z ok 88 - spawn throws preserves failure and does not export selector
+2026-11-11T16:18:34.1495429Z   ---
+2026-11-11T16:18:34.1495900Z   duration_ms: 31.661077
+2026-11-11T16:18:34.1496108Z   ...
+2026-11-11T16:18:34.1496471Z # Subtest: source mismatch preserves failure and does not export selector
+2026-11-11T16:18:34.1496972Z ok 89 - source mismatch preserves failure and does not export selector
+2026-11-11T16:18:34.1497287Z   ---
+2026-11-11T16:18:34.1497465Z   duration_ms: 46.794179
+2026-11-11T16:18:34.1497659Z   ...
+2026-11-11T16:18:34.1497993Z # Subtest: profile mismatch preserves failure and does not export selector
+2026-11-11T16:18:34.1498494Z ok 90 - profile mismatch preserves failure and does not export selector
+2026-11-11T16:18:34.1498821Z   ---
+2026-11-11T16:18:34.1499174Z   duration_ms: 39.656677
+2026-11-11T16:18:34.1499375Z   ...
+2026-11-11T16:18:34.1499760Z # Subtest: bad report/image closure preserves failure and does not export selector
+2026-11-11T16:18:34.1500475Z ok 91 - bad report/image closure preserves failure and does not export selector
+2026-11-11T16:18:34.1500834Z   ---
+2026-11-11T16:18:34.1501017Z   duration_ms: 44.176821
+2026-11-11T16:18:34.1501219Z   ...
+2026-11-11T16:18:34.1501692Z # Subtest: composition changed after writer validation preserves failure and does not export selector
+2026-11-11T16:18:34.1502439Z ok 92 - composition changed after writer validation preserves failure and does not export selector
+2026-11-11T16:18:34.1502872Z   ---
+2026-11-11T16:18:34.1503050Z   duration_ms: 37.232664
+2026-11-11T16:18:34.1503257Z   ...
+2026-11-11T16:18:34.1503648Z # Subtest: incomplete composition preserves failure and does not export selector
+2026-11-11T16:18:34.1504222Z ok 93 - incomplete composition preserves failure and does not export selector
+2026-11-11T16:18:34.1504566Z   ---
+2026-11-11T16:18:34.1504736Z   duration_ms: 35.837939
+2026-11-11T16:18:34.1504932Z   ...
+2026-11-11T16:18:34.1505317Z # Subtest: lost extra layout cases preserves failure and does not export selector
+2026-11-11T16:18:34.1505892Z ok 94 - lost extra layout cases preserves failure and does not export selector
+2026-11-11T16:18:34.1506241Z   ---
+2026-11-11T16:18:34.1506416Z   duration_ms: 38.035319
+2026-11-11T16:18:34.1506625Z   ...
+2026-11-11T16:18:34.1507030Z # Subtest: capture filtering and prior composition are refused before child execution
+2026-11-11T16:18:34.1507637Z ok 95 - capture filtering and prior composition are refused before child execution
+2026-11-11T16:18:34.1508009Z   ---
+2026-11-11T16:18:34.1508188Z   duration_ms: 39.602059
+2026-11-11T16:18:34.1508391Z   ...
+2026-11-11T16:18:34.1508863Z # Subtest: stable per-run/attempt IDs refuse invalid values and duplicate invocation cannot overwrite
+2026-11-11T16:18:34.1509567Z ok 96 - stable per-run/attempt IDs refuse invalid values and duplicate invocation cannot overwrite
+2026-11-11T16:18:34.1509958Z   ---
+2026-11-11T16:18:34.1510335Z   duration_ms: 69.992848
+2026-11-11T16:18:34.1510528Z   ...
+2026-11-11T16:18:34.1510871Z # Subtest: checkout-only metadata survives a later capture failure without selecting records
+2026-11-11T16:18:34.1511253Z ok 97 - checkout-only metadata survives a later capture failure without selecting records
+2026-11-11T16:18:34.1511482Z   ---
+2026-11-11T16:18:34.1511592Z   duration_ms: 35.682375
+2026-11-11T16:18:34.1511716Z   ...
+2026-11-11T16:18:34.1511934Z # Subtest: VI outputDir cleanup preserves successful diagnostics and open logs
+2026-11-11T16:18:34.1512250Z ok 98 - VI outputDir cleanup preserves successful diagnostics and open logs
+2026-11-11T16:18:34.1512451Z   ---
+2026-11-11T16:18:34.1512564Z   duration_ms: 72.423133
+2026-11-11T16:18:34.1512688Z   ...
+2026-11-11T16:18:34.1512926Z # Subtest: VI outputDir cleanup preserves failed diagnostics and open logs
+2026-11-11T16:18:34.1513226Z ok 99 - VI outputDir cleanup preserves failed diagnostics and open logs
+2026-11-11T16:18:34.1513421Z   ---
+2026-11-11T16:18:34.1513533Z   duration_ms: 36.946067
+2026-11-11T16:18:34.1513657Z   ...
+2026-11-11T16:18:34.1513903Z # Subtest: stale Pine and batch3 packets run all50 cases and preserve complete prior bytes
+2026-11-11T16:18:34.1514406Z ok 100 - stale Pine and batch3 packets run all50 cases and preserve complete prior bytes
+2026-11-11T16:18:34.1514634Z   ---
+2026-11-11T16:18:34.1514744Z   duration_ms: 96.605088
+2026-11-11T16:18:34.1514870Z   ...
+2026-11-11T16:18:34.1515090Z # Subtest: batch3-only source drift recaptures all20 files while Pine is reused
+2026-11-11T16:18:34.1515412Z ok 101 - batch3-only source drift recaptures all20 files while Pine is reused
+2026-11-11T16:18:34.1515621Z   ---
+2026-11-11T16:18:34.1515730Z   duration_ms: 81.630719
+2026-11-11T16:18:34.1515854Z   ...
+2026-11-11T16:18:34.1516117Z # Subtest: batch3 capture input drift requires fresh20: terminal/e2e/tools/capture_pl6_batch3.cjs
+2026-11-11T16:18:34.1516513Z ok 102 - batch3 capture input drift requires fresh20: terminal/e2e/tools/capture_pl6_batch3.cjs
+2026-11-11T16:18:34.1516835Z   ---
+2026-11-11T16:18:34.1516947Z   duration_ms: 76.623802
+2026-11-11T16:18:34.1517073Z   ...
+2026-11-11T16:18:34.1517364Z # Subtest: batch3 capture input drift requires fresh20: terminal/e2e/fixtures/heatmap-price-only-tile.json
+2026-11-11T16:18:34.1517807Z ok 103 - batch3 capture input drift requires fresh20: terminal/e2e/fixtures/heatmap-price-only-tile.json
+2026-11-11T16:18:34.1518064Z   ---
+2026-11-11T16:18:34.1518175Z   duration_ms: 77.793378
+2026-11-11T16:18:34.1518300Z   ...
+2026-11-11T16:18:34.1518569Z # Subtest: current packets preserve their old capture identity and do not launch replacement captures
+2026-11-11T16:18:34.1518980Z ok 104 - current packets preserve their old capture identity and do not launch replacement captures
+2026-11-11T16:18:34.1519224Z   ---
+2026-11-11T16:18:34.1519336Z   duration_ms: 64.486056
+2026-11-11T16:18:34.1519459Z   ...
+2026-11-11T16:18:34.1519687Z # Subtest: pine: nonzero producer keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1520011Z ok 105 - pine: nonzero producer keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1520411Z   ---
+2026-11-11T16:18:34.1520622Z   duration_ms: 46.494683
+2026-11-11T16:18:34.1520814Z   ...
+2026-11-11T16:18:34.1521216Z # Subtest: pine: missing current receipt keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1521594Z ok 106 - pine: missing current receipt keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1521814Z   ---
+2026-11-11T16:18:34.1521945Z   duration_ms: 45.8317
+2026-11-11T16:18:34.1522072Z   ...
+2026-11-11T16:18:34.1522305Z # Subtest: pine: partial fresh inventory keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1522653Z ok 107 - pine: partial fresh inventory keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1522870Z   ---
+2026-11-11T16:18:34.1522983Z   duration_ms: 46.838696
+2026-11-11T16:18:34.1523109Z   ...
+2026-11-11T16:18:34.1523335Z # Subtest: pine: different attempt keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1523658Z ok 108 - pine: different attempt keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1523864Z   ---
+2026-11-11T16:18:34.1523976Z   duration_ms: 46.495344
+2026-11-11T16:18:34.1524100Z   ...
+2026-11-11T16:18:34.1524325Z # Subtest: pine: changed image bytes keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1524653Z ok 109 - pine: changed image bytes keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1524860Z   ---
+2026-11-11T16:18:34.1524968Z   duration_ms: 45.956352
+2026-11-11T16:18:34.1525094Z   ...
+2026-11-11T16:18:34.1525340Z # Subtest: pine: source changed during capture keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1525712Z ok 110 - pine: source changed during capture keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1525942Z   ---
+2026-11-11T16:18:34.1526051Z   duration_ms: 46.162102
+2026-11-11T16:18:34.1526175Z   ...
+2026-11-11T16:18:34.1526398Z # Subtest: batch3: nonzero producer keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1526727Z ok 111 - batch3: nonzero producer keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1526934Z   ---
+2026-11-11T16:18:34.1527041Z   duration_ms: 41.916486
+2026-11-11T16:18:34.1527267Z   ...
+2026-11-11T16:18:34.1527504Z # Subtest: batch3: missing current receipt keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1527856Z ok 112 - batch3: missing current receipt keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1528079Z   ---
+2026-11-11T16:18:34.1528186Z   duration_ms: 42.004699
+2026-11-11T16:18:34.1528309Z   ...
+2026-11-11T16:18:34.1528548Z # Subtest: batch3: partial fresh inventory keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1528897Z ok 113 - batch3: partial fresh inventory keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1529118Z   ---
+2026-11-11T16:18:34.1529315Z   duration_ms: 46.471969
+2026-11-11T16:18:34.1529437Z   ...
+2026-11-11T16:18:34.1529663Z # Subtest: batch3: different attempt keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1529993Z ok 114 - batch3: different attempt keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1530382Z   ---
+2026-11-11T16:18:34.1530519Z   duration_ms: 41.752123
+2026-11-11T16:18:34.1530641Z   ...
+2026-11-11T16:18:34.1530870Z # Subtest: batch3: changed image bytes keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1531205Z ok 115 - batch3: changed image bytes keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1531414Z   ---
+2026-11-11T16:18:34.1531528Z   duration_ms: 43.098807
+2026-11-11T16:18:34.1531651Z   ...
+2026-11-11T16:18:34.1531900Z # Subtest: batch3: source changed during capture keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1532283Z ok 116 - batch3: source changed during capture keeps diagnostics and refuses selector export
+2026-11-11T16:18:34.1532518Z   ---
+2026-11-11T16:18:34.1532627Z   duration_ms: 42.833297
+2026-11-11T16:18:34.1532751Z   ...
+2026-11-11T16:18:34.1533023Z # Subtest: Options uses the full PL6 owner, records five fresh images, and preserves its historical audit
+2026-11-11T16:18:34.1533437Z ok 117 - Options uses the full PL6 owner, records five fresh images, and preserves its historical audit
+2026-11-11T16:18:34.1533857Z   ---
+2026-11-11T16:18:34.1533972Z   duration_ms: 67.087816
+2026-11-11T16:18:34.1534095Z   ...
+2026-11-11T16:18:34.1534380Z # Subtest: an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure
+2026-11-11T16:18:34.1534815Z ok 118 - an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure
+2026-11-11T16:18:34.1535066Z   ---
+2026-11-11T16:18:34.1535175Z   duration_ms: 33.982133
+2026-11-11T16:18:34.1535302Z   ...
+2026-11-11T16:18:34.1535497Z # Subtest: missing Options completion stops before VI and selection
+2026-11-11T16:18:34.1535776Z ok 119 - missing Options completion stops before VI and selection
+2026-11-11T16:18:34.1535966Z   ---
+2026-11-11T16:18:34.1547580Z   duration_ms: 34.308805
+2026-11-11T16:18:34.1547746Z   ...
+2026-11-11T16:18:34.1547955Z # Subtest: partial Options completion stops before VI and selection
+2026-11-11T16:18:34.1548247Z ok 120 - partial Options completion stops before VI and selection
+2026-11-11T16:18:34.1548441Z   ---
+2026-11-11T16:18:34.1548557Z   duration_ms: 33.659256
+2026-11-11T16:18:34.1548686Z   ...
+2026-11-11T16:18:34.1548903Z # Subtest: rewritten Options historical audit stops before VI and selection
+2026-11-11T16:18:34.1549212Z ok 121 - rewritten Options historical audit stops before VI and selection
+2026-11-11T16:18:34.1549411Z   ---
+2026-11-11T16:18:34.1549525Z   duration_ms: 34.888268
+2026-11-11T16:18:34.1549650Z   ...
+2026-11-11T16:18:34.1549839Z # Subtest: pine inspects the actual dev indicator DOM, count=0
+2026-11-11T16:18:34.1550195Z ok 122 - pine inspects the actual dev indicator DOM, count=0
+2026-11-11T16:18:34.1550376Z   ---
+2026-11-11T16:18:34.1550488Z   duration_ms: 0.277308
+2026-11-11T16:18:34.1550616Z   ...
+2026-11-11T16:18:34.1550799Z # Subtest: pine inspects the actual dev indicator DOM, count=1
+2026-11-11T16:18:34.1551053Z ok 123 - pine inspects the actual dev indicator DOM, count=1
+2026-11-11T16:18:34.1551231Z   ---
+2026-11-11T16:18:34.1551470Z   duration_ms: 0.090436
+2026-11-11T16:18:34.1551594Z   ...
+2026-11-11T16:18:34.1551784Z # Subtest: batch3 inspects the actual dev indicator DOM, count=0
+2026-11-11T16:18:34.1552053Z ok 124 - batch3 inspects the actual dev indicator DOM, count=0
+2026-11-11T16:18:34.1552231Z   ---
+2026-11-11T16:18:34.1552339Z   duration_ms: 0.061953
+2026-11-11T16:18:34.1552467Z   ...
+2026-11-11T16:18:34.1552652Z # Subtest: batch3 inspects the actual dev indicator DOM, count=1
+2026-11-11T16:18:34.1552913Z ok 125 - batch3 inspects the actual dev indicator DOM, count=1
+2026-11-11T16:18:34.1553092Z   ---
+2026-11-11T16:18:34.1553200Z   duration_ms: 0.049505
+2026-11-11T16:18:34.1553407Z   ...
+2026-11-11T16:18:34.1553658Z # Subtest: Options keeps the owning server live before and after asynchronous child completion
+2026-11-11T16:18:34.1554040Z ok 126 - Options keeps the owning server live before and after asynchronous child completion
+2026-11-11T16:18:34.1554271Z   ---
+2026-11-11T16:18:34.1554380Z   duration_ms: 0.249667
+2026-11-11T16:18:34.1554508Z   ...
+2026-11-11T16:18:34.1554721Z # Subtest: Options refuses a missing owner without starting another process
+2026-11-11T16:18:34.1555026Z ok 127 - Options refuses a missing owner without starting another process
+2026-11-11T16:18:34.1555228Z   ---
+2026-11-11T16:18:34.1555336Z   duration_ms: 0.108534
+2026-11-11T16:18:34.1555457Z   ...
+2026-11-11T16:18:34.1555689Z # Subtest: producer cleanup waits for the owned group after its npm leader has closed
+2026-11-11T16:18:34.1556037Z ok 128 - producer cleanup waits for the owned group after its npm leader has closed
+2026-11-11T16:18:34.1556283Z   ---
+2026-11-11T16:18:34.1556392Z   duration_ms: 0.705974
+2026-11-11T16:18:34.1556525Z   ...
+2026-11-11T16:18:34.1556756Z # Subtest: producer cleanup refuses an owned group that survives both bounded signals
+2026-11-11T16:18:34.1557100Z ok 129 - producer cleanup refuses an owned group that survives both bounded signals
+2026-11-11T16:18:34.1557322Z   ---
+2026-11-11T16:18:34.1557437Z   duration_ms: 0.949961
+2026-11-11T16:18:34.1557558Z   ...
+2026-11-11T16:18:34.1557807Z # Subtest: producer cleanup does not treat permission failure or absent close proof as success
+2026-11-11T16:18:34.1558183Z ok 130 - producer cleanup does not treat permission failure or absent close proof as success
+2026-11-11T16:18:34.1558416Z   ---
+2026-11-11T16:18:34.1558531Z   duration_ms: 0.248685
+2026-11-11T16:18:34.1558656Z   ...
+2026-11-11T16:18:34.1558876Z # Subtest: Legacy capture supervisor observes close, not merely a process exit
+2026-11-11T16:18:34.1559200Z ok 131 - Legacy capture supervisor observes close, not merely a process exit
+2026-11-11T16:18:34.1559412Z   ---
+2026-11-11T16:18:34.1559526Z   duration_ms: 0.23928
+2026-11-11T16:18:34.1559650Z   ...
+2026-11-11T16:18:34.1559873Z # Subtest: a late exit-zero after the capture deadline remains a timeout failure
+2026-11-11T16:18:34.1560266Z ok 132 - a late exit-zero after the capture deadline remains a timeout failure
+2026-11-11T16:18:34.1560469Z   ---
+2026-11-11T16:18:34.1560586Z   duration_ms: 17.108604
+2026-11-11T16:18:34.1560710Z   ...
+2026-11-11T16:18:34.1631964Z # Subtest: a child that never closes is bounded and remains unsettled after hard termination
+2026-11-11T16:18:34.1632355Z ok 133 - a child that never closes is bounded and remains unsettled after hard termination
+2026-11-11T16:18:34.1632581Z   ---
+2026-11-11T16:18:34.1632697Z   duration_ms: 17.748012
+2026-11-11T16:18:34.1632826Z   ...
+2026-11-11T16:18:34.1689140Z # Subtest: supervisor permission refusal stops termination attempts
+2026-11-11T16:18:34.1689727Z ok 134 - supervisor permission refusal stops termination attempts
+2026-11-11T16:18:34.1690232Z   ---
+2026-11-11T16:18:34.1690433Z   duration_ms: 5.525033
+2026-11-11T16:18:34.1690634Z   ...
+2026-11-11T16:18:34.1691044Z # Subtest: supervisor retains spawn error and waits for its close event
+2026-11-11T16:18:34.1691520Z ok 135 - supervisor retains spawn error and waits for its close event
+2026-11-11T16:18:34.1691712Z   ---
+2026-11-11T16:18:34.1691990Z   duration_ms: 0.19876
+2026-11-11T16:18:34.1692111Z   ...
+2026-11-11T16:18:34.1692397Z # Subtest: normal producer completion binds its stopped server to this attempt without another termination
+2026-11-11T16:18:34.1692831Z ok 136 - normal producer completion binds its stopped server to this attempt without another termination
+2026-11-11T16:18:34.1693080Z   ---
+2026-11-11T16:18:34.1693189Z   duration_ms: 0.176556
+2026-11-11T16:18:34.1693311Z   ...
+2026-11-11T16:18:34.1787088Z # Subtest: hard producer termination reconciles its distinct server group, survives=false
+2026-11-11T16:18:34.1787978Z ok 137 - hard producer termination reconciles its distinct server group, survives=false
+2026-11-11T16:18:34.1788615Z   ---
+2026-11-11T16:18:34.1788815Z   duration_ms: 9.80455
+2026-11-11T16:18:34.1789014Z   ...
+2026-11-11T16:18:38.3720811Z # Subtest: hard producer termination reconciles its distinct server group, survives=true
+2026-11-11T16:18:38.3721636Z ok 138 - hard producer termination reconciles its distinct server group, survives=true
+2026-11-11T16:18:38.3722234Z   ---
+2026-11-11T16:18:38.3723167Z   duration_ms: 10.458986
+2026-11-11T16:18:38.3723550Z   ...
+2026-11-11T16:18:38.3724085Z # Subtest: a producer close without an original server identity remains unsettled
+2026-11-11T16:18:38.3724794Z ok 139 - a producer close without an original server identity remains unsettled
+2026-11-11T16:18:38.3725314Z   ---
+2026-11-11T16:18:38.3725624Z   duration_ms: 0.197387
+2026-11-11T16:18:38.3725953Z   ...
+2026-11-11T16:18:38.3726503Z # Subtest: a server identity from another capture attempt is refused without signalling it
+2026-11-11T16:18:38.3727262Z ok 140 - a server identity from another capture attempt is refused without signalling it
+2026-11-11T16:18:38.3727790Z   ---
+2026-11-11T16:18:38.3728097Z   duration_ms: 0.13975
+2026-11-11T16:18:38.3728416Z   ...
+2026-11-11T16:18:38.3729018Z # Subtest: server permission refusal leaves reconciliation unresolved and sends no termination signal
+2026-11-11T16:18:38.3729939Z ok 141 - server permission refusal leaves reconciliation unresolved and sends no termination signal
+2026-11-11T16:18:38.3730682Z   ---
+2026-11-11T16:18:38.3730983Z   duration_ms: 0.132009
+2026-11-11T16:18:38.3731309Z   ...
+2026-11-11T16:18:38.3731917Z # Subtest: Legacy capture producer EPERM propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3732784Z ok 142 - Legacy capture producer EPERM propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3733342Z   ---
+2026-11-11T16:18:38.3733644Z   duration_ms: 0.350768
+2026-11-11T16:18:38.3733965Z   ...
+2026-11-11T16:18:38.3734568Z # Subtest: Legacy capture producer EACCES propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3735449Z ok 143 - Legacy capture producer EACCES propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3736008Z   ---
+2026-11-11T16:18:38.3736307Z   duration_ms: 0.103626
+2026-11-11T16:18:38.3736627Z   ...
+2026-11-11T16:18:38.3737256Z # Subtest: current full deterministic batch2 packet is left for native validation without a duplicate capture
+2026-11-11T16:18:38.3738158Z ok 144 - current full deterministic batch2 packet is left for native validation without a duplicate capture
+2026-11-11T16:18:38.3760778Z   ---
+2026-11-11T16:18:38.3790770Z   duration_ms: 67.019537
+2026-11-11T16:18:38.3816370Z   ...
+2026-11-11T16:18:38.3817162Z # Subtest: legacy receipt forces the incumbent full24 capture and preserves exact prior history before selecting50
+2026-11-11T16:18:38.3818070Z ok 145 - legacy receipt forces the incumbent full24 capture and preserves exact prior history before selecting50
+2026-11-11T16:18:38.3818696Z   ---
+2026-11-11T16:18:38.3819021Z   duration_ms: 70.498674
+2026-11-11T16:18:38.3819343Z   ...
+2026-11-11T16:18:38.3819771Z # Subtest: current-source drift requires real recapture without approximating the legacy lex projection
+2026-11-11T16:18:38.3820600Z ok 146 - current-source drift requires real recapture without approximating the legacy lex projection
+2026-11-11T16:18:38.3821858Z   ---
+2026-11-11T16:18:38.3822041Z   duration_ms: 76.812976
+2026-11-11T16:18:38.3822238Z   ...
+2026-11-11T16:18:38.3822728Z # Subtest: combined Options and Batch2 refresh keeps the standalone24 packet outside the two-operation composition
+2026-11-11T16:18:38.3823476Z ok 147 - combined Options and Batch2 refresh keeps the standalone24 packet outside the two-operation composition
+2026-11-11T16:18:38.3823901Z   ---
+2026-11-11T16:18:38.3824071Z   duration_ms: 69.119687
+2026-11-11T16:18:38.3824270Z   ...
+2026-11-11T16:18:38.3824714Z # Subtest: a historical sixteen-case active manifest cannot replace the current tablet-inclusive packet
+2026-11-11T16:18:38.3825633Z ok 148 - a historical sixteen-case active manifest cannot replace the current tablet-inclusive packet
+2026-11-11T16:18:38.3826038Z   ---
+2026-11-11T16:18:38.3826208Z   duration_ms: 30.184392
+2026-11-11T16:18:38.3826373Z   ...
+2026-11-11T16:18:38.3826643Z # Subtest: batch2 nonzero preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3827029Z ok 149 - batch2 nonzero preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3827261Z   ---
+2026-11-11T16:18:38.3827404Z   duration_ms: 34.463939
+2026-11-11T16:18:38.3827527Z   ...
+2026-11-11T16:18:38.3827805Z # Subtest: batch2 signal preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3828175Z ok 150 - batch2 signal preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3828406Z   ---
+2026-11-11T16:18:38.3828519Z   duration_ms: 37.529577
+2026-11-11T16:18:38.3828643Z   ...
+2026-11-11T16:18:38.3828889Z # Subtest: batch2 timeout preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3829266Z ok 151 - batch2 timeout preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3829495Z   ---
+2026-11-11T16:18:38.3829605Z   duration_ms: 32.987976
+2026-11-11T16:18:38.3829729Z   ...
+2026-11-11T16:18:38.3829995Z # Subtest: batch2 spawn exception preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3830715Z ok 152 - batch2 spawn exception preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3831102Z   ---
+2026-11-11T16:18:38.3831269Z   duration_ms: 33.160785
+2026-11-11T16:18:38.3831450Z   ...
+2026-11-11T16:18:38.3831853Z # Subtest: batch2 missing completion preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3832493Z ok 153 - batch2 missing completion preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3832877Z   ---
+2026-11-11T16:18:38.3833041Z   duration_ms: 32.795516
+2026-11-11T16:18:38.3833227Z   ...
+2026-11-11T16:18:38.3833674Z # Subtest: batch2 duplicate completion preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3834341Z ok 154 - batch2 duplicate completion preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3834738Z   ---
+2026-11-11T16:18:38.3834913Z   duration_ms: 33.612546
+2026-11-11T16:18:38.3835103Z   ...
+2026-11-11T16:18:38.3835522Z # Subtest: batch2 wrong checkout preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3836155Z ok 155 - batch2 wrong checkout preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3836520Z   ---
+2026-11-11T16:18:38.3836684Z   duration_ms: 34.943912
+2026-11-11T16:18:38.3836863Z   ...
+2026-11-11T16:18:38.3837252Z # Subtest: batch2 incomplete count preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3837670Z ok 156 - batch2 incomplete count preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3837920Z   ---
+2026-11-11T16:18:38.3838031Z   duration_ms: 32.622395
+2026-11-11T16:18:38.3838155Z   ...
+2026-11-11T16:18:38.3838422Z # Subtest: batch2 partial packet preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3839150Z ok 157 - batch2 partial packet preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3839540Z   ---
+2026-11-11T16:18:38.3839715Z   duration_ms: 33.796754
+2026-11-11T16:18:38.3839902Z   ...
+2026-11-11T16:18:38.3840561Z # Subtest: batch2 source changed during capture preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3841317Z ok 158 - batch2 source changed during capture preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3841745Z   ---
+2026-11-11T16:18:38.3841915Z   duration_ms: 34.5108
+2026-11-11T16:18:38.3842107Z   ...
+2026-11-11T16:18:38.3842645Z # Subtest: batch2 lost history preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3843281Z ok 159 - batch2 lost history preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3843660Z   ---
+2026-11-11T16:18:38.3843829Z   duration_ms: 32.948526
+2026-11-11T16:18:38.3844024Z   ...
+2026-11-11T16:18:38.3844468Z # Subtest: batch2 invalid actual image preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3845162Z ok 160 - batch2 invalid actual image preserves failure, logs and history without selecting a composition
+2026-11-11T16:18:38.3845564Z   ---
+2026-11-11T16:18:38.3845733Z   duration_ms: 34.069205
+2026-11-11T16:18:38.3845926Z   ...
+2026-11-11T16:18:38.3846234Z # Subtest: malformed batch2 duplicate layout fails before any child
+2026-11-11T16:18:38.3846679Z ok 161 - malformed batch2 duplicate layout fails before any child
+2026-11-11T16:18:38.3846978Z   ---
+2026-11-11T16:18:38.3847149Z   duration_ms: 29.524387
+2026-11-11T16:18:38.3847344Z   ...
+2026-11-11T16:18:38.3847647Z # Subtest: malformed batch2 missing source fails before any child
+2026-11-11T16:18:38.3848074Z ok 162 - malformed batch2 missing source fails before any child
+2026-11-11T16:18:38.3848357Z   ---
+2026-11-11T16:18:38.3848536Z   duration_ms: 30.954823
+2026-11-11T16:18:38.3848727Z   ...
+2026-11-11T16:18:38.3849029Z # Subtest: malformed batch2 duplicate image fails before any child
+2026-11-11T16:18:38.3849462Z ok 163 - malformed batch2 duplicate image fails before any child
+2026-11-11T16:18:38.3849754Z   ---
+2026-11-11T16:18:38.3852866Z   duration_ms: 29.688946
+2026-11-11T16:18:38.3853063Z   ...
+2026-11-11T16:18:38.3853368Z # Subtest: malformed batch2 duplicate flag fails before any child
+2026-11-11T16:18:38.3853798Z ok 164 - malformed batch2 duplicate flag fails before any child
+2026-11-11T16:18:38.3854004Z   ---
+2026-11-11T16:18:38.3854121Z   duration_ms: 30.421439
+2026-11-11T16:18:38.3854243Z   ...
+2026-11-11T16:18:38.3854438Z # Subtest: malformed batch2 wrong image bytes fails before any child
+2026-11-11T16:18:38.3854723Z ok 165 - malformed batch2 wrong image bytes fails before any child
+2026-11-11T16:18:38.3854911Z   ---
+2026-11-11T16:18:38.3855020Z   duration_ms: 30.560839
+2026-11-11T16:18:38.3855143Z   ...
+2026-11-11T16:18:38.3855365Z # Subtest: malformed batch2 missing history declaration fails before any child
+2026-11-11T16:18:38.3855728Z ok 166 - malformed batch2 missing history declaration fails before any child
+2026-11-11T16:18:38.3855951Z   ---
+2026-11-11T16:18:38.3856079Z   duration_ms: 29.687132
+2026-11-11T16:18:38.3856201Z   ...
+2026-11-11T16:18:38.3856457Z # Subtest: malformed batch2 duplicate history declaration fails before any child
+2026-11-11T16:18:38.3856815Z ok 167 - malformed batch2 duplicate history declaration fails before any child
+2026-11-11T16:18:38.3857027Z   ---
+2026-11-11T16:18:38.3857155Z   duration_ms: 30.932149
+2026-11-11T16:18:38.3857310Z   ...
+2026-11-11T16:18:38.3857551Z # Subtest: malformed batch2 history path traversal fails before any child
+2026-11-11T16:18:38.3857916Z ok 168 - malformed batch2 history path traversal fails before any child
+2026-11-11T16:18:38.3858158Z   ---
+2026-11-11T16:18:38.3858285Z   duration_ms: 29.649375
+2026-11-11T16:18:38.3858437Z   ...
+2026-11-11T16:18:38.3858782Z # Subtest: malformed batch2 lost existing history fails before any child
+2026-11-11T16:18:38.3859080Z ok 169 - malformed batch2 lost existing history fails before any child
+2026-11-11T16:18:38.3859272Z   ---
+2026-11-11T16:18:38.3859379Z   duration_ms: 30.579337
+2026-11-11T16:18:38.3859504Z   ...
+2026-11-11T16:18:38.3859771Z # Subtest: malformed batch2 corrupted existing history fails before any child
+2026-11-11T16:18:38.3860377Z ok 170 - malformed batch2 corrupted existing history fails before any child
+2026-11-11T16:18:38.3860703Z   ---
+2026-11-11T16:18:38.3860879Z   duration_ms: 30.443252
+2026-11-11T16:18:38.3861072Z   ...
+2026-11-11T16:18:38.3861484Z # Subtest: producer full-packet check rejects missing, duplicate and unrelated successful names
+2026-11-11T16:18:38.3862224Z ok 171 - producer full-packet check rejects missing, duplicate and unrelated successful names
+2026-11-11T16:18:38.3862607Z   ---
+2026-11-11T16:18:38.3862779Z   duration_ms: 0.314484
+2026-11-11T16:18:38.3862975Z   ...
+2026-11-11T16:18:38.3863377Z # Subtest: producer navigation requires an actual200 and the intended origin, route and query
+2026-11-11T16:18:38.3863987Z ok 172 - producer navigation requires an actual200 and the intended origin, route and query
+2026-11-11T16:18:38.3864359Z   ---
+2026-11-11T16:18:38.3864529Z   duration_ms: 0.549327
+2026-11-11T16:18:38.3864722Z   ...
+2026-11-11T16:18:38.3865117Z # Subtest: producer refuses a mounted dev indicator before screenshot without hiding its DOM
+2026-11-11T16:18:38.3865550Z ok 173 - producer refuses a mounted dev indicator before screenshot without hiding its DOM
+2026-11-11T16:18:38.3865778Z   ---
+2026-11-11T16:18:38.3865888Z   duration_ms: 0.263286
+2026-11-11T16:18:38.3866016Z   ...
+2026-11-11T16:18:38.3866295Z # Subtest: producer observes the clean DOM before its deterministic crop and retains screenshot settings
+2026-11-11T16:18:38.3866714Z ok 174 - producer observes the clean DOM before its deterministic crop and retains screenshot settings
+2026-11-11T16:18:38.3866968Z   ---
+2026-11-11T16:18:38.3867078Z   duration_ms: 0.146551
+2026-11-11T16:18:38.3867202Z   ...
+2026-11-11T16:18:38.3867489Z # Subtest: changed EOD source uses the complete native supervisor and preserves both composition operations
+2026-11-11T16:18:38.3867925Z ok 175 - changed EOD source uses the complete native supervisor and preserves both composition operations
+2026-11-11T16:18:38.3868176Z   ---
+2026-11-11T16:18:38.3868287Z   duration_ms: 94.67183
+2026-11-11T16:18:38.3868410Z   ...
+2026-11-11T16:18:38.3868605Z # Subtest: matching EOD layout does not invent a new capture receipt
+2026-11-11T16:18:38.3868890Z ok 176 - matching EOD layout does not invent a new capture receipt
+2026-11-11T16:18:38.3869078Z   ---
+2026-11-11T16:18:38.3869189Z   duration_ms: 62.426324
+2026-11-11T16:18:38.3869316Z   ...
+2026-11-11T16:18:38.3869593Z # Subtest: EOD partial manifest with historical images fails once after composition and before selection
+2026-11-11T16:18:38.3870008Z ok 177 - EOD partial manifest with historical images fails once after composition and before selection
+2026-11-11T16:18:38.3870440Z   ---
+2026-11-11T16:18:38.3870554Z   duration_ms: 64.657254
+2026-11-11T16:18:38.3870678Z   ...
+2026-11-11T16:18:38.3870898Z # Subtest: EOD timed out child fails once after composition and before selection
+2026-11-11T16:18:38.3871415Z ok 178 - EOD timed out child fails once after composition and before selection
+2026-11-11T16:18:38.3871737Z   ---
+2026-11-11T16:18:38.3871906Z   duration_ms: 61.850856
+2026-11-11T16:18:38.3872104Z   ...
+2026-11-11T16:18:38.3872458Z # Subtest: EOD spawn exception fails once after composition and before selection
+2026-11-11T16:18:38.3872973Z ok 179 - EOD spawn exception fails once after composition and before selection
+2026-11-11T16:18:38.3873307Z   ---
+2026-11-11T16:18:38.3873477Z   duration_ms: 56.005581
+2026-11-11T16:18:38.3873669Z   ...
+2026-11-11T16:18:38.3873995Z # Subtest: EOD malformed missing manifest cannot authorize planner reuse
+2026-11-11T16:18:38.3874471Z ok 180 - EOD malformed missing manifest cannot authorize planner reuse
+2026-11-11T16:18:38.3874778Z   ---
+2026-11-11T16:18:38.3875063Z   duration_ms: 17.718863
+2026-11-11T16:18:38.3875259Z   ...
+2026-11-11T16:18:38.3875635Z # Subtest: EOD malformed duplicate manifest cannot authorize planner reuse
+2026-11-11T16:18:38.3876030Z ok 181 - EOD malformed duplicate manifest cannot authorize planner reuse
+2026-11-11T16:18:38.3876227Z   ---
+2026-11-11T16:18:38.3876337Z   duration_ms: 18.385317
+2026-11-11T16:18:38.3876465Z   ...
+2026-11-11T16:18:38.3876671Z # Subtest: EOD malformed unrelated manifest cannot authorize planner reuse
+2026-11-11T16:18:38.3876970Z ok 182 - EOD malformed unrelated manifest cannot authorize planner reuse
+2026-11-11T16:18:38.3877168Z   ---
+2026-11-11T16:18:38.3877364Z   duration_ms: 16.934432
+2026-11-11T16:18:38.3877487Z   ...
+2026-11-11T16:18:38.3877708Z # Subtest: EOD malformed missing-source manifest cannot authorize planner reuse
+2026-11-11T16:18:38.3878038Z ok 183 - EOD malformed missing-source manifest cannot authorize planner reuse
+2026-11-11T16:18:38.3878248Z   ---
+2026-11-11T16:18:38.3878360Z   duration_ms: 17.48731
+2026-11-11T16:18:38.3878486Z   ...
+2026-11-11T16:18:38.3878663Z # Subtest: missing current EOD source fails before capture
+2026-11-11T16:18:38.3878907Z ok 184 - missing current EOD source fails before capture
+2026-11-11T16:18:38.3879082Z   ---
+2026-11-11T16:18:38.3879192Z   duration_ms: 17.424831
+2026-11-11T16:18:38.3879315Z   ...
+2026-11-11T16:18:38.3879620Z # Subtest: the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondControl":true}
+2026-11-11T16:18:38.3880088Z ok 185 - the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondControl":true}
+2026-11-11T16:18:38.3880709Z   ---
+2026-11-11T16:18:38.3880883Z   duration_ms: 78.586228
+2026-11-11T16:18:38.3881080Z   ...
+2026-11-11T16:18:38.3881552Z # Subtest: the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondSource":true}
+2026-11-11T16:18:38.3882293Z ok 186 - the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondSource":true}
+2026-11-11T16:18:38.3882723Z   ---
+2026-11-11T16:18:38.3882893Z   duration_ms: 76.716111
+2026-11-11T16:18:38.3883087Z   ...
+2026-11-11T16:18:38.3883562Z # Subtest: the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondImage":true}
+2026-11-11T16:18:38.3884293Z ok 187 - the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondImage":true}
+2026-11-11T16:18:38.3884718Z   ---
+2026-11-11T16:18:38.3884891Z   duration_ms: 81.474439
+2026-11-11T16:18:38.3885083Z   ...
+2026-11-11T16:18:38.3885511Z # Subtest: the first native producer cannot redefine its peer or reader: {"nativeReaderDrift":true}
+2026-11-11T16:18:38.3886167Z ok 188 - the first native producer cannot redefine its peer or reader: {"nativeReaderDrift":true}
+2026-11-11T16:18:38.3886586Z   ---
+2026-11-11T16:18:38.3886761Z   duration_ms: 64.288068
+2026-11-11T16:18:38.3886904Z   ...
+2026-11-11T16:18:38.3887189Z # Subtest: matching EOD/GEX packets preserve the existing two-operation selection without another capture
+2026-11-11T16:18:38.3887617Z ok 189 - matching EOD/GEX packets preserve the existing two-operation selection without another capture
+2026-11-11T16:18:38.3887913Z   ---
+2026-11-11T16:18:38.3888087Z   duration_ms: 63.262102
+2026-11-11T16:18:38.3888283Z   ...
+2026-11-11T16:18:38.3888771Z # Subtest: complete original native matrices qualify only after settled execution: {"nativeStale":["eod","gex"]}
+2026-11-11T16:18:38.3889557Z ok 190 - complete original native matrices qualify only after settled execution: {"nativeStale":["eod","gex"]}
+2026-11-11T16:18:38.3890000Z   ---
+2026-11-11T16:18:38.3890308Z   duration_ms: 122.998413
+2026-11-11T16:18:38.3890521Z   ...
+2026-11-11T16:18:38.3891048Z # Subtest: complete original native matrices qualify only after settled execution: {"missingManifest":"eod"}
+2026-11-11T16:18:38.3891808Z ok 191 - complete original native matrices qualify only after settled execution: {"missingManifest":"eod"}
+2026-11-11T16:18:38.3892252Z   ---
+2026-11-11T16:18:38.3892583Z   duration_ms: 93.409714
+2026-11-11T16:18:38.3892790Z   ...
+2026-11-11T16:18:38.3893277Z # Subtest: complete original native matrices qualify only after settled execution: {"invalidManifest":"gex"}
+2026-11-11T16:18:38.3894026Z ok 192 - complete original native matrices qualify only after settled execution: {"invalidManifest":"gex"}
+2026-11-11T16:18:38.3894463Z   ---
+2026-11-11T16:18:38.3894643Z   duration_ms: 103.91834
+2026-11-11T16:18:38.3894846Z   ...
+2026-11-11T16:18:38.3895233Z # Subtest: native nonzero producer preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3895807Z ok 193 - native nonzero producer preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3896295Z   ---
+2026-11-11T16:18:38.3896475Z   duration_ms: 63.610747
+2026-11-11T16:18:38.3896678Z   ...
+2026-11-11T16:18:38.3897063Z # Subtest: native signalled producer preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3897658Z ok 194 - native signalled producer preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3898024Z   ---
+2026-11-11T16:18:38.3898206Z   duration_ms: 68.313462
+2026-11-11T16:18:38.3898410Z   ...
+2026-11-11T16:18:38.3898777Z # Subtest: native wrong family preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3899327Z ok 195 - native wrong family preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3899662Z   ---
+2026-11-11T16:18:38.3899837Z   duration_ms: 70.2774
+2026-11-11T16:18:38.3900035Z   ...
+2026-11-11T16:18:38.3900538Z # Subtest: native wrong attempt preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3901074Z ok 196 - native wrong attempt preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3901422Z   ---
+2026-11-11T16:18:38.3901602Z   duration_ms: 65.94223
+2026-11-11T16:18:38.3901800Z   ...
+2026-11-11T16:18:38.3902149Z # Subtest: native wrong head preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3902674Z ok 197 - native wrong head preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3903007Z   ---
+2026-11-11T16:18:38.3903885Z   duration_ms: 67.053294
+2026-11-11T16:18:38.3904095Z   ...
+2026-11-11T16:18:38.3904475Z # Subtest: native partial receipt preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3905040Z ok 198 - native partial receipt preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3905400Z   ---
+2026-11-11T16:18:38.3905581Z   duration_ms: 71.51793
+2026-11-11T16:18:38.3905781Z   ...
+2026-11-11T16:18:38.3906149Z # Subtest: native duplicate member preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3906722Z ok 199 - native duplicate member preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3907082Z   ---
+2026-11-11T16:18:38.3907263Z   duration_ms: 68.728087
+2026-11-11T16:18:38.3907470Z   ...
+2026-11-11T16:18:38.3907859Z # Subtest: native wrong image digest preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3908451Z ok 200 - native wrong image digest preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3908817Z   ---
+2026-11-11T16:18:38.3908996Z   duration_ms: 67.202789
+2026-11-11T16:18:38.3909201Z   ...
+2026-11-11T16:18:38.3909593Z # Subtest: native missing fresh image preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3910299Z ok 201 - native missing fresh image preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3910652Z   ---
+2026-11-11T16:18:38.3910832Z   duration_ms: 65.329568
+2026-11-11T16:18:38.3911039Z   ...
+2026-11-11T16:18:38.3911404Z # Subtest: native invalid image preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3911944Z ok 202 - native invalid image preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3912297Z   ---
+2026-11-11T16:18:38.3912472Z   duration_ms: 65.463438
+2026-11-11T16:18:38.3912670Z   ...
+2026-11-11T16:18:38.3913055Z # Subtest: native ambiguous manifest preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3913802Z ok 203 - native ambiguous manifest preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3914163Z   ---
+2026-11-11T16:18:38.3914341Z   duration_ms: 65.900607
+2026-11-11T16:18:38.3914546Z   ...
+2026-11-11T16:18:38.3914959Z # Subtest: native changed layout preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3915513Z ok 204 - native changed layout preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3915902Z   ---
+2026-11-11T16:18:38.3916085Z   duration_ms: 63.719591
+2026-11-11T16:18:38.3916285Z   ...
+2026-11-11T16:18:38.3916683Z # Subtest: native changed capture control preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3917306Z ok 205 - native changed capture control preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3917818Z   ---
+2026-11-11T16:18:38.3917995Z   duration_ms: 72.915445
+2026-11-11T16:18:38.3918198Z   ...
+2026-11-11T16:18:38.3918584Z # Subtest: native changed checkout preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3919163Z ok 206 - native changed checkout preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3919521Z   ---
+2026-11-11T16:18:38.3919705Z   duration_ms: 64.160676
+2026-11-11T16:18:38.3919909Z   ...
+2026-11-11T16:18:38.3920449Z # Subtest: native changed archived packet preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3921074Z ok 207 - native changed archived packet preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3921455Z   ---
+2026-11-11T16:18:38.3921634Z   duration_ms: 65.27197
+2026-11-11T16:18:38.3921839Z   ...
+2026-11-11T16:18:38.3922225Z # Subtest: native changed history link preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3922824Z ok 208 - native changed history link preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3923181Z   ---
+2026-11-11T16:18:38.3923360Z   duration_ms: 66.337996
+2026-11-11T16:18:38.3923577Z   ...
+2026-11-11T16:18:38.3923952Z # Subtest: native missing completion preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3924539Z ok 209 - native missing completion preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3924904Z   ---
+2026-11-11T16:18:38.3925084Z   duration_ms: 64.539065
+2026-11-11T16:18:38.3925290Z   ...
+2026-11-11T16:18:38.3925748Z # Subtest: native duplicate completion preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3926350Z ok 210 - native duplicate completion preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3926718Z   ---
+2026-11-11T16:18:38.3926899Z   duration_ms: 63.984972
+2026-11-11T16:18:38.3927097Z   ...
+2026-11-11T16:18:38.3927459Z # Subtest: native missing receipt preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3928021Z ok 211 - native missing receipt preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3928375Z   ---
+2026-11-11T16:18:38.3928555Z   duration_ms: 67.019783
+2026-11-11T16:18:38.3928764Z   ...
+2026-11-11T16:18:38.3929155Z # Subtest: native duplicate receipt preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3929735Z ok 212 - native duplicate receipt preserves failure and cannot select CI evidence
+2026-11-11T16:18:38.3930251Z   ---
+2026-11-11T16:18:38.3930429Z   duration_ms: 67.141196
+2026-11-11T16:18:38.3930632Z   ...
+2026-11-11T16:18:38.3930994Z # Subtest: native source symlinks are refused before any native child starts
+2026-11-11T16:18:38.3931525Z ok 213 - native source symlinks are refused before any native child starts
+2026-11-11T16:18:38.3931859Z   ---
+2026-11-11T16:18:38.3932038Z   duration_ms: 17.993567
+2026-11-11T16:18:38.3932238Z   ...
+2026-11-11T16:18:38.3932622Z # Subtest: a historical packet symlink is never followed during fresh qualification
+2026-11-11T16:18:38.3933206Z ok 214 - a historical packet symlink is never followed during fresh qualification
+2026-11-11T16:18:38.3933566Z   ---
+2026-11-11T16:18:38.3933742Z   duration_ms: 22.428978
+2026-11-11T16:18:38.3933945Z   ...
+2026-11-11T16:18:38.3934663Z # Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstSource":true}
+2026-11-11T16:18:38.3935567Z ok 215 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstSource":true}
+2026-11-11T16:18:38.3936066Z   ---
+2026-11-11T16:18:38.3936249Z   duration_ms: 111.719092
+2026-11-11T16:18:38.3936457Z   ...
+2026-11-11T16:18:38.3937006Z # Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstImage":true}
+2026-11-11T16:18:38.3937885Z ok 216 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstImage":true}
+2026-11-11T16:18:38.3938535Z   ---
+2026-11-11T16:18:38.3938717Z   duration_ms: 108.070224
+2026-11-11T16:18:38.3938928Z   ...
+2026-11-11T16:18:38.3939487Z # Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstArchive":true}
+2026-11-11T16:18:38.3940495Z ok 217 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstArchive":true}
+2026-11-11T16:18:38.3940999Z   ---
+2026-11-11T16:18:38.3941178Z   duration_ms: 105.108098
+2026-11-11T16:18:38.3941384Z   ...
+2026-11-11T16:18:38.3941948Z # Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstHistory":true}
+2026-11-11T16:18:38.3942861Z ok 218 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstHistory":true}
+2026-11-11T16:18:38.3943350Z   ---
+2026-11-11T16:18:38.3943530Z   duration_ms: 104.557533
+2026-11-11T16:18:38.3943735Z   ...
+2026-11-11T16:18:38.3944293Z # Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesComposition":true}
+2026-11-11T16:18:38.3945186Z ok 219 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesComposition":true}
+2026-11-11T16:18:38.3945684Z   ---
+2026-11-11T16:18:38.3945868Z   duration_ms: 115.970016
+2026-11-11T16:18:38.3946073Z   ...
+2026-11-11T16:18:38.3946648Z # Subtest: the final selection rechecks prior owners after the second native producer: {"nativeCompositionReferencedBytes":true}
+2026-11-11T16:18:38.3947548Z ok 220 - the final selection rechecks prior owners after the second native producer: {"nativeCompositionReferencedBytes":true}
+2026-11-11T16:18:38.3948049Z   ---
+2026-11-11T16:18:38.3948234Z   duration_ms: 117.429564
+2026-11-11T16:18:38.3948437Z   ...
+2026-11-11T16:18:38.3948859Z # Subtest: eod producer EPERM propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3949503Z ok 221 - eod producer EPERM propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3949895Z   ---
+2026-11-11T16:18:38.3950074Z   duration_ms: 0.646584
+2026-11-11T16:18:38.3950432Z   ...
+2026-11-11T16:18:38.3950850Z # Subtest: eod producer EACCES propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3951495Z ok 222 - eod producer EACCES propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3951890Z   ---
+2026-11-11T16:18:38.3952067Z   duration_ms: 0.190857
+2026-11-11T16:18:38.3952270Z   ...
+2026-11-11T16:18:38.3952688Z # Subtest: gex producer EPERM propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3953295Z ok 223 - gex producer EPERM propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3953663Z   ---
+2026-11-11T16:18:38.3953833Z   duration_ms: 0.853215
+2026-11-11T16:18:38.3954025Z   ...
+2026-11-11T16:18:38.3954528Z # Subtest: gex producer EACCES propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3955121Z ok 224 - gex producer EACCES propagates to its parent without another server probe or signal
+2026-11-11T16:18:38.3955488Z   ---
+2026-11-11T16:18:38.3955653Z   duration_ms: 0.140351
+2026-11-11T16:18:38.3955839Z   ...
+2026-11-11T16:18:38.3956420Z # Subtest: eod producer cleanup waits for the owned group after its npm leader has closed
+2026-11-11T16:18:38.3956997Z ok 225 - eod producer cleanup waits for the owned group after its npm leader has closed
+2026-11-11T16:18:38.3957353Z   ---
+2026-11-11T16:18:38.3957523Z   duration_ms: 0.477279
+2026-11-11T16:18:38.3957711Z   ...
+2026-11-11T16:18:38.3958090Z # Subtest: eod producer cleanup refuses an owned group that survives both bounded signals
+2026-11-11T16:18:38.3958661Z ok 226 - eod producer cleanup refuses an owned group that survives both bounded signals
+2026-11-11T16:18:38.3959010Z   ---
+2026-11-11T16:18:38.3959182Z   duration_ms: 0.227894
+2026-11-11T16:18:38.3959373Z   ...
+2026-11-11T16:18:38.3959793Z # Subtest: eod producer cleanup does not treat permission failure or absent close proof as success
+2026-11-11T16:18:38.3960822Z ok 227 - eod producer cleanup does not treat permission failure or absent close proof as success
+2026-11-11T16:18:38.3961241Z   ---
+2026-11-11T16:18:38.3961366Z   duration_ms: 0.106711
+2026-11-11T16:18:38.3961493Z   ...
+2026-11-11T16:18:38.3961747Z # Subtest: gex producer cleanup waits for the owned group after its npm leader has closed
+2026-11-11T16:18:38.3962108Z ok 228 - gex producer cleanup waits for the owned group after its npm leader has closed
+2026-11-11T16:18:38.3962328Z   ---
+2026-11-11T16:18:38.3962436Z   duration_ms: 0.250968
+2026-11-11T16:18:38.3962557Z   ...
+2026-11-11T16:18:38.3962796Z # Subtest: gex producer cleanup refuses an owned group that survives both bounded signals
+2026-11-11T16:18:38.3963210Z ok 229 - gex producer cleanup refuses an owned group that survives both bounded signals
+2026-11-11T16:18:38.3963559Z   ---
+2026-11-11T16:18:38.3963728Z   duration_ms: 0.173491
+2026-11-11T16:18:38.3963912Z   ...
+2026-11-11T16:18:38.3964168Z # Subtest: gex producer cleanup does not treat permission failure or absent close proof as success
+2026-11-11T16:18:38.3964560Z ok 230 - gex producer cleanup does not treat permission failure or absent close proof as success
+2026-11-11T16:18:38.3964793Z   ---
+2026-11-11T16:18:38.3964904Z   duration_ms: 0.062935
+2026-11-11T16:18:38.3965026Z   ...
+2026-11-11T16:18:38.3965226Z # Subtest: Native supervisor observes close, not merely a process exit
+2026-11-11T16:18:38.3965513Z ok 231 - Native supervisor observes close, not merely a process exit
+2026-11-11T16:18:38.3965706Z   ---
+2026-11-11T16:18:38.3965814Z   duration_ms: 0.111979
+2026-11-11T16:18:38.3965936Z   ...
+2026-11-11T16:18:38.3966173Z # Subtest: native: a late exit-zero after the capture deadline remains a timeout failure
+2026-11-11T16:18:38.3966527Z ok 232 - native: a late exit-zero after the capture deadline remains a timeout failure
+2026-11-11T16:18:38.3966744Z   ---
+2026-11-11T16:18:38.3966854Z   duration_ms: 8.203678
+2026-11-11T16:18:38.3966978Z   ...
+2026-11-11T16:18:38.3967254Z # Subtest: native: a child that never closes is bounded and remains unsettled after hard termination
+2026-11-11T16:18:38.3967648Z ok 233 - native: a child that never closes is bounded and remains unsettled after hard termination
+2026-11-11T16:18:38.3967887Z   ---
+2026-11-11T16:18:38.3968000Z   duration_ms: 16.164458
+2026-11-11T16:18:38.3968125Z   ...
+2026-11-11T16:18:38.4014201Z # Subtest: native: supervisor permission refusal stops termination attempts
+2026-11-11T16:18:38.4014779Z ok 234 - native: supervisor permission refusal stops termination attempts
+2026-11-11T16:18:38.4015129Z   ---
+2026-11-11T16:18:38.4015322Z   duration_ms: 4.734833
+2026-11-11T16:18:38.4015525Z   ...
+2026-11-11T16:18:38.4016002Z # Subtest: native: supervisor retains spawn error and waits for its close event
+2026-11-11T16:18:38.4016614Z ok 235 - native: supervisor retains spawn error and waits for its close event
+2026-11-11T16:18:38.4017008Z   ---
+2026-11-11T16:18:38.4017211Z   duration_ms: 0.194153
+2026-11-11T16:18:38.4017458Z   ...
+2026-11-11T16:18:38.4017799Z # Subtest: eod dev-indicator count0 is inspected without removing DOM
+2026-11-11T16:18:38.4018323Z ok 236 - eod dev-indicator count0 is inspected without removing DOM
+2026-11-11T16:18:38.4018690Z   ---
+2026-11-11T16:18:38.4019037Z   duration_ms: 0.128073
+2026-11-11T16:18:38.4019246Z   ...
+2026-11-11T16:18:38.4019568Z # Subtest: eod dev-indicator count1 is inspected without removing DOM
+2026-11-11T16:18:38.4020005Z ok 237 - eod dev-indicator count1 is inspected without removing DOM
+2026-11-11T16:18:38.4020381Z   ---
+2026-11-11T16:18:38.4020494Z   duration_ms: 0.078438
+2026-11-11T16:18:38.4020615Z   ...
+2026-11-11T16:18:38.4020808Z # Subtest: gex dev-indicator count0 is inspected without removing DOM
+2026-11-11T16:18:38.4021088Z ok 238 - gex dev-indicator count0 is inspected without removing DOM
+2026-11-11T16:18:38.4021270Z   ---
+2026-11-11T16:18:38.4021376Z   duration_ms: 0.044356
+2026-11-11T16:18:38.4021497Z   ...
+2026-11-11T16:18:38.4021786Z # Subtest: gex dev-indicator count1 is inspected without removing DOM
+2026-11-11T16:18:38.4022061Z ok 239 - gex dev-indicator count1 is inspected without removing DOM
+2026-11-11T16:18:38.4022252Z   ---
+2026-11-11T16:18:38.4022363Z   duration_ms: 0.033411
+2026-11-11T16:18:38.4022485Z   ...
+2026-11-11T16:18:38.4039563Z # Subtest: native: normal producer completion binds its stopped server to this attempt without another termination
+2026-11-11T16:18:38.4040356Z ok 240 - native: normal producer completion binds its stopped server to this attempt without another termination
+2026-11-11T16:18:38.4040761Z   ---
+2026-11-11T16:18:38.4041024Z   duration_ms: 0.147813
+2026-11-11T16:18:38.4041215Z   ...
+2026-11-11T16:18:38.4116229Z # Subtest: native: hard producer termination reconciles its distinct server group, survives=false
+2026-11-11T16:18:38.4116835Z ok 241 - native: hard producer termination reconciles its distinct server group, survives=false
+2026-11-11T16:18:38.4117213Z   ---
+2026-11-11T16:18:38.4117403Z   duration_ms: 10.115368
+2026-11-11T16:18:38.4117598Z   ...
+2026-11-11T16:18:38.4587976Z # Subtest: native: hard producer termination reconciles its distinct server group, survives=true
+2026-11-11T16:18:38.4589404Z ok 242 - native: hard producer termination reconciles its distinct server group, survives=true
+2026-11-11T16:18:38.4590071Z   ---
+2026-11-11T16:18:38.4590563Z   duration_ms: 10.425175
+2026-11-11T16:18:38.4591014Z   ...
+2026-11-11T16:18:38.4591645Z # Subtest: native: a producer close without an original server identity remains unsettled
+2026-11-11T16:18:38.4592425Z ok 243 - native: a producer close without an original server identity remains unsettled
+2026-11-11T16:18:38.4592924Z   ---
+2026-11-11T16:18:38.4593255Z   duration_ms: 0.1527
+2026-11-11T16:18:38.4593587Z   ...
+2026-11-11T16:18:38.4594154Z # Subtest: native: a server identity from another capture attempt is refused without signalling it
+2026-11-11T16:18:38.4594952Z ok 244 - native: a server identity from another capture attempt is refused without signalling it
+2026-11-11T16:18:38.4595475Z   ---
+2026-11-11T16:18:38.4595780Z   duration_ms: 0.109195
+2026-11-11T16:18:38.4596107Z   ...
+2026-11-11T16:18:38.4596585Z # Subtest: native: server permission refusal leaves reconciliation unresolved and sends no termination signal
+2026-11-11T16:18:38.4597475Z ok 245 - native: server permission refusal leaves reconciliation unresolved and sends no termination signal
+2026-11-11T16:18:38.4597782Z   ---
+2026-11-11T16:18:38.4597914Z   duration_ms: 0.164007
+2026-11-11T16:18:38.4598045Z   ...
+2026-11-11T16:18:38.4598291Z # Subtest: an undeclared legacy packet retains the existing owner capture decision
+2026-11-11T16:18:38.4598658Z ok 246 - an undeclared legacy packet retains the existing owner capture decision
+2026-11-11T16:18:38.4598876Z   ---
+2026-11-11T16:18:38.4598993Z   duration_ms: 8.393364
+2026-11-11T16:18:38.4599124Z   ...
+2026-11-11T16:18:38.4599471Z # Subtest: qualified history cannot silently fall back after its declaration disappears: exposure-source-compatibility-20261105
+2026-11-11T16:18:38.4600017Z ok 247 - qualified history cannot silently fall back after its declaration disappears: exposure-source-compatibility-20261105
+2026-11-11T16:18:38.4600605Z   ---
+2026-11-11T16:18:38.4600720Z   duration_ms: 6.929358
+2026-11-11T16:18:38.4600847Z   ...
+2026-11-11T16:18:38.4601403Z # Subtest: qualified history cannot silently fall back after its declaration disappears: options-source-compatibility-20261105
+2026-11-11T16:18:38.4601939Z ok 248 - qualified history cannot silently fall back after its declaration disappears: options-source-compatibility-20261105
+2026-11-11T16:18:38.4602238Z   ---
+2026-11-11T16:18:38.4602350Z   duration_ms: 6.43894
+2026-11-11T16:18:38.4602477Z   ...
+2026-11-11T16:18:38.4602814Z # Subtest: qualified history cannot silently fall back after its declaration disappears: combined-source-compatibility-20261105
+2026-11-11T16:18:38.4603342Z ok 249 - qualified history cannot silently fall back after its declaration disappears: combined-source-compatibility-20261105
+2026-11-11T16:18:38.4603811Z   ---
+2026-11-11T16:18:38.4603922Z   duration_ms: 6.463627
+2026-11-11T16:18:38.4604045Z   ...
+2026-11-11T16:18:38.4604418Z # Subtest: a corrupt declared successor is refused before the raw root can be reused or overwritten
+2026-11-11T16:18:38.4605076Z ok 250 - a corrupt declared successor is refused before the raw root can be reused or overwritten
+2026-11-11T16:18:38.4605469Z   ---
+2026-11-11T16:18:38.4605652Z   duration_ms: 7.038423
+2026-11-11T16:18:38.4605854Z   ...
+2026-11-11T16:18:38.4791272Z # Subtest: supported flag supplies default only when absent
+2026-11-11T16:18:38.4794322Z ok 251 - supported flag supplies default only when absent
+2026-11-11T16:18:38.4794693Z   ---
+2026-11-11T16:18:38.4794888Z   duration_ms: 2.966599
+2026-11-11T16:18:38.4795088Z   ...
+2026-11-11T16:18:38.4795329Z # Subtest: unsupported flag remains absent
+2026-11-11T16:18:38.4795648Z ok 252 - unsupported flag remains absent
+2026-11-11T16:18:38.4795896Z   ---
+2026-11-11T16:18:38.4796089Z   duration_ms: 0.796871
+2026-11-11T16:18:38.4796293Z   ...
+2026-11-11T16:18:38.4796541Z # Subtest: absent capability remains absent
+2026-11-11T16:18:38.4796861Z ok 253 - absent capability remains absent
+2026-11-11T16:18:38.4797103Z   ---
+2026-11-11T16:18:38.4797284Z   duration_ms: 0.642218
+2026-11-11T16:18:38.4797492Z   ...
+2026-11-11T16:18:38.4797786Z # Subtest: explicit option retained on supported runtime
+2026-11-11T16:18:38.4798188Z ok 254 - explicit option retained on supported runtime
+2026-11-11T16:18:38.4798473Z   ---
+2026-11-11T16:18:38.4798650Z   duration_ms: 0.70383
+2026-11-11T16:18:38.4798844Z   ...
+2026-11-11T16:18:38.4799135Z # Subtest: explicit option retained on unsupported runtime
+2026-11-11T16:18:38.4799541Z ok 255 - explicit option retained on unsupported runtime
+2026-11-11T16:18:38.4799826Z   ---
+2026-11-11T16:18:38.4800010Z   duration_ms: 1.867444
+2026-11-11T16:18:38.4800429Z   ...
+2026-11-11T16:18:38.4800701Z # Subtest: explicit option retained without capability
+2026-11-11T16:18:38.4801086Z ok 256 - explicit option retained without capability
+2026-11-11T16:18:38.4801362Z   ---
+2026-11-11T16:18:38.4801543Z   duration_ms: 0.552272
+2026-11-11T16:18:38.4801737Z   ...
+2026-11-11T16:18:38.4802027Z # Subtest: explicit empty retained on unsupported runtime
+2026-11-11T16:18:38.4802432Z ok 257 - explicit empty retained on unsupported runtime
+2026-11-11T16:18:38.4802707Z   ---
+2026-11-11T16:18:38.4802891Z   duration_ms: 0.686283
+2026-11-11T16:18:38.4803081Z   ...
+2026-11-11T16:18:38.4803358Z # Subtest: explicit empty retained on supported runtime
+2026-11-11T16:18:38.4803742Z ok 258 - explicit empty retained on supported runtime
+2026-11-11T16:18:38.4804018Z   ---
+2026-11-11T16:18:38.4804193Z   duration_ms: 0.561455
+2026-11-11T16:18:38.4804390Z   ...
+2026-11-11T16:18:38.4804658Z # Subtest: explicit empty retained without capability
+2026-11-11T16:18:38.4805021Z ok 259 - explicit empty retained without capability
+2026-11-11T16:18:38.4805286Z   ---
+2026-11-11T16:18:38.4805458Z   duration_ms: 0.719013
+2026-11-11T16:18:38.4805653Z   ...
+2026-11-11T16:18:38.4805979Z # Subtest: explicit empty does not consult or override runtime capability
+2026-11-11T16:18:38.4806477Z ok 260 - explicit empty does not consult or override runtime capability
+2026-11-11T16:18:38.4806812Z   ---
+2026-11-11T16:18:38.4807343Z   duration_ms: 0.801828
+2026-11-11T16:18:38.4807552Z   ...
+2026-11-11T16:18:38.4807939Z # Subtest: policy module surface: dependency-free, network-free, frozen exports
+2026-11-11T16:18:38.4808507Z ok 261 - policy module surface: dependency-free, network-free, frozen exports
+2026-11-11T16:18:38.4808860Z   ---
+2026-11-11T16:18:38.4809039Z   duration_ms: 2.067294
+2026-11-11T16:18:38.4809237Z   ...
+2026-11-11T16:18:38.4809711Z # Subtest: allowed app documents: exact /analysis?symbol=NVDA&lang=en|zh document GETs continue
+2026-11-11T16:18:38.4810533Z ok 262 - allowed app documents: exact /analysis?symbol=NVDA&lang=en|zh document GETs continue
+2026-11-11T16:18:38.4810932Z   ---
+2026-11-11T16:18:38.4811259Z   duration_ms: 2.694239
+2026-11-11T16:18:38.4811460Z   ...
+2026-11-11T16:18:38.4811878Z # Subtest: document negatives: wrong/missing params, duplicates, path aliases, traversal
+2026-11-11T16:18:38.4812502Z ok 263 - document negatives: wrong/missing params, duplicates, path aliases, traversal
+2026-11-11T16:18:38.4812880Z   ---
+2026-11-11T16:18:38.4813065Z   duration_ms: 0.684611
+2026-11-11T16:18:38.4813263Z   ...
+2026-11-11T16:18:38.4813685Z # Subtest: allowed Next static assets and root icons: script/css/font/image/manifest continue
+2026-11-11T16:18:38.4814330Z ok 264 - allowed Next static assets and root icons: script/css/font/image/manifest continue
+2026-11-11T16:18:38.4814716Z   ---
+2026-11-11T16:18:38.4814893Z   duration_ms: 0.799705
+2026-11-11T16:18:38.4815092Z   ...
+2026-11-11T16:18:38.4815523Z # Subtest: static negatives: wrong type/path pairs and non-allowlisted same-origin paths abort
+2026-11-11T16:18:38.4816189Z ok 265 - static negatives: wrong type/path pairs and non-allowlisted same-origin paths abort
+2026-11-11T16:18:38.4816593Z   ---
+2026-11-11T16:18:38.4816766Z   duration_ms: 0.336397
+2026-11-11T16:18:38.4816964Z   ...
+2026-11-11T16:18:38.4817393Z # Subtest: provider/data routes: xhr/fetch fulfill typed-unavailable BEFORE origin/path checks
+2026-11-11T16:18:38.4818048Z ok 266 - provider/data routes: xhr/fetch fulfill typed-unavailable BEFORE origin/path checks
+2026-11-11T16:18:38.4818443Z   ---
+2026-11-11T16:18:38.4818610Z   duration_ms: 0.355435
+2026-11-11T16:18:38.4818802Z   ...
+2026-11-11T16:18:38.4819164Z # Subtest: streaming and non-essential resources abort (dev HMR, realtime, media)
+2026-11-11T16:18:38.4819711Z ok 267 - streaming and non-essential resources abort (dev HMR, realtime, media)
+2026-11-11T16:18:38.4820054Z   ---
+2026-11-11T16:18:38.4820374Z   duration_ms: 0.310097
+2026-11-11T16:18:38.4820565Z   ...
+2026-11-11T16:18:38.4820970Z # Subtest: origin negatives: foreign hosts, other ports, other schemes, prefix look-alikes
+2026-11-11T16:18:38.4821575Z ok 268 - origin negatives: foreign hosts, other ports, other schemes, prefix look-alikes
+2026-11-11T16:18:38.4821955Z   ---
+2026-11-11T16:18:38.4822133Z   duration_ms: 0.241384
+2026-11-11T16:18:38.4822328Z   ...
+2026-11-11T16:18:38.4822646Z # Subtest: scheme-relative and credential-bearing URLs fail closed
+2026-11-11T16:18:38.4823111Z ok 269 - scheme-relative and credential-bearing URLs fail closed
+2026-11-11T16:18:38.4823415Z   ---
+2026-11-11T16:18:38.4823583Z   duration_ms: 0.288985
+2026-11-11T16:18:38.4823772Z   ...
+2026-11-11T16:18:38.4824043Z # Subtest: unsupported methods fail closed everywhere
+2026-11-11T16:18:38.4824406Z ok 270 - unsupported methods fail closed everywhere
+2026-11-11T16:18:38.4824677Z   ---
+2026-11-11T16:18:38.4824857Z   duration_ms: 1.015169
+2026-11-11T16:18:38.4825044Z   ...
+2026-11-11T16:18:38.4825367Z # Subtest: unknown resource types and non-http(s) schemes fail closed
+2026-11-11T16:18:38.4825854Z ok 271 - unknown resource types and non-http(s) schemes fail closed
+2026-11-11T16:18:38.4826162Z   ---
+2026-11-11T16:18:38.4826415Z   duration_ms: 0.230177
+2026-11-11T16:18:38.4826610Z   ...
+2026-11-11T16:18:38.4826839Z # Subtest: unparseable URLs fail closed
+2026-11-11T16:18:38.4827142Z ok 272 - unparseable URLs fail closed
+2026-11-11T16:18:38.4827374Z   ---
+2026-11-11T16:18:38.4827553Z   duration_ms: 0.135163
+2026-11-11T16:18:38.4827748Z   ...
+2026-11-11T16:18:38.4828240Z # Subtest: unsafe base origins make every request fail closed
+2026-11-11T16:18:38.4828676Z ok 273 - unsafe base origins make every request fail closed
+2026-11-11T16:18:38.4828937Z   ---
+2026-11-11T16:18:38.4829046Z   duration_ms: 0.14547
+2026-11-11T16:18:38.4829168Z   ...
+2026-11-11T16:18:38.4829392Z # Subtest: typedUnavailablePayload is constant, frozen, and invents no data
+2026-11-11T16:18:38.4829714Z ok 274 - typedUnavailablePayload is constant, frozen, and invents no data
+2026-11-11T16:18:38.4829920Z   ---
+2026-11-11T16:18:38.4830029Z   duration_ms: 0.196906
+2026-11-11T16:18:38.4830326Z   ...
+2026-11-11T16:18:38.4830674Z # Subtest: headers and postData are never consumed; input is not mutated; results deterministic
+2026-11-11T16:18:38.4831170Z ok 275 - headers and postData are never consumed; input is not mutated; results deterministic
+2026-11-11T16:18:38.4831404Z   ---
+2026-11-11T16:18:38.4831575Z   duration_ms: 0.359772
+2026-11-11T16:18:38.4831766Z   ...
+2026-11-11T16:18:38.4832207Z # Subtest: corpus sweep: every decision is typed, and continue implies the independent allowlist
+2026-11-11T16:18:38.4832818Z ok 276 - corpus sweep: every decision is typed, and continue implies the independent allowlist
+2026-11-11T16:18:38.4833194Z   ---
+2026-11-11T16:18:38.4833360Z   duration_ms: 9.484608
+2026-11-11T16:18:38.4833556Z   ...
+2026-11-11T16:18:38.4833891Z # Subtest: no Next image optimizer path can forward an upstream/provider request
+2026-11-11T16:18:38.4834519Z ok 277 - no Next image optimizer path can forward an upstream/provider request
+2026-11-11T16:18:38.4834914Z   ---
+2026-11-11T16:18:38.4835113Z   duration_ms: 0.209266
+2026-11-11T16:18:38.4835308Z   ...
+2026-11-11T16:18:38.4835829Z # Subtest: encoded path separators cannot be forwarded as static files, while encoded Next bracket names remain allowed
+2026-11-11T16:18:38.4836673Z ok 278 - encoded path separators cannot be forwarded as static files, while encoded Next bracket names remain allowed
+2026-11-11T16:18:38.4837135Z   ---
+2026-11-11T16:18:38.4837332Z   duration_ms: 0.251018
+2026-11-11T16:18:38.4837523Z   ...
+2026-11-11T16:18:38.4837927Z # Subtest: static path decoding ambiguities refuse without a blanket percent ban
+2026-11-11T16:18:38.4838479Z ok 279 - static path decoding ambiguities refuse without a blanket percent ban
+2026-11-11T16:18:38.4838838Z   ---
+2026-11-11T16:18:38.4839032Z   duration_ms: 0.824582
+2026-11-11T16:18:38.4839244Z   ...
+2026-11-11T16:18:38.4839636Z # Subtest: missing onEnd, missing case and interrupted end never imply complete pass
+2026-11-11T16:18:38.4840410Z ok 280 - missing onEnd, missing case and interrupted end never imply complete pass
+2026-11-11T16:18:38.4840786Z   ---
+2026-11-11T16:18:38.4840977Z   duration_ms: 3.681967
+2026-11-11T16:18:38.4841163Z   ...
+2026-11-11T16:18:38.4841585Z # Subtest: unique cases, failed attempts, retries and skips remain distinct and truthful
+2026-11-11T16:18:38.4842202Z ok 281 - unique cases, failed attempts, retries and skips remain distinct and truthful
+2026-11-11T16:18:38.4842606Z   ---
+2026-11-11T16:18:38.4842802Z   duration_ms: 1.092145
+2026-11-11T16:18:38.4843011Z   ...
+2026-11-11T16:18:38.4843394Z # Subtest: global errors and unstable binding cannot become passing summary
+2026-11-11T16:18:38.4843953Z ok 282 - global errors and unstable binding cannot become passing summary
+2026-11-11T16:18:38.4844331Z   ---
+2026-11-11T16:18:38.4844543Z   duration_ms: 3.216996
+2026-11-11T16:18:38.4844792Z   ...
+2026-11-11T16:18:38.4845292Z # Subtest: a stale or forged expected outcome never erases an actually failed attempt
+2026-11-11T16:18:38.4846139Z ok 283 - a stale or forged expected outcome never erases an actually failed attempt
+2026-11-11T16:18:38.4846592Z   ---
+2026-11-11T16:18:38.4846814Z   duration_ms: 1.382473
+2026-11-11T16:18:38.4847844Z   ...
+2026-11-11T16:18:38.4848579Z # Subtest: actual Playwright interrupted/skipped outcome mapping never means that the body ran
+2026-11-11T16:18:38.4850599Z ok 284 - actual Playwright interrupted/skipped outcome mapping never means that the body ran
+2026-11-11T16:18:38.4851689Z   ---
+2026-11-11T16:18:38.4852053Z   duration_ms: 1.522263
+2026-11-11T16:18:38.4852240Z   ...
+2026-11-11T16:18:38.4853243Z # Subtest: generated titles are always opaque and result payload getters are never touched
+2026-11-11T16:18:38.4853928Z ok 285 - generated titles are always opaque and result payload getters are never touched
+2026-11-11T16:18:38.4855721Z   ---
+2026-11-11T16:18:38.4855886Z   duration_ms: 1.120247
+2026-11-11T16:18:38.4856069Z   ...
+2026-11-11T16:18:38.4856784Z # Subtest: finite projects/source files and retry sequence reject malformed or duplicate records
+2026-11-11T16:18:38.4857550Z ok 286 - finite projects/source files and retry sequence reject malformed or duplicate records
+2026-11-11T16:18:38.4858222Z   ---
+2026-11-11T16:18:38.4858423Z   duration_ms: 0.674627
+2026-11-11T16:18:38.4858824Z   ...
+2026-11-11T16:18:38.4859794Z # Subtest: Discover focus journeys retain bounded case identity and validated outcomes
+2026-11-11T16:18:38.4860683Z ok 287 - Discover focus journeys retain bounded case identity and validated outcomes
+2026-11-11T16:18:38.4861040Z   ---
+2026-11-11T16:18:38.4861211Z   duration_ms: 1.527121
+2026-11-11T16:18:38.4861404Z   ...
+2026-11-11T16:18:38.4861809Z # Subtest: strict projection rejects forged completeness/counts, unknown fields and source drift
+2026-11-11T16:18:38.4862489Z ok 288 - strict projection rejects forged completeness/counts, unknown fields and source drift
+2026-11-11T16:18:38.4862868Z   ---
+2026-11-11T16:18:38.4863039Z   duration_ms: 19.999033
+2026-11-11T16:18:38.4863236Z   ...
+2026-11-11T16:18:38.4864901Z # Subtest: actual complete and incomplete snapshots publish only freshly projected safe files
+2026-11-11T16:18:38.4865604Z ok 289 - actual complete and incomplete snapshots publish only freshly projected safe files
+2026-11-11T16:18:38.4866044Z   ---
+2026-11-11T16:18:38.4866251Z   duration_ms: 84.724649
+2026-11-11T16:18:38.4866497Z   ...
+2026-11-11T16:18:38.4866992Z # Subtest: directory substitution and producer file symlink/inode/digest drift refuse readiness
+2026-11-11T16:18:38.4869027Z ok 290 - directory substitution and producer file symlink/inode/digest drift refuse readiness
+2026-11-11T16:18:38.4869394Z   ---
+2026-11-11T16:18:38.4871020Z   duration_ms: 81.92253
+2026-11-11T16:18:38.4871204Z   ...
+2026-11-11T16:18:38.4871554Z # Subtest: unknown producer JSON cannot leak even with matching custody metadata
+2026-11-11T16:18:38.4873270Z ok 291 - unknown producer JSON cannot leak even with matching custody metadata
+2026-11-11T16:18:38.4874599Z   ---
+2026-11-11T16:18:38.4874859Z   duration_ms: 18.224034
+2026-11-11T16:18:38.4875054Z   ...
+2026-11-11T16:18:38.4876495Z # Subtest: producer snapshot marks only its own open FD, never a same-byte replacement inode
+2026-11-11T16:18:38.4877136Z ok 292 - producer snapshot marks only its own open FD, never a same-byte replacement inode
+2026-11-11T16:18:38.4877977Z   ---
+2026-11-11T16:18:38.4878207Z   duration_ms: 18.674533
+2026-11-11T16:18:38.4878498Z   ...
+2026-11-11T16:18:38.4878908Z # Subtest: binding rejects wrong workflow/job/run/checkouts without arbitrary source disclosure
+2026-11-11T16:18:38.4879840Z ok 293 - binding rejects wrong workflow/job/run/checkouts without arbitrary source disclosure
+2026-11-11T16:18:38.4880444Z   ---
+2026-11-11T16:18:38.4881377Z   duration_ms: 42.20506
+2026-11-11T16:18:38.4881655Z   ...
+2026-11-11T16:18:38.4882037Z # Subtest: truncated JSON and forged complete/incomplete assertions cannot earn readiness
+2026-11-11T16:18:38.4882613Z ok 294 - truncated JSON and forged complete/incomplete assertions cannot earn readiness
+2026-11-11T16:18:38.4882968Z   ---
+2026-11-11T16:18:38.4883135Z   duration_ms: 25.679215
+2026-11-11T16:18:38.4883334Z   ...
+2026-11-11T16:18:38.4883759Z # Subtest: fresh output directory and target alias/inode substitution never follows a foreign sentinel
+2026-11-11T16:18:38.4884462Z ok 295 - fresh output directory and target alias/inode substitution never follows a foreign sentinel
+2026-11-11T16:18:38.4884857Z   ---
+2026-11-11T16:18:38.4885154Z   duration_ms: 128.79142
+2026-11-11T16:18:38.4885351Z   ...
+2026-11-11T16:18:38.4885773Z # Subtest: the workflow preserves GitHub reporting, selection and the original responsive artifact
+2026-11-11T16:18:38.4887354Z ok 296 - the workflow preserves GitHub reporting, selection and the original responsive artifact
+2026-11-11T16:18:38.4887759Z   ---
+2026-11-11T16:18:38.4887938Z   duration_ms: 0.644241
+2026-11-11T16:18:38.4888169Z   ...
+2026-11-11T16:18:38.4888482Z # Subtest: exact hash-locked integrated source may omit redundant evidence captures
+2026-11-11T16:18:38.4888876Z ok 297 - exact hash-locked integrated source may omit redundant evidence captures
+2026-11-11T16:18:38.4889244Z   ---
+2026-11-11T16:18:38.4889377Z   duration_ms: 53.924872
+2026-11-11T16:18:38.4889516Z   ...
+2026-11-11T16:18:38.4889794Z # Subtest: a changed layout source requires real current-checkout browser capture
+2026-11-11T16:18:38.4890341Z ok 298 - a changed layout source requires real current-checkout browser capture
+2026-11-11T16:18:38.4894062Z   ---
+2026-11-11T16:18:38.4895506Z   duration_ms: 30.085784
+2026-11-11T16:18:38.4895702Z   ...
+2026-11-11T16:18:38.4895955Z # Subtest: missing layout source never earns a skip
+2026-11-11T16:18:38.4897558Z ok 299 - missing layout source never earns a skip
+2026-11-11T16:18:38.4897796Z   ---
+2026-11-11T16:18:38.4897969Z   duration_ms: 29.594032
+2026-11-11T16:18:38.4898160Z   ...
+2026-11-11T16:18:38.4899617Z # Subtest: missing or malformed evidence manifest conservatively recaptures
+2026-11-11T16:18:38.4900498Z ok 300 - missing or malformed evidence manifest conservatively recaptures
+2026-11-11T16:18:38.4901394Z   ---
+2026-11-11T16:18:38.4901978Z   duration_ms: 16.292344
+2026-11-11T16:18:38.4902759Z   ...
+2026-11-11T16:18:38.4902959Z # Subtest: conflicting source locks across packets cannot skip capture
+2026-11-11T16:18:38.4903247Z ok 301 - conflicting source locks across packets cannot skip capture
+2026-11-11T16:18:38.4904020Z   ---
+2026-11-11T16:18:38.4904177Z   duration_ms: 16.361118
+2026-11-11T16:18:38.4904361Z   ...
+2026-11-11T16:18:38.4904592Z # Subtest: unsafe source path cannot escape repository while planning
+2026-11-11T16:18:38.4904879Z ok 302 - unsafe source path cannot escape repository while planning
+2026-11-11T16:18:38.4905067Z   ---
+2026-11-11T16:18:38.4905175Z   duration_ms: 16.129789
+2026-11-11T16:18:38.4905302Z   ...
+2026-11-11T16:18:38.4905492Z # Subtest: empty or truncated hash inventory never permits skip
+2026-11-11T16:18:38.4905754Z ok 303 - empty or truncated hash inventory never permits skip
+2026-11-11T16:18:38.4905936Z   ---
+2026-11-11T16:18:38.4906046Z   duration_ms: 14.054753
+2026-11-11T16:18:38.4906170Z   ...
+2026-11-11T16:18:38.4906432Z # Subtest: EOD-only layout drift requires the incumbent full capture despite matching PL6/VI locks
+2026-11-11T16:18:38.4906829Z ok 304 - EOD-only layout drift requires the incumbent full capture despite matching PL6/VI locks
+2026-11-11T16:18:38.4907066Z   ---
+2026-11-11T16:18:38.4907173Z   duration_ms: 22.135787
+2026-11-11T16:18:38.4907302Z   ...
+2026-11-11T16:18:38.4907504Z # Subtest: a missing EOD manifest or source cannot authorize capture skip
+2026-11-11T16:18:38.4907802Z ok 305 - a missing EOD manifest or source cannot authorize capture skip
+2026-11-11T16:18:38.4908000Z   ---
+2026-11-11T16:18:38.4908109Z   duration_ms: 19.748475
+2026-11-11T16:18:38.4908232Z   ...
+2026-11-11T16:18:38.4908425Z # Subtest: EOD missing-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4909929Z ok 306 - EOD missing-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4910238Z   ---
+2026-11-11T16:18:38.4910394Z   duration_ms: 13.44233
+2026-11-11T16:18:38.4910668Z   ...
+2026-11-11T16:18:38.4910972Z # Subtest: EOD extra-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4911306Z ok 307 - EOD extra-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4911525Z   ---
+2026-11-11T16:18:38.4911662Z   duration_ms: 13.062959
+2026-11-11T16:18:38.4911801Z   ...
+2026-11-11T16:18:38.4912161Z # Subtest: EOD duplicate-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4912498Z ok 308 - EOD duplicate-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4912710Z   ---
+2026-11-11T16:18:38.4912818Z   duration_ms: 13.017741
+2026-11-11T16:18:38.4912945Z   ...
+2026-11-11T16:18:38.4913134Z # Subtest: EOD missing-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4913407Z ok 309 - EOD missing-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4913596Z   ---
+2026-11-11T16:18:38.4913703Z   duration_ms: 13.377313
+2026-11-11T16:18:38.4913825Z   ...
+2026-11-11T16:18:38.4914010Z # Subtest: EOD extra-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4914357Z ok 310 - EOD extra-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4914538Z   ---
+2026-11-11T16:18:38.4914645Z   duration_ms: 15.470116
+2026-11-11T16:18:38.4914766Z   ...
+2026-11-11T16:18:38.4914959Z # Subtest: EOD duplicate-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4915244Z ok 311 - EOD duplicate-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4915433Z   ---
+2026-11-11T16:18:38.4915541Z   duration_ms: 13.952529
+2026-11-11T16:18:38.4915663Z   ...
+2026-11-11T16:18:38.4915833Z # Subtest: EOD missing PNG cannot authorize capture skip
+2026-11-11T16:18:38.4916070Z ok 312 - EOD missing PNG cannot authorize capture skip
+2026-11-11T16:18:38.4916235Z   ---
+2026-11-11T16:18:38.4916346Z   duration_ms: 14.32817
+2026-11-11T16:18:38.4916468Z   ...
+2026-11-11T16:18:38.4916630Z # Subtest: EOD empty PNG cannot authorize capture skip
+2026-11-11T16:18:38.4916855Z ok 313 - EOD empty PNG cannot authorize capture skip
+2026-11-11T16:18:38.4917027Z   ---
+2026-11-11T16:18:38.4917134Z   duration_ms: 12.793393
+2026-11-11T16:18:38.4917256Z   ...
+2026-11-11T16:18:38.4917432Z # Subtest: EOD signature PNG cannot authorize capture skip
+2026-11-11T16:18:38.4917671Z ok 314 - EOD signature PNG cannot authorize capture skip
+2026-11-11T16:18:38.4917839Z   ---
+2026-11-11T16:18:38.4917955Z   duration_ms: 15.254161
+2026-11-11T16:18:38.4918077Z   ...
+2026-11-11T16:18:38.4918276Z # Subtest: a missing or empty EOD producer cannot authorize capture skip
+2026-11-11T16:18:38.4918566Z ok 315 - a missing or empty EOD producer cannot authorize capture skip
+2026-11-11T16:18:38.4918760Z   ---
+2026-11-11T16:18:38.4918871Z   duration_ms: 15.994926
+2026-11-11T16:18:38.4918996Z   ...
+2026-11-11T16:18:38.4919258Z # Subtest: historical EOD checkout identity remains reusable when its complete inputs still match
+2026-11-11T16:18:38.4919652Z ok 316 - historical EOD checkout identity remains reusable when its complete inputs still match
+2026-11-11T16:18:38.4919891Z   ---
+2026-11-11T16:18:38.4920005Z   duration_ms: 21.997799
+2026-11-11T16:18:38.4920257Z   ...
+2026-11-11T16:18:38.4920614Z # Subtest: GEX-only source drift cannot hide behind matching PL6/VI/EOD locks
+2026-11-11T16:18:38.4921113Z ok 317 - GEX-only source drift cannot hide behind matching PL6/VI/EOD locks
+2026-11-11T16:18:38.4921369Z   ---
+2026-11-11T16:18:38.4921482Z   duration_ms: 20.292135
+2026-11-11T16:18:38.4921606Z   ...
+2026-11-11T16:18:38.4921809Z # Subtest: a missing GEX manifest or source cannot authorize capture skip
+2026-11-11T16:18:38.4922108Z ok 318 - a missing GEX manifest or source cannot authorize capture skip
+2026-11-11T16:18:38.4922306Z   ---
+2026-11-11T16:18:38.4922417Z   duration_ms: 16.803024
+2026-11-11T16:18:38.4922538Z   ...
+2026-11-11T16:18:38.4922733Z # Subtest: GEX missing-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4923018Z ok 319 - GEX missing-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4923208Z   ---
+2026-11-11T16:18:38.4923315Z   duration_ms: 15.602735
+2026-11-11T16:18:38.4923443Z   ...
+2026-11-11T16:18:38.4923633Z # Subtest: GEX extra-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4923905Z ok 320 - GEX extra-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4924090Z   ---
+2026-11-11T16:18:38.4924201Z   duration_ms: 16.571554
+2026-11-11T16:18:38.4924419Z   ...
+2026-11-11T16:18:38.4924620Z # Subtest: GEX duplicate-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4924915Z ok 321 - GEX duplicate-source inventory cannot authorize capture skip
+2026-11-11T16:18:38.4925108Z   ---
+2026-11-11T16:18:38.4925219Z   duration_ms: 15.97736
+2026-11-11T16:18:38.4925350Z   ...
+2026-11-11T16:18:38.4925541Z # Subtest: GEX missing-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4925816Z ok 322 - GEX missing-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4926002Z   ---
+2026-11-11T16:18:38.4926110Z   duration_ms: 15.545669
+2026-11-11T16:18:38.4926233Z   ...
+2026-11-11T16:18:38.4926446Z # Subtest: GEX extra-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4926801Z ok 323 - GEX extra-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4926984Z   ---
+2026-11-11T16:18:38.4927092Z   duration_ms: 16.118633
+2026-11-11T16:18:38.4927217Z   ...
+2026-11-11T16:18:38.4927415Z # Subtest: GEX duplicate-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4927696Z ok 324 - GEX duplicate-crop inventory cannot authorize capture skip
+2026-11-11T16:18:38.4927886Z   ---
+2026-11-11T16:18:38.4927995Z   duration_ms: 17.33849
+2026-11-11T16:18:38.4928118Z   ...
+2026-11-11T16:18:38.4928284Z # Subtest: GEX missing PNG cannot authorize capture skip
+2026-11-11T16:18:38.4928519Z ok 325 - GEX missing PNG cannot authorize capture skip
+2026-11-11T16:18:38.4928685Z   ---
+2026-11-11T16:18:38.4928794Z   duration_ms: 17.501215
+2026-11-11T16:18:38.4928919Z   ...
+2026-11-11T16:18:38.4929082Z # Subtest: GEX empty PNG cannot authorize capture skip
+2026-11-11T16:18:38.4929308Z ok 326 - GEX empty PNG cannot authorize capture skip
+2026-11-11T16:18:38.4929482Z   ---
+2026-11-11T16:18:38.4929589Z   duration_ms: 17.752514
+2026-11-11T16:18:38.4929711Z   ...
+2026-11-11T16:18:38.4929886Z # Subtest: GEX signature PNG cannot authorize capture skip
+2026-11-11T16:18:38.4930257Z ok 327 - GEX signature PNG cannot authorize capture skip
+2026-11-11T16:18:38.4930466Z   ---
+2026-11-11T16:18:38.4930575Z   duration_ms: 16.592146
+2026-11-11T16:18:38.4930700Z   ...
+2026-11-11T16:18:38.4930898Z # Subtest: a missing or empty GEX producer cannot authorize capture skip
+2026-11-11T16:18:38.4931189Z ok 328 - a missing or empty GEX producer cannot authorize capture skip
+2026-11-11T16:18:38.4932705Z   ---
+2026-11-11T16:18:38.4932813Z   duration_ms: 16.464984
+2026-11-11T16:18:38.4932934Z   ...
+2026-11-11T16:18:38.4933169Z # Subtest: batch3-only producer or fixture drift cannot skip the existing capture owner
+2026-11-11T16:18:38.4933519Z ok 329 - batch3-only producer or fixture drift cannot skip the existing capture owner
+2026-11-11T16:18:38.4933743Z   ---
+2026-11-11T16:18:38.4933850Z   duration_ms: 24.531727
+2026-11-11T16:18:38.4933974Z   ...
+2026-11-11T16:18:38.4934217Z # Subtest: missing or malformed batch3 evidence cannot authorize a merge-group capture skip
+2026-11-11T16:18:38.4934589Z ok 330 - missing or malformed batch3 evidence cannot authorize a merge-group capture skip
+2026-11-11T16:18:38.4934819Z   ---
+2026-11-11T16:18:38.4934926Z   duration_ms: 13.545997
+2026-11-11T16:18:38.4935049Z   ...
+2026-11-11T16:18:38.4935249Z # Subtest: a PR-touched locked source that drifted fails the PR itself
+2026-11-11T16:18:38.4935528Z ok 331 - a PR-touched locked source that drifted fails the PR itself
+2026-11-11T16:18:38.4935717Z   ---
+2026-11-11T16:18:38.4935828Z   duration_ms: 17.054231
+2026-11-11T16:18:38.4935962Z   ...
+2026-11-11T16:18:38.4936212Z # Subtest: drift inherited from the base never fails an untouched pull request
+2026-11-11T16:18:38.4936564Z ok 332 - drift inherited from the base never fails an untouched pull request
+2026-11-11T16:18:38.4936809Z   ---
+2026-11-11T16:18:38.4936932Z   duration_ms: 16.856564
+2026-11-11T16:18:38.4937079Z   ...
+2026-11-11T16:18:38.4937338Z # Subtest: negative: a docs-only pull request is unaffected by any source drift
+2026-11-11T16:18:38.4937691Z ok 333 - negative: a docs-only pull request is unaffected by any source drift
+2026-11-11T16:18:38.4938043Z   ---
+2026-11-11T16:18:38.4938186Z   duration_ms: 16.915403
+2026-11-11T16:18:38.4938335Z   ...
+2026-11-11T16:18:38.4938581Z # Subtest: a fail-closed plan cannot attribute drift, so the PR gate stays silent
+2026-11-11T16:18:38.4938971Z ok 334 - a fail-closed plan cannot attribute drift, so the PR gate stays silent
+2026-11-11T16:18:38.4939203Z   ---
+2026-11-11T16:18:38.4939328Z   duration_ms: 11.840597
+2026-11-11T16:18:38.4939478Z   ...
+2026-11-11T16:18:38.4939707Z # Subtest: recapturing and committing an updated lock clears the PR gate
+2026-11-11T16:18:38.4940056Z ok 335 - recapturing and committing an updated lock clears the PR gate
+2026-11-11T16:18:38.4940500Z   ---
+2026-11-11T16:18:38.4940611Z   duration_ms: 19.413621
+2026-11-11T16:18:38.4941967Z   ...
+2026-11-11T16:18:38.4942170Z # Subtest: an empty touched list never attributes drift to a pull request
+2026-11-11T16:18:38.4942466Z ok 336 - an empty touched list never attributes drift to a pull request
+2026-11-11T16:18:38.4942658Z   ---
+2026-11-11T16:18:38.4942771Z   duration_ms: 18.226148
+2026-11-11T16:18:38.4942897Z   ...
+2026-11-11T16:18:38.4943113Z # Subtest: GEX drift is attributed only when the pull request touched that source
+2026-11-11T16:18:38.4943434Z ok 337 - GEX drift is attributed only when the pull request touched that source
+2026-11-11T16:18:38.4943638Z   ---
+2026-11-11T16:18:38.4943749Z   duration_ms: 26.424538
+2026-11-11T16:18:38.4943872Z   ...
+2026-11-11T16:18:38.4945097Z # Subtest: a large file-backed census reaches a child planner without losing late drift
+2026-11-11T16:18:38.4947854Z ok 338 - a large file-backed census reaches a child planner without losing late drift
+2026-11-11T16:18:38.4948459Z   ---
+2026-11-11T16:18:38.4948566Z   duration_ms: 64.871347
+2026-11-11T16:18:38.4949572Z   ...
+2026-11-11T16:18:38.4950306Z # Subtest: a missing or non-file PR census fails explicitly instead of becoming empty
+2026-11-11T16:18:38.4950790Z ok 339 - a missing or non-file PR census fails explicitly instead of becoming empty
+2026-11-11T16:18:38.4952387Z   ---
+2026-11-11T16:18:38.4952512Z   duration_ms: 14.002725
+2026-11-11T16:18:38.4953243Z   ...
+2026-11-11T16:18:38.4953884Z # Subtest: an existing empty census retains the empty-touched-list policy
+2026-11-11T16:18:38.4954189Z ok 340 - an existing empty census retains the empty-touched-list policy
+2026-11-11T16:18:38.4954385Z   ---
+2026-11-11T16:18:38.4955638Z   duration_ms: 17.982009
+2026-11-11T16:18:38.4955871Z   ...
+2026-11-11T16:18:38.4956050Z # Subtest: merge_group never consumes the PR-only census file
+2026-11-11T16:18:38.4956992Z ok 341 - merge_group never consumes the PR-only census file
+2026-11-11T16:18:38.4957471Z   ---
+2026-11-11T16:18:38.4957582Z   duration_ms: 29.804284
+2026-11-11T16:18:38.4957707Z   ...
+2026-11-11T16:18:38.4958702Z # Subtest: workflow_dispatch never consumes the PR-only census file
+2026-11-11T16:18:38.4959088Z ok 342 - workflow_dispatch never consumes the PR-only census file
+2026-11-11T16:18:38.4959275Z   ---
+2026-11-11T16:18:38.4959383Z   duration_ms: 26.999309
+2026-11-11T16:18:38.4959511Z   ...
+2026-11-11T16:18:38.4959559Z 1..342
+2026-11-11T16:18:38.4959613Z # tests 342
+2026-11-11T16:18:38.4959663Z # suites 0
+2026-11-11T16:18:38.4959712Z # pass 342
+2026-11-11T16:18:38.4959761Z # fail 0
+2026-11-11T16:18:38.4959814Z # cancelled 0
+2026-11-11T16:18:38.4959866Z # skipped 0
+2026-11-11T16:18:38.4959913Z # todo 0
+2026-11-11T16:18:38.4959979Z # duration_ms 6962.705095
+2026-11-11T16:18:38.5035761Z ##[group]Run set -euo pipefail
+2026-11-11T16:18:38.5035846Z [36;1mset -euo pipefail[0m
+2026-11-11T16:18:38.5035909Z [36;1mBASE=$(git rev-parse HEAD^1)[0m
+2026-11-11T16:18:38.5036074Z [36;1mgit diff --name-only --no-renames "${BASE}" HEAD > "${RUNNER_TEMP}/evidence-pr-touched.txt"[0m
+2026-11-11T16:18:38.5036202Z [36;1m# Keep the complete census in the file: large proof PRs can exceed[0m
+2026-11-11T16:18:38.5036317Z [36;1m# the per-variable process-launch limit if paths enter GITHUB_ENV.[0m
+2026-11-11T16:18:38.5036486Z [36;1mprintf 'EVIDENCE_PR_TOUCHED_FILE=%s\n' "${RUNNER_TEMP}/evidence-pr-touched.txt" >> "${GITHUB_ENV}"[0m
+2026-11-11T16:18:38.5068742Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:18:38.5068796Z ##[endgroup]
+2026-11-11T16:18:38.5230034Z ##[group]Run node scripts/ci/plan-evidence-capture.cjs
+2026-11-11T16:18:38.5230586Z [36;1mnode scripts/ci/plan-evidence-capture.cjs[0m
+2026-11-11T16:18:38.5246223Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:18:38.5246273Z env:
+2026-11-11T16:18:38.5246399Z   EVIDENCE_PR_TOUCHED_FILE: /home/runner/work/_temp/evidence-pr-touched.txt
+2026-11-11T16:18:38.5246454Z ##[endgroup]
+2026-11-11T16:18:38.5557492Z ##[warning]PR evidence drift gate could not attribute drift (reason=fail-closed, touched_paths=2676); merge-group backstop still enforces the locks
+2026-11-11T16:18:38.5565924Z evidence capture=true reason=full-pr-proof drifted_files=0
+2026-11-11T16:18:38.5623127Z ##[group]Run timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+2026-11-11T16:18:38.5623331Z [36;1mtimeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \[0m
+2026-11-11T16:18:38.5623650Z [36;1m  || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }[0m
+2026-11-11T16:18:38.5639981Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:18:38.5640031Z env:
+2026-11-11T16:18:38.5642128Z   EVIDENCE_PR_TOUCHED_FILE: /home/runner/work/_temp/evidence-pr-touched.txt
+2026-11-11T16:18:38.5642182Z ##[endgroup]
+2026-11-11T16:18:39.0941444Z Installing dependencies...
+2026-11-11T16:18:39.1004590Z Switching to root user to install dependencies...
+2026-11-11T16:18:39.1768627Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-11T16:18:39.2054955Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-11-11T16:18:39.2629974Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [764 kB]
+2026-11-11T16:18:39.2762602Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.6 kB]
+2026-11-11T16:18:39.2797519Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [693 kB]
+2026-11-11T16:18:59.2166228Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-11T16:19:19.2467576Z Ign:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease
+2026-11-11T16:19:39.2834046Z Ign:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease
+2026-11-11T16:19:59.3188754Z Ign:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease
+2026-11-11T16:20:19.3504573Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-11T16:20:39.3785212Z Ign:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease
+2026-11-11T16:20:39.3832809Z Ign:2 https://archive.ubuntu.com/ubuntu noble InRelease
+2026-11-11T16:20:59.4097309Z Ign:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease
+2026-11-11T16:20:59.4107872Z Err:2 https://security.ubuntu.com/ubuntu noble InRelease
+2026-11-11T16:20:59.4108224Z   Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:20:59.4118473Z Ign:3 https://archive.ubuntu.com/ubuntu noble-updates InRelease
+2026-11-11T16:21:19.4318841Z Ign:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease
+2026-11-11T16:21:19.4413791Z Ign:4 https://archive.ubuntu.com/ubuntu noble-backports InRelease
+2026-11-11T16:21:19.4416712Z Err:3 https://security.ubuntu.com/ubuntu noble-updates InRelease
+2026-11-11T16:21:19.4417029Z   Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:21:39.4826212Z Ign:5 https://archive.ubuntu.com/ubuntu noble-security InRelease
+2026-11-11T16:21:39.4936196Z Err:4 https://security.ubuntu.com/ubuntu noble-backports InRelease
+2026-11-11T16:21:39.4936536Z   Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:21:59.5321225Z Err:5 https://security.ubuntu.com/ubuntu noble-security InRelease
+2026-11-11T16:21:59.5321612Z   Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:22:01.9337303Z Fetched 1473 kB in 3min 20s (7352 B/s)
+2026-11-11T16:22:02.7294669Z Reading package lists...
+2026-11-11T16:22:02.7427746Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble/InRelease  Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:22:02.7428791Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-updates/InRelease  Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:22:02.7429754Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-backports/InRelease  Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:22:02.7430804Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-security/InRelease  Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:22:02.7432257Z W: Some index files failed to download. They have been ignored, or old ones used instead.
+2026-11-11T16:22:02.7553176Z Reading package lists...
+2026-11-11T16:22:02.9569426Z Building dependency tree...
+2026-11-11T16:22:02.9575182Z Reading state information...
+2026-11-11T16:22:03.0912278Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-11-11T16:22:03.0912691Z libasound2t64 set to manually installed.
+2026-11-11T16:22:03.0912963Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-11T16:22:03.0913262Z libatk-bridge2.0-0t64 set to manually installed.
+2026-11-11T16:22:03.0913524Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-11T16:22:03.0913787Z libatk1.0-0t64 set to manually installed.
+2026-11-11T16:22:03.0914032Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-11T16:22:03.0914296Z libatspi2.0-0t64 set to manually installed.
+2026-11-11T16:22:03.0914560Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-11-11T16:22:03.0914811Z libcairo2 set to manually installed.
+2026-11-11T16:22:03.0915052Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-11-11T16:22:03.0915307Z libcups2t64 set to manually installed.
+2026-11-11T16:22:03.0915541Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-11-11T16:22:03.0915767Z libdbus-1-3 set to manually installed.
+2026-11-11T16:22:03.0916057Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-11-11T16:22:03.0916313Z libdrm2 set to manually installed.
+2026-11-11T16:22:03.0916549Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-11-11T16:22:03.0916797Z libgbm1 set to manually installed.
+2026-11-11T16:22:03.0917041Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+2026-11-11T16:22:03.0917313Z libglib2.0-0t64 set to manually installed.
+2026-11-11T16:22:03.0917559Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-11-11T16:22:03.0917809Z libnspr4 set to manually installed.
+2026-11-11T16:22:03.0918040Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+2026-11-11T16:22:03.0918276Z libnss3 set to manually installed.
+2026-11-11T16:22:03.0918515Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-11-11T16:22:03.0918776Z libpango-1.0-0 set to manually installed.
+2026-11-11T16:22:03.0919012Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-11-11T16:22:03.0919259Z libx11-6 set to manually installed.
+2026-11-11T16:22:03.0919471Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-11-11T16:22:03.0919700Z libxcb1 set to manually installed.
+2026-11-11T16:22:03.0919938Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-11-11T16:22:03.0920373Z libxcomposite1 set to manually installed.
+2026-11-11T16:22:03.0920640Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-11-11T16:22:03.0920897Z libxdamage1 set to manually installed.
+2026-11-11T16:22:03.0921127Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-11-11T16:22:03.0921366Z libxext6 set to manually installed.
+2026-11-11T16:22:03.0921591Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-11-11T16:22:03.0921837Z libxfixes3 set to manually installed.
+2026-11-11T16:22:03.0922075Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-11-11T16:22:03.0922328Z libxkbcommon0 set to manually installed.
+2026-11-11T16:22:03.0922606Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-11-11T16:22:03.0922859Z libxrandr2 set to manually installed.
+2026-11-11T16:22:03.0923083Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+2026-11-11T16:22:03.0923414Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-11-11T16:22:03.0923760Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-11-11T16:22:03.0924025Z libfontconfig1 set to manually installed.
+2026-11-11T16:22:03.0924707Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-11-11T16:22:03.0925100Z libfreetype6 set to manually installed.
+2026-11-11T16:22:03.0925369Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-11-11T16:22:03.0925631Z fonts-liberation set to manually installed.
+2026-11-11T16:22:03.0925883Z The following additional packages will be installed:
+2026-11-11T16:22:03.0926118Z   xfonts-encodings xfonts-utils
+2026-11-11T16:22:03.0926284Z Recommended packages:
+2026-11-11T16:22:03.0926481Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-11-11T16:22:03.1089768Z The following NEW packages will be installed:
+2026-11-11T16:22:03.1090383Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-11-11T16:22:03.1093774Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-11-11T16:22:03.1094096Z   xfonts-utils
+2026-11-11T16:22:03.1271529Z 0 upgraded, 9 newly installed, 0 to remove and 3 not upgraded.
+2026-11-11T16:22:03.1271970Z Need to get 21.1 MB of archives.
+2026-11-11T16:22:03.1272266Z After this operation, 79.5 MB of additional disk space will be used.
+2026-11-11T16:22:03.1272582Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-11T16:22:23.1669801Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+2026-11-11T16:22:38.5757298Z ##[warning]Dependency installation failed or stalled; trying browser-only installation
+2026-11-11T16:22:39.0692658Z Downloading Chrome for Testing 149.0.7827.55 (playwright chromium v1228) from https://cdn.playwright.dev/builds/cft/149.0.7827.55/linux64/chrome-linux64.zip
+2026-11-11T16:22:40.2845965Z |                                                                                |   0% of 177 MiB
+2026-11-11T16:22:40.4298626Z |■■■■■■■■                                                                        |  10% of 177 MiB
+2026-11-11T16:22:40.4897843Z |■■■■■■■■■■■■■■■■                                                                |  20% of 177 MiB
+2026-11-11T16:22:40.5870208Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 177 MiB
+2026-11-11T16:22:40.6704299Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 177 MiB
+2026-11-11T16:22:40.7440714Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 177 MiB
+2026-11-11T16:22:40.8362729Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 177 MiB
+2026-11-11T16:22:40.9141260Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 177 MiB
+2026-11-11T16:22:41.0390940Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 177 MiB
+2026-11-11T16:22:41.1945918Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 177 MiB
+2026-11-11T16:22:41.2828730Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 177 MiB
+2026-11-11T16:22:43.2057463Z Ign:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+2026-11-11T16:22:43.3215219Z Chrome for Testing 149.0.7827.55 (playwright chromium v1228) downloaded to /home/runner/.cache/ms-playwright/chromium-1228
+2026-11-11T16:22:43.3217993Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-11-11T16:22:44.2281090Z |                                                                                |   0% of 2.3 MiB
+2026-11-11T16:22:44.2308124Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-11-11T16:22:44.2417874Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-11-11T16:22:44.2579938Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-11-11T16:22:44.2602181Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-11-11T16:22:44.2612801Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-11-11T16:22:44.2626049Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-11-11T16:22:44.2636384Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-11-11T16:22:44.2650042Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-11-11T16:22:44.2659056Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-11-11T16:22:44.2667517Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-11-11T16:22:44.3126931Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-11-11T16:22:44.3129739Z Downloading Chrome Headless Shell 149.0.7827.55 (playwright chromium-headless-shell v1228) from https://cdn.playwright.dev/builds/cft/149.0.7827.55/linux64/chrome-headless-shell-linux64.zip
+2026-11-11T16:22:45.2489834Z |                                                                                |   0% of 114.2 MiB
+2026-11-11T16:22:45.3642714Z |■■■■■■■■                                                                        |  10% of 114.2 MiB
+2026-11-11T16:22:45.4184545Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.2 MiB
+2026-11-11T16:22:45.4562852Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.2 MiB
+2026-11-11T16:22:45.5157835Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.2 MiB
+2026-11-11T16:22:45.5686942Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.2 MiB
+2026-11-11T16:22:45.6174204Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.2 MiB
+2026-11-11T16:22:45.6552624Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.2 MiB
+2026-11-11T16:22:45.7005572Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.2 MiB
+2026-11-11T16:22:45.7474105Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.2 MiB
+2026-11-11T16:22:45.8183579Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.2 MiB
+2026-11-11T16:22:47.3124488Z Chrome Headless Shell 149.0.7827.55 (playwright chromium-headless-shell v1228) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1228
+2026-11-11T16:22:52.3343565Z ##[group]Run node e2e/tools/capture_ci_evidence.cjs
+2026-11-11T16:22:52.3343804Z [36;1mnode e2e/tools/capture_ci_evidence.cjs[0m
+2026-11-11T16:22:52.3359963Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:22:52.3360350Z env:
+2026-11-11T16:22:52.3360534Z   EVIDENCE_PR_TOUCHED_FILE: /home/runner/work/_temp/evidence-pr-touched.txt
+2026-11-11T16:22:52.3360751Z ##[endgroup]
+2026-11-11T16:35:57.0139901Z Error: CI_LEGACY_CHILD_FAILED_OR_UNSETTLED
+2026-11-11T16:35:57.0140537Z     at qualifyLegacyPackets (/home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/capture_ci_evidence.cjs:180:13)
+2026-11-11T16:35:57.0140989Z     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-11-11T16:35:57.0141421Z     at async run (/home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/capture_ci_evidence.cjs:1109:5)
+2026-11-11T16:35:57.0243380Z ##[error]Process completed with exit code 1.
+2026-11-11T16:35:57.0361443Z ##[group]Run actions/upload-artifact@v4
+2026-11-11T16:35:57.0361619Z with:
+2026-11-11T16:35:57.0361740Z   name: unit-evidence-43056180222-1
+2026-11-11T16:35:57.0364185Z   path: /home/runner/work/_temp/terminal-ci-evidence/
+terminal/test-results/
+terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
+terminal/docs/pr-crops/b-pl-6-batch-1/ci-43056180222-1-*
+terminal/docs/pr-crops/terminal-visual-intelligence/ci-43056180222-1-*
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/*.png
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/native-packet.json
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture-*
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture.log
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/source-contract.json
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/history.json
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/EVIDENCE.before.yml
+terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/qualified-root/
+terminal/docs/pr-crops/b-pl-6-batch-2/
+terminal/docs/pr-crops/options-level-axis-labels/manifest.json
+terminal/docs/pr-crops/options-level-axis-labels/*.png
+
+2026-11-11T16:35:57.0366696Z   if-no-files-found: warn
+2026-11-11T16:35:57.0366831Z   compression-level: 6
+2026-11-11T16:35:57.0366959Z   overwrite: false
+2026-11-11T16:35:57.0367081Z   include-hidden-files: false
+2026-11-11T16:35:57.0367218Z env:
+2026-11-11T16:35:57.0367390Z   EVIDENCE_PR_TOUCHED_FILE: /home/runner/work/_temp/evidence-pr-touched.txt
+2026-11-11T16:35:57.0367599Z ##[endgroup]
+2026-11-11T16:35:57.1758534Z (node:10205) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T16:35:57.1759400Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T16:35:57.5084087Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-11-11T16:35:57.5088267Z The least common ancestor is /home/runner/work. This will be the root directory of the artifact
+2026-11-11T16:35:57.5089023Z With the provided path, there will be 1284 files uploaded
+2026-11-11T16:35:57.5090987Z Artifact name is valid!
+2026-11-11T16:35:57.5091456Z Root directory input is valid!
+2026-11-11T16:35:57.9555697Z Beginning upload of artifact content to blob storage
+2026-11-11T16:35:58.1991798Z (node:10205) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-11T16:35:58.9668260Z Uploaded bytes 8388608
+2026-11-11T16:35:59.1879374Z Uploaded bytes 16777216
+2026-11-11T16:35:59.3479674Z Uploaded bytes 25165824
+2026-11-11T16:35:59.4386448Z Uploaded bytes 33554432
+2026-11-11T16:35:59.7071139Z Uploaded bytes 41943040
+2026-11-11T16:35:59.9235603Z Uploaded bytes 48245453
+2026-11-11T16:35:59.9918496Z Finished uploading artifact content to blob storage!
+2026-11-11T16:35:59.9920602Z SHA256 digest of uploaded artifact zip is 44ae0d77ca750c045860cfbe062d28f5ab33a83b202233860b0a186dd4d87d38
+2026-11-11T16:35:59.9922235Z Finalizing artifact upload
+2026-11-11T16:36:00.4713357Z Artifact unit-evidence-43056180222-1.zip successfully finalized. Artifact ID 13873227019
+2026-11-11T16:36:00.4714166Z Artifact unit-evidence-43056180222-1 has been successfully uploaded! Final size is 48245453 bytes. Artifact ID is 13873227019
+2026-11-11T16:36:00.4719690Z Artifact download URL: https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43056180222/artifacts/13873227019
+2026-11-11T16:36:00.5059847Z Post job cleanup.
+2026-11-11T16:36:00.5630316Z [command]/usr/bin/git version
+2026-11-11T16:36:00.5665694Z git version 2.56.0
+2026-11-11T16:36:00.5691916Z Temporarily overriding HOME='/home/runner/work/_temp/88b7a3de-1473-44a5-a011-f1bea65be2f4' before making global git config changes
+2026-11-11T16:36:00.5692623Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-11T16:36:00.5695267Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mastermind-terminal/mastermind-terminal
+2026-11-11T16:36:00.5731406Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-11T16:36:00.5761598Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-11T16:36:00.6027035Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-11T16:36:00.6051914Z http.https://github.com/.extraheader
+2026-11-11T16:36:00.6061985Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-11T16:36:00.6097653Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-11T16:36:00.6377315Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-11T16:36:00.6414613Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-11T16:36:00.6767715Z Cleaning up orphan processes
+2026-11-11T16:36:00.6995622Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

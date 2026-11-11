@@ -1,8 +1,8 @@
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 06eb7e854942bb9703fcc1c35a5b3486e9f5238f
-# capturedAt: 2026-11-10T09:25:56.409Z
+# capturedAtHead: 7875b0277067efad82f8eb1a159295dd60b3c040
+# capturedAt: 2026-11-11T17:27:20.810Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "129d2b6289f8b2dbffbadc74f28f783c92146b5cb44af1121d7eb0263066ce1b"
@@ -10,16 +10,16 @@ layoutFiles:
   terminal/components/flowdesk/FlowCard.tsx: "cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37"
   terminal/components/alerts/AlertDetail.tsx: "006505becd068bead39026e856fd230e246e36ecec53e43bbebba236358e36dd"
   terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
-  terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+  terminal/components/heatmap/HeatmapView.tsx: "1f43e9c1a8a4a92f4692bacc3835d5783b05b48078f65fead404776df357af94"
   terminal/components/heatmap/Treemap.tsx: "51b284e851011198374854f765c6efd6cb9f682450e7e52f62438adfb1bc995b"
   terminal/lib/heatmapStrings.ts: "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7"
   terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
-  terminal/components/PineEditor.tsx: "941c5d5951c18e805605baccd820a9aad9c5f8f6046727968cbc3580625c4ef0"
+  terminal/lib/i18n.tsx: "05c52c714ae7a7fcb5a14d44c0fb6eb5ccabe21b0eb2ed8a1608cd2dfbf1f4e8"
+  terminal/components/PineEditor.tsx: "651b8008d94d1b1d589a850def0dcac76016d881b68eb58def3411d1971830c1"
   terminal/e2e/tools/capture_ci_evidence.cjs: "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4"
-  terminal/e2e/tools/capture_pl6_batch3.cjs: "c94f1650277ca0f7137aea08663f031eecd5891a4be45c903d7f66a542d6287c"
-  terminal/next.config.ts: "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+  terminal/e2e/tools/capture_pl6_batch3.cjs: "cbf08ee03bc0e857548ba4f03cd54b04732b3880d8c3a6934c333e42508ccb80"
+  terminal/next.config.ts: "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
   terminal/e2e/fixtures/heatmap-price-only-tile.json: "df837b000afc12af5d522287c83cf483f716c147ae5d170da138c62f539357ca"
 theme: dark
 languages: [en, zh]

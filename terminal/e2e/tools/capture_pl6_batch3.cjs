@@ -114,25 +114,57 @@ async function assertNoNextIndicator(page, file) {
   if (n > 0) throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
 }
 
-async function cropBox(page, box, outPath, pad) {
-  await assertNoNextIndicator(page, outPath);
-  await page.waitForTimeout(120);
-  const vp = page.viewportSize();
-  if (!box || !vp) throw new Error(`no box for ${outPath}`);
+function viewportClip(box, vp, pad = 0, required = []) {
+  const valid = (r) => r && [r.x, r.y, r.width, r.height].every(Number.isFinite)
+    && r.width > 0 && r.height > 0;
+  if (!valid(box) || !vp || !Number.isFinite(vp.width) || !Number.isFinite(vp.height)
+      || vp.width <= 0 || vp.height <= 0 || !Number.isFinite(pad) || pad < 0)
+    throw new Error("invalid crop geometry");
   const x = Math.max(0, Math.floor(box.x - pad));
   const y = Math.max(0, Math.floor(box.y - pad));
-  const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
-  const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
-  await page.screenshot({ path: outPath, clip: { x, y, width, height } });
+  const right = Math.min(vp.width, Math.ceil(box.x + box.width + pad));
+  const bottom = Math.min(vp.height, Math.ceil(box.y + box.height + pad));
+  if (right <= x || bottom <= y) throw new Error("crop target is outside the viewport");
+  for (const { label, box: content } of required) {
+    if (!valid(content) || content.x < x || content.y < y
+        || content.x + content.width > right || content.y + content.height > bottom)
+      throw new Error(`${label}: required content is outside crop`);
+  }
+  return { x, y, width: right - x, height: bottom - y };
 }
 
-async function cropLocator(page, locator, outPath, pad = 18) {
+async function cropBox(page, box, outPath, pad, required = []) {
+  await assertNoNextIndicator(page, outPath);
+  const clip = viewportClip(box, page.viewportSize(), pad, required);
+  await page.screenshot({ path: outPath, clip });
+  return clip;
+}
+
+async function cropLocator(page, locator, outPath, pad = 18, required = []) {
   const fresh = locator.first();
   await fresh.waitFor({ state: "visible", timeout: 20_000 });
   await page.waitForTimeout(250);
+  await assertNoNextIndicator(page, outPath);
+  // Screenshot also waits for fonts; settle them before measuring the clip.
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
   const box = await fresh.boundingBox();
   if (!box) throw new Error(`no bounding box for ${outPath}`);
-  await cropBox(page, box, outPath, pad);
+  const content = [];
+  for (const { label, locator: target } of required) {
+    const measured = await target.evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      return { box: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        uncovered: !!hit && (hit === element || element.contains(hit)) };
+    });
+    if (!measured.uncovered) throw new Error(`${label}: required crop content is not exposed`);
+    content.push({ label, box: measured.box });
+  }
+  const clip = await cropBox(page, box, outPath, pad, content);
+  return { target: box, clip, required: content };
 }
 
 async function captureFlowBoard(page, width, lang, outPath) {
@@ -252,12 +284,19 @@ async function captureHeatmap(page, width, lang, outPath) {
   await gotoReady(page, "/discover?tab=heatmap", lang);
   const map = page.locator(".obs.obs-ambient").first();
   await map.waitFor({ state: "visible", timeout: 60_000 });
-  const flowBtn = page.getByRole("button", { name: lang === "zh" ? "资金流" : "FLOW" }).first();
+  // A visible server-rendered control can precede its client handler. The
+  // fixture tile is rendered after the client manifest read has completed.
+  await map.locator("svg").getByText("INTC", { exact: true }).first().waitFor({ state: "visible", timeout: 20_000 });
+  const flowLabel = lang === "zh" ? "资金流" : "FLOW";
+  const flowBtn = page.getByRole("button", { name: flowLabel, exact: true }).first();
   await flowBtn.waitFor({ state: "visible", timeout: 20_000 });
   await flowBtn.click();
-  const equalBtn = page.getByRole("button", { name: lang === "zh" ? "等面积" : "EQUAL" }).first();
+  await page.locator('[data-tut="heatmap-controls"] button.on').filter({ hasText: flowLabel }).waitFor({ state: "visible", timeout: 20_000 });
+  const equalLabel = lang === "zh" ? "等面积" : "EQUAL";
+  const equalBtn = page.getByRole("button", { name: equalLabel, exact: true }).first();
   await equalBtn.waitFor({ state: "visible", timeout: 20_000 });
   await equalBtn.click();
+  await page.getByRole("button", { name: equalLabel, exact: true, pressed: true }).waitFor({ state: "visible", timeout: 20_000 });
   const needle = lang === "zh" ? "净认沽" : "Net puts";
   await page.getByText(needle).first().waitFor({ state: "visible", timeout: 20_000 });
   await page.getByText("INTC", { exact: true }).first().waitFor({ state: "visible", timeout: 20_000 });
@@ -271,8 +310,21 @@ async function capturePineLibrary(page, width, lang, outPath) {
   const side = page.locator(".pine-side").first();
   await side.waitFor({ state: "visible", timeout: 60_000 });
   const needle = lang === "zh" ? "我的脚本" : "My Scripts";
-  await side.getByText(needle).first().waitFor({ state: "visible", timeout: 20_000 });
-  await cropLocator(page, side, outPath, width === 390 ? 6 : 10);
+  const heading = side.getByRole("heading", { name: needle, exact: true });
+  await heading.waitFor({ state: "visible", timeout: 20_000 });
+  await side.locator("[data-scripts-status]").waitFor({ state: "detached", timeout: 20_000 });
+  const rows = side.locator(".script-row");
+  await rows.first().waitFor({ state: "visible", timeout: 20_000 });
+  // Diagnostics append warnings above the mobile library. Wait for their
+  // terminal state before scrolling, so completion cannot move it out of view.
+  await page.locator('.console[data-diagnostics-state="done"]').waitFor({ state: "visible", timeout: 45_000 });
+  // On mobile the library follows the editor and console. CSS-visible is not
+  // viewport-visible: expose the real library section before measuring it.
+  await side.locator(".side-sec").first().scrollIntoViewIfNeeded();
+  const required = [{ label: needle, locator: heading },
+    ...(await rows.all()).map((locator, i) => ({ label: `script row ${i + 1}`, locator }))];
+  const geometry = await cropLocator(page, side, outPath, width === 390 ? 6 : 10, required);
+  console.log(`PINE_LIBRARY_CROP ${JSON.stringify({ width, lang, ...geometry })}`);
 }
 
 const SURFACES = [
@@ -385,4 +437,4 @@ if (require.main === module) main().catch((err) => {
   process.exitCode = 1;
 });
 
-module.exports = { LAYOUT_FILES, FILES, assertNoNextIndicator };
+module.exports = { LAYOUT_FILES, FILES, assertNoNextIndicator, viewportClip };

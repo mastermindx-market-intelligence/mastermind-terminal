@@ -1,0 +1,7 @@
+{
+  "at": "2026-11-11T17:25:53.629637+00:00",
+  "old_sha256": "de721a684a3e53ea4d61e0c445b7aba097c97b35c61810f64b6605935bf51582",
+  "new_sha256": "cbf08ee03bc0e857548ba4f03cd54b04732b3880d8c3a6934c333e42508ccb80",
+  "negative_packet": "/tmp/terminal-pr1270-run43056180222/full-capture-2",
+  "cause": "First desktop heatmap stayed in default PRICE and cap sizing after early control clicks. Wait for client fixture tile before interaction and assert each requested mode after its single click; preserve full20 fail-closed receipt."
+}
