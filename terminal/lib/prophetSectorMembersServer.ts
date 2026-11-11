@@ -15,8 +15,8 @@ export const PROPHET_SECTOR_MEMBERS_MAX_BYTES = 128 * 1024;
 export const PROPHET_SECTOR_MEMBERS_DEADLINE_MS = 10_000;
 const HEADERS = { "Cache-Control": "private, no-store", Vary: "Authorization, Cookie", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, noarchive" };
 
-function error(code: string, status: number): Response {
-  return Response.json({ error: code }, { status, headers: HEADERS });
+function error(code: string, status: number, extraHeaders: Record<string, string> = {}): Response {
+  return Response.json({ error: code }, { status, headers: { ...HEADERS, ...extraHeaders } });
 }
 const record = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -152,8 +152,14 @@ export async function handleProphetSectorMembersRequest(request: Request): Promi
   if (!admitted.ok) return admitted.response;
 
   if (fixtureMode()) {
-    const limited = rateLimit(request, { name: "prophet-sector-members", max: 60 });
-    if (!limited.ok) return error("rate_limited", 429);
+    // No explicit max on the fixture seam: all Playwright projects share one
+    // loopback IP, so a hard-coded budget here starves the matrix the same way
+    // RATE_LIMIT_MAX exists to prevent (playwright.config.ts webServer env).
+    // Production never sets these flags — the live branch below keeps the real
+    // anti-scrape budget of 60 per window. The default budget still brakes a
+    // runaway dev loop.
+    const limited = rateLimit(request, { name: "prophet-sector-members" });
+    if (!limited.ok) return error("rate_limited", 429, { "Retry-After": String(limited.retryAfterSec) });
     return handleFixture(admitted.query);
   }
 
@@ -171,7 +177,7 @@ export async function handleProphetSectorMembersRequest(request: Request): Promi
     if (auth.status === "denied") return error("authentication_required", 401);
     if (auth.status !== "ok" || !auth.token) return error("authentication_unavailable", 502);
     const limited = rateLimit(request, { name: "prophet-sector-members", max: 60 });
-    if (!limited.ok) return error("rate_limited", 429);
+    if (!limited.ok) return error("rate_limited", 429, { "Retry-After": String(limited.retryAfterSec) });
 
     phase = "source";
     const params = new URLSearchParams();
@@ -208,7 +214,14 @@ export async function handleProphetSectorMembersRequest(request: Request): Promi
       if (response.status === 401) return error("authentication_required", 401);
       if (response.status === 403) return error("entitlement_required", 403);
       if (response.status === 422) return error("invalid_query", 422);
-      return error("source_unavailable", response.status === 429 ? 429 : response.status === 503 ? 503 : 502);
+      if (response.status === 429) {
+        // The owner's own throttle knows how long to wait — forward it rather
+        // than letting the client read a generic failure.
+        const upstreamRetryAfter = response.headers.get("retry-after");
+        return error("source_unavailable", 429,
+          upstreamRetryAfter !== null && /^\d+$/.test(upstreamRetryAfter) ? { "Retry-After": upstreamRetryAfter } : {});
+      }
+      return error("source_unavailable", response.status === 503 ? 503 : 502);
     }
     const raw = await readJSON(response, controller.signal);
     // Closed-contract gate: a body outside `prophet.sector_members/v1` is never

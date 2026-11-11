@@ -31,7 +31,7 @@ vi.mock("@/app/api/billing/gateway", () => ({
     : { status: state.auth }),
 }));
 vi.mock("@/lib/rateLimit", () => ({
-  rateLimit: () => ({ ok: !state.limited }),
+  rateLimit: () => ({ ok: !state.limited, remaining: state.limited ? 0 : 59, retryAfterSec: 30 }),
 }));
 
 import { GET } from "@/app/api/prophet/sector-members/route";
@@ -203,6 +203,7 @@ describe("Prophet sector-members BFF: upstream transport", () => {
     const result = await GET(request());
     expect(result.status).toBe(429);
     expect(await result.json()).toEqual({ error: "rate_limited" });
+    expect(result.headers.get("retry-after")).toBe("30");
     expect(fetch).not.toHaveBeenCalled();
   });
 });
