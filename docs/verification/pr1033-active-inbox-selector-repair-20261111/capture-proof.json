@@ -1,0 +1,37 @@
+{
+  "checkout": {
+    "commit": "3202d4b6e53820beda17aac0a7000e498040ea9d",
+    "tree": "5fcbce79f84910ad31f3a5ecafc7cd971e79f071"
+  },
+  "sources": {
+    "terminal/components/briefs/BriefsInbox.tsx": "4d561b964a59860a0e927cf9d5a0586ef17387599d43abc09f6ec19317b718e6",
+    "terminal/components/briefs/briefs.module.css": "bb6f2189bf88e48677535af2267224a0fe1fea163524347135ddd4267becc6b6",
+    "terminal/lib/briefs.ts": "6860c360d83679033d06aa22f425fa541b6e6a5fa18fce534970a9cf64f748de",
+    "terminal/components/alerts/AlertsCockpit.tsx": "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b",
+    "terminal/components/alerts/alerts.module.css": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+    "terminal/components/alerts/AlertsCockpitMount.tsx": "a1b1d475fdd7b74b9ff73c119c6a3f4836522166a4f3aa1d4ab90f55e95aa8b6",
+    "terminal/app/(shell)/alerts/page.tsx": "ffedd63f63a67a484c0584595d007e8ad8698aed504f0fdb81659acf3477cd7c",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs": "e76b5653d66fe5fece91752509a81a92f6b150348d5bf3244da79be9ccf4dcf1",
+    "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": "6f31d207cdfada3522af177958a4ede90b636a290844d3ad0bc2f226cab9b451",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "runtime": {
+    "node": "v20.20.2",
+    "next": "16.4.6",
+    "playwright": "1.61.1"
+  },
+  "cleanup": {
+    "contextsClosed": 0,
+    "browserClosed": true,
+    "serverSettled": true
+  },
+  "cases": [],
+  "errors": [
+    "Error: expect(locator).toBeVisible() failed\n\nLocator: locator('[data-briefs-module=\"inbox\"]').getByRole('heading', { name: 'Briefs', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 5000ms\n  - waiting for locator('[data-briefs-module=\"inbox\"]').getByRole('heading', { name: 'Briefs', exact: true })\n"
+  ]
+}

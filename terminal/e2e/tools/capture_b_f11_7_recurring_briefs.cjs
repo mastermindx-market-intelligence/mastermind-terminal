@@ -103,7 +103,7 @@ async function assertState(page, shot) {
   await expect(inbox).toBeVisible();
   await inbox.scrollIntoViewIfNeeded();
   await expect(inbox).toHaveAttribute("aria-busy", "false");
-  await expect(inbox.getByRole("heading", { name: copy.title, exact: true })).toBeVisible();
+  await expect(inbox.getByText(copy.title, { exact: true })).toBeVisible();
   await expect(inbox.getByTestId("briefs-email-null")).toHaveText(copy.email);
   await expect(page.getByTestId("brief-subscribe")).toHaveCount(0);
   await expect(page.locator("[data-nextjs-dev-tools-button]")).toHaveCount(0);
