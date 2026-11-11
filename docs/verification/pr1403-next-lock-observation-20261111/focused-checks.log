@@ -1,0 +1,64 @@
+$ node --check e2e/tools/ticker_news_capture_receipt.cjs
+
+exit=0
+$ node --test e2e/tools/ticker_news_capture_receipt.test.cjs
+✔ accepts the exact full matrix with only its seven authored skips (7.855144ms)
+✔ rejects runner error (2.188812ms)
+✔ rejects more than one worker (0.619401ms)
+✔ rejects stale report (0.402095ms)
+✔ rejects invalid report time (0.422245ms)
+✔ rejects zero duration (7.743876ms)
+✔ rejects missing passed case (0.437608ms)
+✔ rejects extra skip (0.410878ms)
+✔ rejects unexpected failure (0.45875ms)
+✔ rejects flaky result (0.606241ms)
+✔ rejects wrong spec (0.461013ms)
+✔ rejects non-ok spec (0.315965ms)
+✔ rejects missing project case with forged totals (1.402429ms)
+✔ rejects duplicate case with forged totals (0.473532ms)
+✔ rejects unknown case title (0.365189ms)
+✔ rejects unknown project (0.324759ms)
+✔ rejects passed case newly skipped (4.682311ms)
+✔ rejects authored skip unexpectedly executed (0.289245ms)
+✔ rejects expected failure exemption (0.221242ms)
+✔ rejects retried pass (0.244187ms)
+✔ rejects multiple attempts (0.241653ms)
+✔ rejects missing attempt (0.21258ms)
+✔ rejects failed result hidden by totals (0.204728ms)
+✔ rejects result errors (0.419702ms)
+✔ rejects result error field (0.525531ms)
+✔ decodes all ten synthetic crops and keeps viewport separate from crop size (4.56078ms)
+✔ rejects an incomplete crop packet (0.381384ms)
+✔ rejects an extra crop (0.330367ms)
+✔ rejects duplicate crop names (0.278349ms)
+✔ rejects a path outside the packet (0.249765ms)
+✔ rejects a PNG header without complete image data (0.238398ms)
+✔ rejects a corrupt image CRC (0.331549ms)
+✔ rejects a crop wider than its viewport (4.900039ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.822895
+
+exit=0
+$ ./node_modules/.bin/eslint e2e/tools/ticker_news_capture_receipt.cjs
+
+exit=0
+$ python -m pytest -q tests/test_ci_ticker_news_capture.py
+.                                                                        [100%]
+=============================== warnings summary ===============================
+../../../../opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/anyio/pytest_plugin.py:14
+  /opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/anyio/pytest_plugin.py:14: PytestRemovedIn10Warning: _pytest.python.CallSpec2 has been renamed to CallSpec.
+  The CallSpec2 alias will be removed in pytest 10.
+  Update imports to use CallSpec instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#callspec2-renamed
+    from _pytest.python import CallSpec2
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 1 warning in 0.07s
+
+exit=0
