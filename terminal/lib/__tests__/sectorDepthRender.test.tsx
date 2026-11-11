@@ -616,15 +616,16 @@ describe("rows increment — universes board from carried blocks (static renders
       subsectors: confluenceSp500FromCarriedBlock({ status: "available", value: doc }),
     };
     const markup = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
-    // The FIRST row's count span (rows render in payload order): the
-    // not-stated word — the old surface printed a bare dash here, and a null-
-    // coercing regression would print "0 names". (A measured 0 elsewhere —
-    // e.g. roll-up sector rows — legitimately keeps "0 names"; the assertion
-    // stays scoped to this row's span.)
+    // The FIRST row's count span (rows render in payload order): the BARE
+    // not-stated word — the old surface printed a bare dash here, a null-
+    // coercing regression would print "0 names", and r2's O12 mutation showed
+    // "not stated names" passing a mere substring check. The span's text node
+    // runs to the nested reliability span, so exact equality pins the word.
+    // (A measured 0 elsewhere — e.g. roll-up sector rows — legitimately keeps
+    // "0 names"; the assertion stays scoped to this row's span.)
     const firstCount = markup.match(/class="[^"]*nMembers[^"]*"[^>]*>([^<]*)/);
     expect(firstCount).not.toBeNull();
-    expect(firstCount![1]).toContain("not stated");
-    expect(firstCount![1]).not.toMatch(/\b0\b/);
+    expect(firstCount![1]).toBe("not stated · ");
     // The standalone N COLUMN cell (fmtCount, not fmtCountNoun) on the same
     // row: the word alone — a null-coercing regression there prints a bare
     // "0" (review r1 mutation M9 survived the noun-span assertions alone).
@@ -636,8 +637,7 @@ describe("rows increment — universes board from carried blocks (static renders
       const zh = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
       const zhFirst = zh.match(/class="[^"]*nMembers[^"]*"[^>]*>([^<]*)/);
       expect(zhFirst).not.toBeNull();
-      expect(zhFirst![1]).toContain("未载明");
-      expect(zhFirst![1]).not.toContain("0 ");
+      expect(zhFirst![1]).toBe("未载明 · ");
       const zhNCell = zh.match(/data-label="数"[^>]*><span class="[^"]*num[^"]*">([^<]*)/);
       expect(zhNCell).not.toBeNull();
       expect(zhNCell![1]).toBe("未载明");
