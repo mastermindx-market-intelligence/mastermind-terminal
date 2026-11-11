@@ -1,0 +1,4 @@
+{
+  "nextEnvExisted": false,
+  "initialPreparation": "First invocation stopped before source mutation or test launch because this ignored generated file was absent."
+}

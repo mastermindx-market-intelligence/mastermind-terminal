@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-11T17:45:03.124033+00:00",
+  "args": [
+    "/opt/homebrew/bin/python3.12",
+    "-m",
+    "pytest",
+    "tests/test_ci_browser_setup.py",
+    "tests/test_ci_briefs_inbox_capture.py",
+    "-q"
+  ],
+  "rc": 0,
+  "log_sha256": "3e4dbfca57d6ec9bd9e1a8a73ec98167996385001cfdd6f0363c8a69b3a2522f",
+  "workflow_sha256": "9337128302e4677e271fedd2c9891a2ab81416412165623cb07f800b22b07a17"
+}

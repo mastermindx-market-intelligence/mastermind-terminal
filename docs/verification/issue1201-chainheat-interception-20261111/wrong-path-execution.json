@@ -1,0 +1,25 @@
+{
+  "kind": "negative wrong-route discriminator",
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+    "--project=desktop",
+    "--grep=answers 5xx|nothing published",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts"
+  ],
+  "startedAt": "2026-11-11T07:09:16.314446+00:00",
+  "port": 62566,
+  "base": "ffcc39bcdf89cb19b08444b8bb64cadbc1a3a5ec",
+  "qualifiedSourceSha256": "194638305205d1ee4b2adc29eae0368c53b998f6f0ed106865cb223a014eb503",
+  "executedMutantSha256": "cac3d4351dae34beb5ee9ba3577c8b7db081a09a80e383a8609a7c9748adec74",
+  "exitCode": 1,
+  "seconds": 187.256,
+  "completedAt": "2026-11-11T07:12:23.595225+00:00",
+  "restoredSourceSha256": "194638305205d1ee4b2adc29eae0368c53b998f6f0ed106865cb223a014eb503",
+  "portClosedAfterOwnerReturn": true
+}

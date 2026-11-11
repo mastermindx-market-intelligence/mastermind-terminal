@@ -565,3 +565,67 @@ describe("a missing or failed peer is a state, never a zero or a rank", () => {
     expect(compare({ sym: "NVDA", fund: noAnnual }, [], "annual", "fiscal").frameIssue).toBe("anchor_basis_absent");
   });
 });
+
+it("withholds Q3 when its cumulative Q2 base is physically absent", () => {
+  const gappy = clone(fund("600519.SS"));
+  const q = gappy.statements.quarterly!;
+  expect(q.flow_basis).toBeUndefined();
+  expect(q.period_kind).toBeUndefined();
+
+  const drop = q.periods.indexOf("Q2 2025");
+  expect(drop).toBeGreaterThanOrEqual(0);
+  q.periods.splice(drop, 1);
+  q.period_end.splice(drop, 1);
+  for (const block of [q.income, q.balance, q.cashflow] as unknown as Record<string, unknown[]>[]) {
+    for (const key of Object.keys(block)) block[key].splice(drop, 1);
+  }
+
+  // Synthetic fixture alias; the suffix preserves the legacy CN market gate.
+  const peerSym = "GAP.SS";
+  gappy.ticker = peerSym;
+  const view = incomeView(peerSym, q, "quarterly");
+  expect(view.producerNormalized).toBe(false);
+  expect(view.cumulative).toBe(true);
+  const q3Index = q.periods.indexOf("Q3 2025");
+  expect(q3Index).toBeGreaterThanOrEqual(0);
+  const modes = [
+    ["fiscal", "F3", "F2", "F1"],
+    ["calendar", "2025-Q2", "2025-Q3", "2025-Q4"],
+  ] as const;
+
+  for (const [alignment, q2Column, q3Column, q4Column] of modes) {
+    const result = compare(
+      "600519.SS", [peer(peerSym, gappy)], "quarterly", alignment, ["revenue"],
+    );
+    expect(result.frame).toMatchObject({ kind: "quarter", alignment });
+    expect(row(result, "revenue", peerSym).state.status).toBe("ready");
+    expect(cell(result, "revenue", peerSym, q2Column)).toMatchObject({
+      status: "unavailable", reason: "no_period", value: null,
+      source: null, rank: null, rankOf: null,
+    });
+    expect(cell(result, "revenue", peerSym, q3Column)).toMatchObject({
+      status: "unavailable", reason: "no_value", value: null,
+      source: { sym: peerSym, index: q3Index, label: "Q3 2025", end: "2025-09-30" },
+      rank: null, rankOf: null,
+    });
+
+    // One usable Q3 cell earns no comparison rank.
+    const anchorQ3 = cell(result, "revenue", "600519.SS", q3Column);
+    expect(anchorQ3).toMatchObject({
+      status: "ok", reason: null, rank: null, rankOf: null,
+    });
+    expect(anchorQ3.value! / 1e9).toBeCloseTo(39.81012708091, 8);
+
+    // Retained raw Q3 YTD remains a valid base for Q4 in both companies.
+    for (const sym of ["600519.SS", peerSym]) {
+      const q4 = cell(result, "revenue", sym, q4Column);
+      expect(q4).toMatchObject({
+        status: "ok", reason: null, rank: 1, rankOf: 2,
+        source: { sym, label: "Q4 2025", end: "2025-12-31" },
+      });
+      expect(q4.value! / 1e9).toBeCloseTo(41.15028225603, 8);
+    }
+  }
+});
+
+

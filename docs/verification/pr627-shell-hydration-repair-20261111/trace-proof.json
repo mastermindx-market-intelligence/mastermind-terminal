@@ -1,0 +1,114 @@
+{
+  "artifact": 13838155773,
+  "zipSha256": "442bc7f0afa824a1ce7fd93e316ea14dd46180f0a5e8ec9689aa6dfe3b7d0b18",
+  "traceMember": "investor-shell-preview/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-desktop/trace.zip",
+  "appShellModule": "\"[project]/components/chrome/AppShell.tsx [app-client] (ecmascript)\"",
+  "moduleDependencies": [
+    {
+      "reference": "$a",
+      "url": "/_next/static/chunks/_11idjuvhied9w._.js",
+      "status": 200,
+      "completedAtMs": 18770.351000000002
+    },
+    {
+      "reference": "$b",
+      "url": "/_next/static/chunks/node_modules_next_0-orawczb12gr._.js",
+      "status": 200,
+      "completedAtMs": 18766.034
+    },
+    {
+      "reference": "$109",
+      "url": "/_next/static/chunks/components_0dxu1y7ko9zma._.js",
+      "status": 200,
+      "completedAtMs": 18767.006
+    },
+    {
+      "reference": "$10a",
+      "url": "/_next/static/chunks/_07115y0-wsgbk._.js",
+      "status": 200,
+      "completedAtMs": 18778.209000000003
+    },
+    {
+      "reference": "$10b",
+      "url": "/_next/static/chunks/node_modules_08xy_vh10vpzt._.js",
+      "status": 200,
+      "completedAtMs": 18790.059
+    }
+  ],
+  "inputEvents": [
+    {
+      "type": "before",
+      "callId": "call@65",
+      "startTime": 18247.693,
+      "class": "Frame",
+      "method": "goto",
+      "params": {
+        "url": "/discover",
+        "timeout": 0,
+        "waitUntil": "domcontentloaded"
+      },
+      "stepId": "pw:api@30",
+      "pageId": "page@b80eef2f654d847d43ec2b7f2600811d",
+      "beforeSnapshot": "before@call@65"
+    },
+    {
+      "type": "after",
+      "callId": "call@65",
+      "endTime": 18614.097,
+      "result": {
+        "response": "<Response>"
+      },
+      "afterSnapshot": "after@call@65"
+    },
+    {
+      "type": "before",
+      "callId": "call@85",
+      "startTime": 18712.964,
+      "class": "Frame",
+      "method": "focus",
+      "params": {
+        "selector": "[data-investor-shell=\"preview\"] >> [data-investor-compact-toggle]",
+        "strict": true,
+        "timeout": 0
+      },
+      "stepId": "pw:api@40",
+      "pageId": "page@b80eef2f654d847d43ec2b7f2600811d",
+      "beforeSnapshot": "before@call@85"
+    },
+    {
+      "type": "after",
+      "callId": "call@85",
+      "endTime": 18715.546,
+      "afterSnapshot": "after@call@85"
+    },
+    {
+      "type": "before",
+      "callId": "call@87",
+      "startTime": 18716.668,
+      "class": "Page",
+      "method": "keyboardPress",
+      "params": {
+        "key": "Enter"
+      },
+      "stepId": "pw:api@41",
+      "pageId": "page@b80eef2f654d847d43ec2b7f2600811d"
+    },
+    {
+      "type": "after",
+      "callId": "call@87",
+      "endTime": 18718.23,
+      "afterSnapshot": "after@call@87"
+    }
+  ],
+  "reactBootstrapAtMs": 18806.235,
+  "other404NotListedInAppShellDependencies": [
+    {
+      "url": "http://127.0.0.1:32021/_next/static/chunks/components_0cmnlt5a5gf24._.js",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:32021/data/scan/classification.json",
+      "status": 404
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "archiveSha256": "339e01df8ecf663a47854b04a8d79d65597da95f7b76315341f74dad0bd7f8dd",
+  "archivedAs": "docs/verification/pr1407-protected-sharding-integration-20261110/invalid-generated-validator.ts.txt",
+  "artifact": "terminal/.next/dev/types/validator.ts",
+  "artifactSha256": "339e01df8ecf663a47854b04a8d79d65597da95f7b76315341f74dad0bd7f8dd",
+  "artifactSize": 53574,
+  "completedAt": "2026-11-10T08:24:45.221581+00:00",
+  "freshTypegenArtifact": {
+    "exists": true,
+    "path": "terminal/.next/types/validator.ts",
+    "sha256": "79948cf8ae505fea1052069a8e49f1b68f17cbb06e57e9b2c423a1f7a7e34515"
+  },
+  "malformedLine": 1160,
+  "malformedText": ">> = Specific",
+  "nextLockAbsent": true,
+  "sameHostOwnershipChecks": [
+    {
+      "command": [
+        "lsof",
+        "-nP",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/.next/dev/types/validator.ts"
+      ],
+      "exit": 1,
+      "noHolder": true
+    },
+    {
+      "command": [
+        "lsof",
+        "-a",
+        "-d",
+        "cwd",
+        "+d",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal"
+      ],
+      "exit": 1,
+      "noHolder": true
+    }
+  ],
+  "schema": "terminal_pr1407_owned_generated_types_recovery.v1",
+  "startedAt": "2026-11-10T08:22:56.122856+00:00",
+  "state": "RECOVERED_AND_QUALIFIED",
+  "trackedApplicationSourceModified": false,
+  "typecheckReceiptSha256": "a6c5d41c4070a4eb96a2f7dd212b2198480bc50942cf8471aabc592edea1bd89"
+}

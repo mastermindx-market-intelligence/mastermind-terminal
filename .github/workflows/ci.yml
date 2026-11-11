@@ -431,6 +431,12 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      - name: Capture current-source E18 alert-management evidence
+        timeout-minutes: 8
+        env:
+          TERMINAL_CROP_PORT: "47283"
+          TMPDIR: ${{ runner.temp }}/terminal-ci-evidence
+        run: node e2e/tools/capture_e18_alert_management.cjs
       - name: Capture current-source recurring inbox evidence
         timeout-minutes: 8
         env:
@@ -586,6 +592,7 @@ jobs:
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
             terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
+            terminal/docs/pr-crops/e18-alert-management/
             terminal/docs/pr-crops/b-f11-7-active-inbox/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
@@ -609,13 +616,26 @@ jobs:
       cancel-in-progress: true
     name: Terminal e2e ${{ matrix.shard }} (shard)
     # Lane switch (Mastermind #917, phase 9; canary runs 42011181810 / 42029519496 on
-    # 2026-11-05: desktop-1 jobs 16m06s at one worker and 8m08s at four on ubuntu0;
+    # 2026-11-05: desktop-1 jobs 16m06s at one worker and 8m08s at four on the lane;
     # the four-worker command took 431s and the whole workflow 17m36s). The repository variable TERMINAL_E2E_LANE chooses the lane: unset
-    # or any value other than `ubuntu0` (GitHub compares case-insensitively) keeps every
-    # selected shard on the hosted runner; `ubuntu0` ROUTES eligible same-repository
-    # pull_request and workflow_dispatch jobs to the ubuntu0 runner slots.
-    # The accepted scope condition below still skips native merge-group jobs
-    # (labels below, names ubuntu0-e2e-N; docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md).
+    # or any value other than `selfhosted` (GitHub compares case-insensitively) keeps every
+    # selected shard on the hosted runner; `selfhosted` ROUTES eligible same-repository
+    # pull_request and workflow_dispatch jobs to the self-hosted lane pool. The value was
+    # renamed from `ubuntu0` when the lane grew to several hosts: the old name would have
+    # pointed an incident operator at one host. Native merge-group jobs NEVER route
+    # there: the accepted scope condition below still skips them
+    # (docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md).
+    #
+    # Host identity lives in the runner NAME, never in labels. Every lane host runs the
+    # same slot loop and registers slots named ubuntuH-e2e-N (host digit, slot), all
+    # carrying the SAME four labels below plus — for one release after the rename, on
+    # the pre-rename host only — the legacy `ubuntu0-e2e` label, so workflow revisions
+    # still demanding it keep finding a runner. Other lane hosts must never carry the
+    # legacy label: a pre-change checkout routed there fails its bind step loudly
+    # (exit 2) instead of hanging. Between merging this and flipping the variable the
+    # lane runs hosted (either expression falls back hosted; no interleaving can strand
+    # a run on a label no runner carries), and after the flip stale-ci.yml PRs and
+    # re-runs of old runs go hosted until they rebase — the documented cost of the rename.
     #
     # What the expression does and does not protect. The head.repo guard is ROUTING
     # ONLY: it keeps this unmodified job off the host for a fork pull_request. It is
@@ -637,11 +657,11 @@ jobs:
     # (4%). Job logs show two causes: the fixed localhost port 3108 was already
     # used by a neighbouring slot sharing the host, and `npx playwright install
     # --with-deps` stalled on the shared host's apt state. `ubuntu-24.04` is a
-    # GitHub-hosted image label that no fleet runner carries; the ubuntu0-e2e
-    # branch above is unchanged and still owns all fleet e2e capacity.
-    runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]') || 'ubuntu-24.04' }}
+    # GitHub-hosted image label that no fleet runner carries; the selfhosted
+    # branch above is unchanged in shape and the lane runners carry no fleet label.
+    runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'selfhosted' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","terminal-e2e"]') || 'ubuntu-24.04' }}
     env:
-      TERMINAL_E2E_LANE: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'ubuntu0' || 'hosted' }}
+      TERMINAL_E2E_LANE: ${{ (vars.TERMINAL_E2E_LANE == 'selfhosted' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'selfhosted' || 'hosted' }}
       TERMINAL_E2E_LANE_WORKERS: ${{ vars.TERMINAL_E2E_WORKERS }}
     needs: [pr_scope, e2e-scope]
     # Source PRs run the independently selected responsive matrix. Trusted
@@ -708,13 +728,16 @@ jobs:
           timeout 480 npx playwright install --with-deps chromium \
             || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
                  npx playwright install chromium; }
-      # Browser caches do not include system fonts on fresh hosted runners.
+      # Browser caches do not include system fonts/libraries on fresh hosted runners, so
+      # try --with-deps first; if apt is unreachable, keep the cached browser and let a
+      # missing library fail the tests visibly (no visual baselines depend on fonts).
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         timeout-minutes: 6
         run: |
           if [ "$TERMINAL_E2E_LANE" = "hosted" ]; then
-            timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium
+            timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+              || { echo "::warning::apt/--with-deps failed or stalled on a cache hit; the cached browser is kept and the run proceeds (missing system libraries fail the tests visibly)"; timeout --signal=TERM --kill-after=15s 60s npx playwright install chromium; }
           else
             npx playwright install chromium
           fi
@@ -920,7 +943,9 @@ jobs:
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         timeout-minutes: 6
-        run: timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium
+        run: |
+          timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+            || { echo "::warning::apt/--with-deps failed or stalled on a cache hit; the cached browser is kept and the run proceeds (missing system libraries fail the tests visibly)"; timeout --signal=TERM --kill-after=15s 60s npx playwright install chromium; }
       - name: Download production build artifact (this run only)
         id: prodbuild_artifact
         uses: actions/download-artifact@v4
