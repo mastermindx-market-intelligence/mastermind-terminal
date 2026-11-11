@@ -438,6 +438,13 @@ test("cold reader: verdict, correction, participation, comparison and caveats (E
   await expectNoHorizontalOverflow(page);
   await shot(page, "main-1440.png");
   await shotViewport(page, "first-viewport-1440.png");
+  // The diagnosis panel at full desktop width — the same evidence the
+  // tablet/phone widths capture for their viewports.
+  if (yardsticks.length > 0) {
+    await page.getByTestId("pev-diagnosis").scrollIntoViewIfNeeded();
+    await expectNoHorizontalOverflow(page);
+    await shot(page, "diagnosis-1440.png");
+  }
 
   // The ?from seam is same-app by construction: a protocol-relative host (or
   // any foreign URL) never reaches the href — the link falls back to /prophet.
@@ -730,6 +737,7 @@ test("tablet 820×1180 holds with the correction disclosure open (EN)", async ({
   await page.goto("/prophet/evaluation");
   await expect(page.getByTestId("pev-level-chip")).toBeVisible();
   await expectNoHorizontalOverflow(page);
+  await shotViewport(page, "first-viewport-820.png");
   await shot(page, "main-820.png");
   await page.getByTestId("pev-what-changed-summary").click();
   await expectNoHorizontalOverflow(page);
@@ -787,6 +795,15 @@ test("phone width 390: the cold reader learns the correction in one screen (EN)"
     // the first screen without opening anything.
     expect(firstScreen).toContain(fmtDate(correction.date));
     if (LINE_OLD_EXCESS !== null) expect(firstScreen).toContain(fmtSignedPp(LINE_OLD_EXCESS));
+    // And GEOMETRICALLY inside the first viewport — clearly, not straddling
+    // the bottom edge: the whole line ends at least a touch target above
+    // the fold (top-above-fold alone can still clip its second line).
+    const line = await page.getByTestId("pev-what-changed-summary").boundingBox();
+    const fold390 = await page.evaluate(() => window.innerHeight);
+    expect(
+      line && line.y + line.height,
+      "correction line must sit clearly inside the 390 first viewport",
+    ).toBeLessThanOrEqual(fold390 - 44);
   } else {
     expect(firstScreen).toContain(EN("whatChangedTitle"));
     if (OLD_EXCESS !== null) expect(firstScreen).toContain(fmtSignedPp(OLD_EXCESS));
@@ -873,6 +890,7 @@ test("narrow 320 width still fits (EN)", async ({ page, baseURL }) => {
   await page.goto("/prophet/evaluation");
   await expect(page.getByTestId("pev-level-chip")).toBeVisible();
   await expectNoHorizontalOverflow(page);
+  await shotViewport(page, "first-viewport-320.png");
   await shot(page, "main-320.png");
   await page.getByTestId("pev-what-changed-summary").click();
   await expectNoHorizontalOverflow(page);
