@@ -1,0 +1,13 @@
+{
+  "reason": "Existing nativeImages receipts record sha256/width/height, without bytes; D06 validates size from the actual hashed PNG. Preserve all raw receipts and older size contracts.",
+  "files": [
+    {
+      "path": "terminal/e2e/tools/optionsExposureEvidence.cjs",
+      "afterSha256": "70a3225e2b2bfa31499d818995368528c8a9ccf0bc9fae81e46756a3f2452122"
+    },
+    {
+      "path": "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+      "afterSha256": "25324f7b1f06f211c13568212690ddd03f7b34c3487757fb14222849759322f3"
+    }
+  ]
+}

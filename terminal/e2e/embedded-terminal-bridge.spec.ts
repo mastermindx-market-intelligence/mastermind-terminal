@@ -160,3 +160,63 @@ test("embedded Terminal keeps the exact parent origin and refreshes a stale warm
 
   expect(originWarnings).toEqual([]);
 });
+
+test("trusted Macro fullscreen Escape does not close the iframe before returning inline", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "One real two-origin bridge qualification");
+  const bars = Array.from({ length: 260 }, (_, i) => {
+    const close = 100 + i / 5;
+    return [new Date(Date.UTC(2024, 2, 4) - (259 - i) * 86400000).toISOString().slice(0, 10), close - 1, close + 2, close - 2, close, 1000000];
+  });
+  await page.route("**/data/NVDA.json", route => route.fulfill({ json: { bars } }));
+  await page.goto(parentOrigin + "/us_stocks.html");
+  const parentUrl = page.url();
+  const childUrl = new URL("/embed/chart", childOrigin);
+  childUrl.search = new URLSearchParams({ symbol: "NVDA", lang: "en", theme: "dark", fs: "1", embed: "dashboard", from: "macro", ret: parentUrl }).toString();
+  await page.evaluate(({ src, origin }) => {
+    const frame = document.createElement("iframe");
+    frame.id = "bridge-frame";
+    frame.allow = "fullscreen " + origin;
+    frame.style.cssText = "width:900px;height:500px;border:0";
+    frame.src = src;
+    const messages: { source?: string; type?: string; token?: string }[] = [];
+    Object.assign(window, { __bridgeMessages: messages });
+    window.addEventListener("message", event => {
+      if (event.source === frame.contentWindow && event.origin === origin) messages.push(event.data);
+    });
+    document.body.appendChild(frame);
+  }, { src: childUrl.toString(), origin: childOrigin });
+  await expect.poll(() => page.frames().some(frame => frame.url().includes("/embed/chart?"))).toBe(true);
+  const child = page.frames().find(frame => frame.url().includes("/embed/chart?"))!;
+  await expect(child.locator(".embed-chart-host canvas").first()).toBeVisible();
+  await expect(child.locator("html")).toHaveAttribute("data-mm-embedded", "dashboard");
+  expect(await child.evaluate(() => ({
+    framed: window.parent !== window,
+    referrer: new URL(document.referrer).origin,
+    admitted: sessionStorage.getItem("mm.embeddedDashboard"),
+    parent: sessionStorage.getItem("mm.embeddedDashboardOrigin"),
+  }))).toEqual({ framed: true, referrer: parentOrigin, admitted: "1", parent: parentOrigin });
+  const readMessages = () => page.evaluate(() => (window as unknown as Window & { __bridgeMessages: { source?: string; type?: string; token?: string; path?: string }[] }).__bridgeMessages);
+  await expect.poll(async () => (await readMessages()).some(m => m.source === "mastermind-terminal" && m.type === "terminal:ready" && m.path === "/embed/chart")).toBe(true);
+  await child.locator(".embed-fs").click();
+  await expect.poll(() => child.evaluate(() => document.fullscreenElement === document.querySelector(".embed-root"))).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement === document.querySelector("#bridge-frame"))).toBe(true);
+  await page.keyboard.press("Escape");
+  // The default headless shell may deliver Escape to the page without performing
+  // Chrome's browser-UI exit. This verifies the real bridge guard, then uses the
+  // explicit exit control when needed; it does not claim physical Escape proof.
+  await child.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await child.evaluate(parent => window.parent.postMessage({ source: "d06-test-fence", token: "after-first-escape" }, parent), parentOrigin);
+  await expect.poll(async () => (await readMessages()).some(m => m.source === "d06-test-fence" && m.token === "after-first-escape")).toBe(true);
+  expect((await readMessages()).filter(m => m.source === "mastermind-terminal" && m.type === "terminal:close")).toHaveLength(0);
+  const protocolEscapeExited = await child.evaluate(() => document.fullscreenElement === null);
+  if (!protocolEscapeExited) await child.locator(".embed-fs").click();
+  await expect.poll(() => child.evaluate(() => document.fullscreenElement === null)).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
+  await child.locator(".embed-fs").focus();
+  await page.keyboard.press("Escape");
+  await expect.poll(async () => (await readMessages()).filter(m => m.source === "mastermind-terminal" && m.type === "terminal:close").length).toBe(1);
+  await info.attach("fullscreen-bridge-proof", {
+    body: Buffer.from(JSON.stringify({ protocolEscapeExited, parentOrigin, childOrigin, messages: await readMessages(), scope: "real fullscreen and trusted parent; protocol keyboard, not physical Chrome UI" })),
+    contentType: "application/json",
+  });
+});

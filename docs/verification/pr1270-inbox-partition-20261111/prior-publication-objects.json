@@ -1,0 +1,208 @@
+{
+  "commit": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+  "completedAt": "2026-11-11T20:04:13.601981+00:00",
+  "confirmed": {
+    "19e9efd8ad5aa92cc7c0a860c253d2c266a869cd": {
+      "confirmedAt": "2026-11-11T20:03:59.351625+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/typecheck.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "01c380c57301093de0b554e28bdc8b940694e8ba1077a4e4a5274ecb2fa83bb3"
+    },
+    "1bbb05f983f0eb9e86cd17971b56565c65b0a9a2": {
+      "confirmedAt": "2026-11-11T20:03:47.801577+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/ci_contracts.log"
+      },
+      "httpStatus": 201,
+      "responseSha256": "d53507d0dc9b4c8e02cc060698a4a5ef49cab1b1cde54599651c55038940021a"
+    },
+    "2f7e40353449172bf903c0fde46fc1154cdb70bc": {
+      "confirmedAt": "2026-11-11T20:03:52.341333+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/merge-result.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "4223936c76b81e95d04c342fada37aa724eaaab7563679577075c6abd77151b7"
+    },
+    "30878f45871d59d491aa90b8320cbd6e12020445": {
+      "confirmedAt": "2026-11-11T20:03:54.325466+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/node_owners.log"
+      },
+      "httpStatus": 201,
+      "responseSha256": "ec86afbc466891454de8141a8e6290d6f8a0e621cf805db76799345cf42c48a7"
+    },
+    "4ee24999d8ae077c63234855c72bf53cafc423ec": {
+      "confirmedAt": "2026-11-11T20:03:56.266829+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/qualification.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "b964f055f766fdb4558088917b58ced87bdb3cbcebee0bc6317e808077065ca0"
+    },
+    "69956844ccb5112ba97f86e5b828019984b688fc": {
+      "confirmedAt": "2026-11-11T20:03:50.858011+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/consumers.log"
+      },
+      "httpStatus": 201,
+      "responseSha256": "89eaf2d4a66efc8704ffa96413ca5ffa2ce216485d305c38e98de244e4e46cfb"
+    },
+    "6a3eaf027278d1a1ebe2c642a09968f61bb8c946": {
+      "confirmedAt": "2026-11-11T20:03:46.353044+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/checks.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "f49a4aef95b7b0cb7eb8c711c9c89a7e269a6ff72d435c6f4ef8028ffe4eb67b"
+    },
+    "74029211a6fda87371474b96f49f2b2563c8e940": {
+      "confirmedAt": "2026-11-11T20:03:45.564452+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/adoption-result.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "061ec85fa7a7cee0b46378dc786600dc38095f6c79e605c5c17c0be8d3ea5dae"
+    },
+    "8d627e103e60bbf8f88e257b337e26a84b0d5367": {
+      "confirmedAt": "2026-11-11T20:03:55.412279+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/proof-retention.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "bda35f4a7cc5efcc979d7d4d4bcaab99d52015164fa8f0c28629b6b80f326f44"
+    },
+    "92e3ccb2a9e435bb7041186b85a0257c1733aedc": {
+      "confirmedAt": "2026-11-11T20:03:47.062333+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/ci_contracts.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "31e75b95eb571e2b806a809e27f3e9a83817e35e8dafc69982ace38ff26e5b26"
+    },
+    "9a6c66bb4679ac28f375bf8135956381a483fbc2": {
+      "confirmedAt": "2026-11-11T20:03:43.971887+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/README.md"
+      },
+      "httpStatus": 201,
+      "responseSha256": "b0a7fb6f6432e55ba3583e3b5f77e4665c7542bc37146f2fe4a541e0a1df20c3"
+    },
+    "9fcd1f8da03d6fc82e73d267292d537197d211fb": {
+      "confirmedAt": "2026-11-11T20:04:01.116847+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "terminal/lib/__tests__/transcriptDrawerFocus.test.tsx"
+      },
+      "httpStatus": 201,
+      "responseSha256": "63a16166c693114e07b18c66dbd38514faf2a35a71181c016f6964fbacb31ecf"
+    },
+    "a913227d4ad13cf85df93c08a5163c2ed3fd81af": {
+      "confirmedAt": "2026-11-11T20:03:42.946662+00:00",
+      "context": {
+        "kind": "blob",
+        "path": ".github/workflows/ci.yml"
+      },
+      "httpStatus": 201,
+      "responseSha256": "12eb5a12173150db6357d01bdaed99ca6426208eaad9340074a6ff8cac7a24c7"
+    },
+    "ba7e5773b286f3fc98570b50b9f4c032c26c2c07": {
+      "confirmedAt": "2026-11-11T20:03:53.267701+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/node_owners.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "ad35baa39470423f83d6878b2f8870dc2642ae4f0e94f082d95aa4bc8ad4691f"
+    },
+    "c6edb78e4fc1fd4094fe91a35dba85abaa4d858d": {
+      "confirmedAt": "2026-11-11T20:03:44.799726+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/adoption-intent.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "186a238fcde1cbbf3121ad04eb61d6aba9a792b50dac30188aba4f0cc455578b"
+    },
+    "cb2c8eb7b9944a7cc89b73c97a000757581d7eac": {
+      "confirmedAt": "2026-11-11T20:04:12.842135+00:00",
+      "context": {
+        "kind": "commit",
+        "parents": [
+          "8bfcb249f50505422617a86261742f1b53151984",
+          "568fa505afb068900424fe4db0da67587d46a114"
+        ]
+      },
+      "httpStatus": 201,
+      "responseSha256": "b15e9ed431ffc8876a207081d02a23e05b706c5ce2a6dd9ba84e34964bde3076"
+    },
+    "d8f9b52afb5e66864c1caaa6f3d5375ad77c9f9b": {
+      "confirmedAt": "2026-11-11T20:03:51.527758+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/lint.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "a2d85635297cab3f27acd232987aba37b1420e65f674633d75e0ab963611e7da"
+    },
+    "e2d9e8ea7512216250d7a8c6f1b01e01c465e7c9": {
+      "confirmedAt": "2026-11-11T20:04:04.600366+00:00",
+      "context": {
+        "kind": "tree",
+        "leaf_count": 27743
+      },
+      "httpStatus": 201,
+      "responseSha256": "6786f30c8d1396043d5e0022e813a99ca9769246b9e41edc342a36c26616b02d"
+    },
+    "ee8d8d31eddbdd3bad089972258e738da330e758": {
+      "confirmedAt": "2026-11-11T20:03:48.505365+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/composed-source.diff"
+      },
+      "httpStatus": 201,
+      "responseSha256": "fcf71b875bf6d4578e3633d1220ad8cd3036e68f5d66d9f0f074c5a67592218e"
+    },
+    "f77e2afe54b4bd77602691df028493fe8c554e00": {
+      "confirmedAt": "2026-11-11T20:03:49.277350+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/composition.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "4bc59e60f18a30ad52505957c9d04739148d9e8d9db088ca528f39421933305a"
+    },
+    "fff430732df5ce7d54d7efe4829d10ff8a42c798": {
+      "confirmedAt": "2026-11-11T20:03:50.142639+00:00",
+      "context": {
+        "kind": "blob",
+        "path": "docs/verification/pr1270-protected-compose-20261111/consumers.json"
+      },
+      "httpStatus": 201,
+      "responseSha256": "e712784780e5a5805c6394060f80e80a51c01119ed0c746669da0a4867f92bda"
+    }
+  },
+  "expected_head": "8bfcb249f50505422617a86261742f1b53151984",
+  "helper_sha256": "84ab0eba8fb7a063e83c7c75acaff30772a789a7edce9337f5e0b39fc05601ae",
+  "operation": "terminal-d06-evidence-readers-20261111-c3",
+  "pending": null,
+  "plan_sha256": "4b4868097f5e174bf28a74c3c89fff9d9dbc3fdc52c3731d83f040cf4d1b1be8",
+  "refResultSha256": "3e926acf0002d6d9efa455ec365cd1e6028e42903a09bbfd81a969fac069eda8",
+  "schema": "terminal.original-pr-publication-objects.v1",
+  "startedAt": "2026-11-11T20:03:41.899635+00:00",
+  "state": "APPLIED",
+  "tree": "e2d9e8ea7512216250d7a8c6f1b01e01c465e7c9"
+}

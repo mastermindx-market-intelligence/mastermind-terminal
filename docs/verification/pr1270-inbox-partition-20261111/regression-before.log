@@ -1,0 +1,39 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_unit_shards_exclude_exactly_the_evidence_lane_suites ___________
+
+    def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
+        """Suites that read capture-produced evidence (records-mode readers and
+        sha256 evidence locks) run only in the evidence lane after capture. One
+        list script feeds both the evidence step and the shard excludes, and it
+        must select every such suite and nothing else."""
+        import re
+        root = Path(__file__).resolve().parents[1]
+        tests_dir = root / "terminal" / "lib" / "__tests__"
+        marker = re.compile(
+            r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\(|readInboxPacket\("
+        )
+        expected = sorted(
+            "lib/__tests__/" + path.name
+            for pattern in ("*.test.ts", "*.test.tsx")
+            for path in tests_dir.glob(pattern)
+            if marker.search(path.read_text(encoding="utf-8"))
+        )
+        assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
+        assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
+        assert "lib/__tests__/lexEvidenceProjection.test.ts" in expected
+        inbox_suite = "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
+        assert inbox_suite in expected
+        listed = subprocess.run(
+            ["bash", "scripts/ci/evidence-lock-suites.sh"],
+            cwd=root / "terminal", check=True, capture_output=True, text=True,
+            env={**os.environ, "LC_ALL": "C"},
+        ).stdout.split()
+>       assert inbox_suite in listed, "the inbox reader must run with its current-checkout capture"
+E       AssertionError: the inbox reader must run with its current-checkout capture
+E       assert 'lib/__tests__/f11_7RecurringBriefsEvidence.test.ts' in ['lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts', 'lib/__tests__/b_f08_8InvalidationEvidence.test.ts', 'lib/__tests_...s', 'lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts', 'lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts', ...]
+
+tests/test_merge_group_fast_lane_contract.py:160: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_merge_group_fast_lane_contract.py::test_unit_shards_exclude_exactly_the_evidence_lane_suites
+1 failed in 0.82s

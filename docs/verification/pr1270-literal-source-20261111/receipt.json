@@ -1,0 +1,44 @@
+{
+  "schema": "terminal_pr1270_literal_source_integration.v1",
+  "sourcePin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "originalHead": "357c32f1a330dda9362955361ae0ab30a3e54048",
+  "protectedParent": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "testedSourceTree": "a80ccd69f237f39e956e20f8dfb3300585288b12",
+  "finalTypecheck": {
+    "name": "typecheck-final",
+    "returncode": 0,
+    "seconds": 168.39,
+    "sourceTree": "a80ccd69f237f39e956e20f8dfb3300585288b12"
+  },
+  "unitCases": 106,
+  "finalAffectedUnitCases": 55,
+  "browserCases": 27,
+  "browserFailed": 0,
+  "browserSkipped": 0,
+  "browserFlaky": 0,
+  "browserRetries": 0,
+  "sourceFiles": 4482,
+  "archiveMembers": 166,
+  "archiveBytes": 5870073,
+  "archiveSha256": "544b50f07d32685bc5416436b7e2cac683415231c35a3488b812270ba0adb9f5",
+  "fixture": true,
+  "productionProof": false,
+  "codeQlResolution": "PENDING_NATURAL_RUN",
+  "draftAndReleaseHoldsRetained": true,
+  "captures": {
+    "pine-after-retry.png": "0bacbd5c79bb64c26f74eb36ca99765b0ad677f356e3c68cde0109d948d44539",
+    "workspace-below-1024.png": "4222b36ae63f5a0352176eff755ebcc82d93b5a21b6664a4ac8358da35332998",
+    "reader-tablet.png": "1b41514a42d8e73c5d9892c384882ace6e342e31e606141b77d840cedb29ee45",
+    "reader-mobile.png": "b72fd051dc0d0d5624f0aa34513de2c14908f0e2dc22b3c52b7556892e54c49a",
+    "selected-pin-320.png": "f8b7ea5eb7bd51bbcf3973ab94c0033570db19a079c66f73fa24b92c47d4107f"
+  },
+  "publicationSourceTree": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+  "applicationSourceSameAsBrowser": true,
+  "additionalPlainLabelCases": 60,
+  "remainingEvidenceGates": [
+    "EOD declared native fingerprint: NO_QUALIFIED_CAPTURE",
+    "GEX declared native fingerprint: NO_QUALIFIED_CAPTURE",
+    "Options axis historical ChartPanel projection: outside exact recorded delta"
+  ],
+  "requiredCi": "PENDING_WITH_DECLARED_EVIDENCE_GATES"
+}

@@ -2625,6 +2625,15 @@ export const LEX: Record<string, [string, string]> = {
 
   xChartSnapshot: ["Chart snapshot", "图表快照"],
   xCreatedWith: ["Created with", "使用以下工具制作"],
+  xStaticImage: ["A shared image of a chart. It does not update with the market.", "分享的图表图片，不随行情更新。"],
+  xLoadingTitle: ["Loading snapshot", "正在加载快照"],
+  xLoading: ["The original chart image is loading.", "正在加载原始图表图片。"],
+  xUnavailableTitle: ["Snapshot unavailable", "快照暂不可用"],
+  xReadUnavailable: ["The snapshot could not be checked. Try again to make a fresh read.", "暂时无法检查此快照。请重试以重新读取。"],
+  xImageUnavailable: ["The snapshot image could not be loaded. Try again to read the original image.", "无法加载快照图片。请重试以读取原始图片。"],
+  xMissingTitle: ["Snapshot not found", "未找到快照"],
+  xMissing: ["No snapshot is available at this address. Check the shared link.", "此地址没有可用的快照，请检查分享链接。"],
+  xRetrying: ["Reading again…", "正在重新读取…"],
   // /invite — the public page an invitation link opens (MO-PAID-081, packet W9T_F12_17).
   invTitle: ["Team invitation", "团队邀请"],
   invIntro: ["You have been invited to join a team on Mastermind Terminal.", "有人邀请你加入 Mastermind Terminal 上的一个团队。"],
@@ -2727,6 +2736,10 @@ export const LEX: Record<string, [string, string]> = {
   cfbExtendedHours: ["Extended trading hours", "盘前盘后交易时段"],
   dsDayStats: ["Day Stats", "当日数据"],
   shResizeSidebar: ["Resize sidebar", "调整侧栏宽度"],
+  shResetSidebar: ["Reset sidebar width", "重置侧栏宽度"],
+  shResizeSidebarHelp: ["Left and Right arrows resize; Home and End choose a limit.", "使用左右方向键调整宽度；Home 和 End 选择边界。"],
+  shSidebarPixels: ["pixels", "像素"],
+  shSidebarPreferred: ["preferred", "偏好宽度"],
   shLogoCredit: ["Logos provided by Logo.dev", "图标由 Logo.dev 提供"],
   customColor: ["custom color", "自定义颜色"],
 

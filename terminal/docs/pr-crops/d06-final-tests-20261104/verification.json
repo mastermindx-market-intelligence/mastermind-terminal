@@ -1,0 +1,243 @@
+{
+  "schema": "d06.terminal_final_browser_repairs.v1",
+  "status": "passed_scoped_repairs",
+  "verified_at": "2026-11-04T13:29:24.133114+00:00",
+  "source_parent": "9d1d8549a3d5f77208de385631e10c31c7d16c4f",
+  "source_hashes": {
+    "terminal/e2e/portfolio-event-refresh.spec.ts": "d9b1102b2cd7f19b63202e5db2555b0a5cb2d7ded7ca929badea2047c30cd71d",
+    "terminal/e2e/shell-mode.spec.ts": "c77439eb68958c3d4f753ab1793b843af37db74041c524514c8c7b71351b6213",
+    "terminal/e2e/drawing-save-concurrency.spec.ts": "1f2ae981f345f874429a89a51a9b74726586c09ea455d0de4f7abcd41eaf4815",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/fixtureWarmup.cjs": "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532",
+    "terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx": "664549341b03be10b19cb0714257cbf5a1a0387b3fa22965edffad023d86150a"
+  },
+  "source_binding": "Post-run source snapshot. Production source unchanged from parent. A non-executable drawing-test comment was tidied after its run; executable logic unchanged.",
+  "changed_source_paths": [
+    "terminal/e2e/portfolio-event-refresh.spec.ts",
+    "terminal/e2e/shell-mode.spec.ts",
+    "terminal/e2e/drawing-save-concurrency.spec.ts"
+  ],
+  "production_source_changes": false,
+  "operation_id": "d06-terminal-reader-resilience-20261103-c4",
+  "old_hosted_ci": "terminal-old-hosted-ci.json",
+  "browser_runs": [
+    {
+      "name": "portfolio-clean",
+      "stats": {
+        "startTime": "2026-11-04T13:18:11.654Z",
+        "duration": 26945.37,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "portfolio-event-refresh.spec.ts",
+          "title": "en: the committed edit retires the previous facts and re-reads the book",
+          "project": "desktop",
+          "duration_ms": 2282,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "portfolio-event-refresh.spec.ts",
+          "title": "zh: the committed edit retires the previous facts and re-reads the book",
+          "project": "desktop",
+          "duration_ms": 2346,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "portfolio-event-refresh.spec.ts",
+          "title": "en: the committed edit retires the previous facts and re-reads the book",
+          "project": "tablet",
+          "duration_ms": 2100,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "portfolio-event-refresh.spec.ts",
+          "title": "zh: the committed edit retires the previous facts and re-reads the book",
+          "project": "tablet",
+          "duration_ms": 2362,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "portfolio-event-refresh.spec.ts",
+          "title": "en: the committed edit retires the previous facts and re-reads the book",
+          "project": "mobile",
+          "duration_ms": 2027,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "portfolio-event-refresh.spec.ts",
+          "title": "zh: the committed edit retires the previous facts and re-reads the book",
+          "project": "mobile",
+          "duration_ms": 2485,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "shell-mode.spec.ts",
+          "title": "embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance",
+          "project": "desktop",
+          "duration_ms": 1027,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "shell-mode.spec.ts",
+          "title": "embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance",
+          "project": "tablet",
+          "duration_ms": 1067,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "shell-mode.spec.ts",
+          "title": "embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance",
+          "project": "mobile",
+          "duration_ms": 1074,
+          "status": "passed",
+          "retry": 0
+        }
+      ],
+      "config_owner": "terminal/playwright.config.ts",
+      "workers": 1,
+      "retry": 0,
+      "server_reuse": false,
+      "report": "terminal-portfolio-clean-results.json",
+      "log": "terminal-portfolio-clean.log"
+    },
+    {
+      "name": "drawing-recovery",
+      "stats": {
+        "startTime": "2026-11-04T13:22:58.546Z",
+        "duration": 41230.364,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "drawing-save-concurrency.spec.ts",
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol",
+          "project": "desktop",
+          "duration_ms": 9560,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "drawing-save-concurrency.spec.ts",
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol",
+          "project": "tablet",
+          "duration_ms": 10364,
+          "status": "passed",
+          "retry": 0
+        },
+        {
+          "file": "drawing-save-concurrency.spec.ts",
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol",
+          "project": "mobile",
+          "duration_ms": 9059,
+          "status": "passed",
+          "retry": 0
+        }
+      ],
+      "config_owner": "terminal/playwright.config.ts",
+      "workers": 1,
+      "retry": 0,
+      "server_reuse": false,
+      "report": "terminal-drawing-recovery-results.json",
+      "log": "terminal-drawing-recovery.log"
+    }
+  ],
+  "browser_cases": 12,
+  "browser_retries": 0,
+  "browser_failures": 0,
+  "unit_tests": 33,
+  "unit_receipt": "terminal-final-test-checks.json",
+  "lint": {
+    "portfolio_findings": 0,
+    "shell_baseline_findings": 38,
+    "new_findings": 0,
+    "full_file_clean": false,
+    "comparison": "terminal-lint-baseline-comparison.json"
+  },
+  "screenshots": [
+    {
+      "path": "portfolio-desktop-zh.png",
+      "project": "desktop",
+      "locale": "zh",
+      "sha256": "f40e7d1689e74d35562ab9e3b1d03f913678493682f617fc0394e6770f789636"
+    },
+    {
+      "path": "portfolio-mobile-zh.png",
+      "project": "mobile",
+      "locale": "zh",
+      "sha256": "7dfdd8b462cbc588e29d67666bc5d46dfb9c8dee1f7103eba96c5aa72e59a7d6"
+    },
+    {
+      "path": "portfolio-tablet-zh.png",
+      "project": "tablet",
+      "locale": "zh",
+      "sha256": "282a780f7f5b967917480cb418767283adc5dca74652d66c1c5bcd4ea358ca5f"
+    },
+    {
+      "path": "portfolio-desktop-en.png",
+      "project": "desktop",
+      "locale": "en",
+      "sha256": "5acebe0cd0803c93dd18a9247a5a36b7fc028dc20d9e5681747b84a15848528d"
+    },
+    {
+      "path": "portfolio-mobile-en.png",
+      "project": "mobile",
+      "locale": "en",
+      "sha256": "9b522f12e29ad8ed8d918fdac269bdf060c9989b118c25e43ac86aac93824622"
+    },
+    {
+      "path": "portfolio-tablet-en.png",
+      "project": "tablet",
+      "locale": "en",
+      "sha256": "ee4161be9530002f44b2fb6813f66c3b162fca1a10c4de5d9029f0701905743f"
+    }
+  ],
+  "root_visual_qa": [
+    "portfolio-desktop-zh.png",
+    "portfolio-mobile-en.png"
+  ],
+  "prior_proof": [
+    {
+      "path": "terminal/docs/pr-crops/d06-ci-20261104/manifest.json",
+      "members": 71,
+      "aggregate_sha256": "bed79dc1f1cf1eaf8307537d4e78c74870f65b4571e92f1419afbbab84f7f972",
+      "byte_identical": true
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-copy-routing-20261104/manifest.json",
+      "members": 5,
+      "aggregate_sha256": "eb6cf4d6120514b2240884908d02a45771674ff42d2319b8aaa07f610e0f8510",
+      "byte_identical": true
+    }
+  ],
+  "artifact_inventory": "manifest.json",
+  "release": {
+    "draft": true,
+    "ready": false,
+    "merged": false,
+    "deployed": false,
+    "production_acceptance": false,
+    "hosted_ci_success_claimed": false
+  },
+  "limits": [
+    "Existing controlled fixtures and emulated desktop/tablet/mobile; not live account or physical WKWebView proof.",
+    "Old full hosted run failed; new exact-head hosted results are separately recorded after publication.",
+    "33 unit tests and focused cases overlap earlier phases; do not sum as unique test coverage.",
+    "Historical screenshot bundles remain immutable; six new cropped fixture images are functional captures."
+  ]
+}

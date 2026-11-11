@@ -1,0 +1,65 @@
+{
+  "actualGit": {
+    "head": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "headTree": "e0071b0769420d5837e6a6767b696752462c449a",
+    "indexTree": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+    "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9"
+  },
+  "branchHead": "357c32f1a330dda9362955361ae0ab30a3e54048",
+  "browser": {
+    "expiry": {
+      "lifecycleSha256": "29312c0cf50fb34a3e2c08c0849338f88cb6fcd482baaa14f581e4554c45741e",
+      "qualification": "expiry-journeys/qualification.json",
+      "sha256": "9f3931d99b5e66100f627619413cfdd29c19a0d93eac2e64cc2bf38c57f32857"
+    },
+    "joint": {
+      "lifecycleSha256": "0b8b01978fd5fde74e25e8c792cff1a2f992c4bdf4a5d3821882ef45e6a27c03",
+      "qualification": "qualification.json",
+      "sha256": "2ef456820e2eaff5fd53cc5dbe87f97a11e3e5a96c61180ca140d55e71a4be36"
+    }
+  },
+  "checkoutCommit": "357c32f1a330dda9362955361ae0ab30a3e54048",
+  "checkoutTree": "e0071b0769420d5837e6a6767b696752462c449a",
+  "history": {
+    "descriptorSha256": "8f648c3e4a4ed41bd773453903dd82bf71683097732665c4a86101e3fb13c143",
+    "expiryQualificationSha256": "d7aa9de38a105f7e9263f35c77d7718b2faddd71e06c6d22b46c4a335ce722fe",
+    "jointQualificationSha256": "c715c1620ded67bc57ab63fabbf6499f727c7bcda2503c75d31b696b685100fc",
+    "roots": {
+      "eod": {
+        "path": "prior-roots/eod.EVIDENCE.yml",
+        "sha256": "ca8665106dd6d220449b3ba4acfe668bd4204b07e185569225bd2574ddb998fe"
+      },
+      "gex": {
+        "path": "prior-roots/gex.EVIDENCE.yml",
+        "sha256": "9262263b3b4adbb3de79362dab910429331b0b4ef2f937cb02cb299a8a50ff40"
+      }
+    }
+  },
+  "indexTreeAtEnd": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+  "indexTreeAtStart": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+  "integratedSourceHeads": [
+    "707b4d509dd4f0922cbb6a45c0661399641e606f",
+    "d3e7ba61f7021d65571b9bcde279409168f4173d"
+  ],
+  "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "native": {
+    "eod": {
+      "descriptorSha256": "46b35e7f1bf23454dede63797644bb4d8082bdb484dfa7918e377f9b3e1c6a90",
+      "revision": "d06-r5-copy-20261111"
+    },
+    "gex": {
+      "descriptorSha256": "076271811c0cedfec4ad4d0344ec3594aa20c9d44e30cd1287fc94179ebe471c",
+      "revision": "d06-r5-copy-20261111"
+    }
+  },
+  "operation": "terminal-pr1270-d06-browser-current-20261111",
+  "protectedMaster": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "publishedBasis": "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e",
+  "revision": "d06-r5-copy-20261111",
+  "schema": "exposure_d06_successor.v1",
+  "sourceIdentity": "stable-composed-working-tree",
+  "sourceSnapshot": {
+    "files": 3751,
+    "sha256": "cd546d86bf053ac071d4ddf78b9c090994b5841d46789e2848dea64d032b2749"
+  }
+}

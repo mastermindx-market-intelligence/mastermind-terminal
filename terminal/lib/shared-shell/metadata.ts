@@ -12,8 +12,8 @@ export function applicationMetadata(flag: unknown = process.env.MMX_SHARED_SHELL
     : { title: "Mastermind Terminal", description: "Institutional charting — proprietary confluence signals, macro regime, and an AI copilot." };
 }
 export function applicationViewport(flag: unknown = process.env.MMX_SHARED_SHELL): Viewport {
-  const shared: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
-  // Page magnification belongs to the reader on the shared research shell.
-  // Preserve the standalone chart deployment's existing gesture contract.
-  return isSharedShellEnabled(flag) ? shared : { ...shared, maximumScale: 1, userScalable: false };
+  void flag; // Preserve the caller contract; viewport zoom is independent of identity.
+  // Ordinary web pages permit reader magnification in either identity mode.
+  // NativeViewportPolicy owns the explicit shell=app / WK gesture restriction.
+  return { width: "device-width", initialScale: 1, viewportFit: "cover" };
 }

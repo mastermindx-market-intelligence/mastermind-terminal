@@ -1,0 +1,28 @@
+{
+  "state": "SOURCE_READER_REPAIR_AWAITING_FRESH_PROOF",
+  "publishedBasis": "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e",
+  "files": [
+    {
+      "path": "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "beforeBlob": "744530d0d8a134afc1dcdace9e7f75a6d16dc72f",
+      "beforeSha256": "4c6fd336505cc7745c8061dddfd42d64d9aa925a2144741b6e4ae39789d24c99",
+      "afterSha256": "ab6677b86fa6df0989bda6406b5297bf94ec4b3b0b01d97b79eb1f953c055bcb"
+    },
+    {
+      "path": "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "beforeBlob": "be3b02cc64e68dc8ed292f297db174a4688e9f2c",
+      "beforeSha256": "abbad83471ab9a13fefcffca5416d337060510767602ef6dc55c860014f849d8",
+      "afterSha256": "09029512e404db1f3b95f8f6a5d79d586baf9955d859018113e7cd82f5588cb9"
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsLevelAxisEvidence.test.ts",
+      "beforeBlob": "1b2b7b5f0f61156812b0623518e6ab1eaf109085",
+      "beforeSha256": "6f5e46c8f678616865b4da35fc63f1decf5b128380f1962d1f0a42f0b7c11e71",
+      "afterSha256": "786935f040a9c20be86a5ebe4fffbbe48e2220635b09bd70a48225fe859702de"
+    }
+  ],
+  "semantics": "accept exact current hash; otherwise preserve exact historical inverse for the original special source only",
+  "historicalHelperModified": false,
+  "currentNativeBrowserProof": false,
+  "axisProof": false
+}

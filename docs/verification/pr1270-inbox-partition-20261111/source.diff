@@ -1,0 +1,64 @@
+diff --git a/terminal/scripts/ci/evidence-lock-suites.sh b/terminal/scripts/ci/evidence-lock-suites.sh
+index 769192429..4833624dd 100755
+--- a/terminal/scripts/ci/evidence-lock-suites.sh
++++ b/terminal/scripts/ci/evidence-lock-suites.sh
+@@ -7,8 +7,9 @@
+ set -euo pipefail
+ cd "$(dirname "$0")/../.."
+ shopt -s nullglob
+-# Markers: the composition reader, the evidence-lock message, and the lexicon
+-# projection lock (its packet is rewritten by every batch-1 capture). grep exit
+-# 1 (no match) fails the script under -e; the callers also refuse an empty list.
+-grep -lE 'selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\(' \
++# Markers: composition readers, evidence-lock messages, lexicon projection
++# locks, and the inbox reader whose shared contract owns its source hashes.
++# These suites must run with the capture that refreshes their evidence. grep
++# exit 1 (no match) fails under -e; callers also refuse an empty list.
++grep -lE 'selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\(|readInboxPacket\(' \
+   lib/__tests__/*.test.ts lib/__tests__/*.test.tsx | LC_ALL=C sort
+diff --git a/tests/test_merge_group_fast_lane_contract.py b/tests/test_merge_group_fast_lane_contract.py
+index 5a6733f2c..146c30187 100644
+--- a/tests/test_merge_group_fast_lane_contract.py
++++ b/tests/test_merge_group_fast_lane_contract.py
+@@ -139,7 +139,7 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
+     root = Path(__file__).resolve().parents[1]
+     tests_dir = root / "terminal" / "lib" / "__tests__"
+     marker = re.compile(
+-        r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\("
++        r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\(|readInboxPacket\("
+     )
+     expected = sorted(
+         "lib/__tests__/" + path.name
+@@ -150,14 +150,31 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
+     assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
+     assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
+     assert "lib/__tests__/lexEvidenceProjection.test.ts" in expected
++    inbox_suite = "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
++    assert inbox_suite in expected
+     listed = subprocess.run(
+         ["bash", "scripts/ci/evidence-lock-suites.sh"],
+         cwd=root / "terminal", check=True, capture_output=True, text=True,
+         env={**os.environ, "LC_ALL": "C"},
+     ).stdout.split()
++    assert inbox_suite in listed, "the inbox reader must run with its current-checkout capture"
+     assert sorted(listed) == expected
++    owner_steps = jobs()["terminal-unit"]["steps"]
++    capture_index = next(
++        i for i, step in enumerate(owner_steps)
++        if step.get("name") == "Capture current-source recurring inbox evidence"
++    )
++    reader_index = next(
++        i for i, step in enumerate(owner_steps)
++        if step.get("name") == "Validate fresh evidence through the unit readers"
++    )
++    assert capture_index < reader_index
++    capture = owner_steps[capture_index]
++    assert capture["run"] == "node e2e/tools/capture_b_f11_7_recurring_briefs.cjs --active-inbox"
++    assert "if" not in capture
++    assert not capture.get("continue-on-error", False)
+     lane = next(
+-        str(step["run"]) for step in jobs()["terminal-unit"]["steps"]
++        str(step["run"]) for step in owner_steps
+         if step.get("name") == "Validate fresh evidence through the unit readers"
+     )
+     shard = next(

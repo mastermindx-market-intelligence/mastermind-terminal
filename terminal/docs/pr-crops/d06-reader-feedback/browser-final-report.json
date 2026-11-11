@@ -1,0 +1,769 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/chart-context-feedback.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=2",
+      "--retries=0",
+      "--reporter=json",
+      "--output=test-results-d06-reader-feedback-final"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 50354",
+      "url": "http://127.0.0.1:50354/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "chart-context-feedback.spec.ts",
+      "file": "chart-context-feedback.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5593,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:17.724Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-991e8--Escape-return-in-en-useful-desktop/attachments/feedback-success-40c5c2b0dfd1692aa774dbefdc3565ce5407d071.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMTQ0MCwKICAgICJoZWlnaHQiOiA5MDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMTQ0MCwKICAic2Nyb2xsV2lkdGgiOiAxNDQwLAogICJmb2N1c2VkQm91bmRzIjogewogICAgIngiOiAxMDk2LAogICAgInkiOiA3NTQuMDQ2ODc1LAogICAgIndpZHRoIjogMTMyLjI4MTI1LAogICAgImhlaWdodCI6IDI2LAogICAgInRvcCI6IDc1NC4wNDY4NzUsCiAgICAicmlnaHQiOiAxMjI4LjI4MTI1LAogICAgImJvdHRvbSI6IDc4MC4wNDY4NzUsCiAgICAibGVmdCI6IDEwOTYKICB9Cn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-d257d505b4c091d11f0a",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5613,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:17.725Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-1b7c0-Escape-return-in-en-unclear-desktop/attachments/feedback-success-463dace8ee75f68632e02d39f13e53a82c5e6b56.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MCwKICAiZm9jdXNlZEJvdW5kcyI6IHsKICAgICJ4IjogMTA5NiwKICAgICJ5IjogNzU0LjA0Njg3NSwKICAgICJ3aWR0aCI6IDEzMi4yODEyNSwKICAgICJoZWlnaHQiOiAyNiwKICAgICJ0b3AiOiA3NTQuMDQ2ODc1LAogICAgInJpZ2h0IjogMTIyOC4yODEyNSwKICAgICJib3R0b20iOiA3ODAuMDQ2ODc1LAogICAgImxlZnQiOiAxMDk2CiAgfQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-7a2db36080f1d15150ed",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5837,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:23.545Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-867d2--Escape-return-in-zh-useful-desktop/attachments/feedback-success-726d6a33da3c98e000630b667fd91778704ecea9.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMTQ0MCwKICAgICJoZWlnaHQiOiA5MDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMTQ0MCwKICAic2Nyb2xsV2lkdGgiOiAxNDQwLAogICJmb2N1c2VkQm91bmRzIjogewogICAgIngiOiAxMDk2LAogICAgInkiOiA3NTQuNTE1NjI1LAogICAgIndpZHRoIjogNjEuMzI4MTI1LAogICAgImhlaWdodCI6IDI2LAogICAgInRvcCI6IDc1NC41MTU2MjUsCiAgICAicmlnaHQiOiAxMTU3LjMyODEyNSwKICAgICJib3R0b20iOiA3ODAuNTE1NjI1LAogICAgImxlZnQiOiAxMDk2CiAgfQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-7e3ee0f13c18b47739f8",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6110,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:23.565Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-60c4a-Escape-return-in-zh-unclear-desktop/attachments/feedback-success-5b8acf298e591b8a7be926dc6862915bbe7d0be2.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MCwKICAiZm9jdXNlZEJvdW5kcyI6IHsKICAgICJ4IjogMTA5NiwKICAgICJ5IjogNzU0LjUxNTYyNSwKICAgICJ3aWR0aCI6IDYxLjMyODEyNSwKICAgICJoZWlnaHQiOiAyNiwKICAgICJ0b3AiOiA3NTQuNTE1NjI1LAogICAgInJpZ2h0IjogMTE1Ny4zMjgxMjUsCiAgICAiYm90dG9tIjogNzgwLjUxNTYyNSwKICAgICJsZWZ0IjogMTA5NgogIH0KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-aa65afe1df7074bc1040",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4136,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:30.361Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-991e8--Escape-return-in-en-useful-tablet/attachments/feedback-success-9e853e91d83e4e8ea7e5fe7400761146536ca4ea.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogODIwLAogICAgImhlaWdodCI6IDExODAKICB9LAogICJkb2N1bWVudFdpZHRoIjogODIwLAogICJzY3JvbGxXaWR0aCI6IDgyMCwKICAiZm9jdXNlZEJvdW5kcyI6IHsKICAgICJ4IjogMTYsCiAgICAieSI6IDg5My43OTY4NzUsCiAgICAid2lkdGgiOiAxMzIuMjgxMjUsCiAgICAiaGVpZ2h0IjogNDQsCiAgICAidG9wIjogODkzLjc5Njg3NSwKICAgICJyaWdodCI6IDE0OC4yODEyNSwKICAgICJib3R0b20iOiA5MzcuNzk2ODc1LAogICAgImxlZnQiOiAxNgogIH0KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-5db43e73f405492a0480",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5959,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:30.589Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-1b7c0-Escape-return-in-en-unclear-tablet/attachments/feedback-success-c31cdd3d2b47b407f14a5c3f33d4c21e87716754.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAsCiAgImZvY3VzZWRCb3VuZHMiOiB7CiAgICAieCI6IDE2LAogICAgInkiOiA4OTMuNzk2ODc1LAogICAgIndpZHRoIjogMTMyLjI4MTI1LAogICAgImhlaWdodCI6IDQ0LAogICAgInRvcCI6IDg5My43OTY4NzUsCiAgICAicmlnaHQiOiAxNDguMjgxMjUsCiAgICAiYm90dG9tIjogOTM3Ljc5Njg3NSwKICAgICJsZWZ0IjogMTYKICB9Cn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-b477b4bf24c67644315f",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5817,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:35.109Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-867d2--Escape-return-in-zh-useful-tablet/attachments/feedback-success-5f66c827e7ff91de578b9c854d34e3f0877a1f1a.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogODIwLAogICAgImhlaWdodCI6IDExODAKICB9LAogICJkb2N1bWVudFdpZHRoIjogODIwLAogICJzY3JvbGxXaWR0aCI6IDgyMCwKICAiZm9jdXNlZEJvdW5kcyI6IHsKICAgICJ4IjogMTYsCiAgICAieSI6IDg5My44NTkzNzUsCiAgICAid2lkdGgiOiA2MS4zMjgxMjUsCiAgICAiaGVpZ2h0IjogNDQsCiAgICAidG9wIjogODkzLjg1OTM3NSwKICAgICJyaWdodCI6IDc3LjMyODEyNSwKICAgICJib3R0b20iOiA5MzcuODU5Mzc1LAogICAgImxlZnQiOiAxNgogIH0KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-d5ce203c3ccc5a6db31e",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5729,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:36.959Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-60c4a-Escape-return-in-zh-unclear-tablet/attachments/feedback-success-7ad870fa408c770cc1fbb98fdcf4bbf08d71b007.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAsCiAgImZvY3VzZWRCb3VuZHMiOiB7CiAgICAieCI6IDE2LAogICAgInkiOiA4OTMuODU5Mzc1LAogICAgIndpZHRoIjogNjEuMzI4MTI1LAogICAgImhlaWdodCI6IDQ0LAogICAgInRvcCI6IDg5My44NTkzNzUsCiAgICAicmlnaHQiOiA3Ny4zMjgxMjUsCiAgICAiYm90dG9tIjogOTM3Ljg1OTM3NSwKICAgICJsZWZ0IjogMTYKICB9Cn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-d6c9c3fbddc72b2a619a",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8371,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:41.300Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-991e8--Escape-return-in-en-useful-mobile/attachments/feedback-success-ffac8eb588f888225816083da6c79f502731ab25.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMzkwLAogICAgImhlaWdodCI6IDg0NAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiAzOTAsCiAgInNjcm9sbFdpZHRoIjogMzkwLAogICJmb2N1c2VkQm91bmRzIjogewogICAgIngiOiAxNiwKICAgICJ5IjogNzkxLjczNDM3NSwKICAgICJ3aWR0aCI6IDEzMi4yODEyNSwKICAgICJoZWlnaHQiOiA0NCwKICAgICJ0b3AiOiA3OTEuNzM0Mzc1LAogICAgInJpZ2h0IjogMTQ4LjI4MTI1LAogICAgImJvdHRvbSI6IDgzNS43MzQzNzUsCiAgICAibGVmdCI6IDE2CiAgfQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-5a63b8ae6f909659c334",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5123,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:43.048Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-1b7c0-Escape-return-in-en-unclear-mobile/attachments/feedback-success-547d2de2b938c27a4a01aa3166e44a9ef75b87b2.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAiZm9jdXNlZEJvdW5kcyI6IHsKICAgICJ4IjogMTYsCiAgICAieSI6IDc5MS43MzQzNzUsCiAgICAid2lkdGgiOiAxMzIuMjgxMjUsCiAgICAiaGVpZ2h0IjogNDQsCiAgICAidG9wIjogNzkxLjczNDM3NSwKICAgICJyaWdodCI6IDE0OC4yODEyNSwKICAgICJib3R0b20iOiA4MzUuNzM0Mzc1LAogICAgImxlZnQiOiAxNgogIH0KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-8151b1f4ab92548bb323",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6059,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:48.371Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-867d2--Escape-return-in-zh-useful-mobile/attachments/feedback-success-3ffc37fc02a4a84a9a423a6797475ce6221eedf5.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMzkwLAogICAgImhlaWdodCI6IDg0NAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiAzOTAsCiAgInNjcm9sbFdpZHRoIjogMzkwLAogICJmb2N1c2VkQm91bmRzIjogewogICAgIngiOiAxNiwKICAgICJ5IjogNzkxLjc5Njg3NSwKICAgICJ3aWR0aCI6IDYxLjMyODEyNSwKICAgICJoZWlnaHQiOiA0NCwKICAgICJ0b3AiOiA3OTEuNzk2ODc1LAogICAgInJpZ2h0IjogNzcuMzI4MTI1LAogICAgImJvdHRvbSI6IDgzNS43OTY4NzUsCiAgICAibGVmdCI6IDE2CiAgfQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-4cee91245156e367b801",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7098,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:35:49.870Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback-final/chart-context-feedback-fee-60c4a-Escape-return-in-zh-unclear-mobile/attachments/feedback-success-e821889ca28a37d930e50e1e6f1d249ddbbda93c.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAiZm9jdXNlZEJvdW5kcyI6IHsKICAgICJ4IjogMTYsCiAgICAieSI6IDc5MS43OTY4NzUsCiAgICAid2lkdGgiOiA2MS4zMjgxMjUsCiAgICAiaGVpZ2h0IjogNDQsCiAgICAidG9wIjogNzkxLjc5Njg3NSwKICAgICJyaWdodCI6IDc3LjMyODEyNSwKICAgICJib3R0b20iOiA4MzUuNzk2ODc1LAogICAgImxlZnQiOiAxNgogIH0KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-055b18738ab8c3f617d0",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T06:35:10.332Z",
+    "duration": 46795.269,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

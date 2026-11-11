@@ -1,0 +1,74 @@
+{
+  "at": "2026-11-11T17:32:04.583909+00:00",
+  "base": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "capture_checkout": "7875b0277067efad82f8eb1a159295dd60b3c040",
+  "accepted_master": "15f9d300859436ca2ced0f7d2b4e7f71bcac36f8",
+  "paths": [
+    ".github/scripts/terminal_e2e_lane.sh",
+    ".github/workflows/ci.yml",
+    ".github/workflows/e2e-prodbuild-canary.yml",
+    "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md",
+    "ops/terminal-e2e-lane/mint-jitconfig",
+    "ops/terminal-e2e-lane/provision.sh",
+    "ops/terminal-e2e-lane/terminal-e2e-slot",
+    "ops/terminal-e2e-lane/terminal-e2e-slot@.service",
+    "tests/test_ci_browser_setup.py",
+    "tests/test_ci_e2e_lane_host_files.py",
+    "tests/test_ci_e2e_selfhosted_lane.py"
+  ],
+  "identities": [
+    {
+      "path": ".github/scripts/terminal_e2e_lane.sh",
+      "before_blob": "e29ca206dcbd49388f765e8b799a59f8c3b8df3c",
+      "accepted_blob": "dfbedcc08f07869285b4a55537d8c9a329db3c4b"
+    },
+    {
+      "path": ".github/workflows/e2e-prodbuild-canary.yml",
+      "before_blob": "2e71e90f707e29693209a6a69d442f782c415118",
+      "accepted_blob": "8671c2a2f15108b25d9ac7b485be68d1cb8d1f1f"
+    },
+    {
+      "path": "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md",
+      "before_blob": "155ba4901a5fb509e6c1d4ab1bf9f6b11ca77a86",
+      "accepted_blob": "1cf32f197c3f27e8368633f034af7664101ef354"
+    },
+    {
+      "path": "ops/terminal-e2e-lane/mint-jitconfig",
+      "before_blob": "08ed4b443473f961ab7a25aace063cddb54008e6",
+      "accepted_blob": "8f1343a5d0067256acdea8f3a3965e6d53c534ed"
+    },
+    {
+      "path": "ops/terminal-e2e-lane/provision.sh",
+      "before_blob": "b69651d04ba4d9b94da5108d7b27afcb1357b245",
+      "accepted_blob": "adaa3d74f542ed1d9b55cbd81916f376d8a4b5d2"
+    },
+    {
+      "path": "ops/terminal-e2e-lane/terminal-e2e-slot",
+      "before_blob": "b47daf178431793f51172b6287c10b8436e9aa0a",
+      "accepted_blob": "722f5248974a9fdf769b9771f57c7979fb9bac18"
+    },
+    {
+      "path": "ops/terminal-e2e-lane/terminal-e2e-slot@.service",
+      "before_blob": "451e314f41c326da1450daa780a2e66b5005103d",
+      "accepted_blob": "7c2ad4d1c9170d8dd294b71abe15d0251edb0d54"
+    },
+    {
+      "path": "tests/test_ci_browser_setup.py",
+      "before_blob": "9223d3b74fe08b730ac3248ac580f629636640f3",
+      "accepted_blob": "bef672f46379ee9e8283a4b5624d05f571e331e0"
+    },
+    {
+      "path": "tests/test_ci_e2e_lane_host_files.py",
+      "before_blob": "27746d51ceb22b3f43221069aaf18cddf308d9a4",
+      "accepted_blob": "dc4ae0bfe6792a841ed8194533208f27bd4bdf94"
+    },
+    {
+      "path": "tests/test_ci_e2e_selfhosted_lane.py",
+      "before_blob": "c097fa747c8a362e56b7716a0e8aec9e9f03a031",
+      "accepted_blob": "fc260a6ab8c70d13dbc879e310bbc268b2a14190"
+    }
+  ],
+  "census_old": "          {\n            echo \"EVIDENCE_PR_TOUCHED_FILE<<__mmx-evidence-touched-eof__\"\n            cat \"${RUNNER_TEMP}/evidence-pr-touched.txt\"\n            echo \"__mmx-evidence-touched-eof__\"\n          } >> \"${GITHUB_ENV}\"\n",
+  "census_preserved": "          # Keep the complete census in the file: large proof PRs can exceed\n          # the per-variable process-launch limit if paths enter GITHUB_ENV.\n          printf 'EVIDENCE_PR_TOUCHED_FILE=%s\\n' \"${RUNNER_TEMP}/evidence-pr-touched.txt\" >> \"${GITHUB_ENV}\"\n",
+  "status_before": " M terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440-zh.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390-zh.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml\n M terminal/docs/pr-crops/b-pl-6-batch-3/FlowDesk-1440.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/OptionsFlowBoard-390-zh.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/OptionsFlowBoard-390.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/PineLibrary-1440-zh.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/PineLibrary-1440.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/PineLibrary-390-zh.png\n M terminal/docs/pr-crops/b-pl-6-batch-3/PineLibrary-390.png\n M terminal/e2e/tools/capture_ci_evidence.test.cjs\n M terminal/e2e/tools/capture_pl6_batch3.cjs\n?? terminal/docs/pr-crops/b-pl-6-batch-3/FAIL-HeatmapTreemap-1440.png\n?? terminal/docs/pr-crops/b-pl-6-batch-3/FAIL-PineLibrary-390-zh.png\n"
+}

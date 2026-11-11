@@ -4,4 +4,6 @@ export interface ChartContextDock {
   target: HTMLElement | null;
   onOpen: (launcher?: HTMLElement | null) => void;
   onClose: (restoreFocus?: boolean) => void;
+  focused?: boolean;
+  onToggleFocus?: () => void;
 }

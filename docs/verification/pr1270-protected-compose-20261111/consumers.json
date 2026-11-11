@@ -1,0 +1,20 @@
+{
+  "name": "consumers",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/transcriptDrawerFocus.test.tsx",
+    "lib/__tests__/tickerNewsEvidence.test.ts",
+    "lib/__tests__/d06CaptureDependency.test.ts",
+    "--minWorkers=1",
+    "--maxWorkers=2"
+  ],
+  "cwd": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3/terminal",
+  "started_at": "2026-11-11T19:56:38.167577+00:00",
+  "completed_at": "2026-11-11T19:56:40.333287+00:00",
+  "rc": 0,
+  "log_sha256": "01125b2db87eb89dc467fce03124e53b354e7b0bded3a17ba2f091a88e78e584",
+  "log_bytes": 648,
+  "tail": "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m\n\n RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3/terminal\n\n \u2713 lib/__tests__/d06CaptureDependency.test.ts (9 tests) 170ms\n \u2713 lib/__tests__/transcriptDrawerFocus.test.tsx (6 tests) 102ms\n \u2713 lib/__tests__/tickerNewsEvidence.test.ts (4 tests) 14ms\n\n Test Files  3 passed (3)\n      Tests  19 passed (19)\n   Start at  12:56:38\n   Duration  1.54s (transform 239ms, setup 0ms, collect 638ms, tests 285ms, environment 635ms, prepare 174ms)\n\n"
+}

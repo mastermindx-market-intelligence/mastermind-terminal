@@ -1,0 +1,49 @@
+{
+  "schema": "d06.terminal_final_test_checks.v1",
+  "verified_at": "2026-11-04T13:19:33.588470+00:00",
+  "source_parent": "9d1d8549a3d5f77208de385631e10c31c7d16c4f",
+  "source_before": {
+    "terminal/e2e/portfolio-event-refresh.spec.ts": "d9b1102b2cd7f19b63202e5db2555b0a5cb2d7ded7ca929badea2047c30cd71d",
+    "terminal/e2e/shell-mode.spec.ts": "c77439eb68958c3d4f753ab1793b843af37db74041c524514c8c7b71351b6213",
+    "terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx": "664549341b03be10b19cb0714257cbf5a1a0387b3fa22965edffad023d86150a",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/fixtureWarmup.cjs": "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532"
+  },
+  "source_after": {
+    "terminal/e2e/portfolio-event-refresh.spec.ts": "d9b1102b2cd7f19b63202e5db2555b0a5cb2d7ded7ca929badea2047c30cd71d",
+    "terminal/e2e/shell-mode.spec.ts": "c77439eb68958c3d4f753ab1793b843af37db74041c524514c8c7b71351b6213",
+    "terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx": "664549341b03be10b19cb0714257cbf5a1a0387b3fa22965edffad023d86150a",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/fixtureWarmup.cjs": "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532"
+  },
+  "source_stable": true,
+  "runs": [
+    {
+      "name": "event-refresh-units",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "lib/__tests__/eventImpactPanelRefresh.test.tsx"
+      ],
+      "exit_code": 0,
+      "seconds": 2.33,
+      "log": "terminal-event-refresh-units.log"
+    },
+    {
+      "name": "focused-lint",
+      "command": [
+        "npx",
+        "--no-install",
+        "eslint",
+        "e2e/portfolio-event-refresh.spec.ts",
+        "e2e/shell-mode.spec.ts"
+      ],
+      "exit_code": 1,
+      "seconds": 3.76,
+      "log": "terminal-focused-lint.log"
+    }
+  ]
+}

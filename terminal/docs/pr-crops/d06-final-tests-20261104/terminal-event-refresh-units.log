@@ -1,0 +1,15 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/eventImpactPanelRefresh.test.tsx
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ ✓ lib/__tests__/eventImpactPanelRefresh.test.tsx (33 tests) 238ms
+
+ Test Files  1 passed (1)
+      Tests  33 passed (33)
+   Start at  05:19:28
+   Duration  1.63s (transform 117ms, setup 0ms, collect 156ms, tests 238ms, environment 572ms, prepare 89ms)
+

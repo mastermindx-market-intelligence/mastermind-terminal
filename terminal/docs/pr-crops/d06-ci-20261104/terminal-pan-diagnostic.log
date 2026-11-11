@@ -1,0 +1,86 @@
+[warmup] /terminal?symbol=NVDA → 200 in 106ms
+[warmup] /options → 200 in 181ms
+[warmup] /portfolio → 200 in 90ms
+[warmup] /alerts → 200 in 120ms
+[warmup] /analysis → 200 in 192ms
+[warmup] /discover → 200 in 138ms
+[warmup] /admin → 200 in 89ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 69ms
+[warmup] /login → 200 in 91ms
+[warmup] /reset-password → 200 in 150ms
+[warmup] /api/me → 200 in 75ms
+[warmup] /api/watchlist → 200 in 40ms
+[warmup] /api/layouts → 200 in 32ms
+[warmup] /api/watchlist/annotations → 409 in 28ms
+[warmup] 14 routes compiled in 1s
+
+Running 2 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✘  1 [desktop] › e2e/chart-link-groups.spec.ts:139:7 › multi-chart journeys › AC-E09-01/06: a restored layout links two charts as A and two as B; each group moves alone (10.0s)
+  ✘  2 [desktop] › e2e/chart-link-groups.spec.ts:163:7 › multi-chart journeys › AC-E09-02/04: the chip regroups and narrows sharing without touching symbols, the active pane or other groups (18.9s)
+
+
+  1) [desktop] › e2e/chart-link-groups.spec.ts:139:7 › multi-chart journeys › AC-E09-01/06: a restored layout links two charts as A and two as B; each group moves alone 
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < 1777125528000
+    Received:   1779717528000
+
+      151 |     expect(Math.abs(byId(afterA, 0).logical!.from - byId(afterA, 1).logical!.from), "…not by bar number").toBeGreaterThan(5);
+      152 |     expect(fingerprint([byId(afterA, 2), byId(afterA, 3)]), "group B never moved").toBe(fingerprint([byId(initial, 2), byId(initial, 3)]));
+    > 153 |     expect(byId(afterA, 0).window!.from).toBeLessThan(byId(initial, 0).window!.from - 30 * DAY);
+          |                                          ^
+      154 |
+      155 |     if (testInfo.project.name === "desktop") {
+      156 |       await dragPane(page, 2, -200);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-link-groups.spec.ts:153:42
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-a8380-as-B-each-group-moves-alone-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-a8380-as-B-each-group-moves-alone-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-a8380-as-B-each-group-moves-alone-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-a8380-as-B-each-group-moves-alone-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/chart-link-groups.spec.ts:163:7 › multi-chart journeys › AC-E09-02/04: the chip regroups and narrows sharing without touching symbols, the active pane or other groups 
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < 1774116000000
+    Received:   1776708000000
+
+      198 |     await dragPane(page, 0, 240);
+      199 |     const panned = await settle(page, "crosshair-only pan");
+    > 200 |     expect(byId(panned, 0).window!.from).toBeLessThan(byId(narrowed, 0).window!.from - 30 * DAY);
+          |                                          ^
+      201 |     expect(fingerprint([byId(panned, 1), byId(panned, 2), byId(panned, 3)])).toBe(fingerprint([byId(narrowed, 1), byId(narrowed, 2), byId(narrowed, 3)]));
+      202 |     expect(await activePaneIndex(page)).toBe(active);
+      203 |   });
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-link-groups.spec.ts:200:42
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-146e5-active-pane-or-other-groups-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-146e5-active-pane-or-other-groups-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-146e5-active-pane-or-other-groups-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-146e5-active-pane-or-other-groups-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/chart-link-groups.spec.ts:139:7 › multi-chart journeys › AC-E09-01/06: a restored layout links two charts as A and two as B; each group moves alone 
+    [desktop] › e2e/chart-link-groups.spec.ts:163:7 › multi-chart journeys › AC-E09-02/04: the chip regroups and narrows sharing without touching symbols, the active pane or other groups 

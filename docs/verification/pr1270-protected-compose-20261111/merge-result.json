@@ -1,0 +1,5 @@
+{
+  "rc": 1,
+  "stdout": "Auto-merging .github/workflows/ci.yml\nAuto-merging terminal/components/fin/TranscriptDrawer.tsx\nCONFLICT (content): Merge conflict in terminal/components/fin/TranscriptDrawer.tsx\nAuto-merging terminal/lib/__tests__/transcriptDrawerFocus.test.tsx\nCONFLICT (add/add): Merge conflict in terminal/lib/__tests__/transcriptDrawerFocus.test.tsx\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+  "stderr": ""
+}

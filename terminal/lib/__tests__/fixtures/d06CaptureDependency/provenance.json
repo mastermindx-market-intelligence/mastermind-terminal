@@ -1,0 +1,30 @@
+{
+  "historical_chart": {
+    "commit": "efafc1176a2eb48834125c085615e94033fa1ae7",
+    "path": "terminal/components/ChartPanel.tsx",
+    "blob": "6d540e007f488f8c753ebead9b7dc0c0fbf107f1",
+    "expanded_sha256": "a9440cfa8a582408d8606de5fc0fcea912f04c0119abc7db07a9fd01fdca1c2f"
+  },
+  "runtime_manifests": {
+    "repository": "mastermindx-market-intelligence/mastermind-terminal",
+    "run_id": 43070306260,
+    "job_id": 130696890535,
+    "artifact_id": 13880074030,
+    "artifact_sha256": "f49ebaf8219befb7d47920740dc2cf69609e593c94876fc192543834616bddc1",
+    "actual_checkout": "75a390d6891830a8bfa47a43a804e4dfe8d939df"
+  },
+  "files": {
+    "ChartPanel-efafc117.tsx.gz": {
+      "bytes": 200282,
+      "sha256": "dd70bb6b3409e6c2642c939902e3d334d893263ae2f5add6b22b3d1f19c3fabf"
+    },
+    "runtime-f11-EVIDENCE.yml": {
+      "bytes": 4373,
+      "sha256": "f1d6d561d5ad594cb31ec3c674a3cf282ace818e8d08c815719c5ae55d468a34"
+    },
+    "runtime-batch2-EVIDENCE.yml": {
+      "bytes": 5812,
+      "sha256": "2184299734cfa1b699780ca5465073d662936a1014c30075d332aebea03c575a"
+    }
+  }
+}

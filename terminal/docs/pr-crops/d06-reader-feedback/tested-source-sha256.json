@@ -1,0 +1,6 @@
+{
+  "components/VisualIntelligencePanel.tsx": "f6c0fb41b7062fc9a9e45d9fba32b959c3626567dae3cd53ca797d213b38a0a9",
+  "components/VisualIntelligencePanel.module.css": "3c9f1d9ff6c0e80190f8d5b053ce256ec32d696decd328e151086365f6bc9e27",
+  "lib/__tests__/chartContextFeedback.test.tsx": "d9d2d49aab4700699a38b2341144219d987afe13415bd50b34a5da310ea6083d",
+  "e2e/chart-context-feedback.spec.ts": "f09e4bfce0e2568556d7d7f7efada5fbf6bb5948ab2a095938e5b816dbc250ad"
+}

@@ -1,0 +1,458 @@
+{
+  "schema": "d06.workspace-proof.v1",
+  "created_at": "2026-11-04T09:01:58.104861+00:00",
+  "parent": "974128ee2f9527a9c8a1db2b78ae97fc239a9786",
+  "protected_source": "0f9043313069d90cc3e1629a04ff2455f0f0fe78",
+  "paper_file": "01M3NSZGE8JWN2EZCSF0DT05RM",
+  "paper_page": "p-17-0",
+  "unit_passed": 55,
+  "typescript_exit": 0,
+  "new_unique_workspace_journeys": 4,
+  "reader_regression_existing_passed": 27,
+  "runs": {
+    "final_workspace": {
+      "stats": {
+        "startTime": "2026-11-04T08:52:53.081Z",
+        "duration": 85425.657,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "fits the actual plot, preserves preference and keeps the same chart and historical reader",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "keyboard resize, reset, pointer cancellation and focus handoff use the existing width owner",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "the reader focus action returns to the same workspace and selected facts",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "the minimum boundary and a changed pane grid requalify without resetting the workspace",
+          "project": "desktop",
+          "statuses": [
+            "timedOut"
+          ]
+        }
+      ]
+    },
+    "boundary": {
+      "stats": {
+        "startTime": "2026-11-04T08:56:28.599Z",
+        "duration": 26494.899,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "the minimum boundary and a changed pane grid requalify without resetting the workspace",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        }
+      ]
+    },
+    "overflow_refinement": {
+      "stats": {
+        "startTime": "2026-11-04T08:59:05.679Z",
+        "duration": 18133.559,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "fits the actual plot, preserves preference and keeps the same chart and historical reader",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        }
+      ]
+    },
+    "reader_regression": {
+      "stats": {
+        "startTime": "2026-11-04T08:43:50.764Z",
+        "duration": 148703.848,
+        "expected": 28,
+        "skipped": 16,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "context stays outside every chart pane and presents the actual selected facts",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "context keeps keyboard shortcuts local and restores focus after closing",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "disabled context can be enabled from its new home without resetting chart preferences",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "context follows the active pane through resize and fullscreen without covering the chart",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "native and tray context use the chart menu and restore chart space",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "context stays outside every chart pane and presents the actual selected facts",
+          "project": "tablet",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "context keeps keyboard shortcuts local and restores focus after closing",
+          "project": "tablet",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "disabled context can be enabled from its new home without resetting chart preferences",
+          "project": "tablet",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "context follows the active pane through resize and fullscreen without covering the chart",
+          "project": "tablet",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "native and tray context use the chart menu and restore chart space",
+          "project": "tablet",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "context stays outside every chart pane and presents the actual selected facts",
+          "project": "mobile",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "context keeps keyboard shortcuts local and restores focus after closing",
+          "project": "mobile",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "disabled context can be enabled from its new home without resetting chart preferences",
+          "project": "mobile",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "context follows the active pane through resize and fullscreen without covering the chart",
+          "project": "mobile",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "native and tray context use the chart menu and restore chart space",
+          "project": "mobile",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "the reader focus action returns to the same workspace and selected facts",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "the minimum boundary and a changed pane grid requalify without resetting the workspace",
+          "project": "desktop",
+          "statuses": [
+            "failed"
+          ]
+        },
+        {
+          "title": "the reader focus action returns to the same workspace and selected facts",
+          "project": "tablet",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "the minimum boundary and a changed pane grid requalify without resetting the workspace",
+          "project": "tablet",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "the reader focus action returns to the same workspace and selected facts",
+          "project": "mobile",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "the minimum boundary and a changed pane grid requalify without resetting the workspace",
+          "project": "mobile",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in en",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in en",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in zh",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in zh",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "moving the reader never takes focus from another chart control",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "Candle settings takes focus without a delayed reader restoration",
+          "project": "desktop",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+          "project": "tablet",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in en",
+          "project": "tablet",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in en",
+          "project": "tablet",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in zh",
+          "project": "tablet",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in zh",
+          "project": "tablet",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "moving the reader never takes focus from another chart control",
+          "project": "tablet",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+          "project": "tablet",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "Candle settings takes focus without a delayed reader restoration",
+          "project": "tablet",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+          "project": "mobile",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in en",
+          "project": "mobile",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in en",
+          "project": "mobile",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in zh",
+          "project": "mobile",
+          "statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in zh",
+          "project": "mobile",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "moving the reader never takes focus from another chart control",
+          "project": "mobile",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+          "project": "mobile",
+          "statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "Candle settings takes focus without a delayed reader restoration",
+          "project": "mobile",
+          "statuses": [
+            "passed"
+          ]
+        }
+      ]
+    }
+  },
+  "lint": {
+    "new_helper_findings": 0,
+    "drawing_sidebar_working_findings": 0,
+    "drawing_sidebar_baseline_findings": 0,
+    "other_changed_files": "same pre-existing baseline; no added findings"
+  },
+  "scope": "Real local Terminal routes and actual browser controls using existing deterministic fixtures. No production, native host, physical device or complete D06 acceptance claim. Final overflow run overlaps the first of four workspace journeys.",
+  "artifacts": [
+    {
+      "path": "boundary.json",
+      "bytes": 63,
+      "sha256": "0dee201a5f48f3d6974d34480bcd4d035b6eb688ec035436c7b877f020ee5bae"
+    },
+    {
+      "path": "geometry.json",
+      "bytes": 2453,
+      "sha256": "73224b5ff8d4801b681bace1ace4c368b3902e22d4a4748623e93642f8730c54"
+    },
+    {
+      "path": "workspace-1024-below.png",
+      "bytes": 188795,
+      "sha256": "ce081c20c09b55f7f6b96e4e0c957fbf979136bd9b3ac92481cdeab915ba2e7f"
+    },
+    {
+      "path": "workspace-1440-restored.png",
+      "bytes": 251812,
+      "sha256": "fe3fd0428af28cec6fb05532273c49fac796abd38dd2b8c9692fae2209a9c4f9"
+    },
+    {
+      "path": "workspace-focused.png",
+      "bytes": 187338,
+      "sha256": "02b51fbd68804e617acc3f99b1ef65013f3991126105f426476de3ee6c3f124b"
+    },
+    {
+      "path": "workspace-short-height.png",
+      "bytes": 152878,
+      "sha256": "27a33a3b229ba4119b3e3342c2cb20b2fe71b28163aa2d47530be0d346f3a12f"
+    }
+  ]
+}

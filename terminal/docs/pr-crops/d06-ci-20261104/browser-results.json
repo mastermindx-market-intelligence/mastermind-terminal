@@ -1,0 +1,2771 @@
+{
+  "schema": "terminal.d06_browser_report_subset.v1",
+  "raw_report_sha256": "b6c0524ad1d05f42369e36cff0f2cf5aa56f142be941fdd5508bf4e966eb5c1c",
+  "stats": {
+    "startTime": "2026-11-04T11:39:24.866Z",
+    "duration": 73322.88500000001,
+    "expected": 38,
+    "skipped": 16,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "suite": [
+        "embed-data-state.spec.ts"
+      ],
+      "test": "preserves compact native variants in short and narrow frames",
+      "file": "embed-data-state.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2252,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:45.014Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "geometry-normal",
+              "content_type": "application/json",
+              "sha256": "19d612ddc14c8247c6f63e14a3def1aced1275cea7a0c167d12376ebc9e829f8",
+              "observation": {
+                "viewport": {
+                  "width": 900,
+                  "height": 300
+                },
+                "documentWidth": 900,
+                "scrollWidth": 900,
+                "rootWidth": 900,
+                "rootScrollWidth": 900,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 54.4375,
+                  "bottom": 270,
+                  "height": 215.5625
+                },
+                "attribution": {
+                  "top": 272,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 24
+                },
+                "date": {
+                  "left": 12,
+                  "right": 444.53125,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "normal",
+              "content_type": "image/png",
+              "sha256": "423e1657530027c17747cc1b6a54649e7ec51f49a11de1f4d6deeece274aa628",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-normal.png"
+            },
+            {
+              "name": "geometry-hidden-header",
+              "content_type": "application/json",
+              "sha256": "f7b66f6dd5187a02d397646fbd2e500b9ebb6d47d05d0a9a9a405900227ba833",
+              "observation": {
+                "viewport": {
+                  "width": 900,
+                  "height": 300
+                },
+                "documentWidth": 900,
+                "scrollWidth": 900,
+                "rootWidth": 900,
+                "rootScrollWidth": 900,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 38.9375,
+                  "bottom": 270,
+                  "height": 231.0625
+                },
+                "attribution": {
+                  "top": 272,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 24
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "hidden-header",
+              "content_type": "image/png",
+              "sha256": "f424b06a89a5cd25b6e6329ec5309dd2499a20659c663b21db7359e74db2eb3f",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-hidden-header.png"
+            },
+            {
+              "name": "geometry-clean-header",
+              "content_type": "application/json",
+              "sha256": "b6dbd53a56403ed90fe1e3aa1f5fe9e73acad8788a13d0822874de6a930e20aa",
+              "observation": {
+                "viewport": {
+                  "width": 900,
+                  "height": 300
+                },
+                "documentWidth": 900,
+                "scrollWidth": 900,
+                "rootWidth": 900,
+                "rootScrollWidth": 900,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 196.5625,
+                  "height": 196.5625
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 12,
+                  "right": 888,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "clean-header",
+              "content_type": "image/png",
+              "sha256": "3792703121c8ed887cfd86c2a0e3ec941626ffa65bd9d441e68019edd913aec0",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-clean-header.png"
+            },
+            {
+              "name": "geometry-clean-hidden",
+              "content_type": "application/json",
+              "sha256": "74570763d086aa77137051cc63c8c493e727f1e65f68d520832a4df49f5bbcd6",
+              "observation": {
+                "viewport": {
+                  "width": 900,
+                  "height": 300
+                },
+                "documentWidth": 900,
+                "scrollWidth": 900,
+                "rootWidth": 900,
+                "rootScrollWidth": 900,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgba(0, 0, 0, 0)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 246,
+                  "height": 246
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": null
+              }
+            },
+            {
+              "name": "clean-hidden",
+              "content_type": "image/png",
+              "sha256": "325d0be2c08a28899705d94d0ae299b9da468a8fa53b3ca45ba6af6a07303107",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-clean-hidden.png"
+            },
+            {
+              "name": "unavailable-contrast",
+              "content_type": "application/json",
+              "sha256": "08e8eeef733863fb76885954c0e8304eab3a63d1d9b234dda4a7739197d3232b",
+              "observation": {
+                "foreground": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "contrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "clean-unavailable",
+              "content_type": "image/png",
+              "sha256": "66c037605a64d7144d67bab94a40d585f1220fbdfddc53bf9fdff993359ea7b7",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-clean-unavailable.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts"
+      ],
+      "test": "preserves compact native variants in short and narrow frames",
+      "file": "embed-data-state.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2229,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:11.170Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "geometry-normal",
+              "content_type": "application/json",
+              "sha256": "58cbeeb07a6f0e012b3c892521d2a9c36053e7c168966c210c95b388e7bff587",
+              "observation": {
+                "viewport": {
+                  "width": 390,
+                  "height": 300
+                },
+                "documentWidth": 390,
+                "scrollWidth": 390,
+                "rootWidth": 390,
+                "rootScrollWidth": 390,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "chart": {
+                  "top": 112.140625,
+                  "bottom": 250,
+                  "height": 137.859375
+                },
+                "attribution": {
+                  "top": 252,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 10,
+                  "right": 380,
+                  "height": 14.6875
+                },
+                "dateContrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "normal",
+              "content_type": "image/png",
+              "sha256": "d3eb86579dde66549621a9eb80eff5142f52f828dc3f41277b86d9a0fae2acf4",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/embed-data-tablet-normal.png"
+            },
+            {
+              "name": "geometry-hidden-header",
+              "content_type": "application/json",
+              "sha256": "a335981e3a983b9ab4ccfaaef87cbaa8ffc936a68ce93fdbe092f45fca8f650b",
+              "observation": {
+                "viewport": {
+                  "width": 390,
+                  "height": 300
+                },
+                "documentWidth": 390,
+                "scrollWidth": 390,
+                "rootWidth": 390,
+                "rootScrollWidth": 390,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "chart": {
+                  "top": 68.15625,
+                  "bottom": 250,
+                  "height": 181.84375
+                },
+                "attribution": {
+                  "top": 252,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "hidden-header",
+              "content_type": "image/png",
+              "sha256": "c34c00d7026f08f0bb3f88c43aa5a8fe317a2cfbbd24e3e5ebfe27a45d6cf6a2",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/embed-data-tablet-hidden-header.png"
+            },
+            {
+              "name": "geometry-clean-header",
+              "content_type": "application/json",
+              "sha256": "e65959c15fb5fffd552b98d903da9159ae257093b237d9fa8d3c5d20ba9b3cc0",
+              "observation": {
+                "viewport": {
+                  "width": 390,
+                  "height": 300
+                },
+                "documentWidth": 390,
+                "scrollWidth": 390,
+                "rootWidth": 390,
+                "rootScrollWidth": 390,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 202.015625,
+                  "height": 202.015625
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 12,
+                  "right": 378,
+                  "height": 14.6875
+                },
+                "dateContrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "clean-header",
+              "content_type": "image/png",
+              "sha256": "d33ee5f798dd0d55c72579f7194d3cc58b7214b97d674b47305ea4c3e5f75c48",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/embed-data-tablet-clean-header.png"
+            },
+            {
+              "name": "geometry-clean-hidden",
+              "content_type": "application/json",
+              "sha256": "653bf064f6f9d13647686f150aaacbd5542e4c2d4528eecde162be8b85c97843",
+              "observation": {
+                "viewport": {
+                  "width": 390,
+                  "height": 300
+                },
+                "documentWidth": 390,
+                "scrollWidth": 390,
+                "rootWidth": 390,
+                "rootScrollWidth": 390,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(26, 29, 36)",
+                "background": "rgba(0, 0, 0, 0)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 246,
+                  "height": 246
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": null
+              }
+            },
+            {
+              "name": "clean-hidden",
+              "content_type": "image/png",
+              "sha256": "965cb49e13ac98f5530a00a79c1a790120a20e964493614e67d3c10b128075af",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/embed-data-tablet-clean-hidden.png"
+            },
+            {
+              "name": "unavailable-contrast",
+              "content_type": "application/json",
+              "sha256": "08e8eeef733863fb76885954c0e8304eab3a63d1d9b234dda4a7739197d3232b",
+              "observation": {
+                "foreground": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "contrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "clean-unavailable",
+              "content_type": "image/png",
+              "sha256": "225bb1b02c816d664407b31502c0495f9d986289f3884d6140146cdb4d568112",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/embed-data-tablet-clean-unavailable.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts"
+      ],
+      "test": "preserves compact native variants in short and narrow frames",
+      "file": "embed-data-state.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2307,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:31.256Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "geometry-normal",
+              "content_type": "application/json",
+              "sha256": "14a3bbe73823d4e874781d172fafb10d35e808c6f142d0a157ac1a97ed149f19",
+              "observation": {
+                "viewport": {
+                  "width": 320,
+                  "height": 300
+                },
+                "documentWidth": 320,
+                "scrollWidth": 320,
+                "rootWidth": 320,
+                "rootScrollWidth": 320,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 112.140625,
+                  "bottom": 250,
+                  "height": 137.859375
+                },
+                "attribution": {
+                  "top": 252,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 10,
+                  "right": 310,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "normal",
+              "content_type": "image/png",
+              "sha256": "cfdb1a4737ea3ca6f4970f98f6390d37262939254c4f617740f3660b81698656",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-normal.png"
+            },
+            {
+              "name": "geometry-hidden-header",
+              "content_type": "application/json",
+              "sha256": "a4e69cc272e5a98c4b6642c0099161bb3647fcac4cfb8d39e718c9eb7241c84e",
+              "observation": {
+                "viewport": {
+                  "width": 320,
+                  "height": 300
+                },
+                "documentWidth": 320,
+                "scrollWidth": 320,
+                "rootWidth": 320,
+                "rootScrollWidth": 320,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 68.15625,
+                  "bottom": 250,
+                  "height": 181.84375
+                },
+                "attribution": {
+                  "top": 252,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "hidden-header",
+              "content_type": "image/png",
+              "sha256": "5203116a6d4cd613242d5a4538cd604a128cff45a1e6682c414a9a11225d402b",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-hidden-header.png"
+            },
+            {
+              "name": "geometry-clean-header",
+              "content_type": "application/json",
+              "sha256": "ca4c9561c8d156a687059373550abacf882615382989b2c24b4ce391682f91af",
+              "observation": {
+                "viewport": {
+                  "width": 320,
+                  "height": 300
+                },
+                "documentWidth": 320,
+                "scrollWidth": 320,
+                "rootWidth": 320,
+                "rootScrollWidth": 320,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 202.015625,
+                  "height": 202.015625
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 12,
+                  "right": 308,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "clean-header",
+              "content_type": "image/png",
+              "sha256": "882741b16cecefd63285cc4f42506809db4d4008a2e9b902439399964d0cd44a",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-clean-header.png"
+            },
+            {
+              "name": "geometry-clean-hidden",
+              "content_type": "application/json",
+              "sha256": "08d7fe73a729ec924a0c42d85689d3a8b9ff3cf679531ccddf6838a7ab41c027",
+              "observation": {
+                "viewport": {
+                  "width": 320,
+                  "height": 300
+                },
+                "documentWidth": 320,
+                "scrollWidth": 320,
+                "rootWidth": 320,
+                "rootScrollWidth": 320,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgba(0, 0, 0, 0)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 246,
+                  "height": 246
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": null
+              }
+            },
+            {
+              "name": "clean-hidden",
+              "content_type": "image/png",
+              "sha256": "1753a153bbd4c10b2b250883186c993efc49c4eecbe9d10ca322ed75a45c317f",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-clean-hidden.png"
+            },
+            {
+              "name": "unavailable-contrast",
+              "content_type": "application/json",
+              "sha256": "08e8eeef733863fb76885954c0e8304eab3a63d1d9b234dda4a7739197d3232b",
+              "observation": {
+                "foreground": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "contrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "clean-unavailable",
+              "content_type": "image/png",
+              "sha256": "f42c9523930a76e5da92e6d45de4548de65646e016f5b9e8b802b1213046ab81",
+              "retained_path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-clean-unavailable.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "dates the displayed bar and keeps attribution clear of the time axis",
+      "file": "embed-data-state.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1208,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:34.676Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-ready",
+              "content_type": "image/png",
+              "sha256": "7935dee90e0ca0844ad8b00ba9468337127fe504dcf27940ba6cb73f298e95bd",
+              "retained_path": "runtime/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-desktop/embed-data-desktop-en-ready.png"
+            },
+            {
+              "name": "geometry-en-ready",
+              "content_type": "application/json",
+              "sha256": "1b75a80253472250399604d53bdadb433f81adc1546636ddf416e3be3bc18798",
+              "observation": {
+                "viewport": {
+                  "width": 1440,
+                  "height": 900
+                },
+                "documentWidth": 1440,
+                "scrollWidth": 1440,
+                "rootWidth": 1440,
+                "rootScrollWidth": 1440,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 54.4375,
+                  "bottom": 870,
+                  "height": 815.5625
+                },
+                "attribution": {
+                  "top": 872,
+                  "bottom": 896,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 24
+                },
+                "date": {
+                  "left": 12,
+                  "right": 984.53125,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "en-attribution-focus",
+              "content_type": "image/png",
+              "sha256": "4525f17d19586af16b7e358e8ca847ce1462b6270ada669d1042d722bb48c222",
+              "retained_path": "runtime/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-desktop/embed-data-desktop-en-attribution-focus.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "keeps confirmed absence distinct and stops loading indicators",
+      "file": "embed-data-state.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 968,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:36.192Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-empty",
+              "content_type": "image/png",
+              "sha256": "25a4029a26b0666a9217df0f4d5e2ec6484d32b494a15a45c54d01d1277ea613",
+              "retained_path": "runtime/embed-data-state-daily-dat-eb4a9-nd-stops-loading-indicators-desktop/embed-data-desktop-en-empty.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "reports unavailable data without claiming the symbol has no history",
+      "file": "embed-data-state.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2946,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:37.176Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-unavailable",
+              "content_type": "image/png",
+              "sha256": "1cdbd944d707ccdc4f7fdc751371e829b04a1d7b1d3bd5a528e2b6f2e1bab012",
+              "retained_path": "runtime/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-desktop/embed-data-desktop-en-unavailable.png"
+            },
+            {
+              "name": "outcomes",
+              "content_type": "application/json",
+              "sha256": "e69b15d85401c6e3d47d3c02c1223ced7809569de6f70906ed4269cadc85bec1",
+              "observation": {
+                "cases": [
+                  "503",
+                  "network",
+                  "json",
+                  "envelope",
+                  "bars",
+                  "ohlc",
+                  "date",
+                  "duplicate"
+                ],
+                "errors": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "dates the displayed bar and keeps attribution clear of the time axis",
+      "file": "embed-data-state.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1262,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:00.090Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-ready",
+              "content_type": "image/png",
+              "sha256": "5bfed95a24a5b88306638b4bf7f2b5233db9693e784004e41853a8f66d16bcdf",
+              "retained_path": "runtime/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-tablet/embed-data-tablet-en-ready.png"
+            },
+            {
+              "name": "geometry-en-ready",
+              "content_type": "application/json",
+              "sha256": "d482f1fa2827cd5ed2c9de0ea3196533414ec1bd9af7c8a556b13e057dd64601",
+              "observation": {
+                "viewport": {
+                  "width": 820,
+                  "height": 1180
+                },
+                "documentWidth": 820,
+                "scrollWidth": 820,
+                "rootWidth": 820,
+                "rootScrollWidth": 820,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 88.375,
+                  "bottom": 1130,
+                  "height": 1041.625
+                },
+                "attribution": {
+                  "top": 1132,
+                  "bottom": 1176,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 12,
+                  "right": 808,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "en-attribution-focus",
+              "content_type": "image/png",
+              "sha256": "6165193e6052b9677ed40409fa70e64ce548ba04773fff45ff1547752ea514b2",
+              "retained_path": "runtime/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-tablet/embed-data-tablet-en-attribution-focus.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "keeps confirmed absence distinct and stops loading indicators",
+      "file": "embed-data-state.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 981,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:01.701Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-empty",
+              "content_type": "image/png",
+              "sha256": "3ea2ebfa72aaa8db5b39be4bc2406b0e075c38d3eb31771102689ace6004a516",
+              "retained_path": "runtime/embed-data-state-daily-dat-eb4a9-nd-stops-loading-indicators-tablet/embed-data-tablet-en-empty.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "reports unavailable data without claiming the symbol has no history",
+      "file": "embed-data-state.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3138,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:02.698Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-unavailable",
+              "content_type": "image/png",
+              "sha256": "cb40063aab3df750f277b564518180068b4fba353820763b905a7a2a40844c78",
+              "retained_path": "runtime/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-tablet/embed-data-tablet-en-unavailable.png"
+            },
+            {
+              "name": "outcomes",
+              "content_type": "application/json",
+              "sha256": "e69b15d85401c6e3d47d3c02c1223ced7809569de6f70906ed4269cadc85bec1",
+              "observation": {
+                "cases": [
+                  "503",
+                  "network",
+                  "json",
+                  "envelope",
+                  "bars",
+                  "ohlc",
+                  "date",
+                  "duplicate"
+                ],
+                "errors": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "dates the displayed bar and keeps attribution clear of the time axis",
+      "file": "embed-data-state.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1997,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:18.263Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-ready",
+              "content_type": "image/png",
+              "sha256": "115ddac4f1b73c618d1b6aae79bd57c6d596000f44430a4446aa7826fbb6a39a",
+              "retained_path": "runtime/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-mobile/embed-data-mobile-en-ready.png"
+            },
+            {
+              "name": "geometry-en-ready",
+              "content_type": "application/json",
+              "sha256": "b7e4f6e04cd2353c10cc2c89f18cf148b18252f6a9b3b77a91cfc46405aed3f4",
+              "observation": {
+                "viewport": {
+                  "width": 390,
+                  "height": 844
+                },
+                "documentWidth": 390,
+                "scrollWidth": 390,
+                "rootWidth": 390,
+                "rootScrollWidth": 390,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 112.140625,
+                  "bottom": 794,
+                  "height": 681.859375
+                },
+                "attribution": {
+                  "top": 796,
+                  "bottom": 840,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 10,
+                  "right": 380,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "en-attribution-focus",
+              "content_type": "image/png",
+              "sha256": "85953f280695be740c8caafffc84e3b97024123b96b7afd4400ac322a62b8c5b",
+              "retained_path": "runtime/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-mobile/embed-data-mobile-en-attribution-focus.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "keeps confirmed absence distinct and stops loading indicators",
+      "file": "embed-data-state.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1096,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:21.042Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-empty",
+              "content_type": "image/png",
+              "sha256": "da818385fe2abc1be8a18109b68d12a2dfa384266d41f778b3dfbb0867f2b85e",
+              "retained_path": "runtime/embed-data-state-daily-dat-eb4a9-nd-stops-loading-indicators-mobile/embed-data-mobile-en-empty.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data en"
+      ],
+      "test": "reports unavailable data without claiming the symbol has no history",
+      "file": "embed-data-state.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3127,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:22.161Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "en-unavailable",
+              "content_type": "image/png",
+              "sha256": "24a516ed0cf806bf202af22c966fc29aef48a9640a91f1e0caab3482c7d7fd38",
+              "retained_path": "runtime/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-mobile/embed-data-mobile-en-unavailable.png"
+            },
+            {
+              "name": "outcomes",
+              "content_type": "application/json",
+              "sha256": "e69b15d85401c6e3d47d3c02c1223ced7809569de6f70906ed4269cadc85bec1",
+              "observation": {
+                "cases": [
+                  "503",
+                  "network",
+                  "json",
+                  "envelope",
+                  "bars",
+                  "ohlc",
+                  "date",
+                  "duplicate"
+                ],
+                "errors": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "dates the displayed bar and keeps attribution clear of the time axis",
+      "file": "embed-data-state.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 990,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:40.133Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-ready",
+              "content_type": "image/png",
+              "sha256": "e2beb05bd8b37735e8bc5dfacd986d02b9140985e560e3d5f256ed1f7b0bad22",
+              "retained_path": "runtime/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-desktop/embed-data-desktop-zh-ready.png"
+            },
+            {
+              "name": "geometry-zh-ready",
+              "content_type": "application/json",
+              "sha256": "c6de01f30fb5da2766138e931912dbcce368677b57dff159e1d27e29866364db",
+              "observation": {
+                "viewport": {
+                  "width": 1440,
+                  "height": 900
+                },
+                "documentWidth": 1440,
+                "scrollWidth": 1440,
+                "rootWidth": 1440,
+                "rootScrollWidth": 1440,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "chart": {
+                  "top": 54.4375,
+                  "bottom": 870,
+                  "height": 815.5625
+                },
+                "attribution": {
+                  "top": 872,
+                  "bottom": 896,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 24
+                },
+                "date": {
+                  "left": 12,
+                  "right": 984.53125,
+                  "height": 14.6875
+                },
+                "dateContrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "zh-attribution-focus",
+              "content_type": "image/png",
+              "sha256": "4c40cbbb2c3d5232ab40609ecaa47acd476e9527af8c4a2578834e4c59aadcb4",
+              "retained_path": "runtime/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-desktop/embed-data-desktop-zh-attribution-focus.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "keeps confirmed absence distinct and stops loading indicators",
+      "file": "embed-data-state.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 914,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:41.132Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-empty",
+              "content_type": "image/png",
+              "sha256": "327c892b06c8be1bd7e692c6c5f2dcdd2be1456f7820180adee14d4837b3fd75",
+              "retained_path": "runtime/embed-data-state-daily-dat-125c5-nd-stops-loading-indicators-desktop/embed-data-desktop-zh-empty.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "reports unavailable data without claiming the symbol has no history",
+      "file": "embed-data-state.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2949,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:42.055Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-unavailable",
+              "content_type": "image/png",
+              "sha256": "d07b053dc19f8d22563ce19d0e8ab6a10637138feecc6effc649d066874c4c7b",
+              "retained_path": "runtime/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-desktop/embed-data-desktop-zh-unavailable.png"
+            },
+            {
+              "name": "outcomes",
+              "content_type": "application/json",
+              "sha256": "e69b15d85401c6e3d47d3c02c1223ced7809569de6f70906ed4269cadc85bec1",
+              "observation": {
+                "cases": [
+                  "503",
+                  "network",
+                  "json",
+                  "envelope",
+                  "bars",
+                  "ohlc",
+                  "date",
+                  "duplicate"
+                ],
+                "errors": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "dates the displayed bar and keeps attribution clear of the time axis",
+      "file": "embed-data-state.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1121,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:05.853Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-ready",
+              "content_type": "image/png",
+              "sha256": "bcec2101843b0eca071bec5653c4fcb39f7bdf47359294dff9a732ead1fe3d88",
+              "retained_path": "runtime/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-tablet/embed-data-tablet-zh-ready.png"
+            },
+            {
+              "name": "geometry-zh-ready",
+              "content_type": "application/json",
+              "sha256": "340e39fd1eb3217ac74cbac474c1c18c0d2fc67565ee8ede11f264cdfb6763da",
+              "observation": {
+                "viewport": {
+                  "width": 820,
+                  "height": 1180
+                },
+                "documentWidth": 820,
+                "scrollWidth": 820,
+                "rootWidth": 820,
+                "rootScrollWidth": 820,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "chart": {
+                  "top": 54.4375,
+                  "bottom": 1130,
+                  "height": 1075.5625
+                },
+                "attribution": {
+                  "top": 1132,
+                  "bottom": 1176,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 12,
+                  "right": 364.53125,
+                  "height": 14.6875
+                },
+                "dateContrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "zh-attribution-focus",
+              "content_type": "image/png",
+              "sha256": "a0423e1479f4e8d9839d4770cdcc5b9b96b83199a9c377964cc10cbad9ed6e61",
+              "retained_path": "runtime/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-tablet/embed-data-tablet-zh-attribution-focus.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "keeps confirmed absence distinct and stops loading indicators",
+      "file": "embed-data-state.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1148,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:06.988Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-empty",
+              "content_type": "image/png",
+              "sha256": "8c408708a27b2d3f8ccf321965f0b2334ab56d428622dbbd4e81cd953380433b",
+              "retained_path": "runtime/embed-data-state-daily-dat-125c5-nd-stops-loading-indicators-tablet/embed-data-tablet-zh-empty.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "reports unavailable data without claiming the symbol has no history",
+      "file": "embed-data-state.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2979,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:08.164Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-unavailable",
+              "content_type": "image/png",
+              "sha256": "3d579ee6b168cc8e0c201abd6b051c7cf7784e7065d0863972e68993dfec3337",
+              "retained_path": "runtime/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-tablet/embed-data-tablet-zh-unavailable.png"
+            },
+            {
+              "name": "outcomes",
+              "content_type": "application/json",
+              "sha256": "e69b15d85401c6e3d47d3c02c1223ced7809569de6f70906ed4269cadc85bec1",
+              "observation": {
+                "cases": [
+                  "503",
+                  "network",
+                  "json",
+                  "envelope",
+                  "bars",
+                  "ohlc",
+                  "date",
+                  "duplicate"
+                ],
+                "errors": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "dates the displayed bar and keeps attribution clear of the time axis",
+      "file": "embed-data-state.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1091,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:25.301Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-ready",
+              "content_type": "image/png",
+              "sha256": "6ebc09a498f555e348bd78fb9a773ba90e59d7c4d3b1bccf52d93fd6c23e3171",
+              "retained_path": "runtime/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-mobile/embed-data-mobile-zh-ready.png"
+            },
+            {
+              "name": "geometry-zh-ready",
+              "content_type": "application/json",
+              "sha256": "825155e4f79e6f869c120a96864dcb4eaf70379b171e6c57fbdbb1447458a164",
+              "observation": {
+                "viewport": {
+                  "width": 390,
+                  "height": 844
+                },
+                "documentWidth": 390,
+                "scrollWidth": 390,
+                "rootWidth": 390,
+                "rootScrollWidth": 390,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "chart": {
+                  "top": 112.140625,
+                  "bottom": 794,
+                  "height": 681.859375
+                },
+                "attribution": {
+                  "top": 796,
+                  "bottom": 840,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 10,
+                  "right": 380,
+                  "height": 14.6875
+                },
+                "dateContrast": 16.86552838951233
+              }
+            },
+            {
+              "name": "zh-attribution-focus",
+              "content_type": "image/png",
+              "sha256": "8dee75e9d044148335c29ed8e12762e0b5056265c5ff4fe06c85033a9b810f2f",
+              "retained_path": "runtime/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-mobile/embed-data-mobile-zh-attribution-focus.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "keeps confirmed absence distinct and stops loading indicators",
+      "file": "embed-data-state.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1204,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:26.414Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-empty",
+              "content_type": "image/png",
+              "sha256": "cbb16261923fbba561a1d4c410e4351bf70040f7a916348ba04aa386d6e767ab",
+              "retained_path": "runtime/embed-data-state-daily-dat-125c5-nd-stops-loading-indicators-mobile/embed-data-mobile-zh-empty.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-data-state.spec.ts",
+        "daily data zh"
+      ],
+      "test": "reports unavailable data without claiming the symbol has no history",
+      "file": "embed-data-state.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3613,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:27.629Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "zh-unavailable",
+              "content_type": "image/png",
+              "sha256": "3dc3f6024f1accf82d8407791f41a76af809adb210f59ed43dbe7bd21be77e88",
+              "retained_path": "runtime/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-mobile/embed-data-mobile-zh-unavailable.png"
+            },
+            {
+              "name": "outcomes",
+              "content_type": "application/json",
+              "sha256": "e69b15d85401c6e3d47d3c02c1223ced7809569de6f70906ed4269cadc85bec1",
+              "observation": {
+                "cases": [
+                  "503",
+                  "network",
+                  "json",
+                  "envelope",
+                  "bars",
+                  "ohlc",
+                  "date",
+                  "duplicate"
+                ],
+                "errors": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen retains chart, range, overlays and source date in en",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1126,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:47.285Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen retains chart, range, overlays and source date in zh",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1053,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:48.422Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native handler success has priority over browser fullscreen",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 714,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:49.486Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native handler failure has priority over browser fullscreen",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 654,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:50.210Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "unsupported browser requests retain a usable chart",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 881,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:50.874Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "rejected browser requests retain a usable chart",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 870,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:51.763Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "a rejected exit keeps the observed fullscreen state and explains recovery",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 855,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:52.640Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "b7f2ba489d1a6607180dd54fc98390c9f93d6cfe8195147dcd4a17783731e63b",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 8,
+                "bottom": 52,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 1115.65625,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "ordinary web viewports permit zoom while both existing native signals retain their policy",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1744,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:53.504Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "the ordinary browser permits page-scale zoom without a restrictive viewport",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 769,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:55.258Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "page-scale-zoom",
+              "content_type": "application/json",
+              "sha256": "b6ebf52cbeff7282e34c55678a2f347d9e21c10af9c18e471d446b33714a7394",
+              "observation": {
+                "kind": "Chromium emulated page-scale zoom",
+                "scale": 2,
+                "visualWidth": 720,
+                "layoutWidth": 1440,
+                "viewport": "width=device-width, initial-scale=1, viewport-fit=cover"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native viewport policy releases on existing client navigation",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2187,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:56.039Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen restores source context for the compact clean widget",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "desktop",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1175,
+          "retry": 0,
+          "startTime": "2026-11-04T11:39:58.240Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "decce5315f67cb60e4fded780e364db02ce98d94d41434c242533d36f0b3cc13",
+              "observation": {
+                "left": 1384,
+                "right": 1428,
+                "top": 57.4375,
+                "bottom": 101.4375,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 12,
+                "controlsRight": 1428,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "151dc9774920158d6b749897320399edae3cedb8507d84dc6d9f6af0576c637f",
+              "observation": {
+                "left": 1396,
+                "right": 1440,
+                "top": 848,
+                "bottom": 892,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 0,
+                "controlsRight": 1440,
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen retains chart, range, overlays and source date in en",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1054,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:13.416Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "17a1e47b67709c3ce319f087010166e888967354f83894504cc2dd728aa1fa9b",
+              "observation": {
+                "left": 449.46875,
+                "right": 493.46875,
+                "top": 57.4375,
+                "bottom": 101.4375,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 181.125,
+                "controlsRight": 493.46875,
+                "viewportWidth": 820,
+                "viewportHeight": 1180,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "17a1e47b67709c3ce319f087010166e888967354f83894504cc2dd728aa1fa9b",
+              "observation": {
+                "left": 449.46875,
+                "right": 493.46875,
+                "top": 57.4375,
+                "bottom": 101.4375,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 181.125,
+                "controlsRight": 493.46875,
+                "viewportWidth": 820,
+                "viewportHeight": 1180,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen retains chart, range, overlays and source date in zh",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1197,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:14.481Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "17a1e47b67709c3ce319f087010166e888967354f83894504cc2dd728aa1fa9b",
+              "observation": {
+                "left": 449.46875,
+                "right": 493.46875,
+                "top": 57.4375,
+                "bottom": 101.4375,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 181.125,
+                "controlsRight": 493.46875,
+                "viewportWidth": 820,
+                "viewportHeight": 1180,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "17a1e47b67709c3ce319f087010166e888967354f83894504cc2dd728aa1fa9b",
+              "observation": {
+                "left": 449.46875,
+                "right": 493.46875,
+                "top": 57.4375,
+                "bottom": 101.4375,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 181.125,
+                "controlsRight": 493.46875,
+                "viewportWidth": 820,
+                "viewportHeight": 1180,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native handler success has priority over browser fullscreen",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Host routing is viewport independent",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 64,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 107,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:15.688Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native handler failure has priority over browser fullscreen",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Host routing is viewport independent",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 64,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 122,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:15.812Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "unsupported browser requests retain a usable chart",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Fault routing is viewport independent",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 81,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 119,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:15.950Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "rejected browser requests retain a usable chart",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Fault routing is viewport independent",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 81,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 117,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:16.085Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "a rejected exit keeps the observed fullscreen state and explains recovery",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One actual browser exit-failure transition",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 94,
+            "column": 7
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 97,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:16.212Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "ordinary web viewports permit zoom while both existing native signals retain their policy",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Viewport metadata and existing capability branch",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 109,
+            "column": 7
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 96,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:16.318Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "the ordinary browser permits page-scale zoom without a restrictive viewport",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Chromium page-scale proof, separate from 320px reflow",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 126,
+            "column": 7
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 92,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:16.425Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native viewport policy releases on existing client navigation",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One persistent root owner navigation proof",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 138,
+            "column": 7
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 121,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:16.526Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen restores source context for the compact clean widget",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "tablet",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 871,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:16.657Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "7b53ce5348e79cd5d01aa4ba00f7faf77bec090d692ec753aeb433f5ac2a0c41",
+              "observation": {
+                "left": 764,
+                "right": 808,
+                "top": 57.4375,
+                "bottom": 101.4375,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 12,
+                "controlsRight": 808,
+                "viewportWidth": 820,
+                "viewportHeight": 1180,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "e10a57891ccb5f30581b6e295017d10959144b22513087a3aeadc7d544b618b2",
+              "observation": {
+                "left": 776,
+                "right": 820,
+                "top": 1128,
+                "bottom": 1172,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 0,
+                "controlsRight": 820,
+                "viewportWidth": 820,
+                "viewportHeight": 1180,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen retains chart, range, overlays and source date in en",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1242,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:33.598Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "3db32a78bc9b3eb0432102532278d94dd5839905380c9e97a88ec58ba2e1b917",
+              "observation": {
+                "left": 336,
+                "right": 380,
+                "top": 82.203125,
+                "bottom": 126.203125,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 10,
+                "controlsRight": 380,
+                "viewportWidth": 390,
+                "viewportHeight": 844,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "3db32a78bc9b3eb0432102532278d94dd5839905380c9e97a88ec58ba2e1b917",
+              "observation": {
+                "left": 336,
+                "right": 380,
+                "top": 82.203125,
+                "bottom": 126.203125,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 10,
+                "controlsRight": 380,
+                "viewportWidth": 390,
+                "viewportHeight": 844,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen retains chart, range, overlays and source date in zh",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1187,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:34.851Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "3db32a78bc9b3eb0432102532278d94dd5839905380c9e97a88ec58ba2e1b917",
+              "observation": {
+                "left": 336,
+                "right": 380,
+                "top": 82.203125,
+                "bottom": 126.203125,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 10,
+                "controlsRight": 380,
+                "viewportWidth": 390,
+                "viewportHeight": 844,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "3db32a78bc9b3eb0432102532278d94dd5839905380c9e97a88ec58ba2e1b917",
+              "observation": {
+                "left": 336,
+                "right": 380,
+                "top": 82.203125,
+                "bottom": 126.203125,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 10,
+                "controlsRight": 380,
+                "viewportWidth": 390,
+                "viewportHeight": 844,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native handler success has priority over browser fullscreen",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Host routing is viewport independent",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 64,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 111,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.048Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native handler failure has priority over browser fullscreen",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Host routing is viewport independent",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 64,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 99,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.169Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "unsupported browser requests retain a usable chart",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Fault routing is viewport independent",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 81,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 110,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.279Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "rejected browser requests retain a usable chart",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Fault routing is viewport independent",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 81,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 93,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.403Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "a rejected exit keeps the observed fullscreen state and explains recovery",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One actual browser exit-failure transition",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 94,
+            "column": 7
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 95,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.504Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "ordinary web viewports permit zoom while both existing native signals retain their policy",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Viewport metadata and existing capability branch",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 109,
+            "column": 7
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 107,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.608Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "the ordinary browser permits page-scale zoom without a restrictive viewport",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "Chromium page-scale proof, separate from 320px reflow",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 126,
+            "column": 7
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 118,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.726Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "native viewport policy releases on existing client navigation",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One persistent root owner navigation proof",
+          "location": {
+            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-fullscreen.spec.ts",
+            "line": 138,
+            "column": 7
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "duration": 106,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.864Z",
+          "errors": [],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "suite": [
+        "embed-fullscreen.spec.ts"
+      ],
+      "test": "browser fullscreen restores source context for the compact clean widget",
+      "file": "embed-fullscreen.spec.ts",
+      "project": "mobile",
+      "expected_status": "passed",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "duration": 960,
+          "retry": 0,
+          "startTime": "2026-11-04T11:40:36.979Z",
+          "errors": [],
+          "attachments": [
+            {
+              "name": "fullscreen-control-true",
+              "content_type": "application/json",
+              "sha256": "7d2d42db2e6953937bcde0632fb6be2748ef353d948799b8707bc30a9f7b91b8",
+              "observation": {
+                "left": 334,
+                "right": 378,
+                "top": 51.984375,
+                "bottom": 95.984375,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 12,
+                "controlsRight": 378,
+                "viewportWidth": 390,
+                "viewportHeight": 844,
+                "insideRangeScroller": false
+              }
+            },
+            {
+              "name": "fullscreen-control-false",
+              "content_type": "application/json",
+              "sha256": "1d710a5f874e5d94cd690914dcdfd3d238b7005208a40f47bd32c75a6178e50c",
+              "observation": {
+                "left": 346,
+                "right": 390,
+                "top": 792,
+                "bottom": 836,
+                "width": 44,
+                "height": 44,
+                "controlsLeft": 0,
+                "controlsRight": 390,
+                "viewportWidth": 390,
+                "viewportHeight": 844,
+                "insideRangeScroller": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "omitted": "Runner config, duplicated PNG attachment copies, stdout/stderr; test results, errors, annotations, observed JSON and image bytes retained."
+}

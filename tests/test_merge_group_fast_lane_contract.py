@@ -139,7 +139,7 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
     root = Path(__file__).resolve().parents[1]
     tests_dir = root / "terminal" / "lib" / "__tests__"
     marker = re.compile(
-        r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\("
+        r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\(|readInboxPacket\("
     )
     expected = sorted(
         "lib/__tests__/" + path.name
@@ -150,14 +150,31 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
     assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
     assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
     assert "lib/__tests__/lexEvidenceProjection.test.ts" in expected
+    inbox_suite = "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
+    assert inbox_suite in expected
     listed = subprocess.run(
         ["bash", "scripts/ci/evidence-lock-suites.sh"],
         cwd=root / "terminal", check=True, capture_output=True, text=True,
         env={**os.environ, "LC_ALL": "C"},
     ).stdout.split()
+    assert inbox_suite in listed, "the inbox reader must run with its current-checkout capture"
     assert sorted(listed) == expected
+    owner_steps = jobs()["terminal-unit"]["steps"]
+    capture_index = next(
+        i for i, step in enumerate(owner_steps)
+        if step.get("name") == "Capture current-source recurring inbox evidence"
+    )
+    reader_index = next(
+        i for i, step in enumerate(owner_steps)
+        if step.get("name") == "Validate fresh evidence through the unit readers"
+    )
+    assert capture_index < reader_index
+    capture = owner_steps[capture_index]
+    assert capture["run"] == "node e2e/tools/capture_b_f11_7_recurring_briefs.cjs --active-inbox"
+    assert "if" not in capture
+    assert not capture.get("continue-on-error", False)
     lane = next(
-        str(step["run"]) for step in jobs()["terminal-unit"]["steps"]
+        str(step["run"]) for step in owner_steps
         if step.get("name") == "Validate fresh evidence through the unit readers"
     )
     shard = next(
@@ -191,6 +208,58 @@ def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
     )
     # The merge-group backstop itself must remain byte-identical: the planner
     # step's command and both capture-skip conditions are pinned above.
+
+
+def test_pr_touched_path_census_stays_in_a_file(tmp_path: Path) -> None:
+    """Execute the actual recording step with a census larger than the
+    439,184-byte value that prevented GitHub's runner from spawning bash."""
+    record = next(
+        step for step in jobs()["terminal-unit"]["steps"]
+        if step.get("name") == "Record PR-touched paths for the evidence drift gate"
+    )
+    census = "".join(
+        f"docs/verification/{'long-proof-path-' * 12}{i}/trace.zip\n"
+        for i in range(3000)
+    ) + "terminal/components/last-drifted-source.tsx\n"
+    assert len(census.encode()) > 439_184
+    source = tmp_path / "complete-census.txt"
+    source.write_text(census, encoding="utf-8")
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    git = binary / "git"
+    git.write_text(
+        "#!/bin/sh\n"
+        'case "$1" in\n'
+        "  rev-parse) printf '%s\\n' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ;;\n"
+        '  diff) cat "$TEST_CENSUS_INPUT" ;;\n'
+        "  *) exit 97 ;;\n"
+        "esac\n",
+        encoding="utf-8",
+    )
+    git.chmod(0o755)
+    runner_temp = tmp_path / "runner"
+    runner_temp.mkdir()
+    github_env = tmp_path / "github-env"
+    result = subprocess.run(
+        ["/bin/bash", "-c", record["run"]],
+        env={
+            **os.environ,
+            "PATH": str(binary) + os.pathsep + os.environ.get("PATH", ""),
+            "RUNNER_TEMP": str(runner_temp),
+            "GITHUB_ENV": str(github_env),
+            "TEST_CENSUS_INPUT": str(source),
+        },
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    touched_file = runner_temp / "evidence-pr-touched.txt"
+    assert touched_file.read_text(encoding="utf-8") == census
+    assert github_env.read_text(encoding="utf-8") == (
+        f"EVIDENCE_PR_TOUCHED_FILE={touched_file}\n"
+    )
+    assert github_env.stat().st_size < 1024
 
 
 def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None:

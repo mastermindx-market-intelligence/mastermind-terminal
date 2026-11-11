@@ -1,0 +1,1 @@
+{"touchedCount":2649,"first":"docs/verification/pr1270-browser-followup-20261111/README.md","last":"tests/test_r5_browser_checkout_identity.py","plan":{"capture":true,"reason":"fail-closed","error":"conflicting evidence source locks"},"drifted":[]}

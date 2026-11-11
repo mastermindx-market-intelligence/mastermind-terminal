@@ -1,0 +1,114 @@
+{
+  "schema": "d06.artifact_inventory.v1",
+  "member_count": 21,
+  "aggregate_sha256": "f60d9598ddc17a9ad326ade946529bd0aa2dbafd7af379924b9fcd1e5d02ab6d",
+  "aggregate_rule": "SHA256 of path-sorted lines: sha256 + space + repository-relative path + LF",
+  "manifest_self_excluded": true,
+  "members": [
+    {
+      "path": "terminal/docs/d06-final-tests-20261104.md",
+      "bytes": 5806,
+      "sha256": "09634c66605d396c53fd842a428c932d909027b85a7e3c3279def028c648f7cc"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/compare-terminal-test-lint.py",
+      "bytes": 1847,
+      "sha256": "ed1f0340224a4ef9c0cc48f3999ca374e8af2b3acbef21aa5d95c05f41a4b490"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/portfolio-desktop-en.png",
+      "bytes": 43824,
+      "sha256": "5acebe0cd0803c93dd18a9247a5a36b7fc028dc20d9e5681747b84a15848528d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/portfolio-desktop-zh.png",
+      "bytes": 43301,
+      "sha256": "f40e7d1689e74d35562ab9e3b1d03f913678493682f617fc0394e6770f789636"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/portfolio-mobile-en.png",
+      "bytes": 42624,
+      "sha256": "9b522f12e29ad8ed8d918fdac269bdf060c9989b118c25e43ac86aac93824622"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/portfolio-mobile-zh.png",
+      "bytes": 44303,
+      "sha256": "7dfdd8b462cbc588e29d67666bc5d46dfb9c8dee1f7103eba96c5aa72e59a7d6"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/portfolio-tablet-en.png",
+      "bytes": 42579,
+      "sha256": "ee4161be9530002f44b2fb6813f66c3b162fca1a10c4de5d9029f0701905743f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/portfolio-tablet-zh.png",
+      "bytes": 44418,
+      "sha256": "282a780f7f5b967917480cb418767283adc5dca74652d66c1c5bcd4ea358ca5f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-drawing-recovery-results.json",
+      "bytes": 10804,
+      "sha256": "35b16a56765fa48a040c0e54912d93fcfee0f9f7151bb2c7a2c959d7d04ad019"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-drawing-recovery.log",
+      "bytes": 1203,
+      "sha256": "ee5dec53f09308a9265b2d029ad93f7b528d93aed0961346aa3553de3ede11f9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-event-refresh-units.log",
+      "bytes": 610,
+      "sha256": "9a14f9c267acdbbfbaeabb7567cac666d9ece510d9f355aa06f5778940f75cc7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-final-test-checks.json",
+      "bytes": 2169,
+      "sha256": "3056a714ffab90289aef7a56b46cb9e76d4dd14c28e044b92fefdfe2e988e7a3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-focused-lint.log",
+      "bytes": 3740,
+      "sha256": "4ac606812efff0acd843ea51f167fe4387c4053a777a7f171050c9a795cee54a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-lint-baseline-comparison.json",
+      "bytes": 92448,
+      "sha256": "fd06805704555a8d0ff6ffc08e4fd32e99d271622ee0f7b28f33976efc87503c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-lint-diagnostic-history.json",
+      "bytes": 483,
+      "sha256": "97d492bbbd580882a2a864a3e9bb005f9d2ae317a8c57e7d576c6271cf86e5a8"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-old-hosted-ci.json",
+      "bytes": 47163,
+      "sha256": "70190e2e93d08a7311166041e39e8adf23ece3305486cfa43478f0219d800543"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-portfolio-clean-results.json",
+      "bytes": 19144,
+      "sha256": "7fa6151e9d06bbf8edeef7575e0242369607d95febe7dbb55f742c7565e507ae"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/terminal-portfolio-clean.log",
+      "bytes": 2352,
+      "sha256": "75f20fcc6d94d5942d53045719e5b451fa975e4c1012e1f75cecdcc49262c634"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/test-repair.diff",
+      "bytes": 10092,
+      "sha256": "60b3990fc886c3b0e97e9ee5a3155fbb808305c3b1abb891ef73d3a95b070d90"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/verification.json",
+      "bytes": 8659,
+      "sha256": "566bf0e09f562460b7edc9591a79056fc9b1ce26f986615131ded4b0002b1fb7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/d06-final-tests-20261104/verify-terminal-final-tests.py",
+      "bytes": 1660,
+      "sha256": "7b9fc56ca477121322c25f7efa5c4417317fff74e61f12a30831b7ef47571f9d"
+    }
+  ]
+}

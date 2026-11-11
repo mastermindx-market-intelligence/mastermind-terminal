@@ -1,0 +1,29 @@
+{
+  "branchHead": "d3e7ba61f7021d65571b9bcde279409168f4173d",
+  "browserPredecessor": {
+    "descriptorSha256": "077a5a84a160e64f340dc326ee834d9408d35b822782df16f8f70125b1b6abf2",
+    "revision": "exposure-momentum-integration-20261110"
+  },
+  "captureRootPreimageSha256": "c112249d1e79ec47b3ae7dbf2996fdc6f7c15727a3dbc540d7d96f0678263929",
+  "capturedSourceTree": "1e34eff65895a0d266a94e408a9da19aa68b0003",
+  "integratedDependency": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "kind": "gex",
+  "nativePredecessors": {
+    "eod": {
+      "capturedAtHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+      "descriptorSha256": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+      "revision": "options-integration-20261109"
+    },
+    "gex": {
+      "capturedAtHead": "a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4",
+      "descriptorSha256": "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453",
+      "revision": "expiry-greeks-integration-20261110"
+    }
+  },
+  "operation": "exposure-source-compatibility-20261105",
+  "packet": "gex-levels-heatmap-load-failure",
+  "producerHistory": null,
+  "protectedMaster": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "revision": "heatmap-copy-20261111",
+  "schema": "exposure_heatmap_copy_history.v1"
+}

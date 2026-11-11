@@ -1,0 +1,12 @@
+{
+  "no_cwd_holders": true,
+  "old_head": "8bfcb249f50505422617a86261742f1b53151984",
+  "old_merge_head": "568fa505afb068900424fe4db0da67587d46a114",
+  "operation": "terminal-pr1270-inbox-partition-20261111-c3",
+  "prior_publication_sha256": "40a0ee3532c0c498e543e11a2cdb9e0ce401741316d4a684d11f549e0d9d1342",
+  "published_head": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+  "qualified_index_tree": "e2d9e8ea7512216250d7a8c6f1b01e01c465e7c9",
+  "remote_pr_verified": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+  "started_at": "2026-11-11T20:46:47.097778+00:00",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3"
+}

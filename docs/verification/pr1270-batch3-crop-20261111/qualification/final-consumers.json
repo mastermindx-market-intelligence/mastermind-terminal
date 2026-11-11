@@ -1,0 +1,34 @@
+{
+  "at": "2026-11-11T17:28:57.754434+00:00",
+  "results": [
+    {
+      "args": [
+        "node",
+        "--test",
+        "e2e/tools/capture_ci_evidence.test.cjs"
+      ],
+      "rc": 0
+    },
+    {
+      "args": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/b_pl_6Batch3Evidence.test.ts",
+        "lib/__tests__/plainLabelsCallSites.test.ts"
+      ],
+      "rc": 0
+    },
+    {
+      "args": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "rc": 0
+    }
+  ],
+  "producer_sha256": "cbf08ee03bc0e857548ba4f03cd54b04732b3880d8c3a6934c333e42508ccb80",
+  "owner_test_sha256": "71b580b7b7dd68545b12c9d8c214c28d2e5027e0bec1d82a84dfd2637acbc956",
+  "evidence_sha256": "7ebf5c8bd67b2f5ebb804c9cf2908a09bd13b2e4013b0cb943b48cb128544b84",
+  "log_sha256": "c1f97edffafb07c52fbe0876e6f2a9f9f45a4578dd8cf351592bfec2c9f5793c"
+}

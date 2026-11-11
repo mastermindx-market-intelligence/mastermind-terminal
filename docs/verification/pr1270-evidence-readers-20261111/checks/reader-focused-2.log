@@ -1,0 +1,72 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3/terminal
+
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (11 tests) 118ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (12 tests) 151ms
+ ✓ lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts (10 tests) 152ms
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts (10 tests | 1 failed) 151ms
+   × Terminal Visual Intelligence browser evidence > locks the source files that determine the captured chart-context surface 6ms
+     → terminal/app/layout.tsx changed without a recapture: expected '822671c90df07ec9254d6f58e02d0965b3de1…' to be '9b675d52a647b4a92407958aa0ab7ffcc2632…' // Object.is equality
+ ✓ lib/__tests__/f12_8TeamRolesEvidence.test.ts (10 tests) 42ms
+ ✓ lib/__tests__/f12_17InviteLinkEvidence.test.ts (7 tests) 39ms
+ ✓ lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts (7 tests) 36ms
+ ✓ lib/__tests__/conductorFitBadgeZhEvidence.test.ts (7 tests) 17ms
+ ✓ lib/__tests__/b_pl_6Batch2Evidence.test.ts (7 tests) 25ms
+ ✓ lib/__tests__/d06CaptureDependency.test.ts (9 tests) 188ms
+ ✓ lib/__tests__/f11_4ResearchViewsEvidence.test.ts (6 tests) 10ms
+ ✓ lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts (6 tests) 25ms
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts (3 tests) 10ms
+ ✓ lib/__tests__/lexEvidenceProjection.test.ts (7 tests) 53ms
+ ✓ lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts (6 tests) 21ms
+ ✓ lib/__tests__/personalAccuracyEvidence.test.ts (5 tests) 40ms
+ ❯ lib/__tests__/b_pl_6Batch1Evidence.test.ts (4 tests | 1 failed) 10ms
+   × B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk 6ms
+     → terminal/app/layout.tsx changed without a recapture: expected '822671c90df07ec9254d6f58e02d0965b3de1…' to be '9b675d52a647b4a92407958aa0ab7ffcc2632…' // Object.is equality
+ ✓ lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts (5 tests) 8ms
+ ✓ lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts (4 tests) 16ms
+ ✓ lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts (4 tests) 9ms
+ ✓ lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts (5 tests) 8ms
+ ✓ lib/__tests__/b_f08_8InvalidationEvidence.test.ts (4 tests) 12ms
+ ✓ lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts (4 tests) 8ms
+ ✓ lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts (4 tests) 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk
+AssertionError: terminal/app/layout.tsx changed without a recapture: expected '822671c90df07ec9254d6f58e02d0965b3de1…' to be '9b675d52a647b4a92407958aa0ab7ffcc2632…' // Object.is equality
+
+Expected: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
+Received: "822671c90df07ec9254d6f58e02d0965b3de1a42e973e6caf67bba8ff6ce20d1"
+
+ ❯ lib/__tests__/b_pl_6Batch1Evidence.test.ts:87:69
+     85|         assertCapturedLexProjection(readFileSync(abs, "utf8"), expecte…
+     86|       } else {
+     87|         expect(sha256Of(abs), `${rel} changed without a recapture`).to…
+       |                                                                     ^
+     88|       }
+     89|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > locks the source files that determine the captured chart-context surface
+AssertionError: terminal/app/layout.tsx changed without a recapture: expected '822671c90df07ec9254d6f58e02d0965b3de1…' to be '9b675d52a647b4a92407958aa0ab7ffcc2632…' // Object.is equality
+
+Expected: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
+Received: "822671c90df07ec9254d6f58e02d0965b3de1a42e973e6caf67bba8ff6ce20d1"
+
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:123:77
+    121|         assertCapturedLexProjection(readFileSync(absolute, "utf8"), ex…
+    122|       } else {
+    123|         expect(sha256(absolute), `${relative} changed without a recapt…
+       |                                                                             ^
+    124|       }
+    125|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed | 22 passed (24)
+      Tests  2 failed | 155 passed (157)
+   Start at  11:03:49
+   Duration  8.09s (transform 291ms, setup 0ms, collect 10.29s, tests 1.16s, environment 3ms, prepare 987ms)
+

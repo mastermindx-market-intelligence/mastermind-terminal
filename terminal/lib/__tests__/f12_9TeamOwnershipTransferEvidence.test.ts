@@ -1,5 +1,5 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+import { assertD06CapturedLexProjection as assertCapturedLexProjection } from "./helpers/d06CaptureDependency";
+// Historical raw pins/crops remain; exact D06 deltas precede the unchanged onboarding-copy projection.
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";

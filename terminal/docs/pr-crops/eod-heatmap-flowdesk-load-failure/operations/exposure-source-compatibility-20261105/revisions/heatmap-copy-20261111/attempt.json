@@ -1,0 +1,16 @@
+{
+  "kind": "eod",
+  "exit": 0,
+  "seconds": 428.73,
+  "sourceStable": true,
+  "headStable": true,
+  "lifecycle": {
+    "port": 57730,
+    "listenerReturncode": 1,
+    "listeners": "",
+    "listenerStderr": "",
+    "nextLockPathExists": false,
+    "nextLockOpenHandles": ""
+  },
+  "supervisionState": "CLOSED"
+}

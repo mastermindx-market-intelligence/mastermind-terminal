@@ -1,0 +1,16 @@
+{
+  "kind": "gex",
+  "exit": 0,
+  "seconds": 372.53,
+  "sourceStable": true,
+  "headStable": true,
+  "lifecycle": {
+    "port": 57731,
+    "listenerReturncode": 1,
+    "listeners": "",
+    "listenerStderr": "",
+    "nextLockPathExists": false,
+    "nextLockOpenHandles": ""
+  },
+  "supervisionState": "CLOSED"
+}

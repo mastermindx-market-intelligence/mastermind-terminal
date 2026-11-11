@@ -1,0 +1,64 @@
+[
+  {
+    "name": "reader-syntax",
+    "command": [
+      "node",
+      "--check",
+      "e2e/tools/optionsExposureEvidence.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.071
+  },
+  {
+    "name": "native-prerequisites",
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/optionsExposureD06Successor.test.ts",
+      "--maxWorkers=1",
+      "--minWorkers=1",
+      "--testNamePattern",
+      "D06 native prerequisites",
+      "--reporter=verbose"
+    ],
+    "exit": 1,
+    "seconds": 4.32
+  },
+  {
+    "name": "native-prerequisites-image-adapter",
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/optionsExposureD06Successor.test.ts",
+      "--maxWorkers=1",
+      "--minWorkers=1",
+      "--testNamePattern",
+      "D06 native prerequisites",
+      "--reporter=verbose"
+    ],
+    "exit": 0,
+    "seconds": 15.356
+  },
+  {
+    "name": "typescript",
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--pretty",
+      "false"
+    ],
+    "exit": 0,
+    "seconds": 38.422
+  },
+  {
+    "name": "test-lint",
+    "command": [
+      "./node_modules/.bin/eslint",
+      "lib/__tests__/optionsExposureD06Successor.test.ts",
+      "lib/__tests__/optionsExposureHeatmapCopy.test.ts",
+      "lib/__tests__/optionsExposureR5Successor.test.ts"
+    ],
+    "exit": 0,
+    "seconds": 4.153
+  }
+]

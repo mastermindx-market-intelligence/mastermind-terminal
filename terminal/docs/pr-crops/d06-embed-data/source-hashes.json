@@ -1,0 +1,32 @@
+[
+  {
+    "path": "terminal/app/embed/chart/EmbedChart.tsx",
+    "bytes": 34696,
+    "sha256": "513a58d66881d4b55c00ec18caf736dc08bdaaec2d6c27324b55b0d18d54796e",
+    "git_blob_sha1": "59e992ea3cbd36a21a82d088416bee7232d73411"
+  },
+  {
+    "path": "terminal/lib/embed/chartData.ts",
+    "bytes": 9824,
+    "sha256": "1086437147fd21646e5b36668290e3e22a97cf83591a9240ac97745022a2e5af",
+    "git_blob_sha1": "2eccac788dabeb8711718a3aaadfa60a5d013fae"
+  },
+  {
+    "path": "terminal/lib/embed/labels.ts",
+    "bytes": 2874,
+    "sha256": "cf35ce5b0847b4b46b2f7887b82f750e647d8bb9a09b564b33e826df28faec24",
+    "git_blob_sha1": "47d545f342f5436653aedc30ee18725a5147398e"
+  },
+  {
+    "path": "terminal/lib/__tests__/embedChartData.test.ts",
+    "bytes": 10757,
+    "sha256": "af4d0c82e1739d96cfd8fd3b203fb059d6fda792a804387c51711b0bbb174a2a",
+    "git_blob_sha1": "9bd014e06cb9d5f68171e09b27f11939bbdccacf"
+  },
+  {
+    "path": "terminal/e2e/embed-data-state.spec.ts",
+    "bytes": 14009,
+    "sha256": "947ceeaab8c268e6243be5d8c379df49c24d00f3e103e21c389428042e616559",
+    "git_blob_sha1": "1b1d3cae190c613c0036f66976459c31dcb49710"
+  }
+]

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import NativeViewportPolicy from "@/components/NativeViewportPolicy";
 import { applicationMetadata, applicationViewport } from "@/lib/shared-shell/metadata";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -22,7 +23,7 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "sw
 // no longer needs to preload on pages that never render a character cell.
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], display: "swap", preload: false });
 
-// Beta research pages retain browser zoom; the standalone chart keeps its contract.
+// The server owns ordinary-web zoom; NativeViewportPolicy owns explicit native gestures.
 export const viewport: Viewport = applicationViewport();
 export const metadata: Metadata = applicationMetadata();
 
@@ -46,7 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" data-theme="dark" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: LOCALE_INIT }} /></head>
-      <body><LangProvider>{children}</LangProvider><EmbeddedTerminalBridge /><Tracker /></body>
+      <body><LangProvider>{children}</LangProvider><NativeViewportPolicy /><EmbeddedTerminalBridge /><Tracker /></body>
     </html>
   );
 }

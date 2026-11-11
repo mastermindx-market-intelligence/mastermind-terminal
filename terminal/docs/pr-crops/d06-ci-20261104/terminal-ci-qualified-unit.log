@@ -1,0 +1,28 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ ✓ lib/__tests__/adminPageStatusContract.test.ts (7 tests) 33ms
+ ✓ lib/__tests__/b_pl_6Batch2Evidence.test.ts (4 tests) 109ms
+ ✓ lib/__tests__/personalAccuracyEvidence.test.ts (5 tests) 104ms
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts (3 tests) 83ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (6 tests) 98ms
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (5 tests) 101ms
+ ✓ lib/__tests__/f12_8TeamRolesEvidence.test.ts (10 tests) 96ms
+ ✓ lib/__tests__/sharedShellStatusContract.test.ts (9 tests) 11ms
+ ✓ lib/__tests__/f11_4ResearchViewsEvidence.test.ts (6 tests) 158ms
+ ✓ lib/__tests__/lexEvidenceProjection.test.ts (6 tests) 173ms
+ ✓ lib/__tests__/f12_17InviteLinkEvidence.test.ts (7 tests) 172ms
+ ✓ lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts (5 tests) 166ms
+ ✓ lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts (5 tests) 112ms
+ ✓ lib/__tests__/d06CaptureDependency.test.ts (6 tests) 289ms
+ ✓ lib/__tests__/conductorFitBadgeZhEvidence.test.ts (7 tests) 90ms
+ ✓ lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts (10 tests) 742ms
+   ✓ B-F12-9 evidence lock is the sha256 of the layout sources > capturedAtHead names the exact layout bytes, including after a squash merge 707ms
+ ✓ lib/__tests__/nativeViewportPolicy.test.tsx (4 tests) 37ms
+
+ Test Files  17 passed (17)
+      Tests  105 passed (105)
+   Start at  03:37:36
+   Duration  3.22s (transform 2.48s, setup 0ms, collect 11.46s, tests 2.57s, environment 1.93s, prepare 4.33s)
+

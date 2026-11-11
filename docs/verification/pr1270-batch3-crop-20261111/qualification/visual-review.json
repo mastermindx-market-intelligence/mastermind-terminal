@@ -1,0 +1,37 @@
+{
+  "at": "2026-11-11T17:34:30.112364+00:00",
+  "reviewer": "assigned principal; self-check, not independent approval",
+  "files": [
+    "OptionsFlowBoard-1440.png",
+    "FlowDesk-1440.png",
+    "AlertDetail-1440.png",
+    "HeatmapTreemap-1440.png",
+    "PineLibrary-1440.png",
+    "OptionsFlowBoard-1440-zh.png",
+    "FlowDesk-1440-zh.png",
+    "AlertDetail-1440-zh.png",
+    "HeatmapTreemap-1440-zh.png",
+    "PineLibrary-1440-zh.png",
+    "OptionsFlowBoard-390.png",
+    "FlowDesk-390.png",
+    "AlertDetail-390.png",
+    "HeatmapTreemap-390.png",
+    "PineLibrary-390.png",
+    "OptionsFlowBoard-390-zh.png",
+    "FlowDesk-390-zh.png",
+    "AlertDetail-390-zh.png",
+    "HeatmapTreemap-390-zh.png",
+    "PineLibrary-390-zh.png"
+  ],
+  "method": "Direct read of all20 actual PNGs from the final producer output.",
+  "findings": [
+    "All four Pine frames show their localized heading and all three script rows; mobile geometry and covered-content guards passed.",
+    "All four heatmap frames show requested FLOW/EQUAL modes and neutral INTC price-only tile.",
+    "Options board and alert-detail frames contain the expected rendered fixture surfaces; no Next dev indicator is visible.",
+    "The existing FlowDesk viewport framing is retained. These crops show part of the filter panel, not an entire filters-and-card workflow; this packet does not newly establish that broader visual acceptance."
+  ],
+  "limitations": [
+    "Fixture browser capture on the bound Studio M2 host.",
+    "No physical WebKit, authenticated installed RLS/upload, live market/data correctness or broader D06 acceptance is claimed."
+  ]
+}

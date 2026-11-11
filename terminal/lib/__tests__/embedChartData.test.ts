@@ -7,6 +7,7 @@ import {
   parseRange,
   toBars,
   computeQuote,
+  parseDailyHistory,
   sma,
   visibleRange,
   fmtChange,
@@ -219,5 +220,69 @@ describe("formatters", () => {
     expect(fmtVolume(4210000000)).toBe("4.21B");
     expect(fmtVolume(950000)).toBe("950.0K");
     expect(fmtVolume(0)).toBe("—");
+  });
+});
+
+describe("daily history source outcomes", () => {
+  const bar: RawBar = ["2024-03-04", 10, 12, 9, 11, 100];
+
+  it.each([null, undefined, {}, [], { bars: null }, { bars: "nope" }, { error: "unavailable" }].map((file) => ({ file })))(
+    "does not equate a malformed envelope with no history: $file",
+    ({ file }) => expect(parseDailyHistory(file)).toEqual({ kind: "unavailable" }),
+  );
+
+  it("recognises only an explicit empty bars array as an empty successful response", () => {
+    expect(parseDailyHistory({ bars: [] })).toEqual({ kind: "empty" });
+  });
+
+  it.each(["2024-02-30", "2023-02-29", "1900-02-29", "2024-13-01", "2024-2-09", "2024-03-04T00:00:00Z", " 2024-03-04", "not-a-date"])(
+    "cannot render or label a noncanonical calendar day: %s",
+    (date) => {
+      const file = { bars: [[date, ...bar.slice(1)]] } as { bars: RawBar[] };
+      expect(toBars(file)).toEqual([]);
+      expect(parseDailyHistory(file)).toEqual({ kind: "unavailable" });
+    },
+  );
+
+  it("keeps real leap days and sorts calendar dates without converting them for display", () => {
+    const result = parseDailyHistory({ bars: [
+      ["2024-02-29", 10, 12, 9, 11, 100],
+      ["2000-02-29", 10, 12, 9, 10, 100],
+    ] });
+    expect(result.kind).toBe("ready");
+    if (result.kind !== "ready") throw new Error("Expected usable daily history");
+    expect(result.bars.map((row) => row.time)).toEqual(["2000-02-29", "2024-02-29"]);
+    expect(result.quote.asOf).toBe("2024-02-29");
+  });
+
+  it.each([{ duplicate: bar }, { duplicate: ["2024-03-04", 20, 22, 19, 21, 200] as RawBar }])(
+    "rejects duplicate usable days without selecting a winner: $duplicate",
+    ({ duplicate }) => expect(parseDailyHistory({ bars: [bar, ["2024-03-03", 10, 12, 9, 10, 100], duplicate] }))
+      .toEqual({ kind: "unavailable" }),
+  );
+
+  it("reports nonempty history with no finite OHLC as unavailable", () => {
+    expect(parseDailyHistory({ bars: [["2024-03-04", 1, 2, 0, NaN, 100]] })).toEqual({ kind: "unavailable" });
+  });
+
+  it("retains usable rows and the existing invalid-volume fallback", () => {
+    const result = parseDailyHistory({ bars: [
+      ["2024-03-05", 1, 2, 0, null, 100],
+      ["2024-02-30", 1, 2, 0, 1, 100],
+      ["2024-03-04", 10, 12, 9, 11, "unknown"],
+      ["2024-03-01", 10, 12, 9, 10, 100],
+    ] });
+    expect(result.kind).toBe("ready");
+    if (result.kind !== "ready") throw new Error("Expected usable daily history");
+    expect(result.bars).toHaveLength(2);
+    expect(result.bars[1].volume).toBe(0);
+    expect(result.quote).toMatchObject({ asOf: "2024-03-04", last: 11, prev: 10, change: 1, changePct: 10 });
+  });
+
+  it("keeps a single bar without fabricating a previous close", () => {
+    const result = parseDailyHistory({ bars: [bar] });
+    expect(result.kind).toBe("ready");
+    if (result.kind !== "ready") throw new Error("Expected usable daily history");
+    expect(result.quote).toMatchObject({ asOf: "2024-03-04", prev: null, change: null, changePct: null });
   });
 });

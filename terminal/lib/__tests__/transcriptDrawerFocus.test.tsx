@@ -124,3 +124,35 @@ describe("verified transcript focus waits for its own portal", () => {
     expect(document.activeElement).toBe(drawer()!.querySelector('[aria-label="Close transcript"]'));
   });
 });
+
+// Preserve the no-revision D06 source-jump path as well as the verified paths above.
+async function openWithoutRevision() {
+  await act(async () => root.render(<LangProvider><TranscriptDrawer sym="NVDA" id="2027Q1"
+    focus={{ segment_index: 2 }} onClose={() => root.render(null)} /></LangProvider>));
+}
+
+describe("transcript focus without a revision pin across portal readiness", () => {
+  it.each(["before portal", "after portal"] as const)("focuses the exact source when the transcript arrives %s", async order => {
+    const response = deferred<Transcript>();
+    edge.getTx.mockReturnValue(response.promise);
+    await openWithoutRevision();
+    expect(drawer()).toBeNull();
+    if (order === "before portal") {
+      await act(async () => { response.resolve(transcript); });
+      expect(drawer()).toBeNull();
+      await frame();
+    } else {
+      await frame();
+      expect(drawer()).not.toBeNull();
+      expect(document.activeElement?.getAttribute("aria-label")).toBe("Close transcript");
+      await act(async () => { response.resolve(transcript); });
+    }
+    expect(target()?.textContent).toContain("Verified segment selected by the source result.");
+    expect(document.activeElement).toBe(target());
+    expect(scroll.mock.instances).toEqual([target()]);
+    expect(scroll).toHaveBeenCalledWith({ block: "center", behavior: "smooth" });
+    await close();
+    expect(drawer()).toBeNull();
+    expect(opener.hasAttribute("inert")).toBe(false);
+  });
+});

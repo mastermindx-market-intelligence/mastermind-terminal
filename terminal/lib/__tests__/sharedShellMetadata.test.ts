@@ -4,10 +4,10 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 beforeEach(() => vi.stubEnv("MMX_SHARED_SHELL", ""));
 afterEach(() => vi.unstubAllEnvs());
-it.each([undefined, null, "", "0", "true", "enabled", 1, true])("preserves legacy identity and chart gestures without exact opt-in: %s", flag => {
+it.each([undefined, null, "", "0", "true", "enabled", 1, true])("preserves legacy identity and ordinary-web zoom without exact opt-in: %s", flag => {
  expect(applicationMetadata(flag).title).toBe("Mastermind Terminal");
  expect(workspaceMetadata("Today", undefined, flag).title).toBe("Today · Mastermind Terminal");
- expect(applicationViewport(flag)).toEqual({ width: "device-width", initialScale: 1, viewportFit: "cover", maximumScale: 1, userScalable: false });
+ expect(applicationViewport(flag)).toEqual({ width: "device-width", initialScale: 1, viewportFit: "cover" });
 });
 it("restores browser magnification without imposing a second zoom ceiling", () => {
  expect(applicationViewport("1")).toEqual({ width: "device-width", initialScale: 1, viewportFit: "cover" });

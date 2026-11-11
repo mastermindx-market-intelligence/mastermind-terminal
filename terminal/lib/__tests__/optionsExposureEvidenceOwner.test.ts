@@ -72,9 +72,9 @@ describe("current EOD owner and native reader", () => {
     expect(packet.layoutFiles).toEqual(Object.fromEntries(selected.layout.map(file => [file, selected.sources[file]])));
     expect(packet.sourceFiles).toEqual(selected.sources);
     expect(packet.plan).toEqual({ required: false, changed: [] });
-    expect(packet.capturedAtHead).toBe("90f275f15b4d174f003fb5b1087823dce6ec865a");
-    expect(packet.captureRevision).toBe("options-integration-20261109");
-    expect(packet.descriptorSha256).toBe("77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18");
+    expect(packet.capturedAtHead).toBe("357c32f1a330dda9362955361ae0ab30a3e54048");
+    expect(packet.captureRevision).toBe("d06-r5-copy-20261111");
+    expect(packet.descriptorSha256).toBe("46b35e7f1bf23454dede63797644bb4d8082bdb484dfa7918e377f9b3e1c6a90");
     const historical = JSON.parse(readFileSync(join(REPO, "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/ui-copy-integration-20261109/capture-execution.json"), "utf8"));
     expect(historical.branchHead).toBe("282ea2c40d839fecbe5ae5dc53de9c29a02850f6");
   });
@@ -101,34 +101,34 @@ describe("current EOD owner and native reader", () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     const file = relative(REPO, join(dirname(dirname(selected.evidence)), "native-packet.json"));
     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8") + "\n" });
-    expect(() => owner.eodPacket(root)).toThrow(/INTEGRATION_PACKET_DIGEST/);
+    expect(() => owner.eodPacket(root)).toThrow(/D06_NATIVE_DESCRIPTOR:eod/);
   });
 
   it("refuses a removed declaration even when the historical root remains a valid raw manifest", () => {
     const file = "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml";
     const text = readFileSync(join(REPO, file), "utf8");
     const root = shadowRepo({ [file]: text.slice(text.indexOf("\n\n") + 2) });
-    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:eod/);
+    expect(() => owner.eodPacket(root)).toThrow(/D06_CURRENT_ROOT:eod/);
   });
 });
 
 describe("paired Options integration proof", () => {
   it("refuses a mixed current family declaration", () => {
     const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml";
-    const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8").replace("options-integration-20261109", "ui-copy-integration-20261109") });
-    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
+    const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8").replace("d06-r5-copy-20261111", "options-integration-20261109") });
+    expect(() => owner.eodPacket(root)).toThrow(/D06_CURRENT_ROOT:gex/);
   });
   it("refuses a complete-image receipt with an incomplete frame matrix", () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     const execution = structuredClone(selected.execution!);
     execution.frames.pop();
-    expect(() => requireIntegrationExecution(execution, "eod", owner.EOD_CROPS, "options-integration")).toThrow(/INTEGRATION_FRAME_SET/);
+    expect(() => requireIntegrationExecution(execution, "eod", owner.EOD_CROPS, "d06-integration")).toThrow(/INTEGRATION_FRAME_SET/);
   });
   it("refuses a current receipt without settled native-server proof", () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     const execution = structuredClone(selected.execution!);
     execution.nativeSupervisor!.serverReportedStopped = false;
-    expect(() => requireIntegrationExecution(execution, "eod", owner.EOD_CROPS, "options-integration")).toThrow(/INTEGRATION_NATIVE_SETTLEMENT/);
+    expect(() => requireIntegrationExecution(execution, "eod", owner.EOD_CROPS, "d06-integration")).toThrow(/INTEGRATION_NATIVE_SETTLEMENT/);
   });
   for (const change of ["missing", "duplicate", "unrelated", "skipped"]) it("refuses a wrong complete browser identity set: " + change, () => {
     const base = join(REPO, "terminal/docs/verification/exposure-workspace-20261103");
@@ -145,22 +145,21 @@ describe("paired Options integration proof", () => {
 
 describe("expiry integration with retained EOD identity", () => {
   const revision = "expiry-greeks-integration-20261110";
-  const descriptorSha256 = "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453";
   const browserDir = join(REPO, "terminal/docs/verification/exposure-workspace-20261103", revision);
   const nativeDir = join(REPO, "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions", revision);
   const journey = () => JSON.parse(readFileSync(join(browserDir, "expiry-journeys/qualification.json"), "utf8"));
   const execution = () => JSON.parse(readFileSync(join(nativeDir, "capture-execution.json"), "utf8"));
 
-  it("selects the fresh GEX packet through the shared owner without relabeling EOD", () => {
+  it("selects the fresh GEX D06 packet through the shared owner with its actual identity", () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "gex", gexCrops);
     const packet = owner.gexPacket(REPO);
     expect(packet.selection).toBe("qualified");
     expect(packet.path).toBe(relative(REPO, selected.evidence));
-    expect(packet.path).toContain(revision + "/qualified-root/EVIDENCE.yml");
+    expect(packet.path).toContain("d06-r5-copy-20261111/qualified-root/EVIDENCE.yml");
     expect(packet.sha256).toBe(selected.native.native_manifest_sha256);
-    expect(packet.descriptorSha256).toBe(descriptorSha256);
-    expect(packet.capturedAtHead).toBe("a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4");
-    expect(packet.captureRevision).toBe(revision);
+    expect(packet.descriptorSha256).toBe("076271811c0cedfec4ad4d0344ec3594aa20c9d44e30cd1287fc94179ebe471c");
+    expect(packet.capturedAtHead).toBe("357c32f1a330dda9362955361ae0ab30a3e54048");
+    expect(packet.captureRevision).toBe("d06-r5-copy-20261111");
     expect(packet.sourceFiles).toEqual(selected.sources);
     expect(packet.layoutFiles).toEqual(Object.fromEntries(selected.layout.map(file => [file, selected.sources[file]])));
     expect(packet.plan).toEqual({ required: false, changed: [] });
@@ -181,7 +180,7 @@ describe("expiry integration with retained EOD identity", () => {
     expect(() => owner.eodPacket(root)).toThrow(/OPTIONS_INTEGRATION_PACKET_DIGEST:gex/);
   });
 
-  it("accepts the actual fresh native execution", () => {
+  it("accepts the retained expiry native execution", () => {
     expect(() => requireIntegrationExecution(execution(), "gex", gexCrops, "expiry-greeks-integration")).not.toThrow();
   });
 
@@ -295,8 +294,8 @@ describe("momentum browser successor with retained native evidence", () => {
       readFileSync(join(REPO, current, "prior-roots", family + ".EVIDENCE.yml")),
     ]));
     const root = shadowRepo(overrides);
-    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
-    expect(() => owner.gexPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
+    expect(() => owner.eodPacket(root)).toThrow(/D06_CURRENT_ROOT:gex/);
+    expect(() => owner.gexPacket(root)).toThrow(/D06_CURRENT_ROOT:gex/);
   });
 
   for (const [file, code] of [

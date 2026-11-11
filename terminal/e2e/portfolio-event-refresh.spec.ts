@@ -190,56 +190,62 @@ test.describe("Portfolio event panel refreshes after a holding edit", () => {
       const fixture: Fixture = { shares: 10, reads: 0 };
       await prepare(page, testInfo, baseURL, zh);
 
-      // The served event read: the route's own shape, with the held size and a per-read marker
-      // so a stale answer is visible as a different string, not merely a different length.
+      // Capture request-time facts. A replacement initial setup still reads the initial book;
+      // only the response for the edited holding is held for the stale-state assertions.
+      let releaseEditedRead!: () => void;
+      const editedReadGate = new Promise<void>((resolve) => {
+        releaseEditedRead = resolve;
+      });
       await page.route("**/api/event-impact", async (route) => {
-        fixture.reads += 1;
-        const read = fixture.reads;
-        // Every read after the first is deliberately SLOW, so the window between the committed
-        // input and the fresh read is observable rather than instantaneous.
-        if (read > 1) await new Promise((done) => setTimeout(done, 2500));
-        await route.fulfill({
-          json: eventPayload(fixture.shares, `READ-${read}-SHARES-${fixture.shares}`),
-        });
+        const read = ++fixture.reads;
+        const shares = fixture.shares;
+        const marker = `READ-${read}-SHARES-${shares}`;
+        if (shares === 25) await editedReadGate;
+        await route.fulfill({ json: eventPayload(shares, marker) });
       });
 
-      await seedPosition(page);
-      await page.goto("/portfolio");
-      await openEvents(page);
+      try {
+        await seedPosition(page);
+        await page.goto("/portfolio");
+        await openEvents(page);
 
-      await expect(rows(page)).toHaveCount(1);
-      await expect(panel(page)).toContainText("READ-1-SHARES-10");
-      await expect(panel(page)).toContainText(zh ? "你持有 10 股" : "You hold 10 shares");
-      expect(fixture.reads).toBe(1);
+        const mechanism = panel(page).locator('[data-slot="mechanism"] dd');
+        await expect(rows(page)).toHaveCount(1);
+        await expect(panel(page)).toContainText(zh ? "你持有 10 股" : "You hold 10 shares");
+        await expect(mechanism).toHaveText(/^READ-\d+-SHARES-10$/);
+        const initialMarker = (await mechanism.innerText()).trim();
+        const initialRead = Number(/^READ-(\d+)-SHARES-10$/.exec(initialMarker)![1]);
+        expect(initialRead).toBeGreaterThan(0);
+        expect(fixture.reads).toBe(initialRead);
 
-      // The real edit: the workspace's record inspector → the position modal → save.
-      const edit = await openEditorFromOverview(page, "NVDA");
-      await edit.locator("input[name='shares']").fill("25");
-      fixture.shares = 25;
-      await edit.getByRole("button", { name: /^(Save position|保存持仓)$/ }).click();
-      await expect(edit).not.toBeVisible();
-      await closeInspector(page);
+        // The real edit: the workspace's record inspector → the position modal → save.
+        const edit = await openEditorFromOverview(page, "NVDA");
+        await edit.locator("input[name='shares']").fill("25");
+        fixture.shares = 25;
+        await edit.getByRole("button", { name: /^(Save position|保存持仓)$/ }).click();
+        await expect(edit).not.toBeVisible();
+        await closeInspector(page);
 
-      // The committed input changed, so the previous read is retired: the panel shows the
-      // neutral busy state and NOT the facts it was showing a moment ago.
-      await expect(panel(page).getByTestId("event-impact-checking")).toBeVisible();
-      await expect(panel(page)).not.toContainText("READ-1-SHARES-10");
-      await expect(panel(page)).not.toContainText(zh ? "你持有 10 股" : "You hold 10 shares");
-      await expect(rows(page)).toHaveCount(0);
+        // Exactly one read follows the semantic edit. Its response remains outstanding
+        // while the panel retires the previous facts and shows its neutral checking state.
+        await expect.poll(() => fixture.reads).toBe(initialRead + 1);
+        await expect(panel(page).getByTestId("event-impact-checking")).toBeVisible();
+        await expect(panel(page)).not.toContainText(initialMarker);
+        await expect(panel(page)).not.toContainText(zh ? "你持有 10 股" : "You hold 10 shares");
+        await expect(rows(page)).toHaveCount(0);
 
-      // The fresh read answers for the resulting book.
-      await expect(panel(page)).toContainText("READ-2-SHARES-25", { timeout: 20_000 });
-      await expect(panel(page)).toContainText(zh ? "你持有 25 股" : "You hold 25 shares");
-      await expect(rows(page)).toHaveCount(1);
-      await expect(panel(page)).not.toContainText("SHARES-10");
+        releaseEditedRead();
+        await expect(panel(page)).toContainText(`READ-${initialRead + 1}-SHARES-25`, { timeout: 20_000 });
+        await expect(panel(page)).toContainText(zh ? "你持有 25 股" : "You hold 25 shares");
+        await expect(rows(page)).toHaveCount(1);
+        await expect(panel(page)).not.toContainText("SHARES-10");
+        expect(fixture.reads).toBe(initialRead + 1);
 
-      // Responsive finding: the panel adds no horizontal document overflow at this viewport.
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-
-      const shot = page.getByTestId("event-impact");
-      await shot.screenshot({
-        path: `docs/verification/portfolio-event-refresh-20261102/browser/${testInfo.project.name}-${lang}-refreshed.png`,
-      });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+        await panel(page).screenshot({ path: testInfo.outputPath("event-impact-refreshed.png") });
+      } finally {
+        releaseEditedRead();
+      }
     });
   }
 });

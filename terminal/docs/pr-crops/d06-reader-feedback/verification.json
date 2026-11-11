@@ -1,0 +1,218 @@
+{
+  "schema": "d06.reader-feedback.verification.v1",
+  "observed_at": "2026-11-04T06:39:07.685303+00:00",
+  "protected_source": "75a6540519cf519edfef7633e74f57b68aef9329",
+  "parent_source": "0cf50dc0c7db259b284b48632df3f05fcb0fb7b7",
+  "operation_id": "d06-terminal-reader-resilience-20261103-c4",
+  "source_sha256": {
+    "components/VisualIntelligencePanel.tsx": "f6c0fb41b7062fc9a9e45d9fba32b959c3626567dae3cd53ca797d213b38a0a9",
+    "components/VisualIntelligencePanel.module.css": "3c9f1d9ff6c0e80190f8d5b053ce256ec32d696decd328e151086365f6bc9e27",
+    "lib/__tests__/chartContextFeedback.test.tsx": "d9d2d49aab4700699a38b2341144219d987afe13415bd50b34a5da310ea6083d",
+    "e2e/chart-context-feedback.spec.ts": "f09e4bfce0e2568556d7d7f7efada5fbf6bb5948ab2a095938e5b816dbc250ad"
+  },
+  "unit": {
+    "numTotalTests": 65,
+    "numPassedTests": 65,
+    "numFailedTests": 0,
+    "success": true
+  },
+  "combined_browser_before_feedback_margin": {
+    "startTime": "2026-11-04T06:28:41.329Z",
+    "duration": 170220.67599999998,
+    "expected": 46,
+    "skipped": 14,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "final_feedback_browser": {
+    "startTime": "2026-11-04T06:35:10.332Z",
+    "duration": 46795.269,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "baselines": {
+    "original_focus": "BODY after acknowledgement",
+    "duplicate_activation": {
+      "total": 8,
+      "failed": 8,
+      "observed_events": 3,
+      "required_events": 1
+    },
+    "focus_outline": {
+      "startTime": "2026-11-04T06:34:00.591Z",
+      "duration": 20436.914,
+      "expected": 0,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    }
+  },
+  "static": {
+    "eslint": {
+      "exit_code": 0,
+      "pid": 83539
+    },
+    "typescript": {
+      "exit_code": 0,
+      "pid": 90827,
+      "after_browser_exit": true
+    },
+    "diff_check": "passed"
+  },
+  "visual": {
+    "inspected_images": 12,
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "theme": "incumbent dark Terminal route",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "no_document_horizontal_overflow": true,
+    "minimum_phone_button_bottom_space_px": 8.203125,
+    "raw_focus_observations": "focus-observations.json"
+  },
+  "proof_limits": [
+    "local deterministic fixture routes",
+    "no physical device or screen-reader usability qualification",
+    "no real light theme claim",
+    "no new per-source feedback reset",
+    "no server-persistence acknowledgement",
+    "34 host/time browser passes precede final feedback-only scroll margin; final feedback cases rerun",
+    "no full migration, hosted or production acceptance"
+  ],
+  "release": {
+    "draft": true,
+    "ready": false,
+    "merge": false,
+    "enqueue": false,
+    "deployment": false,
+    "mission_complete": false
+  },
+  "evidence": [
+    {
+      "path": "baseline-focus.json",
+      "bytes": 180,
+      "sha256": "93c83b3188eae0a18a1ef4e4896210581857829ec00d5b9a0d6e034472f4598f"
+    },
+    {
+      "path": "baseline-report.json",
+      "bytes": 14226,
+      "sha256": "c742fcdcfb25c34b56564e5f95cfba9657aec8edbf19d384402d0fe2bd2dcb42"
+    },
+    {
+      "path": "browser-final-report.json",
+      "bytes": 35178,
+      "sha256": "2342be89d2577f11132c637e0fea72bc71b33c4ea84cbb9b25568bde981ab2b4"
+    },
+    {
+      "path": "browser-report.json",
+      "bytes": 119044,
+      "sha256": "d8df260de31e490ae9291989f74e10866198e758f65fab0a60c653e5f084c48a"
+    },
+    {
+      "path": "duplicate-baseline-unit-report.json",
+      "bytes": 18332,
+      "sha256": "1f6799db7e9c3cddfe14d73323daf8acd5d582a0dfbb467cf33338c9f72ac788"
+    },
+    {
+      "path": "feedback-baseline-desktop-en.png",
+      "bytes": 277660,
+      "sha256": "40b2f9603dd8ae4bc36c99d4f7b177ecf6412aa1bdcdc0ed25f9f79e3d911fc5"
+    },
+    {
+      "path": "feedback-desktop-en-unclear.png",
+      "bytes": 278074,
+      "sha256": "10d47c1a4cae89607f22e15d4de1b25f23de44701058af3dd5835913273378d7"
+    },
+    {
+      "path": "feedback-desktop-en-useful.png",
+      "bytes": 277004,
+      "sha256": "2cc9c9a623d3419c47c5e85aad8f719d807d38694e72695a91fc63d35d9e37de"
+    },
+    {
+      "path": "feedback-desktop-zh-unclear.png",
+      "bytes": 287783,
+      "sha256": "40028d526df3ef6936b70398a9533fdf8a840b7755dd1aa38116d0baee6792a4"
+    },
+    {
+      "path": "feedback-desktop-zh-useful.png",
+      "bytes": 287691,
+      "sha256": "11a5d8fee3413f3c70a10874738dcae6ba915070a6867e728eac7004e8dd8619"
+    },
+    {
+      "path": "feedback-mobile-en-unclear.png",
+      "bytes": 62116,
+      "sha256": "661a9dfc6017974c56113d53c7282b0a553af849dc1fffa4ea33d55e06024acf"
+    },
+    {
+      "path": "feedback-mobile-en-useful.png",
+      "bytes": 62116,
+      "sha256": "661a9dfc6017974c56113d53c7282b0a553af849dc1fffa4ea33d55e06024acf"
+    },
+    {
+      "path": "feedback-mobile-zh-unclear.png",
+      "bytes": 75939,
+      "sha256": "658c9f305f029732dc02a4dd6f954b404e64afaf9cea52c113833e199ebcb77e"
+    },
+    {
+      "path": "feedback-mobile-zh-useful.png",
+      "bytes": 75939,
+      "sha256": "658c9f305f029732dc02a4dd6f954b404e64afaf9cea52c113833e199ebcb77e"
+    },
+    {
+      "path": "feedback-tablet-en-unclear.png",
+      "bytes": 93987,
+      "sha256": "53b0502b0242925da485c4700c1ca24e8f6dac93b5a3577b30665965af72fb82"
+    },
+    {
+      "path": "feedback-tablet-en-useful.png",
+      "bytes": 93987,
+      "sha256": "53b0502b0242925da485c4700c1ca24e8f6dac93b5a3577b30665965af72fb82"
+    },
+    {
+      "path": "feedback-tablet-zh-unclear.png",
+      "bytes": 109682,
+      "sha256": "1e80c2b16a86788aba764dd3cab18156ab3f3ad5b6d0f590714e1c029d0c3fc2"
+    },
+    {
+      "path": "feedback-tablet-zh-useful.png",
+      "bytes": 109682,
+      "sha256": "1e80c2b16a86788aba764dd3cab18156ab3f3ad5b6d0f590714e1c029d0c3fc2"
+    },
+    {
+      "path": "focus-edge-baseline-report.json",
+      "bytes": 13603,
+      "sha256": "334db51863c45375634c9d54ad85d94c9a3d928e98f84e5720d8b742c5aaa3ce"
+    },
+    {
+      "path": "focus-observations.json",
+      "bytes": 8467,
+      "sha256": "c54c8e9a28b9b85f2b8d2877afea6a1e272d587eb7d7a005c56c5222ebaf581b"
+    },
+    {
+      "path": "tested-source-sha256.json",
+      "bytes": 459,
+      "sha256": "203f02ee9c1a0489f4e943f23fee61998d75ba21a2d1d387d70a79b3cd9974d6"
+    },
+    {
+      "path": "unit-report-final.json",
+      "bytes": 24846,
+      "sha256": "6ca8b27bb89655ae9f5340da00293fb38c0091df49b71da15a1989d9de115f43"
+    }
+  ]
+}

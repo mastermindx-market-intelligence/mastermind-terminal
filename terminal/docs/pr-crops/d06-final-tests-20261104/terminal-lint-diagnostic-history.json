@@ -1,0 +1,15 @@
+{
+  "schema": "d06.lint_diagnostic_history.v1",
+  "full_file_lint_exit": 1,
+  "findings": 38,
+  "initial_comparison": {
+    "exit": 1,
+    "reason": "Compared diagnostic objects including shifted line numbers; no baseline receipt emitted."
+  },
+  "corrected_comparison": {
+    "exit": 0,
+    "method": "Compare rule, severity, message, identical source line and column signatures; ignore shifted line numbers.",
+    "new_findings": 0
+  },
+  "source_mutations_by_comparison": false
+}

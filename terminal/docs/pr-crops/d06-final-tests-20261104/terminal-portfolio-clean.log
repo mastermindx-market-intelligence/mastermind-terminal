@@ -1,0 +1,29 @@
+[warmup] /terminal?symbol=NVDA → 200 in 92ms
+[warmup] /options → 200 in 182ms
+[warmup] /portfolio → 200 in 91ms
+[warmup] /alerts → 200 in 105ms
+[warmup] /analysis → 200 in 195ms
+[warmup] /discover → 200 in 182ms
+[warmup] /admin → 200 in 152ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 97ms
+[warmup] /login → 200 in 96ms
+[warmup] /reset-password → 200 in 97ms
+[warmup] /api/me → 200 in 68ms
+[warmup] /api/watchlist → 200 in 36ms
+[warmup] /api/layouts → 200 in 32ms
+[warmup] /api/watchlist/annotations → 409 in 32ms
+[warmup] 14 routes compiled in 1s
+
+Running 9 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (2.3s)
+  ✓  2 [desktop] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (2.3s)
+  ✓  3 [desktop] › e2e/shell-mode.spec.ts:101:7 › native shell mode › embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance (1.0s)
+  ✓  4 [tablet] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (2.1s)
+  ✓  5 [tablet] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (2.4s)
+  ✓  6 [tablet] › e2e/shell-mode.spec.ts:101:7 › native shell mode › embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance (1.1s)
+  ✓  7 [mobile] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (2.0s)
+  ✓  8 [mobile] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (2.5s)
+  ✓  9 [mobile] › e2e/shell-mode.spec.ts:101:7 › native shell mode › embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance (1.1s)
+
+  9 passed (26.9s)

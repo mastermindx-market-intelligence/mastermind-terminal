@@ -99,20 +99,27 @@ test.describe("native shell mode", () => {
 
   // ── TV symbol-sheet mini chart (docs/tv-parity/spec-symbol-detail.md §2B) ──────────
   test("embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance", async ({ page }) => {
+  // Native preview simulation: its existing bridge owns the full-chart handoff.
+  await page.addInitScript(() => {
+    const messages: unknown[] = [];
+    Object.assign(window, { __d06NativeMessages: messages, webkit: { messageHandlers: { mm: { postMessage(message: unknown) { messages.push(message); } } } } });
+  });
     await page.goto("/embed/chart?symbol=NVDA&clean=1&fs=1&hdr=0");
 
     // Root marker — every clean-mode CSS rule hangs off it.
     await expect(page.locator('.embed-root[data-clean="1"]')).toHaveCount(1);
     // Candles only: no SMA series ⇒ no SMA legend to drive them.
     await expect(page.locator(".embed-legend")).toHaveCount(0);
-    // The range row survives and gains the ⤢ square (a browser tap is a silent no-op).
+    // The native range row survives and gains its full-chart action.
     await expect(page.locator(".embed-ranges")).toBeVisible();
     const fs = page.locator(".embed-fs");
     await expect(fs).toBeVisible();
     const fsBox = await fs.boundingBox();
-    expect(fsBox!.width).toBeGreaterThanOrEqual(30);
-    expect(fsBox!.height).toBeGreaterThanOrEqual(30);
-    await fs.click(); // must not throw / navigate without a native host
+    expect(fsBox!.width).toBeGreaterThanOrEqual(44);
+    expect(fsBox!.height).toBeGreaterThanOrEqual(44);
+    await fs.click();
+    expect(await page.evaluate(() => document.fullscreenElement)).toBeNull();
+    expect(await page.evaluate(() => (window as unknown as {__d06NativeMessages: unknown[]}).__d06NativeMessages)).toEqual([{type:"openFullChart"}]);
     await expect(page.locator('.embed-root[data-clean="1"]')).toHaveCount(1);
 
     // ── C24: TV parks the range row UNDER the chart so thumbs stay low ────────────
@@ -126,9 +133,10 @@ test.describe("native shell mode", () => {
     expect(fsBox2.x + fsBox2.width).toBeGreaterThan(rangeBox.x + rangeBox.width / 2);
     await expect(fs).toBeVisible();
     await fs.click();
-    // …the pills sit ~8px above the widget's bottom edge (.embed-root is position:fixed;inset:0).
+    // …the complete control row, including the reserved fullscreen action,
+    // sits ~8px above the widget's bottom edge.
     const bottomGap = await page.evaluate(
-      () => window.innerHeight - document.querySelector(".embed-ranges")!.getBoundingClientRect().bottom,
+      () => window.innerHeight - document.querySelector(".embed-range-controls")!.getBoundingClientRect().bottom,
     );
     expect(bottomGap).toBeGreaterThanOrEqual(6);
     expect(bottomGap).toBeLessThanOrEqual(12);

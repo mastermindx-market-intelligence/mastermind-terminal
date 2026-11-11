@@ -1,0 +1,31 @@
+{
+  "completedAt": "2026-11-11T14:45:09.080783+00:00",
+  "driverSha256": "a5e29646d95b406c15f3d4aae8b1bfd9275e6dd0391e4a30766c6a2073ddb292",
+  "excludedGeneratedInputs": [],
+  "exit": 0,
+  "initial": {
+    "listenerExit": 1,
+    "listenerStderr": "",
+    "listeners": "",
+    "lockHandles": "",
+    "lockPathExists": false,
+    "port": 57737,
+    "workspaceCwdHolders": []
+  },
+  "lifecycle": {
+    "listenerExit": 1,
+    "listenerStderr": "",
+    "listeners": "",
+    "lockHandles": "",
+    "lockPathExists": false,
+    "port": 57737,
+    "workspaceCwdHolders": []
+  },
+  "operation": "terminal-pr1270-options-axis-current-20261111",
+  "productionProof": false,
+  "seconds": 68.244,
+  "sourceFiles": 3751,
+  "sourceStable": true,
+  "startedAt": "2026-11-11T14:43:50.199342+00:00",
+  "state": "CAPTURE_RETURNED_PENDING_UNIT_VALIDATION"
+}

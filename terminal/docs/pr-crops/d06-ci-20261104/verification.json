@@ -1,0 +1,134 @@
+{
+  "schema": "terminal.d06_ci_repair.v1",
+  "recorded_at": "2026-11-04T11:44:16.667188+00:00",
+  "source_parent": "efafc1176a2eb48834125c085615e94033fa1ae7",
+  "source_identity": "containing commit plus exact source hashes in terminal-ci-final-static.json",
+  "protected_source": "0f9043313069d90cc3e1629a04ff2455f0f0fe78",
+  "operation": "d06-terminal-reader-resilience-20261103-c4",
+  "pr": 1270,
+  "failed_hosted_run": {
+    "id": 41810413071,
+    "attempt": 1,
+    "candidate": "efafc1176a2eb48834125c085615e94033fa1ae7",
+    "actual_merge": "f0ff394c3eb7af61d8629cfd4c7776e8532cd633",
+    "actual_base": "475bdb51ad18e913d6b2678196bc60b955cb1e3e",
+    "underlying_failed_jobs": [
+      126509144714,
+      126509145072,
+      126509145973,
+      126509145466,
+      126509147139
+    ],
+    "classification": "assertion failures, not installation/runner outage"
+  },
+  "final_validation": {
+    "focused_unit": {
+      "files": 17,
+      "passed": 105,
+      "failed": 0
+    },
+    "chart_pan": {
+      "passed": 2,
+      "failed": 0,
+      "existing_gt30day_and_group_assertions_retained": true,
+      "diagnostic_trace_provenance": [
+        {
+          "original_path": "/tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-146e5-active-pane-or-other-groups-desktop/trace.zip",
+          "bytes": 44651093,
+          "sha256": "7677e69858877350c162410aa73ae0e71c18934940e4d33fd959fe5c253cff17",
+          "retained": "diagnostic hit-target JSON attachments; full trace not committed"
+        },
+        {
+          "original_path": "/tmp/d06-macro-c4-11l44i0i/terminal-pan-diagnostic/chart-link-groups-multi-ch-a8380-as-B-each-group-moves-alone-desktop/trace.zip",
+          "bytes": 22019333,
+          "sha256": "4e33439ba0b2fc65b56bd44acb977003145051b4fbb18f131f00c6f31974606a",
+          "retained": "diagnostic hit-target JSON attachments; full trace not committed"
+        }
+      ]
+    },
+    "embed_browser": {
+      "startTime": "2026-11-04T11:39:24.866Z",
+      "duration": 73322.88500000001,
+      "expected": 38,
+      "skipped": 16,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "typecheck_exit": 0,
+    "changed_lint_exit": 0,
+    "embed_lint_baseline": 5,
+    "embed_lint_current": 5,
+    "embed_lint_diagnostic_signatures_unchanged": true,
+    "diff_check_exit": 0
+  },
+  "source_sequence": {
+    "unit_then_visual_refinement": "Only EmbedChart layout and embed-fullscreen geometry test changed after the105-unit run; all other bound source bytes verified unchanged.",
+    "pan_then_visual_refinement": "Only embed-specific source changed after the two successful pan cases; chart/root sources and assertions retained.",
+    "final_browser_and_static": "38-browser pass and final tsc/lint bind the final repaired control layout."
+  },
+  "prior_local_attempts": [
+    {
+      "log": "terminal-ci-unit.log",
+      "result": "3failed/116passed: fixture regex plus two unselected legacy capture readers"
+    },
+    {
+      "log": "terminal-ci-unit-final.log",
+      "result": "2failed/118passed: legacy capture readers exposed subsequent historical ChartPanel locks; both readers restored exactly to parent; existing CI current-capture owner preserved"
+    },
+    {
+      "log": "terminal-embed-fixed.log",
+      "result": "35passed/3failed/16skipped; compact clean header is below plot, so(0,0) is a real bar"
+    },
+    {
+      "log": "terminal-compact-final.log",
+      "result": "3passed after actual visible-date targeting; precedes final control layout"
+    },
+    {
+      "log": "terminal-pan-diagnostic.log",
+      "result": "2failed with old whole-wrap midpoint; actual resize-handle hit captured"
+    }
+  ],
+  "current_visual_evidence_owner": "Existing capture_ci_evidence.cjs runs before npm test in CI and supplies actual immutable PL6/VI source composition; those readers are byte-identical to parent and excluded from the direct focused run without that composition.",
+  "historical_evidence": {
+    "old_crops_and_manifests_modified": false,
+    "unchanged_v1_helper": true,
+    "explicit_delta_paths": [
+      "terminal/lib/i18n.tsx",
+      "terminal/app/globals.css",
+      "terminal/components/ChartPanel.tsx"
+    ]
+  },
+  "visual_self_qa": {
+    "final_inspected": [
+      "runtime/embed-fullscreen-browser-f-84d66-or-the-compact-clean-widget-mobile/embed-compact-browser-fullscreen.png",
+      "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-clean-header.png",
+      "runtime/embed-fullscreen-browser-f-f5eb0-rlays-and-source-date-in-zh-desktop/embed-fullscreen-zh.png"
+    ],
+    "before_clipping": "diagnostic/phone-fullscreen-before-visible-exit.png",
+    "result": "Fullscreen control fully visible; local range scrolling retained; no root overflow in asserted contexts."
+  },
+  "limits": [
+    "Synthetic daily bars, intercepted responses and native-handler simulation",
+    "No full current-head hosted CI, production or Chairman acceptance claimed",
+    "No physical WKWebView or browser-UI Escape qualification",
+    "Prior2x emulated page-scale and320CSSpx reflow are not400% browser zoom"
+  ],
+  "release": {
+    "draft": true,
+    "ready": false,
+    "enqueue": false,
+    "merge": false,
+    "deploy": false,
+    "joint_shell_rollout": false
+  },
+  "macro": {
+    "pr": 10734,
+    "head": "40d395a898c8c6749b4c9998a71fc9196e544c2e",
+    "implementation_delivered": true
+  },
+  "canonical_record": {
+    "repo": "mastermindx-market-intelligence/macro",
+    "pr": 10655,
+    "same_existing_carrier": true
+  }
+}

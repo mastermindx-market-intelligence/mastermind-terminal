@@ -5,3 +5,21 @@
     padding-bottom: calc(62px + max(8px, var(--drawing-safe-bottom, 0px)));
   }
 }
+
+/* A constrained/focused chart must not let drawing controls spill into context.
+   Menus and the style palette already use the same chart floating host. */
+@media (min-width: 861px) {
+  :global(.app:not(.shell-app) .chart-body) > .dock {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    overscroll-behavior-y: contain;
+  }
+  :global(.app:not(.shell-app) .chart-body) > .dock::-webkit-scrollbar { display: none; }
+  :global(.chart-body > .ds-desktop-style) { left: 62px; }
+  :global(.chart-body:has(> .ds-floating-popover) > .ds-desktop-style) { opacity: .22; pointer-events: none; }
+  :global(.shell-app .chart-body > .ds-desktop-style) { display: none; }
+  :global(.shell-app.shell-draw .chart-body > .ds-desktop-style) { display: flex; }
+}

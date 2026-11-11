@@ -28,8 +28,7 @@ import {
   type Time,
 } from "lightweight-charts";
 import {
-  toBars,
-  computeQuote,
+  parseDailyHistory,
   sma,
   visibleRange,
   fmtPrice,
@@ -38,13 +37,14 @@ import {
   fmtVolume,
   RANGE_KEYS,
   type Bar,
+  type DailyHistoryState,
   type Quote,
   type RangeKey,
   type ThemeName,
   type Lang,
 } from "@/lib/embed/chartData";
 import { palette, CLEAN, type EmbedPalette } from "@/lib/embed/theme";
-import { makeT } from "@/lib/embed/labels";
+import { makeT, type LabelKey } from "@/lib/embed/labels";
 
 export interface EmbedChartProps {
   symbol: string;
@@ -59,30 +59,19 @@ export interface EmbedChartProps {
    *  candles ONLY (no SMA overlays, no legend, no volume band), quiet canvas, TV palette,
    *  dashed prior-close rule, TV-styled range capsules. Off ⇒ the widget is unchanged. */
   clean?: boolean;
-  /** fs=1 — append the native "open full chart" affordance to the right end of the range
-   *  row. Posts `openFullChart` to a native host; a plain browser is a no-op. */
+  /** fs=1 — native full-chart handoff when hosted; browser fullscreen otherwise. */
   fullscreenBtn?: boolean;
 }
 
-/** Ask the native host to open the full chart. No host (browser / e2e) ⇒ silent no-op. */
-function postOpenFullChart(): void {
-  try {
-    (window as unknown as { webkit?: { messageHandlers?: { mm?: { postMessage(m: unknown): void } } } })
-      .webkit?.messageHandlers?.mm?.postMessage({ type: "openFullChart" });
-  } catch {
-    /* not hosted by a native shell */
-  }
+type NativeChartHandler = { postMessage(message: { type: "openFullChart" }): void };
+function nativeChartHandler(): NativeChartHandler | undefined {
+  if (typeof window === "undefined") return undefined;
+  const handler = (window as unknown as { webkit?: { messageHandlers?: { mm?: NativeChartHandler } } })
+    .webkit?.messageHandlers?.mm;
+  return typeof handler?.postMessage === "function" ? handler : undefined;
 }
 
-type LoadState =
-  | { kind: "loading" }
-  | { kind: "empty" } // valid symbol, but no bars
-  | { kind: "ready"; bars: Bar[]; quote: Quote };
-
-// Reduced-motion: skip the ribbon sweep + shimmer.
-function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-}
+type LoadState = { kind: "loading" } | DailyHistoryState;
 
 const TERMINAL_BASE = "https://app.mastermind-x.com/terminal";
 
@@ -116,6 +105,62 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
   // Crosshair OHLC readout — null when the pointer is off the chart (show the day-quote instead).
   const [hover, setHover] = useState<Bar | null>(null);
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [nativeFullscreen, setNativeFullscreen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreenPending, setFullscreenPending] = useState(false);
+  const [fullscreenMessage, setFullscreenMessage] = useState<LabelKey | null>(null);
+  const fullscreenPendingRef = useRef(false);
+  const fullscreenAliveRef = useRef(true);
+  useEffect(() => {
+    fullscreenAliveRef.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read the pre-existing native host capability after hydration.
+    setNativeFullscreen(!!nativeChartHandler());
+    let wasFullscreen = document.fullscreenElement === rootRef.current;
+    const sync = () => {
+      const active = document.fullscreenElement === rootRef.current;
+      setFullscreen(active);
+      if (wasFullscreen && !active) rootRef.current?.querySelector<HTMLButtonElement>(".embed-fs")?.focus();
+      wasFullscreen = active;
+    };
+    document.addEventListener("fullscreenchange", sync);
+    return () => { fullscreenAliveRef.current = false; document.removeEventListener("fullscreenchange", sync); };
+  }, []);
+  async function toggleFullscreen() {
+    if (fullscreenPendingRef.current) return;
+    const handler = nativeChartHandler();
+    if (handler) {
+      // The native preview already owns this handoff. A throw is not permission
+      // to replay the action through the browser's fullscreen mechanism.
+      setNativeFullscreen(true);
+      try { handler.postMessage({ type: "openFullChart" }); setFullscreenMessage("fullscreenRequested"); }
+      catch { setFullscreenMessage("fullscreenNativeFailed"); }
+      return;
+    }
+    const root = rootRef.current;
+    if (!root) return;
+    const exiting = document.fullscreenElement === root;
+    if (!exiting && (typeof root.requestFullscreen !== "function" || !document.fullscreenEnabled)) {
+      setFullscreenMessage("fullscreenUnavailable"); return;
+    }
+    fullscreenPendingRef.current = true; setFullscreenPending(true); setFullscreenMessage(null);
+    try {
+      // Directly inside the user's click: retain browser transient activation.
+      if (exiting) await document.exitFullscreen();
+      else await root.requestFullscreen();
+    } catch {
+      if (fullscreenAliveRef.current) setFullscreenMessage(exiting ? "fullscreenExitFailed" : "fullscreenEnterFailed");
+    } finally {
+      fullscreenPendingRef.current = false;
+      if (fullscreenAliveRef.current) {
+        setFullscreenPending(false);
+        if (exiting && document.fullscreenElement !== root) requestAnimationFrame(() => {
+          if (fullscreenAliveRef.current) root.querySelector<HTMLButtonElement>(".embed-fs")?.focus();
+        });
+      }
+    }
+  }
+
   const hostRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -127,24 +172,23 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
   useTransparentRoot(transparent);
 
   // ── Fetch daily bars (same-origin static file) ────────────────────────────────
-  // Small self-contained fetch (not lib/dataCache) so the embed doesn't pull the coverage/neg404
-  // machinery. A 404/empty file → clean empty state; never a crash, never a blank white box.
+  // Keep the existing self-contained request. Only an explicit 404 or empty bars confirms
+  // absence; transport and unusable-data failures must not claim the symbol has no history.
   useEffect(() => {
     let alive = true;
     setState({ kind: "loading" });
     fetch(`/data/${encodeURIComponent(symbol)}.json`, { cache: "force-cache" })
-      .then((r) => (r.ok ? r.json() : null))
-      .catch(() => null)
-      .then((json) => {
+      .then(async (response): Promise<DailyHistoryState> => {
+        if (response.status === 404) return { kind: "empty" };
+        if (!response.ok) return { kind: "unavailable" };
+        return parseDailyHistory(await response.json());
+      })
+      .catch((): DailyHistoryState => ({ kind: "unavailable" }))
+      .then((next) => {
         if (!alive) return;
-        const bars = toBars(json);
-        const quote = computeQuote(bars);
-        if (bars.length === 0 || !quote) {
-          setState({ kind: "empty" });
-          return;
-        }
-        barsRef.current = bars;
-        setState({ kind: "ready", bars, quote });
+        barsRef.current = next.kind === "ready" ? next.bars : [];
+        setHover(null);
+        setState(next);
       });
     return () => {
       alive = false;
@@ -338,15 +382,23 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
 
   // ── Render ────────────────────────────────────────────────────────────────────
   const terminalHref = `${TERMINAL_BASE}?sym=${encodeURIComponent(symbol)}&from=embed`;
+  const statusText = state.kind === "loading" ? t("loading", { sym: symbol })
+    : state.kind === "ready" ? t("loaded", { sym: symbol, date: state.quote.asOf })
+    : state.kind === "empty" ? t("emptyBody", { sym: symbol })
+    : t("unavailableBody", { sym: symbol });
 
   return (
     <div
+      ref={rootRef}
       className="embed-root"
+      data-fullscreen={fullscreen ? "1" : "0"}
+      lang={lang === "zh" ? "zh-CN" : "en"}
       data-theme={theme}
       data-transparent={transparent ? "1" : "0"}
       data-hdr={hideQuote ? "0" : undefined}
       data-clean={clean ? "1" : undefined}
     >
+      <div className="embed-status" role="status" aria-atomic="true">{statusText}</div>
       <Header
         symbol={symbol}
         state={state}
@@ -356,6 +408,10 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
         range={range}
         onRange={setRange}
         showFullscreen={fullscreenBtn}
+        fullscreenLabel={t(fullscreenPending ? "fullscreenPending" : nativeFullscreen ? "fullscreen" : fullscreen ? "fullscreenExit" : "fullscreenEnter")}
+        fullscreenActive={nativeFullscreen ? undefined : fullscreen}
+        fullscreenPending={fullscreenPending}
+        onFullscreen={toggleFullscreen}
         legend={
           // Clean mode is candles-only — no SMA series exist, so no legend to drive them.
           state.kind === "ready" && !clean ? (
@@ -371,12 +427,14 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
         }
       />
 
-      <div className="embed-body">
+      {fullscreenMessage && <p className={fullscreenMessage === "fullscreenRequested" ? "embed-status" : "embed-fullscreen-note"} role="status" aria-live="polite">{t(fullscreenMessage)}</p>}
+
+      <div className="embed-body" aria-busy={state.kind === "loading"}>
         {state.kind === "loading" && <Skeleton pal={pal} />}
 
-        {state.kind === "empty" && (
+        {(state.kind === "empty" || state.kind === "unavailable") && (
           <EmptyOrError
-            kind="empty"
+            kind={state.kind}
             symbol={symbol}
             terminalHref={terminalHref}
             pal={pal}
@@ -391,15 +449,15 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
             <PriceRibbon dir={state.quote.dir} pal={pal} />
           </>
         )}
-
-        {/* Attribution is always present (brand + funnel), quiet like TradingView's mark. */}
-        <a className="embed-attr" href={terminalHref} target="_blank" rel="noopener noreferrer">
-          {t("attribution")}
-          <span aria-hidden="true" className="embed-attr-arrow">↗</span>
-        </a>
       </div>
 
-      <StyleTag pal={pal} />
+      {/* A separate row keeps the link and its focus outline clear of the plot and time axis. */}
+      <a className="embed-attr" href={terminalHref} target="_blank" rel="noopener noreferrer">
+        {t("attribution")}
+        <span aria-hidden="true" className="embed-attr-arrow">↗</span>
+      </a>
+
+      <StyleTag pal={pal} fullscreenBackground={palette(theme, false, clean).pageBg} />
     </div>
   );
 }
@@ -414,7 +472,7 @@ function Header({
   range,
   onRange,
   legend,
-  showFullscreen,
+  showFullscreen, fullscreenLabel, fullscreenActive, fullscreenPending, onFullscreen,
 }: {
   symbol: string;
   state: LoadState;
@@ -424,12 +482,16 @@ function Header({
   range: RangeKey;
   onRange: (r: RangeKey) => void;
   legend?: React.ReactNode;
-  /** fs=1 — render the native fullscreen affordance at the right end of the range row. */
   showFullscreen?: boolean;
+  fullscreenLabel: string;
+  fullscreenActive: boolean | undefined;
+  fullscreenPending: boolean;
+  onFullscreen: () => void;
 }) {
   const quote = state.kind === "ready" ? state.quote : null;
   // When hovering the chart, the header becomes an OHLC status line (house pattern).
   const showOhlc = hover != null && quote != null;
+  const displayedDate = showOhlc ? hover.time : quote?.asOf;
 
   return (
     <header className="embed-header">
@@ -455,15 +517,21 @@ function Header({
               </span>
             ) : null}
           </span>
-        ) : (
+        ) : state.kind === "loading" ? (
           <span className="embed-day num embed-day-skel" aria-hidden="true">
             <span className="embed-skel-pill" />
+          </span>
+        ) : null}
+        {displayedDate && (
+          <span className="embed-date">
+            {t(showOhlc ? "dailyBar" : "latestDailyBar")}<time dateTime={displayedDate}>{displayedDate}</time>
           </span>
         )}
       </div>
 
       <div className="embed-head-right">
       {legend}
+      <div className="embed-range-controls">
       <nav className="embed-ranges" aria-label={t("rangePrefix")}>
         {RANGE_KEYS.map((rk) => (
           <button
@@ -476,15 +544,17 @@ function Header({
             {rk}
           </button>
         ))}
+      </nav>
         {showFullscreen && (
-          /* TV's ⤢ — four corner strokes in a ~34px square at the right end of the range row.
-             Tapping asks the native host to open the full chart; a browser gets a no-op. */
+          /* The same control preserves the native handoff and owns browser fullscreen. */
           <button
             type="button"
             className="embed-fs"
-            aria-label={t("fullscreen")}
-            title={t("fullscreen")}
-            onClick={postOpenFullChart}
+            aria-label={fullscreenLabel}
+            title={fullscreenLabel}
+            aria-pressed={fullscreenActive}
+            disabled={fullscreenPending}
+            onClick={onFullscreen}
           >
             <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
               <path
@@ -498,7 +568,7 @@ function Header({
             </svg>
           </button>
         )}
-      </nav>
+      </div>
       </div>
     </header>
   );
@@ -530,10 +600,9 @@ function Ohlc({
 // ── Signature: the day-direction price ribbon (single left→right draw-in sweep) ──
 function PriceRibbon({ dir, pal }: { dir: Quote["dir"]; pal: EmbedPalette }) {
   const color = dir === "up" ? pal.up : dir === "down" ? pal.down : pal.muted;
-  const reduced = prefersReducedMotion();
   return (
     <div
-      className={"embed-ribbon" + (reduced ? " no-anim" : "")}
+      className="embed-ribbon"
       style={{ ["--ribbon-color" as string]: color }}
       aria-hidden="true"
     />
@@ -584,11 +653,10 @@ function Legend({
 
 // ── Loading skeleton (subtle shimmer; reduced-motion → static) ───────────────────
 function Skeleton({ pal }: { pal: EmbedPalette }) {
-  const reduced = prefersReducedMotion();
   // A few faux candles + a baseline volume band so the shape reads before data lands.
   const heights = [42, 58, 50, 66, 48, 72, 60, 54, 68, 46, 62, 56, 70, 52, 64];
   return (
-    <div className={"embed-skel" + (reduced ? " no-anim" : "")} aria-hidden="true">
+    <div className="embed-skel" aria-hidden="true">
       <div className="embed-skel-candles">
         {heights.map((h, i) => (
           <span key={i} className="embed-skel-candle" style={{ height: `${h}%` }} />
@@ -607,14 +675,15 @@ function EmptyOrError({
   pal,
   t,
 }: {
-  kind: "empty" | "error";
+  kind: "empty" | "unavailable" | "error";
   symbol: string | null;
   terminalHref: string;
   pal: EmbedPalette;
   t: ReturnType<typeof makeT>;
 }) {
-  const title = kind === "empty" ? t("emptyTitle") : t("errorTitle");
-  const body = kind === "empty" ? t("emptyBody", { sym: symbol ?? "" }) : t("errorBody");
+  const title = kind === "empty" ? t("emptyTitle") : kind === "unavailable" ? t("unavailableTitle") : t("errorTitle");
+  const body = kind === "empty" ? t("emptyBody", { sym: symbol ?? "" })
+    : kind === "unavailable" ? t("unavailableBody", { sym: symbol ?? "" }) : t("errorBody");
   return (
     <div className="embed-empty">
       <svg className="embed-empty-glyph" viewBox="0 0 48 32" width="48" height="32" aria-hidden="true">
@@ -629,8 +698,8 @@ function EmptyOrError({
         />
       </svg>
       <div className="embed-empty-title">{title}</div>
-      <div className="embed-empty-body">{body}</div>
-      {kind === "empty" && symbol ? (
+      <div className="embed-empty-body" style={kind === "unavailable" ? { color: pal.text } : undefined}>{body}</div>
+      {kind !== "error" && symbol ? (
         <a className="embed-empty-link" href={terminalHref} target="_blank" rel="noopener noreferrer" style={{ color: pal.brand }}>
           {t("openTerminal")} <span aria-hidden="true">↗</span>
         </a>
@@ -645,7 +714,7 @@ export function EmbedError({ theme, lang, transparent }: { theme: ThemeName; lan
   const t = makeT(lang);
   useTransparentRoot(transparent);
   return (
-    <div className="embed-root" data-theme={theme} data-transparent={transparent ? "1" : "0"}>
+    <div className="embed-root" lang={lang === "zh" ? "zh-CN" : "en"} data-theme={theme} data-transparent={transparent ? "1" : "0"}>
       <div className="embed-body embed-body-solo">
         <EmptyOrError kind="error" symbol={null} terminalHref={TERMINAL_BASE} pal={pal} t={t} />
       </div>
@@ -655,10 +724,10 @@ export function EmbedError({ theme, lang, transparent }: { theme: ThemeName; lan
 }
 
 // ── Scoped styles (component-owned; palette drives every color via CSS custom props) ──
-function StyleTag({ pal }: { pal: EmbedPalette }) {
+function StyleTag({ pal, fullscreenBackground = pal.pageBg }: { pal: EmbedPalette; fullscreenBackground?: string }) {
   const css = `
   .embed-root{
-    --e-page:${pal.pageBg}; --e-text:${pal.text}; --e-dim:${pal.textDim}; --e-muted:${pal.muted};
+    --e-fullscreen:${fullscreenBackground}; --e-page:${pal.pageBg}; --e-text:${pal.text}; --e-dim:${pal.textDim}; --e-muted:${pal.muted};
     --e-chip:${pal.chipBg}; --e-chip-active:${pal.chipActiveBg}; --e-chip-border:${pal.chipBorder};
     --e-up:${pal.up}; --e-down:${pal.down}; --e-brand:${pal.brand}; --e-skel-base:${pal.skelBase};
     position:fixed; inset:0; display:flex; flex-direction:column; background:var(--e-page);
@@ -666,13 +735,20 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
     font-family:var(--font-inter),-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     -webkit-font-smoothing:antialiased; letter-spacing:.005em;
   }
+  .embed-root:fullscreen{width:100%;height:100%;background:var(--e-fullscreen);}
+  .embed-root::backdrop{background:var(--e-fullscreen);}
+  .embed-fullscreen-note{flex:none;order:0;margin:0;padding:10px 12px;font-size:13px;line-height:1.5;color:var(--e-text);background:var(--e-chip);overflow-wrap:anywhere;}
   .embed-root .num{font-family:var(--font-inter),-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
   .embed-root *{box-sizing:border-box;}
+  .embed-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap;border:0;}
 
   /* Header — one compact line, wraps to two on narrow phones. */
   .embed-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
     padding:8px 12px 7px;min-height:38px;}
-  .embed-head-quote{display:flex;align-items:baseline;gap:10px;min-width:0;flex:1 1 auto;}
+  .embed-head-quote{display:flex;align-items:baseline;gap:3px 10px;min-width:0;flex:1 1 auto;flex-wrap:wrap;}
+  .embed-date{flex-basis:100%;font-size:10.5px;line-height:1.4;color:var(--e-text);}
+  .embed-date time{font-variant-numeric:tabular-nums;}
   .embed-root[data-hdr="0"] .embed-head-quote{display:none;}
   .embed-ticker{font-weight:700;font-size:15px;letter-spacing:.02em;color:var(--e-text);flex:none;}
   .embed-day{display:inline-flex;align-items:baseline;gap:8px;min-width:0;}
@@ -689,7 +765,8 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
   .embed-ohlc-vol{color:var(--e-muted);font-size:10.5px;}
 
   /* Range chips. */
-  .embed-ranges{display:flex;align-items:center;gap:3px;flex:none;overflow-x:auto;scrollbar-width:none;max-width:100%;}
+  .embed-range-controls{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;flex:1 1 auto;}
+  .embed-ranges{display:flex;align-items:center;gap:3px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none;max-width:100%;}
   .embed-ranges::-webkit-scrollbar{display:none;}
   .embed-chip{flex:none;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;letter-spacing:.02em;
     color:var(--e-muted);background:transparent;border:1px solid transparent;cursor:pointer;
@@ -707,26 +784,25 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
   .embed-ribbon{position:absolute;top:0;left:0;right:0;height:2px;pointer-events:none;z-index:6;
     background:linear-gradient(90deg,var(--ribbon-color) 0%,color-mix(in srgb,var(--ribbon-color) 45%,transparent) 55%,transparent 100%);
     transform-origin:left center;animation:embedRibbon 640ms cubic-bezier(.22,1,.36,1) both;}
-  .embed-ribbon.no-anim{animation:none;}
   @keyframes embedRibbon{from{transform:scaleX(0);opacity:.2;}to{transform:scaleX(1);opacity:1;}}
 
   /* Legend — quiet, bottom-left, floated ABOVE the LWC time-axis strip (~22px) so it never
      collides with the date labels the chart canvas paints along the bottom edge. */
-  .embed-head-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+  .embed-head-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;min-width:0;max-width:100%;}
   .embed-legend{display:flex;gap:7px;}
   .embed-leg{display:inline-flex;align-items:center;gap:5px;padding:2px 6px;border-radius:5px;
     font-size:10.5px;font-weight:600;letter-spacing:.02em;color:var(--e-muted);
     background:color-mix(in srgb,var(--e-page) 62%,transparent);border:1px solid transparent;cursor:pointer;
     transition:color 120ms,background 120ms,opacity 120ms;}
   .embed-leg:hover{color:var(--e-text);}
-  .embed-leg.is-off{opacity:.4;}
+  .embed-leg.is-off{text-decoration:line-through;text-decoration-thickness:1px;}
   .embed-leg.is-off .embed-leg-dot{opacity:.5;}
   .embed-leg:focus-visible{outline:2px solid var(--e-brand);outline-offset:1px;}
   .embed-leg-dot{width:12px;height:2.5px;border-radius:2px;flex:none;}
 
-  /* Attribution — bottom-right, whisper-quiet, floated above the time-axis strip, brightens on hover. */
-  .embed-attr{position:absolute;left:10px;bottom:6px;z-index:7;display:inline-flex;align-items:center;gap:3px;
-    padding:2px 5px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.03em;
+  /* Attribution owns a row outside the canvas; no guessed time-axis height or plot overlay. */
+  .embed-attr{flex:0 0 auto;align-self:flex-start;display:inline-flex;align-items:center;gap:3px;
+    margin:2px 10px 4px;min-height:24px;padding:3px 5px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.03em;
     color:var(--e-dim);background:color-mix(in srgb,var(--e-page) 55%,transparent);
     transition:color 120ms cubic-bezier(.4,0,.2,1);}
   .embed-attr:hover{color:var(--e-text);}
@@ -739,7 +815,6 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
     gap:2%;padding:14% 8% 20%;}
   .embed-skel-candle{width:3.2%;border-radius:2px;background:var(--e-skel-base);}
   .embed-skel-shimmer{position:absolute;inset:0;transform:translateX(-100%);animation:embedShimmer 1.35s ease-in-out infinite;}
-  .embed-skel.no-anim .embed-skel-shimmer{display:none;}
   @keyframes embedShimmer{100%{transform:translateX(100%);}}
 
   /* Empty / error. */
@@ -760,7 +835,7 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
      the tab/reading order is unchanged for assistive tech, which reads it as the widget's
      footer controls). .embed-body keeps flex:1 1 auto, so the absolute-inset chart host still
      sizes to whatever height is left over. Full-bleed row: the chips' own 12px padding is the
-     only inset, and the ⤢ square keeps its margin-left:auto right-end anchor. */
+     only inset; the ⤢ square has its own space outside the scrolling range strip. */
   .embed-root[data-clean="1"] .embed-body{order:1;}
   .embed-root[data-clean="1"] .embed-header{order:2;padding:2px 0 8px;min-height:0;}
   /* clean+hdr=1: the header is now the widget's FOOTER, so the quote line needs the inset back
@@ -773,7 +848,8 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
   /* flex-basis:100% ⇒ the chips always own a full row (the header is flex-wrap:wrap), so
      clean+hdr=1 puts them under the quote instead of fighting it for the same line. */
   .embed-root[data-clean="1"] .embed-head-right{flex:1 1 100%;justify-content:flex-start;gap:0;}
-  .embed-root[data-clean="1"] .embed-ranges{width:100%;gap:4px;align-items:center;}
+  .embed-root[data-clean="1"] .embed-range-controls{width:100%;}
+  .embed-root[data-clean="1"] .embed-ranges{gap:4px;align-items:center;}
   /* TV capsules: Semibold 13.5px, selected #2E2E2E on #DBDBDB, unselected transparent on #8C8C8C. */
   .embed-root[data-clean="1"] .embed-chip{
     padding:6px 12px;border-radius:999px;border:0;background:transparent;
@@ -782,19 +858,29 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
   .embed-root[data-clean="1"] .embed-chip.is-active,
   .embed-root[data-clean="1"] .embed-chip.is-active:hover{background:#2e2e2e;color:#dbdbdb;border:0;}
   /* fs=1 — the ⤢ corner-bracket square, pinned to the right end of the range row. */
-  .embed-fs{flex:none;margin-left:auto;width:34px;height:34px;display:inline-flex;align-items:center;
-    justify-content:center;border-radius:8px;background:transparent;border:0;color:#8c8c8c;cursor:pointer;
+  .embed-fs{flex:none;margin-left:auto;width:44px;height:44px;display:inline-flex;align-items:center;
+    justify-content:center;border-radius:8px;background:transparent;border:0;color:var(--e-muted);cursor:pointer;
     transition:color 120ms cubic-bezier(.4,0,.2,1),background 120ms cubic-bezier(.4,0,.2,1);}
-  .embed-fs:hover{color:#dbdbdb;}
-  .embed-fs:focus-visible{outline:2px solid var(--e-brand);outline-offset:1px;}
+  .embed-fs:hover{color:var(--e-text);background:var(--e-chip);}
+  .embed-fs:disabled{opacity:.6;cursor:wait;}
+  .embed-fs:focus-visible{outline:2px solid var(--e-brand);outline-offset:-3px;}
+
+  .embed-root[data-hdr="0"]:fullscreen .embed-head-quote{display:flex;}
+  .embed-root[data-clean="1"]:fullscreen .embed-header{order:0;padding:8px 12px;}
+  .embed-root[data-clean="1"]:fullscreen .embed-attr{display:flex;order:3;}
+  .embed-root[data-clean="1"] .embed-fullscreen-note{order:3;}
 
   /* Narrow phones (~360px): header stacks, keep everything inside the frame. */
   @media (max-width:430px){
     .embed-header{padding:7px 10px 6px;gap:6px;}
     .embed-ticker{font-size:14px;}
     .embed-last{font-size:14px;}
-    .embed-ranges{width:100%;order:3;}
+    .embed-head-right{width:100%;}
+    .embed-range-controls{width:100%;order:3;}
     .embed-ohlc{font-size:10.5px;gap:7px;}
+  }
+  @media (pointer:coarse){
+    .embed-attr{min-height:44px;}
   }
   @media (prefers-reduced-motion:reduce){
     .embed-ribbon{animation:none;}

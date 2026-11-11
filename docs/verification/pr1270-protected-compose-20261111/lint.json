@@ -1,0 +1,15 @@
+{
+  "name": "lint",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/eslint/bin/eslint.js",
+    "lib/__tests__/transcriptDrawerFocus.test.tsx"
+  ],
+  "cwd": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3/terminal",
+  "started_at": "2026-11-11T19:56:38.173826+00:00",
+  "completed_at": "2026-11-11T19:56:41.626309+00:00",
+  "rc": 0,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "log_bytes": 0,
+  "tail": ""
+}

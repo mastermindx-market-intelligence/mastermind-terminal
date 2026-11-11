@@ -1,0 +1,23 @@
+{
+  "at": "2026-11-11T19:02:55.379125+00:00",
+  "head": "75a390d6891830a8bfa47a43a804e4dfe8d939df",
+  "before": {
+    "terminal/lib/__tests__/helpers/d06CaptureDependency.ts": "630095f3511932a66d9031452cc68f66a2fc76575b43c98412278deecc20689c",
+    "terminal/lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts": "c1f73f1bfb17905e25398a34c5b878b997c785ef6e5949bf604f41a103b87e37",
+    "terminal/lib/__tests__/b_f08_8InvalidationEvidence.test.ts": "1953c148d37595f369d77628cd5d08c6191488c448c3e8e3fd292217f7dc52ea",
+    "terminal/lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts": "8447b47680eb563cb0f4339355018e0089e49e0a1c9880588123afdbdf4f2250",
+    "terminal/lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts": "f14c264fa773734c21a30ea1640350217852adae7fd7c021ca687d59d11f2440",
+    "terminal/lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts": "60a75d6c54a41da5d465e4cde4dabd752ca2d48069a145049a36e00e821e0685",
+    "terminal/lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts": "48c6c0af6e3e2f1149ef840ca9c939e58a2eee556e7563bf7e28a2b9f305d781",
+    "terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts": "717aabd0b11691d65178e6ac7cdb0e7f5664d784f1e6fdfb5b907dd90f6d369f",
+    "terminal/lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts": "2b16e0294525a781929ea29a2ca2cfae47dec8a082efd0cf6ce8740dde33c1b3",
+    "terminal/lib/__tests__/d06CaptureDependency.test.ts": "a503ef0eba7cbe3715b84c3479ed84f36750e3850818d38bc35892d6972a0902"
+  },
+  "new_fixtures": [
+    "ChartPanel-efafc117.tsx.gz",
+    "runtime-f11-EVIDENCE.yml",
+    "runtime-batch2-EVIDENCE.yml",
+    "README.md",
+    "provenance.json"
+  ]
+}

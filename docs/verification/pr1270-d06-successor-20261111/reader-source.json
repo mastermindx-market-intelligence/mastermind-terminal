@@ -1,0 +1,27 @@
+[
+  {
+    "path": "terminal/e2e/tools/optionsExposureEvidence.cjs",
+    "beforeSha256": "753ff1d32da23b7e0b95268aeb20b08b2e6934f6a48cdfda08199bdb38749972",
+    "afterSha256": "7b2ec8e902b9f4d6bd464db9b778ec968cee6dbf918728bb7fd9a9487148a510"
+  },
+  {
+    "path": "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+    "beforeSha256": "1af14a94c149698c13f57cc9152a230ea5dd60f84145cfc9e58b02a4bbb11c4a",
+    "afterSha256": "14b2c99dd15a55cd1c34056d4a9e3f76aecd7ca035d82ab8756a6cf2c2e9ae2a"
+  },
+  {
+    "path": "terminal/lib/__tests__/optionsExposureR5Successor.test.ts",
+    "beforeSha256": "706794aaf871a7682398052bbd65885a8a8917bfeda7daea39ec87fa8bb7c929",
+    "afterSha256": "877eed438b54c3fd537dbc1af639b9656c3ed27c331632674a5dcf15e7c41a21"
+  },
+  {
+    "path": "terminal/lib/__tests__/optionsExposureHeatmapCopy.test.ts",
+    "beforeSha256": null,
+    "afterSha256": "2928a014de529c253dcdedb2f438b1b064f681ce8bb264e072998e5c16b002a0"
+  },
+  {
+    "path": "terminal/lib/__tests__/optionsExposureD06Successor.test.ts",
+    "beforeSha256": null,
+    "afterSha256": "2c481123780caa1dfaabee6fe5dd05376a57c8a2887668d2f394ab1737ef35ac"
+  }
+]

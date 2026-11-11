@@ -1,0 +1,804 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/embed-data-state.spec.ts",
+      "--grep",
+      "dates the displayed|preserves compact",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=2",
+      "--retries=0",
+      "--reporter=json",
+      "--output=d06-embed-data-contrast/results"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 50354",
+      "url": "http://127.0.0.1:50354/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "embed-data-state.spec.ts",
+      "file": "embed-data-state.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "preserves compact native variants in short and narrow frames",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2764,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:28:06.104Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "geometry-normal",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDkwMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogOTAwLAogICJzY3JvbGxXaWR0aCI6IDkwMCwKICAicm9vdFdpZHRoIjogOTAwLAogICJyb290U2Nyb2xsV2lkdGgiOiA5MDAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IGZhbHNlLAogICJkYXRlQ29sb3IiOiAicmdiKDIxNCwgMjE4LCAyMjcpIiwKICAiYmFja2dyb3VuZCI6ICJyZ2IoMTAsIDExLCAxNCkiLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiA1NC40Mzc1LAogICAgImJvdHRvbSI6IDI3MCwKICAgICJoZWlnaHQiOiAyMTUuNTYyNQogIH0sCiAgImF0dHJpYnV0aW9uIjogewogICAgInRvcCI6IDI3MiwKICAgICJib3R0b20iOiAyOTYsCiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMTM4LjUzMTI1LAogICAgImhlaWdodCI6IDI0CiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiA0NDQuNTMxMjUsCiAgICAiaGVpZ2h0IjogMTQuNjg3NQogIH0sCiAgImRhdGVDb250cmFzdCI6IDE0LjA1Mzc2NjYxNzg4NjEwOAp9"
+                    },
+                    {
+                      "name": "normal",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/normal-6854b659e7f3fe818aa7b793811c210651a55342.png"
+                    },
+                    {
+                      "name": "geometry-hidden-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDkwMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogOTAwLAogICJzY3JvbGxXaWR0aCI6IDkwMCwKICAicm9vdFdpZHRoIjogOTAwLAogICJyb290U2Nyb2xsV2lkdGgiOiA5MDAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IGZhbHNlLAogICJkYXRlQ29sb3IiOiAicmdiKDIxNCwgMjE4LCAyMjcpIiwKICAiYmFja2dyb3VuZCI6ICJyZ2IoMTAsIDExLCAxNCkiLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiAzOC45Mzc1LAogICAgImJvdHRvbSI6IDI3MCwKICAgICJoZWlnaHQiOiAyMzEuMDYyNQogIH0sCiAgImF0dHJpYnV0aW9uIjogewogICAgInRvcCI6IDI3MiwKICAgICJib3R0b20iOiAyOTYsCiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMTM4LjUzMTI1LAogICAgImhlaWdodCI6IDI0CiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMCwKICAgICJyaWdodCI6IDAsCiAgICAiaGVpZ2h0IjogMAogIH0sCiAgImRhdGVDb250cmFzdCI6IDE0LjA1Mzc2NjYxNzg4NjEwOAp9"
+                    },
+                    {
+                      "name": "hidden-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/hidden-header-03354a13fd68bc0ed7e710fe43761a91458e72d3.png"
+                    },
+                    {
+                      "name": "geometry-clean-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDkwMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogOTAwLAogICJzY3JvbGxXaWR0aCI6IDkwMCwKICAicm9vdFdpZHRoIjogOTAwLAogICJyb290U2Nyb2xsV2lkdGgiOiA5MDAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IGZhbHNlLAogICJkYXRlQ29sb3IiOiAicmdiKDIxNCwgMjE4LCAyMjcpIiwKICAiYmFja2dyb3VuZCI6ICJyZ2IoMTAsIDExLCAxNCkiLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiAwLAogICAgImJvdHRvbSI6IDIwNi41NjI1LAogICAgImhlaWdodCI6IDIwNi41NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMCwKICAgICJib3R0b20iOiAwLAogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiA4ODgsCiAgICAiaGVpZ2h0IjogMTQuNjg3NQogIH0sCiAgImRhdGVDb250cmFzdCI6IDE0LjA1Mzc2NjYxNzg4NjEwOAp9"
+                    },
+                    {
+                      "name": "clean-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/clean-header-b77419c405e30f2ad4c7b46dce5df44460bf45d5.png"
+                    },
+                    {
+                      "name": "geometry-clean-hidden",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDkwMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogOTAwLAogICJzY3JvbGxXaWR0aCI6IDkwMCwKICAicm9vdFdpZHRoIjogOTAwLAogICJyb290U2Nyb2xsV2lkdGgiOiA5MDAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IGZhbHNlLAogICJkYXRlQ29sb3IiOiAicmdiKDIxNCwgMjE4LCAyMjcpIiwKICAiYmFja2dyb3VuZCI6ICJyZ2JhKDAsIDAsIDAsIDApIiwKICAiY2hhcnQiOiB7CiAgICAidG9wIjogMCwKICAgICJib3R0b20iOiAyNTYsCiAgICAiaGVpZ2h0IjogMjU2CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMCwKICAgICJib3R0b20iOiAwLAogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMCwKICAgICJyaWdodCI6IDAsCiAgICAiaGVpZ2h0IjogMAogIH0sCiAgImRhdGVDb250cmFzdCI6IG51bGwKfQ=="
+                    },
+                    {
+                      "name": "clean-hidden",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/clean-hidden-0e99008e6eecc4e9897d922062ff0b33e37ac93a.png"
+                    },
+                    {
+                      "name": "unavailable-contrast",
+                      "contentType": "application/json",
+                      "body": "eyJmb3JlZ3JvdW5kIjoicmdiKDI2LCAyOSwgMzYpIiwiYmFja2dyb3VuZCI6InJnYigyNTUsIDI1NSwgMjU1KSIsImNvbnRyYXN0IjoxNi44NjU1MjgzODk1MTIzM30="
+                    },
+                    {
+                      "name": "clean-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/clean-unavailable-dbf7927ff04cf15c0b034f98c10d26372224d76f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e7e3b37fbb022ea4b11a-7f8c9ace666f9022be16",
+          "file": "embed-data-state.spec.ts",
+          "line": 185,
+          "column": 5
+        },
+        {
+          "title": "preserves compact native variants in short and narrow frames",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2776,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:28:09.318Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "geometry-normal",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjYsIDI5LCAzNikiLAogICJiYWNrZ3JvdW5kIjogInJnYigyNTUsIDI1NSwgMjU1KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDExMi4xNDA2MjUsCiAgICAiYm90dG9tIjogMjUwLAogICAgImhlaWdodCI6IDEzNy44NTkzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAyNTIsCiAgICAiYm90dG9tIjogMjk2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMzgwLAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9LAogICJkYXRlQ29udHJhc3QiOiAxNi44NjU1MjgzODk1MTIzMwp9"
+                    },
+                    {
+                      "name": "normal",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/normal-19f0c6082fb924b6f482e6b1b54799285e7d86aa.png"
+                    },
+                    {
+                      "name": "geometry-hidden-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjYsIDI5LCAzNikiLAogICJiYWNrZ3JvdW5kIjogInJnYigyNTUsIDI1NSwgMjU1KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDY4LjE1NjI1LAogICAgImJvdHRvbSI6IDI1MCwKICAgICJoZWlnaHQiOiAxODEuODQzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAyNTIsCiAgICAiYm90dG9tIjogMjk2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9LAogICJkYXRlQ29udHJhc3QiOiAxNi44NjU1MjgzODk1MTIzMwp9"
+                    },
+                    {
+                      "name": "hidden-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/hidden-header-4d3e3eb9ae945d2f4d4136efd5f4d3def1cca10b.png"
+                    },
+                    {
+                      "name": "geometry-clean-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjYsIDI5LCAzNikiLAogICJiYWNrZ3JvdW5kIjogInJnYigyNTUsIDI1NSwgMjU1KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDAsCiAgICAiYm90dG9tIjogMjEyLjAxNTYyNSwKICAgICJoZWlnaHQiOiAyMTIuMDE1NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMCwKICAgICJib3R0b20iOiAwLAogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiAzNzgsCiAgICAiaGVpZ2h0IjogMTQuNjg3NQogIH0sCiAgImRhdGVDb250cmFzdCI6IDE2Ljg2NTUyODM4OTUxMjMzCn0="
+                    },
+                    {
+                      "name": "clean-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/clean-header-26d10860fface2ed0b7f8a7e3b995bcfce5830ae.png"
+                    },
+                    {
+                      "name": "geometry-clean-hidden",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjYsIDI5LCAzNikiLAogICJiYWNrZ3JvdW5kIjogInJnYmEoMCwgMCwgMCwgMCkiLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiAwLAogICAgImJvdHRvbSI6IDI1NiwKICAgICJoZWlnaHQiOiAyNTYKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAwLAogICAgImJvdHRvbSI6IDAsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZUNvbnRyYXN0IjogbnVsbAp9"
+                    },
+                    {
+                      "name": "clean-hidden",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/clean-hidden-68231df8cdcb6ed7958e1b84dae71f62aa74703d.png"
+                    },
+                    {
+                      "name": "unavailable-contrast",
+                      "contentType": "application/json",
+                      "body": "eyJmb3JlZ3JvdW5kIjoicmdiKDI2LCAyOSwgMzYpIiwiYmFja2dyb3VuZCI6InJnYigyNTUsIDI1NSwgMjU1KSIsImNvbnRyYXN0IjoxNi44NjU1MjgzODk1MTIzM30="
+                    },
+                    {
+                      "name": "clean-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/clean-unavailable-ac193a75eeeaa9445238842b60875914774602f8.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e7e3b37fbb022ea4b11a-3273179186e573ca088e",
+          "file": "embed-data-state.spec.ts",
+          "line": 185,
+          "column": 5
+        },
+        {
+          "title": "preserves compact native variants in short and narrow frames",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2236,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:28:12.251Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "geometry-normal",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDMyMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzIwLAogICJzY3JvbGxXaWR0aCI6IDMyMCwKICAicm9vdFdpZHRoIjogMzIwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzMjAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjE0LCAyMTgsIDIyNykiLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDExMi4xNDA2MjUsCiAgICAiYm90dG9tIjogMjUwLAogICAgImhlaWdodCI6IDEzNy44NTkzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAyNTIsCiAgICAiYm90dG9tIjogMjk2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMzEwLAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9LAogICJkYXRlQ29udHJhc3QiOiAxNC4wNTM3NjY2MTc4ODYxMDgKfQ=="
+                    },
+                    {
+                      "name": "normal",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/normal-8c0e4711599680d252266a463f8b878dd9d32654.png"
+                    },
+                    {
+                      "name": "geometry-hidden-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDMyMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzIwLAogICJzY3JvbGxXaWR0aCI6IDMyMCwKICAicm9vdFdpZHRoIjogMzIwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzMjAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjE0LCAyMTgsIDIyNykiLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDY4LjE1NjI1LAogICAgImJvdHRvbSI6IDI1MCwKICAgICJoZWlnaHQiOiAxODEuODQzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAyNTIsCiAgICAiYm90dG9tIjogMjk2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9LAogICJkYXRlQ29udHJhc3QiOiAxNC4wNTM3NjY2MTc4ODYxMDgKfQ=="
+                    },
+                    {
+                      "name": "hidden-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/hidden-header-9eb0ac0e4b4ebf9a8aeb50953df9247ba135784a.png"
+                    },
+                    {
+                      "name": "geometry-clean-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDMyMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzIwLAogICJzY3JvbGxXaWR0aCI6IDMyMCwKICAicm9vdFdpZHRoIjogMzIwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzMjAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjE0LCAyMTgsIDIyNykiLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDAsCiAgICAiYm90dG9tIjogMjEyLjAxNTYyNSwKICAgICJoZWlnaHQiOiAyMTIuMDE1NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMCwKICAgICJib3R0b20iOiAwLAogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiAzMDgsCiAgICAiaGVpZ2h0IjogMTQuNjg3NQogIH0sCiAgImRhdGVDb250cmFzdCI6IDE0LjA1Mzc2NjYxNzg4NjEwOAp9"
+                    },
+                    {
+                      "name": "clean-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/clean-header-78e0fbe4b3dc9fde120974959cd944a7a7952bce.png"
+                    },
+                    {
+                      "name": "geometry-clean-hidden",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDMyMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzIwLAogICJzY3JvbGxXaWR0aCI6IDMyMCwKICAicm9vdFdpZHRoIjogMzIwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzMjAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjE0LCAyMTgsIDIyNykiLAogICJiYWNrZ3JvdW5kIjogInJnYmEoMCwgMCwgMCwgMCkiLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiAwLAogICAgImJvdHRvbSI6IDI1NiwKICAgICJoZWlnaHQiOiAyNTYKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAwLAogICAgImJvdHRvbSI6IDAsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZUNvbnRyYXN0IjogbnVsbAp9"
+                    },
+                    {
+                      "name": "clean-hidden",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/clean-hidden-b3e099dc4ed88fbbaf7b290a99a10d241f33bc8d.png"
+                    },
+                    {
+                      "name": "unavailable-contrast",
+                      "contentType": "application/json",
+                      "body": "eyJmb3JlZ3JvdW5kIjoicmdiKDI2LCAyOSwgMzYpIiwiYmFja2dyb3VuZCI6InJnYigyNTUsIDI1NSwgMjU1KSIsImNvbnRyYXN0IjoxNi44NjU1MjgzODk1MTIzM30="
+                    },
+                    {
+                      "name": "clean-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/clean-unavailable-87c06d54b2a6160b49950d8b3b084dac61b02aea.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e7e3b37fbb022ea4b11a-21f2e914b427b539e1ea",
+          "file": "embed-data-state.spec.ts",
+          "line": 185,
+          "column": 5
+        }
+      ],
+      "suites": [
+        {
+          "title": "daily data en",
+          "file": "embed-data-state.spec.ts",
+          "line": 77,
+          "column": 8,
+          "specs": [
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1162,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:28:04.560Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-desktop/attachments/en-ready-1e7d3377edfcc4e2e36097fd7aaea869a698e5a1.png"
+                        },
+                        {
+                          "name": "geometry-en-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MCwKICAicm9vdFdpZHRoIjogMTQ0MCwKICAicm9vdFNjcm9sbFdpZHRoIjogMTQ0MCwKICAicm9vdFNjcm9sbExlZnQiOiAwLAogICJjb2Fyc2VQb2ludGVyIjogZmFsc2UsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjE0LCAyMTgsIDIyNykiLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDU0LjQzNzUsCiAgICAiYm90dG9tIjogODcwLAogICAgImhlaWdodCI6IDgxNS41NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogODcyLAogICAgImJvdHRvbSI6IDg5NiwKICAgICJsZWZ0IjogMTAsCiAgICAicmlnaHQiOiAxMzguNTMxMjUsCiAgICAiaGVpZ2h0IjogMjQKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAxMiwKICAgICJyaWdodCI6IDk4NC41MzEyNSwKICAgICJoZWlnaHQiOiAxNC42ODc1CiAgfSwKICAiZGF0ZUNvbnRyYXN0IjogMTQuMDUzNzY2NjE3ODg2MTA4Cn0="
+                        },
+                        {
+                          "name": "en-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-desktop/attachments/en-attribution-focus-02de81c4ece160940e0660c1e9db14548753e58a.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-fc2c0b8f71e766102351",
+              "file": "embed-data-state.spec.ts",
+              "line": 86,
+              "column": 9
+            },
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1373,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:28:06.526Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-tablet/attachments/en-ready-abd11fa9e918bbd830f6e349214011ad2d67a564.png"
+                        },
+                        {
+                          "name": "geometry-en-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAsCiAgInJvb3RXaWR0aCI6IDgyMCwKICAicm9vdFNjcm9sbFdpZHRoIjogODIwLAogICJyb290U2Nyb2xsTGVmdCI6IDAsCiAgImNvYXJzZVBvaW50ZXIiOiB0cnVlLAogICJkYXRlQ29sb3IiOiAicmdiKDIxNCwgMjE4LCAyMjcpIiwKICAiYmFja2dyb3VuZCI6ICJyZ2IoMTAsIDExLCAxNCkiLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiA4OC4zNzUsCiAgICAiYm90dG9tIjogMTEzMCwKICAgICJoZWlnaHQiOiAxMDQxLjYyNQogIH0sCiAgImF0dHJpYnV0aW9uIjogewogICAgInRvcCI6IDExMzIsCiAgICAiYm90dG9tIjogMTE3NiwKICAgICJsZWZ0IjogMTAsCiAgICAicmlnaHQiOiAxMzguNTMxMjUsCiAgICAiaGVpZ2h0IjogNDQKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAxMiwKICAgICJyaWdodCI6IDgwOCwKICAgICJoZWlnaHQiOiAxNC42ODc1CiAgfSwKICAiZGF0ZUNvbnRyYXN0IjogMTQuMDUzNzY2NjE3ODg2MTA4Cn0="
+                        },
+                        {
+                          "name": "en-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-tablet/attachments/en-attribution-focus-f94bf4c736cf999d99c668a560d249ff34d03ce9.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-f2809988fff801a1e855",
+              "file": "embed-data-state.spec.ts",
+              "line": 86,
+              "column": 9
+            },
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1285,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:28:09.504Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-mobile/attachments/en-ready-6a8c97b9cadfb33a66ead7d8259815ea59f5c155.png"
+                        },
+                        {
+                          "name": "geometry-en-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjE0LCAyMTgsIDIyNykiLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDExMi4xNDA2MjUsCiAgICAiYm90dG9tIjogNzk0LAogICAgImhlaWdodCI6IDY4MS44NTkzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiA3OTYsCiAgICAiYm90dG9tIjogODQwLAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMzgwLAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9LAogICJkYXRlQ29udHJhc3QiOiAxNC4wNTM3NjY2MTc4ODYxMDgKfQ=="
+                        },
+                        {
+                          "name": "en-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-mobile/attachments/en-attribution-focus-b593a64387f0466b56fd06158594112757244385.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-adfccddf44b864fee95d",
+              "file": "embed-data-state.spec.ts",
+              "line": 86,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "daily data zh",
+          "file": "embed-data-state.spec.ts",
+          "line": 77,
+          "column": 8,
+          "specs": [
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1181,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:28:04.565Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-desktop/attachments/zh-ready-7469f61c513e31677977a28501a97a33e3601936.png"
+                        },
+                        {
+                          "name": "geometry-zh-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MCwKICAicm9vdFdpZHRoIjogMTQ0MCwKICAicm9vdFNjcm9sbFdpZHRoIjogMTQ0MCwKICAicm9vdFNjcm9sbExlZnQiOiAwLAogICJjb2Fyc2VQb2ludGVyIjogZmFsc2UsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjYsIDI5LCAzNikiLAogICJiYWNrZ3JvdW5kIjogInJnYigyNTUsIDI1NSwgMjU1KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDU0LjQzNzUsCiAgICAiYm90dG9tIjogODcwLAogICAgImhlaWdodCI6IDgxNS41NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogODcyLAogICAgImJvdHRvbSI6IDg5NiwKICAgICJsZWZ0IjogMTAsCiAgICAicmlnaHQiOiAxMzguNTMxMjUsCiAgICAiaGVpZ2h0IjogMjQKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAxMiwKICAgICJyaWdodCI6IDk4NC41MzEyNSwKICAgICJoZWlnaHQiOiAxNC42ODc1CiAgfSwKICAiZGF0ZUNvbnRyYXN0IjogMTYuODY1NTI4Mzg5NTEyMzMKfQ=="
+                        },
+                        {
+                          "name": "zh-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-desktop/attachments/zh-attribution-focus-9da847a2568c09e53c87a8033b661a386ff47a35.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-8d780b0d3296badf2a87",
+              "file": "embed-data-state.spec.ts",
+              "line": 86,
+              "column": 9
+            },
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 977,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:28:08.106Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-tablet/attachments/zh-ready-0fcbe8033061111092dfa51123fa1794427d59f5.png"
+                        },
+                        {
+                          "name": "geometry-zh-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAsCiAgInJvb3RXaWR0aCI6IDgyMCwKICAicm9vdFNjcm9sbFdpZHRoIjogODIwLAogICJyb290U2Nyb2xsTGVmdCI6IDAsCiAgImNvYXJzZVBvaW50ZXIiOiB0cnVlLAogICJkYXRlQ29sb3IiOiAicmdiKDI2LCAyOSwgMzYpIiwKICAiYmFja2dyb3VuZCI6ICJyZ2IoMjU1LCAyNTUsIDI1NSkiLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiA1NC40Mzc1LAogICAgImJvdHRvbSI6IDExMzAsCiAgICAiaGVpZ2h0IjogMTA3NS41NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMTEzMiwKICAgICJib3R0b20iOiAxMTc2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEyLAogICAgInJpZ2h0IjogMzY0LjUzMTI1LAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9LAogICJkYXRlQ29udHJhc3QiOiAxNi44NjU1MjgzODk1MTIzMwp9"
+                        },
+                        {
+                          "name": "zh-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-tablet/attachments/zh-attribution-focus-5faf56370b8b4a030093f93839560fcefeba265c.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-08e9f87b2f5942f5898e",
+              "file": "embed-data-state.spec.ts",
+              "line": 86,
+              "column": 9
+            },
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1212,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:28:11.026Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-mobile/attachments/zh-ready-f16aaae94a3f81ec5530a3ddf0b7ab2a04de0ba4.png"
+                        },
+                        {
+                          "name": "geometry-zh-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImRhdGVDb2xvciI6ICJyZ2IoMjYsIDI5LCAzNikiLAogICJiYWNrZ3JvdW5kIjogInJnYigyNTUsIDI1NSwgMjU1KSIsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDExMi4xNDA2MjUsCiAgICAiYm90dG9tIjogNzk0LAogICAgImhlaWdodCI6IDY4MS44NTkzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiA3OTYsCiAgICAiYm90dG9tIjogODQwLAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMzgwLAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9LAogICJkYXRlQ29udHJhc3QiOiAxNi44NjU1MjgzODk1MTIzMwp9"
+                        },
+                        {
+                          "name": "zh-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-contrast/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-mobile/attachments/zh-attribution-focus-bd7a427d057a04a951ef2361be0d97f1636389ed.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-486f432011ce9d3eb8d0",
+              "file": "embed-data-state.spec.ts",
+              "line": 86,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T07:27:56.813Z",
+    "duration": 17863.472,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

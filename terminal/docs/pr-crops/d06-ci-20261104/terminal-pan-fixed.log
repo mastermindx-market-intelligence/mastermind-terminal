@@ -1,0 +1,23 @@
+[warmup] /terminal?symbol=NVDA → 200 in 99ms
+[warmup] /options → 200 in 209ms
+[warmup] /portfolio → 200 in 173ms
+[warmup] /alerts → 200 in 130ms
+[warmup] /analysis → 200 in 202ms
+[warmup] /discover → 200 in 129ms
+[warmup] /admin → 200 in 88ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 74ms
+[warmup] /login → 200 in 101ms
+[warmup] /reset-password → 200 in 94ms
+[warmup] /api/me → 200 in 100ms
+[warmup] /api/watchlist → 200 in 41ms
+[warmup] /api/layouts → 200 in 49ms
+[warmup] /api/watchlist/annotations → 409 in 37ms
+[warmup] 14 routes compiled in 2s
+
+Running 2 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/chart-link-groups.spec.ts:160:7 › multi-chart journeys › AC-E09-01/06: a restored layout links two charts as A and two as B; each group moves alone (13.9s)
+  ✓  2 [desktop] › e2e/chart-link-groups.spec.ts:184:7 › multi-chart journeys › AC-E09-02/04: the chip regroups and narrows sharing without touching symbols, the active pane or other groups (12.4s)
+
+  2 passed (38.1s)

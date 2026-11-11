@@ -1,5 +1,6 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+import { assertD06CapturedFile } from "./helpers/d06CaptureDependency";
+import { assertD06CapturedLexProjection as assertCapturedLexProjection } from "./helpers/d06CaptureDependency";
+// Historical raw pins/crops remain; exact D06 deltas precede the unchanged onboarding-copy projection.
 // Git-free evidence lock for the conductor-fit-badge-zh capture packet (the rail's zh fit chip).
 // The lock is the sha256 of the sources the rail crops draw from, recorded in EVIDENCE.yml
 // layoutFiles. capturedAtHead stays informational. chipText records what each crop's chips said
@@ -92,7 +93,7 @@ describe("conductor-fit-badge-zh evidence lock is the sha256 of the rail's sourc
     }
   });
 
-  it("each layoutFiles sha256 matches the file on disk", () => {
+  it("retains historical layout hashes through the exact recorded D06 dependency delta", () => {
     const recorded = layoutFileMap(text(EVIDENCE));
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
@@ -100,7 +101,8 @@ describe("conductor-fit-badge-zh evidence lock is the sha256 of the rail's sourc
       if (rel === "terminal/lib/i18n.tsx") {
         assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
       } else {
-        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+        if (rel === "terminal/app/globals.css") assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
+        else expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
       }
     }
   });

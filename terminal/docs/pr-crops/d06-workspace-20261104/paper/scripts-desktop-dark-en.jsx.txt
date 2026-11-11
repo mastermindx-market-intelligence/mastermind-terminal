@@ -1,0 +1,263 @@
+(
+    <div style={{ backgroundColor: 'var(--mx-dark-bg)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSynthesis: 'none', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', WebkitFontSmoothing: 'antialiased' }}>
+      <div style={{ backgroundColor: 'var(--mx-dark-bg)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '24px', paddingBlock: '28px', paddingInline: '32px', width: '1440px' }}>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '30px' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 700, letterSpacing: '1.6px', lineHeight: '22px' }}>
+            MASTERMIND
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '22px', marginLeft: '24px' }}>
+            Scripts
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', width: '1376px' }}>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '28px', fontWeight: 700, lineHeight: '36px' }}>
+              Pine Editor
+            </div>
+            <div style={{ backgroundColor: 'var(--mx-dark-panel)', borderColor: 'var(--mx-dark-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', marginLeft: '28px', paddingBlock: '10px', paddingInline: '16px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px' }}>
+                My Momentum ⌄
+              </div>
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+            <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-dark-panel)', borderColor: 'var(--mx-dark-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                Save changes
+              </div>
+            </div>
+            <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-dark-panel)', borderColor: 'var(--mx-dark-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                Add to chart
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-dark-panel)', borderColor: 'var(--mx-dark-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', paddingBlock: '18px', paddingInline: '20px' }}>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '16px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-warn)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '20px', fontWeight: 600, lineHeight: '22px' }}>
+              !
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '15px', fontWeight: 600, lineHeight: '22px' }}>
+                Save not confirmed
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '22px' }}>
+                Your edits are still here. Check the saved version before another save.
+              </div>
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-dark-panel)', borderColor: 'var(--mx-dark-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+              Check saved version
+            </div>
+          </div>
+        </div>
+        <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: '24px', width: '1376px' }}>
+          <div style={{ borderColor: 'var(--mx-dark-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'clip', width: '1016px' }}>
+            <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-dark-panel)', borderBottomColor: 'var(--mx-dark-line)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', paddingBlock: '12px', paddingInline: '16px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                my_momentum.pine
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '22px', marginLeft: '20px' }}>
+                PINE v6 · Unsaved changes
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', marginLeft: 'auto' }}>
+                <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-dark-panel)', borderColor: 'var(--mx-dark-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                    ▷ Run diagnostic
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', minHeight: '440px', paddingBlock: '24px', paddingInline: '20px' }}>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  1
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  //@version=6
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  2
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  indicator("My Momentum", overlay=false)
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  3
+                </div>
+                <div style={{ boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  4
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  length = input.int(14, "RSI length")
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  5
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  source = input.source(close, "Source")
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  6
+                </div>
+                <div style={{ boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  7
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  momentum = ta.rsi(source, length)
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  8
+                </div>
+                <div style={{ boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  9
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  plot(momentum, color=color.blue)
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  10
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  hline(60, "Upper guide")
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  11
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  hline(40, "Lower guide")
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  12
+                </div>
+                <div style={{ boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  13
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  // Read the signal in the chart context.
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                  14
+                </div>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                  // Save this version before adding it.
+                </div>
+              </div>
+            </div>
+            <div style={{ backgroundColor: 'var(--mx-dark-panel)', borderTopColor: 'var(--mx-dark-line)', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '6px', paddingBlock: '20px', paddingInline: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-up)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                ✓ Diagnostic complete · No errors
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px' }}>
+                130 synthetic bars · 1-second run budget
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px' }}>
+                Checks syntax and supported behavior. This is not a market-data backtest.
+              </div>
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '24px', width: '336px' }}>
+            <div style={{ borderColor: 'var(--mx-dark-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '14px', padding: '20px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', letterSpacing: '1.2px', lineHeight: '22px' }}>
+                MY SCRIPTS
+              </div>
+              <div style={{ backgroundColor: 'var(--mx-dark-panel2)', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', gap: '12px', paddingBlock: '14px', paddingInline: '12px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-link)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '20px', lineHeight: '22px' }}>
+                  ƒ
+                </div>
+                <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px' }}>
+                    My Momentum
+                  </div>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '22px' }}>
+                    Pine · Unsaved changes
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', paddingBlock: '8px', paddingInline: '12px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '22px' }}>
+                  My Reversion
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', paddingBlock: '8px', paddingInline: '12px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px' }}>
+                  RM×ST · Protected source
+                </div>
+              </div>
+            </div>
+            <div style={{ borderColor: 'var(--mx-dark-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', letterSpacing: '1.2px', lineHeight: '22px' }}>
+                INPUTS
+              </div>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '22px' }}>
+                  length
+                </div>
+                <div style={{ boxSizing: 'border-box', display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+                  <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-dark-panel)', borderColor: 'var(--mx-dark-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                      −
+                    </div>
+                  </div>
+                  <div style={{ alignSelf: 'center', boxSizing: 'border-box', color: 'var(--mx-dark-text)', flexShrink: 0, fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '22px', textAlign: 'center', width: '32px' }}>
+                    14
+                  </div>
+                  <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-dark-panel)', borderColor: 'var(--mx-dark-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                      +
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px' }}>
+                Input changes are saved with this script.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style={{ borderColor: 'var(--mx-dark-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '5px', paddingBlock: '18px', paddingInline: '20px' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+            Next step · Check the saved version
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px' }}>
+            A confirmed earlier version does not discard newer edits.
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '22px' }}>
+          Design state · Unconfirmed save. The live editor keeps one script, one buffer and the current save token.
+        </div>
+      </div>
+    </div>
+  )

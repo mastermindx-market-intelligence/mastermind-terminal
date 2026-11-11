@@ -1,19 +1,18 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { parseExpectedUpdatedAtMs } from "@/lib/savedScriptStamp";
 
 let searchId: string | null = "script-a";
+const routerPush = vi.fn();
+let compileCancelled = false;
 let compileImpl: (source: string) => Promise<any>;
 let runImpl: (request: any) => Promise<any>;
 const compiledSources: string[] = [];
 const runRequests: any[] = [];
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push: routerPush, replace: vi.fn() }),
   useSearchParams: () => ({ get: (k: string) => (k === "id" ? searchId : null) }),
 }));
 
@@ -72,6 +71,21 @@ function editor(host: HTMLElement) {
   return host.querySelector("textarea") as HTMLTextAreaElement;
 }
 
+function expectLiteralHighlight(host: HTMLElement, source: string) {
+  const code = host.querySelector(".code") as HTMLElement;
+  const lines = Array.from(code.children);
+  expect(lines.map((line) => line.textContent)).toEqual(
+    source.split("\n").map((line) => line === "" ? "\u00a0" : line),
+  );
+  expect(code.querySelector("img, svg, script, iframe, a, tag")).toBeNull();
+  for (const element of code.querySelectorAll("*")) {
+    expect(["DIV", "SPAN"]).toContain(element.tagName);
+    expect(element.getAttributeNames().filter((name) =>
+      name.startsWith("on") || name === "src" || name === "href",
+    )).toEqual([]);
+  }
+}
+
 function saveButton(host: HTMLElement) {
   return Array.from(host.querySelectorAll("button")).find((b) =>
     /peSave|peSaveChanges|peSaving|peSaved|peError/.test(b.textContent || ""),
@@ -91,9 +105,11 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
   let fetchImpl: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
   beforeEach(() => {
+    vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
     searchId = "script-a";
+    routerPush.mockReset(); compileCancelled = false;
     compiledSources.length = 0; runRequests.length = 0;
-    compileImpl = async () => ({ ok: true, errors: [], astId: "ast" });
+    compileImpl = async () => ({ ok: true, errors: [], astId: "ast", cancelled: compileCancelled });
     runImpl = async () => ({ ok: true, errors: [], result: { warnings: [] } });
     fetches.length = 0;
     host = document.createElement("div");
@@ -138,6 +154,77 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
 
   const engineFailure = { ok: false, errors: [{ phase: "runtime", line: 0, col: 0, message: "Pine engine failed to start" }] };
 
+  it("permits one explicit clean-script Add during engine unavailability without claiming a check", async () => {
+    vi.useFakeTimers();
+    compileImpl = async () => engineFailure;
+    await render();
+    await tick(301);
+    expect(host.querySelector('[data-pe-state="engine-unavailable"]')).not.toBeNull();
+    expect(host.querySelector(".console")?.textContent).not.toContain("peCompiledOk");
+    const add = host.querySelector<HTMLButtonElement>("[data-script-add]")!;
+    expect(add.disabled).toBe(false);
+    await act(async () => { add.click(); add.click(); });
+    expect(routerPush).toHaveBeenCalledTimes(1);
+    expect(routerPush).toHaveBeenCalledWith("/terminal?addScript=script-a");
+    expect(fetches).toHaveLength(0);
+  });
+
+  it("keeps Add blocked for completed script errors rather than treating them as engine downtime", async () => {
+    vi.useFakeTimers();
+    compileImpl = async () => ({ ok: false, errors: [{ phase: "parse", line: 1, col: 1, message: "Unexpected token" }] });
+    await render();
+    await tick(301);
+    expect(host.querySelector(".console")?.getAttribute("data-diagnostics-state")).toBe("done");
+    expect(host.querySelector('[data-pe-state="engine-unavailable"]')).toBeNull();
+    const add = host.querySelector<HTMLButtonElement>("[data-script-add]")!;
+    expect(add.disabled).toBe(true);
+    await act(async () => { add.click(); });
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(fetches).toHaveLength(0);
+    expect(runRequests).toHaveLength(0);
+  });
+
+  it.each(["verified receipt", "newer typing", "unverified receipt"] as const)(
+    "preserves unavailable-engine dirty-Add intent and receipt rules: %s", async (outcome) => {
+      vi.useFakeTimers();
+      compileImpl = async () => engineFailure;
+      const pending = deferred<Response>();
+      fetchImpl = () => pending.promise;
+      await render();
+      const captured = A.source + "// UNAVAILABLE-ADD\n";
+      await act(async () => { setTextarea(editor(host), captured); });
+      await tick(301);
+      const add = host.querySelector<HTMLButtonElement>("[data-script-add]")!;
+      expect(add.disabled).toBe(false);
+      await act(async () => { add.click(); });
+      expect(fetches).toHaveLength(1);
+      expect(fetches[0].body).toMatchObject({ id: A.id, source: captured, expected_updated_at: A.updated_at });
+      if (outcome === "newer typing") {
+        await act(async () => { setTextarea(editor(host), captured + "// NEWER\n"); });
+        await tick(301);
+      }
+      await act(async () => {
+        pending.resolve(new Response(JSON.stringify({ ok: true, id: outcome === "unverified receipt" ? "wrong-id" : A.id,
+          updated_at: "2026-10-06T12:00:00.500Z" }), { status: 200, headers: { "Content-Type": "application/json" } }));
+        await Promise.resolve();
+      });
+      if (outcome === "verified receipt") {
+        expect(routerPush).toHaveBeenCalledTimes(1);
+        expect(routerPush).toHaveBeenCalledWith("/terminal?addScript=script-a");
+        await act(async () => { add.click(); });
+        expect(routerPush).toHaveBeenCalledTimes(1);
+      } else {
+        expect(routerPush).not.toHaveBeenCalled();
+        if (outcome === "newer typing") expect(editor(host).value).toBe(captured + "// NEWER\n");
+        else {
+          expect(add.disabled).toBe(true);
+          await act(async () => { add.click(); });
+          expect(fetches).toHaveLength(1);
+        }
+      }
+    },
+  );
+
   it("retires checking and its grace when typing, and a late compile cannot launch a stale dry-run", async () => {
     vi.useFakeTimers();
     const first = deferred<any>(), second = deferred<any>();
@@ -176,7 +263,7 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
     await tick(1000);
     await act(async () => { row(host, B.name).click(); });
     expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
-    expect(editor(host).getAttribute("aria-label")).toBe(B.name + " source");
+    expect(editor(host).getAttribute("aria-label")).toBe(B.name + " script source");
     await act(async () => { first.resolve(engineFailure); });
     expect(host.querySelector('[data-pe-state="engine-unavailable"]')).toBeNull();
     await tick(300);
@@ -225,6 +312,57 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
     expect(runRequests).toHaveLength(1);
     expect(runRequests[0].source).toBe(edited);
     expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
+  });
+
+  it("renders saved source literally while preserving syntax classes and blank lines", async () => {
+    const source = [
+      'indicator("Literal <&> &lt; &#60; &nbsp;")',
+      'var label = "</span><img src=x onerror=alert(1)>"',
+      '// <svg onload=alert(2)><script>plot(34)</script> ta.ema',
+      '\tplot(ta.sma(close, 14) + math.max(2, 3))',
+      'raw <tag> & value >= 8',
+      '',
+      '',
+      '\t ',
+      '',
+    ].join("\n");
+    await render([{ ...A, source }, B]);
+
+    expect(editor(host).value).toBe(source);
+    expectLiteralHighlight(host, source);
+    const tokens = (className: string) => Array.from(
+      host.querySelectorAll(`.code .${className}`), (node) => node.textContent,
+    );
+    expect(tokens("st")).toEqual([
+      '"Literal <&> &lt; &#60; &nbsp;"',
+      '"</span><img src=x onerror=alert(1)>"',
+    ]);
+    expect(tokens("cm")).toEqual(['// <svg onload=alert(2)><script>plot(34)</script> ta.ema']);
+    expect(tokens("fn")).toEqual(["ta.sma", "math.max"]);
+    expect(tokens("kw")).toEqual(["indicator", "var", "plot"]);
+    expect(tokens("nu")).toEqual(["14", "2", "3", "8"]);
+    expect(host.querySelector(".st span, .cm span")).toBeNull();
+  });
+
+  it("keeps textarea edits literal across repeated tokens and trailing blank lines", async () => {
+    await render([A, B]);
+    const source = [
+      'var fresh = "</span><iframe src=javascript:alert(3)>"',
+      'plot(ta.ema(close, 7))',
+      'plot(ta.ema(close, 11))',
+      '// &lt; &#60; &nbsp; <a href=javascript:alert(4)>',
+      '',
+      '',
+    ].join("\n");
+    await act(async () => { setTextarea(editor(host), source); });
+
+    expect(editor(host).value).toBe(source);
+    expectLiteralHighlight(host, source);
+    expect(host.querySelector(".code")?.textContent).not.toContain("My Momentum");
+    expect(Array.from(host.querySelectorAll(".code .fn"), (node) => node.textContent)).toEqual(["ta.ema", "ta.ema"]);
+    expect(Array.from(host.querySelectorAll(".code .kw"), (node) => node.textContent)).toEqual(["var", "plot", "plot"]);
+    expect(Array.from(host.querySelectorAll(".code .nu"), (node) => node.textContent)).toEqual(["7", "11"]);
+    expect(fetches).toHaveLength(0);
   });
 
   it("Cancel closes a dirty-switch dialog and preserves the selected script buffer", async () => {
@@ -467,20 +605,188 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
       }), { status: 200, headers: { "Content-Type": "application/json" } });
       await act(async () => { saveButton(host).click(); });
       await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-      const follow = fetches[fetches.length - 1];
-      expect(follow.body.expected_updated_at, rec.label).toBe(A.updated_at);
-      expect(follow.body.source, rec.label).toContain(`UNVERIFIED-${rec.label}`);
+      expect(fetches, rec.label).toHaveLength(1);
+      expect(saveButton(host).disabled, rec.label).toBe(true);
+      expect(host.querySelector("[data-save-state]")?.getAttribute("data-save-state"), rec.label).toBe("unknown");
     }
   });
 
-  it("source has no undeclared legacy pending-index setters and names the stamp capsule", () => {
-    const srcPath = path.resolve(__dirname, "../../components/PineEditor.tsx");
-    const src = readFileSync(srcPath, "utf8");
-    expect(src).toMatch(/import\s*\{\s*parseExpectedUpdatedAtMs\s*\}\s*from\s*"@\/lib\/savedScriptStamp"/);
-    expect(src).not.toMatch(/\bsetPendingIdx\b/);
-    expect(src).not.toMatch(/\bpendingIdx\b/);
-    expect(src).toMatch(/\bsetPendingTargetId\b/);
-    expect(src).toMatch(/\bpendingTargetIdRef\b/);
-    expect(parseExpectedUpdatedAtMs).toBeTypeOf("function");
+
+  function button(label: string) {
+    return Array.from(host.querySelectorAll<HTMLButtonElement>("button")).find((b) => b.textContent === label || b.getAttribute("aria-label") === label)!;
+  }
+  async function runCheck() {
+    await act(async () => { button("Run diagnostics").click(); await Promise.resolve(); await Promise.resolve(); });
+    expect(host.querySelector("[data-diagnostics-state]")?.getAttribute("data-diagnostics-state")).toBe("done");
+  }
+  function receipt(at = "2026-10-06T12:00:01.000Z") {
+    return new Response(JSON.stringify({ ok: true, id: A.id, updated_at: at }), { status: 200 });
+  }
+  function listResponse(row: Script) { return new Response(JSON.stringify({ scripts: [row, B] }), { status: 200 }); }
+
+  it("Cancel then reopen the same target cannot revive the old save-and-switch ticket", async () => {
+    let release!: (response: Response) => void;
+    fetchImpl = () => new Promise((resolve) => { release = resolve; });
+    await render();
+    await act(async () => { setTextarea(editor(host), A.source + "// ABA"); });
+    await act(async () => { row(host, B.name).click(); });
+    await act(async () => { button("peUnsavedSave").click(); });
+    await act(async () => { button("peUnsavedCancel").click(); });
+    await act(async () => { row(host, B.name).click(); });
+    await act(async () => { release(receipt()); await Promise.resolve(); });
+    expect(host.querySelector("[role=dialog]")).toBeTruthy();
+    expect(host.querySelector(".script-row.on")?.textContent).toContain(A.name);
+    expect(editor(host).value).toContain("ABA");
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(fetches).toHaveLength(1);
   });
+
+  it("newer typing while Add saves an earlier version prevents navigation", async () => {
+    let release!: (response: Response) => void;
+    fetchImpl = () => new Promise((resolve) => { release = resolve; });
+    await render();
+    await act(async () => { setTextarea(editor(host), A.source + "// ATTEMPT"); });
+    await runCheck();
+    await act(async () => { button("peAddToChart").click(); });
+    await act(async () => { setTextarea(editor(host), A.source + "// NEWER"); });
+    await act(async () => { release(receipt()); await Promise.resolve(); });
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(editor(host).value).toContain("NEWER");
+    expect(host.querySelector("[data-save-state]")?.textContent).toContain("newer edits");
+    expect(fetches).toHaveLength(1);
+  });
+
+  it("undoing to the clean baseline cannot bypass an earlier in-flight save", async () => {
+    let release!: (response: Response) => void;
+    fetchImpl = () => new Promise((resolve) => { release = resolve; });
+    await render();
+    await act(async () => { setTextarea(editor(host), A.source + "// SAVING-N"); });
+    await act(async () => { saveButton(host).click(); });
+    await act(async () => { setTextarea(editor(host), A.source); });
+    await runCheck();
+    expect(button("peAddToChart").disabled).toBe(true);
+    await act(async () => { button("peAddToChart").click(); release(receipt()); await Promise.resolve(); });
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(editor(host).value).toBe(A.source);
+    expect(host.querySelector(".console")?.textContent).toContain("peUnsavedChanges");
+  });
+
+  it("a fresh diagnostic request cancels pending Add even with unchanged source", async () => {
+    let release!: (response: Response) => void;
+    fetchImpl = () => new Promise((resolve) => { release = resolve; });
+    await render();
+    await act(async () => { setTextarea(editor(host), A.source + "// CHECK"); });
+    await runCheck();
+    await act(async () => { button("peAddToChart").click(); });
+    compileCancelled = true;
+    await act(async () => { button("Run diagnostics").click(); await Promise.resolve(); });
+    expect(host.querySelector("[data-diagnostics-state]")?.getAttribute("data-diagnostics-state")).toBe("cancelled");
+    await act(async () => { release(receipt()); await Promise.resolve(); });
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(button("peAddToChart").disabled).toBe(true);
+  });
+
+  it("a repeated Add intent has one write and at most one navigation", async () => {
+    let release!: (response: Response) => void;
+    fetchImpl = () => new Promise((resolve) => { release = resolve; });
+    await render();
+    await act(async () => { setTextarea(editor(host), A.source + "// ADD-ONCE"); });
+    await runCheck();
+    await act(async () => { button("peAddToChart").click(); button("peAddToChart").click(); });
+    expect(fetches).toHaveLength(1);
+    await act(async () => { release(receipt()); await Promise.resolve(); });
+    expect(routerPush).toHaveBeenCalledTimes(1);
+    expect(routerPush).toHaveBeenCalledWith("/terminal?addScript=script-a");
+  });
+
+  it("an unchanged readback keeps an unknown save fenced; a newer match retains newer typing", async () => {
+    fetchImpl = async () => { throw new TypeError("transport lost"); };
+    await render();
+    const attempted = A.source + "// ATTEMPT";
+    await act(async () => { setTextarea(editor(host), attempted); });
+    await act(async () => { saveButton(host).click(); await Promise.resolve(); });
+    expect(host.querySelector("[data-save-state]")?.getAttribute("data-save-state")).toBe("unknown");
+    await act(async () => { setTextarea(editor(host), A.source + "// LOCAL-NEWER"); });
+    fetchImpl = async () => listResponse(A);
+    await act(async () => { button("Check saved version").click(); await Promise.resolve(); });
+    expect(host.querySelector("[data-save-state]")?.getAttribute("data-save-state")).toBe("unresolved");
+    expect(saveButton(host).disabled).toBe(true);
+    const savedAt = "2026-10-06T12:00:00.000123Z";
+    fetchImpl = async () => listResponse({ ...A, source: attempted, updated_at: savedAt });
+    await act(async () => { button("Check saved version").click(); await Promise.resolve(); });
+    expect(host.querySelector("[data-save-state]")?.getAttribute("data-save-state")).toBe("matched");
+    expect(editor(host).value).toContain("LOCAL-NEWER");
+    expect(routerPush).not.toHaveBeenCalled();
+    fetchImpl = async () => receipt("2026-10-06T12:00:00.001Z");
+    await act(async () => { saveButton(host).click(); await Promise.resolve(); });
+    expect(fetches.filter((f) => f.url.endsWith("/save"))).toHaveLength(2);
+    expect(fetches.at(-1)?.body.expected_updated_at).toBe(savedAt);
+    expect(fetches.at(-1)?.body.source).toContain("LOCAL-NEWER");
+  });
+
+  it("a conflicting renamed version requires an explicit choice and preserves the current edits", async () => {
+    fetchImpl = async () => new Response("{}", { status: 409 });
+    await render();
+    await act(async () => { setTextarea(editor(host), A.source + "// KEEP-LOCAL"); });
+    await act(async () => { saveButton(host).click(); await Promise.resolve(); });
+    const other = { ...A, name: "Renamed elsewhere", source: A.source + "// REMOTE", params: { len: 20 }, updated_at: "2026-10-06T12:00:02.000Z" };
+    fetchImpl = async () => listResponse(other);
+    await act(async () => { button("Check saved version").click(); await Promise.resolve(); });
+    expect(host.querySelector("[data-save-state]")?.getAttribute("data-save-state")).toBe("different");
+    expect(saveButton(host).disabled).toBe(true);
+    await act(async () => { button("Keep my edits").click(); });
+    expect(editor(host).value).toContain("KEEP-LOCAL");
+    expect(host.querySelector(".script-row.on")?.textContent).toContain(other.name);
+    fetchImpl = async () => receipt("2026-10-06T12:00:03.000Z");
+    await act(async () => { saveButton(host).click(); await Promise.resolve(); });
+    expect(fetches.at(-1)?.body).toMatchObject({ name: other.name, source: A.source + "// KEEP-LOCAL", expected_updated_at: other.updated_at, params: A.params });
+    expect(routerPush).not.toHaveBeenCalled();
+  });
+
+  it("replacement confirmation is renewed if another readback changes the saved revision", async () => {
+    fetchImpl = async () => new Response("{}", { status: 409 });
+    await render();
+    await act(async () => { setTextarea(editor(host), A.source + "// LOCAL"); });
+    await act(async () => { saveButton(host).click(); await Promise.resolve(); });
+    const v1 = { ...A, source: A.source + "// V1", updated_at: "2026-10-06T12:00:02.000Z" };
+    fetchImpl = async () => listResponse(v1);
+    await act(async () => { button("Check saved version").click(); await Promise.resolve(); });
+    await act(async () => { button("Load saved version").click(); });
+    expect(button("Replace current edits")).toBeTruthy();
+    await runCheck();
+    expect(button("Replace current edits")).toBeTruthy();
+    const v2 = { ...v1, source: A.source + "// V2", updated_at: "2026-10-06T12:00:03.000Z" };
+    fetchImpl = async () => listResponse(v2);
+    await act(async () => { button("Check saved version").click(); await Promise.resolve(); });
+    expect(button("Replace current edits")).toBeUndefined();
+    await act(async () => { button("Load saved version").click(); });
+    expect(editor(host).value).toContain("LOCAL");
+    await act(async () => { button("Replace current edits").click(); });
+    expect(editor(host).value).toContain("V2");
+    expect(fetches.filter((f) => f.url.endsWith("/save"))).toHaveLength(1);
+  });
+
+  it("a cancelled check and A-to-B-to-A edits never reuse a green diagnostic result", async () => {
+    await render();
+    await runCheck();
+    await act(async () => { setTextarea(editor(host), A.source + "// B"); });
+    await act(async () => { setTextarea(editor(host), A.source); });
+    expect(host.querySelector("[data-diagnostics-state]")?.getAttribute("data-diagnostics-state")).toBe("pending");
+    expect(button("peAddToChart").disabled).toBe(true);
+    compileCancelled = true;
+    await act(async () => { button("Run diagnostics").click(); await Promise.resolve(); });
+    expect(host.querySelector("[data-diagnostics-state]")?.getAttribute("data-diagnostics-state")).toBe("cancelled");
+    expect(host.querySelector(".console")?.textContent).not.toContain("peCompiledOk");
+  });
+
+  it("an initially free editor cannot save or add unsaved changes", async () => {
+    await act(async () => { root.render(React.createElement(PineEditor, { scripts: [A,B], isPro: false, email: "free@example.com" })); });
+    await act(async () => { setTextarea(editor(host), A.source + "// FREE"); });
+    await runCheck();
+    expect(saveButton(host).disabled).toBe(true);
+    expect(button("peAddToChart").disabled).toBe(true);
+    await act(async () => { saveButton(host).click(); button("peAddToChart").click(); });
+    expect(fetches).toHaveLength(0); expect(routerPush).not.toHaveBeenCalled();
+  });
+
 });

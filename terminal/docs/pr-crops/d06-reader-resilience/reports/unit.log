@@ -1,0 +1,15 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/chartContextPresentation.test.tsx
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ ✓ lib/__tests__/chartContextPresentation.test.tsx (22 tests) 197ms
+
+ Test Files  1 passed (1)
+      Tests  22 passed (22)
+   Start at  17:06:10
+   Duration  1.38s (transform 45ms, setup 0ms, collect 74ms, tests 197ms, environment 619ms, prepare 70ms)
+

@@ -1,3 +1,42 @@
+# Current proof is the D06 successor; actual worktree capture identities remain immutable.
+exposureD06Successor20261111:
+  revision: "d06-r5-copy-20261111"
+  selectedFamily: "eod"
+  descriptorSha256: "d26b3be1499cd9cea18ba4566f017fc4994541115bf77b535268021874635246"
+  eodDescriptorSha256: "46b35e7f1bf23454dede63797644bb4d8082bdb484dfa7918e377f9b3e1c6a90"
+  gexDescriptorSha256: "076271811c0cedfec4ad4d0344ec3594aa20c9d44e30cd1287fc94179ebe471c"
+  nativeCapturedAtHead: "357c32f1a330dda9362955361ae0ab30a3e54048"
+  publishedBasis: "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e"
+  browserQualificationSha256: "2ef456820e2eaff5fd53cc5dbe87f97a11e3e5a96c61180ca140d55e71a4be36"
+  expiryQualificationSha256: "9f3931d99b5e66100f627619413cfdd29c19a0d93eac2e64cc2bf38c57f32857"
+
+# Current proof is the heatmap copy successor; capture identities remain immutable.
+exposureHeatmapCopy20261111:
+  revision: "heatmap-copy-20261111"
+  selectedFamily: "eod"
+  descriptorSha256: "8f648c3e4a4ed41bd773453903dd82bf71683097732665c4a86101e3fb13c143"
+  eodDescriptorSha256: "274aa30a9c0466523b307d3709072c6dc80835fdd737f43aa387bfe9286c47ac"
+  gexDescriptorSha256: "286527601cb417b34e5e1899bb19a71518d43e0d630eb456a5634e6c23a2b3db"
+  nativeCapturedAtHead: "d3e7ba61f7021d65571b9bcde279409168f4173d"
+  integratedDependency: "707b4d509dd4f0922cbb6a45c0661399641e606f"
+  browserQualificationSha256: "c715c1620ded67bc57ab63fabbf6499f727c7bcda2503c75d31b696b685100fc"
+  expiryQualificationSha256: "d7aa9de38a105f7e9263f35c77d7718b2faddd71e06c6d22b46c4a335ce722fe"
+
+# Current browser proof is the hosted R5 successor; native capture identities are retained.
+exposureR5Browser20261111:
+  revision: "r5-alignment-20261110"
+  selectedFamily: "eod"
+  descriptorSha256: "0da98d3fa6a70e752421d2156552a41cf68e6be22bf86ec932f5833a71fe5193"
+  retainedEodDescriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  retainedGexDescriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453"
+  branchHead: "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93"
+  protectedMaster: "8967f977fc156fff6b3f849568d84e49ba61f7d6"
+  integratedDependency: "8967f977fc156fff6b3f849568d84e49ba61f7d6"
+  checkoutCommit: "cb9722189b1a37e742a10aeff0c86cf6f30be7bf"
+  checkoutTree: "1a825666dc49b30e3288f4bf4f9d69cce8248898"
+  browserQualificationSha256: "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d"
+  expiryQualificationSha256: "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e"
+
 # Current browser proof is the momentum successor; prior native captures retain their identities.
 exposureMomentumBrowser20261110:
   revision: "exposure-momentum-integration-20261110"

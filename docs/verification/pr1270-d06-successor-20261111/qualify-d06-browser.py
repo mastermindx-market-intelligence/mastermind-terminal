@@ -1,0 +1,204 @@
+"""One attended D06 proof run through the existing Playwright config and validators."""
+from pathlib import Path
+import datetime, hashlib, json, os, re, shutil, subprocess, time
+
+ROOT = Path('/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4')
+assert ROOT.resolve() == ROOT
+TERMINAL = ROOT / 'terminal'
+CAPTURE = TERMINAL / 'docs/verification/exposure-workspace-20261103/d06-r5-copy-20261111'
+AUDIT = ROOT / 'docs/verification/pr1270-d06-successor-20261111/browser-qualification'
+PORT = 57736
+OPERATION = 'terminal-pr1270-d06-browser-current-20261111'
+HEAD = '357c32f1a330dda9362955361ae0ab30a3e54048'
+HEAD_TREE = 'e0071b0769420d5837e6a6767b696752462c449a'
+MERGE_HEAD = '18fabe9d3c1439c4185559ba5ce491518fe999c9'
+PUBLISHED_BASIS = '4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e'
+INTEGRATED_HEADS = ['707b4d509dd4f0922cbb6a45c0661399641e606f', 'd3e7ba61f7021d65571b9bcde279409168f4173d']
+INDEX_TREE = 'eb208c788e69f4d3c03416edf2fe96a6bf7dcddd'
+FORBIDDEN = ['EXPOSURE_P09_CURRENT_WITNESS', 'EXPOSURE_P09_PREVIOUS_WITNESS', 'EXPOSURE_NATIVE_WITNESS',
+    'TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE', 'TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE', 'TERMINAL_EXPOSURE_PAINT_PROBE']
+
+def now(): return datetime.datetime.now(datetime.timezone.utc).isoformat()
+def digest(raw): return hashlib.sha256(raw).hexdigest()
+def sha(path): return digest(path.read_bytes())
+def write_json(path, value):
+    path.write_text(json.dumps(value, sort_keys=True, indent=2) + '\n')
+def git(*args):
+    return subprocess.check_output(['git', '-C', str(ROOT), *args], text=True).strip()
+def command_receipt(command):
+    result = subprocess.run(command, text=True, capture_output=True)
+    return {'command': command, 'exit': result.returncode, 'stdout': result.stdout, 'stderr': result.stderr}
+def node_json(source, args=()):
+    result = subprocess.run(['node', '-e', source, *map(str,args)], cwd=TERMINAL, text=True, capture_output=True)
+    if result.returncode:
+        raise RuntimeError('READ_ONLY_VALIDATOR_FAILED: ' + result.stderr[-4000:])
+    return json.loads(result.stdout)
+
+def checkout():
+    return {'checkoutCommit': git('rev-parse', 'HEAD'), 'checkoutTree': git('rev-parse', 'HEAD^{tree}'),
+        'mergeHead': git('rev-parse', 'MERGE_HEAD'), 'indexTree': git('write-tree')}
+
+def runtime():
+    port = command_receipt(['lsof', '-nP', '-iTCP:' + str(PORT), '-sTCP:LISTEN'])
+    cwd = command_receipt(['lsof', '-nP', '-a', '-d', 'cwd', '-F', 'pn'])
+    holders=[]; pid=None
+    for line in cwd['stdout'].splitlines():
+        if line.startswith('p'): pid=line[1:]
+        elif line.startswith('n') and (line[1:] == str(ROOT) or line[1:].startswith(str(ROOT) + '/')):
+            holders.append({'pid':pid,'cwd':line[1:]})
+    return {'port':PORT,'listener':port,'workspaceCwdHolders':holders,'lockPresent':(TERMINAL/'.next/dev/lock').exists()}
+
+def require_free():
+    state=runtime()
+    assert state['listener']['exit']==1 and state['listener']['stdout']=='' and not state['workspaceCwdHolders'], state
+    assert not state['lockPresent'], state
+    return state
+
+def settle(stage):
+    state=runtime(); listener=state['listener']
+    result={'state':'SETTLING','port':PORT,'listenerClosed':listener['exit']==1 and listener['stdout']=='',
+        'listener':listener,'workspaceCwdHolders':state['workspaceCwdHolders'],'lockPresent':state['lockPresent']}
+    assert result['listenerClosed'] and not result['workspaceCwdHolders'], result
+    lock=TERMINAL/'.next/dev/lock'
+    if state['lockPresent']:
+        raw=lock.read_bytes(); info=lock.stat(); data=json.loads(raw)
+        assert isinstance(data.get('pid'),int) and data['pid']>1 and data.get('port')==PORT
+        assert data.get('hostname')=='127.0.0.1' and data.get('appUrl')=='http://127.0.0.1:'+str(PORT)
+        checks={'pid':command_receipt(['ps','-p',str(data['pid']),'-o','pid=,ppid=,comm=']),
+            'lock':command_receipt(['lsof',str(lock)])}
+        assert all(x['exit']==1 and x['stdout']=='' and x['stderr']=='' for x in checks.values()),checks
+        checked=lock.stat(); assert info.st_ino==checked.st_ino and info.st_dev==checked.st_dev and lock.read_bytes()==raw
+        result.update({'lock':data,'lockSha256':digest(raw),'checks':checks,
+            'lockIdentityBeforeUnlink':{'inode':info.st_ino,'device':info.st_dev},
+            'lockIdentityAfterChecks':{'inode':checked.st_ino,'device':checked.st_dev},'lockUnlinked':False})
+        write_json(stage/'lifecycle.json',result)
+        lock.unlink()
+        result['lockUnlinked']=True
+    result['lockAbsent']=not lock.exists(); assert result['lockAbsent']
+    result['state']='OWNED_SERVER_STOPPED';write_json(stage/'lifecycle.json',result)
+    return result
+
+def source_paths():
+    value=node_json('const p=require("node:path"),v=require("./e2e/tools/visualEvidence.cjs"),e=require("./e2e/tools/optionsExposureEvidence.cjs");const r=p.resolve(process.cwd(),"..");console.log(JSON.stringify({visual:Object.keys(v.sourceSnapshot(r)),joint:e.momentumBrowserInputs(),expiry:e.momentumExpiryInputs(),jointSpecs:e.OPTIONS_INTEGRATION_BROWSER_SPECS,expirySpecs:e.EXPIRY_JOURNEY_SPECS}));')
+    paths=set()
+    output=subprocess.check_output(['git','-C',str(ROOT),'ls-files','--cached','--others','--exclude-standard','-z']).decode()
+    for path in output.split('\0'):
+        if path.startswith('terminal/') and Path(path).suffix in {'.ts','.tsx','.css','.js','.cjs','.mjs','.json','.py'} and not path.startswith(('terminal/docs/','terminal/test-results/','terminal/node_modules/','terminal/.next/')):
+            paths.add(path)
+    paths.update(value['visual']);paths.update(value['expiry'])
+    return sorted(paths),value
+
+def snapshot(paths):
+    result={}
+    for path in paths:
+        file=ROOT/path
+        assert file.is_file() and not file.is_symlink(),path
+        result[path]=sha(file)
+    return result
+
+def prior_direct(stage_name):
+    directory=TERMINAL/'test-results';directory.mkdir(exist_ok=True)
+    prior=AUDIT/('prior-direct-root-'+stage_name);prior.mkdir()
+    files=[x for x in sorted(directory.iterdir()) if x.is_file() and x.suffix in {'.png','.json'}]
+    record={'state':'PRESERVING','files':{x.name:{'sha256':sha(x),'bytes':x.stat().st_size} for x in files}}
+    write_json(AUDIT/('prior-direct-root-'+stage_name+'.json'),record)
+    for file in files:
+        assert not file.is_symlink();dest=prior/file.name;shutil.copy2(file,dest)
+        assert sha(dest)==record['files'][file.name]['sha256'] and sha(file)==sha(dest)
+        file.unlink()
+    record['state']='PRESERVED_AND_FRESH_ROOT_EMPTY';write_json(AUDIT/('prior-direct-root-'+stage_name+'.json'),record)
+
+def collect_direct(stage):
+    direct=stage/'browser-artifacts/direct';direct.mkdir(parents=True)
+    for file in sorted((TERMINAL/'test-results').iterdir()):
+        if file.is_file() and file.suffix in {'.png','.json'}:
+            assert not file.is_symlink();shutil.copy2(file,direct/file.name);assert sha(file)==sha(direct/file.name)
+    artifacts={}
+    for file in sorted((stage/'browser-artifacts').rglob('*')):
+        if file.is_file():
+            assert not file.is_symlink();artifacts[str(file.relative_to(stage))]=sha(file)
+    return artifacts
+
+def report_cases(report):
+    passed=[];skipped=[]
+    def visit(suite):
+        for spec in suite.get('specs',[]):
+            for test in spec['tests']:
+                assert len(test['results'])==1 and test['results'][0]['retry']==0
+                result=test['results'][0];assert result['status'] in ['passed','skipped']
+                (passed if result['status']=='passed' else skipped).append(test['projectName']+'|'+spec['title'])
+        for child in suite.get('suites',[]):visit(child)
+    visit(report);return passed,skipped
+
+def main():
+    assert CAPTURE.is_dir() and not (CAPTURE/'browser-report.json').exists() and not AUDIT.exists()
+    final=json.loads((ROOT/'docs/verification/pr1270-d06-successor-20261111/prebrowser-checks.json').read_text())
+    required=['reader-syntax','native-prerequisites-image-adapter','typescript','test-lint']
+    assert all(any(x['name']==name and x['exit']==0 for x in final) for name in required)
+    AUDIT.mkdir();native=node_json('const p=require("node:path"),e=require("./e2e/tools/optionsExposureEvidence.cjs");console.log(JSON.stringify(e.verifyExpiryIntegrationNativePrerequisites(p.resolve(process.cwd(),".."))));')
+    assert native['state']=='NATIVE_ONLY_VALIDATED' and native['currentBrowserQualified'] is False
+    write_json(AUDIT/'native-preflight.json',native)
+    initial=require_free();write_json(AUDIT/'initial-lifecycle.json',initial)
+    observed=checkout()
+    assert observed == {'checkoutCommit':HEAD, 'checkoutTree':HEAD_TREE, 'mergeHead':MERGE_HEAD, 'indexTree':INDEX_TREE}
+    actual_git={'head':HEAD,'headTree':HEAD_TREE,'mergeHead':MERGE_HEAD,'indexTree':INDEX_TREE}
+    context={'operation':OPERATION,'branchHead':HEAD,'protectedMaster':MERGE_HEAD,
+        'publishedBasis':PUBLISHED_BASIS,'integratedSourceHeads':INTEGRATED_HEADS,'actualGit':actual_git,
+        'checkoutCommit':HEAD,'checkoutTree':HEAD_TREE,'mergeHead':MERGE_HEAD,
+        'indexTreeAtStart':observed['indexTree'],'indexTreeAtEnd':observed['indexTree'],'sourceIdentity':'stable-composed-working-tree'}
+    write_json(AUDIT/'capture-context.json',context)
+    paths,membership=source_paths();before=snapshot(paths);write_json(AUDIT/'source-baseline.json',before)
+    assert len(membership['joint'])==72 and len(membership['expiry'])==77
+    env=os.environ.copy()
+    for key in FORBIDDEN+['TERMINAL_EVIDENCE_MODE','TERMINAL_EVIDENCE_COMPOSITION','TERMINAL_PL6_EVIDENCE_OPERATION_ID']:assert not env.get(key),key
+    for key in ['GITHUB_ACTIONS','GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT','GITHUB_SHA','GITHUB_HEAD_REF']:assert not env.get(key),key
+    cache=Path('/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/.playwright-browsers');assert cache.is_dir()
+    env.update({'CI':'1','MMX_SHARED_SHELL':'0','MMX_INVESTOR_SHELL_PREVIEW':'0','TERMINAL_E2E_PORT':str(PORT),
+        'TERMINAL_VISUAL_EVIDENCE_OPERATION':OPERATION,'PLAYWRIGHT_BROWSERS_PATH':str(cache)})
+    node=subprocess.check_output(['node','--version'],text=True).strip()
+    record={'state':'RUNNING','context':context,'sourceFiles':len(before),'results':{},'startedAt':now()};write_json(AUDIT/'execution.json',record)
+    print(json.dumps({'state':'STARTED','operation':OPERATION,'context':context,'sourceFiles':len(before)}),flush=True)
+    for name,count in [('joint',144),('expiry',9)]:
+        stage=CAPTURE if name=='joint' else CAPTURE/'expiry-journeys';stage.mkdir(exist_ok=True)
+        assert not (stage/'browser-report.json').exists() and not (stage/'browser-artifacts').exists()
+        require_free();prior_direct(name);write_json(stage/'source-before.json',before)
+        inputs=membership['joint' if name=='joint' else 'expiry'];specs=membership['jointSpecs' if name=='joint' else 'expirySpecs']
+        command=['./node_modules/.bin/playwright','test',*[x.removeprefix('terminal/') for x in specs],
+            '--project=desktop','--project=tablet','--project=mobile','--workers=1','--retries=0','--output='+str(stage/'browser-artifacts/playwright')]
+        if name=='expiry':command+=['--trace=on','--grep','Exposure desk (carries expiry Vanna/Charm through bars and drawer in (en|zh)|renders expiry VEX and CHEX from the enriched owner payload)$']
+        env['PLAYWRIGHT_JSON_OUTPUT_FILE']=str(stage/'browser-report.json')
+        with (stage/'selection.log').open('w') as log:selection=subprocess.run(command+['--list','--reporter=list'],cwd=TERMINAL,env=env,stdout=log,stderr=subprocess.STDOUT)
+        assert selection.returncode==0 and re.search(r'Total:\s*'+str(count)+r' tests in ',(stage/'selection.log').read_text()),(stage/'selection.log').read_text()[-5000:]
+        started=now();clock=time.monotonic();actual=command+['--reporter=list,json']
+        write_json(AUDIT/(name+'-command.json'),{'command':actual,'startedAt':started,'browserStarted':True})
+        with (stage/'browser.log').open('w') as log:run=subprocess.run(actual,cwd=TERMINAL,env=env,stdout=log,stderr=subprocess.STDOUT)
+        elapsed=round(time.monotonic()-clock,3);completed=now();after=snapshot(paths);write_json(stage/'source-after.json',after)
+        lifecycle=settle(stage);after_checkout=checkout();assert after_checkout==observed
+        artifacts=collect_direct(stage);report=json.loads((stage/'browser-report.json').read_text());passed,skipped=report_cases(report)
+        assert run.returncode==0 and before==after and len(passed)==count and len(set(passed))==count and not skipped
+        assert not report.get('errors') and report['stats']['unexpected']==0 and report['stats']['flaky']==0 and report['stats']['skipped']==0 and report['stats']['expected']==count
+        assert report['config']['workers']==1 and report['config']['metadata']['actualWorkers']==1
+        if report['config']['metadata'].get('gitCommit'):assert report['config']['metadata']['gitCommit']['hash']==HEAD
+        execution={'schema':'exposure_master_integration_browser_execution.v1' if name=='joint' else 'exposure_expiry_greeks_browser_execution.v1',**context,
+            'command':actual,'port':PORT,'startedAt':started,'completedAt':completed,'seconds':elapsed,'node':node,'exit':run.returncode,
+            'retries':0,'passed':len(passed),'failed':0,'skipped':0,'flaky':0,'sourceStable':True,'ownedServerStopped':True,
+            'fixtureOverrides':{key:None for key in FORBIDDEN},'artifactFiles':artifacts,'logSha256':sha(stage/'browser.log'),
+            'lifecycleSha256':sha(stage/'lifecycle.json'),'checkoutObservedBefore':observed,'checkoutObservedAfter':after_checkout}
+        write_json(stage/'browser-execution.json',execution)
+        proof={'schema':'exposure_master_integration_browser.v1' if name=='joint' else 'exposure_expiry_greeks_browser.v1',**context,
+            'files':{key:sha(stage/key) for key in ['browser-report.json','browser-execution.json','source-before.json','source-after.json','browser.log']},
+            'currentSources':{key:before[key] for key in inputs},'expectedPassed':sorted(passed),'expectedSkipped':[]}
+        write_json(stage/'qualification.json',proof);write_json(stage/'expected-cases.json',{'expectedPassed':sorted(passed),'expectedSkipped':[]})
+        validator='const fs=require("node:fs"),e=require("./e2e/tools/optionsExposureEvidence.cjs"),p=process.argv[1],kind=process.argv[2];const q=JSON.parse(fs.readFileSync(p+"/qualification.json")),x=JSON.parse(fs.readFileSync(p+"/browser-execution.json")),r=JSON.parse(fs.readFileSync(p+"/browser-report.json"));e.requireSourceKeys(q.currentSources,kind==="joint"?e.momentumBrowserInputs():e.momentumExpiryInputs());if(kind==="joint"){const prior=JSON.parse(fs.readFileSync("docs/verification/exposure-workspace-20261103/ui-copy-integration-20261109/qualification.json"));e.requireOptionsIntegrationBrowserCases(q,prior);e.requireIntegrationBrowserReport(r,q);}else{e.requireExpiryGreeksBrowserCases(q);e.requireExpiryGreeksScreenshotSet(x.artifactFiles);if(Object.keys(x.artifactFiles).filter(k=>k.endsWith("/trace.zip")).length!==9)throw Error("TRACE_SET");}console.log(JSON.stringify({state:"D06_BROWSER_STAGE_QUALIFIED",passed:q.expectedPassed.length,artifacts:Object.keys(x.artifactFiles).length}));'
+        validated=node_json(validator,[stage,name]);write_json(stage/'validation.json',validated)
+        row={**validated,'qualificationSha256':sha(stage/'qualification.json'),'lifecycleSha256':sha(stage/'lifecycle.json'),'seconds':elapsed,'sourceFiles':len(before)}
+        record['results'][name]=row;write_json(AUDIT/'execution.json',record);print(json.dumps({'stage':name,**row}),flush=True)
+    assert snapshot(paths)==before and checkout()==observed
+    record['state']='BOTH_D06_BROWSER_STAGES_QUALIFIED_PENDING_READER_PINS';record['completedAt']=now();record['snapshotSha256']=sha(AUDIT/'source-baseline.json')
+    write_json(AUDIT/'execution.json',record);print(json.dumps(record),flush=True)
+
+if __name__=='__main__':
+    try:main()
+    except Exception as error:
+        if AUDIT.exists():write_json(AUDIT/'failure.json',{'state':'FAILED','at':now(),'type':type(error).__name__,'message':str(error)[:5000]})
+        raise

@@ -1,0 +1,470 @@
+[
+  {
+    "project": "desktop",
+    "lang": "en",
+    "title": "embed en keeps its own language from loading through ready",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "loading",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      },
+      {
+        "phase": "ready",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      }
+    ],
+    "images": [
+      "embed-desktop-en-ready.png"
+    ]
+  },
+  {
+    "project": "desktop",
+    "lang": "en",
+    "title": "embed en keeps its own language with no price history",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "empty",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      }
+    ],
+    "images": [
+      "embed-desktop-en-empty.png"
+    ]
+  },
+  {
+    "project": "desktop",
+    "lang": "en",
+    "title": "embed en keeps its own language for missing and invalid symbols",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "missing",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      },
+      {
+        "phase": "invalid",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      }
+    ],
+    "images": [
+      "embed-desktop-en-invalid.png"
+    ]
+  },
+  {
+    "project": "desktop",
+    "lang": "zh",
+    "title": "embed zh keeps its own language from loading through ready",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "loading",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      },
+      {
+        "phase": "ready",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      }
+    ],
+    "images": [
+      "embed-desktop-zh-ready.png"
+    ]
+  },
+  {
+    "project": "desktop",
+    "lang": "zh",
+    "title": "embed zh keeps its own language with no price history",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "empty",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      }
+    ],
+    "images": [
+      "embed-desktop-zh-empty.png"
+    ]
+  },
+  {
+    "project": "desktop",
+    "lang": "zh",
+    "title": "embed zh keeps its own language for missing and invalid symbols",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "missing",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      },
+      {
+        "phase": "invalid",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 1440,
+        "scrollWidth": 1440
+      }
+    ],
+    "images": [
+      "embed-desktop-zh-invalid.png"
+    ]
+  },
+  {
+    "project": "tablet",
+    "lang": "en",
+    "title": "embed en keeps its own language from loading through ready",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "loading",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      },
+      {
+        "phase": "ready",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      }
+    ],
+    "images": [
+      "embed-tablet-en-ready.png"
+    ]
+  },
+  {
+    "project": "tablet",
+    "lang": "en",
+    "title": "embed en keeps its own language with no price history",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "empty",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      }
+    ],
+    "images": [
+      "embed-tablet-en-empty.png"
+    ]
+  },
+  {
+    "project": "tablet",
+    "lang": "en",
+    "title": "embed en keeps its own language for missing and invalid symbols",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "missing",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      },
+      {
+        "phase": "invalid",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      }
+    ],
+    "images": [
+      "embed-tablet-en-invalid.png"
+    ]
+  },
+  {
+    "project": "tablet",
+    "lang": "zh",
+    "title": "embed zh keeps its own language from loading through ready",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "loading",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      },
+      {
+        "phase": "ready",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      }
+    ],
+    "images": [
+      "embed-tablet-zh-ready.png"
+    ]
+  },
+  {
+    "project": "tablet",
+    "lang": "zh",
+    "title": "embed zh keeps its own language with no price history",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "empty",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      }
+    ],
+    "images": [
+      "embed-tablet-zh-empty.png"
+    ]
+  },
+  {
+    "project": "tablet",
+    "lang": "zh",
+    "title": "embed zh keeps its own language for missing and invalid symbols",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "missing",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      },
+      {
+        "phase": "invalid",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 820,
+        "scrollWidth": 820
+      }
+    ],
+    "images": [
+      "embed-tablet-zh-invalid.png"
+    ]
+  },
+  {
+    "project": "mobile",
+    "lang": "en",
+    "title": "embed en keeps its own language from loading through ready",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "loading",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      },
+      {
+        "phase": "ready",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      }
+    ],
+    "images": [
+      "embed-mobile-en-ready.png"
+    ]
+  },
+  {
+    "project": "mobile",
+    "lang": "en",
+    "title": "embed en keeps its own language with no price history",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "empty",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      }
+    ],
+    "images": [
+      "embed-mobile-en-empty.png"
+    ]
+  },
+  {
+    "project": "mobile",
+    "lang": "en",
+    "title": "embed en keeps its own language for missing and invalid symbols",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "missing",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      },
+      {
+        "phase": "invalid",
+        "contentLanguage": "en",
+        "documentLanguage": "zh-CN",
+        "applicationLanguage": "zh",
+        "storedLanguage": "zh",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      }
+    ],
+    "images": [
+      "embed-mobile-en-invalid.png"
+    ]
+  },
+  {
+    "project": "mobile",
+    "lang": "zh",
+    "title": "embed zh keeps its own language from loading through ready",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "loading",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      },
+      {
+        "phase": "ready",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      }
+    ],
+    "images": [
+      "embed-mobile-zh-ready.png"
+    ]
+  },
+  {
+    "project": "mobile",
+    "lang": "zh",
+    "title": "embed zh keeps its own language with no price history",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "empty",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      }
+    ],
+    "images": [
+      "embed-mobile-zh-empty.png"
+    ]
+  },
+  {
+    "project": "mobile",
+    "lang": "zh",
+    "title": "embed zh keeps its own language for missing and invalid symbols",
+    "status": "expected",
+    "observations": [
+      {
+        "phase": "missing",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      },
+      {
+        "phase": "invalid",
+        "contentLanguage": "zh-CN",
+        "documentLanguage": "en",
+        "applicationLanguage": "en",
+        "storedLanguage": "en",
+        "documentWidth": 390,
+        "scrollWidth": 390
+      }
+    ],
+    "images": [
+      "embed-mobile-zh-invalid.png"
+    ]
+  }
+]

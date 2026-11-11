@@ -1,0 +1,11 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ ✓ lib/__tests__/plainLabelsCallSites.test.ts (60 tests) 138ms
+
+ Test Files  1 passed (1)
+      Tests  60 passed (60)
+   Start at  02:24:59
+   Duration  902ms (transform 122ms, setup 0ms, collect 109ms, tests 138ms, environment 0ms, prepare 166ms)
+

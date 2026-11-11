@@ -1,0 +1,3215 @@
+/**
+ * Observatory design layer — scoped under .obs
+ *
+ * All colors derive from the locked v5 design system tokens (globals.css).
+ * NEVER hardcode bull-green or bear-red; use var(--up)/var(--down) so the
+ * East-Asian red-up flip (html[data-updown="east"]) works automatically.
+ *
+ * Import order: globals.css → fin.css → observatory.css
+ * Scope: every selector here is either .obs-* or .obs <descendant>.
+ */
+
+/* ─── Ambient background ─────────────────────────────────────────────────── */
+/*
+ * .obs-ambient goes on the page surface root (e.g. a wrapping <div>).
+ * Two soft radial gradients: brand-tinted top-left, up-tinted top-right.
+ * pointer-events:none so it never blocks clicks.
+ */
+.obs-ambient {
+  position: relative;
+}
+.obs-ambient::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(900px 420px at 18% -8%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 60%),
+    radial-gradient(700px 380px at 92% 0%,   color-mix(in srgb, var(--up)    6%,  transparent), transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+.obs-ambient > * {
+  position: relative;
+  z-index: 1;
+}
+/* The Lab's light research workspace uses white material and hairlines, without glow. */
+html[data-research-appearance="lab"][data-theme="light"] .obs-ambient::before { display:none; }
+html[data-research-appearance="lab"][data-theme="light"] .app2 > .topbar,
+html[data-research-appearance="lab"][data-theme="light"] .app2 > .appnav { background:var(--panel); }
+html[data-research-appearance="lab"][data-theme="light"] .wtabs .obs-pillnav-tab.on { box-shadow:none; }
+html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs-pillnav-tab.on { color:var(--link); background:var(--panel-2); box-shadow:inset 0 -2px var(--link); }
+/* The child override above cancels position:fixed on MobileNav's drawer/scrim when the
+ * .app2 shell carries obs-ambient (equal specificity, later sheet wins) — they then join
+ * the .app2 grid auto-placement and shove .topbar into the bottom status row ("logo/menu
+ * disappeared" on /flow). Restore the fixed pieces and pin the chrome cells explicitly. */
+.obs-ambient > .m-drawer-scrim { position: fixed; z-index: 70; }
+.obs-ambient > .m-drawer { position: fixed; z-index: 71; }
+.app2 > .topbar {
+  grid-row: 1;
+  grid-column: 1 / 3;
+  z-index: 90;
+  overflow: visible;
+}
+.app2 > .appnav { grid-row: 2; grid-column: 1; }
+.app2 > .main2 { grid-row: 2; grid-column: 2; }
+
+/* ─── Glass card ─────────────────────────────────────────────────────────── */
+/*
+ * .obs-card  — base glass panel (any surface)
+ * .obs-card:hover — slightly brighter border on hover / keyboard focus-within
+ * .obs-card.sel   — selected state (bright border + brand tint shadow)
+ *
+ * Inner layout: use flex-direction:column or grid as needed — the card itself
+ * is just the shell (background + border + radius + blur).
+ */
+.obs-card {
+  background: rgba(255, 255, 255, 0.033);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 15px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: border-color var(--t, 110ms) var(--ease), box-shadow var(--t, 110ms) var(--ease);
+}
+.obs-card:hover,
+.obs-card:focus-within {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.obs-card.sel {
+  border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+  background: color-mix(in srgb, var(--brand) 7%, rgba(255, 255, 255, 0.033));
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--brand) 14%, transparent);
+}
+
+/* Card header row — micro-label pattern */
+.obs-card > h3,
+.obs-card .obs-card-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 9px 14px 7px;
+}
+.obs-card-hr {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.09);
+  margin: 0 16px;
+}
+
+/* ─── Micro-label ────────────────────────────────────────────────────────── */
+/*
+ * .obs-lbl   — 10.5px, 600 weight, .1em letterspacing, uppercase, dim color.
+ *              Use above a value; the value itself uses .num for tabular figures.
+ */
+.obs-lbl {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1;
+}
+
+/* ─── Filter chips ───────────────────────────────────────────────────────── */
+/*
+ * .obs-chip     — inactive state
+ * .obs-chip.on  — active state (brand fill + inset ring)
+ */
+.obs-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: transparent;
+  color: var(--text-2);
+  font: 600 12px/1 var(--font-ui);
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t), color var(--t), box-shadow var(--t);
+  white-space: nowrap;
+}
+.obs-chip:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--text);
+}
+.obs-chip.on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent),
+              0 4px 14px color-mix(in srgb, var(--brand) 35%, transparent);
+}
+
+/* ─── Pill nav ───────────────────────────────────────────────────────────── */
+/*
+ * .obs-pillnav           — the rounded container (wraps .obs-pillnav-tab items)
+ * .obs-pillnav-tab       — individual tab link / button
+ * .obs-pillnav-tab.on    — active: brand-tinted fill + inset ring
+ */
+.obs-pillnav {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.033);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  padding: 4px;
+  /* Scroll, never clip: whenever the strip doesn't fit its flex row (any viewport,
+     not just ≤640px) it shrinks and pans horizontally so the last tabs stay
+     reachable. When everything fits, none of this changes the layout. */
+  min-width: 0;
+  flex-shrink: 1;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.obs-pillnav::-webkit-scrollbar { display: none; }
+.obs-pillnav-tab {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  border-radius: 9px;
+  color: var(--text-2);
+  font: 500 13px/1 var(--font-ui);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t), color var(--t), box-shadow var(--t);
+  border: none;
+  background: none;
+}
+.obs-pillnav-tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+.obs-pillnav-tab.on {
+  background: color-mix(in srgb, var(--brand) 18%, transparent);
+  color: color-mix(in srgb, var(--brand-2) 100%, #fff 30%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent);
+  font-weight: 600;
+}
+
+/* ─── Amber honesty note ─────────────────────────────────────────────────── */
+/*
+ * .obs-note — soft amber-tinted panel for doctrine microcopy / display-only disclaimers.
+ */
+.obs-note {
+  margin: 4px 16px 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warn) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warn) 18%, transparent);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--warn) 80%, var(--text) 20%);
+}
+
+/* ─── Ring gauge shell ───────────────────────────────────────────────────── */
+/*
+ * Used directly by <RingGauge> component. v6: the ring is an SVG stroke arc
+ * (rounded terminal cap + animated sweep + soft tone glow) — the old hard-edged
+ * conic wedge is gone. The component renders:
+ *   <span class="obs-ring obs-ring--{size} obs-ring--{tone}">
+ *     <svg class="obs-ring-svg"> <circle track/> <circle.obs-ring-arc/> </svg>
+ *     <span class="obs-ring-inner"><span class="obs-ring-value num">{value}</span></span>
+ *   </span>
+ *
+ * Sizes:  sm (34px), md (46px), lg (84px)
+ * Tones:  brand | up | down | muted  (auto-by-value maps to one of these)
+ * Inner disc background matches panel color so the numeral "punches through".
+ */
+.obs-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.obs-ring-svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;   /* let the arc drop-shadow glow spill past the box */
+}
+/* soft tone glow on the progress arc (replaces the old square box-shadow) */
+.obs-ring-arc {
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--obs-ring-color, var(--brand)) 32%, transparent));
+}
+.obs-ring--lg .obs-ring-arc {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--obs-ring-color, var(--brand)) 34%, transparent));
+}
+.obs-ring-inner {
+  position: relative;
+  z-index: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+.obs-ring-value {
+  font-weight: 650;
+  font-family: var(--font-num);
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* sm: 34px outer, 26px inner */
+.obs-ring--sm { width: 34px; height: 34px; }
+.obs-ring--sm .obs-ring-inner { width: 26px; height: 26px; }
+
+/* md: 46px outer, 36px inner */
+.obs-ring--md { width: 46px; height: 46px; }
+.obs-ring--md .obs-ring-inner { width: 36px; height: 36px; }
+
+/* lg: 84px outer, 66px inner */
+.obs-ring--lg { width: 84px; height: 84px; }
+.obs-ring--lg .obs-ring-inner { width: 66px; height: 66px; }
+
+/* Tone color mappings — set --obs-ring-color via tone class */
+.obs-ring--brand { --obs-ring-color: var(--brand); }
+.obs-ring--up    { --obs-ring-color: var(--up); }
+.obs-ring--down  { --obs-ring-color: var(--down); }
+.obs-ring--muted { --obs-ring-color: var(--muted); }
+
+/* ─── Numeric utility ────────────────────────────────────────────────────── */
+/*
+ * .num  — already defined in globals.css; re-exported here for documentation.
+ *          font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1
+ *          Pair it with var(--font-num) — that token is the UI grotesque, so tabular
+ *          figures (not a fixed advance) are what keeps numeric columns aligned.
+ */
+
+/* ─── Live dot ───────────────────────────────────────────────────────────── */
+.obs-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--up);
+  box-shadow: 0 0 10px var(--up);
+  flex-shrink: 0;
+}
+
+/* ─── Modern scroll primitive ────────────────────────────────────────────── */
+/*
+ * .obs-scroll — apply to any internal scroll region across Observatory surfaces
+ * (flow feed, chain heat, radar, watchlist, GEX ladder, exposure matrix overflow, tickers).
+ * Thin 8px track-transparent thumb from --muted token, hover-brightens.
+ * Firefox: scrollbar-width:thin for the muted color pair.
+ */
+.obs-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.13) transparent;
+}
+.obs-scroll::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+.obs-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.obs-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.13);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background 0.15s;
+}
+.obs-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.26);
+  background-clip: content-box;
+}
+
+/* ─── Prophet workspace ─────────────────────────────────────────────────────
+ * A calm, editorial command surface: one luminous masthead, three clearly ranked panes,
+ * and enough depth that the managed plan feels like a product rather than a raw data dump.
+ */
+.obs-prophet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 440px at 48% -12%, rgba(77,130,255,.12), transparent 64%),
+    radial-gradient(620px 360px at 93% 14%, rgba(157,134,255,.085), transparent 68%),
+    var(--bg);
+}
+.obs-prophet-masthead {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 74px;
+  padding: 12px 15px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.105);
+  border-radius: 17px;
+  background:
+    linear-gradient(112deg, rgba(41,98,255,.14), rgba(157,134,255,.055) 46%, rgba(255,255,255,.026)),
+    rgba(13,15,19,.88);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 18px 48px rgba(0,0,0,.26);
+}
+.obs-prophet-masthead::after {
+  content: "";
+  position: absolute;
+  width: 320px;
+  height: 120px;
+  right: -70px;
+  top: -80px;
+  border-radius: 50%;
+  background: rgba(77,130,255,.11);
+  filter: blur(36px);
+  pointer-events: none;
+}
+.obs-prophet-orb {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #dce6ff;
+  background: radial-gradient(circle at 35% 30%, #719cff, #365de0 48%, #182349 76%);
+  border: 1px solid rgba(153,180,255,.62);
+  box-shadow: 0 0 0 5px rgba(77,130,255,.08), 0 0 28px rgba(77,130,255,.32);
+}
+.obs-prophet-orb::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1px dashed rgba(157,134,255,.30);
+  border-radius: 50%;
+}
+.obs-prophet-orb span {
+  font-size: 17px;
+  filter: drop-shadow(0 0 7px rgba(255,255,255,.55));
+}
+.obs-prophet-brand {
+  min-width: 0;
+}
+.obs-prophet-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  font: 700 9px/1 var(--font-ui);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8caaff;
+}
+.obs-prophet-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.obs-prophet-title-row h2 {
+  margin: 0;
+  font: 760 23px/1 var(--font-ui);
+  letter-spacing: -.025em;
+  color: var(--text);
+}
+.obs-prophet-title-row > span {
+  font: 500 11px/1 var(--font-ui);
+  color: var(--muted);
+}
+.obs-prophet-status {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  margin-left: auto;
+}
+.obs-prophet-stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 92px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px;
+  background: rgba(5,7,12,.32);
+}
+.obs-prophet-stat span {
+  font: 600 8px/1 var(--font-ui);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.obs-prophet-stat b {
+  font: 700 12px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.obs-prophet-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(270px, 300px) minmax(420px, 1fr) minmax(280px, 320px);
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+.obs-prophet-pane {
+  border-radius: 17px;
+  background: linear-gradient(180deg, rgba(255,255,255,.042), rgba(255,255,255,.022));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 18px 48px rgba(0,0,0,.17);
+}
+.obs-prophet-center {
+  border-color: rgba(77,130,255,.18);
+  background:
+    radial-gradient(520px 220px at 42% 0%, rgba(77,130,255,.065), transparent 68%),
+    linear-gradient(180deg, rgba(255,255,255,.044), rgba(255,255,255,.02));
+}
+.obs-prophet-right {
+  border-color: rgba(157,134,255,.16);
+}
+.obs-prophet-signal {
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(255,255,255,.04), rgba(255,255,255,.018));
+  transition: transform var(--t-med) var(--ease-out), border-color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out);
+}
+.obs-prophet-signal::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: transparent;
+}
+.obs-prophet-signal:hover {
+  transform: translateY(-1px);
+}
+.obs-prophet-signal.sel::before {
+  background: linear-gradient(var(--brand-2), #9d86ff);
+  box-shadow: 0 0 14px rgba(77,130,255,.55);
+}
+.obs-prophet-section {
+  position: relative;
+  overflow: hidden;
+}
+.obs-prophet-section::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: rgba(157,134,255,.48);
+}
+.obs-prophet-section-primary::before {
+  background: var(--brand-2);
+  box-shadow: 0 0 14px rgba(77,130,255,.48);
+}
+.obs-prophet-geometry {
+  border-radius: 14px;
+  background:
+    linear-gradient(120deg, rgba(77,130,255,.075), rgba(157,134,255,.035)),
+    rgba(255,255,255,.02);
+}
+.obs-prophet-confidence {
+  border-radius: 14px;
+  border-color: rgba(157,134,255,.18);
+  background:
+    radial-gradient(180px 140px at 50% 25%, rgba(157,134,255,.10), transparent 70%),
+    rgba(255,255,255,.025);
+}
+.obs-prophet-option {
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(25,194,194,.055), rgba(255,255,255,.018));
+}
+@media (max-width: 1180px) {
+  .obs-prophet-grid {
+    grid-template-columns: 270px minmax(390px, 1fr);
+    overflow-y: auto;
+  }
+  .obs-prophet-right {
+    grid-column: 2;
+    min-height: 520px;
+  }
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .obs-gex-mobile-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .obs-prophet {
+    overflow-y: auto;
+  }
+  .obs-prophet-masthead {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .obs-prophet-status {
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+  }
+  .obs-prophet-stat {
+    flex: 1 0 96px;
+  }
+  .obs-prophet-grid {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+  }
+  .obs-prophet-left,
+  .obs-prophet-center,
+  .obs-prophet-right {
+    min-height: 520px;
+  }
+}
+
+/* ─── Prophet lane switcher + options-originated shadow desk ─────────────── */
+.obs-prophet-lane-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+.obs-prophet-lane-nav {
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  align-self: flex-start;
+  width: min(630px, calc(100% - 24px));
+  margin: 12px 12px 0;
+  padding: 3px;
+  gap: 3px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+}
+.obs-prophet-lane-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.obs-prophet-lane-nav button:hover { color: var(--text-2); background: rgba(255,255,255,.035); }
+.obs-prophet-lane-nav button:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 1px; }
+.obs-prophet-lane-nav button.on {
+  color: var(--text);
+  background: color-mix(in srgb, var(--brand) 14%, rgba(255,255,255,.035));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-2) 38%, transparent);
+}
+.obs-prophet-lane-nav button span { font: 700 11.5px/1.2 var(--font-ui); }
+.obs-prophet-lane-nav button small {
+  width: 100%;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font: 500 9px/1.25 var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.obs-prophet-lane-panel {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.obs-prophet-lane-panel[hidden] { display: none; }
+
+.obs-options-alpha {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  overflow: hidden;
+  background:
+    radial-gradient(780px 360px at 85% -10%, rgba(25,194,194,.10), transparent 68%),
+    var(--bg);
+}
+.obs-options-alpha-state {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 20px;
+  color: var(--muted);
+  font: 500 12px/1.5 var(--font-ui);
+}
+.obs-options-alpha-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  padding: 13px 15px;
+  flex: none;
+  border: 1px solid color-mix(in srgb, var(--obs-prophet-cyan) 22%, var(--line));
+  border-radius: 16px;
+  background: linear-gradient(112deg, rgba(25,194,194,.095), rgba(77,130,255,.04) 48%, rgba(255,255,255,.02));
+}
+.obs-options-alpha-title { min-width: 220px; flex: 1 1 auto; }
+.obs-options-alpha-title > span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--obs-prophet-cyan);
+  font: 700 9px/1 var(--font-ui);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.obs-options-alpha-title > div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.obs-options-alpha-title h2 { margin: 0; color: var(--text); font: 750 21px/1 var(--font-ui); letter-spacing: -.02em; }
+.obs-options-alpha-title p { max-width: 68ch; margin: 7px 0 0; color: var(--muted); font: 500 10.5px/1.45 var(--font-ui); }
+.obs-options-alpha-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  gap: 6px;
+  flex: 0 1 430px;
+  min-width: 0;
+}
+.obs-options-alpha-kpis .obs-options-alpha-metric {
+  min-height: 48px;
+  padding: 8px 9px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 9px;
+  background: rgba(4,9,13,.28);
+}
+.obs-options-alpha-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  padding-right: 2px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.obs-options-alpha-stale {
+  display: flex;
+  align-items: baseline;
+  gap: 7px 12px;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--warn) 34%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+  color: var(--warn);
+  font: 600 10px/1.4 var(--font-ui);
+}
+.obs-options-alpha-stale b { flex: none; color: var(--warn); }
+.obs-options-alpha-stale span { min-width: 0; color: var(--text-2); overflow-wrap: anywhere; }
+.obs-options-alpha-boundary {
+  display: grid;
+  grid-template-columns: minmax(260px,1.15fr) minmax(420px,1fr);
+  gap: 10px 18px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--obs-prophet-cyan) 24%, var(--line));
+  border-radius: 14px;
+  background: linear-gradient(110deg, rgba(25,194,194,.065), rgba(255,255,255,.018));
+}
+.obs-options-alpha-boundary-copy { min-width: 0; }
+.obs-options-alpha-boundary-copy > span,.obs-options-alpha-konseki > div:first-child > span {
+  color: var(--obs-prophet-cyan);
+  font: 700 8.5px/1.2 var(--font-ui);
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.obs-options-alpha-boundary-copy h3,.obs-options-alpha-konseki h3 { margin: 5px 0 0; color: var(--text); font: 700 13px/1.25 var(--font-ui); }
+.obs-options-alpha-boundary-copy p,.obs-options-alpha-konseki p { margin: 5px 0 0; color: var(--muted); font: 500 10px/1.45 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-boundary-facts { display: grid; grid-template-columns: minmax(80px,.45fr) repeat(2,minmax(0,1fr)); gap: 7px; min-width: 0; }
+.obs-options-alpha-boundary-facts > div { padding: 8px 9px; border: 1px solid rgba(255,255,255,.07); border-radius: 9px; background: rgba(4,9,13,.25); }
+.obs-options-alpha-boundary-note { grid-column: 1/-1; margin: 0; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.06); color: var(--text-2); font: 500 9.5px/1.4 var(--font-ui); }
+.obs-options-alpha-guards {
+  display: grid;
+  grid-template-columns: minmax(145px,.65fr) minmax(240px,1.25fr) minmax(220px,1fr);
+  gap: 7px;
+}
+.obs-options-alpha-guards > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 9px;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--warn) 20%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warn) 5%, transparent);
+}
+.obs-options-alpha-guards span { color: var(--muted); font: 650 9px/1.2 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+.obs-options-alpha-guards b { min-width: 0; color: var(--text-2); font: 650 11px/1.25 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-guards small { grid-column: 1/-1; min-width: 0; color: var(--muted); font: 500 9.5px/1.4 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-section {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.018);
+}
+.obs-options-alpha-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; margin-bottom: 9px; }
+.obs-options-alpha-section-head h3 { margin: 0; color: var(--text-2); font: 700 10px/1.2 var(--font-ui); letter-spacing: .11em; text-transform: uppercase; }
+.obs-options-alpha-section-head > span { min-width: 0; color: var(--muted); font: 550 9.5px/1.3 var(--font-ui); text-align: right; overflow-wrap: anywhere; }
+.obs-options-alpha-readiness-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.obs-options-alpha-readiness-card {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 10px;
+  background: rgba(255,255,255,.024);
+}
+.obs-options-alpha-readiness-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.obs-options-alpha-readiness-head b { color: var(--text); font: 650 11.5px/1.25 var(--font-ui); }
+.obs-options-alpha-readiness-card p { margin: 7px 0 0; color: var(--muted); font: 500 10px/1.4 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-status {
+  max-width: 58%;
+  padding: 3px 6px;
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  background: rgba(255,255,255,.04);
+  font: 650 8.5px/1.1 var(--font-ui);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-status.ready { color: var(--up); background: color-mix(in srgb, var(--up) 10%, transparent); }
+.obs-options-alpha-status.blocked { color: var(--down); background: color-mix(in srgb, var(--down) 10%, transparent); }
+.obs-options-alpha-status.building { color: var(--warn); background: color-mix(in srgb, var(--warn) 9%, transparent); }
+.obs-options-alpha-candidate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 8px; }
+.obs-options-alpha-candidate { min-width: 0; padding: 10px 11px; border-radius: 11px; }
+html[data-mmx-shared-shell="1"][data-theme="light"] .obs-options-alpha-candidate.is-candidate { background: var(--panel); border-color: var(--line); }
+.obs-options-alpha-candidate.is-fire { border-color: color-mix(in srgb, var(--up) 24%, var(--line)); }
+.obs-options-alpha-candidate.is-watch { border-color: color-mix(in srgb, var(--warn) 16%, var(--line)); }
+.obs-options-alpha-candidate-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.obs-options-alpha-candidate-head strong { color: var(--text); font: 720 15px/1 var(--font-num); }
+.obs-options-alpha-candidate-head .obs-tag { max-width: 70%; text-align: right; white-space: normal; }
+.obs-options-alpha-candidate-meta { display: flex; gap: 5px 10px; flex-wrap: wrap; margin-top: 7px; color: var(--muted); font: 500 9.5px/1.35 var(--font-ui); }
+.obs-options-alpha-chart-link { min-height: 44px; margin-top: 8px; white-space: normal; text-decoration: none; }
+.obs-options-alpha-chart-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.obs-options-alpha-clocks { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin-top: 8px; }
+.obs-options-alpha-clocks > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 6px 7px; border-radius: 7px; background: rgba(255,255,255,.025); }
+.obs-options-alpha-clocks span { color: var(--muted); font: 600 8px/1.2 var(--font-ui); letter-spacing: .05em; text-transform: uppercase; }
+.obs-options-alpha-clocks time,.obs-options-alpha-clocks b { min-width: 0; color: var(--text-2); font: 550 9px/1.35 var(--font-num); overflow-wrap: anywhere; }
+.obs-options-alpha-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 6px; margin-top: 9px; }
+.obs-options-alpha-candidate.is-fire .obs-options-alpha-metrics { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.obs-options-alpha-metric { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.obs-options-alpha-metric span { min-width: 0; color: var(--muted); font: 600 8.5px/1.25 var(--font-ui); letter-spacing: .04em; text-transform: uppercase; overflow-wrap: break-word; word-break: normal; }
+.obs-options-alpha-metric b { min-width: 0; color: var(--text-2); font: 650 11px/1.2 var(--font-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.obs-options-alpha-why { margin: 9px 0 0; padding: 8px 0 0 16px; border-top: 1px solid rgba(255,255,255,.065); color: var(--text-2); font: 500 10px/1.45 var(--font-ui); }
+.obs-options-alpha-why li + li { margin-top: 3px; }
+.obs-options-alpha-signing-note { margin: 8px 0 0; padding-top: 7px; border-top: 1px solid rgba(255,255,255,.065); color: var(--warn); font: 500 9.5px/1.4 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-execution { margin-top: 9px; padding: 8px 9px; border: 1px solid color-mix(in srgb, var(--warn) 19%, var(--line)); border-radius: 9px; background: color-mix(in srgb, var(--warn) 4%, transparent); }
+.obs-options-alpha-execution > div:first-child { display: flex; align-items: baseline; gap: 7px 10px; flex-wrap: wrap; }
+.obs-options-alpha-execution > div:first-child b { color: var(--warn); font: 650 9.5px/1.3 var(--font-ui); text-transform: uppercase; }
+.obs-options-alpha-execution > div:first-child span { color: var(--muted); font: 500 9px/1.4 var(--font-ui); }
+.obs-options-alpha-execution-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 6px; margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,.055); }
+.obs-options-alpha-deescalation { display: flex; align-items: baseline; gap: 7px; min-width: 0; margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,.065); }
+.obs-options-alpha-deescalation b { flex: none; color: var(--warn); font: 650 9px/1.3 var(--font-ui); text-transform: uppercase; }
+.obs-options-alpha-deescalation span { min-width: 0; color: var(--muted); font: 500 9.5px/1.4 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-ledger { display: flex; flex-direction: column; gap: 6px; }
+.obs-options-alpha-ledger-row {
+  display: grid;
+  grid-template-columns: minmax(150px,1.7fr) repeat(4,minmax(58px,.55fr));
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 9px;
+  border-radius: 9px;
+  background: rgba(255,255,255,.026);
+}
+.obs-options-alpha-ledger-book { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.obs-options-alpha-ledger-book b { color: var(--text-2); font: 650 11px/1.25 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-ledger-book span { color: var(--muted); font: 500 9px/1.2 var(--font-ui); }
+.obs-options-alpha-accrual-events { display: grid; grid-template-columns: minmax(155px,1.25fr) repeat(4,minmax(72px,.55fr)); gap: 7px; align-items: center; }
+.obs-options-alpha-accrual-events > div:first-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.obs-options-alpha-accrual-events > div:first-child b { color: var(--text-2); font: 650 11px/1.25 var(--font-ui); }
+.obs-options-alpha-accrual-events > div:first-child span { color: var(--muted); font: 500 8.5px/1.3 var(--font-ui); }
+.obs-options-alpha-accrual-label { margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.065); color: var(--text-2); font: 650 9px/1.2 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+.obs-options-alpha-horizons { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 6px; margin-top: 7px; }
+.obs-options-alpha-horizon { display: flex; flex-direction: column; gap: 5px; min-width: 0; padding: 8px; border: 1px solid rgba(255,255,255,.07); border-radius: 9px; background: rgba(255,255,255,.022); }
+.obs-options-alpha-horizon > div { display: flex; align-items: baseline; justify-content: space-between; gap: 5px; min-width: 0; }
+.obs-options-alpha-horizon b { color: var(--text); font: 700 10px/1.1 var(--font-num); }
+.obs-options-alpha-horizon span { min-width: 0; color: var(--muted); font: 500 8px/1.25 var(--font-ui); text-align: right; overflow-wrap: anywhere; }
+.obs-options-alpha-horizon strong { min-width: 0; color: var(--text-2); font: 700 14px/1 var(--font-num); overflow-wrap: break-word; word-break: normal; }
+.obs-options-alpha-horizon small { color: var(--muted); font: 500 8px/1.3 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-konseki { display: grid; grid-template-columns: minmax(230px,1fr) minmax(420px,1.25fr); gap: 16px; min-width: 0; padding: 11px 13px; border: 1px solid color-mix(in srgb, var(--brand-2) 18%, var(--line)); border-radius: 13px; background: color-mix(in srgb, var(--brand) 3%, transparent); }
+.obs-options-alpha-konseki-facts { display: grid; grid-template-columns: minmax(135px,1fr) minmax(54px,.35fr) repeat(2,minmax(0,1fr)); gap: 7px; min-width: 0; }
+.obs-options-alpha-konseki-facts > div { padding: 7px 8px; border-radius: 8px; background: rgba(255,255,255,.022); }
+.obs-options-alpha-research { padding: 0; }
+.obs-options-alpha-research > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 11px 12px; border-radius: 13px; cursor: pointer; list-style-position: inside; }
+.obs-options-alpha-research > summary:hover { background: rgba(255,255,255,.025); }
+.obs-options-alpha-research > summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: -2px; }
+.obs-options-alpha-research > summary > div { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; }
+.obs-options-alpha-research > summary h3 { margin: 0; color: var(--text-2); font: 700 10px/1.2 var(--font-ui); letter-spacing: .11em; text-transform: uppercase; }
+.obs-options-alpha-research > summary small,.obs-options-alpha-research > summary > span { color: var(--muted); font: 500 9px/1.35 var(--font-ui); overflow-wrap: anywhere; }
+.obs-options-alpha-research[open] > summary { border-bottom: 1px solid var(--line); border-radius: 13px 13px 0 0; }
+.obs-options-alpha-research > .obs-options-alpha-candidate-grid { padding: 10px; }
+.obs-options-alpha-empty,.obs-options-alpha-footnote { margin: 0; color: var(--muted); font: 500 10.5px/1.5 var(--font-ui); }
+.obs-options-alpha-footnote { margin-top: 8px; }
+.obs-options-alpha-method { display: flex; gap: 8px; align-items: baseline; min-width: 0; padding: 4px 5px 2px; color: var(--muted); font: 500 9.5px/1.45 var(--font-ui); }
+.obs-options-alpha-candidate-history > .obs-options-alpha-section-head {
+  align-items: flex-start;
+}
+.obs-options-alpha-candidate-history > .obs-options-alpha-section-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.obs-options-alpha-candidate-history > .obs-options-alpha-section-head h3.obs-options-alpha-history-title {
+  margin: 0;
+  color: var(--text);
+  font: 750 16px/1.2 var(--font-ui);
+  letter-spacing: -.01em;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-candidate-history > .obs-options-alpha-section-head small {
+  max-width: 72ch;
+  color: var(--muted);
+  font: 500 10.5px/1.45 var(--font-ui);
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-candidate-head strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-context {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  background: rgba(255,255,255,.02);
+}
+.obs-options-alpha-context-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.obs-options-alpha-context-head b {
+  color: var(--text);
+  font: 700 11px/1.25 var(--font-ui);
+}
+.obs-options-alpha-context-head small {
+  color: var(--muted);
+  font: 500 10px/1.4 var(--font-ui);
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-context-absent {
+  margin: 0;
+  color: var(--muted);
+  font: 500 10.5px/1.45 var(--font-ui);
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-context-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+.obs-options-alpha-context-flow,
+.obs-options-alpha-context-intent {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+.obs-options-alpha-context-flow > span,
+.obs-options-alpha-context-intent > span {
+  color: var(--muted);
+  font: 600 8.5px/1.25 var(--font-ui);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.obs-options-alpha-context-flow ul,
+.obs-options-alpha-context-intent ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.obs-options-alpha-context-flow li,
+.obs-options-alpha-context-intent li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 6px 7px;
+  border-radius: 7px;
+  background: rgba(255,255,255,.03);
+}
+.obs-options-alpha-context-flow b,
+.obs-options-alpha-context-intent b {
+  min-width: 0;
+  color: var(--muted);
+  font: 600 8.5px/1.2 var(--font-ui);
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.obs-options-alpha-context-flow span,
+.obs-options-alpha-context-intent span {
+  min-width: 0;
+  color: var(--text-2);
+  font: 650 11px/1.25 var(--font-num);
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-prereqs {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  margin: 10px 0 4px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  background: rgba(255,255,255,.02);
+}
+.obs-options-alpha-prereqs-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.obs-options-alpha-prereqs-head span {
+  color: var(--text);
+  font: 700 11px/1.25 var(--font-ui);
+}
+.obs-options-alpha-prereqs-head b {
+  color: var(--text-2);
+  font: 650 10.5px/1.25 var(--font-ui);
+}
+.obs-options-alpha-prereqs ul {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.obs-options-alpha-prereqs li {
+  min-width: 0;
+  color: var(--text-2);
+  font: 500 10.5px/1.4 var(--font-ui);
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-candidate-disclosure,
+.obs-options-alpha-feed-details {
+  min-width: 0;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  background: rgba(255,255,255,.016);
+  color: var(--muted);
+  font: 500 10px/1.4 var(--font-ui);
+}
+.obs-options-alpha-candidate-disclosure > summary,
+.obs-options-alpha-feed-details > summary {
+  cursor: pointer;
+  color: var(--text-2);
+  font: 650 10.5px/1.3 var(--font-ui);
+}
+.obs-options-alpha-candidate-disclosure ul,
+.obs-options-alpha-feed-details ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.obs-options-alpha-candidate-disclosure li,
+.obs-options-alpha-feed-details li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.obs-options-alpha-candidate-disclosure b,
+.obs-options-alpha-feed-details b {
+  color: var(--muted);
+  font: 600 8.5px/1.2 var(--font-ui);
+}
+.obs-options-alpha-candidate-disclosure span,
+.obs-options-alpha-feed-details span {
+  min-width: 0;
+  color: var(--text-2);
+  font: 500 9.5px/1.35 var(--font-num);
+  overflow-wrap: anywhere;
+}
+.obs-options-alpha-method b { flex: none; color: var(--text-2); text-transform: uppercase; letter-spacing: .08em; }
+.obs-options-alpha-method span { min-width: 0; overflow-wrap: anywhere; }
+
+/* R6.2-A private operator desk — deliberately separate from Options Alpha. */
+.obs-issue-desk { display:flex; flex:1 1 auto; flex-direction:column; gap:10px; min-width:0; min-height:0; padding:10px 12px 14px; overflow:auto; background:radial-gradient(720px 360px at 88% 0,rgba(255,177,66,.08),transparent 70%),var(--bg); }
+.obs-issue-state { display:flex; flex:1; align-items:center; justify-content:center; gap:10px; color:var(--muted); font:500 12px/1.5 var(--font-ui); }
+.obs-issue-head { display:flex; justify-content:space-between; gap:14px; min-width:0; padding:13px 14px; border:1px solid color-mix(in srgb,var(--warn) 20%,var(--line)); border-radius:14px; background:rgba(255,177,66,.035); }
+.obs-issue-head>div:first-child { min-width:0; }.obs-issue-head>div:first-child>span { color:var(--warn); font:700 8.5px/1.2 var(--font-ui); letter-spacing:.11em; text-transform:uppercase; }.obs-issue-head h2 { margin:5px 0 0; color:var(--text); font:740 21px/1 var(--font-ui); }.obs-issue-head p { max-width:70ch; margin:7px 0 0; color:var(--muted); font:500 10px/1.45 var(--font-ui); }
+.obs-issue-capacity { display:flex; flex:none; flex-direction:column; gap:3px; min-width:140px; padding:8px 10px; border:1px solid rgba(255,255,255,.08); border-radius:10px; background:rgba(0,0,0,.16); }.obs-issue-capacity b { color:var(--text); font:750 18px/1 var(--font-num); }.obs-issue-capacity span,.obs-issue-capacity small { color:var(--muted); font:500 9px/1.3 var(--font-ui); }
+.obs-issue-error { margin:0; padding:8px 10px; border:1px solid color-mix(in srgb,var(--down) 24%,var(--line)); border-radius:9px; color:var(--down); font:600 10px/1.4 var(--font-ui); }
+.obs-issue-section { min-width:0; padding:11px 12px; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.018); }.obs-issue-section>header { display:flex; justify-content:space-between; gap:10px; align-items:baseline; margin-bottom:9px; }.obs-issue-section h3 { margin:0; color:var(--text-2); font:700 10px/1.2 var(--font-ui); letter-spacing:.1em; text-transform:uppercase; }.obs-issue-section>header span { color:var(--muted); font:500 9px/1.3 var(--font-ui); text-align:right; overflow-wrap:anywhere; }
+.obs-issue-proposals,.obs-issue-positions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }.obs-issue-proposals>p,.obs-issue-positions>p { margin:0; color:var(--muted); font:500 10.5px/1.5 var(--font-ui); }
+.obs-issue-proposal,.obs-issue-position { min-width:0; padding:10px; border:1px solid rgba(255,255,255,.08); border-radius:10px; background:rgba(255,255,255,.022); }.obs-issue-proposal>div:first-child,.obs-issue-position header { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }.obs-issue-proposal b,.obs-issue-position header b { color:var(--text); font:750 15px/1 var(--font-num); }.obs-issue-proposal>div:first-child span,.obs-issue-position header span { color:var(--warn); font:600 9px/1.25 var(--font-ui); text-align:right; }.obs-issue-position header>div { display:flex; flex-direction:column; gap:4px; min-width:0; }.obs-issue-position header>strong { color:var(--text-2); font:650 9px/1.2 var(--font-ui); letter-spacing:.05em; text-align:right; }
+.obs-issue-proposal dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin:9px 0; }.obs-issue-proposal dl>div { min-width:0; padding:6px 7px; border-radius:7px; background:rgba(0,0,0,.12); }.obs-issue-proposal dt { color:var(--muted); font:600 8px/1.2 var(--font-ui); text-transform:uppercase; }.obs-issue-proposal dd { margin:3px 0 0; color:var(--text-2); font:550 9px/1.35 var(--font-num); overflow-wrap:anywhere; }.obs-issue-proposal p { margin:0; color:var(--muted); font:500 9.5px/1.4 var(--font-ui); }
+.obs-issue-position .obs-issue-receipt-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin:9px 0; }.obs-issue-position .obs-issue-receipt-fields>div{padding:6px 7px;border-radius:7px;background:rgba(0,0,0,.12)}.obs-issue-position .obs-issue-receipt-fields dt { color:var(--muted); font:600 8px/1.2 var(--font-ui); }.obs-issue-position .obs-issue-receipt-fields dd { margin:3px 0 0; color:var(--text-2); font:500 8.5px/1.35 var(--font-num); overflow-wrap:anywhere; }
+.obs-issue-confirm details { margin-top:8px; padding-top:7px; }.obs-issue-confirm details>summary{cursor:pointer;list-style:none;font:600 10.5px/1 var(--font-ui);color:var(--text-2);padding:2px 0}.obs-issue-confirm details>summary::-webkit-details-marker{display:none}.obs-issue-confirm details dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin:9px 0; }.obs-issue-confirm details dl>div{padding:6px 7px;border-radius:7px;background:rgba(0,0,0,.12)}.obs-issue-confirm details dl dt { color:var(--muted); font:600 8px/1.2 var(--font-ui); }.obs-issue-confirm details dl dd { margin:3px 0 0; color:var(--text-2); font:500 8.5px/1.35 var(--font-num); overflow-wrap:anywhere; }
+.obs-issue-proposal details,.obs-issue-position details { margin-top:8px; padding-top:7px; border-top:1px solid rgba(255,255,255,.06); color:var(--muted); font:500 9px/1.35 var(--font-ui); }.obs-issue-proposal summary,.obs-issue-position summary { cursor:pointer; color:var(--text-2); }.obs-issue-proposal pre,.obs-issue-position pre { max-height:190px; margin:7px 0 0; overflow:auto; white-space:pre-wrap; color:var(--muted); font:500 8px/1.4 var(--font-num); }
+.obs-issue-actions { display:flex; justify-content:flex-end; gap:7px; margin-top:10px; }.obs-chip.is-primary { color:#081012; border-color:color-mix(in srgb,var(--warn) 65%,transparent); background:var(--warn); }.obs-chip:disabled { cursor:not-allowed; opacity:.45; }
+.obs-issue-lifecycle { display:flex; gap:5px; margin-top:9px; padding-bottom:3px; overflow-x:auto; scrollbar-width:none; }.obs-issue-lifecycle::-webkit-scrollbar { display:none; }.obs-issue-lifecycle span { flex:0 0 auto; padding:4px 6px; border:1px solid var(--line); border-radius:var(--r-pill); color:var(--muted); font:650 8px/1.15 var(--font-ui); letter-spacing:.04em; }.obs-issue-lifecycle span.is-done { color:var(--text); border-color:color-mix(in srgb,var(--warn) 30%,var(--line)); background:color-mix(in srgb,var(--warn) 8%,transparent); }
+.obs-issue-lifecycle .obs-issue-terminal-label { border:0; color:var(--muted); background:transparent; text-transform:uppercase; }.obs-issue-lifecycle .obs-issue-terminal:not(.is-done) { opacity:.5; }
+.obs-issue-events { display:flex; flex-direction:column; gap:5px; margin-top:8px; }.obs-issue-events>div { display:grid; grid-template-columns:minmax(80px,.7fr) minmax(110px,1fr) minmax(0,1.2fr); gap:7px; min-width:0; padding:6px 7px; border-radius:7px; background:rgba(0,0,0,.11); }.obs-issue-events b { color:var(--text-2); font:650 9px/1.35 var(--font-ui); }.obs-issue-events time,.obs-issue-events span { min-width:0; color:var(--muted); font:500 8.5px/1.35 var(--font-num); overflow-wrap:anywhere; }
+.obs-issue-confirm { position:fixed; z-index:260; inset:0; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(0,0,0,.6); }.obs-issue-confirm>div { width:min(850px,100%); max-height:min(820px,calc(100dvh - 32px)); overflow:auto; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--panel); box-shadow:0 22px 70px rgba(0,0,0,.45); }.obs-issue-confirm h3 { margin:0; color:var(--text); font:700 15px/1.2 var(--font-ui); }.obs-issue-confirm>div>p,.obs-issue-editor>p,.obs-issue-confirm small { color:var(--muted); font:500 10px/1.45 var(--font-ui); }.obs-issue-editor { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }.obs-issue-editor h4 { margin:12px 0 6px; color:var(--text-2); font:700 9px/1.2 var(--font-ui); text-transform:uppercase; letter-spacing:.08em; }.obs-issue-form-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }.obs-issue-form-grid label { display:flex; flex-direction:column; gap:3px; min-width:0; color:var(--muted); font:600 8px/1.2 var(--font-ui); text-transform:uppercase; }.obs-issue-form-grid input { min-width:0; padding:6px; border:1px solid var(--line); border-radius:6px; color:var(--text); background:rgba(0,0,0,.18); font:500 10px/1.2 var(--font-num); }
+.obs-issue-reasons { display:flex; flex-direction:column; gap:4px; margin-top:10px; color:var(--muted); font:600 9px/1.3 var(--font-ui); }.obs-issue-reasons input,.obs-issue-reasons select { padding:7px; border:1px solid var(--line); border-radius:7px; color:var(--text); background:rgba(0,0,0,.18); font:500 10px/1.3 var(--font-ui); }
+
+@media (max-width: 980px) {
+  .obs-options-alpha-head { align-items: flex-start; flex-direction: column; }
+  .obs-options-alpha-title { min-width: 0; }
+  .obs-options-alpha-kpis { width: 100%; flex-basis: auto; }
+  .obs-options-alpha-guards { grid-template-columns: 1fr 1fr; }
+  .obs-options-alpha-guards > div:last-child { grid-column: 1/-1; }
+  .obs-options-alpha-boundary,.obs-options-alpha-konseki { grid-template-columns: 1fr; }
+  .obs-options-alpha-accrual-events { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .obs-options-alpha-accrual-events > div:first-child { grid-column: 1/-1; }
+  .obs-options-alpha-context-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .obs-prophet-lane-nav { display:flex; align-self:stretch; width:auto; overflow-x:auto; scrollbar-width:none; }
+  .obs-prophet-lane-nav::-webkit-scrollbar { display:none; }
+  .obs-prophet-lane-nav button { flex:0 0 max-content; min-height:42px; padding:7px 11px; }
+  .obs-prophet-lane-nav button small { display:none; }
+  .obs-options-alpha { padding: 8px 8px 12px; overflow-y: auto; }
+  .obs-options-alpha-head { padding: 11px 12px; }
+  .obs-options-alpha-kpis { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .obs-options-alpha-scroll { flex: none; overflow: visible; }
+  .obs-options-alpha-stale { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .obs-options-alpha-boundary-facts,.obs-options-alpha-konseki-facts { grid-template-columns: 1fr; }
+  .obs-options-alpha-clocks { grid-template-columns: 1fr; }
+  .obs-options-alpha-execution-grid { grid-template-columns: 1fr 1fr; }
+  .obs-options-alpha-accrual-events { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .obs-options-alpha-research > summary { align-items: flex-start; }
+  .obs-options-alpha-research > summary > div { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .obs-options-alpha-guards,.obs-options-alpha-readiness-grid,.obs-options-alpha-candidate-grid { grid-template-columns: 1fr; }
+  .obs-options-alpha-guards > div:last-child { grid-column: auto; }
+  .obs-options-alpha-section { padding: 10px; }
+  .obs-options-alpha-ledger-row { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .obs-options-alpha-ledger-book { grid-column: 1/-1; }
+  .obs-options-alpha-context-grid { grid-template-columns: 1fr; }
+  .obs-options-alpha-prereqs-head { align-items: flex-start; flex-direction: column; }
+  .obs-issue-desk { padding:8px 8px 12px; }.obs-issue-head { flex-direction:column; }.obs-issue-capacity { width:100%; box-sizing:border-box; }.obs-issue-proposals,.obs-issue-positions { grid-template-columns:1fr; }.obs-issue-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.obs-issue-lifecycle { flex-wrap:wrap; overflow:visible; }.obs-issue-events>div { grid-template-columns:1fr; gap:3px; }.obs-issue-section>header { align-items:flex-start; flex-direction:column; }.obs-issue-section>header span { text-align:left; }
+}
+
+/* ─── Flow Desk surface-specific overrides ───────────────────────────────── */
+/*
+ * Scoped under .obs-flowdesk so they don't leak into the chart app.
+ * The three panes use .obs-card with 15px radius. Layout borders replaced by
+ * card shells. Density: 13-16px padding, 10-14px gaps.
+ */
+
+/* Root layout: fill the tab panel, flex row, ambient gradient via obs-ambient */
+.obs-flowdesk {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  overflow: hidden;
+  gap: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+  background: var(--bg);
+}
+
+/* Left rail — widened to host FlowGauge + WatchlistRail + SmartMoneyRadar */
+.obs-fd-left {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden; /* internal scroll handled per-section */
+}
+.obs-fd-left::-webkit-scrollbar { display: none; }
+/* WatchlistRail aside: allocate up to 55% of rail height; scrollable internally.
+ * This leaves ≥45% for the Smart Money Radar below.
+ * Compacted rings (26px) from WatchlistRail's tighter row CSS means session+watchlist
+ * comfortably fit ~240-280px. Internal scroll handles overflow gracefully. */
+.obs-fd-left > aside {
+  flex: 0 0 auto;
+  max-height: 55%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.obs-fd-left > aside::-webkit-scrollbar { display: none; }
+
+/* Center column — feed only: toolbar + card grid fills all remaining height */
+.obs-fd-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+}
+.obs-fd-center::-webkit-scrollbar { display: none; }
+
+/* Right rail — narrowed; chain heat first (rendered first in JSX) */
+.obs-fd-right {
+  width: 310px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+}
+.obs-fd-right::-webkit-scrollbar { display: none; }
+/* Wrap right rail below center at <1000px */
+@media (max-width: 999px) {
+  /* Narrow: rail+feed stay in the row; the right column WRAPS BELOW them
+     full-width (without flex-wrap on the parent the center collapsed to
+     ~20px — the right column just squeezed it out of the row). */
+  .obs-flowdesk {
+    flex-wrap: wrap;
+  }
+  .obs-fd-center {
+    flex: 1 1 380px;
+    min-width: 0;
+    /* In the wrap context the row no longer constrains height — without a cap
+       the 2000-card feed grows to natural height and pushes the wrapped right
+       column ~100k px down. Keep the internal feed scroll in charge. */
+    max-height: calc(100vh - 200px);
+  }
+  .obs-fd-left {
+    max-height: calc(100vh - 200px);
+  }
+  .obs-fd-right {
+    flex: 1 1 100%;
+    width: 100%;
+    max-height: 340px;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+  }
+  .obs-fd-right > * {
+    flex: 0 0 300px;
+    min-width: 0;
+  }
+  .obs-fd-right > .obs-fd-chain.obs-card {
+    flex: 0 0 300px;
+  }
+  /* The inspector card is `flex: 0 0 auto` + `max-height: 45%` for the desktop
+     column, where it sits below Chain Heat. In this horizontal strip that pair
+     is wrong on both axes: `auto` hands the card its max-content width (1,620 px
+     for a selected print at 390/820, so the strip scrolled sideways and hid
+     almost all of it) and 45% of the 340 px strip squeezes it to 153 px tall.
+     Give it the strip's card basis and the strip's full height; its body
+     scrolls vertically like the other cards. The hairline moves to the edge
+     that now borders the neighbouring card. */
+  .obs-fd-right > .obs-fd-inspector.obs-card {
+    flex: 0 0 300px;
+    min-width: 0;
+    max-height: none;
+    border-top: 0;
+    border-left: 1px solid rgba(255,255,255,0.06);
+  }
+}
+
+/* ── Radar in left rail: fills remaining height after FlowGauge+WatchlistRail ── */
+/*
+ * FlowGauge (slim strip, ~100px) + WatchlistRail (cards, ~200px) are flex-shrink:0.
+ * Radar takes the rest via flex:1 min-height:0 and obs-scroll for internal scroll.
+ */
+
+/* ── Feed area: fills entire center column; obs-scroll internal grid ─────── */
+/*
+ * FeedPane is now the only child of obs-fd-center (no FlowGauge or RadarStrip above it).
+ * obs-fd-feed-wrap fills flex:1; obs-fd-list is the internal scrollable card grid.
+ * Responsive auto-fit: 3-up at wide / 2-up at mid / 1-up at narrow.
+ */
+.obs-fd-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 10px 20px;
+  /* auto-fit: ≥750px center → 3-up; ≥490px → 2-up; else 1-up */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 6px;
+  align-content: start;
+  max-height: none; /* no cap — obs-scroll handles overflow */
+}
+
+/* Load-more sentinel: always spans the full grid width */
+.obs-fd-load-more {
+  grid-column: 1 / -1;
+}
+
+/* ── Session stats card (left rail top) ─────────────────────────────────── */
+.obs-fd-session.obs-card {
+  padding: 0;
+  overflow: hidden;
+}
+.obs-fd-session .obs-card-hd {
+  padding: 9px 14px 7px;
+}
+.obs-fd-stat-grid {
+  display: flex;
+  gap: 0;
+  padding: 10px 15px 14px;
+  gap: 16px;
+}
+.obs-fd-stat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.obs-fd-stat-val {
+  font: 600 15px/1 var(--font-num);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.obs-fd-bar-wrap {
+  padding: 0 15px 12px;
+}
+.obs-fd-bar-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.obs-fd-bar-fill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: 2px;
+  transition: width 0.35s ease;
+}
+.obs-fd-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* ── Watchlist card ─────────────────────────────────────────────────────── */
+.obs-fd-wl.obs-card {
+  padding: 0;
+  overflow: hidden;
+}
+.obs-fd-wl-rows {
+  padding: 6px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.obs-fd-wl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background var(--t);
+}
+.obs-fd-wl-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.obs-fd-wl-ticker {
+  font: 650 12.5px/1 var(--font-ui);
+  color: var(--text);
+  flex: 0 0 52px;
+}
+.obs-fd-wl-inactive {
+  font-size: 10px;
+  color: var(--muted);
+  flex: 1;
+}
+.obs-fd-wl-btns {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.obs-fd-wl-btn {
+  font-size: 14px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+}
+.obs-fd-wl-btn.add {
+  color: var(--brand);
+}
+.obs-fd-wl-empty {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 6px 8px;
+}
+.obs-fd-wl-sublabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 4px 8px 2px;
+}
+
+/* ── Radar card — now in left rail, fills remaining height ───────────────── */
+.obs-fd-radar.obs-card {
+  padding: 0;
+  flex: 1;         /* stretch to fill remaining left-rail height */
+  min-height: 0;
+  overflow: hidden; /* card clips; the rows container scrolls via obs-scroll */
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-radius: 0; /* flush in rail — no card-level radius */
+  display: flex;            /* FIX: card must be a flex container so that     */
+  flex-direction: column;   /* inner .obs-fd-radar-rows flex:1 actually works */
+}
+.obs-fd-radar .obs-card-hd {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  padding: 10px 12px 8px;
+}
+.obs-fd-radar-note {
+  flex: 1 1 100%;
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--muted);
+  font-style: italic;
+}
+.obs-fd-radar-rows {
+  padding: 4px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto; /* radar rows scroll within the card when they overflow */
+  flex: 1;
+  min-height: 0;
+}
+.obs-fd-radar-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 1.25fr) 68px 62px 38px;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  transition: background var(--t);
+}
+.obs-fd-radar-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.obs-fd-radar-name {
+  min-width: 0;
+}
+.obs-fd-radar-ticker {
+  font: 650 12px/1 var(--font-ui);
+  color: var(--text);
+}
+.obs-fd-radar-group {
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 1.25;
+  color: var(--muted);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.obs-fd-radar-z {
+  font: 650 9.5px/1.15 var(--font-ui);
+  text-align: right;
+  white-space: nowrap;
+}
+.obs-fd-radar-prem {
+  font: 600 11.5px/1 var(--font-num);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.obs-fd-radar-call {
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.obs-fd-radar-col-head {
+  display: grid;
+  grid-template-columns: minmax(88px, 1.25fr) 68px 62px 38px;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 14px 6px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 0 0 2px;
+}
+
+/* ── Center feed area — fills obs-fd-center entirely ─────────────────────── */
+.obs-fd-feed-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.obs-fd-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.obs-fd-count {
+  font: 600 11px/1 var(--font-num);
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.obs-fd-search {
+  flex: 1;
+  min-width: 80px;
+  max-width: 130px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  color: var(--text);
+  font: 500 12px/1 var(--font-ui);
+  padding: 5px 9px;
+  outline: none;
+  transition: border-color var(--t);
+}
+.obs-fd-search:focus {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.obs-fd-search::placeholder {
+  color: var(--muted);
+}
+.obs-fd-preset-bar {
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.obs-fd-preset-bar::-webkit-scrollbar { display: none; }
+
+/* Flow timing receipts — transport, source clocks, and measured cycle are three
+   separate display-only claims. Individual facts wrap; the document never does. */
+.flow-freshness-receipt {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  min-width: 0;
+  color: var(--text-dim);
+  font: 550 10.5px/1.35 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+.flow-freshness-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.flow-freshness-item + .flow-freshness-item::before {
+  content: "·";
+  color: var(--muted);
+  margin-right: 2px;
+}
+.flow-freshness-connected { color: var(--brand-2); font-weight: 700; }
+.flow-freshness-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--brand-2);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--brand-2) 78%, transparent);
+}
+.flow-freshness-closed { color: var(--text-2); font-weight: 650; }
+.obs-fd-freshness {
+  flex: none;
+  padding: 6px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+}
+.options-flow-status-row { flex-wrap: wrap; }
+.options-flow-freshness { justify-content: flex-end; }
+.flow-artifact-source {
+  min-width: 0;
+  color: var(--text-dim);
+  font: 550 9px/1.2 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 820px) {
+  .options-flow-status-row > .spacer { display: none; }
+  .options-flow-status-row .options-flow-freshness {
+    order: 10;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .obs-fd-freshness { padding-inline: 10px; }
+}
+
+/* obs-fd-list is defined above (near line 389) — single canonical definition */
+
+/* ── Flow event card ────────────────────────────────────────────────────── */
+/*
+ * obs-card is the shell.  .obs-fc-card handles interior layout.
+ * Selected = .obs-card.sel (inherits brand tint + glow from observatory.css).
+ * Compact 3-line layout: line1=ticker+CP+ring+lean+time, line2=strike+prem, line3=size+badges
+ */
+.obs-fc-card {
+  padding: 11px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+}
+.obs-fc-card[data-fc-open="1"] {
+  z-index: 8;
+}
+.obs-fc-row1 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.obs-fc-ticker {
+  font: 700 13px/1 var(--font-ui);
+  color: var(--text);
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+/* C/P chip — uses var(--up)/var(--down) for East-Asian flip */
+.obs-fc-cp {
+  font: 700 9px/1 var(--font-ui);
+  padding: 2px 5px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+.obs-fc-cp.call {
+  background: color-mix(in srgb, var(--up) 12%, transparent);
+  color: var(--up);
+}
+.obs-fc-cp.put {
+  background: color-mix(in srgb, var(--down) 12%, transparent);
+  color: var(--down);
+}
+/* Lean chip — dashed border, compact */
+.obs-fc-lean {
+  font: 500 9.5px/1 var(--font-ui);
+  color: var(--muted);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 99px;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 145px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.obs-fc-time {
+  font: 500 9.5px/1 var(--font-num);
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  margin-left: auto;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+/* Line 1 inline ring */
+.obs-fc-ring-inline {
+  flex-shrink: 0;
+  margin-left: 0;
+}
+/* Line 2 — strike/exp/DTE + premium */
+.obs-fc-line2 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+.obs-fc-subtitle {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Premium emphasis — slightly smaller in compact card */
+.obs-fc-prem {
+  font: 600 13px/1 var(--font-num);
+  color: var(--signal);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Line 3 — size/OI + badges inline */
+.obs-fc-line3 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: start;
+  gap: 5px 6px;
+  min-width: 0;
+}
+/* Meta inside line 3 */
+.obs-fc-meta {
+  font-size: 10px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  overflow: hidden;
+  min-width: 0;
+}
+.obs-fc-meta-sep {
+  color: var(--muted);
+}
+/* Badges row */
+.obs-fc-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+/* Inline badges variant (inside line3) */
+.obs-fc-badges-inline {
+  width: calc(100% - 22px);
+  min-height: 16px;
+}
+.obs-fc-badge {
+  font: 700 8.5px/1 var(--font-ui);
+  letter-spacing: 0.04em;
+  padding: 2px 5px;
+  border-radius: 5px;
+  cursor: help;
+  position: relative;
+  white-space: nowrap;
+}
+.obs-fc-badge-whale  { color: var(--warn);   background: color-mix(in srgb, var(--warn)   13%, transparent); }
+.obs-fc-badge-cluster{ color: #A5B0FF;        background: rgba(91,108,255,.15); }
+.obs-fc-badge-sweep  { color: var(--text-2);  background: rgba(255,255,255,.07); }
+.obs-fc-badge-unusual{ color: #19c2c2;        background: rgba(25,194,194,.12); }
+.obs-fc-badge-block  { color: var(--text-2);  background: rgba(255,255,255,.07); }
+.obs-fc-ring-wrap {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+/* Expand section */
+.obs-fc-expand-btn {
+  position: static;
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  justify-self: end;
+  align-self: start;
+  font: 600 8px/1 var(--font-ui);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0;
+  flex: none;
+}
+.obs-fc-expand-btn:hover,
+.obs-fc-expand-btn:focus-visible {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.obs-fc-detail {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  margin-top: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.34);
+}
+.obs-fc-detail-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 10px;
+  font: 600 11px/1 var(--font-ui);
+  color: var(--text-2);
+  margin-bottom: 7px;
+}
+.obs-fc-comp-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+.obs-fc-comp-label {
+  color: var(--text-2);
+  flex: 0 0 90px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.obs-fc-comp-track {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.obs-fc-comp-fill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.obs-fc-comp-val {
+  font: 500 10px/1 var(--font-num);
+  color: var(--text-2);
+  flex: 0 0 24px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.obs-fc-detail-note {
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* ── Inspector pane — sits below Chain Heat in right rail ────────────────── */
+/* Empty state: slim one-line hint. Selected: capped at 45% rail height so
+   Chain Heat above is never starved. Internal .obs-insp-body scrolls the body. */
+.obs-fd-inspector.obs-card {
+  padding: 0;
+  overflow: hidden;
+  flex: 0 0 auto;          /* don't stretch — chain heat fills the space above */
+  max-height: 45%;         /* FIX: cap so chain heat is never starved            */
+  display: flex;           /* FIX: need flex-column so body flex:1 works         */
+  flex-direction: column;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-radius: 0;
+}
+/* With a print selected the inspector is what the reader asked for: the pinned
+   hero plus the print inspector and field breakdown in one scroller. 45% of a
+   900 px viewport's column left that scroller ~170 px tall, so it takes 55% and
+   Chain Heat keeps 45% — still its own scroller, never starved. Column widths
+   only: in the ≤999px strip the card takes the strip's full height (rule in the
+   narrow block above), and this later, equally specific rule must not cap it. */
+@media (min-width: 1000px) {
+  .obs-fd-inspector.obs-card.has-event {
+    max-height: 55%;
+  }
+}
+/* Scrollable body inside the inspector card */
+.obs-insp-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.obs-insp-head {
+  padding: 10px 14px 6px;
+}
+.obs-insp-head-ticker {
+  font: 700 18px/1 var(--font-ui);
+  color: var(--text);
+}
+.obs-insp-head-ct {
+  font: 500 12px/1 var(--font-num);
+  color: var(--muted);
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.obs-insp-tier {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 99px;
+  padding: 2px 9px;
+  letter-spacing: 0.05em;
+  float: right;
+  margin-top: 3px;
+}
+.obs-insp-bigring-row {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 10px 16px 14px;
+}
+.obs-insp-comp-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.obs-insp-crow {
+  display: grid;
+  grid-template-columns: 68px 1fr 28px;
+  gap: 9px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+.obs-insp-track {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+.obs-insp-track-fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 60%, #8B5CF6));
+  transition: width 0.35s ease;
+}
+.obs-insp-crow-val {
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.obs-insp-kvgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 8px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.obs-insp-kv-val {
+  font: 600 13px/1 var(--font-num);
+  color: var(--text);
+  display: block;
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+/* Dir block */
+.obs-insp-dir-block {
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.obs-insp-dir-chip {
+  font: 650 11px/1 var(--font-ui);
+  color: var(--text-2);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  padding: 3px 9px;
+}
+/* Field section */
+.obs-insp-section {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.obs-insp-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.obs-insp-field-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+  gap: 6px;
+}
+.obs-insp-field-key {
+  font-size: 11px;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.obs-insp-field-val {
+  font: 600 11px/1 var(--font-num);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  word-break: break-all;
+}
+.obs-insp-field-note {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 10px;
+}
+.obs-insp-contract-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+/* Empty state */
+.obs-insp-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── W3A print inspector (per-print estimate view, mounted by InspectorPane) ──
+   Neutral text only — side is an estimate, never a direction fact, so no
+   direction hues ride any line here. */
+.obs-print-identity {
+  font: 700 13px/1.35 var(--font-ui);
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.obs-print-line {
+  font: 500 11px/1.55 var(--font-ui);
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.obs-print-premium {
+  color: var(--text);
+}
+.obs-print-block {
+  margin-bottom: 9px;
+}
+.obs-print-hd {
+  margin-bottom: 3px;
+}
+.obs-print-side {
+  font: 650 12px/1.45 var(--font-ui);
+  color: var(--text);
+}
+.obs-print-sub {
+  font: 500 11px/1.55 var(--font-ui);
+  color: var(--text-2);
+}
+
+/* ── W3A coverage line (desk-level, above the tape; FeedPane mounts it) ── */
+.obs-print-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 16px;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--line);
+  font: 500 11px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+
+/* ── Chain heat card — top of right rail, fills all space above inspector ── */
+.obs-fd-chain.obs-card {
+  padding: 0;
+  overflow: auto; /* obs-scroll class takes over scrollbar styling */
+  flex: 1 1 0;
+  min-height: 0;
+  border-radius: 0;
+}
+.obs-fd-chain .obs-card-hd { gap: 5px 8px; flex-wrap: wrap; }
+.obs-fd-chain-row {
+  padding: 11px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.obs-fd-chain-row:last-child {
+  border-bottom: none;
+}
+.obs-fd-chain-row1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.obs-fd-chain-ticker {
+  font: 700 13.5px/1 var(--font-ui);
+  color: var(--text);
+}
+.obs-fd-chain-cp {
+  font: 700 10px/1 var(--font-ui);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+.obs-fd-chain-cp.call {
+  background: color-mix(in srgb, var(--up) 12%, transparent);
+  color: var(--up);
+}
+.obs-fd-chain-cp.put {
+  background: color-mix(in srgb, var(--down) 12%, transparent);
+  color: var(--down);
+}
+.obs-fd-chain-strike {
+  font: 500 11px/1 var(--font-num);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  flex: 1;
+}
+.obs-fd-chain-prem {
+  font: 700 13px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.obs-fd-chain-row2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+.obs-fd-chain-lean {
+  font: 600 10px/1 var(--font-ui);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  padding: 2px 7px;
+  color: var(--text-2);
+}
+.obs-fd-chain-caveat {
+  font-size: 10px;
+  color: var(--muted);
+  font-style: italic;
+}
+.obs-fd-chain-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+  font-size: 10.5px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.obs-fd-chain-stat-key {
+  color: var(--muted);
+}
+.obs-fd-chain-askbar-track {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.obs-fd-chain-askbar-fill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: 2px;
+  transition: width 0.35s ease;
+}
+.obs-fd-chain-note {
+  font-size: 10px;
+  color: var(--muted);
+  font-style: italic;
+  padding: 6px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  line-height: 1.4;
+}
+.obs-fd-chain-empty {
+  padding: 16px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ─── Wave 2E: per-greek surface color pairs ─────────────────────────────────
+ *
+ * Diverging color pairs for the surface pane's greek metrics (RECON §4.6 defaults).
+ * Resolved to RGB at mount by lib/heatSeries.resolveMetricColors and fed to the paint
+ * shader (same code path as Wave-1's --up/--down premium field).
+ *
+ *   gamma → the directional up/down tokens (teal +, red −) so it follows the East-Asian
+ *           red-up flip like every other directional read.
+ *   vanna → purple / orange, charm → indigo / yellow. These are GREEK HUES, not a
+ *           bull/bear read, so they are the SAME in east + west (no flip) — overridable
+ *           here per theme. Defined on .obs so a themed page can restyle them centrally.
+ */
+/* Defined on :root as well as .obs so `resolveMetricColors` gets a real pair no matter
+   which element it resolves against. Scoped to .obs alone, any resolve outside that
+   subtree (e.g. the pane's pre-mount default) fell through to the built-in WEST green/red
+   and silently lost the East-Asian flip. */
+:root,
+.obs {
+  /* Directional metrics defer to the up/down tokens, so the East-Asian 红涨绿跌 flip
+     still reaches the surface field. The surface theme engine
+     (components/surface/surfaceTheme) overrides these inline per pane; clearing the
+     override restores the token — which is why the "default" preset stores no colour. */
+  --metric-netprem-pos: var(--up);
+  --metric-netprem-neg: var(--down);
+  --metric-gamma-pos: var(--up);
+  --metric-gamma-neg: var(--down);
+  --metric-vanna-pos: #9b6bff; /* purple */
+  --metric-vanna-neg: #ff9d42; /* orange */
+  --metric-charm-pos: #5b6cff; /* indigo */
+  --metric-charm-neg: #f2c53d; /* yellow */
+}
+
+/* ─── Wave 2E: surface strike-hover popover ──────────────────────────────────
+ * Floating obs-card popover on a surface strike row (RECON §4.2 parity). Lives on a
+ * fixed layer above the pane so it never clips inside the chart's overflow.
+ */
+.obs-surf-pop {
+  position: fixed;
+  z-index: 80;
+  min-width: 188px;
+  max-width: 236px;
+  padding: 9px 11px 10px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 11px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.obs-surf-pop-hd {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.obs-surf-pop-strike {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.obs-surf-pop-pct {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.obs-surf-pop-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.obs-surf-pop-row .k {
+  color: var(--text-2);
+}
+.obs-surf-pop-row .v {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.obs-surf-pop-sep {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 6px 0 5px;
+}
+.obs-surf-pop-hint {
+  margin-top: 7px;
+  font-size: 9.5px;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ─── Wave 2E: Intraday-Evolution modal ──────────────────────────────────────
+ * Full floating layer (scrim + centered card). Focus-trapped; Esc closes.
+ */
+.obs-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(6, 8, 12, 0.62);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.obs-modal {
+  width: min(760px, 96vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+}
+.obs-modal-hd {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.obs-modal-title {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+.obs-modal-title b {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.obs-modal-close {
+  height: 26px;
+  min-width: 26px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 110ms var(--ease), color 110ms var(--ease);
+}
+.obs-modal-close:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: var(--text);
+}
+.obs-modal-body {
+  padding: 12px 16px 6px;
+  overflow-y: auto;
+}
+.obs-modal-chart {
+  width: 100%;
+  height: 260px;
+  position: relative;
+}
+.obs-modal-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 9px 16px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 10.5px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Expiry-breakdown horizontal bars inside the modal */
+.obs-modal-exp-row {
+  display: grid;
+  grid-template-columns: 58px 1fr 70px;
+  align-items: center;
+  height: 20px;
+  gap: 8px;
+}
+.obs-modal-exp-lbl {
+  font-size: 10.5px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.obs-modal-exp-track {
+  position: relative;
+  height: 10px;
+}
+.obs-modal-exp-bar {
+  position: absolute;
+  top: 0;
+  height: 10px;
+  border-radius: 2px;
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.obs-modal-exp-val {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Wave 2E: Exposure-by-Expiry drawer ─────────────────────────────────────
+ * Collapsible bottom drawer on the Exposure tab. Bubbles | Bars.
+ */
+.obs-xdrawer {
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 60%, transparent);
+  flex-shrink: 0;
+}
+.obs-xdrawer-hd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-2);
+  text-align: left;
+}
+.obs-xdrawer-hd:hover {
+  color: var(--text);
+}
+.obs-xdrawer-caret {
+  font-size: 9px;
+  color: var(--muted);
+  transition: transform 160ms var(--ease);
+}
+.obs-xdrawer-caret.open {
+  transform: rotate(90deg);
+}
+.obs-xdrawer-count {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+.obs-xdrawer-body {
+  padding: 6px 14px 12px;
+  max-height: min(310px, 42vh);
+  overflow-y: auto;
+}
+.obs-xdrawer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.obs-xdrawer-plot {
+  width: 100%;
+  height: 204px;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+.obs-xdrawer-note {
+  margin-top: 8px;
+}
+.obs-xdrawer-empty {
+  padding: 22px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .obs-gex-history-row {
+    flex-direction: column;
+  }
+  .obs-gex-history-readout {
+    width: 100% !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ─── OEU T-C: surface flagship — pins, quad, style popover, drill actions ────
+ * Additive only; nothing above is modified. All colours come from theme tokens so the
+ * light/dark themes and the East-Asian direction flip keep working.
+ */
+
+/* Send-to-chart button inside the strike hover popover. The popover itself is
+   pointer-events:none so it never eats the crosshair — this one control opts back in. */
+.obs-surf-pop-pin {
+  pointer-events: auto;
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  height: 24px;
+  font: 600 10.5px/1 var(--font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  background: var(--inset);
+  border: 1px solid var(--line-2, var(--line));
+  border-radius: var(--r-sm, 6px);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.obs-surf-pop-pin:hover { background: var(--panel-3); color: var(--text); }
+.obs-surf-pop-pin[aria-pressed="true"] {
+  color: var(--signal);
+  border-color: color-mix(in srgb, var(--signal) 45%, transparent);
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
+}
+
+/* Pinned-level chip row above the field. */
+.obs-surf-pins {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  flex-shrink: 0;
+}
+.obs-surf-pins-lbl {
+  font: 700 9.5px/1 var(--font-ui);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.obs-surf-pin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 4px 0 8px;
+  font: 600 11px/1 var(--font-num, var(--font-ui));
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--signal) 40%, transparent);
+  border-radius: var(--r-sm, 6px);
+}
+.obs-surf-pin-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.obs-surf-pin-x:hover { color: var(--text); background: var(--panel-3); }
+.obs-surf-pins-note { font-size: 10px; color: var(--text-dim); margin-left: 2px; }
+.obs-surf-pins-clear {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 600 10.5px/1 var(--font-ui);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--r-sm, 6px);
+}
+.obs-surf-pins-clear:hover { color: var(--text); background: var(--panel-3); }
+
+/* Quad: 2×2 field grid. */
+.obs-surf-quad {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 1px;
+  background: var(--line);
+}
+.obs-surf-quad-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+@media (max-width: 820px) {
+  .obs-surf-quad { grid-template-columns: 1fr; grid-template-rows: repeat(4, minmax(180px, 1fr)); overflow: auto; }
+}
+
+/* Surface session workspace: keep the three independent time concepts legible.
+   Session date, observed field frames and price-candle interval must never collapse into
+   one ambiguous "timeframe" control. */
+.obs-surf-data-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 32px;
+  padding: 4px 16px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 72%, var(--bg));
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.obs-surf-data-strip::-webkit-scrollbar { display: none; }
+.obs-surf-data-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  color: var(--text-2);
+  font-size: 10.5px;
+}
+.obs-surf-data-item strong {
+  color: var(--text);
+  font-size: 10.5px;
+  font-weight: 650;
+}
+.obs-surf-data-detail { color: var(--muted); }
+/* F6: compact-only provenance — hidden everywhere except the ≤460px query below, where
+   it survives the `.obs-surf-data-detail { display: none }` blanket hide so the regime
+   label, and the Levels/OI Δ notes, don't ship bare (mscGlance.ts REGIME-DYNAMICS LAW). */
+.obs-surf-compact-only { display: none; }
+.obs-surf-observed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  color: var(--brand-2);
+  background: color-mix(in srgb, var(--brand) 11%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand) 25%, transparent);
+  border-radius: 999px;
+  font: 700 9.5px/1 var(--font-ui);
+  letter-spacing: .035em;
+}
+.obs-surf-observed-badge .obs-live-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--brand-2);
+  box-shadow: none;
+  animation: none;
+}
+.obs-surf-data-source {
+  margin-left: auto;
+  color: var(--text-dim);
+  font: 500 9.5px/1 var(--font-ui);
+}
+.obs-surf-data-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.obs-surf-yfit {
+  position: absolute;
+  top: 8px;
+  right: 52px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+.obs-surf-yfit .obs-chip {
+  height: 24px;
+  min-width: 0;
+  padding: 0 7px;
+  font-size: 9.5px;
+}
+.obs-surf-yfit .obs-chip[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+
+/* Replay is a discrete observed-frame rail, not a pretend minute-by-minute scrubber. */
+.obs-surf-replay {
+  display: grid !important;
+  grid-template-columns: auto auto auto minmax(220px, 1fr) auto;
+  grid-template-areas: "session transport speeds rail readout";
+  align-items: end !important;
+  gap: 10px !important;
+  flex-wrap: nowrap !important;
+}
+.obs-surf-replay-session { grid-area: session; align-self: center; }
+.obs-surf-replay-transport { grid-area: transport; align-self: center; }
+.obs-surf-replay-speeds { grid-area: speeds; align-self: center; }
+.obs-surf-replay-rail-wrap { grid-area: rail; min-width: 0 !important; gap: 1px !important; }
+.obs-surf-replay-readout { grid-area: readout; align-self: center; justify-self: end; }
+.obs-surf-replay-rail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font: 700 8.5px/1 var(--font-ui);
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+.obs-surf-replay-rail-head .is-irregular { color: var(--signal); }
+.obs-surf-frame-rail {
+  position: relative;
+  height: 18px;
+  min-width: 0;
+  cursor: pointer;
+  outline: none;
+  touch-action: none;
+}
+.obs-surf-frame-rail:focus-visible {
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 55%, transparent);
+}
+.obs-surf-frame-rail.is-disabled { cursor: default; opacity: .35; }
+.obs-surf-frame-track,
+.obs-surf-frame-progress {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+.obs-surf-frame-track { width: 100%; background: var(--line-2, var(--line)); }
+.obs-surf-frame-progress {
+  background: color-mix(in srgb, var(--brand) 78%, white 4%);
+  transition: width 140ms var(--ease-out);
+}
+.obs-surf-frame-dot {
+  position: absolute;
+  top: 5px;
+  z-index: 2;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 2px solid var(--panel);
+  border-radius: 50%;
+  background: var(--line-3, var(--muted));
+  box-shadow: 0 0 0 1px var(--line-2, var(--line));
+  cursor: pointer;
+}
+.obs-surf-frame-dot.is-past { background: var(--brand); }
+.obs-surf-frame-dot.is-current {
+  top: 3px;
+  width: 12px;
+  height: 12px;
+  background: var(--brand-2);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 28%, transparent), 0 0 12px color-mix(in srgb, var(--brand) 45%, transparent);
+}
+
+@media (max-width: 1100px) {
+  .obs-surf-replay {
+    grid-template-columns: auto auto minmax(190px, 1fr) auto !important;
+    grid-template-areas: "session transport rail readout" "session speeds rail readout" !important;
+    align-items: center !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .obs-surf-head {
+    align-items: flex-start !important;
+    padding: 7px 10px !important;
+  }
+  .obs-surf-head-tools {
+    width: 100%;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .obs-surf-head-tools::-webkit-scrollbar { display: none; }
+  .obs-surf-controls {
+    flex-wrap: nowrap !important;
+    gap: 10px !important;
+    padding: 6px 10px !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .obs-surf-controls::-webkit-scrollbar { display: none; }
+  .obs-surf-data-strip { padding-inline: 10px; gap: 11px; }
+  .obs-surf-data-source { margin-left: 0; }
+  .obs-surf-data-legend { margin-left: 0; }
+  .obs-surf-chart-area { min-height: 300px !important; }
+  .obs-surf-replay {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "session readout"
+      "rail rail"
+      "transport speeds" !important;
+    align-items: center !important;
+    padding: 7px 10px !important;
+    gap: 6px 8px !important;
+  }
+  .obs-surf-replay-rail-wrap { width: 100%; }
+  .obs-surf-replay-readout { max-width: 190px; overflow: hidden; }
+}
+
+@media (max-width: 460px) {
+  .obs-surf-root-input { display: none; }
+  .obs-surf-controls button[aria-disabled="true"] { display: none; }
+  /* NIT: hide the OI Δ withdrawal sentence together with its (now display:none) control —
+     the regime chip's own copy of the same disclosure (WITHDRAWN_NOTE, unscoped) stays
+     visible and already covers both, so this is verbose remainder at this width, not the
+     only disclosure. */
+  .obs-surf-oi-withdrawn-note { display: none; }
+  .obs-surf-chart-area {
+    min-height: 280px !important;
+    max-height: calc(100dvh - 454px);
+  }
+  .obs-surf-replay-bands { display: none !important; }
+  .obs-surf-replay { padding-block: 4px !important; gap-block: 3px !important; }
+  .obs-surf-replay-transport button { width: 32px !important; height: 32px !important; }
+  .obs-surf-replay-speeds button { min-width: 28px !important; padding-inline: 6px !important; }
+  .obs-surf-replay-readout .obs-tag { display: none; }
+  .obs-surf-data-detail { display: none; }
+  /* F6/R3: `.obs-surf-compact-only` survives the blanket hide above — a short "· MM-DD"
+     date (Levels/OI Δ notes, regime chip) and, for the regime chip, whichever of
+     dist-to-flip%/stability% the payload actually carries (SurfacePane's
+     `regimeCompactStat`, R3: it used to be dist-to-flip only, so a payload with stability
+     but a null dist_to_flip shipped the regime label bare at this width). Rendered ONLY at
+     this width — the full nightly-provenance sentence is what got hidden above — so none
+     of the three overlays goes bare or loses its EOD date on a phone. */
+  .obs-surf-compact-only { display: inline; }
+  .obs-surf-yfit { right: 46px; }
+  .obs-surf-yfit .obs-chip { padding-inline: 5px; }
+}
+
+/* Replay-vintage badge (drill modal, B4). */
+.obs-surf-replay-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 15px;
+  padding: 0 6px;
+  font: 700 9px/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal);
+  background: color-mix(in srgb, var(--signal) 14%, transparent);
+  border-radius: 3px;
+}
+
+/* Drill-modal action row. */
+.obs-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.obs-modal-actions-note { font-size: 11px; color: var(--muted); }
+.obs-modal-actions-cta {
+  font: 700 11px/1 var(--font-ui);
+  color: var(--brand-2, #4d82ff);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.obs-modal-actions-cta:hover { text-decoration: underline; }
+
+/* Style (theme) popover on the surface toolbar. */
+.obs-surf-style-wrap { position: relative; }
+/* Fixed layer, like .obs-surf-pop: the surface root is overflow:hidden, so an absolutely
+   positioned popover gets clipped by the pane edge. Opaque (not glass) because it sits over
+   a busy, high-contrast heat field and has to stay legible. */
+.obs-surf-style-pop {
+  position: fixed;
+  z-index: 60;
+  width: 268px;
+  padding: 12px;
+  background: var(--panel-3, #1a1d24);
+  border: 1px solid var(--line-3, var(--line-2, var(--line)));
+  border-radius: var(--r-md, 8px);
+  box-shadow: 0 18px 44px -12px rgba(0, 0, 0, 0.72);
+}
+.obs-surf-style-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.obs-surf-style-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.obs-surf-style-preset {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  font: 600 11px/1 var(--font-ui);
+  color: var(--text-2);
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm, 6px);
+  cursor: pointer;
+  text-align: left;
+}
+.obs-surf-style-preset:hover { color: var(--text); border-color: var(--line-3, var(--line-2, var(--line))); }
+.obs-surf-style-preset[aria-pressed="true"] {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--brand, #4d82ff) 55%, transparent);
+  background: color-mix(in srgb, var(--brand, #4d82ff) 12%, transparent);
+}
+.obs-surf-style-swatches { display: inline-flex; gap: 2px; flex-shrink: 0; }
+.obs-surf-style-sw { width: 9px; height: 9px; border-radius: 2px; }
+.obs-surf-style-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 0;
+}
+.obs-surf-style-row-lbl { flex: 1; font-size: 11px; color: var(--text-2); }
+.obs-surf-style-pick {
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--line-2, var(--line));
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+.obs-surf-style-note { margin-top: 9px; font-size: 10px; line-height: 1.45; color: var(--text-dim); }
+
+/* Root picker: "no surface for X yet". */
+.obs-surf-noroot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 1;
+  padding: 30px 20px;
+  text-align: center;
+}
+.obs-surf-noroot-hd { font-size: 13.5px; font-weight: 650; color: var(--text-2); }
+.obs-surf-noroot-sub { font-size: 11.5px; color: var(--muted); max-width: 420px; line-height: 1.55; }
+.obs-surf-noroot-roots { display: flex; gap: 5px; margin-top: 3px; }
+
+/* ─── v7 tint tag + provenance row (2026-07-28 wave) ─────────────────────── */
+/*
+ * .obs-tag  — the universal one-var tint chip (mirrors .fin-tag; macro-framework
+ *             formula). Set the base color per state: style={{"--c":"var(--up)"}}.
+ *             East-mode flip rides the token automatically — never hex.
+ * .obs-asof — provenance row: source + as-of under a data section; add
+ *             <span className="dot"/> when the feed is live.
+ */
+.obs-tag{display:inline-flex;align-items:center;gap:5px;font:600 10.5px/1 var(--font-ui);letter-spacing:.02em;color:var(--c,var(--text-2));background:color-mix(in srgb,var(--c,var(--muted)) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c,var(--muted)) 30%,transparent);border-radius:999px;padding:4px 9px;white-space:nowrap}
+.obs-asof{display:flex;align-items:center;gap:6px;font:500 10.5px/1.4 var(--font-ui);color:var(--muted);margin-top:10px}
+.obs-asof .dot{width:6px;height:6px;border-radius:50%;background:var(--up);flex:none;animation:obs-asof-pulse 2.2s var(--ease) infinite}
+@keyframes obs-asof-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.obs-asof .dot{animation:none}}
+
+/* ─── v7 wave — recovered lane patches (F-lanes died before reporting) ───── */
+/* FlowCard hierarchy: ONE primary number (premium) + ONE primary reason (the
+   call/put read tag); everything else demoted to a muted meta line. */
+.obs-fc-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-width:0}
+.obs-fc-read{font-size:11px;padding:4px 10px}
+.obs-fc-meta-flagwrap{display:inline-flex;align-items:baseline;gap:6px}
+.obs-fc-metaflag{font:600 10px/1.4 var(--font-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.obs-fc-metaflag-tip{cursor:help;text-decoration:underline dotted color-mix(in srgb,var(--muted) 60%,transparent);text-underline-offset:3px;position:relative}
+
+/* FeedPane states: the feed body is a grid — state rows span every column. */
+.obs-fd-feed-state{grid-column:1/-1}
+.obs-fd-feed-status{padding:14px 0 6px;font:500 12px/1.4 var(--font-ui);color:var(--muted);text-align:center}
+.obs-fd-card-skel{height:96px;border-radius:15px}
+
+/* Inspector empty state: what selecting will show, not a blank pane. */
+.obs-insp-empty-title{font-size:11.5px;color:var(--text-2)}
+.obs-insp-empty-why{font:500 11px/1.5 var(--font-ui);color:var(--muted);max-width:300px;text-transform:none;letter-spacing:0}
+
+/* Prophet columns: semantic hooks added by the restyle — structural minimum. */
+.obs-prophet-analysis,.obs-prophet-confidence-column{min-height:0}
+
+/* Hub filter caption (pre-existing markup, never had a rule; obs-lbl carries
+   the look — this keeps captions from wrapping inside control rows). */
+.hub-cap{white-space:nowrap}
+
+/* ─── GEX desk containment (lane B3, v7b) ────────────────────────────────── */
+/* Market State card = an independent scroll region; sections scroll, never squash. */
+.obs-gex-state { min-height: 0; }
+.obs-gex-state > * { flex-shrink: 0; }
+/* Phone/tablet page-scroll mode (globals.css ≤860px makes .app2/.main2 auto-height):
+   with no definite ancestor height, the ladder region's flex:1 1 0px + min-height:0
+   hypothetical size is 0px and there is no free space to grow into — the ladder,
+   expiry bars and matrix lens all render invisible. Floor the region to a windowed
+   band; StrikeLadder's internal scroller handles the rest. !important because the
+   floor must beat the component's inline min-height:0 (same mechanics as the
+   .obs-surf-chart-area floor above). */
+@media (max-width: 860px) {
+  .obs-gexdesk-ladder-region { min-height: min(430px, 62dvh) !important; }
+  /* PP1-D — when the Matrix view mounts inside the ladder region, the matrix view is
+     page content (not an inner scroller). Drop the flex:1 inner scroller, the overflow
+     clip and the 0px min-height so the region grows with the content; the ladder
+     region's own ≤860 floor above stays the floor for the strike/expiry views. The
+     additional class scopes the override so the strike/expiry views keep their
+     inner-scroll behaviour on those pages. */
+  .obs-gexdesk-ladder-region.obs-gexdesk-matrix-region { flex: 0 0 auto !important; overflow: visible !important; }
+  .obs-gexdesk-matrix-view { flex: 0 0 auto !important; overflow: visible !important; min-height: 0 !important; }
+}
+
+/* PP1-D — the Matrix view's hedge-grid disclosure. The summary names the dealer
+   hedge and never borrows a gamma or price-direction word. A coarse pointer on a
+   phone still gets the 44px tap-target floor (ruling 2). */
+@media (pointer: coarse), (max-width: 860px) {
+  .obs-gexdesk-hedge-disclosure > summary { min-height: 44px; display: flex; align-items: center; }
+}
+
+/* Exposure Matrix: exact-side EOD volume baseline rail.
+   This lives outside StrikeExpiryMatrix on purpose: the heatmap may bucket strikes and
+   sum call+put, while these cards preserve the producer's exact (expiry,strike,side)
+   identity. Horizontal overflow belongs to the rail, never to the document. */
+.obs-mtx-unusual{
+  display:flex;align-items:stretch;gap:8px;flex:none;min-width:0;padding:5px 8px;border-bottom:1px solid var(--line);
+  background:color-mix(in srgb,var(--panel) 90%,var(--bg));
+}
+.obs-mtx-unusual-head{display:flex;align-content:center;align-items:center;gap:5px;flex:0 0 310px;min-width:0;flex-wrap:wrap}
+.obs-mtx-unusual-rule{font:600 9.5px/1.25 var(--font-ui);color:var(--text-2);white-space:nowrap}
+.obs-mtx-unusual-authority{font-size:7.5px;padding:2px 6px;letter-spacing:.07em}
+.obs-mtx-unusual-exact{order:5;flex:1 0 100%;font:500 8.5px/1.2 var(--font-ui);color:var(--muted);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.obs-mtx-unusual-summary{font:650 9px/1.2 var(--font-ui);color:var(--text-2);white-space:nowrap}
+.obs-mtx-unusual-track{
+  display:flex;gap:6px;flex:1;min-width:0;margin:0;padding-bottom:1px;overflow-x:auto;overflow-y:hidden;
+  overscroll-behavior-x:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+}
+.obs-mtx-unusual-card{
+  flex:0 0 310px;min-width:0;padding:4px 7px;border:1px solid var(--line-2);border-radius:var(--r-tile);
+  background:var(--bg);scroll-snap-align:start;
+}
+.obs-mtx-unusual-card-top{display:flex;align-items:center;gap:6px;min-width:0;padding-bottom:3px;border-bottom:1px solid var(--line)}
+.obs-mtx-unusual-side{font-size:7.5px;padding:2px 5px;letter-spacing:.06em;flex:none}
+.obs-mtx-unusual-strike{font:700 11px/1 var(--font-num);color:var(--text);flex:none}
+.obs-mtx-unusual-expiry{margin-left:auto;font:500 9px/1 var(--font-num);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.obs-mtx-unusual-receipts{display:grid;gap:3px;margin-top:3px}
+.obs-mtx-unusual-receipt{min-width:0;padding:2px 4px;border-left:2px solid var(--line-2);background:color-mix(in srgb,var(--panel) 56%,transparent)}
+.obs-mtx-unusual-receipt.call{border-left-color:color-mix(in srgb,var(--brand-2) 62%,transparent)}
+.obs-mtx-unusual-receipt.put{border-left-color:color-mix(in srgb,var(--ai) 62%,transparent)}
+.obs-mtx-unusual-receipt.withheld{border-left-color:color-mix(in srgb,var(--danger) 62%,transparent)}
+.obs-mtx-unusual-receipt-top{display:flex;align-items:center;gap:5px;min-width:0}
+.obs-mtx-unusual-receipt-status{font:650 7.5px/1 var(--font-ui);letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+.obs-mtx-unusual-receipt.unusual .obs-mtx-unusual-receipt-status{color:var(--signal)}
+.obs-mtx-unusual-receipt.withheld .obs-mtx-unusual-receipt-status{color:var(--danger)}
+.obs-mtx-unusual-ratio{margin-left:auto;font:750 12px/1 var(--font-num);color:var(--signal);flex:none}
+.obs-mtx-unusual-receipt.normal .obs-mtx-unusual-ratio{color:var(--text-2)}
+.obs-mtx-unusual-meta{margin-top:2px;font:500 8px/1.2 var(--font-ui);color:var(--muted);white-space:nowrap}
+.obs-mtx-unusual-state{
+  flex:1;align-self:center;margin:0;padding:5px 7px;border-radius:var(--r-sm);font:500 9.5px/1.35 var(--font-ui);
+  color:var(--muted);background:color-mix(in srgb,var(--muted) 6%,transparent);
+}
+.obs-mtx-unusual-state.clear{color:var(--text-2)}
+.obs-mtx-unusual-state.malformed{color:var(--danger);background:color-mix(in srgb,var(--danger) 7%,transparent)}
+/* Preserve a usable matrix viewport when the desktop desk's fixed rows exceed its
+   short body track; ExposureMatrix owns the resulting outer dossier scroll. */
+.obs-mtx-exposure .obs-mtx-desk-grid{flex:1 0 140px!important;min-height:140px!important}
+@media (max-width:860px){
+  .obs-mtx-unusual{display:block;padding:7px 8px 8px}
+  .obs-mtx-unusual-head{display:flex;flex-basis:auto}
+  .obs-mtx-unusual-exact{order:5;flex:1 0 100%}
+  .obs-mtx-unusual-summary{order:6;flex:1 0 100%;margin-top:2px}
+  .obs-mtx-unusual-track{margin-top:5px;scroll-padding-left:1px}
+  .obs-mtx-unusual-state{margin-top:5px}
+  .obs-mtx-unusual-card{flex-basis:min(330px,86vw)}
+}
+/* Drawer variant for living INSIDE the left column's capped height budget
+   (canonicalises the inline XDRAWER_ROOT/XDRAWER_BODY mechanics). */
+.obs-xdrawer--inline { display: flex; flex-direction: column; min-height: 0; flex-shrink: 1; }
+.obs-xdrawer--inline > .obs-xdrawer-hd { flex-shrink: 0; }
+.obs-xdrawer--inline > .obs-xdrawer-body { flex: 0 1 auto; min-height: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROPHET v2 — dossier layout (lane R1 markup; stylesheet recovered by the
+   orchestrator from the binding design spec after the lane was killed mid-run).
+   Families: focus masthead · geometry ladder · bands/steps/ptable · conviction
+   verdictbox/mix · ledger sig rows · provenance/honesty chrome.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.obs-prophet{--obs-prophet-cyan:#19c2c2}
+
+/* ── provenance + masthead chrome ── */
+.obs-prophet-source{font:500 10.5px/1.45 var(--font-ui);color:var(--muted);max-width:64ch}
+.obs-prophet-cadence{font:600 10px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.obs-prophet-kpi{display:flex;flex-direction:column;gap:3px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-tile);padding:8px 12px;min-width:92px}
+.obs-prophet-kpi .k{font:600 var(--fs-micro)/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.obs-prophet-kpi .v{font:650 var(--fs-emph)/1.1 var(--font-num);color:var(--text);font-variant-numeric:tabular-nums}
+
+/* ── the stage (center column) — one subtle top wash, per doctrine ── */
+.obs-prophet-stage{position:relative;display:flex;flex-direction:column;gap:0;min-height:0}
+.obs-prophet-stage::before{content:"";position:absolute;inset:0 0 auto 0;height:220px;background:radial-gradient(480px 220px at 50% -60px,color-mix(in srgb,var(--brand) 10%,transparent),transparent 70%);pointer-events:none;border-radius:inherit}
+.obs-prophet-stage>*{position:relative}
+
+/* band = one dossier section */
+.obs-prophet-band{padding:14px 16px;border-top:1px solid rgba(255,255,255,.07)}
+.obs-prophet-band:first-of-type,.obs-prophet-focus+.obs-prophet-band{border-top:none}
+.obs-prophet-band-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.obs-prophet-band-lbl{font:700 var(--fs-micro)/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.obs-prophet-band-cap{font:500 10.5px/1.5 var(--font-ui);color:var(--muted);margin-top:8px;max-width:60ch}
+
+/* focus masthead */
+.obs-prophet-focus{padding:16px 16px 12px}
+.obs-prophet-focus-id{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.obs-prophet-focus-tkr{font:700 var(--fs-num-lg)/1 var(--font-num);letter-spacing:-.01em;color:var(--text);font-variant-numeric:tabular-nums}
+.obs-prophet-focus-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;font:500 11px/1.4 var(--font-ui);color:var(--text-2)}
+.obs-prophet-prov{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font:500 10.5px/1.4 var(--font-ui);color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+
+/* ── geometry ladder ── */
+.obs-prophet-ladder-wrap{display:flex;flex-direction:column;gap:10px}
+.obs-prophet-ladder{padding:6px 0}
+.obs-prophet-ladder-track{position:relative;height:280px;margin:0 auto;width:min(420px,100%)}
+.obs-prophet-ladder-spine{position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-1px);border-radius:2px;background:linear-gradient(0deg,var(--down),color-mix(in srgb,var(--down) 25%,transparent) 30%,color-mix(in srgb,var(--up) 25%,transparent) 70%,var(--up))}
+.obs-prophet-ladder-dot{position:absolute;left:50%;width:9px;height:9px;border-radius:50%;transform:translate(-50%,50%);background:var(--c,var(--text-2));box-shadow:0 0 0 2px var(--panel),0 0 0 3px color-mix(in srgb,var(--c,var(--muted)) 40%,transparent)}
+.obs-prophet-lvl{position:absolute;display:flex;flex-direction:column;gap:2px;padding:5px 10px;border-radius:var(--r-tile);transform:translateY(50%);background:color-mix(in srgb,var(--c,var(--muted)) 11%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c,var(--muted)) 30%,transparent);transition:opacity var(--t-fast) var(--ease-out)}
+.obs-prophet-lvl.on-l{right:calc(50% + 18px);align-items:flex-end;text-align:right}
+.obs-prophet-lvl.on-r{left:calc(50% + 18px);align-items:flex-start}
+.obs-prophet-lvl.dim{opacity:.55}
+.obs-prophet-lvl-k{font:700 9px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--c,var(--text-2))}
+.obs-prophet-lvl-v{font:650 13px/1.1 var(--font-num);color:var(--text);font-variant-numeric:tabular-nums}
+.obs-prophet-ladder-gap{position:absolute;left:50%;transform:translate(-50%,50%);font:600 9.5px/1 var(--font-num);color:var(--muted);background:var(--panel);padding:2px 6px;border-radius:var(--r-pill);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);font-variant-numeric:tabular-nums;white-space:nowrap}
+.obs-prophet-ladder-live{display:flex;gap:16px;flex-wrap:wrap;font:500 10.5px/1.4 var(--font-ui);color:var(--muted)}
+.obs-prophet-ladder-live i{font-style:normal;color:var(--muted)}
+.obs-prophet-ladder-live b{color:var(--text);font-weight:650;margin:0 4px;font-variant-numeric:tabular-nums}
+.obs-prophet-ladder-asof{font:500 10.5px/1.4 var(--font-ui);color:var(--muted)}
+.obs-prophet-ladder-empty{padding:26px 16px;text-align:center;display:flex;flex-direction:column;gap:5px}
+.obs-prophet-ladder-empty-t{font:600 13px/1.3 var(--font-ui);color:var(--text-2)}
+.obs-prophet-ladder-empty-w{font:500 11px/1.5 var(--font-ui);color:var(--muted);max-width:380px;margin:0 auto}
+.obs-prophet-guard{display:flex;flex-direction:column;gap:7px;margin-top:10px;padding:10px 12px;border-radius:var(--r-tile);background:color-mix(in srgb,var(--warn) 7%,transparent);border:1px solid color-mix(in srgb,var(--warn) 20%,transparent)}
+.obs-prophet-guard p{margin:0;font:500 11px/1.55 var(--font-ui);color:color-mix(in srgb,var(--warn) 70%,var(--text) 30%)}
+
+/* thesis + positioning callout */
+.obs-prophet-thesis{font:500 var(--fs-body)/1.6 var(--font-ui);color:var(--text-2);max-width:65ch;margin:0}
+.obs-prophet-positioning{margin:10px 16px 0;padding:0}
+.obs-prophet-positioning-k{font:700 var(--fs-micro)/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-right:6px}
+.obs-prophet-overlay-tag{font-size:9px;letter-spacing:.08em}
+
+/* stepper */
+.obs-prophet-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.obs-prophet-step{display:flex;align-items:flex-start;gap:10px}
+.obs-prophet-step-n{flex:none;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--muted);color:var(--muted);font:650 10px/1 var(--font-num);font-variant-numeric:tabular-nums}
+.obs-prophet-step.is-now .obs-prophet-step-n{border-color:var(--brand-2);color:var(--brand-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 14%,transparent)}
+.obs-prophet-step-t{font:500 var(--fs-ui)/1.55 var(--font-ui);color:var(--text-2);min-width:0}
+.obs-prophet-step.is-now .obs-prophet-step-t{color:var(--text)}
+
+/* profit-taking table */
+.obs-prophet-ptable{display:flex;flex-direction:column}
+.obs-prophet-ptr{display:grid;grid-template-columns:minmax(96px,1fr) 1.6fr minmax(84px,auto);gap:10px;align-items:center;padding:7px 2px;border-bottom:1px solid rgba(255,255,255,.06)}
+.obs-prophet-ptr:last-child{border-bottom:none}
+.obs-prophet-ptr-hd{padding:0 2px 6px;border-bottom:1px solid rgba(255,255,255,.09)}
+.obs-prophet-ptr-hd span{font:700 9.5px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.obs-prophet-ptr-lvl{font:650 12px/1.2 var(--font-num);color:var(--c,var(--text));font-variant-numeric:tabular-nums}
+.obs-prophet-ptr-act{font:500 11.5px/1.45 var(--font-ui);color:var(--text-2);min-width:0}
+.obs-prophet-ptr-st{justify-self:end}
+.obs-prophet-ptable.dim .obs-prophet-ptr-lvl{opacity:.6}
+
+/* ── conviction column ── */
+.obs-prophet-conviction{display:flex;flex-direction:column;gap:12px;min-height:0}
+.obs-prophet-conv-eyebrow{font:700 var(--fs-micro)/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.obs-prophet-verdictbox{display:flex;flex-direction:column;gap:10px}
+.obs-prophet-verdict{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.obs-prophet-verdict-score{font:700 34px/1 var(--font-num);color:var(--text);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.obs-prophet-verdict-max{font:600 12px/1 var(--font-num);color:var(--muted);font-variant-numeric:tabular-nums}
+.obs-prophet-verdict-none{font:600 14px/1.3 var(--font-ui);color:var(--muted)}
+.obs-prophet-verdict-verb{font:650 15px/1 var(--font-ui);color:var(--c,var(--text-2))}
+.obs-prophet-verdict-phase{margin-left:auto}
+.obs-prophet-ceil{margin-top:0}
+.obs-prophet-conv-note{margin:0}
+.obs-prophet-mix{display:flex;flex-direction:column;gap:8px}
+.obs-prophet-mix-hd{display:flex;align-items:center;justify-content:space-between}
+.obs-prophet-mix-bar{display:flex;height:10px;border-radius:var(--r-pill);overflow:hidden;background:rgba(255,255,255,.05)}
+.obs-prophet-mix-bar span{display:block;height:100%}
+.obs-prophet-mix-cap{font:500 10px/1.4 var(--font-ui);color:var(--muted)}
+.obs-prophet-mix-rows{display:flex;flex-direction:column;gap:7px}
+.obs-prophet-mix-absent{font:500 11px/1.5 var(--font-ui);color:var(--muted);padding:8px 0}
+.obs-prophet-comp{display:grid;grid-template-columns:minmax(84px,1fr) 1.4fr minmax(34px,auto);gap:9px;align-items:center}
+.obs-prophet-comp-k{font:600 10.5px/1.3 var(--font-ui);color:var(--text-2);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.obs-prophet-comp-track{position:relative;height:6px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);overflow:hidden}
+.obs-prophet-comp-fill{position:absolute;left:0;top:0;bottom:0;border-radius:var(--r-pill)}
+.obs-prophet-comp-v{font:650 11px/1 var(--font-num);color:var(--text);text-align:right;font-variant-numeric:tabular-nums}
+.obs-prophet-comp-tip{position:relative;cursor:help;text-decoration:underline dotted color-mix(in srgb,var(--muted) 55%,transparent);text-underline-offset:3px}
+.obs-prophet-reason{display:flex;flex-direction:column;gap:3px;font:500 11px/1.5 var(--font-ui);color:var(--text-2);border-top:1px solid rgba(255,255,255,.07);padding-top:10px}
+.obs-prophet-reason .k{font:700 var(--fs-micro)/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.obs-prophet-rr{display:flex;flex-direction:column;gap:8px}
+.obs-prophet-rr-hd{display:flex;align-items:center;justify-content:space-between}
+.obs-prophet-rr-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.obs-prophet-tile{display:flex;flex-direction:column;gap:3px;padding:9px 11px;border-radius:var(--r-tile);background:color-mix(in srgb,var(--c,var(--muted)) 9%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c,var(--muted)) 24%,transparent)}
+.obs-prophet-tile .k{font:600 var(--fs-micro)/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.obs-prophet-tile .v{font:650 15px/1.1 var(--font-num);color:var(--text);font-variant-numeric:tabular-nums}
+.obs-prophet-horizon{display:flex;flex-direction:column;gap:6px}
+.obs-prophet-horizon-hd{display:flex;align-items:baseline;justify-content:space-between;font:500 10.5px/1 var(--font-ui);color:var(--muted);font-variant-numeric:tabular-nums}
+.obs-prophet-meter{height:5px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);overflow:hidden}
+.obs-prophet-meter-fill{display:block;height:100%;border-radius:var(--r-pill);background:color-mix(in srgb,var(--brand-2) 70%,transparent)}
+.obs-prophet-meter-fill.up{background:color-mix(in srgb,var(--up) 70%,transparent)}
+
+/* ── ledger rows (left column) ── */
+.obs-prophet-sortrow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.obs-prophet-sig-hd{display:flex;align-items:center;gap:8px;min-width:0}
+.obs-prophet-sig-tkr{font:700 13.5px/1 var(--font-num);color:var(--text);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.obs-prophet-sig-dir{font-size:9.5px}
+.obs-prophet-sig-age{margin-left:auto;font:500 10px/1 var(--font-num);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.obs-prophet-sig-sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px;font:500 10.5px/1.3 var(--font-ui);color:var(--text-2)}
+.obs-prophet-sig-entry i{font-style:normal;color:var(--muted);margin-right:4px}
+.obs-prophet-sig-entry{font-variant-numeric:tabular-nums}
+.obs-prophet-sig-arch{font-size:9px}
+.obs-prophet-sig-pnl{font:650 10.5px/1 var(--font-num);color:var(--c,var(--text-2));font-variant-numeric:tabular-nums}
+.obs-prophet-sig-phase{margin-left:auto}
+.obs-prophet-sig-exp{margin-top:8px}
+.obs-prophet-sig-bar{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.obs-prophet-sig-bar-hd{display:flex;justify-content:space-between;font:500 9.5px/1 var(--font-ui);color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ═══ Flow Desk v7b — inspector + card-detail families (lane B2 markup;
+       stylesheet recovered by the orchestrator) ═══ */
+.obs-fc-detail-close{display:grid;place-items:center;width:26px;height:26px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:var(--r-pill);transition:color var(--t),background var(--t)}
+.obs-fc-detail-close:hover{color:var(--text);background:rgba(255,255,255,.07)}
+.obs-fc-detail-honesty{margin:10px 12px 12px;padding:9px 11px;border-radius:var(--r-tile);background:color-mix(in srgb,var(--warn) 7%,transparent);border:1px solid color-mix(in srgb,var(--warn) 18%,transparent);font:500 10.5px/1.55 var(--font-ui);color:color-mix(in srgb,var(--warn) 75%,var(--text) 25%)}
+.obs-insp-hero{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.obs-insp-hero-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.obs-insp-hero-ticker{font:700 16px/1 var(--font-num);color:var(--text);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.obs-insp-hero-ct{font:600 12px/1.2 var(--font-num);color:var(--text-2);font-variant-numeric:tabular-nums}
+.obs-insp-hero-main{display:flex;align-items:center;gap:12px}
+.obs-insp-hero-nums{display:flex;flex-direction:column;gap:3px;min-width:0}
+.obs-insp-hero-prem{font:700 var(--fs-num)/1.05 var(--font-num);color:var(--text);font-variant-numeric:tabular-nums}
+.obs-insp-hero-sub{font:500 11px/1.35 var(--font-num);color:var(--text-2);font-variant-numeric:tabular-nums}
+.obs-insp-kv2{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;padding:10px 14px}
+.obs-insp-kv-k{font:600 var(--fs-micro)/1.3 var(--font-ui);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.obs-insp-kv-note{color:var(--muted);font-weight:500}
+.obs-insp-crow-label{font:600 10.5px/1.3 var(--font-ui);color:var(--text-2);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.obs-insp-dir-caveat{font:500 10px/1.3 var(--font-ui);color:var(--warn)}
+.obs-insp-det-chips{display:flex;gap:5px;flex-wrap:wrap;padding:0 14px 10px}
+.obs-insp-det-chip{font-size:9.5px}
+.obs-insp-det-why{font:500 10.5px/1.5 var(--font-ui);color:var(--muted);padding:0 14px 10px}
+/* card-detail score rows: labels wrap to two lines instead of mid-word ellipsis */
+.obs-fc-comp-label{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:clip}
+
+/* Map-first Exposure desk only: full body for map + node inspector, legacy scope separate. */
+.obs-gexdesk-map-first .obs-gexdesk-controls{position:relative;z-index:2;padding:4px 12px;gap:8px;flex-wrap:nowrap}
+.obs-gexdesk-root-chooser,.obs-gexdesk-view-chooser{position:relative;flex:none}
+.obs-gexdesk-root-chooser>summary,.obs-gexdesk-view-chooser>summary{min-height:44px;display:flex;align-items:center;padding:0 9px;cursor:pointer;color:var(--text-2);font-size:12px;border:1px solid var(--line);border-radius:5px;list-style:none}
+.obs-gexdesk-root-chooser[open]>div,.obs-gexdesk-view-chooser[open]>div{position:absolute;z-index:25;top:100%;right:0;width:max-content;max-width:calc(100vw - 24px);padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:5px;box-shadow:0 6px 18px #0005}
+/* Both menus anchor to the controls bar: right-aligned wide view choices could
+   extend behind the desktop navigation and become impossible to click. */
+.obs-gexdesk-root-chooser,.obs-gexdesk-view-chooser{position:static}
+.obs-gexdesk-root-chooser[open]>div,.obs-gexdesk-view-chooser[open]>div{left:8px;right:auto;max-width:calc(100% - 16px)}
+.obs-gexdesk-map-first .obs-gexdesk-controls button,.obs-gexdesk-map-first .obs-gexdesk-controls input{min-height:44px}
+.obs-gexdesk-map-first .obs-gexdesk-controls input{width:96px}
+.obs-gexdesk-map-first .obs-gexdesk-controls>div{flex-wrap:nowrap;gap:8px}
+.obs-gexdesk-legacy-context{flex:none;border-top:1px solid var(--line);padding:0 12px}
+.obs-gexdesk-legacy-context>summary,.obs-gexdesk-hedge-disclosure>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--text-2);font-size:12px}
+.obs-gexdesk-legacy-context>p{font-size:12px;line-height:1.5;color:var(--text-2)}
+.obs-gexdesk-legacy-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0}
+.obs-gexdesk-legacy-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px 0}
+.obs-gexdesk-hedge-disclosure{flex:none;min-height:0}
+.obs-gexdesk-hedge-disclosure[open]{display:flex;flex-direction:column}
+.obs-gexdesk-hedge-disclosure .obs-mtx-exposure{height:420px;flex:none}
+@media(max-width:860px){.obs-gexdesk-map-first .obs-gexdesk-body,.obs-gexdesk-map-first .obs-gexdesk-left{flex:none!important;max-height:none!important;overflow:visible!important}.obs-gexdesk-map-first{height:auto!important;overflow:visible!important}.obs-gexdesk-map-first .obs-gexdesk-matrix-region{min-height:0!important}.obs-gexdesk-legacy-cards{grid-template-columns:minmax(0,1fr)}.obs-gexdesk-map-first .obs-gexdesk-controls{padding:4px 8px;gap:6px}.obs-gexdesk-map-first .obs-gexdesk-controls>div{gap:6px}.obs-gexdesk-root-chooser>summary,.obs-gexdesk-view-chooser>summary{padding:0 6px}}
+
+.obs-gexdesk-map-first{width:100%;min-width:0}
+.obs-gexdesk-matrix-map{width:100%;min-width:0}
+@media(max-width:860px){.obs-gexdesk-map-first .obs-gexdesk-body,.obs-gexdesk-map-first .obs-gexdesk-left{width:100%;min-width:0!important}}

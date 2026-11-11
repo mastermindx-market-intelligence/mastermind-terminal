@@ -1,0 +1,2 @@
+evidence capture=true reason=full-pr-proof drifted_files=0
+::warning::PR evidence drift gate could not attribute drift (reason=fail-closed, touched_paths=2649); merge-group backstop still enforces the locks

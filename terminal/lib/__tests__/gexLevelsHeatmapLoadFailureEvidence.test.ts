@@ -1,3 +1,4 @@
+import { assertD06CapturedFile } from "./helpers/d06CaptureDependency";
 // Git-free evidence lock for the GEX desk, Levels and Heatmap failure-state packet.
 // The lock is the sha256 of the layout sources the crops depend on, recorded in
 // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
@@ -93,12 +94,15 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
     }
   });
 
-  it("each layoutFiles sha256 matches the file on disk", () => {
+  it("validates current layout hashes or the exact recorded historical D06 dependency delta", () => {
     const recorded = layoutFileMap(evidenceText());
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      const current = sha256Of(abs);
+      if (rel === "terminal/app/globals.css" && current !== expected)
+        assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
+      else expect(current, `${rel} changed without a recapture`).toBe(expected);
     }
   });
 

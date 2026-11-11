@@ -1,0 +1,63 @@
+{
+  "added": [
+    "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
+  ],
+  "all_other_tracked_paths_unchanged": true,
+  "changed_source_paths": [
+    "terminal/scripts/ci/evidence-lock-suites.sh",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "inventory_after": 40,
+  "inventory_before": 39,
+  "prior_packet_sha256": "ab9a2e640c8ce38488f8df02d4acc72ef1f39038981420e7decb6823f57eb76f",
+  "removed": [],
+  "results": [
+    {
+      "command": [
+        "bash",
+        "-n",
+        "terminal/scripts/ci/evidence-lock-suites.sh"
+      ],
+      "completed_at": "2026-11-11T20:47:25.692148+00:00",
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "shell-syntax",
+      "started_at": "2026-11-11T20:47:25.683853+00:00"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_merge_group_fast_lane_contract.py",
+        "tests/test_ci_browser_setup.py"
+      ],
+      "completed_at": "2026-11-11T20:47:31.643712+00:00",
+      "exit": 0,
+      "log_sha256": "1834dfea7ceea8bd469d7a48857f703614c88a69edb7f76cd13ba4b529f5b496",
+      "name": "partition-and-browser-contracts",
+      "started_at": "2026-11-11T20:47:25.692474+00:00"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "completed_at": "2026-11-11T20:47:31.878409+00:00",
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "diff-check",
+      "started_at": "2026-11-11T20:47:31.643996+00:00"
+    }
+  ],
+  "source_after": {
+    "terminal/scripts/ci/evidence-lock-suites.sh": "97be4febaf739af5e3fb8a2f6ab446714ecd28fa8357b50f977aa0c8335e33a9",
+    "tests/test_merge_group_fast_lane_contract.py": "07fe5d4e2adf6ef86afb1c690e4f456ad62f8acfcd09733cbad0b04bbc92eb1a"
+  },
+  "source_before": {
+    "terminal/scripts/ci/evidence-lock-suites.sh": "97be4febaf739af5e3fb8a2f6ab446714ecd28fa8357b50f977aa0c8335e33a9",
+    "tests/test_merge_group_fast_lane_contract.py": "07fe5d4e2adf6ef86afb1c690e4f456ad62f8acfcd09733cbad0b04bbc92eb1a"
+  }
+}

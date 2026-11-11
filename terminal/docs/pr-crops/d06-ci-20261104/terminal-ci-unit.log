@@ -1,0 +1,83 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ ✓ lib/__tests__/adminPageStatusContract.test.ts (7 tests) 22ms
+ ✓ lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts (5 tests) 207ms
+ ✓ lib/__tests__/f12_8TeamRolesEvidence.test.ts (10 tests) 183ms
+ ✓ lib/__tests__/personalAccuracyEvidence.test.ts (5 tests) 136ms
+ ✓ lib/__tests__/b_pl_6Batch2Evidence.test.ts (4 tests) 151ms
+ ✓ lib/__tests__/lexEvidenceProjection.test.ts (6 tests) 203ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (6 tests) 214ms
+ ✓ lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts (5 tests) 219ms
+ ✓ lib/__tests__/f11_4ResearchViewsEvidence.test.ts (6 tests) 227ms
+ ✓ lib/__tests__/f12_17InviteLinkEvidence.test.ts (7 tests) 241ms
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (5 tests) 244ms
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts (3 tests) 50ms
+ ❯ lib/__tests__/b_pl_6Batch1Evidence.test.ts (4 tests | 1 failed) 49ms
+   × B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk 17ms
+     → terminal/app/layout.tsx changed without a recapture: expected '18ad4c49e52d9071944d489249e1547acefea…' to be '9b675d52a647b4a92407958aa0ab7ffcc2632…' // Object.is equality
+ ❯ lib/__tests__/d06CaptureDependency.test.ts (6 tests | 1 failed) 514ms
+   × exact D06 inverse deltas preserve historical evidence identity > retains the prior v1-only onboarding tuple exception after reversing D06 14ms
+     → expected '"use client";\nimport { createContext…' not to be '"use client";\nimport { createContext…' // Object.is equality
+ ✓ lib/__tests__/sharedShellStatusContract.test.ts (9 tests) 6ms
+ ✓ lib/__tests__/conductorFitBadgeZhEvidence.test.ts (7 tests) 139ms
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts (10 tests | 1 failed) 571ms
+   × Terminal Visual Intelligence browser evidence > locks the source files that determine the captured chart-context surface 6ms
+     → terminal/app/layout.tsx changed without a recapture: expected '18ad4c49e52d9071944d489249e1547acefea…' to be '9b675d52a647b4a92407958aa0ab7ffcc2632…' // Object.is equality
+   ✓ Terminal Visual Intelligence browser evidence > locks six real EN/ZH responsive browser crops 541ms
+ ✓ lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts (10 tests) 975ms
+   ✓ B-F12-9 evidence lock is the sha256 of the layout sources > capturedAtHead names the exact layout bytes, including after a squash merge 899ms
+ ✓ lib/__tests__/nativeViewportPolicy.test.tsx (4 tests) 56ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk
+AssertionError: terminal/app/layout.tsx changed without a recapture: expected '18ad4c49e52d9071944d489249e1547acefea…' to be '9b675d52a647b4a92407958aa0ab7ffcc2632…' // Object.is equality
+
+Expected: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
+Received: "18ad4c49e52d9071944d489249e1547acefea252b0fd5d4775e242d773068f46"
+
+ ❯ lib/__tests__/b_pl_6Batch1Evidence.test.ts:87:69
+     85|         assertCapturedLexProjection(readFileSync(abs, "utf8"), expecte…
+     86|       } else {
+     87|         expect(sha256Of(abs), `${rel} changed without a recapture`).to…
+       |                                                                     ^
+     88|       }
+     89|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  lib/__tests__/d06CaptureDependency.test.ts > exact D06 inverse deltas preserve historical evidence identity > retains the prior v1-only onboarding tuple exception after reversing D06
+AssertionError: expected '"use client";\nimport { createContext…' not to be '"use client";\nimport { createContext…' // Object.is equality
+ ❯ lib/__tests__/d06CaptureDependency.test.ts:52:25
+     50|     const source = read(lexPath);
+     51|     const changed = source.replace(/(obDonePrefsSyncing:\s*\[)"[^"]*"/…
+     52|     expect(changed).not.toBe(source);
+       |                         ^
+     53|     expect(() => assertD06CapturedLexProjection(changed, lexRaw, evide…
+     54|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > locks the source files that determine the captured chart-context surface
+AssertionError: terminal/app/layout.tsx changed without a recapture: expected '18ad4c49e52d9071944d489249e1547acefea…' to be '9b675d52a647b4a92407958aa0ab7ffcc2632…' // Object.is equality
+
+Expected: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
+Received: "18ad4c49e52d9071944d489249e1547acefea252b0fd5d4775e242d773068f46"
+
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:123:77
+    121|         assertCapturedLexProjection(readFileSync(absolute, "utf8"), ex…
+    122|       } else {
+    123|         expect(sha256(absolute), `${relative} changed without a recapt…
+       |                                                                             ^
+    124|       }
+    125|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  3 failed | 16 passed (19)
+      Tests  3 failed | 116 passed (119)
+   Start at  03:30:03
+   Duration  4.83s (transform 3.71s, setup 0ms, collect 21.98s, tests 4.41s, environment 2.94s, prepare 3.60s)
+

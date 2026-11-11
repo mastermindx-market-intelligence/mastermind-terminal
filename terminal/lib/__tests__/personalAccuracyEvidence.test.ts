@@ -1,5 +1,5 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+import { assertD06CapturedLexProjection as assertCapturedLexProjection } from "./helpers/d06CaptureDependency";
+// Historical raw pins/crops remain; exact D06 deltas precede the unchanged onboarding-copy projection.
 // Git-free evidence lock. The required CI shard checks out a single commit, so
 // a named SHA ancestry assertion is RED there while the same file is GREEN in a
 // full-history worktree. The lock is the sha256 of the layout sources the crops

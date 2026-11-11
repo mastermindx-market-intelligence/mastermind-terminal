@@ -1,0 +1,11 @@
+{
+  "head": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+  "operation": "terminal-pr1270-inbox-partition-20261111-c3",
+  "original_script_sha256": "12318bd3af4b438112b0604428e797ecf3c7ee6c3b94c076aed3dc268940a769",
+  "paths": [
+    "terminal/scripts/ci/evidence-lock-suites.sh",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "source_change": "Include the delegated readInboxPacket caller in the existing capture-owner inventory. Preserve strict reader, source/capture hashes, workflow gates and artifact policy.",
+  "started_at": "2026-11-11T20:47:24.986030+00:00"
+}

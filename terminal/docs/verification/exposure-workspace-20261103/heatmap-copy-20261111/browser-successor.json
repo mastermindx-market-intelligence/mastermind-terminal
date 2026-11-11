@@ -1,0 +1,56 @@
+{
+  "branchHead": "d3e7ba61f7021d65571b9bcde279409168f4173d",
+  "browser": {
+    "expiry": {
+      "lifecycleSha256": "cd884180964fa3d513e6829af97803e4229d1a496b311299a4a32fe2a571d4f2",
+      "qualification": "expiry-journeys/qualification.json",
+      "sha256": "d7aa9de38a105f7e9263f35c77d7718b2faddd71e06c6d22b46c4a335ce722fe"
+    },
+    "joint": {
+      "lifecycleSha256": "2d5765d7136394f6827720e7dd7a751dd513de70a2be8a678819aae1d4ab6392",
+      "qualification": "qualification.json",
+      "sha256": "c715c1620ded67bc57ab63fabbf6499f727c7bcda2503c75d31b696b685100fc"
+    }
+  },
+  "capturedSourceTree": "cc212d86b5debe4b0093a2551aa34ed65731d1c4",
+  "checkoutCommit": "d3e7ba61f7021d65571b9bcde279409168f4173d",
+  "checkoutTree": "1e34eff65895a0d266a94e408a9da19aa68b0003",
+  "history": {
+    "descriptorSha256": "0da98d3fa6a70e752421d2156552a41cf68e6be22bf86ec932f5833a71fe5193",
+    "expiryQualificationSha256": "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e",
+    "jointQualificationSha256": "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d",
+    "roots": {
+      "eod": {
+        "path": "prior-roots/eod.EVIDENCE.yml",
+        "sha256": "398ee08642c4db5eb7ee1648e5865e42146fd98aec9f96a208727bfe003d832d"
+      },
+      "gex": {
+        "path": "prior-roots/gex.EVIDENCE.yml",
+        "sha256": "0ffb688481f64075b6a07181900c709d4c58afe60cd6dce0e1e1c948bc6abf9e"
+      }
+    }
+  },
+  "indexTreeAtEnd": "cc212d86b5debe4b0093a2551aa34ed65731d1c4",
+  "indexTreeAtStart": "cc212d86b5debe4b0093a2551aa34ed65731d1c4",
+  "integratedDependency": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+  "mergeHead": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+  "native": {
+    "eod": {
+      "descriptorSha256": "274aa30a9c0466523b307d3709072c6dc80835fdd737f43aa387bfe9286c47ac",
+      "revision": "heatmap-copy-20261111"
+    },
+    "gex": {
+      "descriptorSha256": "286527601cb417b34e5e1899bb19a71518d43e0d630eb456a5634e6c23a2b3db",
+      "revision": "heatmap-copy-20261111"
+    }
+  },
+  "operation": "terminal-pr1458-heatmap-copy-browser-20261111",
+  "protectedMaster": "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+  "revision": "heatmap-copy-20261111",
+  "schema": "exposure_heatmap_copy_successor.v1",
+  "sourceIdentity": "stable-composed-working-tree",
+  "sourceSnapshot": {
+    "files": 3718,
+    "sha256": "c250bfcb78b47816b297b417ddde152355aaea723a4d7c0f4247a33ab616b3e4"
+  }
+}

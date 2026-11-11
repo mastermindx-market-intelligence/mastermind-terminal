@@ -1,0 +1,27 @@
+[dev] ✓ Ready in 231ms
+capture OptionsFlowBoard-1440.png … ok
+capture FlowDesk-1440.png … ok
+capture AlertDetail-1440.png … ok
+capture HeatmapTreemap-1440.png … ok
+capture PineLibrary-1440.png … ok
+capture OptionsFlowBoard-1440-zh.png … ok
+capture FlowDesk-1440-zh.png … ok
+capture AlertDetail-1440-zh.png … ok
+capture HeatmapTreemap-1440-zh.png … ok
+capture PineLibrary-1440-zh.png … ok
+capture OptionsFlowBoard-390.png … ok
+capture FlowDesk-390.png … ok
+capture AlertDetail-390.png … ok
+capture HeatmapTreemap-390.png … ok
+capture PineLibrary-390.png … ok
+capture OptionsFlowBoard-390-zh.png … ok
+capture FlowDesk-390-zh.png … ok
+capture AlertDetail-390-zh.png … ok
+capture HeatmapTreemap-390-zh.png … ok
+capture PineLibrary-390-zh.png … FAIL page.screenshot: Clipped area is either empty or outside the resulting image
+Call log:
+  - taking page screenshot
+  - waiting for fonts to load...
+  - fonts loaded
+
+Partial or failed capture: EVIDENCE.yml and a complete receipt were not written

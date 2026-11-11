@@ -107,14 +107,43 @@ async function openSeeded(page: Page) {
 }
 
 async function dragPane(page: Page, index: number, dx: number) {
-  const box = await page.locator(".chart-wrap").nth(index).boundingBox();
-  expect(box).not.toBeNull();
-  const y = box!.y + box!.height * 0.5;
-  const x = box!.x + box!.width * 0.45;
+  const wrap = page.locator(".chart-wrap").nth(index);
+  const target = await wrap.evaluate((el, travel) => {
+    const host = el.querySelector<HTMLElement>("[data-chart-engine]");
+    if (!host) throw new Error("Chart engine host is missing");
+    const firstRow = host.querySelector<HTMLTableRowElement>(".tv-lightweight-charts table tr");
+    const plot = host.dataset.chartEngine === "lwc"
+      ? firstRow?.cells[1]
+      : host.querySelector<HTMLElement>('[data-mm-pane="0"]');
+    if (!plot) throw new Error("Price plot is missing");
+    const r = plot.getBoundingClientRect();
+    for (const fy of [0.5, 0.35, 0.65, 0.8]) {
+      for (const fx of travel > 0 ? [0.45, 0.35, 0.25, 0.15] : [0.65, 0.75, 0.85]) {
+        const x = r.x + r.width * fx, y = r.y + r.height * fy;
+        if (x + travel < r.left + 8 || x + travel > r.right - 8 || y < r.top + 8 || y > r.bottom - 8) continue;
+        const hit = document.elementFromPoint(x, y);
+        if (hit instanceof HTMLCanvasElement && host.contains(hit)) {
+          return { x, y, box: { x: r.x, y: r.y, width: r.width, height: r.height } };
+        }
+      }
+    }
+    throw new Error("No unobstructed price-plot pan target");
+  }, dx);
+  const { x, y, box } = target;
+  const before = await probe(page);
   await page.mouse.move(x, y);
+  const hit = await wrap.evaluate((el, { x, y }) => {
+    const host = el.querySelector("[data-chart-engine]");
+    const node = document.elementFromPoint(x, y);
+    return { tag: node?.tagName, canvas: node instanceof HTMLCanvasElement && Boolean(host?.contains(node)) };
+  }, target);
+  expect(hit.canvas, "pan starts on the price plot, not a pane control").toBe(true);
   await page.mouse.down();
   await page.mouse.move(x + dx, y, { steps: 24 });
   await page.mouse.up();
+  await test.info().attach("chart-pan-target-" + index, { body: Buffer.from(JSON.stringify({
+    box, x, y, dx, hit, before, after: await probe(page),
+  })), contentType: "application/json" });
 }
 
 function drift(a: PaneState, b: PaneState): number {
@@ -137,7 +166,7 @@ test.describe("multi-chart journeys", () => {
     expect(initial.map((p) => p.link?.group ?? null)).toEqual(["A", "A", "B", "B"]);
     await expect(page.locator("[data-chart-link='0']")).toHaveAttribute("data-link-status", "active");
 
-    await dragPane(page, 0, 240);
+    await dragPane(page, 0, 320);
     const afterA = await settle(page, "group A pan");
     expect(drift(byId(afterA, 0), byId(afterA, 1)), "pane 1 follows pane 0 by calendar").toBeLessThan(2.5);
     expect(Math.abs(byId(afterA, 0).logical!.from - byId(afterA, 1).logical!.from), "…not by bar number").toBeGreaterThan(5);
@@ -187,7 +216,7 @@ test.describe("multi-chart journeys", () => {
     await expect.poll(async () => byId((await probe(page)).panes, 1).link).toEqual({ group: "A", crosshair: true, window: false });
     await page.keyboard.press("Escape");
     const narrowed = await settle(page);
-    await dragPane(page, 0, 240);
+    await dragPane(page, 0, 320);
     const panned = await settle(page, "crosshair-only pan");
     expect(byId(panned, 0).window!.from).toBeLessThan(byId(narrowed, 0).window!.from - 30 * DAY);
     expect(fingerprint([byId(panned, 1), byId(panned, 2), byId(panned, 3)])).toBe(fingerprint([byId(narrowed, 1), byId(narrowed, 2), byId(narrowed, 3)]));

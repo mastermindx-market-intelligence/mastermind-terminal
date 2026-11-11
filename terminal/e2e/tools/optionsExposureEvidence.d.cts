@@ -54,6 +54,12 @@ export type IntegrationExecution = {
     branchHead: string;
     protectedMaster: string;
     integratedDependency?: string;
+    sourceIdentity?: "stable-composed-working-tree";
+    actualGit?: { head: string; headTree: string; indexTree: string; mergeHead: string };
+    publishedBasis?: string;
+    integratedSourceHeads?: string[];
+    capturedSourceSnapshotSha256?: string;
+    capturedSourceTree?: string;
     command: string[];
     exit: number;
     expected: number;
@@ -79,13 +85,13 @@ export type IntegrationExecution = {
     }[];
     images: Record<string, {
         sha256: string;
-        bytes: number;
+        bytes?: number;
         width: number;
         height: number;
     }>;
 };
 /** A failed full GEX run may still emit a manifest; its actual result is decisive. */
-export declare function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[], identity?: "indicator-guard" | "master-integration" | "ui-copy-integration" | "options-integration" | "expiry-greeks-integration"): void;
+export declare function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[], identity?: "indicator-guard" | "master-integration" | "ui-copy-integration" | "options-integration" | "expiry-greeks-integration" | "heatmap-copy-integration" | "d06-integration"): void;
 /** Legacy is eligible only when neither a declaration nor any qualified operation history exists. */
 export declare function optionalQualifiedOptionsExposurePacket(repo: string, kind: EvidenceKind, crops: string[]): SelectedPacket | null;
 export declare function requireOptionsIntegrationBrowserCases(current: { expectedPassed: string[]; expectedSkipped: string[] }, historical: { expectedPassed: string[]; expectedSkipped: string[] }): void;
@@ -94,3 +100,16 @@ export declare const EXPIRY_JOURNEY_SPECS: string[];
 export declare function requireExpiryGreeksBrowserCases(proof: { expectedPassed: string[]; expectedSkipped: string[] }): void;
 export declare function requireExpiryGreeksScreenshotSet(artifactFiles: SourceMap): void;
 export {};
+
+/** Native/history validation only; current browser proof remains unqualified. */
+export function verifyExpiryIntegrationNativePrerequisites(repo: string): {
+  state: "NATIVE_ONLY_VALIDATED";
+  currentBrowserQualified: false;
+  gex: { revision: string; descriptorSha256: string };
+  eod: { revision: string; descriptorSha256: string };
+};
+export function requireIntegrationBrowserReport(report: unknown, proof: { expectedPassed: string[]; expectedSkipped: string[] }): void;
+
+/** Current momentum browser dependency sets; historical sets remain unchanged. */
+export declare const momentumBrowserInputs: () => string[];
+export declare const momentumExpiryInputs: () => string[];

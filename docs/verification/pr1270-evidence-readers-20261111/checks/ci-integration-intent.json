@@ -1,0 +1,18 @@
+{
+  "started": "2026-11-11T19:10:25.208853+00:00",
+  "command": [
+    "python3",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_ci_e2e_scope.py",
+    "tests/test_ci_e2e_shards.py",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "workflow_sha256": "1c87cec01b1b784e335e971bcc7a351ce43efd4c847e782c3b00bee875c438ee",
+  "files": [
+    "tests/test_ci_e2e_scope.py",
+    "tests/test_ci_e2e_shards.py",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ]
+}

@@ -1,5 +1,5 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+import { assertD06CapturedLexProjection as assertCapturedLexProjection } from "./helpers/d06CaptureDependency";
+// Historical raw pins/crops remain; exact D06 deltas precede the unchanged onboarding-copy projection.
 // B-F12-B5-3b evidence lock: sha256 of the account-completeness layout
 // sources recorded in EVIDENCE.yml. capturedAtHead is informational and
 // must name the code commit the pixels depict.

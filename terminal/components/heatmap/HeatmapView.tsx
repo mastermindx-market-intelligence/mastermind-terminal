@@ -1055,8 +1055,8 @@ export function cachedUsdCapCopy(
   return {
     modeLabel: zh ? "美元市值" : "USD CAP",
     modeNote: zh
-      ? "图块面积按缓存的美元市值加权。CAP 仍使用价格×成交量代理。财务参考日期未知；行情时间（实时覆盖或收盘）单独显示。"
-      : "Tile area uses cached USD market capitalization. CAP continues to use its price × volume proxy. The capitalization reference date is unknown. Quote time (live overlay or end-of-day) is shown separately.",
+      ? "图块面积按缓存的美元市值加权。“价格 × 成交量”模式使用价格×成交量代理。财务参考日期未知；行情时间（实时覆盖或收盘）单独显示。"
+      : "Tile area uses cached USD market capitalization. The Price × volume mode uses a price × volume proxy. The capitalization reference date is unknown. Quote time (live overlay or end-of-day) is shown separately.",
     coverageNote: zh
       ? `缓存美元市值覆盖（所选范围共 ${coverage.total} 只）：可用 ${coverage.withCap}/${coverage.total} · 缺失 ${coverage.missingCap} · 不可用 ${coverage.invalidCap}。完整名单如下。`
       : `Cached USD cap coverage: usable ${coverage.withCap}/${coverage.total} · missing ${coverage.missingCap} · unusable ${coverage.invalidCap}. Coverage uses the original scoped universe of ${coverage.total} symbols; the complete missing list is below.`,
@@ -1066,8 +1066,8 @@ export function cachedUsdCapCopy(
         : `Showing ${opts.renderedCount}/${opts.scopedCount} symbols. Breadth includes all ${opts.scopedCount} symbols in the current scope.`)
       : null,
     emptyCapWarn: zh
-      ? "当前范围内暂无可用缓存美元市值。可选择 CAP 或 EQUAL 查看这些标的。"
-      : "No usable cached USD market cap in the current scope. Choose CAP or EQUAL to view these symbols.",
+      ? "当前范围内暂无可用缓存美元市值。可选择“价格 × 成交量”或“等面积”查看这些标的。"
+      : "No usable cached USD market cap in the current scope. Choose Price × volume or EQUAL to view these symbols.",
     missingHeading: zh
       ? `无可用缓存美元市值的标的 ${excluded} 个（缺失 ${coverage.missingCap} · 不可用 ${coverage.invalidCap}）— 保持可见，不参与面积`
       : `${excluded} names without usable cached USD cap (${coverage.missingCap} missing · ${coverage.invalidCap} unusable) — kept visible, no map area`,

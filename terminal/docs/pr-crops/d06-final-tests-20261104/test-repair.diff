@@ -1,0 +1,173 @@
+diff --git a/terminal/e2e/drawing-save-concurrency.spec.ts b/terminal/e2e/drawing-save-concurrency.spec.ts
+index 975433b30..5d6817883 100644
+--- a/terminal/e2e/drawing-save-concurrency.spec.ts
++++ b/terminal/e2e/drawing-save-concurrency.spec.ts
+@@ -160,20 +160,24 @@ test("two devices conflict and cloud survives until an explicit recovery choice"
+ 
+ test("superseded replay parks queued edits and use-cloud clears the recovered symbol",async({page})=>{
+  await seed(page,{drawings:[line("queued")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("old")]}});let calls=0;let reads=0;
++ let automaticReviewFailed!:()=>void;
++ const automaticReviewFailure=new Promise<void>((resolve)=>{automaticReviewFailed=resolve;});
+  // Let the initial GET settle behind the journal fence before replaying. A
+  // superseded receipt parks local edits; it does not guarantee an available cloud snapshot.
+  await holdJournal(page,true);
+  await page.route("**/api/drawings**",async(route)=>{
+   if(route.request().method()==="GET"){
+    // Exercise the supported explicit-review path when the automatic read fails.
+-   if(++reads===2){await route.abort("failed");return;}
++   if(++reads===2){await route.abort("failed");automaticReviewFailed();return;}
+    await route.fulfill(json({drawings:[line("external")],revision:committed,schemaVersion:1}));return;
+   }
+   expect(route.request().postDataJSON()).toMatchObject({operationId:original,expectedRevision:null,drawings:[line("old")]});
+   calls++;await route.fulfill(json({ok:true,operationId:original,revision:committed,idempotentReplay:true,superseded:true}));
+  });
+  await open(page);const recovery=page.getByTestId("drawing-save-recovery");
+- await expect.poll(()=>reads).toBe(2);expect(calls).toBe(1);
++ // Wait for the failed automatic read before checking the recovery UI.
++ await automaticReviewFailure;
++ expect(reads).toBe(2);expect(calls).toBe(1);
+  await recovery.getByRole("button",{name:"Review cloud copy",exact:true}).click();
+  await expect(recovery).toContainText("Cloud drawings (1)");expect(calls).toBe(1);
+  await recovery.getByRole("button",{name:"Use cloud copy",exact:true}).click();await expect(recovery).toHaveCount(0);expect(calls).toBe(1);expect(reads).toBe(3);
+diff --git a/terminal/e2e/portfolio-event-refresh.spec.ts b/terminal/e2e/portfolio-event-refresh.spec.ts
+index c61156651..1c2786938 100644
+--- a/terminal/e2e/portfolio-event-refresh.spec.ts
++++ b/terminal/e2e/portfolio-event-refresh.spec.ts
+@@ -190,56 +190,62 @@ test.describe("Portfolio event panel refreshes after a holding edit", () => {
+       const fixture: Fixture = { shares: 10, reads: 0 };
+       await prepare(page, testInfo, baseURL, zh);
+ 
+-      // The served event read: the route's own shape, with the held size and a per-read marker
+-      // so a stale answer is visible as a different string, not merely a different length.
++      // Capture request-time facts. A replacement initial setup still reads the initial book;
++      // only the response for the edited holding is held for the stale-state assertions.
++      let releaseEditedRead!: () => void;
++      const editedReadGate = new Promise<void>((resolve) => {
++        releaseEditedRead = resolve;
++      });
+       await page.route("**/api/event-impact", async (route) => {
+-        fixture.reads += 1;
+-        const read = fixture.reads;
+-        // Every read after the first is deliberately SLOW, so the window between the committed
+-        // input and the fresh read is observable rather than instantaneous.
+-        if (read > 1) await new Promise((done) => setTimeout(done, 2500));
+-        await route.fulfill({
+-          json: eventPayload(fixture.shares, `READ-${read}-SHARES-${fixture.shares}`),
+-        });
++        const read = ++fixture.reads;
++        const shares = fixture.shares;
++        const marker = `READ-${read}-SHARES-${shares}`;
++        if (shares === 25) await editedReadGate;
++        await route.fulfill({ json: eventPayload(shares, marker) });
+       });
+ 
+-      await seedPosition(page);
+-      await page.goto("/portfolio");
+-      await openEvents(page);
+-
+-      await expect(rows(page)).toHaveCount(1);
+-      await expect(panel(page)).toContainText("READ-1-SHARES-10");
+-      await expect(panel(page)).toContainText(zh ? "你持有 10 股" : "You hold 10 shares");
+-      expect(fixture.reads).toBe(1);
+-
+-      // The real edit: the workspace's record inspector → the position modal → save.
+-      const edit = await openEditorFromOverview(page, "NVDA");
+-      await edit.locator("input[name='shares']").fill("25");
+-      fixture.shares = 25;
+-      await edit.getByRole("button", { name: /^(Save position|保存持仓)$/ }).click();
+-      await expect(edit).not.toBeVisible();
+-      await closeInspector(page);
+-
+-      // The committed input changed, so the previous read is retired: the panel shows the
+-      // neutral busy state and NOT the facts it was showing a moment ago.
+-      await expect(panel(page).getByTestId("event-impact-checking")).toBeVisible();
+-      await expect(panel(page)).not.toContainText("READ-1-SHARES-10");
+-      await expect(panel(page)).not.toContainText(zh ? "你持有 10 股" : "You hold 10 shares");
+-      await expect(rows(page)).toHaveCount(0);
+-
+-      // The fresh read answers for the resulting book.
+-      await expect(panel(page)).toContainText("READ-2-SHARES-25", { timeout: 20_000 });
+-      await expect(panel(page)).toContainText(zh ? "你持有 25 股" : "You hold 25 shares");
+-      await expect(rows(page)).toHaveCount(1);
+-      await expect(panel(page)).not.toContainText("SHARES-10");
+-
+-      // Responsive finding: the panel adds no horizontal document overflow at this viewport.
+-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+-
+-      const shot = page.getByTestId("event-impact");
+-      await shot.screenshot({
+-        path: `docs/verification/portfolio-event-refresh-20261102/browser/${testInfo.project.name}-${lang}-refreshed.png`,
+-      });
++      try {
++        await seedPosition(page);
++        await page.goto("/portfolio");
++        await openEvents(page);
++
++        const mechanism = panel(page).locator('[data-slot="mechanism"] dd');
++        await expect(rows(page)).toHaveCount(1);
++        await expect(panel(page)).toContainText(zh ? "你持有 10 股" : "You hold 10 shares");
++        await expect(mechanism).toHaveText(/^READ-\d+-SHARES-10$/);
++        const initialMarker = (await mechanism.innerText()).trim();
++        const initialRead = Number(/^READ-(\d+)-SHARES-10$/.exec(initialMarker)![1]);
++        expect(initialRead).toBeGreaterThan(0);
++        expect(fixture.reads).toBe(initialRead);
++
++        // The real edit: the workspace's record inspector → the position modal → save.
++        const edit = await openEditorFromOverview(page, "NVDA");
++        await edit.locator("input[name='shares']").fill("25");
++        fixture.shares = 25;
++        await edit.getByRole("button", { name: /^(Save position|保存持仓)$/ }).click();
++        await expect(edit).not.toBeVisible();
++        await closeInspector(page);
++
++        // Exactly one read follows the semantic edit. Its response remains outstanding
++        // while the panel retires the previous facts and shows its neutral checking state.
++        await expect.poll(() => fixture.reads).toBe(initialRead + 1);
++        await expect(panel(page).getByTestId("event-impact-checking")).toBeVisible();
++        await expect(panel(page)).not.toContainText(initialMarker);
++        await expect(panel(page)).not.toContainText(zh ? "你持有 10 股" : "You hold 10 shares");
++        await expect(rows(page)).toHaveCount(0);
++
++        releaseEditedRead();
++        await expect(panel(page)).toContainText(`READ-${initialRead + 1}-SHARES-25`, { timeout: 20_000 });
++        await expect(panel(page)).toContainText(zh ? "你持有 25 股" : "You hold 25 shares");
++        await expect(rows(page)).toHaveCount(1);
++        await expect(panel(page)).not.toContainText("SHARES-10");
++        expect(fixture.reads).toBe(initialRead + 1);
++
++        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
++        await panel(page).screenshot({ path: testInfo.outputPath("event-impact-refreshed.png") });
++      } finally {
++        releaseEditedRead();
++      }
+     });
+   }
+ });
+diff --git a/terminal/e2e/shell-mode.spec.ts b/terminal/e2e/shell-mode.spec.ts
+index cbc64084d..845aa4a03 100644
+--- a/terminal/e2e/shell-mode.spec.ts
++++ b/terminal/e2e/shell-mode.spec.ts
+@@ -115,8 +115,8 @@ test.describe("native shell mode", () => {
+     const fs = page.locator(".embed-fs");
+     await expect(fs).toBeVisible();
+     const fsBox = await fs.boundingBox();
+-    expect(fsBox!.width).toBeGreaterThanOrEqual(30);
+-    expect(fsBox!.height).toBeGreaterThanOrEqual(30);
++    expect(fsBox!.width).toBeGreaterThanOrEqual(44);
++    expect(fsBox!.height).toBeGreaterThanOrEqual(44);
+     await fs.click();
+     expect(await page.evaluate(() => document.fullscreenElement)).toBeNull();
+     expect(await page.evaluate(() => (window as unknown as {__d06NativeMessages: unknown[]}).__d06NativeMessages)).toEqual([{type:"openFullChart"}]);
+@@ -133,9 +133,10 @@ test.describe("native shell mode", () => {
+     expect(fsBox2.x + fsBox2.width).toBeGreaterThan(rangeBox.x + rangeBox.width / 2);
+     await expect(fs).toBeVisible();
+     await fs.click();
+-    // …the pills sit ~8px above the widget's bottom edge (.embed-root is position:fixed;inset:0).
++    // …the complete control row, including the reserved fullscreen action,
++    // sits ~8px above the widget's bottom edge.
+     const bottomGap = await page.evaluate(
+-      () => window.innerHeight - document.querySelector(".embed-ranges")!.getBoundingClientRect().bottom,
++      () => window.innerHeight - document.querySelector(".embed-range-controls")!.getBoundingClientRect().bottom,
+     );
+     expect(bottomGap).toBeGreaterThanOrEqual(6);
+     expect(bottomGap).toBeLessThanOrEqual(12);

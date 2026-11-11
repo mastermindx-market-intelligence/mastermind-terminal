@@ -1,0 +1,1883 @@
+[
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language from loading through ready",
+    "project": "desktop",
+    "name": "language-loading",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language from loading through ready",
+    "project": "desktop",
+    "name": "language-ready",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language with no price history",
+    "project": "desktop",
+    "name": "language-empty",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language for missing and invalid symbols",
+    "project": "desktop",
+    "name": "language-missing",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language for missing and invalid symbols",
+    "project": "desktop",
+    "name": "language-invalid",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language from loading through ready",
+    "project": "desktop",
+    "name": "language-loading",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language from loading through ready",
+    "project": "desktop",
+    "name": "language-ready",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language with no price history",
+    "project": "desktop",
+    "name": "language-empty",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language for missing and invalid symbols",
+    "project": "desktop",
+    "name": "language-missing",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language for missing and invalid symbols",
+    "project": "desktop",
+    "name": "language-invalid",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 1440,
+      "scrollWidth": 1440
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language from loading through ready",
+    "project": "tablet",
+    "name": "language-loading",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language from loading through ready",
+    "project": "tablet",
+    "name": "language-ready",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language with no price history",
+    "project": "tablet",
+    "name": "language-empty",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language for missing and invalid symbols",
+    "project": "tablet",
+    "name": "language-missing",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language for missing and invalid symbols",
+    "project": "tablet",
+    "name": "language-invalid",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language from loading through ready",
+    "project": "tablet",
+    "name": "language-loading",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language from loading through ready",
+    "project": "tablet",
+    "name": "language-ready",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language with no price history",
+    "project": "tablet",
+    "name": "language-empty",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language for missing and invalid symbols",
+    "project": "tablet",
+    "name": "language-missing",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language for missing and invalid symbols",
+    "project": "tablet",
+    "name": "language-invalid",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 820,
+      "scrollWidth": 820
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language from loading through ready",
+    "project": "mobile",
+    "name": "language-loading",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language from loading through ready",
+    "project": "mobile",
+    "name": "language-ready",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language with no price history",
+    "project": "mobile",
+    "name": "language-empty",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language for missing and invalid symbols",
+    "project": "mobile",
+    "name": "language-missing",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed en keeps its own language for missing and invalid symbols",
+    "project": "mobile",
+    "name": "language-invalid",
+    "data": {
+      "contentLanguage": "en",
+      "documentLanguage": "zh-CN",
+      "applicationLanguage": "zh",
+      "storedLanguage": "zh",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language from loading through ready",
+    "project": "mobile",
+    "name": "language-loading",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language from loading through ready",
+    "project": "mobile",
+    "name": "language-ready",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language with no price history",
+    "project": "mobile",
+    "name": "language-empty",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language for missing and invalid symbols",
+    "project": "mobile",
+    "name": "language-missing",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "embed zh keeps its own language for missing and invalid symbols",
+    "project": "mobile",
+    "name": "language-invalid",
+    "data": {
+      "contentLanguage": "zh-CN",
+      "documentLanguage": "en",
+      "applicationLanguage": "en",
+      "storedLanguage": "en",
+      "documentWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "geometry-normal",
+    "data": {
+      "viewport": {
+        "width": 900,
+        "height": 300
+      },
+      "documentWidth": 900,
+      "scrollWidth": 900,
+      "rootWidth": 900,
+      "rootScrollWidth": 900,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "chart": {
+        "top": 54.4375,
+        "bottom": 270,
+        "height": 215.5625
+      },
+      "attribution": {
+        "top": 272,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 24
+      },
+      "date": {
+        "left": 12,
+        "right": 444.53125,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "geometry-hidden-header",
+    "data": {
+      "viewport": {
+        "width": 900,
+        "height": 300
+      },
+      "documentWidth": 900,
+      "scrollWidth": 900,
+      "rootWidth": 900,
+      "rootScrollWidth": 900,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "chart": {
+        "top": 38.9375,
+        "bottom": 270,
+        "height": 231.0625
+      },
+      "attribution": {
+        "top": 272,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 24
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "geometry-clean-header",
+    "data": {
+      "viewport": {
+        "width": 900,
+        "height": 300
+      },
+      "documentWidth": 900,
+      "scrollWidth": 900,
+      "rootWidth": 900,
+      "rootScrollWidth": 900,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "chart": {
+        "top": 0,
+        "bottom": 206.5625,
+        "height": 206.5625
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 12,
+        "right": 888,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "geometry-clean-hidden",
+    "data": {
+      "viewport": {
+        "width": 900,
+        "height": 300
+      },
+      "documentWidth": 900,
+      "scrollWidth": 900,
+      "rootWidth": 900,
+      "rootScrollWidth": 900,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "chart": {
+        "top": 0,
+        "bottom": 256,
+        "height": 256
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "geometry-normal",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 300
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 112.140625,
+        "bottom": 250,
+        "height": 137.859375
+      },
+      "attribution": {
+        "top": 252,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 10,
+        "right": 380,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "geometry-hidden-header",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 300
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 68.15625,
+        "bottom": 250,
+        "height": 181.84375
+      },
+      "attribution": {
+        "top": 252,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "geometry-clean-header",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 300
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 0,
+        "bottom": 212.015625,
+        "height": 212.015625
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 12,
+        "right": 378,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "geometry-clean-hidden",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 300
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 0,
+        "bottom": 256,
+        "height": 256
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "geometry-normal",
+    "data": {
+      "viewport": {
+        "width": 320,
+        "height": 300
+      },
+      "documentWidth": 320,
+      "scrollWidth": 320,
+      "rootWidth": 320,
+      "rootScrollWidth": 320,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 112.140625,
+        "bottom": 250,
+        "height": 137.859375
+      },
+      "attribution": {
+        "top": 252,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 10,
+        "right": 310,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "geometry-hidden-header",
+    "data": {
+      "viewport": {
+        "width": 320,
+        "height": 300
+      },
+      "documentWidth": 320,
+      "scrollWidth": 320,
+      "rootWidth": 320,
+      "rootScrollWidth": 320,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 68.15625,
+        "bottom": 250,
+        "height": 181.84375
+      },
+      "attribution": {
+        "top": 252,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "geometry-clean-header",
+    "data": {
+      "viewport": {
+        "width": 320,
+        "height": 300
+      },
+      "documentWidth": 320,
+      "scrollWidth": 320,
+      "rootWidth": 320,
+      "rootScrollWidth": 320,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 0,
+        "bottom": 212.015625,
+        "height": 212.015625
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 12,
+        "right": 308,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "geometry-clean-hidden",
+    "data": {
+      "viewport": {
+        "width": 320,
+        "height": 300
+      },
+      "documentWidth": 320,
+      "scrollWidth": 320,
+      "rootWidth": 320,
+      "rootScrollWidth": 320,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 0,
+        "bottom": 256,
+        "height": 256
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "desktop",
+    "name": "geometry-en-ready",
+    "data": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "scrollWidth": 1440,
+      "rootWidth": 1440,
+      "rootScrollWidth": 1440,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "chart": {
+        "top": 54.4375,
+        "bottom": 870,
+        "height": 815.5625
+      },
+      "attribution": {
+        "top": 872,
+        "bottom": 896,
+        "left": 10,
+        "right": 138.53125,
+        "height": 24
+      },
+      "date": {
+        "left": 12,
+        "right": 984.53125,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "reports unavailable data without claiming the symbol has no history",
+    "project": "desktop",
+    "name": "outcomes",
+    "data": {
+      "cases": [
+        "503",
+        "network",
+        "json",
+        "envelope",
+        "bars",
+        "ohlc",
+        "date",
+        "duplicate"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "stage": "full",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "tablet",
+    "name": "geometry-en-ready",
+    "data": {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "documentWidth": 820,
+      "scrollWidth": 820,
+      "rootWidth": 820,
+      "rootScrollWidth": 820,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 88.375,
+        "bottom": 1130,
+        "height": 1041.625
+      },
+      "attribution": {
+        "top": 1132,
+        "bottom": 1176,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 12,
+        "right": 808,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "reports unavailable data without claiming the symbol has no history",
+    "project": "tablet",
+    "name": "outcomes",
+    "data": {
+      "cases": [
+        "503",
+        "network",
+        "json",
+        "envelope",
+        "bars",
+        "ohlc",
+        "date",
+        "duplicate"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "stage": "full",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "mobile",
+    "name": "geometry-en-ready",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 112.140625,
+        "bottom": 794,
+        "height": 681.859375
+      },
+      "attribution": {
+        "top": 796,
+        "bottom": 840,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 10,
+        "right": 380,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "reports unavailable data without claiming the symbol has no history",
+    "project": "mobile",
+    "name": "outcomes",
+    "data": {
+      "cases": [
+        "503",
+        "network",
+        "json",
+        "envelope",
+        "bars",
+        "ohlc",
+        "date",
+        "duplicate"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "stage": "full",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "desktop",
+    "name": "geometry-zh-ready",
+    "data": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "scrollWidth": 1440,
+      "rootWidth": 1440,
+      "rootScrollWidth": 1440,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "chart": {
+        "top": 54.4375,
+        "bottom": 870,
+        "height": 815.5625
+      },
+      "attribution": {
+        "top": 872,
+        "bottom": 896,
+        "left": 10,
+        "right": 138.53125,
+        "height": 24
+      },
+      "date": {
+        "left": 12,
+        "right": 984.53125,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "reports unavailable data without claiming the symbol has no history",
+    "project": "desktop",
+    "name": "outcomes",
+    "data": {
+      "cases": [
+        "503",
+        "network",
+        "json",
+        "envelope",
+        "bars",
+        "ohlc",
+        "date",
+        "duplicate"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "stage": "full",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "tablet",
+    "name": "geometry-zh-ready",
+    "data": {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "documentWidth": 820,
+      "scrollWidth": 820,
+      "rootWidth": 820,
+      "rootScrollWidth": 820,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 54.4375,
+        "bottom": 1130,
+        "height": 1075.5625
+      },
+      "attribution": {
+        "top": 1132,
+        "bottom": 1176,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 12,
+        "right": 364.53125,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "reports unavailable data without claiming the symbol has no history",
+    "project": "tablet",
+    "name": "outcomes",
+    "data": {
+      "cases": [
+        "503",
+        "network",
+        "json",
+        "envelope",
+        "bars",
+        "ohlc",
+        "date",
+        "duplicate"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "stage": "full",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "mobile",
+    "name": "geometry-zh-ready",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "chart": {
+        "top": 112.140625,
+        "bottom": 794,
+        "height": 681.859375
+      },
+      "attribution": {
+        "top": 796,
+        "bottom": 840,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 10,
+        "right": 380,
+        "height": 14.6875
+      }
+    }
+  },
+  {
+    "stage": "full",
+    "test": "reports unavailable data without claiming the symbol has no history",
+    "project": "mobile",
+    "name": "outcomes",
+    "data": {
+      "cases": [
+        "503",
+        "network",
+        "json",
+        "envelope",
+        "bars",
+        "ohlc",
+        "date",
+        "duplicate"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "geometry-normal",
+    "data": {
+      "viewport": {
+        "width": 900,
+        "height": 300
+      },
+      "documentWidth": 900,
+      "scrollWidth": 900,
+      "rootWidth": 900,
+      "rootScrollWidth": 900,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 54.4375,
+        "bottom": 270,
+        "height": 215.5625
+      },
+      "attribution": {
+        "top": 272,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 24
+      },
+      "date": {
+        "left": 12,
+        "right": 444.53125,
+        "height": 14.6875
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "geometry-hidden-header",
+    "data": {
+      "viewport": {
+        "width": 900,
+        "height": 300
+      },
+      "documentWidth": 900,
+      "scrollWidth": 900,
+      "rootWidth": 900,
+      "rootScrollWidth": 900,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 38.9375,
+        "bottom": 270,
+        "height": 231.0625
+      },
+      "attribution": {
+        "top": 272,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 24
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "geometry-clean-header",
+    "data": {
+      "viewport": {
+        "width": 900,
+        "height": 300
+      },
+      "documentWidth": 900,
+      "scrollWidth": 900,
+      "rootWidth": 900,
+      "rootScrollWidth": 900,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 0,
+        "bottom": 206.5625,
+        "height": 206.5625
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 12,
+        "right": 888,
+        "height": 14.6875
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "geometry-clean-hidden",
+    "data": {
+      "viewport": {
+        "width": 900,
+        "height": 300
+      },
+      "documentWidth": 900,
+      "scrollWidth": 900,
+      "rootWidth": 900,
+      "rootScrollWidth": 900,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgba(0, 0, 0, 0)",
+      "chart": {
+        "top": 0,
+        "bottom": 256,
+        "height": 256
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "dateContrast": null
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "desktop",
+    "name": "unavailable-contrast",
+    "data": {
+      "foreground": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 16.86552838951233
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "geometry-normal",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 300
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "chart": {
+        "top": 112.140625,
+        "bottom": 250,
+        "height": 137.859375
+      },
+      "attribution": {
+        "top": 252,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 10,
+        "right": 380,
+        "height": 14.6875
+      },
+      "dateContrast": 16.86552838951233
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "geometry-hidden-header",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 300
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "chart": {
+        "top": 68.15625,
+        "bottom": 250,
+        "height": 181.84375
+      },
+      "attribution": {
+        "top": 252,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "dateContrast": 16.86552838951233
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "geometry-clean-header",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 300
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "chart": {
+        "top": 0,
+        "bottom": 212.015625,
+        "height": 212.015625
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 12,
+        "right": 378,
+        "height": 14.6875
+      },
+      "dateContrast": 16.86552838951233
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "geometry-clean-hidden",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 300
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(26, 29, 36)",
+      "background": "rgba(0, 0, 0, 0)",
+      "chart": {
+        "top": 0,
+        "bottom": 256,
+        "height": 256
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "dateContrast": null
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "tablet",
+    "name": "unavailable-contrast",
+    "data": {
+      "foreground": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 16.86552838951233
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "geometry-normal",
+    "data": {
+      "viewport": {
+        "width": 320,
+        "height": 300
+      },
+      "documentWidth": 320,
+      "scrollWidth": 320,
+      "rootWidth": 320,
+      "rootScrollWidth": 320,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 112.140625,
+        "bottom": 250,
+        "height": 137.859375
+      },
+      "attribution": {
+        "top": 252,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 10,
+        "right": 310,
+        "height": 14.6875
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "geometry-hidden-header",
+    "data": {
+      "viewport": {
+        "width": 320,
+        "height": 300
+      },
+      "documentWidth": 320,
+      "scrollWidth": 320,
+      "rootWidth": 320,
+      "rootScrollWidth": 320,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 68.15625,
+        "bottom": 250,
+        "height": 181.84375
+      },
+      "attribution": {
+        "top": 252,
+        "bottom": 296,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "geometry-clean-header",
+    "data": {
+      "viewport": {
+        "width": 320,
+        "height": 300
+      },
+      "documentWidth": 320,
+      "scrollWidth": 320,
+      "rootWidth": 320,
+      "rootScrollWidth": 320,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 0,
+        "bottom": 212.015625,
+        "height": 212.015625
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 12,
+        "right": 308,
+        "height": 14.6875
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "geometry-clean-hidden",
+    "data": {
+      "viewport": {
+        "width": 320,
+        "height": 300
+      },
+      "documentWidth": 320,
+      "scrollWidth": 320,
+      "rootWidth": 320,
+      "rootScrollWidth": 320,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgba(0, 0, 0, 0)",
+      "chart": {
+        "top": 0,
+        "bottom": 256,
+        "height": 256
+      },
+      "attribution": {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "date": {
+        "left": 0,
+        "right": 0,
+        "height": 0
+      },
+      "dateContrast": null
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "preserves compact native variants in short and narrow frames",
+    "project": "mobile",
+    "name": "unavailable-contrast",
+    "data": {
+      "foreground": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 16.86552838951233
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "desktop",
+    "name": "geometry-en-ready",
+    "data": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "scrollWidth": 1440,
+      "rootWidth": 1440,
+      "rootScrollWidth": 1440,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 54.4375,
+        "bottom": 870,
+        "height": 815.5625
+      },
+      "attribution": {
+        "top": 872,
+        "bottom": 896,
+        "left": 10,
+        "right": 138.53125,
+        "height": 24
+      },
+      "date": {
+        "left": 12,
+        "right": 984.53125,
+        "height": 14.6875
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "tablet",
+    "name": "geometry-en-ready",
+    "data": {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "documentWidth": 820,
+      "scrollWidth": 820,
+      "rootWidth": 820,
+      "rootScrollWidth": 820,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 88.375,
+        "bottom": 1130,
+        "height": 1041.625
+      },
+      "attribution": {
+        "top": 1132,
+        "bottom": 1176,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 12,
+        "right": 808,
+        "height": 14.6875
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "mobile",
+    "name": "geometry-en-ready",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(214, 218, 227)",
+      "background": "rgb(10, 11, 14)",
+      "chart": {
+        "top": 112.140625,
+        "bottom": 794,
+        "height": 681.859375
+      },
+      "attribution": {
+        "top": 796,
+        "bottom": 840,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 10,
+        "right": 380,
+        "height": 14.6875
+      },
+      "dateContrast": 14.053766617886108
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "desktop",
+    "name": "geometry-zh-ready",
+    "data": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "scrollWidth": 1440,
+      "rootWidth": 1440,
+      "rootScrollWidth": 1440,
+      "rootScrollLeft": 0,
+      "coarsePointer": false,
+      "dateColor": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "chart": {
+        "top": 54.4375,
+        "bottom": 870,
+        "height": 815.5625
+      },
+      "attribution": {
+        "top": 872,
+        "bottom": 896,
+        "left": 10,
+        "right": 138.53125,
+        "height": 24
+      },
+      "date": {
+        "left": 12,
+        "right": 984.53125,
+        "height": 14.6875
+      },
+      "dateContrast": 16.86552838951233
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "tablet",
+    "name": "geometry-zh-ready",
+    "data": {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "documentWidth": 820,
+      "scrollWidth": 820,
+      "rootWidth": 820,
+      "rootScrollWidth": 820,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "chart": {
+        "top": 54.4375,
+        "bottom": 1130,
+        "height": 1075.5625
+      },
+      "attribution": {
+        "top": 1132,
+        "bottom": 1176,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 12,
+        "right": 364.53125,
+        "height": 14.6875
+      },
+      "dateContrast": 16.86552838951233
+    }
+  },
+  {
+    "stage": "contrast",
+    "test": "dates the displayed bar and keeps attribution clear of the time axis",
+    "project": "mobile",
+    "name": "geometry-zh-ready",
+    "data": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "rootWidth": 390,
+      "rootScrollWidth": 390,
+      "rootScrollLeft": 0,
+      "coarsePointer": true,
+      "dateColor": "rgb(26, 29, 36)",
+      "background": "rgb(255, 255, 255)",
+      "chart": {
+        "top": 112.140625,
+        "bottom": 794,
+        "height": 681.859375
+      },
+      "attribution": {
+        "top": 796,
+        "bottom": 840,
+        "left": 10,
+        "right": 138.53125,
+        "height": 44
+      },
+      "date": {
+        "left": 10,
+        "right": 380,
+        "height": 14.6875
+      },
+      "dateContrast": 16.86552838951233
+    }
+  }
+]

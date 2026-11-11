@@ -1,0 +1,11 @@
+Listing tests:
+  [desktop] › exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en
+  [desktop] › exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh
+  [desktop] › responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload
+  [tablet] › exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en
+  [tablet] › exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh
+  [tablet] › responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload
+  [mobile] › exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en
+  [mobile] › exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh
+  [mobile] › responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload
+Total: 9 tests in 2 files

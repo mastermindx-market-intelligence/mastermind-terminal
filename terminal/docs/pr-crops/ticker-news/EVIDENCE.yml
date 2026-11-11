@@ -1,20 +1,20 @@
-# Same-source qualification: 14 passing cases and 7 authored project skips across 21 unique cases.
-# Historical first attempt: 7 desktop passes and 14 missing-browser launch failures; retained unchanged.
-# Targeted continuation after dependency repair: 7 passes and 7 authored skips; no qualified retries.
-# Eight first-attempt images and two continuation images are fresh within their respective producing intervals.
-# Source tree: df6f2dfeb5587acd42d83847ea8582a9e1da0a39
-# Protected ancestor: 74c007125129090cc762f2bc4b1b152123326444
-# Proof: docs/verification/pr1407-ticker-news-successor-20261111/aggregate-qualification.json
-# Source snapshot SHA256: cd9da9a4d087b885ed83c6c5a599168ad16fc1ac4ee236b0fdd79684c28de669
+# Original ticker specification: 14 passes and seven authored skips across 21 unique cases.
+# One worker; zero retries, unexpected results or flaky results.
+# Captured working tree: HEAD 75a390d6891830a8bfa47a43a804e4dfe8d939df with accepted protected c13976bf86fb066e69cab399200a07ca63431521.
+# Captured source index tree: 960481fa2139aa903ad6316b8cc3d0b256ace9bc
+# Capture interval: 2026-11-11T19:08:26.467016+00:00 through 2026-11-11T19:16:28.108522+00:00
+# Complete source snapshot SHA256: 0fd1551e283b5f9dea47d026bbdabf79c36e767b05f3035c4763329068575d99
+# Proof: docs/verification/pr1270-evidence-readers-20261111/ticker-browser/execution.json
+# Prior packet preserved: docs/verification/pr1270-evidence-readers-20261111/ticker-prior/
 # Panel crops: viewport labels describe browser viewports, not PNG dimensions.
-capturedAtHead: 5338557e44e2a8b5ca789aac7cd295037db9692d
+capturedAtHead: 75a390d6891830a8bfa47a43a804e4dfe8d939df
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
     sha256: d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358
   - path: terminal/components/TerminalShell.tsx
-    sha256: 50542114260c737b88546aecf1856a9fae230d66ee371c7faee150fe7af60639
+    sha256: 35832710bd11a1d68fa5086ffe0aa8466b2098a65f0cb50b714596e94d3d601d
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900
@@ -50,7 +50,7 @@ crops:
     viewport: 1440x900
     lang: en
     state: unavailable
-    sha256: 570371304d3d8f57d7314f8af18fd2e0040e7e14c37720e09621395665f4ed01
+    sha256: d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048
   - file: unavailable-desktop-zh-dark.png
     viewport: 1440x900
     lang: zh

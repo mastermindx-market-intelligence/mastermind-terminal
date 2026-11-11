@@ -1,5 +1,5 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+import { assertD06CapturedLexProjection as assertCapturedLexProjection } from "./helpers/d06CaptureDependency";
+// Historical raw pins/crops remain; exact D06 deltas precede the unchanged onboarding-copy projection.
 // W9T_F12_17 (MO-PAID-081): the invitation-link evidence lock. Same shape as the
 // other locks in this folder: layoutFiles carry the sha256 of every source file
 // the crops depend on, so editing one of them without a recapture turns this RED.

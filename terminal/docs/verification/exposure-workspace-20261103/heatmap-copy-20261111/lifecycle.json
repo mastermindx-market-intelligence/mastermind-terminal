@@ -1,0 +1,59 @@
+{
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-609/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "54845",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "listener": {
+    "command": [
+      "lsof",
+      "-nP",
+      "-iTCP:57732",
+      "-sTCP:LISTEN"
+    ],
+    "exit": 1,
+    "stderr": "",
+    "stdout": ""
+  },
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://127.0.0.1:57732",
+    "hostname": "127.0.0.1",
+    "pid": 54845,
+    "port": 57732,
+    "startedAt": 1794400886545
+  },
+  "lockAbsent": true,
+  "lockIdentityAfterChecks": {
+    "device": 16777247,
+    "inode": 76751258
+  },
+  "lockIdentityBeforeUnlink": {
+    "device": 16777247,
+    "inode": 76751258
+  },
+  "lockPresent": true,
+  "lockSha256": "491e6496cfa3e0801e9057e6fb95dde25397b86bfc1c6a0cf3db15f0370d7556",
+  "lockUnlinked": true,
+  "port": 57732,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

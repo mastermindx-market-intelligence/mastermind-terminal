@@ -1,0 +1,1685 @@
+{
+  "artifact": "D06 reader chart-time correction",
+  "procedure_sha": "576b59341edc9c871cb9d950833678fcf65078e4",
+  "assignment_sha": "6e1862867193ec6486a22001a0e4fb515da20448",
+  "owner": "D06 Astra Pro / ChatGPT4",
+  "operation_id": "d06-terminal-reader-resilience-20261103-c4",
+  "branch": "sol/web-d06-terminal-reader-resilience-20261103-c4",
+  "parent_commit": "2d29878cf52b6a8ac950b93ea9a78ec0fae60aff",
+  "terminal_pr": 1270,
+  "source_files": [
+    {
+      "path": "terminal/components/VisualIntelligencePanel.tsx",
+      "bytes": 16426,
+      "sha256": "2c144b39e1b3dc79d4274bbeeb2956b3dc8ab25a5d6aa62c67c9de13a5471063",
+      "git_blob_sha1": "413ce0174ff005e6963c3c776cc357f298e888a2"
+    },
+    {
+      "path": "terminal/components/VisualIntelligencePanel.module.css",
+      "bytes": 7395,
+      "sha256": "f2c902faf07e80d4d4385fbab915882f502fe29cc7403c2c7cd290f0dcfa093e",
+      "git_blob_sha1": "a32ecf858fe4dd8e3fffcb8640db9cd88e5880f9"
+    },
+    {
+      "path": "terminal/components/useChartContextPresentation.ts",
+      "bytes": 7122,
+      "sha256": "f5fb596726ad75c81755b6e62e286945a9252013a51bf23b98edda93b749da99",
+      "git_blob_sha1": "0b752426db0185ce4e68219ed54a70936b9a48a0"
+    },
+    {
+      "path": "terminal/lib/visualIntelligence.ts",
+      "bytes": 12064,
+      "sha256": "ec51f78be9dcbdd6f49e39932a802eadc05e8bd0924a055d0b1b16194438b252",
+      "git_blob_sha1": "7553158d48065954a530b1c8b925a91bd76084e1"
+    },
+    {
+      "path": "terminal/lib/visualIntelligenceCopy.ts",
+      "bytes": 12307,
+      "sha256": "e9de5eeb8b0209dce26816fcb7e0904b1b6d4a7c838aa5be69c033b8b008f4aa",
+      "git_blob_sha1": "a05d81b56e5154eddfeca092978249037a593a2f"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartContextTime.test.ts",
+      "bytes": 2808,
+      "sha256": "e6a5646017e033192958df8aa7e26e9f09495abffd0a784b8a46fe078ac10154",
+      "git_blob_sha1": "f4083894634ec555cea94f3a41513fb4b9ecf5a9"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartContextPresentation.test.tsx",
+      "bytes": 10918,
+      "sha256": "96f08b4816d3b0a14559663dba4a2988dfb0ce1f70681e39063f7c639856a38c",
+      "git_blob_sha1": "93f30f2b251eb1bcf0acd20f55d9d185400ffc2d"
+    },
+    {
+      "path": "terminal/e2e/chart-context-time.spec.ts",
+      "bytes": 5434,
+      "sha256": "53370ed3bfa54f949daefd16bbd6b11995645fea150855c36aaf5c9cd270192c",
+      "git_blob_sha1": "c2d9f5501c556d057c2861beb9992fe212be026b"
+    },
+    {
+      "path": "terminal/e2e/chart-context-resilience.spec.ts",
+      "bytes": 10779,
+      "sha256": "2187cbb7e8074f0540d3477fca77f7d356ff9ef23ca626ed81d8edec2d3605bc",
+      "git_blob_sha1": "ff283e38a4b65a625dba8bbe80043e5519b67826"
+    }
+  ],
+  "baseline": {
+    "failed": 5,
+    "passed": 11,
+    "defect": "four second-based intervals and selected-bar tooltip lose seconds",
+    "console_sha256": "de252483e942acef1599536817518776247c587a600c90a57813853edbb287fa"
+  },
+  "unit": {
+    "passed": 57,
+    "files": 3,
+    "new_time_cases": 16,
+    "incumbent_visual_cases": 19,
+    "presentation_cases": 22,
+    "observed_exit": 0,
+    "output": "\n> terminal@0.1.0 test\n> vitest run lib/__tests__/chartContextTime.test.ts lib/__tests__/visualIntelligence.test.ts lib/__tests__/chartContextPresentation.test.tsx\n\nThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\n\n RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal\n\n ✓ lib/__tests__/chartContextTime.test.ts (16 tests) 11ms\n ✓ lib/__tests__/visualIntelligence.test.ts (19 tests) 246ms\n ✓ lib/__tests__/chartContextPresentation.test.tsx (22 tests) 874ms\n\n Test Files  3 passed (3)\n      Tests  57 passed (57)\n   Start at  20:48:48\n   Duration  6.04s (transform 2.09s, setup 0ms, collect 3.35s, tests 1.13s, environment 2.81s, prepare 710ms)\n\n"
+  },
+  "lint": {
+    "observed_exit": 0
+  },
+  "typecheck": {
+    "observed_exit": 0,
+    "incremental": false
+  },
+  "browser": {
+    "observed_exit": 0,
+    "stats": {
+      "startTime": "2026-11-04T04:50:10.105Z",
+      "duration": 313732.293,
+      "expected": 77,
+      "skipped": 16,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "total_cases": 93,
+    "clock_cases_passed": 20,
+    "incumbent_cases_passed": 57,
+    "report_path": "terminal/docs/pr-crops/d06-chart-time/browser-report.json",
+    "report_sha256": "b4ca9d9e3de0a93be8010d290c3008ff1c58934f2ad0c5e8af9a0c8d2d4cdf28",
+    "report_extraction": "Complete Playwright JSON after npm/warmup stdout preamble; no case omissions",
+    "case_summary": [
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context stays outside every chart pane and presents the actual selected facts",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context keeps keyboard shortcuts local and restores focus after closing",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "disabled context can be enabled from its new home without resetting chart preferences",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context follows the active pane through resize and fullscreen without covering the chart",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "native and tray context use the chart menu and restore chart space",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context stays outside every chart pane and presents the actual selected facts",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context keeps keyboard shortcuts local and restores focus after closing",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "disabled context can be enabled from its new home without resetting chart preferences",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context follows the active pane through resize and fullscreen without covering the chart",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "native and tray context use the chart menu and restore chart space",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context stays outside every chart pane and presents the actual selected facts",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context keeps keyboard shortcuts local and restores focus after closing",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "disabled context can be enabled from its new home without resetting chart preferences",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "context follows the active pane through resize and fullscreen without covering the chart",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-dock.spec.ts",
+        "title": "native and tray context use the chart menu and restore chart space",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "reader keyboard controls and return navigation remain usable in en",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "reader-capture",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-resilience-r-f1b60-igation-remain-usable-in-en-desktop/attachments/reader-capture-61602f73b68c05ed3d9f845a63052b3916c30372.png"
+              },
+              {
+                "name": "reader-geometry",
+                "contentType": "application/json",
+                "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiAxNDQwLAogICJzY3JvbGxXaWR0aCI6IDE0NDAsCiAgInJlYWRlcldpZHRoIjogMzYwLAogICJyZWFkZXJMZWZ0IjogMTA4MCwKICAicmVhZGVyUmlnaHQiOiAxNDQwLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNvYXJzZSI6IGZhbHNlLAogICJ0aGVtZSI6ICJkYXJrIiwKICAibG9jYWxlIjogImVuIiwKICAiY29udHJvbHMiOiBbCiAgICB7CiAgICAgICJrZXkiOiAiY2xvc2UiLAogICAgICAid2lkdGgiOiAzMiwKICAgICAgImhlaWdodCI6IDMyCiAgICB9LAogICAgewogICAgICAia2V5IjogInByZXZpb3VzIiwKICAgICAgIndpZHRoIjogMjgsCiAgICAgICJoZWlnaHQiOiAzMgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJuZXh0IiwKICAgICAgIndpZHRoIjogMjgsCiAgICAgICJoZWlnaHQiOiAzMgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJsYXRlc3QiLAogICAgICAid2lkdGgiOiAzNCwKICAgICAgImhlaWdodCI6IDMyCiAgICB9LAogICAgewogICAgICAia2V5IjogInJhbmdlIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogNDAKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibGF5ZXJzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogNDAKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsUmVnaW1lIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsVm9sdW1lIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsTGV2ZWxzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsRXZlbnRzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAiaGVscCIsCiAgICAgICJ3aWR0aCI6IDMyOCwKICAgICAgImhlaWdodCI6IDQwCiAgICB9LAogICAgewogICAgICAia2V5IjogInNldHRpbmdzIiwKICAgICAgIndpZHRoIjogOTMuNTMxMjUsCiAgICAgICJoZWlnaHQiOiAzMy41OTM3NQogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ1c2VmdWwiLAogICAgICAid2lkdGgiOiAxMTQuNDUzMTI1LAogICAgICAiaGVpZ2h0IjogMjYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidW5jbGVhciIsCiAgICAgICJ3aWR0aCI6IDY5Ljg1OTM3NSwKICAgICAgImhlaWdodCI6IDI2CiAgICB9LAogICAgewogICAgICAia2V5IjogImhpZGUiLAogICAgICAid2lkdGgiOiA5Ny4wOTM3NSwKICAgICAgImhlaWdodCI6IDMzLjU5Mzc1CiAgICB9CiAgXQp9"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "320px fine-pointer reader keeps 44px targets in en",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "phone-fine-pointer",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-resilience-3-78116-er-keeps-44px-targets-in-en-desktop/attachments/phone-fine-pointer-d50e77532ac4d6d1daf75b3fc0e9bdaf6ab27709.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "reader keyboard controls and return navigation remain usable in zh",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "reader-capture",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-resilience-r-73f91-igation-remain-usable-in-zh-desktop/attachments/reader-capture-09a9d67362804570480c00415b56e4df568182d9.png"
+              },
+              {
+                "name": "reader-geometry",
+                "contentType": "application/json",
+                "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiAxNDQwLAogICJzY3JvbGxXaWR0aCI6IDE0NDAsCiAgInJlYWRlcldpZHRoIjogMzYwLAogICJyZWFkZXJMZWZ0IjogMTA4MCwKICAicmVhZGVyUmlnaHQiOiAxNDQwLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNvYXJzZSI6IGZhbHNlLAogICJ0aGVtZSI6ICJkYXJrIiwKICAibG9jYWxlIjogInpoLUNOIiwKICAiY29udHJvbHMiOiBbCiAgICB7CiAgICAgICJrZXkiOiAiY2xvc2UiLAogICAgICAid2lkdGgiOiAzMiwKICAgICAgImhlaWdodCI6IDMyCiAgICB9LAogICAgewogICAgICAia2V5IjogInByZXZpb3VzIiwKICAgICAgIndpZHRoIjogMjgsCiAgICAgICJoZWlnaHQiOiAzMgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJuZXh0IiwKICAgICAgIndpZHRoIjogMjgsCiAgICAgICJoZWlnaHQiOiAzMgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJsYXRlc3QiLAogICAgICAid2lkdGgiOiAyOCwKICAgICAgImhlaWdodCI6IDMyCiAgICB9LAogICAgewogICAgICAia2V5IjogInJhbmdlIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogNDAKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibGF5ZXJzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogNDAKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsUmVnaW1lIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsVm9sdW1lIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsTGV2ZWxzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsRXZlbnRzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAiaGVscCIsCiAgICAgICJ3aWR0aCI6IDMyOCwKICAgICAgImhlaWdodCI6IDQwCiAgICB9LAogICAgewogICAgICAia2V5IjogInNldHRpbmdzIiwKICAgICAgIndpZHRoIjogNTIuNjg3NSwKICAgICAgImhlaWdodCI6IDMzLjU5Mzc1CiAgICB9LAogICAgewogICAgICAia2V5IjogInVzZWZ1bCIsCiAgICAgICJ3aWR0aCI6IDcxLjU0Njg3NSwKICAgICAgImhlaWdodCI6IDI2CiAgICB9LAogICAgewogICAgICAia2V5IjogInVuY2xlYXIiLAogICAgICAid2lkdGgiOiA3MS41NDY4NzUsCiAgICAgICJoZWlnaHQiOiAyNgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJoaWRlIiwKICAgICAgIndpZHRoIjogNjcuNDUzMTI1LAogICAgICAiaGVpZ2h0IjogMzMuNTkzNzUKICAgIH0KICBdCn0="
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "320px fine-pointer reader keeps 44px targets in zh",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "phone-fine-pointer",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-resilience-3-69986-er-keeps-44px-targets-in-zh-desktop/attachments/phone-fine-pointer-b9726d62a391e75ad3655902dde889789304e3d2.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "moving the reader never takes focus from another chart control",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "Candle settings takes focus without a delayed reader restoration",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "reader keyboard controls and return navigation remain usable in en",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "reader-capture",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-resilience-r-f1b60-igation-remain-usable-in-en-tablet/attachments/reader-capture-66fc2684b2b4d25faee4f568f2fdfb2c8b1b19af.png"
+              },
+              {
+                "name": "reader-geometry",
+                "contentType": "application/json",
+                "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiA4MjAsCiAgInNjcm9sbFdpZHRoIjogODIwLAogICJyZWFkZXJXaWR0aCI6IDgyMCwKICAicmVhZGVyTGVmdCI6IDAsCiAgInJlYWRlclJpZ2h0IjogODIwLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNvYXJzZSI6IHRydWUsCiAgInRoZW1lIjogImRhcmsiLAogICJsb2NhbGUiOiAiZW4iLAogICJjb250cm9scyI6IFsKICAgIHsKICAgICAgImtleSI6ICJjbG9zZSIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAicHJldmlvdXMiLAogICAgICAid2lkdGgiOiA0NCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogIm5leHQiLAogICAgICAid2lkdGgiOiA0NCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImxhdGVzdCIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAicmFuZ2UiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJsYXllcnMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxSZWdpbWUiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxWb2x1bWUiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxMZXZlbHMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxFdmVudHMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJoZWxwIiwKICAgICAgIndpZHRoIjogNzg4LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAic2V0dGluZ3MiLAogICAgICAid2lkdGgiOiA5My41MzEyNSwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInVzZWZ1bCIsCiAgICAgICJ3aWR0aCI6IDExNC40NTMxMjUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ1bmNsZWFyIiwKICAgICAgIndpZHRoIjogNjkuODU5Mzc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAiaGlkZSIsCiAgICAgICJ3aWR0aCI6IDk3LjA5Mzc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0KICBdCn0="
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "320px fine-pointer reader keeps 44px targets in en",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "reader keyboard controls and return navigation remain usable in zh",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "reader-capture",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-resilience-r-73f91-igation-remain-usable-in-zh-tablet/attachments/reader-capture-43ce43f1364d47be13b1fcd57bbdd56159c4afd7.png"
+              },
+              {
+                "name": "reader-geometry",
+                "contentType": "application/json",
+                "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiA4MjAsCiAgInNjcm9sbFdpZHRoIjogODIwLAogICJyZWFkZXJXaWR0aCI6IDgyMCwKICAicmVhZGVyTGVmdCI6IDAsCiAgInJlYWRlclJpZ2h0IjogODIwLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNvYXJzZSI6IHRydWUsCiAgInRoZW1lIjogImRhcmsiLAogICJsb2NhbGUiOiAiemgtQ04iLAogICJjb250cm9scyI6IFsKICAgIHsKICAgICAgImtleSI6ICJjbG9zZSIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAicHJldmlvdXMiLAogICAgICAid2lkdGgiOiA0NCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogIm5leHQiLAogICAgICAid2lkdGgiOiA0NCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImxhdGVzdCIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAicmFuZ2UiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJsYXllcnMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxSZWdpbWUiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxWb2x1bWUiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxMZXZlbHMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxFdmVudHMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJoZWxwIiwKICAgICAgIndpZHRoIjogNzg4LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAic2V0dGluZ3MiLAogICAgICAid2lkdGgiOiA1Mi42ODc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidXNlZnVsIiwKICAgICAgIndpZHRoIjogNzEuNTQ2ODc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidW5jbGVhciIsCiAgICAgICJ3aWR0aCI6IDcxLjU0Njg3NSwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImhpZGUiLAogICAgICAid2lkdGgiOiA2Ny40NTMxMjUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfQogIF0KfQ=="
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "320px fine-pointer reader keeps 44px targets in zh",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "moving the reader never takes focus from another chart control",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "Candle settings takes focus without a delayed reader restoration",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "reader keyboard controls and return navigation remain usable in en",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "reader-capture",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-resilience-r-f1b60-igation-remain-usable-in-en-mobile/attachments/reader-capture-503f7a96edb43486cbbc1ea72a2638f11897845c.png"
+              },
+              {
+                "name": "reader-geometry",
+                "contentType": "application/json",
+                "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJlYWRlcldpZHRoIjogMzkwLAogICJyZWFkZXJMZWZ0IjogMCwKICAicmVhZGVyUmlnaHQiOiAzOTAsCiAgImJhY2tncm91bmQiOiAicmdiKDEwLCAxMSwgMTQpIiwKICAiY29hcnNlIjogdHJ1ZSwKICAidGhlbWUiOiAiZGFyayIsCiAgImxvY2FsZSI6ICJlbiIsCiAgImNvbnRyb2xzIjogWwogICAgewogICAgICAia2V5IjogImNsb3NlIiwKICAgICAgIndpZHRoIjogNDQsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJwcmV2aW91cyIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibmV4dCIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibGF0ZXN0IiwKICAgICAgIndpZHRoIjogNDQsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJyYW5nZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImxheWVycyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbFJlZ2ltZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbFZvbHVtZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbExldmVscyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbEV2ZW50cyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImhlbHAiLAogICAgICAid2lkdGgiOiAzNTgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJzZXR0aW5ncyIsCiAgICAgICJ3aWR0aCI6IDkzLjUzMTI1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidXNlZnVsIiwKICAgICAgIndpZHRoIjogMTE0LjQ1MzEyNSwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInVuY2xlYXIiLAogICAgICAid2lkdGgiOiA2OS44NTkzNzUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJoaWRlIiwKICAgICAgIndpZHRoIjogOTcuMDkzNzUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfQogIF0KfQ=="
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "320px fine-pointer reader keeps 44px targets in en",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "reader keyboard controls and return navigation remain usable in zh",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "reader-capture",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-resilience-r-73f91-igation-remain-usable-in-zh-mobile/attachments/reader-capture-21a78d03acb914dc6abb70e0b0a266fef67b974f.png"
+              },
+              {
+                "name": "reader-geometry",
+                "contentType": "application/json",
+                "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJlYWRlcldpZHRoIjogMzkwLAogICJyZWFkZXJMZWZ0IjogMCwKICAicmVhZGVyUmlnaHQiOiAzOTAsCiAgImJhY2tncm91bmQiOiAicmdiKDEwLCAxMSwgMTQpIiwKICAiY29hcnNlIjogdHJ1ZSwKICAidGhlbWUiOiAiZGFyayIsCiAgImxvY2FsZSI6ICJ6aC1DTiIsCiAgImNvbnRyb2xzIjogWwogICAgewogICAgICAia2V5IjogImNsb3NlIiwKICAgICAgIndpZHRoIjogNDQsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJwcmV2aW91cyIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibmV4dCIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibGF0ZXN0IiwKICAgICAgIndpZHRoIjogNDQsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJyYW5nZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImxheWVycyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbFJlZ2ltZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbFZvbHVtZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbExldmVscyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbEV2ZW50cyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImhlbHAiLAogICAgICAid2lkdGgiOiAzNTgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJzZXR0aW5ncyIsCiAgICAgICJ3aWR0aCI6IDUyLjY4NzUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ1c2VmdWwiLAogICAgICAid2lkdGgiOiA3MS41NDY4NzUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ1bmNsZWFyIiwKICAgICAgIndpZHRoIjogNzEuNTQ2ODc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAiaGlkZSIsCiAgICAgICJ3aWR0aCI6IDY3LjQ1MzEyNSwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9CiAgXQp9"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "320px fine-pointer reader keeps 44px targets in zh",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "moving the reader never takes focus from another chart control",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-resilience.spec.ts",
+        "title": "Candle settings takes focus without a delayed reader restoration",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1s chart time stays truthful and navigable in en",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-time",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-time-numeric-4e708-ruthful-and-navigable-in-en-desktop/attachments/chart-time-7febef8918418514974fd43cd386b62fcd2c921c.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1m chart time stays truthful and navigable in en",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "daily chart dates remain date-only in en",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "second precision and controls fit a 320px fine-pointer reader in en",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-time-320",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-time-second--1f98a-x-fine-pointer-reader-in-en-desktop/attachments/chart-time-320-89557120d4942c6f57e82777da99a4dceea68c07.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1s chart time stays truthful and navigable in zh",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-time",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-time-numeric-660db-ruthful-and-navigable-in-zh-desktop/attachments/chart-time-a1bc0ffe17c3c3893b4a04ff8f16096c8b310c6c.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1m chart time stays truthful and navigable in zh",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "daily chart dates remain date-only in zh",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "second precision and controls fit a 320px fine-pointer reader in zh",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-time-320",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-time-second--37966-x-fine-pointer-reader-in-zh-desktop/attachments/chart-time-320-fc9ec109357ec56f0e6944b7a9a527ebdcf14331.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1s chart time stays truthful and navigable in en",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-time",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-time-numeric-4e708-ruthful-and-navigable-in-en-tablet/attachments/chart-time-2f94b164b77b56b0e3d799b64f9f2c3248b9aabe.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1m chart time stays truthful and navigable in en",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "daily chart dates remain date-only in en",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "second precision and controls fit a 320px fine-pointer reader in en",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1s chart time stays truthful and navigable in zh",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-time",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-time-numeric-660db-ruthful-and-navigable-in-zh-tablet/attachments/chart-time-a4bc79aa79e7b85eb5e6d8eede352eda6cd72bcf.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1m chart time stays truthful and navigable in zh",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "daily chart dates remain date-only in zh",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "second precision and controls fit a 320px fine-pointer reader in zh",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1s chart time stays truthful and navigable in en",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-time",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-time-numeric-4e708-ruthful-and-navigable-in-en-mobile/attachments/chart-time-b3b04f5666fe00617116c82b4d2d7c2a9c34707c.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1m chart time stays truthful and navigable in en",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "daily chart dates remain date-only in en",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "second precision and controls fit a 320px fine-pointer reader in en",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1s chart time stays truthful and navigable in zh",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-time",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/chart-context-time-numeric-660db-ruthful-and-navigable-in-zh-mobile/attachments/chart-time-22033d2e3cc50b390255b1b789ba8333a24dd88b.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "numeric 1m chart time stays truthful and navigable in zh",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "daily chart dates remain date-only in zh",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "chart-context-time.spec.ts",
+        "title": "second precision and controls fit a 320px fine-pointer reader in zh",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-context-en",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "classic candles retain descriptive context without pretending to paint them",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "context can be restored through the existing chart settings without a new preference owner",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-context-zh",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-context-en",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "classic candles retain descriptive context without pretending to paint them",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "context can be restored through the existing chart settings without a new preference owner",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-context-zh",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-context-en",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "classic candles retain descriptive context without pretending to paint them",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "context can be restored through the existing chart settings without a new preference owner",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "file": "visual-intelligence.spec.ts",
+        "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "error": null,
+            "attachments": [
+              {
+                "name": "chart-context-zh",
+                "contentType": "image/png",
+                "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "captures": [
+    {
+      "name": "chart-time-desktop-en.png",
+      "path": "terminal/docs/pr-crops/d06-chart-time/chart-time-desktop-en.png",
+      "width": 360,
+      "height": 775,
+      "bytes": 47457,
+      "sha256": "3d6240deaa4e4e17f9b74ee384c4b525abb681aeab43f677fe3a597afc00c75d",
+      "git_blob_sha1": "2d353e568e75e2b72b154d7defbc45595ec0e66f",
+      "proof": "real local Terminal route with deterministic coordinate fixture"
+    },
+    {
+      "name": "chart-time-desktop-zh.png",
+      "path": "terminal/docs/pr-crops/d06-chart-time/chart-time-desktop-zh.png",
+      "width": 360,
+      "height": 775,
+      "bytes": 48801,
+      "sha256": "53aa9814a2777e5d16691b2b156bd91fb5b451c65c6dea17cbd46f475115d18b",
+      "git_blob_sha1": "8ee1e499d93456b6de5d30bd9f8f62f4cd618d62",
+      "proof": "real local Terminal route with deterministic coordinate fixture"
+    },
+    {
+      "name": "chart-time-tablet-en.png",
+      "path": "terminal/docs/pr-crops/d06-chart-time/chart-time-tablet-en.png",
+      "width": 820,
+      "height": 1248,
+      "bytes": 105435,
+      "sha256": "2ef01f3369b091ac7751ea49fdc984d5db1b712b52f781945d5da666d6641e4e",
+      "git_blob_sha1": "610cb67bae5effdb55d2c67ccf19a731d6e5a203",
+      "proof": "real local Terminal route with deterministic coordinate fixture"
+    },
+    {
+      "name": "chart-time-tablet-zh.png",
+      "path": "terminal/docs/pr-crops/d06-chart-time/chart-time-tablet-zh.png",
+      "width": 820,
+      "height": 1248,
+      "bytes": 123115,
+      "sha256": "f4a8ab2ab10f3c6a07236daae1c96811724d4ffeaa0f53bc501883e41b40ff69",
+      "git_blob_sha1": "acc57d8237276420ee2e1c3d8b746655b1c8540c",
+      "proof": "real local Terminal route with deterministic coordinate fixture"
+    },
+    {
+      "name": "chart-time-mobile-en.png",
+      "path": "terminal/docs/pr-crops/d06-chart-time/chart-time-mobile-en.png",
+      "width": 390,
+      "height": 1354,
+      "bytes": 93435,
+      "sha256": "050eaa7491758869b45f058bb5b70d9ff504dfaf8c5ae9b823e0aac374105a64",
+      "git_blob_sha1": "7937b56afb3ea62d08848e756ec6de916a1bc986",
+      "proof": "real local Terminal route with deterministic coordinate fixture"
+    },
+    {
+      "name": "chart-time-mobile-zh.png",
+      "path": "terminal/docs/pr-crops/d06-chart-time/chart-time-mobile-zh.png",
+      "width": 390,
+      "height": 1336,
+      "bytes": 110863,
+      "sha256": "2cd2a227da50fde80f976b6e013f0edda0e1074964aa175641a682781d6be58d",
+      "git_blob_sha1": "968c12680907809ee686340180e345240847d40f",
+      "proof": "real local Terminal route with deterministic coordinate fixture"
+    },
+    {
+      "name": "chart-time-320-en.png",
+      "path": "terminal/docs/pr-crops/d06-chart-time/chart-time-320-en.png",
+      "width": 320,
+      "height": 854,
+      "bytes": 48660,
+      "sha256": "a284a0f838e472c74110d59ab68a349db9fb61474ef60a7bc694ee1d27428055",
+      "git_blob_sha1": "38bbe865cedd6c6a29f03a7d548403ce93574c1b",
+      "proof": "real local Terminal route with deterministic coordinate fixture"
+    },
+    {
+      "name": "chart-time-320-zh.png",
+      "path": "terminal/docs/pr-crops/d06-chart-time/chart-time-320-zh.png",
+      "width": 320,
+      "height": 854,
+      "bytes": 49886,
+      "sha256": "edf234395133734ad1c28bdb56b4495fcbe535a9d2de88f0a9a27929fa9ea31b",
+      "git_blob_sha1": "68553105541f90a4563b7facbc0c3df33effb721",
+      "proof": "real local Terminal route with deterministic coordinate fixture"
+    }
+  ],
+  "restored_legacy_generated_paths": [
+    "terminal/docs/pr-crops/chart-context-redesign/desktop-placement.png",
+    "terminal/docs/pr-crops/chart-context-redesign/mobile-placement.png",
+    "terminal/docs/pr-crops/chart-context-redesign/native-desktop-placement.png",
+    "terminal/docs/pr-crops/chart-context-redesign/native-mobile-placement.png",
+    "terminal/docs/pr-crops/chart-context-redesign/native-tablet-placement.png",
+    "terminal/docs/pr-crops/chart-context-redesign/tablet-placement.png",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png"
+  ],
+  "limits": [
+    "local deterministic fixtures, not deployed beta proof",
+    "timezone attribution and source freshness remain unqualified",
+    "no epoch conversion or symbol timezone heuristic",
+    "HIST02 partial only; broader migration cases not accepted",
+    "no Paper mutation, Ready, merge, enqueue, relabel or deployment"
+  ],
+  "visual_self_qa": {
+    "reviewer": "D06 incumbent Astra Pro / mastermidx4",
+    "method": "Actual raw PNG inspection of all eight captures in this session",
+    "result": "PASS within the changed clock-label and precision slice",
+    "observations": [
+      "Seconds and visible Chart time / 图表时间 labels readable in EN/ZH.",
+      "320px timestamp wraps date/time without clipping reader controls.",
+      "Expanded timezone/freshness explanation wraps within tablet/mobile body.",
+      "Desktop crops are viewport-limited scroller images, not full-body proof."
+    ],
+    "limits": [
+      "No complete screen-reader, physical touch, contrast, zoom or light-theme proof.",
+      "Fixture screenshots are not beta or deployment evidence."
+    ]
+  }
+}
