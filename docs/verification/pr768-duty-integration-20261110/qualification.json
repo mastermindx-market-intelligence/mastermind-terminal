@@ -1,0 +1,108 @@
+{
+  "completedAt": "2026-11-10T03:23:21.117720+00:00",
+  "head": "11409f7bf60125280c4e419738bd66d226a35321",
+  "preparedTreeAfter": "fc5fa62a49368bc7522c094870c120c7a81742e2",
+  "protectedMaster": "b5c242f9f02b322b57a5cfbaf4ae5bd9d525849e",
+  "results": {
+    "native-readers": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapScopedRecapture.test.ts",
+        "lib/__tests__/eodCaptureIndicatorGate.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-integration/docs/verification/pr768-duty-integration-20261110/native-readers.json"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-integration/terminal",
+      "exit": 0,
+      "logSha256": "17ed28d793b971a2de92f0aba68b1a4511a8cc7bd0ee6905d48621d1e4439b79",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 105,
+        "numPendingTests": 0,
+        "numTotalTests": 105,
+        "success": true
+      },
+      "seconds": 26.96
+    },
+    "node-owners-planners": {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "e2e/tools/capture_ci_evidence.test.cjs",
+        "e2e/tools/capture_visual_evidence.test.cjs",
+        "scripts/ci/plan-evidence-capture.test.cjs",
+        "e2e/tools/sharedShellSafeReporter.test.cjs",
+        "e2e/tools/optionsExposureEvidence.cases.cjs"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-integration/terminal",
+      "exit": 0,
+      "logSha256": "8b016cc8d805a7a98c3a29877898af435532cf09172dd4f7a8947d9511477a2c",
+      "seconds": 83.73,
+      "totals": {
+        "cancelled": 0,
+        "fail": 0,
+        "pass": 250,
+        "skipped": 0,
+        "tests": 250
+      }
+    },
+    "python-ci-contracts": {
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "tests/test_ci_browser_setup.py",
+        "tests/test_ci_scenario_consumer.py",
+        "tests/test_ci_pytest_results.py",
+        "tests/test_ci_e2e_scope.py",
+        "tests/test_ci_pr_scope.py",
+        "-q"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-integration",
+      "exit": 0,
+      "logSha256": "55089b5c256ccfbac107732efe3d16454e1de18c65432268307002eec2e12217",
+      "passed": 231,
+      "seconds": 64.83
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-integration/terminal",
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 111.41
+    },
+    "typegen": {
+      "command": [
+        "node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-integration/terminal",
+      "exit": 0,
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "seconds": 6.09
+    }
+  },
+  "schema": "terminal_pr768_duty_integration_qualification.v1",
+  "sourceStable": true,
+  "sourceTree": "fc5fa62a49368bc7522c094870c120c7a81742e2",
+  "startedAt": "2026-11-10T03:18:27.919652+00:00",
+  "state": "QUALIFIED",
+  "unstagedTracked": ""
+}

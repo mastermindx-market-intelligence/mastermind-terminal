@@ -1,0 +1,50 @@
+diff --git a/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs b/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs
+index 4e42163a5..8c4642c48 100644
+--- a/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs
++++ b/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs
+@@ -616,25 +616,31 @@ function evaluateActualNextConfig(env) {
+ test("actual Next config composes exact F11 and closed-canonical modes without changing ordinary defaults", () => {
+   const env={NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"};
+   const cases=[
+-    [env,"tsconfig.f11.json",".next/f11",false],
+-    [{...env,TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.f11.json",".next/f11",false],
+-    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"0",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.json",undefined,false],
+-    [{NODE_ENV:"production",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.build.json",undefined,undefined],
+-    [{...env,NODE_ENV:"production",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.build.json",undefined,undefined],
+-    [{NODE_ENV:"development"},"tsconfig.json",undefined,undefined],
+-    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1"},"tsconfig.json",undefined,undefined],
+-    [{NODE_ENV:"development",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.json",undefined,undefined],
+-    [{NODE_ENV:"test",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.json",undefined,undefined],
+-    [{...env,TERMINAL_E2E_FIXTURE:"true"},"tsconfig.json",undefined,undefined],
+-    [{...env,TERMINAL_F11_PROVIDER_CLOSED:"true"},"tsconfig.json",undefined,undefined],
+-    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"other"},"tsconfig.json",undefined,undefined],
++    [env,"tsconfig.f11.json",".next/f11",false,false],
++    [{...env,TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.f11.json",".next/f11",false,false],
++    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"0",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.json",undefined,false,false],
++    [{NODE_ENV:"production",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.build.json",undefined,undefined,undefined],
++    [{...env,NODE_ENV:"production",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.build.json",undefined,undefined,undefined],
++    [{NODE_ENV:"development"},"tsconfig.json",undefined,undefined,undefined],
++    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1"},"tsconfig.json",undefined,undefined,false],
++    [{NODE_ENV:"development",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.json",undefined,undefined,undefined],
++    [{NODE_ENV:"test",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.json",undefined,undefined,undefined],
++    [{...env,TERMINAL_E2E_FIXTURE:"true"},"tsconfig.json",undefined,undefined,undefined],
++    [{...env,TERMINAL_F11_PROVIDER_CLOSED:"true"},"tsconfig.json",undefined,undefined,false],
++    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"other"},"tsconfig.json",undefined,undefined,false],
+   ];
+-  for (const [input,project,distDir,debug] of cases) {
++  for (const [input,project,distDir,debug,cache] of cases) {
+     const actual=evaluateActualNextConfig(input);
+     assert.equal(actual.experimental?.reactDebugChannel,debug,JSON.stringify(input));
++    assert.equal(actual.experimental?.turbopackFileSystemCacheForDev,cache,JSON.stringify(input));
+     assert.equal(actual.distDir,distDir,JSON.stringify(input));
+     assert.equal(actual.typescript.tsconfigPath,project,JSON.stringify(input));
+-    if (debug === undefined) assert.equal(Object.hasOwn(actual,"experimental"),false);
++    const expectedKeys=[
++      ...(cache !== undefined ? ["turbopackFileSystemCacheForDev"] : []),
++      ...(debug !== undefined ? ["reactDebugChannel"] : []),
++    ].sort();
++    assert.deepEqual(Object.keys(actual.experimental ?? {}).sort(),expectedKeys,JSON.stringify(input));
++    assert.equal(Object.hasOwn(actual,"experimental"),expectedKeys.length !== 0,JSON.stringify(input));
+   }
+   const f11=evaluateActualNextConfig(env);
+   const ordinary=evaluateActualNextConfig({...env,TERMINAL_F11_PROVIDER_CLOSED:"0"});

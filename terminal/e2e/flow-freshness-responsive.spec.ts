@@ -22,8 +22,8 @@ test("Flow Desk separates Connected transport from measured source freshness", a
   await expect(timing.locator('[data-flow-transport="connected"]')).toContainText(zh ? "已连接" : "Connected");
   await expect(timing).toContainText(zh ? "市场休市" : "Market closed");
   await expect(timing).toContainText(zh ? "上一交易时段" : "Last session");
-  await expect(timing).toContainText(zh ? "源响应" : "Source responses");
-  await expect(timing).toContainText(zh ? "实测周期" : "Observed cycle");
+  await expect(timing).toContainText(zh ? "源数据" : "Source data");
+  await expect(timing).toContainText(zh ? "更新周期" : "Refresh cycle");
 
   // Chain heat's recompute/build clock is intentionally not a freshness source.
   // Its receipt must resolve from fixture `source_asof`. The phone contract hides
@@ -34,7 +34,7 @@ test("Flow Desk separates Connected transport from measured source freshness", a
   else await expect(chainSource).toBeVisible({ timeout: 15_000 });
   await expect(chainSource).toHaveAttribute("data-flow-timing-authority", "display_only");
   await expect(chainSource).toHaveAttribute("title", "2026-07-07T16:00:00-04:00");
-  await expect(chainSource).toContainText(zh ? "源数据" : "Source");
+  await expect(chainSource).toContainText(zh ? "数据" : "Data");
 
   const containment = await page.evaluate(() => {
     const receipt = document.querySelector<HTMLElement>(".obs-fd-freshness");

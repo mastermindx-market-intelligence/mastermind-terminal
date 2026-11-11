@@ -1,0 +1,65 @@
+{
+  "artifacts": {
+    "artifacts/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "artifacts/drawing-system-phone-drawi-55433-lision-free-editing-surface-mobile/trace.zip": "ce81146c8390e85d9dae542f8bd3da809367e661cfa69b6aed87a379979fc2aa"
+  },
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "phone drawing chrome keeps one collision-free editing surface"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/drawing-system.spec.ts",
+    "--grep",
+    "phone drawing chrome keeps one collision-free editing surface",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1",
+    "--trace=on",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-lazy-readiness/terminal/test-results/pr768-lazy-details-readiness-20261110"
+  ],
+  "completedAt": "2026-11-10T05:48:51.565148+00:00",
+  "errors": [],
+  "exit": 0,
+  "expected": 1,
+  "investorPreview": 0,
+  "lifecycleSha256": "fb5f9fc551392e40c9c7584ef7750bbb41917d45b716db419f8713958cca4e33",
+  "logSha256": "3a7d105a58a14b741a0debaf1ff04c707ed25cdad9115b4e90ea9225a37032c8",
+  "ownedServerStopped": true,
+  "port": 47768,
+  "pr": 768,
+  "publishedParent": "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c",
+  "reportSha256": "d8a5e93fc5ae40a92d250df6036b37d873aac2cebf18b5b168f70feca54e7342",
+  "retries": 0,
+  "schema": "terminal_pr_test_readiness_browser.v1",
+  "seconds": 38.05,
+  "sharedShell": 0,
+  "sourceEntries": 1999,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T05:48:13.509040+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 32177.068,
+    "expected": 1,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T05:48:13.853Z",
+    "unexpected": 0
+  },
+  "target": "terminal/e2e/drawing-system.spec.ts",
+  "targetSha256": "7d060fb90e21ab0989680d687f0f360042afa68d03a4a78b991c3df032360912",
+  "validationHead": "1b5fe9b88568e4d74dc48db84f10f198cb297153"
+}

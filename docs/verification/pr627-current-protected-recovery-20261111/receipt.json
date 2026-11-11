@@ -1,0 +1,44 @@
+{
+  "recorded_at": "2026-11-11T06:34:44.868184+00:00",
+  "source_law_pin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "actual_branch_head": "786dc7a2b94d2d326be05cd830c17926fae432e1",
+  "stale_pr_projection": "4a4ee80c880aca827b018bcca6ecb93328a00810",
+  "old_unadopted_candidate": "1ab46d7929267e5a594083ae11a13b9e993de467",
+  "protected_head": "f68936b190ec25670ddc2d0e817d4998b2253d1c",
+  "protected_tree": "7f09b891dc6e4fa421e8a8847190979e4973e8f4",
+  "ordered_parents": [
+    "786dc7a2b94d2d326be05cd830c17926fae432e1",
+    "f68936b190ec25670ddc2d0e817d4998b2253d1c"
+  ],
+  "source_paths": [
+    {
+      "path": "terminal/lib/suites/pulse/pulseWave.ts",
+      "mode": "100644",
+      "preimage": "afd0d2ae35771efa827403a4379a5d247a52ee85",
+      "postimage": "182dc519719011416af686aba23c0a1af3b60e87"
+    },
+    {
+      "path": "terminal/lib/__tests__/pulseWaveWarmup.test.ts",
+      "mode": "100644",
+      "preimage": null,
+      "postimage": "742225b9bfb144183ef24e53fec18d6e1c263637"
+    }
+  ],
+  "retained_current_thesis_fixture": "2e724ff3dc24228fd13a97e46d0598dda3f3a59c",
+  "checks": {
+    "command": "vitest run lib/__tests__/pulseWaveWarmup.test.ts lib/__tests__/suiteModules.test.ts",
+    "exit_code": 0,
+    "files_passed": 2,
+    "tests_passed": 266,
+    "skipped": 0,
+    "snapshot": "Exact protected terminal/lib and test configuration with the two original Pulse postimages. The installed donor dependencies match the recorded Vitest/Vite/TypeScript package entries. This pure numeric suite does not claim Next runtime or full-application qualification.",
+    "node_version": "v24.22.1",
+    "matching_tool_versions": {
+      "node_modules/vitest": "2.1.9",
+      "node_modules/vite": "5.4.21",
+      "node_modules/typescript": "5.9.3"
+    }
+  },
+  "effect_reconciliation": "The original synchronous update returned UNKNOWN historically. Current canonical raw-ref reads show that old candidate is not adopted; no claim of historical no-dispatch is made. This fresh descendant preserves the controller merge and uses its actual head as the non-force expected head.",
+  "release": "Original controller/labels retained. No new approval, auto-merge enrollment, merge, deployment or browser acceptance is claimed."
+}

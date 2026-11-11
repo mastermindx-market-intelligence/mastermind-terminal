@@ -1,16 +1,23 @@
+import { researchOutline, type ResearchOutlineEntry } from "./researchOutline";
 import { parseReadingSelection, type ReadingSelection } from "./readingContracts";
 export const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
 export type Pair = { en: string; zh: string };
 const pair = (value: unknown): value is Pair => record(value) && typeof value.en === "string" && typeof value.zh === "string";
 export const localText = (value: unknown, lang: "en" | "zh"): string => pair(value) ? value[lang] : "";
-export type CatalogItem = { id: string; title: string; institution?: string; published_at?: string; summary_points?: string[] };
+export type CatalogItem = { id: string; title: string; institution?: string; published_at?: string | null; summary_points?: string[]; tags?: string[] };
 export function catalogItems(value: unknown): CatalogItem[] | null {
   if (!record(value) || value.available === false || !Array.isArray(value.items)) return null;
-  if (!value.items.every(item => record(item) && typeof item.id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(item.id) && typeof item.title === "string" && (item.institution === undefined || typeof item.institution === "string") && (item.published_at == null || typeof item.published_at === "string") && (item.summary_points === undefined || Array.isArray(item.summary_points) && item.summary_points.every(point => typeof point === "string")))) return null;
-  return value.items as CatalogItem[];
+  if (!value.items.every(item => record(item) && typeof item.id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(item.id) && typeof item.title === "string" && (item.institution == null || typeof item.institution === "string") && (item.published_at == null || typeof item.published_at === "string") && (item.summary_points === undefined || Array.isArray(item.summary_points) && item.summary_points.every(point => typeof point === "string")) && (item.tags == null || Array.isArray(item.tags) && item.tags.every(tag => typeof tag === "string")))) return null;
+  return value.items.map(item => {
+    const projected = { ...item } as CatalogItem;
+    if (item.institution == null) delete projected.institution;
+    if (item.tags == null) delete projected.tags;
+    else projected.tags = [...item.tags as string[]];
+    return projected;
+  });
 }
 export type ReadingSegment = { segment_index: number; text: string; page_start: number; page_end: number; segment_text_sha256: string; start_byte: number; end_byte: number };
-export type ReadingBody = { selection: ReadingSelection; segments: ReadingSegment[]; total: number; textLayer: "full" | "thin" | "none"; catalogGeneratedAt: string | null };
+export type ReadingBody = { selection: ReadingSelection; segments: ReadingSegment[]; total: number; textLayer: "full" | "thin" | "none"; catalogGeneratedAt: string | null; outline?: ResearchOutlineEntry[] };
 export function readingBody(value: unknown, docId: string, selected: ReadingSelection | null, start: number): ReadingBody | null {
   if (!record(value) || value.schema !== "research_vault.browser_read.v1" || value.report_id !== docId || !record(value.selection)) return null;
   const s = value.selection;
@@ -20,7 +27,9 @@ export function readingBody(value: unknown, docId: string, selected: ReadingSele
   if (!["full", "thin", "none"].includes(value.text_layer_state as string)) return null;
   if (!value.segments.every((part, index) => record(part) && part.schema === "research_vault.segment.v1" && part.report_id === docId && part.source_pdf_sha256 === selection.sourcePdfSha256 && part.extracted_text_sha256 === selection.extractedTextSha256 && part.extractor_version === selection.extractorVersion && part.segmenter_version === selection.segmenterVersion && part.segment_max_bytes === 4000 && part.replay_state === "EXACT" && part.segment_index === start + index && typeof part.text === "string" && new TextEncoder().encode(part.text).length <= 4000 && Number.isSafeInteger(part.page_start) && (part.page_start as number) >= 0 && Number.isSafeInteger(part.page_end) && (part.page_end as number) >= (part.page_start as number) && Number.isSafeInteger(part.start_byte) && (part.start_byte as number) >= 0 && Number.isSafeInteger(part.end_byte) && (part.end_byte as number) - (part.start_byte as number) === new TextEncoder().encode(part.text).length && typeof part.segment_text_sha256 === "string" && /^[a-f0-9]{64}$/.test(part.segment_text_sha256))) return null;
   if (start + value.segments.length > (value.segment_count_total as number) || (value.segment_count_total !== 0 && start >= (value.segment_count_total as number)) || (start < (value.segment_count_total as number) && value.segments.length === 0)) return null;
-  return { selection, segments: value.segments as ReadingSegment[], total: value.segment_count_total as number, textLayer: value.text_layer_state as ReadingBody["textLayer"], catalogGeneratedAt: record(value.source) && typeof value.source.catalog_generated_at === "string" ? value.source.catalog_generated_at : null };
+  const outline = researchOutline(value.outline, value.segment_count_total as number, value.segments as ReadingSegment[]);
+  if (outline === null) return null;
+  return { ...(outline === undefined ? {} : { outline }), selection, segments: value.segments as ReadingSegment[], total: value.segment_count_total as number, textLayer: value.text_layer_state as ReadingBody["textLayer"], catalogGeneratedAt: record(value.source) && typeof value.source.catalog_generated_at === "string" ? value.source.catalog_generated_at : null };
 }
 export type TodayChip = { id: string; section: string; label: Pair; tone: string; cause: unknown; note: Pair | null; meaning: Pair | null; as_of: string | null; as_of_display: Pair | null } & ({ null: false; value: Pair } | { null: true; value: null });
 export type TodayPayload = { schema: string; state: "ready" | "partial" | "unavailable"; source: { manifest_generated_at: string | null; manifest_sha256: string; composed_at: string }; read: { as_of: string | null; as_of_display: Pair | null; as_of_meaning: Pair | null; omitted: boolean; clauses: { topic: Pair; predicate: Pair; punct: Pair; section: string }[] }; strip: TodayChip[]; coverage: { available: number; total: number }; sections: { id: string; label: Pair; href: string }[]; workspaces: { workspace_id: string; title: Pair; state: string | null; effective_date: string | null; calculation_as_of: string | null; failure: unknown; availability: unknown; href: string; clock_qualification?: unknown }[] };

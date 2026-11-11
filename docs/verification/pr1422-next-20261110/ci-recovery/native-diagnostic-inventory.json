@@ -1,0 +1,52 @@
+{
+  "files": [
+    {
+      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro/.last-run.json",
+      "bytes": 96,
+      "sha256": "237ef65cd8c0ecc23b97aa23ce3222776e054ca90309ce4ee8808f458e3c52df",
+      "storage": "retained-owned-native-workspace"
+    },
+    {
+      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/error-context.md",
+      "bytes": 17711,
+      "sha256": "42cd23cd5d048c6358c462a794119d90303ab1daba7e346725ffab9743e3c47b",
+      "storage": "retained-owned-native-workspace"
+    },
+    {
+      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/test-failed-1.png",
+      "bytes": 92915,
+      "sha256": "a20bc6fe570154c87ab966358b98d070fa7e7f43a7711256c378691c65ca526b",
+      "storage": "retained-owned-native-workspace"
+    },
+    {
+      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/trace.zip",
+      "bytes": 3158407,
+      "sha256": "bb230aa6eae19374837eda611d2c21bd1c779a61fe37d6fecfc18ad7f6a552ae",
+      "storage": "retained-owned-native-workspace"
+    },
+    {
+      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-fixed/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "storage": "retained-owned-native-workspace"
+    },
+    {
+      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-fixed/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-desktop/trace.zip",
+      "bytes": 41100163,
+      "sha256": "13d6f1c9f514e14469e512ad3a8bccaf11aa1b53c24f8ea27e2f43fcf3328b86",
+      "storage": "retained-owned-native-workspace"
+    },
+    {
+      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-fixed/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/trace.zip",
+      "bytes": 2217770,
+      "sha256": "b70f2aa7144ea23f85cdf89a0e93284da89cedebc6231986a57d987cc581f175",
+      "storage": "retained-owned-native-workspace"
+    },
+    {
+      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-fixed/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-tablet/trace.zip",
+      "bytes": 2496101,
+      "sha256": "f71375270ef6431c5c1977e0c7274e92e68047acd145da977eced1dc2c0064e9",
+      "storage": "retained-owned-native-workspace"
+    }
+  ]
+}

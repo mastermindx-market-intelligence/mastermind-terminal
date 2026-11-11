@@ -1,0 +1,17 @@
+[warmup] /terminal?symbol=NVDA → 200 in 68ms
+[warmup] /options → 200 in 127ms
+[warmup] /portfolio → 200 in 125ms
+[warmup] /alerts → 200 in 66ms
+[warmup] /analysis → 200 in 128ms
+[warmup] /discover → 200 in 81ms
+[warmup] /admin → 200 in 46ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 36ms
+[warmup] /login → 200 in 56ms
+[warmup] /reset-password → 200 in 64ms
+[warmup] /api/me → 200 in 45ms
+[warmup] /api/watchlist → 200 in 28ms
+[warmup] /api/layouts → 200 in 30ms
+[warmup] /api/watchlist/annotations → 409 in 22ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 115ms
+{"visualEvidence":"terminal/docs/pr-crops/terminal-visual-intelligence/ci-20261109190632-1-vi--operation.json","sha256":"6f88f007c8c62b5c80e182b823c8f04d199ccc492ccd3ba4c4a904f07ae8fa7b","actualCases":30}

@@ -1,0 +1,61 @@
+{
+  "schema": "mastermind.exposure.paper_completion.v1",
+  "source_pin": "690e5316629815ae3e78f65ebdec2eb87f0cad16",
+  "file_id": "01M3NSZGE8JWN2EZCSF0DT05RM",
+  "page_id": "p-V-0",
+  "writer_operation": "exposure-strike-workspace-ux-20261103-c3",
+  "snapshot_guard": "56990c1d183160fd97af75da054690161b6840657045ffcecea33dd2ce8e1c89",
+  "boards": [
+    {
+      "name": "desktop-dark-en",
+      "node_id": "1SWN-0",
+      "screenshot": "desktop-dark-en.jpg",
+      "jsx": "desktop-dark-en.jsx.txt",
+      "screenshot_sha256": "66c132e5f0048215d0cce67d9d771bf6d4af4d42ec1edba24d6429618b98072a",
+      "jsx_sha256": "fbe08399a25e4c90220c150965bf6d7fe5716b3d1e54afce66988ec30065e87b"
+    },
+    {
+      "name": "desktop-light-en",
+      "node_id": "1T68-0",
+      "screenshot": "desktop-light-en.jpg",
+      "jsx": "desktop-light-en.jsx.txt",
+      "screenshot_sha256": "1964dd9905192f2ff448e14b7bb819e5ec21f10ef3b4ab17577b6c598df5f609",
+      "jsx_sha256": "e2579a2f9f23f9e9195d884567274bb703a9c20702227665fd8c65c31ca2b317"
+    },
+    {
+      "name": "phone-dark-en",
+      "node_id": "1TD2-0",
+      "screenshot": "phone-dark-en.jpg",
+      "jsx": "phone-dark-en.jsx.txt",
+      "screenshot_sha256": "42a959e26c6525ac760fcb23c3e724b8697228a75cb9d69328cbc58bbfbeba5f",
+      "jsx_sha256": "f5561343c3f1b55c702f9f2bb48c3bc9e7459d873cf2c314da7c83e908870db0"
+    },
+    {
+      "name": "phone-light-zh",
+      "node_id": "1TK8-0",
+      "screenshot": "phone-light-zh.jpg",
+      "jsx": "phone-light-zh.jsx.txt",
+      "screenshot_sha256": "c42dad638a9eef5f597594d45b527270338ab9cd4efb388fba58daceab74e431",
+      "jsx_sha256": "82be0df720f2c337523d88631f0e3b705daf05c3a0a5f7c41b686fedd6ccbca7"
+    },
+    {
+      "name": "tablet-dark-en",
+      "node_id": "1TR5-0",
+      "screenshot": "tablet-dark-en.jpg",
+      "jsx": "tablet-dark-en.jsx.txt",
+      "screenshot_sha256": "6493164cac4f6343181fb6025c18ebcd0f7315f5ce354741ac0d1ac997797ced",
+      "jsx_sha256": "bfd6c7f75699f86866dd484d512397ebd3650da8da0a0ee419d52f04079bab0b"
+    },
+    {
+      "name": "states",
+      "node_id": "1TY2-0",
+      "screenshot": "states.jpg",
+      "jsx": "states.jsx.txt",
+      "screenshot_sha256": "d30f8e164f3e43fa689c33edf9a07a46c7b7fa9da906f3657a809d3032013377",
+      "jsx_sha256": "b53d044348db93762d92c6b580403ca855af188375c1729cc8eec0fcdd88f346"
+    }
+  ],
+  "visual_qa": "Actual rendered boards inspected after edits. Signed zero axis, unclipped reading order, contrast, phone EN/ZH and tablet layout checked.",
+  "fixture_notice": "Illustrative source values; these are design references, not live market data or production proof.",
+  "always_visible_caveats": "Existing passportIndex, passportSingleName where applicable, and passportGate remain visible outside model-details disclosure."
+}

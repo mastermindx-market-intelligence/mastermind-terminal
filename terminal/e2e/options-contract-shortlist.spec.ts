@@ -63,6 +63,97 @@ const NVDA_HOT = hotKey("NVDA", "C", "2026-07-18", 150);
 const SPY_HOT = hotKey("SPY", "P", "2026-07-11", 545);
 const AAPL_HOT = hotKey("AAPL", "C", "2026-07-18", 230);
 
+// Start at a reachable preset control and use the browser's real Tab sequence.
+async function tabToTickerControl(page: Page, start: Locator, target: Locator) {
+  await start.focus();
+  for (let step = 0; step < 80; step += 1) {
+    await page.keyboard.press("Tab");
+    if (await target.evaluate((element) => element === document.activeElement)) return;
+  }
+  throw new Error("Screener action was not reachable in the sequential keyboard order");
+}
+
+for (const entry of [
+  { preset: "Volume > OI", root: "NVDA", key: "Enter" },
+  { preset: "ΔOI Builds", root: "NVDA", key: "Space", pin: NVDA_DOI },
+  { preset: "0DTE Heavy", root: "SPY", key: "Enter", filter: "SPY" },
+  { preset: "Hot Contracts", root: "AAPL", key: "Space", pin: AAPL_HOT },
+]) {
+  test(`screener ticker action: ${entry.preset} keeps context through keyboard and pointer navigation`, async ({ page, request }, testInfo) => {
+    test.setTimeout(90_000);
+    const source = await request.get("/api/flow?f=feed");
+    expect(source.headers()["x-flow-source"]).toBe("fixture");
+    const feed = await source.json();
+    await routeFlow(page);
+    await page.route("**/api/flow/stream?f=feed", (route) => route.fulfill({
+      status: 200, contentType: "text/event-stream", body: `data: ${JSON.stringify(feed)}\n\n`,
+    }));
+    await page.route("**/api/flow?f=feed", (route) => route.fulfill({ json: feed }));
+    // A quiet ticker is a valid destination too. Its root-specific empty state
+    // witnesses identity without manufacturing unrelated market-detail data.
+    await page.route(/\/api\/flow\?f=ticker(?::|%3A)[^&]+$/i, (route) => route.fulfill({ json: {} }));
+    await setLang(page, "en");
+    await page.goto("/options?tab=screener&keep=original");
+    const preset = page.getByRole("button", { name: entry.preset, exact: true });
+    await preset.click();
+    if (entry.filter) await page.locator(".scr-belt").getByRole("button", { name: entry.filter, exact: true }).click();
+    const action = page.locator(`table.scr [data-screener-ticker="${entry.root}"]`).first();
+    await expect(action).toBeVisible();
+    await expect(action).toHaveAccessibleName(`Open ${entry.root} in Tickers`);
+    const before = await screenerRows(page);
+    if (entry.pin) {
+      const pin = pinBtn(page, entry.pin);
+      await tabToTickerControl(page, preset, pin);
+      await page.keyboard.press("Space");
+      await expect(pin).toHaveAttribute("aria-pressed", "true");
+      expect(new URL(page.url()).searchParams.get("tab")).toBe("screener");
+      expect(await pinSharesTickerLine(pin)).toBe(true);
+    }
+    await tabToTickerControl(page, preset, action);
+    await expect(action).toBeFocused();
+    expect(await action.evaluate((element) => Number.parseFloat(getComputedStyle(element).outlineWidth))).toBeGreaterThanOrEqual(2);
+    expect(await action.evaluate((element) => {
+      const box = element.getBoundingClientRect(), cell = element.closest("td")!.getBoundingClientRect();
+      return box.left >= cell.left && box.right <= cell.right;
+    })).toBe(true);
+    if (testInfo.project.name !== "desktop") await expectTapTarget(action, { width: 44, height: 44 });
+    await expectNoPageOverflow(page);
+    if (entry.preset === "Hot Contracts") {
+      const crop = testInfo.outputPath("screener-ticker-action.png");
+      await page.screenshot({ path: crop });
+      await testInfo.attach("screener-ticker-action", { path: crop, contentType: "image/png" });
+    }
+    const drill = page.waitForRequest((req) => new URL(req.url()).searchParams.get("f") === `ticker:${entry.root}`);
+    await page.keyboard.press(entry.key);
+    await drill;
+    await expect(page.locator("#wtab-tickers")).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByPlaceholder("Search ticker…", { exact: true })).toBeFocused();
+    expect(new URL(page.url()).searchParams.get("keep")).toBe("original");
+    await expect(page.getByRole("status").filter({ hasText: "No flow data for this ticker yet" })).toContainText(entry.root);
+    await page.locator("#wtab-vol").click();
+    await expect(preset).toHaveClass(/\bon\b/);
+    expect(await screenerRows(page)).toEqual(before);
+    if (entry.filter) await expect(page.locator(".scr-belt").getByRole("button", { name: entry.filter, exact: true })).toHaveAttribute("aria-pressed", "true");
+    if (entry.pin) {
+      await expect(pinBtn(page, entry.pin)).toHaveAttribute("aria-pressed", "true");
+      await expect(tray(page)).toContainText("1 of 4 pinned");
+    }
+    // A non-button cell still offers the existing pointer row action.
+    await action.locator("xpath=ancestor::tr").locator("td").nth(1).click();
+    await expect(page.locator("#wtab-tickers")).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("status").filter({ hasText: "No flow data for this ticker yet" })).toContainText(entry.root);
+  });
+}
+
+test("screener ticker action names are localized", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Shared accessible-name helper needs one locale witness");
+  await routeFlow(page);
+  await setLang(page, "zh");
+  await page.goto("/options?tab=screener");
+  await openPreset(page, "持仓增长");
+  await expect(page.getByRole("button", { name: "打开 NVDA 的个股详情", exact: true })).toBeVisible();
+});
+
 async function routeFlow(page: Page) {
   await page.route(/\/api\/flow\?f=oi$/, (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(OI_PAYLOAD) }),
@@ -94,14 +185,12 @@ async function openPreset(page: Page, name: string) {
   await page.getByRole("button", { name, exact: true }).click();
 }
 
-/** True when the pin button and its row's ticker text sit on one line. */
+/** True when the independent pin and ticker actions sit on one line. */
 async function pinSharesTickerLine(btn: Locator): Promise<boolean> {
   return btn.evaluate((b) => {
-    const text = Array.from(b.parentElement!.childNodes).find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim());
-    if (!text) return false;
-    const range = document.createRange();
-    range.selectNodeContents(text);
-    const t = range.getBoundingClientRect();
+    const ticker = b.parentElement!.querySelector<HTMLButtonElement>("button[data-screener-ticker]");
+    if (!ticker) return false;
+    const t = ticker.getBoundingClientRect();
     const r = b.getBoundingClientRect();
     const mid = t.top + t.height / 2;
     return mid > r.top && mid < r.bottom && r.right <= t.left + 1;

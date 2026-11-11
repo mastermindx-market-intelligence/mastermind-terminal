@@ -1,0 +1,44 @@
+{
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/watchlist-annotation-sync.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--trace=on",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-fixed",
+    "--grep",
+    "a failed save never shows Synced and never overwrites the local edit$"
+  ],
+  "completedAt": "2026-11-10T13:48:48.681742+00:00",
+  "errors": [],
+  "exit": 0,
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1422-next-20261110/ci-recovery/watchlist-fixed/watchlist-fixed-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-10T13:49:01.098172+00:00",
+    "sha256": "900a47ccaf4197832b22a62205e9659d663472413b0a3ce2867864bc32602d78"
+  },
+  "logSha256": "505ecec038cdad8c0b46f8450076c62a7aabbfdb36a05a363238989f48fb13dd",
+  "nextLockAbsent": true,
+  "port": 34235,
+  "portClosed": true,
+  "seconds": 123.092,
+  "sourceBase": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+  "sourceCount": 2016,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T13:46:45.589499+00:00",
+  "stats": {
+    "duration": 119335.82400000001,
+    "expected": 3,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T13:46:46.503Z",
+    "unexpected": 0
+  }
+}

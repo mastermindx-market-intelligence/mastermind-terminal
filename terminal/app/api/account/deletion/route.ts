@@ -17,7 +17,7 @@ import type { Bilingual } from "@/lib/accountExport";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const LIFECYCLE_TABLE = "account_lifecycle_requests";
+const LIFECYCLE_TABLE = "account_lifecycle_requests";
 
 export type LifecycleStepPhase = "immediate" | "asynchronous" | "external";
 export type LifecycleStep = { phase: LifecycleStepPhase; done: boolean; text: Bilingual };

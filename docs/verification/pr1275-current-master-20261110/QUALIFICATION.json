@@ -1,0 +1,349 @@
+{
+  "schema": "terminal.pr1275.qualification.v1",
+  "procedurePin": "c065e56b4cb7c4487e51249795ca6ebf010e6ffa",
+  "originalPrHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+  "initialIntegratedSource": "e7185790537fc5179c8aaaedce0312dcc8fce313",
+  "captureSourceHead": "ef8e8a8c9d2bf99de13736b025753832ab4b595b",
+  "captureSourceTree": "e79664443cb7a60452d9da4ee4c3cd012fb9034b",
+  "laterProtectedCommit": "6694f9bab28fa3c950c7bd5ec0a5957e736a4708",
+  "laterProtectedInputOverlap": [],
+  "capture": {
+    "schema": "terminal.pr1275.canonical-six-observation.v1",
+    "head": "ef8e8a8c9d2bf99de13736b025753832ab4b595b",
+    "tree": "e79664443cb7a60452d9da4ee4c3cd012fb9034b",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+    ],
+    "startedAt": "2026-11-10T09:25:16.636155+00:00",
+    "finishedAt": "2026-11-10T09:27:24.872812+00:00",
+    "seconds": 128.259,
+    "exit_code": 0,
+    "log_sha256": "03c514406b04efdace0ffde725f4e960c7fe1125151b1143f8c24b637786d8bc",
+    "source_fingerprints_unchanged": true,
+    "portFree": true,
+    "nextEnvPreimage": "af6041dab0293ffa61774940044e74f15de3f91b3c3aa0510b98172b2a8ebd28",
+    "nextEnvPostimage": "af6041dab0293ffa61774940044e74f15de3f91b3c3aa0510b98172b2a8ebd28"
+  },
+  "sourceInputs": [
+    {
+      "path": ".github/scripts/selfhosted_canary_inputs.sh",
+      "sha256": "e373ca54d7bddf23f82cf50681a65b621b75ffa5f26b097734aa99cdb8947f3b",
+      "git_blob": "8241031207d86137318b36689984836244eaca3c"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "b87860dd5b5dbb86caff51671efb93f38b02fa472298cd3dcc7792710cd3aaf7",
+      "git_blob": "683111a75443a867417d81f2ae5ddef150746c03"
+    },
+    {
+      "path": "scripts/ci_e2e_scope.py",
+      "sha256": "c2701981c030d0445df09adc5c04a33d8ce0cfc54714a9b24096784a8528418c",
+      "git_blob": "0133c4fb37fd665aae085aca94f555c4347e28ed"
+    },
+    {
+      "path": "terminal/app/(shell)/analysis/page.tsx",
+      "sha256": "e14fa1d70cb7d1559a3c4cf4780a9e0424381cb682bf2b0f4f97a583f3b315b6",
+      "git_blob": "2d36790f30312a6fd73759a84daa4dd9dc3213f3"
+    },
+    {
+      "path": "terminal/app/(shell)/layout.tsx",
+      "sha256": "7206e216f07e0e4371777bfff860f851fac6da356225601b3dbb6a0affc9bf95",
+      "git_blob": "53314124e579fdb800011aeee891e1c8ef4eb40f"
+    },
+    {
+      "path": "terminal/app/company-intelligence.css",
+      "sha256": "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed",
+      "git_blob": "5cbd196413a294e1e55ade438262170b08142ffc"
+    },
+    {
+      "path": "terminal/components/fin/EvidenceRail.css",
+      "sha256": "522a1ec2eb44dd15abacf8d90455122efad3aa292579ba16e4a117328c448d8b",
+      "git_blob": "9cc20eec3c370078aaf0a095632d53dd09d536e3"
+    },
+    {
+      "path": "terminal/components/fin/EvidenceRail.tsx",
+      "sha256": "7ee9993e3b86fef30f07a83b8a4c5c00578269aa84f9af1b68f815ba5442890d",
+      "git_blob": "077aa8d133e17e9ecf1bf844ae6eac5befd5a5fb"
+    },
+    {
+      "path": "terminal/components/workspaces/AnalysisWorkspace.tsx",
+      "sha256": "1ad3e2a627a91f12d7fdd9f95b2d59e06e4f3ea89c43cdd1f6e6f493c4c35036",
+      "git_blob": "4335eebeb616138a55b1724b74e18d117e2e0586"
+    },
+    {
+      "path": "terminal/components/workspaces/ResearchWorkspace.module.css",
+      "sha256": "c343ce325707567dabeb9373fcc6c0db15df9247f5a718320a2df23d2a34137c",
+      "git_blob": "05883986a6dbf2c89ff3c3cd8c2442642eb871cf"
+    },
+    {
+      "path": "terminal/components/workspaces/ResearchWorkspace.tsx",
+      "sha256": "bb1c9120dcce251620d8896f623d11f37295b1770002f4525c219d8aefd9c61b",
+      "git_blob": "9357eb9fc5835ba2141047f2b004e682e358826c"
+    },
+    {
+      "path": "terminal/e2e/portfolio-workspace.spec.ts",
+      "sha256": "e4bd624ed69ab2ccbb180ce6c0434cc987c5cdb50edbf8b19555c8ee25a591e2",
+      "git_blob": "8a086f53af1ded498f74d7deae0580c54de78e67"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+      "sha256": "3418c7f8d8604c83ea88befb4c4fba5c8893f1ba31f58f5dc42295ee845eccf6",
+      "git_blob": "64db6796786a706e9ae110c5e059eb8417613cb6"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "sha256": "61a21792500e20adfe8ff7e6f402d6b10b7233fdd16442e7db15711e34ed8f0f",
+      "git_blob": "4e42163a5739c593c1a764b1f86c066613d66fbf"
+    },
+    {
+      "path": "terminal/e2e/tools/diagnose_f11_mobile_zh.cjs",
+      "sha256": "f4393e09705504d2eaef95eb10d6b75b5cb34b50f95dfdae53c199cbaba9b97a",
+      "git_blob": "85b1c1cbb1978b1a5d2fc9172ede91f18e599ff9"
+    },
+    {
+      "path": "terminal/e2e/tools/f11_owned_server.cjs",
+      "sha256": "229fd69538d3582083b98522423b25c2f7869473fe57582a9d501404ac7f60eb",
+      "git_blob": "c766a05d9f0f2bbd49eb27fbbb78c7e947a03b02"
+    },
+    {
+      "path": "terminal/e2e/tools/f11_owned_server.test.cjs",
+      "sha256": "e20a0f6909f42ce6513390e39f9d6b6073af2dfe78141be90133fb47684aaf93",
+      "git_blob": "5c8a0d04eb0b0064d2a1d31f1776e8c971a5f228"
+    },
+    {
+      "path": "terminal/e2e/tools/f11_provider_closed_policy.cjs",
+      "sha256": "e2534e0a6575e0f1ba76d1e03645fb2fd1184f9029bad4b2fc2767aa3ebfa38c",
+      "git_blob": "956b69d1003d7b3c39bd3a531466b3b3e2ae18d4"
+    },
+    {
+      "path": "terminal/e2e/tools/f11_provider_closed_policy.test.cjs",
+      "sha256": "2432f275411a7402bdf0a5427811a9585d5d278a9caad506d9d940b1fb74d931",
+      "git_blob": "c8b0cad3ebcb22b7b04956436da69f5837d20bbf"
+    },
+    {
+      "path": "terminal/e2e/tools/f11_script_metadata.cjs",
+      "sha256": "0a26c3ae13ed6242e0126465b794ce401f836e6cf44e8906b13a40ce817dec19",
+      "git_blob": "66ad182353b1f02c1c0a1eaeab69782618afa481"
+    },
+    {
+      "path": "terminal/e2e/tools/f11_script_metadata.test.cjs",
+      "sha256": "57fc9278d9fce1d30b71c8d272535fef7a9f62910cbc04f1f517a988de92cba3",
+      "git_blob": "c413df48ad4bb791589ca88f6fb4a967752b4ac5"
+    },
+    {
+      "path": "terminal/lib/__tests__/CompanyIntelligenceNativeResults.test.tsx",
+      "sha256": "47d3a15be12a0c362fba96e6513eb0f947022094cca3afdc98f417b6d1e6736b",
+      "git_blob": "9e1e998e782bb8fd03d2b645a3cfd5114dc41eac"
+    },
+    {
+      "path": "terminal/lib/__tests__/CompanyRetainedSelection.test.tsx",
+      "sha256": "9e4518be32d5e011d87df06d723920525b6ccfa1dfcfae550534e7e939d66b7d",
+      "git_blob": "4c0846a11011c1863c7c3d448aa39cbf82be7d66"
+    },
+    {
+      "path": "terminal/lib/__tests__/analysisWorkspaceNavigation.test.tsx",
+      "sha256": "877e55ae586973ae52425121080292cd164a38bedfb729d1c50ccc248d957177",
+      "git_blob": "4e8db127caf23ebe19e1fb1043f7df4fae40c201"
+    },
+    {
+      "path": "terminal/lib/__tests__/companyBriefWatchpointMeaning.test.tsx",
+      "sha256": "0370a66ac573e5451e254ded713f0e78ca7a4d72147edc8415cdbbdafc48de6c",
+      "git_blob": "99d97137d05700271da20d5516412a20e42d73f6"
+    },
+    {
+      "path": "terminal/lib/__tests__/productionTypeProject.test.ts",
+      "sha256": "2a6e57b229e108e4e33006b0d14392cac6fdbf31d42b74dd9ff2c9f65b7e2d76",
+      "git_blob": "1db6bd24e17604da933d03b9c240b7159dbf068e"
+    },
+    {
+      "path": "terminal/lib/__tests__/readingWorkspaces.test.tsx",
+      "sha256": "283e7ba2ebc119bf5e0f4e78305c5597a8d8dcd42aab883f12afe06f3a8517e9",
+      "git_blob": "857fff1a3962465b95802c412e15bd985d676490"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchLibrary.test.ts",
+      "sha256": "8f35f3e313a7a48361f9e1a1945406ef02358f99cf844b41a4020aace5722273",
+      "git_blob": "9248ec3d69829c60b558b5d361a899c5036ba9fc"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchOutline.test.ts",
+      "sha256": "783d32dabecbedd80fb119416d238cb44d28ac55061f2f4c00e2f792c34b1560",
+      "git_blob": "2e31dda670c4a9e2323df47383bebace39ee2488"
+    },
+    {
+      "path": "terminal/lib/i18n.tsx",
+      "sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+      "git_blob": "efd3688e2b4ca6bcd9e806d0096854158c1de214"
+    },
+    {
+      "path": "terminal/lib/shared-shell/readingPayloads.ts",
+      "sha256": "952b699f272923ae1ab1457ac6b6b4cc59e7755c8e8212b6e3565deaf06e65f8",
+      "git_blob": "fab994e9fb1c82d2d7d75b0ab4994c6b7272b327"
+    },
+    {
+      "path": "terminal/lib/shared-shell/researchLibrary.ts",
+      "sha256": "9f7792888aeedd1fe3c65443b61fb563973fa4850ee45e46e5781de7c9b09568",
+      "git_blob": "7e1614ef0a71ac5cdcb120fbef36c714a68b3fd4"
+    },
+    {
+      "path": "terminal/lib/shared-shell/researchOutline.ts",
+      "sha256": "eadf5c0d02abd4fb606cc8fcb5106a1d0d05990d0f85daf2cca6bddb581701c9",
+      "git_blob": "a10c59d9913df24bc7f5cc30a42c15222941789a"
+    },
+    {
+      "path": "terminal/lib/supabase/middleware.ts",
+      "sha256": "0035a14c51a2c76f02744d8d5ff93192fd017edc84980a25d1f279bb91fe5e26",
+      "git_blob": "9a689c104f8d29dc24c68b4157bfe3c14742c5af"
+    },
+    {
+      "path": "terminal/next.config.ts",
+      "sha256": "4c4a3a740bf84a81fa96be13cd22f42ad7d173b24c46c10006f14b1a7b9a7069",
+      "git_blob": "670051f2b872cf3489458ae7e301e4320768e386"
+    },
+    {
+      "path": "terminal/package-lock.json",
+      "sha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+      "git_blob": "2e162a8eb37dd72aad7a01e88c590370a324d0d1"
+    },
+    {
+      "path": "terminal/tsconfig.f11.json",
+      "sha256": "7bde30a1142628589810fb41bc40d9d2f805e829eaa10a7fb7c0c15c060a2c63",
+      "git_blob": "bc5afb085c0c8a34b23b96a59a34bb21bfb8d487"
+    },
+    {
+      "path": "terminal/tsconfig.json",
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3",
+      "git_blob": "3a13f90a773b0facb675bf5b1a8239c8f33d36f5"
+    },
+    {
+      "path": "tests/test_ci_browser_setup.py",
+      "sha256": "0113b8b25aaf0c547984408c471b53b2d89f3e0474489cf370b30865d80c4027",
+      "git_blob": "9223d3b74fe08b730ac3248ac580f629636640f3"
+    },
+    {
+      "path": "tests/test_ci_e2e_scope.py",
+      "sha256": "b0f0e5341927a6d552b163af12ddaf9e962619acd204baf8cd4c424267eda71e",
+      "git_blob": "e653660eaa30f7f6293f1609f40fd1109f2b49bc"
+    },
+    {
+      "path": "tests/test_ci_e2e_shards.py",
+      "sha256": "a7a33f710a699317e2351cce9d4e93147215316725c1924023d678bf13af6e02",
+      "git_blob": "41f66a254c442bbabbbc4bf89819d5ed1b38cabb"
+    },
+    {
+      "path": "tests/test_merge_group_fast_lane_contract.py",
+      "sha256": "843421921f8cbb4e7118ecb2acfceb1a7b721ae5924560f963ac6d6d6f8a6c89",
+      "git_blob": "5a3a65f35d2864e753a25978cd7794d2948f853b"
+    },
+    {
+      "path": "tests/test_selfhosted_canary_workflow.py",
+      "sha256": "f24b5e9228c5fe1f900c0d9ce2577f9607d5afb3883a9e8cb86864f774624fe7",
+      "git_blob": "181438f8a82727cf7cf695a917f8969101e9d050"
+    }
+  ],
+  "images": [
+    {
+      "file": "desktop-en.png",
+      "sha256": "5d4665ced5778a21f3da8a8b2c9cf064b85084efd79576470a6b0e0f75eb6de3",
+      "gitBlob": "dc4b4972fcbb16132ddd06b304910faa2f6c57f7",
+      "bytes": 72928,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "presentation": "inline",
+      "captureDisclosure": null,
+      "visuallyInspected": true
+    },
+    {
+      "file": "desktop-zh.png",
+      "sha256": "3db4fb349405caac79ae4fd205ca766f9efcf17e1e747d1059623147adf6bf0d",
+      "gitBlob": "e33505e525d33207a8c8f9af05876a02d23e788c",
+      "bytes": 72865,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "presentation": "inline",
+      "captureDisclosure": null,
+      "visuallyInspected": true
+    },
+    {
+      "file": "tablet-en.png",
+      "sha256": "185a3840432d2288822bbc8d56f6ac89a1f82cb32a22b9ae9ce49ca62a8bfd13",
+      "gitBlob": "71d1e677afaaa7b14afe71c61a927cabc93d1580",
+      "bytes": 35568,
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "presentation": "inline",
+      "captureDisclosure": null,
+      "visuallyInspected": true
+    },
+    {
+      "file": "tablet-zh.png",
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833",
+      "gitBlob": "06b076e3edd05cdf949202efb3aa3809c95df6a4",
+      "bytes": 34375,
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "presentation": "inline",
+      "captureDisclosure": null,
+      "visuallyInspected": true
+    },
+    {
+      "file": "mobile-en.png",
+      "sha256": "f48d6b1bedb2fa5bb808e3ab6dcdb2b128f108c863859f7a3b6a9fb044394b7c",
+      "gitBlob": "b2cfe3686a8483fa138be62c277a1b360e927e17",
+      "bytes": 21970,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "presentation": "compact-research-actions",
+      "captureDisclosure": "closed",
+      "visuallyInspected": true
+    },
+    {
+      "file": "mobile-zh.png",
+      "sha256": "51e70e33bb4eb0a7775c8b79086de33a440f918deaf1ddf15321b27370641b9c",
+      "gitBlob": "19e07a3dc9fce6d780c1e48fef20ef13b6d42456",
+      "bytes": 22687,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "presentation": "compact-research-actions",
+      "captureDisclosure": "closed",
+      "visuallyInspected": true
+    }
+  ],
+  "finalFocusedTests": {
+    "node": 129,
+    "evidenceReader": 5,
+    "skipped": 0
+  },
+  "earlierUnchangedInputProof": {
+    "sourceHead": "e7185790537fc5179c8aaaedce0312dcc8fce313",
+    "python": 279,
+    "vitest": 98,
+    "fullTypes": "PASS",
+    "laterChangedPaths": [
+      "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+      "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "terminal/e2e/tools/f11_owned_server.test.cjs"
+    ]
+  },
+  "failedCaptureRawLogSha256": "f61edaaa000995bd8595dbd0239efd5eb4c48c2f39cf36d17b3f0d9efeaae262",
+  "release": "Qualified source and local fixture proof; exact-head hosted CI and native queue still required; existing auto request preserved."
+}

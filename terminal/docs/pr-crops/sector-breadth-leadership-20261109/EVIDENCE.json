@@ -1,0 +1,747 @@
+{
+  "schema": "mastermind.terminal.ui_evidence.v1",
+  "title": "Sector breadth leadership integrated with current quote and navigation owners",
+  "operation": "terminal-pr1232-breadth-integration-20261109-c4",
+  "date": "2026-11-09",
+  "capability_state": "LOCAL_QUALIFIED_NOT_PRODUCTION_PROVEN",
+  "source": {
+    "branch": "sol/web-terminal-sector-breadth-leadership-20261102-c3",
+    "original_head": "448a42a29fee765bb01476a9e0b93459ced5a2d4",
+    "merge_base": "ed2e633852564dcd604afc26eb03eeed54954dee",
+    "integrated_master": "03af393ce05c12282003a3919cc473c032264922",
+    "captured_head": "8eb1cbaeb25d9e28d8d814c472c807a8edec0cbf",
+    "captured_tree": "3ffa924d36fb549b76df0c9c1bc038d6e884cedb",
+    "source_files": [
+      {
+        "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "c9d5121d953217058cf96e7e7ede5546920d3383",
+        "sha256": "921275399ab549cb1c82b426f9682c8dacccf71b937eda17ad8308eb3cf92102",
+        "bytes": 16976,
+        "master_sha": "73c278efb5d2eeb2e5b8799a07663e41e00dac9a",
+        "original_sha": "2bb3757e909ca9d0723c22526159bf140cbaffe4"
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "79dc960b5e2c756a7f305c5cfa9ce71d149ea0d9",
+        "sha256": "cafe1d01da9d652b9b7d2335b8a30c061a2bfd05358c3e099c3c2bfe36600ee9",
+        "bytes": 42081,
+        "master_sha": "92facaac0a4488b0800f41432101908b3d0235de",
+        "original_sha": "588ba4edc39d1cd9782d7dbf9e78ae3d4177e310"
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorCentralDiscovery.test.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "65eec90cbfe3c640db481b2329623519974864c1",
+        "sha256": "fa99f2a036821301df40cd7d26b9e189958964d25aea19f7150a8b2564e1a7bb",
+        "bytes": 20208,
+        "master_sha": "bb22d93d5927aae226a052249ec5a6a1c551d036",
+        "original_sha": "6a458584adb8c49576346bea00fe270a657d5d62"
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorDepthReturn.test.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "6b1ebac98c00660b439c0a63c8023ce38d749bf3",
+        "sha256": "6f1c0c0628cfd521175d0c12825f80f012ee41343d600303ef4cf8431f4eac6b",
+        "bytes": 4590,
+        "master_sha": "07e0e456f10522ae068fe3d10ee74a94855be342",
+        "original_sha": null
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorPortfolioContext.test.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "72666d1be2600e35488e751756b83315af3c1e23",
+        "sha256": "58dfbdb32c2c56cf1b513b05d28e6d21b8a6082bfd379b8a654e789deb942c2c",
+        "bytes": 12714,
+        "master_sha": "7cb425081cdd2a5f387ca8a8454e91b6bc8fa330",
+        "original_sha": null
+      },
+      {
+        "path": "terminal/e2e/sector-breadth.spec.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "a0fc9d4d82077000182d99f0f12c5c1efb5fa706",
+        "sha256": "d83ea01aaaa307b799864370df9b3bd607c76c7e7d37b6b076010c9967ffe018",
+        "bytes": 13803,
+        "master_sha": null,
+        "original_sha": "5fb161f78090aee802fa082e0e8f9e3c7643cc8a"
+      }
+    ],
+    "preserved_original_files": [
+      {
+        "path": "terminal/components/sector-intelligence/BreadthRotationGroups.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "187bf1f3d9ca351d42884a4ff13e17509177d384"
+      },
+      {
+        "path": "terminal/components/sector-intelligence/BreadthSectorDetail.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "8447aa7b8358b2065e46f2eb5d629bdb0ac0ff53"
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorBreadthBoard.module.css",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "51d56419181e06af0612261f35958ae2e539cd5a"
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorBreadthBoard.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "5fc54877d283b843eb4a4fc85083695416208e55"
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.module.css",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "47c7c48a33e28176030ca9b9e0ab5395e9b7fed4"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/README.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "28e4aed9b3c21d83d0284831ebcb0ee9b815f13f"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/historical-detail-desktop.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "c1ab801d68539559204fa44057bccb83260689e1"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/historical-detail-mobile.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "ba0af186c94c9661fabd4697fdb0e1a1bcebe94a"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/historical-light-zh-desktop.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "867fbf6a78f50c589f44c1610f18545a994f5f39"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/historical-light-zh-mobile.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "ceace2c3bc26d8ba67f2ff98e528c6c3f32a0833"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/historical-light-zh-tablet.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "2138e86b6d803326a04aab4b1698732e28670cfd"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/historical-replay-desktop.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "62ced635cf647b73e838d4bfd21758ad86bc2f09"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/historical-replay-mobile.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "57adeb0615c94b514ab3767ca0fe79a7055fb8fb"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/historical-replay-tablet.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "227ef69c965a90c45c24253c7cf6f0aceaa8b845"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/rotation-groups-desktop.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "7ed19e502718160575dd6967b318d299f0cc227b"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/rotation-groups-mobile.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "c380ab577f2c144dd8816b6d374da9e1810f0692"
+      },
+      {
+        "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/rotation-groups-tablet.png",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "f90be59e7b3c6e3f44b45bc698ba19a5125b3db6"
+      },
+      {
+        "path": "terminal/e2e/fixtures/sector-breadth-close-replay.json",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "73950b13a7fa1e21611bd5907a497a70dc96147b"
+      },
+      {
+        "path": "terminal/e2e/tools/qualify_sector_discovery.cjs",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "c4fe183d28fdc868cf5772f9400790ec975348f0"
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorBreadth.test.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "c9a1cdf8bfbc9f0081b6e6607426167cfc70deb4"
+      },
+      {
+        "path": "terminal/lib/sectorBreadth.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "6ea955c89422624127168ade1a2976b098d8a931"
+      },
+      {
+        "path": "terminal/lib/sectorIntelligence.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "8bc44620fef588fb60a9354a99e38d42b0462578"
+      }
+    ],
+    "runtime_dependencies": {
+      "terminal/components/sector-intelligence/SectorCentralDiscovery.tsx": "921275399ab549cb1c82b426f9682c8dacccf71b937eda17ad8308eb3cf92102",
+      "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx": "cafe1d01da9d652b9b7d2335b8a30c061a2bfd05358c3e099c3c2bfe36600ee9",
+      "terminal/lib/__tests__/sectorCentralDiscovery.test.tsx": "fa99f2a036821301df40cd7d26b9e189958964d25aea19f7150a8b2564e1a7bb",
+      "terminal/lib/__tests__/sectorDepthReturn.test.ts": "6f1c0c0628cfd521175d0c12825f80f012ee41343d600303ef4cf8431f4eac6b",
+      "terminal/lib/__tests__/sectorPortfolioContext.test.ts": "58dfbdb32c2c56cf1b513b05d28e6d21b8a6082bfd379b8a654e789deb942c2c",
+      "terminal/e2e/sector-breadth.spec.ts": "d83ea01aaaa307b799864370df9b3bd607c76c7e7d37b6b076010c9967ffe018",
+      "terminal/components/sector-intelligence/BreadthRotationGroups.tsx": "83e10b4dc8f6139fbf5c4a88fc9f35998e7417982f570c3c07980fef95f57b28",
+      "terminal/components/sector-intelligence/BreadthSectorDetail.tsx": "d999e8daa535cb4dfb8314f25588ba39b0f2ebb409d456a9ff32918d2e0fe900",
+      "terminal/components/sector-intelligence/SectorBreadthBoard.module.css": "a6d3fbc677abef925f4cb30c37e008bd7468d734807a321c67dc3df701de6024",
+      "terminal/components/sector-intelligence/SectorBreadthBoard.tsx": "e0071a845932c70f9972dc9bc5e338f4bbc93ef6427f98124455983a4aed144c",
+      "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.module.css": "b24f464032ab466b55e2591bafd79cf82818da15917ab72ac8fe92200d0d87f2",
+      "terminal/e2e/fixtures/sector-breadth-close-replay.json": "0033862726c27ed9112d85ec156af96f3fea83d09f16f702f1a007283049017a",
+      "terminal/e2e/tools/qualify_sector_discovery.cjs": "635809ddb65c5f2f23a63c645d326f366704813741b6040aa3ee4b74b2afaebf",
+      "terminal/lib/__tests__/sectorBreadth.test.ts": "a34d27d7ca1212adc7379dfde4245e7273e86525886d504203ec427c65226148",
+      "terminal/lib/sectorBreadth.ts": "7e8cd342651a96af97717c8dede4613fa6d2ad77d9f114c19cf646379c0ea1bb",
+      "terminal/lib/sectorIntelligence.ts": "bb46c683d053a6c1d545c70c5b8f727e66d9b96df9de2d71fa0bec05d0ce20a5",
+      "terminal/components/sector-intelligence/useSectorRegularQuotes.ts": "278975a2fecff4b54864b676c59eea23816921c67c92f6805649ae6d3dcbdafb",
+      "terminal/components/sector-intelligence/SectorCentralDiscovery.module.css": "55adaab6421484d2daf2b76b4bbd41afd343706b9702691e9c74b84e1cd7159f",
+      "terminal/lib/sectorRegularReading.ts": "8e312b90a70adbea82c62f1cdc23f90270c90c5b7a39835b4af76de1a77ab1bd",
+      "terminal/lib/sectorDepthReturn.ts": "fd8ee3f188cb2be12e5bb9f5c62071c664fe2898df8f7fa93c429b6c0e14459b",
+      "terminal/lib/sectorPortfolioContext.ts": "10ae89e3a38a86e670de7dda86c5866c37771f69f5240863a127b7f76b62351d",
+      "terminal/lib/sectorIntelligenceLex.ts": "7dedd1ef5754c35b3b44885fe794ddd2d799338e84ce291d97838cf2326aacdc",
+      "terminal/e2e/fixtures/sector-company-v3.ts": "a213d659e82fee1fe2644d9115121ccf5575295494d2d4106bca17bdb716bf41",
+      "terminal/components/chrome/AppShell.tsx": "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43",
+      "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+      "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+      "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+    },
+    "unowned_master_leaves_preserved": 11861,
+    "historical_evidence": {
+      "path": "terminal/docs/pr-crops/sector-breadth-leadership-20261102",
+      "preserved_unchanged": true,
+      "restamped": false
+    }
+  },
+  "design_reference": {
+    "file_id": "01M6FAXA774QT1VRDMAG7DFQ2W",
+    "page_id": "p-1-0",
+    "status": "Previously accepted reference retained; no new Paper read or mutation claimed."
+  },
+  "composition": {
+    "discovery": "The original breadth board is selected after the current unconditional quote hook and its projection/receipt/navigation setup. Raw closing-session breadth props are passed to the board. The current !breadth quote-admission predicate and all Discover representations remain.",
+    "workspace": "Only the original breadth sort/window props and callbacks are inserted into the complete current Workspace. Current access, identity, refresh, feed, depth, Portfolio and leadership owners remain.",
+    "navigation": "Existing canonical SectorState serializer carries nondefault breadth sort/window through detail and Portfolio returns. No new serializer or coordinator.",
+    "semantics": "Original breadth helper, board components, CSS, six-close fixture and unit tests are unchanged. Exact ties, 50%, unchanged/absent comparisons, coverage, fixed cohorts, monthly fallback and sustained five-session overtakes retain their original meanings."
+  },
+  "surface": {
+    "route": "/discover?tab=sectors&sectorWorkspace=breadth",
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "engine": "Chromium",
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "production_data": false,
+    "fixtures": [
+      "Existing daily three-sector fixture ending 2026-10-30",
+      "Original 2026-10-22 producer replay: eleven sectors, 501/503 matched",
+      "Original 2026-10-30 monthly snapshot: Utilities 31/31 and Energy 21/21 tied; no daily history controls"
+    ]
+  },
+  "verification": {
+    "source": {
+      "executed_head": "8eb1cbaeb25d9e28d8d814c472c807a8edec0cbf",
+      "qualification_sha256": "a41eb0d1a26121dca8363eb706150ef58891201477060335e75734cd6811efb1",
+      "vitest": {
+        "numTotalTests": 733,
+        "numPassedTests": 733,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "numTodoTests": 0,
+        "success": true
+      },
+      "test_files": [
+        "lib/__tests__/sectorAmalgamationNavigation.test.ts",
+        "lib/__tests__/sectorBreadth.test.ts",
+        "lib/__tests__/sectorCentralDiscovery.test.tsx",
+        "lib/__tests__/sectorCompanyComparison.test.tsx",
+        "lib/__tests__/sectorCompanyHeatmap.test.tsx",
+        "lib/__tests__/sectorCompanyTable.test.tsx",
+        "lib/__tests__/sectorDepthReturn.test.ts",
+        "lib/__tests__/sectorDossiers.test.ts",
+        "lib/__tests__/sectorExposureDepthReturn.test.ts",
+        "lib/__tests__/sectorFeedFailure.test.ts",
+        "lib/__tests__/sectorGroupBrowser.test.tsx",
+        "lib/__tests__/sectorGroupScope.test.tsx",
+        "lib/__tests__/sectorHoldingsCoverage.test.ts",
+        "lib/__tests__/sectorIndustryMatrix.test.tsx",
+        "lib/__tests__/sectorIndustrySummary.test.tsx",
+        "lib/__tests__/sectorIntradayBrowserFixture.test.ts",
+        "lib/__tests__/sectorIntradayComparison.test.ts",
+        "lib/__tests__/sectorIntradayComparison.test.tsx",
+        "lib/__tests__/sectorLeadershipDossier.test.tsx",
+        "lib/__tests__/sectorMeasuredRead.test.ts",
+        "lib/__tests__/sectorOwnerEnvelope.test.ts",
+        "lib/__tests__/sectorOwnerGateway.test.ts",
+        "lib/__tests__/sectorPortfolioContext.test.ts",
+        "lib/__tests__/sectorRegularReading.test.ts",
+        "lib/__tests__/sectorRotationMap.test.tsx",
+        "lib/__tests__/sectorWorkspaceRefresh.test.tsx"
+      ],
+      "vitest_report_sha256": "283431c624d0cb2221643224423f688ee6e16a35e7ea8ace10ad0cc57d70867a",
+      "migration_ledger_tests_passed": 97,
+      "checks": [
+        {
+          "check": "sector-vitest",
+          "exit": 0,
+          "seconds": 4.317,
+          "sha256": "893ccc09bc133bd9602bafa23bf4961398a912c75dbbe677930c496fa92a347c"
+        },
+        {
+          "check": "next-typegen",
+          "exit": 0,
+          "seconds": 3.353,
+          "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+        },
+        {
+          "check": "full-typecheck",
+          "exit": 0,
+          "seconds": 43.691,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "check": "affected-eslint",
+          "exit": 0,
+          "seconds": 4.247,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "check": "migration-ledger-guard",
+          "exit": 0,
+          "seconds": 0.878,
+          "sha256": "9a40a268609f9c71141a8e92ce2a862e383cabb86a6b899d417633fffcb05d74"
+        },
+        {
+          "check": "whitespace",
+          "exit": 0,
+          "seconds": 0.049,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "tracked_status": "",
+      "runtime_preparation_sha256": "5020b6b884743a294f77ecb14d89a43c14eeb89bdaaa8ee245045a0a4fbc177d"
+    },
+    "consumer_checks": [
+      "Pending Discover quote request is aborted on same-mounted transition to Breadth; late response and refresh timer cannot pollute closing-session breadth; returning to Discover resumes its qualified quote owner.",
+      "Nondefault breadthSort=contract, breadthWindow=1 and query are preserved by incumbent detail and Portfolio return owners.",
+      "Existing bilingual daily rank, sort, search, reload, keyboard drilldown/return, historical six closes, rotation groups and overtakes pass.",
+      "Added actual-browser detail reload and Back retains the nondefault breadth sort/window and selected sector.",
+      "Monthly fallback keeps tied leaders and withholds daily velocity/rotation when history is absent."
+    ],
+    "browser": {
+      "captured_head": "8eb1cbaeb25d9e28d8d814c472c807a8edec0cbf",
+      "command": [
+        "/opt/homebrew/opt/node@22/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/sector-breadth.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--reporter=line,json",
+        "--output=test-results/pr1232-qualification"
+      ],
+      "ci_mode": false,
+      "retries": 0,
+      "existing_server_reuse": false,
+      "stats": {
+        "startTime": "2026-11-09T17:05:17.218Z",
+        "duration": 52320.674999999996,
+        "expected": 12,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "seconds": 52.811,
+      "cases": [
+        {
+          "title": "sector-breadth.spec.ts > breadth rank, velocity, search and sector drilldown in en",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3579,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > breadth rank, velocity, search and sector drilldown in zh",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3238,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > historical producer replay ranks eleven sectors and exposes the six closes",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2704,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > original monthly snapshot preserves ties and never presents rotation without history",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 982,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > breadth rank, velocity, search and sector drilldown in en",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2845,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > breadth rank, velocity, search and sector drilldown in zh",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2831,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > historical producer replay ranks eleven sectors and exposes the six closes",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2415,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > original monthly snapshot preserves ties and never presents rotation without history",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 969,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > breadth rank, velocity, search and sector drilldown in en",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2894,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > breadth rank, velocity, search and sector drilldown in zh",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2771,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > historical producer replay ranks eleven sectors and exposes the six closes",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2251,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "sector-breadth.spec.ts > original monthly snapshot preserves ties and never presents rotation without history",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 960,
+              "errors": []
+            }
+          ]
+        }
+      ],
+      "receipt_sha256": "432035b7d175217a73afab3e7931721162993893db64318c3e79a76fc10b3e7d",
+      "log_sha256": "22de0514623ef70d5650dc16a8abcf673e4ffa688a1957df4b3b3953bb5796f2",
+      "report_sha256": "dbbb64314f0ec3feb1a52b04d602c0f6e5d9db644bc2c488601377cb7685b328",
+      "all_images_generated": 24,
+      "unique_captures": 18,
+      "duplicate_attachment_copies": 6
+    },
+    "visual_review": {
+      "reviewed": [
+        "composed-return-en-desktop.png",
+        "composed-return-en-mobile.png",
+        "composed-return-en-tablet.png",
+        "composed-return-zh-desktop.png",
+        "composed-return-zh-mobile.png",
+        "composed-return-zh-tablet.png",
+        "historical-detail-desktop.png",
+        "historical-light-zh-desktop.png",
+        "historical-replay-desktop.png",
+        "rotation-groups-desktop.png",
+        "historical-detail-mobile.png",
+        "historical-light-zh-mobile.png",
+        "historical-replay-mobile.png",
+        "rotation-groups-mobile.png",
+        "historical-detail-tablet.png",
+        "historical-light-zh-tablet.png",
+        "historical-replay-tablet.png",
+        "rotation-groups-tablet.png"
+      ],
+      "count": 18,
+      "outcome": "PASS",
+      "independent_review": false,
+      "notes": [
+        "Actual current captures show readable EN/dark and ZH/light presentation at desktop, tablet and mobile sizes.",
+        "Rank, coverage, signed percentage-point changes, historical dates and six-close detail remain legible; rotation groups wrap within the viewport.",
+        "The return state visibly retains one-session and fastest-contraction selection. Mobile detail is reached through the existing scrolling and expansion behavior; no all-content-above-fold claim.",
+        "Six report attachment files duplicate the historical board/light captures byte-for-byte; the 18 unique images are retained here."
+      ]
+    },
+    "cleanup": {
+      "observer_exit": 0,
+      "source_hashes_stable": true,
+      "head_after": "8eb1cbaeb25d9e28d8d814c472c807a8edec0cbf",
+      "tracked_status": "",
+      "port": 32482,
+      "port_connect_after": 61,
+      "remaining_owned_process_group": []
+    }
+  },
+  "captures": [
+    {
+      "file": "composed-return-en-desktop.png",
+      "sha256": "d03d088007578cb0b6976c366d967d32e352401f97c48174001eda7afdc29299",
+      "bytes": 180770,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "composed-return-en-mobile.png",
+      "sha256": "8a14ae39de81159799d4da95c341a03f1a5d0d302e678d0a35006ffa0b48dcc1",
+      "bytes": 98718,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "composed-return-en-tablet.png",
+      "sha256": "cc814574d63358b554aa17ed60dff504386e817be64bee0c104acaf2dce284a4",
+      "bytes": 171429,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "composed-return-zh-desktop.png",
+      "sha256": "d13dc7e91b9555fc7c13ac06b52f54acecb7d3f43899038fe98a028c1ea8ab74",
+      "bytes": 185923,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "composed-return-zh-mobile.png",
+      "sha256": "c164c7731b46e2dea74296477890e311ba808593e63f7796878d06ca5161c599",
+      "bytes": 99103,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "composed-return-zh-tablet.png",
+      "sha256": "b5e35c96fe6f5d72958193a40c2a18c102a8b5f5cc77fd379e117e6079ade7c8",
+      "bytes": 182904,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "historical-detail-desktop.png",
+      "sha256": "de7e9cba879e0769a23327c008f900795d3679ae0c9dbcfeb5cbecf30d3255d5",
+      "bytes": 66667,
+      "width": 1322,
+      "height": 480
+    },
+    {
+      "file": "historical-light-zh-desktop.png",
+      "sha256": "e6c3bf6f8949aaace68369af2fa7f40e23015eb5f75714f55868e042861a992d",
+      "bytes": 194080,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "historical-replay-desktop.png",
+      "sha256": "6be049d3b3e247a58eea66a53d4fe073d1286357dfeef796b7295b4071f45b95",
+      "bytes": 187401,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "rotation-groups-desktop.png",
+      "sha256": "393df99874bb829dfac07847c0b52caa31403b35ec95d3402c48159b19e394d1",
+      "bytes": 61247,
+      "width": 1324,
+      "height": 408
+    },
+    {
+      "file": "historical-detail-mobile.png",
+      "sha256": "17de95c3cb8e96219ea9b476428cdb87d8fa588c709d545001cfe0cf9d4b998c",
+      "bytes": 61110,
+      "width": 360,
+      "height": 715
+    },
+    {
+      "file": "historical-light-zh-mobile.png",
+      "sha256": "ea81f353d236aad54e79fafa1dd3b0f7da51dba8292f230fc83846bde318cc32",
+      "bytes": 100406,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "historical-replay-mobile.png",
+      "sha256": "722d92758cf30392e872fbd973839b88a85347c38b044a42f2b74f2deb3b62c4",
+      "bytes": 97805,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "rotation-groups-mobile.png",
+      "sha256": "7013f3b074a7cdd7abdc23b383d57b16b30363fb845019c71aedbdc57b55bb4c",
+      "bytes": 60535,
+      "width": 362,
+      "height": 701
+    },
+    {
+      "file": "historical-detail-tablet.png",
+      "sha256": "56397d4e39a4f983ece755d1a68aab93bae83b056e7b72a28267fa69246d1c34",
+      "bytes": 64918,
+      "width": 778,
+      "height": 517
+    },
+    {
+      "file": "historical-light-zh-tablet.png",
+      "sha256": "90c64be9daa35707d70ffaaf304cc14383025c04f57c3e6a9c371b3f320c5369",
+      "bytes": 201273,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "historical-replay-tablet.png",
+      "sha256": "8d813d17aefd4c066488cd30b6127eb463caab23d09a7c2ccda4612d67a90ec0",
+      "bytes": 186153,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "rotation-groups-tablet.png",
+      "sha256": "17e3cc426af7d831c886a2639aa8336afdb5172b1e1e1cbe4c46e0d07feb0e24",
+      "bytes": 62385,
+      "width": 780,
+      "height": 475
+    }
+  ],
+  "release_boundary": {
+    "source_release": "Eligible for individual protected Ready/auto-merge enrollment after current exact-head controls and required CI. No fabricated formal approval or control bypass.",
+    "normal_effect": "A protected master merge can trigger the incumbent VPS production deployment workflow. Normal deployment is not described as a no-effect source-only operation.",
+    "producer": "Macro #10623 is merged. Macro #10604 remains incumbent-owned and separately qualified; its source-release receipt is 6720718050. No producer merge/deployment is claimed here.",
+    "production_acceptance": "The original naturally published-close acceptance remains owed: verify protected producer and Terminal releases/deployed revisions, then signed-in route/data receipts for a naturally emitted close.",
+    "producer_receipt": "https://github.com/mastermindx-market-intelligence/macro/pull/10604#issuecomment-6720718050",
+    "original_acceptance": "terminal/docs/pr-crops/sector-breadth-leadership-20261102/README.md"
+  },
+  "truth_boundaries": [
+    "Historical replay and local fixtures are not current-market, authenticated production or physical-device proof.",
+    "No new WebKit/axe certification is claimed; original dated evidence remains unchanged.",
+    "No new feed, scheduler, intraday breadth, fund-flow claim, forecast or trading authority.",
+    "No SQL installation or migration-ledger rewrite occurred; the current protected ledger settles the obsolete OPEN_PR_STATE_STALE check.",
+    "Old optional-audit/route refusals are not replayed and do not become a new result."
+  ],
+  "claim": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1232#issuecomment-6746032407",
+  "procedure_pin": "mastermindx-market-intelligence/Mastermind@28767babbda6de5b4e74006211956b32dcbd9531"
+}

@@ -1,0 +1,106 @@
+{
+  "checks": [
+    {
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/docs/verification/pr1427-exposure-browser-successor-20261110/reader-focused-report.json"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-11-10T15:59:25.520429+00:00",
+      "logSha256": "561d947814f75dd3ef095429c6db7b21b070b66bdab7e6c2784bc0bc31001125",
+      "name": "reader-focused",
+      "pid": 12036,
+      "seconds": 88.783,
+      "startedAt": "2026-11-10T15:57:56.737975+00:00"
+    },
+    {
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-11-10T16:01:09.001703+00:00",
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "name": "reader-typegen",
+      "pid": 29899,
+      "seconds": 1.207,
+      "startedAt": "2026-11-10T16:01:07.794641+00:00"
+    },
+    {
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-11-10T16:03:05.356803+00:00",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "reader-typescript",
+      "pid": 30169,
+      "seconds": 116.354,
+      "startedAt": "2026-11-10T16:01:09.003204+00:00"
+    },
+    {
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "--format",
+        "json",
+        "--output-file",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/docs/verification/pr1427-exposure-browser-successor-20261110/reader-lint-report.json"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-11-10T16:03:09.851722+00:00",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "reader-eslint",
+      "pid": 44812,
+      "seconds": 4.493,
+      "startedAt": "2026-11-10T16:03:05.358754+00:00"
+    }
+  ],
+  "continuationStartedAt": "2026-11-10T16:01:07.794140+00:00",
+  "counts": {
+    "numFailedTests": 0,
+    "numPassedTests": 137,
+    "numPendingTests": 0,
+    "numTotalTests": 137
+  },
+  "finishedAt": "2026-11-10T16:03:09.854306+00:00",
+  "generatedTypeRestoration": {
+    "after": "PRESENT",
+    "before": "PRESENT",
+    "generatedSha256": "7b550dda9686c16f36a17bf9051d5dbf31e98555b30d114ac49fc49a1e712651",
+    "preimageSha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc",
+    "restoredExactPreimage": true
+  },
+  "lintCounts": {
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  "schema": "terminal_pr1427_reader_validation.v1",
+  "sourceAfter": {
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": "e15b56f902accfb01d28ac63e7dd2c86ed8956765c0f8e0a6a799dd9c89f6e3e",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": "c112249d1e79ec47b3ae7dbf2996fdc6f7c15727a3dbc540d7d96f0678263929",
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "cbbe2c00a9b99569f05dc876860d14b1659bd3fa3dd309ab9e86f2a82334e08c",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "5a3df55585ff183721639ca9cf91fa26962d647a2dcade59fac8fadc3f63846a"
+  },
+  "sourceBefore": {
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": "e15b56f902accfb01d28ac63e7dd2c86ed8956765c0f8e0a6a799dd9c89f6e3e",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": "c112249d1e79ec47b3ae7dbf2996fdc6f7c15727a3dbc540d7d96f0678263929",
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "cbbe2c00a9b99569f05dc876860d14b1659bd3fa3dd309ab9e86f2a82334e08c",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "5a3df55585ff183721639ca9cf91fa26962d647a2dcade59fac8fadc3f63846a"
+  },
+  "sourceStable": true,
+  "startedAt": "2026-11-10T15:57:56.736707+00:00",
+  "state": "READER_CHECKS_PASSED"
+}

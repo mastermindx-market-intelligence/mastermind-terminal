@@ -13,6 +13,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { ownerKeyFor, GUEST_OWNER } from "@/lib/accountIdentity";
+import { entitlementVisualState } from "@/lib/entitlementVisualState";
 import {
   __adoptEntitlementOwner, __entitlementSnapshot, __resetEntitlementStore,
   displayEntitlement, gateEntitlement, invalidateEntitlement, refreshEntitlement,
@@ -387,5 +388,42 @@ describe("payload narrowing", () => {
       fast: { remaining: 40, limit: 200, period: "month" },
       pro: { remaining: 2, limit: 10 },
     });
+  });
+});
+
+describe("visual access state does not turn uncertainty into a paywall", () => {
+  const record = (state: EntitlementSnapshot["state"], plan: EntitlementSnapshot["plan"] = null): EntitlementSnapshot => ({
+    owner: OWNER_A, state, plan, verifiedAt: plan ? 123 : 0,
+  });
+
+  it("distinguishes in-flight, unavailable and verified states without granting paid UI", () => {
+    const pending = gateEntitlement(record("LOADING"));
+    expect(entitlementVisualState(pending)).toBe("checking");
+    expect(pending.tier).toBe("free");
+    expect(pending.optionsRead).toBe(false);
+
+    const lost = gateEntitlement(record("UNAVAILABLE"));
+    expect(entitlementVisualState(lost)).toBe("unavailable");
+    expect(lost.optionsRead).toBe(false);
+
+    const stalePaid = gateEntitlement(record("STALE_LAST_GOOD", PRO));
+    expect(entitlementVisualState(stalePaid)).toBe("unavailable");
+    expect(stalePaid.tier).toBe("free");
+    expect(stalePaid.optionsRead).toBe(false);
+
+    const verifiedFree = gateEntitlement(record("VERIFIED_FREE", FREE));
+    expect(entitlementVisualState(verifiedFree)).toBe("verified");
+    expect(verifiedFree.tier).toBe("free");
+
+    const verifiedPaid = gateEntitlement(record("VERIFIED_PAID", PRO));
+    expect(entitlementVisualState(verifiedPaid)).toBe("verified");
+    expect(verifiedPaid.tier).toBe("pro");
+  });
+
+  it("holds the visual gate while a different account is hydrating", () => {
+    const previousPaid = record("VERIFIED_PAID", PRO);
+    const nextOwner = gateEntitlement(previousPaid, OWNER_B);
+    expect(entitlementVisualState(nextOwner)).toBe("checking");
+    expect(nextOwner.optionsRead).toBe(false);
   });
 });

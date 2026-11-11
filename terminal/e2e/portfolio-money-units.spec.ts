@@ -55,4 +55,50 @@ for (const zh of [false, true]) {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
     expect(overflow).toBe(false);
   });
+
+  test(`per-record money is independent of percentage and quote-unit gaps ${zh ? "ZH" : "EN"}`, async ({ page, baseURL }, info) => {
+    await isolateWatchlistStore(page, info, baseURL);
+    await page.addInitScript(useZh => localStorage.setItem("mm.lang", useZh ? "zh" : "en"), zh);
+    const quotes = {
+      ZERO: { last: 120, currency: "USD" }, FLAT: { last: 120, currency: "USD" },
+      SHORT: { last: 50, currency: "USD" }, UNSIZED: { last: 120, currency: "USD" },
+      UNKNOWN: { last: 120, currency: "USD" }, MIXED: { last: 120, currency: "USD" },
+      NOUNIT: { last: 120 },
+    };
+    // The fallback has a unit even for NOUNIT. It must not repair the selected quote's unit.
+    const symbols = Object.fromEntries(Object.entries(quotes).map(([ticker, quote]) =>
+      [ticker, { name: ticker, last: quote.last, currency: "USD" }]));
+    await page.route("**/data/manifest.json", route => route.fulfill({ json: { symbols } }));
+    await page.route("**/api/quote**", route => route.fulfill({ json: { quotes } }));
+    await page.route("**/api/portfolio-brief", route => route.fulfill({ status: 403, json: { tier: "free" } }));
+    const cases = [
+      { ticker: "ZERO", shares: 10, entryPrice: 0, entryCurrency: "USD", pct: "—", money: "USD +1,200.00" },
+      { ticker: "FLAT", shares: 10, entryPrice: 120, entryCurrency: "USD", pct: "+0.00%", money: "USD +0.00" },
+      { ticker: "SHORT", shares: -2, entryPrice: 100, entryCurrency: "USD", pct: "-50.00%", money: "USD +100.00" },
+      { ticker: "UNSIZED", shares: null, entryPrice: 100, entryCurrency: "USD", pct: "+20.00%", money: null },
+      { ticker: "UNKNOWN", shares: 10, entryPrice: 100, entryCurrency: null, pct: "—", money: null },
+      { ticker: "MIXED", shares: 10, entryPrice: 100, entryCurrency: "HKD", pct: "—", money: null },
+      { ticker: "NOUNIT", shares: 10, entryPrice: 100, entryCurrency: "USD", pct: "—", money: null },
+    ];
+    for (const { ticker, shares, entryPrice, entryCurrency } of cases) {
+      const response = await page.request.post("/api/portfolio", {
+        data: { action: "create", ticker, shares, entryPrice, entryCurrency },
+      });
+      expect(response.ok()).toBe(true);
+    }
+    await page.goto("/portfolio"); await holdings(page);
+    const cell = (ticker: string) => page.getByTestId("portfolio-open")
+      .locator(`tr[data-ticker='${ticker}']`).locator("td").nth(5);
+    for (const expected of cases) {
+      await expect(cell(expected.ticker).locator("span")).toHaveText(expected.pct);
+      if (expected.money === null) await expect(cell(expected.ticker).locator("small")).toHaveCount(0);
+      else await expect(cell(expected.ticker).locator("small")).toHaveText(expected.money);
+    }
+    const positive = await cell("ZERO").locator("small").evaluate(node => getComputedStyle(node).color);
+    const shortMoney = await cell("SHORT").locator("small").evaluate(node => getComputedStyle(node).color);
+    const shortPrice = await cell("SHORT").locator("span").evaluate(node => getComputedStyle(node).color);
+    expect(shortMoney).toBe(positive);
+    expect(shortPrice).not.toBe(shortMoney);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
+  });
 }

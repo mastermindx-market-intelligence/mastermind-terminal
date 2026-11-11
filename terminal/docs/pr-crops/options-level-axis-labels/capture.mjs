@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { installBrainAccountIsolation } from "./captureRoutes.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const terminalRoot = resolve(here, "../../..");
@@ -13,6 +14,7 @@ const expectedLinePrices = [192.42, 192.44, 192.46, 192.52, 192.58, 192.60];
 const sourceFiles = [
   "components/ChartPanel.tsx",
   "lib/optionsLevels.ts",
+  "lib/pricePaneSvgScope.ts",
   "lib/priceTagPlacement.ts",
 ];
 const viewports = [
@@ -66,6 +68,12 @@ async function installRoutes(page) {
     "**/data/NVDA.fund.json",
     "**/api/brain/chart/state",
   ]) await page.route(path, async (route) => route.fulfill({ json: {} }));
+  // The Brain ACCOUNT companion is optional here too, and out of scope for this packet: the
+  // production Brain widget asks it who the visitor is, and the Terminal's own gateway proxy
+  // answers 502 whenever the Brain gateway is unreachable — a console error and an HTTP error
+  // on a page whose option-level proof is otherwise perfect. Isolate it here, in the browser,
+  // with an honest guest lane. See captureRoutes.mjs.
+  await installBrainAccountIsolation(page, baseURL);
   await page.route("**/api/quote?**", async (route) => {
     const url = new URL(route.request().url());
     const syms = (url.searchParams.get("syms") || "NVDA").split(",").filter(Boolean);
@@ -207,3 +215,10 @@ const manifest = {
 };
 writeFileSync(resolve(here, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(JSON.stringify({ sourceHead, captures: captures.length, allPass: captures.every((capture) => capture.proof.exactLines && !capture.proof.overlaps.length) }, null, 2));
+
+if (process.env.TERMINAL_CI_OPTIONS_CAPTURE_ID) console.log(JSON.stringify({ optionsEvidence: {
+  captureId: process.env.TERMINAL_CI_OPTIONS_CAPTURE_ID,
+  capturedAtHead: sourceHead,
+  manifestSha256: sha256(resolve(here, "manifest.json")),
+  files: captures.map(capture => ({ file: capture.screenshot, sha256: capture.sha256 })),
+} }));

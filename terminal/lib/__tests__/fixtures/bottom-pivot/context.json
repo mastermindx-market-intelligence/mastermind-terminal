@@ -1,0 +1,138 @@
+{
+  "fixture": true,
+  "purpose": "Synthetic source-contract fixture, not live market or prediction proof",
+  "is_display_only": true,
+  "as_of": "2026-11-05",
+  "rows": [
+    {
+      "symbol": "AAPL",
+      "pivot_context": {
+        "schema": "bottom_pivot_context.v1",
+        "symbol": "AAPL",
+        "scope": "single_security",
+        "cadence": "daily",
+        "evidence_mode": "current_snapshot",
+        "decision_at": "2026-11-05T16:30:00-05:00",
+        "is_display_only": true,
+        "probability": null,
+        "action_authority": "none",
+        "quality": "available",
+        "evidence": [
+          {
+            "field": "trigger_tier",
+            "value": "T2",
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "trigger_age_ticks",
+            "value": 3,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "coiled",
+            "value": true,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "star",
+            "value": false,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "coiled_fire",
+            "value": true,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "above200",
+            "value": false,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "hold_state",
+            "value": "basing",
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "hold_days_basing",
+            "value": 12,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "hold_ret_since_anchor_pct",
+            "value": -1.4,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "knife_score",
+            "value": 0.42,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "dist_21d_low_pct",
+            "value": 3.5,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "dist_126d_high_pct",
+            "value": 8.1,
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          },
+          {
+            "field": "sponsorship_state",
+            "value": "tailwind",
+            "state": "observed",
+            "source": "src",
+            "as_of": "2026-11-05",
+            "available_at": "2026-11-05T17:00:00Z"
+          }
+        ],
+        "explanation": {
+          "en": "Daily single-stock context for AAPL (13 of 13 allowlisted fields usable): The source records: trigger tier T2; a trigger age of 3 tick(s); cohort-washout context is present; the star flag is false; an existing early-turn marker is present; the name is below its 200-day trend, which does not automatically invalidate an early turn and does not suppress other evidence; hold state basing (source state; no new classification); 12 day(s) of basing; -1.4% since the anchor; a knife score of 0.42; no threshold or verdict is applied; price sits 3.5% above the recent 21-day low (measured distance, not an expected return); price sits 8.1% below the trailing 126-day high (measured distance, not an expected return); sponsorship state tailwind (source state; no new classification). This is daily single-stock context only; it is not proof of the market bottom and not a trade instruction.",
+          "zh": "AAPL \u7684\u65e5\u9891\u5355\u53ea\u4e2a\u80a1\u80cc\u666f\uff0813 \u4e2a\u767d\u540d\u5355\u5b57\u6bb5\u4e2d 13 \u4e2a\u53ef\u7528\uff09\uff1a\u6570\u636e\u6e90\u8bb0\u5f55\uff1a\u89e6\u53d1\u6863\u4f4d T2\uff1b\u89e6\u53d1\u65f6\u957f 3 \u4e2a tick\uff1b\u5b58\u5728\u7fa4\u4f53\u6d17\u76d8\u80cc\u666f\uff1bstar \u6807\u8bb0\u4e3a false\uff1b\u5b58\u5728\u65e2\u6709\u7684\u65e9\u671f\u8f6c\u6298\u6807\u8bb0\uff1b\u8be5\u6807\u7684\u4f4d\u4e8e 200 \u65e5\u8d8b\u52bf\u4e0b\u65b9\uff1b\u8fd9\u4e0d\u4f1a\u81ea\u52a8\u5426\u5b9a\u65e9\u671f\u8f6c\u6298\uff0c\u4e5f\u4e0d\u4f1a\u5c4f\u853d\u5176\u4ed6\u8bc1\u636e\uff1b\u6301\u4ed3\u72b6\u6001 basing\uff08\u6765\u6e90\u72b6\u6001\uff0c\u4e0d\u505a\u65b0\u7684\u5206\u7c7b\u5224\u5b9a\uff09\uff1b\u5df2\u7b51\u5e95 12 \u5929\uff1b\u81ea\u951a\u70b9\u4ee5\u6765 -1.4%\uff1bknife \u5206\u6570\u4e3a 0.42\uff1b\u4e0d\u8bbe\u9608\u503c\uff0c\u4e0d\u4f5c\u5224\u5b9a\uff1b\u4ef7\u683c\u9ad8\u4e8e\u8fd1\u671f 21 \u65e5\u4f4e\u70b9 3.5%\uff08\u5df2\u6d4b\u5f97\u8ddd\u79bb\uff0c\u975e\u9884\u671f\u6536\u76ca\uff09\uff1b\u4ef7\u683c\u4f4e\u4e8e 126 \u65e5\u9ad8\u70b9 8.1%\uff08\u5df2\u6d4b\u5f97\u8ddd\u79bb\uff0c\u975e\u9884\u671f\u6536\u76ca\uff09\uff1b\u8d5e\u52a9\u72b6\u6001 tailwind\uff08\u6765\u6e90\u72b6\u6001\uff0c\u4e0d\u505a\u65b0\u7684\u5206\u7c7b\u5224\u5b9a\uff09\u3002\u672c\u5185\u5bb9\u4ec5\u4e3a\u65e5\u9891\u5355\u53ea\u4e2a\u80a1\u7684\u80cc\u666f\u4fe1\u606f\uff0c\u4e0d\u662f\u5e02\u573a\u5e95\u90e8\u7684\u8bc1\u660e\uff0c\u4e5f\u4e0d\u662f\u4ea4\u6613\u6307\u4ee4\u3002"
+        },
+        "limitations": [
+          "daily_not_intraday",
+          "no_calibrated_probability",
+          "no_market_bottom_claim"
+        ]
+      }
+    }
+  ]
+}

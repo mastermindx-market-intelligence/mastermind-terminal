@@ -9,7 +9,8 @@
  * The file is a snapshot. The poller stops between sessions, so a file written on Friday evening
  * still says `usable: true` on Sunday. Macro's own reader (templates/live.js, applyBreadth) refuses
  * a file whose build or source clock is more than SBX_MAX_SOURCE_AGE_MIN (25) minutes old; this
- * module applies the same rule against the reader's clock, so an old verdict is shown as
+ * module applies that limit against the reader's clock, advancing the age recorded at
+ * build by elapsed time, so an old verdict is shown as
  * "source behind" with no numbers, never as a live reading.
  */
 
@@ -57,14 +58,20 @@ function share(v: unknown): BreadthShare | null {
 export function breadthTooOld(builtAt: string, sourceAgeMin: number | null, now: Date): boolean {
   if (sourceAgeMin === null || sourceAgeMin > MAX_SOURCE_AGE_MIN || sourceAgeMin < -MAX_SKEW_MIN) return true;
   const buildAgeMin = (now.getTime() - Date.parse(builtAt)) / 60_000;
-  return !Number.isFinite(buildAgeMin) || buildAgeMin > MAX_SOURCE_AGE_MIN || buildAgeMin < -MAX_SKEW_MIN;
+  if (!Number.isFinite(buildAgeMin) || buildAgeMin > MAX_SOURCE_AGE_MIN || buildAgeMin < -MAX_SKEW_MIN) return true;
+  // source_age_min is measured by the producer AT BUILD, not at this later read.
+  // A slightly future build never makes its recorded source age younger. Keep the
+  // existing independent clock-skew fences and never extend the build window.
+  return sourceAgeMin + Math.max(0, buildAgeMin) > MAX_SOURCE_AGE_MIN;
 }
 
-/** When a live reading leaves the live window on the build clock (epoch ms), or null when it
- *  is not live. The page re-checks the reading at that moment. */
+/** Earliest end of the build or remaining source-age window (epoch ms), or null when
+ *  the reading is not live. The page re-checks this same source at that moment. */
 export function breadthExpiresAt(reading: MarketBreadth): number | null {
   const built = Date.parse(reading.built_at);
-  return reading.usable && Number.isFinite(built) ? built + MAX_SOURCE_AGE_MIN * 60_000 : null;
+  if (!reading.usable || !Number.isFinite(built) || reading.source_age_min === null || !Number.isFinite(reading.source_age_min)) return null;
+  const remainingMinutes = Math.min(MAX_SOURCE_AGE_MIN, Math.max(0, MAX_SOURCE_AGE_MIN - reading.source_age_min));
+  return built + remainingMinutes * 60_000;
 }
 
 /** The upstream file as the cell's projection, or null when it is not a live.breadth.v1 reading. */

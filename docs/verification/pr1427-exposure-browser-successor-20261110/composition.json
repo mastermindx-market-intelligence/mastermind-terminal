@@ -1,0 +1,42 @@
+{
+  "allOwnedBlobsPreserved": true,
+  "head": "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7",
+  "mergeHead": "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185",
+  "operation": "terminal-pr-duty-20261110-1427-exposure-browser-successor",
+  "originalWorkspaceUntouched": true,
+  "ownedPaths": [
+    {
+      "gitBlob": "0e116f6aecc83d4785e534afa8e22c4a86d48713",
+      "originalBlob": "0e116f6aecc83d4785e534afa8e22c4a86d48713",
+      "path": "terminal/components/exposure-map/ExposureDivergence.tsx",
+      "sha256": "83c7f613a2153966249cd970e87ce22299155601bf83ff2bd1957989e25e0378"
+    },
+    {
+      "gitBlob": "2bcb3c83b6aa9409e2ece66d361db0786dec8ba0",
+      "originalBlob": "2bcb3c83b6aa9409e2ece66d361db0786dec8ba0",
+      "path": "terminal/components/exposure-map/ExposureMap.tsx",
+      "sha256": "061b97b18eb9cc42193074dfd0b77930902c83992aef24554f7fb30347fdb524"
+    },
+    {
+      "gitBlob": "159b68e73a970b87c675636a4a41ef4baebaf7f7",
+      "originalBlob": "159b68e73a970b87c675636a4a41ef4baebaf7f7",
+      "path": "terminal/components/exposure-map/exposureMapStrings.ts",
+      "sha256": "4ceff16f3420b660c47fa2c39f739e0cf739ac2bf1a0a30734d4a5970a286dfd"
+    },
+    {
+      "gitBlob": "def5298ed50e85df86eddd1472796afd5c1fcd2e",
+      "originalBlob": "def5298ed50e85df86eddd1472796afd5c1fcd2e",
+      "path": "terminal/lib/__tests__/exposureMomentumConsumer.test.tsx",
+      "sha256": "86298d80c99c53f9239c331eca0e749038553863a4bda59ef2404a9c385a1396"
+    }
+  ],
+  "procedurePin": "5257967eb23d10418dc2326bb7a7b31f7e6a5915",
+  "schema": "terminal.pr1427.source-composition.v1",
+  "sourceOnlyResidualPaths": [
+    "terminal/components/exposure-map/ExposureDivergence.tsx",
+    "terminal/components/exposure-map/ExposureMap.tsx",
+    "terminal/components/exposure-map/exposureMapStrings.ts",
+    "terminal/lib/__tests__/exposureMomentumConsumer.test.tsx"
+  ],
+  "sourceTree": "28755f8133c5208c38ca7af4645e0eaee1610187"
+}
