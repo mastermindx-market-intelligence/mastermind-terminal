@@ -30,7 +30,13 @@ import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHolding
 import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
   SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
 import { sectorPortfolioCopy, sectorPortfolioHref } from "@/lib/sectorPortfolioContext";
-import { nativeSectorEvidence } from "@/lib/sectorNativeGeneration";
+import { nativeSectorEvidence, type NativeSectorGeneration } from "@/lib/sectorNativeGeneration";
+import {
+  confluenceBasketsFromCarriedBlock, confluenceNasdaqFromCarriedBlock,
+  confluenceRussellFromCarriedBlock, confluenceSp500FromCarriedBlock,
+  type UniverseBlockRead, type UniverseId,
+} from "@/lib/sectorDepthUniverses";
+import { themeRowsFromCarriedBlock, type ThemeRowsRead } from "@/lib/sectorDepthThemeRows";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -83,6 +89,37 @@ function Card({ title, subtitle, children, action }: { title: string; subtitle?:
 }
 function Metric({ label, value, foot }: { label: string; value: string; foot: string }) {
   return <div className={styles.metric}><span>{label}</span><strong>{value}</strong><small>{foot}</small></div>;
+}
+
+/** The five lane 7 row reads for the dossier's Drivers tab (round 2 part 2,
+ * the #1448 mount). `null` keeps the dossier's exact pre-increment rendering:
+ * the generation decoder maps an ABSENT `typed_blocks` key to the same
+ * all-not_produced shape a carried map may lawfully hold, so carried-vs-absent
+ * is decided on the raw wire document's own key — never on the decoded shape.
+ * A carried map hands each reader its own typed-block entry verbatim
+ * (`{status, reason?, value}`); the readers own every state an entry can take
+ * (available rows, per-reason honest unavailable), so this wiring adds no
+ * copy, no name and no navigation the readers do not define themselves. */
+export interface SectorRowBlockMounts {
+  universeBlocks: Partial<Record<UniverseId, UniverseBlockRead>>;
+  themeRows: ThemeRowsRead;
+}
+export function sectorRowBlocksFromFeed(
+  feed: FeedPayload | undefined, generation: NativeSectorGeneration | null,
+): SectorRowBlockMounts | null {
+  if (!generation) return null;
+  const data = object(object(object(feed?.data).projection).data);
+  if (!Object.hasOwn(data, "typed_blocks")) return null;
+  const blocks = generation.typedBlocks;
+  return {
+    universeBlocks: {
+      subsectors: confluenceSp500FromCarriedBlock(blocks.confluence_universe_sp500),
+      nasdaq: confluenceNasdaqFromCarriedBlock(blocks.confluence_universe_nasdaq),
+      russell: confluenceRussellFromCarriedBlock(blocks.confluence_universe_russell),
+      baskets: confluenceBasketsFromCarriedBlock(blocks.confluence_universe_baskets),
+    },
+    themeRows: themeRowsFromCarriedBlock(blocks.theme_rows),
+  };
 }
 
 export default function SectorIntelligenceWorkspace() {
@@ -242,6 +279,11 @@ export default function SectorIntelligenceWorkspace() {
   }), [nativeGeneration, nativeStatus, state.sector, state.theme, lang, identity, revision]);
   const nativeJobActive = state.sectorJob !== null && state.workspace !== "detail";
   const nativeDossierActive = state.workspace === "detail" && state.sectorJob !== null;
+  // Round 2 part 2: the five lane 7 row reads, gated on the wire having
+  // carried a typed-blocks map at all (see sectorRowBlocksFromFeed). Null on
+  // today's wire — the dossier then renders exactly as before this increment.
+  const nativeRowBlocks = useMemo(() => sectorRowBlocksFromFeed(feeds.generation, nativeGeneration),
+    [feeds.generation, nativeGeneration]);
   const selectedNative = nativeGeneration?.sectors.find(row => row.id === state.sector);
   const selectionSectors = useMemo(() => {
     const native = nativeGeneration?.sectors || [];
@@ -467,7 +509,8 @@ export default function SectorIntelligenceWorkspace() {
         onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
         onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()}
         onSelect={sectorId => change({ sector: sectorId }, true)}
-        historyFeed={cycleFeed(feeds.history)} eventsFeed={cycleFeed(feeds.events)} />
+        historyFeed={cycleFeed(feeds.history)} eventsFeed={cycleFeed(feeds.events)}
+        rowBlocks={nativeRowBlocks} />
       : state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
         rows={state.rotationMethod === "relative_trend_ema" ? sectors : nativeGeneration?.sectors || []}
         status={state.rotationMethod === "relative_trend_ema" ? status : nativeStatus} risk={feeds.risk}

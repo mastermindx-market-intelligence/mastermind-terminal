@@ -27,6 +27,8 @@ import { SectorFlowMatrix } from "./depth/SectorFlowMatrix";
 import { SectorBottomingWatch } from "./depth/SectorBottomingWatch";
 import { SectorConfluenceUniverses } from "./depth/SectorConfluenceUniverses";
 import { SectorThemeCompare } from "./depth/SectorThemeCompare";
+import type { UniverseBlockRead, UniverseId } from "@/lib/sectorDepthUniverses";
+import type { ThemeRowsRead } from "@/lib/sectorDepthThemeRows";
 import styles from "./SectorNative.module.css";
 import shell from "./SectorIntelligenceWorkspace.module.css";
 
@@ -37,7 +39,7 @@ const TAB_KEYS: Record<SectorView, string> = {
 };
 
 export default function SectorNativeDossier({ context, view, onView, onBack, onJob,
-  onOpenRotation, onTheme, onRefresh, onSources, onSelect, historyFeed, eventsFeed }: {
+  onOpenRotation, onTheme, onRefresh, onSources, onSelect, historyFeed, eventsFeed, rowBlocks }: {
   context: SectorNativeContext;
   view: SectorView;
   onView: (view: SectorView) => void;
@@ -55,6 +57,15 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
    * an explicit unavailable state — never a borrowed substitute. */
   historyFeed?: SectorCycleFeed;
   eventsFeed?: SectorCycleFeed;
+  /** The five lane 7 row reads (`confluence` universes + `theme_rows`),
+   * computed by the workspace from the admitted generation's carried typed
+   * blocks (round 2 part 2). `null`/absent — the `typed_blocks` map not
+   * carried on the wire — keeps this dossier's exact pre-increment rendering;
+   * a carried map's reads own every state the readers can take. */
+  rowBlocks?: {
+    universeBlocks: Partial<Record<UniverseId, UniverseBlockRead>>;
+    themeRows: ThemeRowsRead;
+  } | null;
 }) {
   const t = useSectorT(), { lang } = useLang();
   const tabs = useRef<HTMLDivElement>(null);
@@ -119,7 +130,7 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
       <SectorGenerationQualification qualification={context.qualification ?? undefined} />
       {view === "intelligence" ? <DossierOverview context={context} exact={exact.state === "ok" ? exact.measurements : null}
         exactGroup={exactGroup} benchmark={benchmark} onJob={onJob} /> : view === "companies" ? <SectorPopulationMembers />
-      : view === "drivers" ? <DossierDepth context={context} onSelect={onSelect} />
+      : view === "drivers" ? <DossierDepth context={context} onSelect={onSelect} rowBlocks={rowBlocks} />
       : view === "signals" ? <div data-testid="sector-native-dossier-cycles">
         <SectorCycleLens
           region="us"
@@ -271,10 +282,17 @@ function FollowLine() {
  * blocks. Each mount gates on the block's `status === "available"`; an absent
  * or unavailable block is that surface's unavailable state — never zero, never
  * an error, never a borrowed substitute (lane 7 v1.1 return, COO 12:55Z).
- * `confluence` and `theme_table` stay typed-unavailable: the carried id-lists
- * and state dict are not the payloads these tables need (queued lane 1
- * increment); the theme rotation chart runs on real captured history. */
-function DossierDepth({ context, onSelect }: { context: SectorNativeContext; onSelect?: (sectorId: string) => void }) {
+ * The five row reads (`rowBlocks`, round 2 part 2) arrive only when the wire
+ * carried a `typed_blocks` map — the workspace's carried gate owns that law —
+ * and the readers own every state an entry can take. `onNavigate` stays
+ * omitted on both row mounts: detail links render as the readers' own
+ * `<a href>` (the #1448 mount note marks it optional); the theme rotation
+ * chart runs on real captured history. */
+function DossierDepth({ context, onSelect, rowBlocks }: { context: SectorNativeContext; onSelect?: (sectorId: string) => void;
+  rowBlocks?: {
+    universeBlocks: Partial<Record<UniverseId, UniverseBlockRead>>;
+    themeRows: ThemeRowsRead;
+  } | null }) {
   const { lang } = useLang();
   const generation = context.generation;
   const blocks = generation?.typedBlocks;
@@ -321,7 +339,7 @@ function DossierDepth({ context, onSelect }: { context: SectorNativeContext; onS
     <SectorCallsBoard board={board} onNavigate={onCallsNavigate} />
     <SectorFlowMatrix flows={flows} />
     <SectorBottomingWatch watch={watch} />
-    <SectorConfluenceUniverses universes={null} />
-    <SectorThemeCompare history={generation?.history ?? null} labels={labels} />
+    <SectorConfluenceUniverses universes={null} universeBlocks={rowBlocks?.universeBlocks} />
+    <SectorThemeCompare history={generation?.history ?? null} labels={labels} themeRows={rowBlocks?.themeRows} />
   </div>;
 }
