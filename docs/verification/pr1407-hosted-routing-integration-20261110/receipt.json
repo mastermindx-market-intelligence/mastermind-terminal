@@ -1,0 +1,90 @@
+{
+  "admission": "Auto-merge remains unarmed; approval-enforcement evidence gap is unchanged.",
+  "changes": [
+    {
+      "afterSha256": "512f46ddf95a17e589d60a495b9a7e0d182998640da6d5ba61ac9b5ec1731cbd",
+      "beforeSha256": "ebc492993abae1b8585e580b16e3067a39110dd4023a72fedc375307b691384d",
+      "mode": "100644",
+      "path": ".github/workflows/ci.yml",
+      "postimageBlob": "338939f16f97ef3706f30e94b2210b979f133127",
+      "preimageBlob": "05d88e88524d3235f0f916e6aec19b17460fdaac"
+    },
+    {
+      "afterSha256": "1fda988e0a4e57045b104da287256273a99777325cace8d773d344d28717c932",
+      "beforeSha256": "457b524e0c4659765018c2850959926d56e50ce897bf8354f06bb71fd0db3c6d",
+      "mode": "100644",
+      "path": "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md",
+      "postimageBlob": "1b29bc626d3a719d7f6ee60008da8fce031f07db",
+      "preimageBlob": "0c2f77158c8f469c7da0fea2572bb1ab57ebceef"
+    },
+    {
+      "afterSha256": "8cbd831cda8c0943ac9eff2595ff2dc68a4b7a1c04525253f252ce847159e484",
+      "beforeSha256": "b1e163eba48da61943edf179a04d5eddc2d934c76f1b4381b4fc1685befd4337",
+      "mode": "100644",
+      "path": "tests/test_ci_e2e_selfhosted_lane.py",
+      "postimageBlob": "c097fa747c8a362e56b7716a0e8aec9e9f03a031",
+      "preimageBlob": "c422410d74aeb9fd2ec6f91a49719198ce92ab6f"
+    }
+  ],
+  "ciContractInputs": {
+    ".github/scripts/terminal_e2e_lane.sh": {
+      "gitBlob": "e29ca206dcbd49388f765e8b799a59f8c3b8df3c",
+      "mode": "100755",
+      "sha256": "624735c4350ff760b6adcaeebe54fc9f71fe6110e9f42774ba785f8c32a40f38"
+    },
+    ".github/workflows/ci.yml": {
+      "gitBlob": "338939f16f97ef3706f30e94b2210b979f133127",
+      "mode": "100644",
+      "sha256": "512f46ddf95a17e589d60a495b9a7e0d182998640da6d5ba61ac9b5ec1731cbd"
+    },
+    "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md": {
+      "gitBlob": "1b29bc626d3a719d7f6ee60008da8fce031f07db",
+      "mode": "100644",
+      "sha256": "1fda988e0a4e57045b104da287256273a99777325cace8d773d344d28717c932"
+    },
+    "tests/test_ci_e2e_selfhosted_lane.py": {
+      "gitBlob": "c097fa747c8a362e56b7716a0e8aec9e9f03a031",
+      "mode": "100644",
+      "sha256": "8cbd831cda8c0943ac9eff2595ff2dc68a4b7a1c04525253f252ce847159e484"
+    }
+  },
+  "originalFailure": {
+    "attempt": 1,
+    "boundary": "Hosted lane fixed port3108 already occupied before browser cases.",
+    "job": 129725001775,
+    "run": 42783624399,
+    "runner": "ubuntu1-a / fleet-ci"
+  },
+  "originalHead": "2759f63a1890b1e746d3e3ad02e20fab6f74f901",
+  "originalTree": "0d966c5776752025670eb7f1af7ff1c9b384b826",
+  "remainingBoundary": "The source repair owner remains active on its own PR. This integration will establish its own exact-head required CI. No existing job retry, port owner action or fixture weakening.",
+  "schema": "terminal_pr1407_published_hosted_routing_integration.v1",
+  "sourceApplicability": "The complete terminal subtree and all prior proof remain unchanged; the exhaustive diff is three exact published CI postimages plus this additive proof directory.",
+  "sourceHead": "d146758aa3180489e658a4731155c1b57d048bb6",
+  "sourcePr": 1421,
+  "sourceProtectedBase": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "sourceStateAtSelection": "Published original-owner head; source run42783419986 has22 substantive successes and required aggregate129754141409 queued. No protected-merge result is assumed.",
+  "state": "QUALIFIED",
+  "validation": {
+    "command": [
+      "/opt/homebrew/bin/python3.11",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/test_ci_e2e_selfhosted_lane.py",
+      "--junitxml=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/docs/verification/pr1407-hosted-routing-integration-20261110/ci-contract-tests.xml"
+    ],
+    "completedAt": "2026-11-10T09:59:45.369905+00:00",
+    "exit": 0,
+    "junitSha256": "ac53f99ab53facf885171fb790b218d1cfb4c24a709600193bfed6c48abc2e72",
+    "logSha256": "3757529055887423a3e469a2a70e6c9fc5e8701a11ab56c19aedfeb4565cad81",
+    "seconds": 5.88,
+    "startedAt": "2026-11-10T09:59:39.489823+00:00",
+    "stats": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 33
+    }
+  }
+}

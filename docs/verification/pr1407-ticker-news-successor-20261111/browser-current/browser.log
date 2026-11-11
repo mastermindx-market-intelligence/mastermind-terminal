@@ -1,0 +1,370 @@
+[warmup] /terminal?symbol=NVDA → 200 in 247ms
+[warmup] /options → 200 in 4807ms
+[warmup] /portfolio → 200 in 2470ms
+[warmup] /alerts → 200 in 2646ms
+[warmup] /analysis → 200 in 4796ms
+[warmup] /discover → 200 in 4131ms
+[warmup] /admin → 200 in 1184ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 947ms
+[warmup] /login → 200 in 250ms
+[warmup] /reset-password → 200 in 1233ms
+[warmup] /api/me → 200 in 1390ms
+[warmup] /api/watchlist → 200 in 659ms
+[warmup] /api/layouts → 200 in 598ms
+[warmup] /api/watchlist/annotations → 409 in 465ms
+[warmup] 14 routes compiled in 26s
+[fixture-ready] prophet_idx fixture 200 in 1152ms
+
+Running 21 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix (3.0m)
+  ✓   2 [desktop] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow (30.0s)
+  ✓   3 [desktop] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (59.9s)
+  ✓   4 [desktop] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context (14.8s)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   5 [desktop] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held (21.6s)
+  ✓   6 [desktop] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context (11.8s)
+  ✓   7 [desktop] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines (1.6m)
+  ✘   8 [tablet] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix (5ms)
+  ✘   9 [tablet] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow (3ms)
+  ✘  10 [tablet] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (6ms)
+  ✘  11 [tablet] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context (1ms)
+  ✘  12 [tablet] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held (3ms)
+  ✘  13 [tablet] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context (3ms)
+  ✘  14 [tablet] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines (2ms)
+  ✘  15 [mobile] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix (4ms)
+  ✘  16 [mobile] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow (3ms)
+  ✘  17 [mobile] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (3ms)
+  ✘  18 [mobile] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context (3ms)
+  ✘  19 [mobile] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held (4ms)
+  ✘  20 [mobile] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context (3ms)
+  ✘  21 [mobile] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines (5ms)
+
+
+  1) [tablet] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-tablet/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [tablet] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow ─
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-tablet/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [tablet] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-tablet/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [tablet] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-tablet/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [tablet] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-tablet/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [tablet] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-tablet/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [tablet] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-tablet/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [mobile] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [mobile] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow ─
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [mobile] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [mobile] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [mobile] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) [mobile] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) [mobile] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/pr1407-ticker-news-successor/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr1407-ticker-news-successor/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr1407-ticker-news-successor/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Slow test file: [desktop] › e2e/ticker-news.spec.ts (6.9m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  14 failed
+    [tablet] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix 
+    [tablet] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow ──
+    [tablet] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens 
+    [tablet] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context 
+    [tablet] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held 
+    [tablet] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context 
+    [tablet] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines 
+    [mobile] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix 
+    [mobile] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow ──
+    [mobile] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens 
+    [mobile] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context 
+    [mobile] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held 
+    [mobile] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context 
+    [mobile] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines 
+  7 passed (8.2m)

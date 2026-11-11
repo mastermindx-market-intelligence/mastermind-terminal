@@ -1,0 +1,198 @@
+{
+  "operation": "terminal-experience-refinement-20261109-sol-01",
+  "captured_at_utc": "2026-11-10T00:41:24.660468+00:00",
+  "pull_request": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1407",
+  "protected_base": "57ab4281d87ccb9e01e3bafcd42350034de1b222",
+  "published_product_checkpoint": "f4e2e08d3fd00de9b6d5a79b16d8d743a6b74a0e",
+  "source_binding": "Hashes identify the final source snapshot. The containing commit/PR identifies its publication; no self-referential commit SHA is asserted.",
+  "source_files": {
+    "terminal/app/globals.css": {
+      "sha256": "3f5cca53382a520b282dbddce66d481b23c825c98f8aec78f81b58b7119c7a9b",
+      "git_blob": "865a0ff1966ad887abc5553c7c5a9603a32d2e01"
+    },
+    "terminal/components/ChartObjectTree.tsx": {
+      "sha256": "e560476ee7a4d8c51ba59722644b4bbb3bc5e116b74f1f878122ac421edb03de",
+      "git_blob": "29660f41185feabeefbd5efa16833a7c4c1fa8eb"
+    },
+    "terminal/components/IndicatorsModal.tsx": {
+      "sha256": "d0f82ca6504577770dca68861b51eaa87d74844c5be84c1b0f560b6b22838cc1",
+      "git_blob": "3c68f60b416870bc324fa3af804ecad64a7ad0ef"
+    },
+    "terminal/components/LayoutMenu.tsx": {
+      "sha256": "8c3a6459aba740e2a07602bb4962eb37c6777238f374849822923aba68013d17",
+      "git_blob": "3e8a56771b7ec2f6a82623d197d0b23728c7b7c7"
+    },
+    "terminal/e2e/chart-object-tree.spec.ts": {
+      "sha256": "0018de3857b3550c3aec1b8532e74db75bfa021200177008620b156ab4b94ab5",
+      "git_blob": "4cfb0447a9dd99daf4f17f26c7a92595e12e0f4d"
+    },
+    "terminal/e2e/scripts-library.spec.ts": {
+      "sha256": "3d5e1895ba36d55a2b4295366e3b66a2ecc7be44e1db6a32a2dbc37b0f04519a",
+      "git_blob": "4b307174498ad88527c6812e0284cf133ac3408f"
+    },
+    "terminal/e2e/workspace-rename-focus.spec.ts": {
+      "sha256": "743f467e0c161eb679906b3bb9ee30790d781494e138036a8095e8532f099276",
+      "git_blob": "74f15144d08e0a6a2cf870cea64535657ed8fba9"
+    },
+    "terminal/lib/__tests__/chartObjectTree.test.tsx": {
+      "sha256": "a64b5ca58339618c2b2d87a7c63bffb5bdf16b572eb513c8bffd140a173b644c",
+      "git_blob": "7070f0485a3fa46782e5d40d8621dc7969ea1548"
+    },
+    "terminal/lib/__tests__/indicatorsScriptRename.test.tsx": {
+      "sha256": "b1ec1c8b9e8f87f8d092fc37e645e0dba837bfc31b9db54901fc3e52047c8a73",
+      "git_blob": "147e553c0d07962ba90d351a20362619128f32e1"
+    },
+    "terminal/lib/__tests__/layoutRenameFocus.test.tsx": {
+      "sha256": "3045c37ca4c765c9dfd9ed10335ca1b6f7299828cd0620bbac5e8aafbec67037",
+      "git_blob": "c8119cca5585f7736bf287937d801018222d42cd"
+    }
+  },
+  "verification": {
+    "focused_unit": {
+      "passed": 128,
+      "files": 6,
+      "note": "Product-logic checkpoint; subsequent changes are scoped CSS, one localized Settings span, and browser evidence strengthening."
+    },
+    "typecheck_final": {
+      "exit_code": 0
+    },
+    "lint_final": {
+      "exit_code": 1,
+      "new_findings": 0,
+      "baseline_finding": "LayoutMenu team selection effect: react-hooks/set-state-in-effect, reproduced from protected base."
+    },
+    "first_full_responsive_matrix": {
+      "passed": 34,
+      "skipped": 6,
+      "failed": 2,
+      "note": "Both failures were incorrect desktop/tablet expectations that the popover remain open after successful export; corrected to reopen via the existing owner and compare the exact downloaded payload."
+    },
+    "final_workspace_library_search_matrix": {
+      "passed": 13,
+      "skipped": 2,
+      "failed": 0,
+      "retries": 0
+    },
+    "final_study_action_visual_delta": {
+      "passed": 6,
+      "skipped": 0,
+      "failed": 0,
+      "retries": 0
+    },
+    "cumulative_unique_responsive_cases": {
+      "passed": 36,
+      "intentionally_inapplicable": 6
+    },
+    "viewports": {
+      "desktop": [
+        1440,
+        900
+      ],
+      "tablet": [
+        820,
+        1180
+      ],
+      "mobile": [
+        390,
+        844
+      ]
+    },
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "limitations": [
+      "Local development fixtures, not production acceptance.",
+      "Guest rename and theme persistence use existing real local owners; no authenticated Supabase write claim.",
+      "IME checks exercise browser composition signals, not a physical operating-system IME.",
+      "Touch checks use coarse-pointer browser contexts, not physical devices.",
+      "Connected Chrome production automation remains blocked by another extension UI."
+    ]
+  },
+  "selected_capture_sources": {
+    "workspace-desktop-dark.png": "playwright-release/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-desktop/workspace-actions-desktop.png",
+    "workspace-mobile-light.png": "playwright-release/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-mobile/workspace-actions-mobile-light.png",
+    "scripts-tablet-en-dark.png": "playwright-actions-final/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/scripts-tablet-en.png",
+    "scripts-mobile-en-dark.png": "playwright-actions-final/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/scripts-mobile-en.png",
+    "scripts-mobile-zh-dark.png": "playwright-actions-final/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/scripts-mobile-zh.png",
+    "studies-desktop-en-light.png": "playwright-actions-final/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/study-actions-desktop-en-light.png",
+    "studies-mobile-en-light.png": "playwright-actions-final/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/study-actions-mobile-en-light.png",
+    "studies-mobile-zh-light.png": "playwright-actions-final/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/study-actions-mobile-zh-light.png",
+    "layers-mobile-en-dark.png": "playwright/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/mobile-layers-open.png",
+    "layers-tablet-zh-dark.png": "playwright/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/tablet-layers-zh.png"
+  },
+  "artifacts": {
+    "layers-mobile-en-dark.png": {
+      "sha256": "22e888b194c81b580d981b4b115a188402710267e5d652239258591f776a9273",
+      "bytes": 50504
+    },
+    "layers-tablet-zh-dark.png": {
+      "sha256": "9fac7a89a344e873a877c49bd3ac5f01bc480576dc56765218e2f6471a1074d3",
+      "bytes": 102742
+    },
+    "logs/e2e-actions-final.log": {
+      "sha256": "c89f2426d2c982add579933354f7790c2c694558577669214db6cadddb9e7611",
+      "bytes": 1574
+    },
+    "logs/e2e-release.log": {
+      "sha256": "f8b5bb06caf3d737b000e31a305b800a90ca08c311779c2ec57e48533f65673f",
+      "bytes": 2886
+    },
+    "logs/e2e.log": {
+      "sha256": "3d8c7de1084c44c06b02ef29d72704974c1a8480579ae6c242bfc2d73758822c",
+      "bytes": 12741
+    },
+    "logs/lint-baseline.log": {
+      "sha256": "59b6b7ab7d11b6b9a29709e0f464bfcbaac32e514b7cb78caec70d7e44e4a5e2",
+      "bytes": 1527
+    },
+    "logs/lint-final.log": {
+      "sha256": "61ddf4b510e06efd3ef02017fbd6be5abbf172b72d1ba5b24663b35672c42339",
+      "bytes": 1527
+    },
+    "logs/static-final-checks.json": {
+      "sha256": "4dddee69f1aa04db47a3933a2ae58a7d266124d40435ac5874a78952ab1f7776",
+      "bytes": 27
+    },
+    "logs/typecheck-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "logs/unit.log": {
+      "sha256": "fbe8ab7a5f9761a58acb0659fbfbbc2d73877a0dfb95062d780f03e92995834f",
+      "bytes": 836
+    },
+    "scripts-mobile-en-dark.png": {
+      "sha256": "3c6dba3662a8047c5a43d917d87b7cd6adb49f3f45ecbf8bfbeeae17526120e2",
+      "bytes": 45049
+    },
+    "scripts-mobile-zh-dark.png": {
+      "sha256": "bb7ee429e7874af4ec95261021b7a14ed0421ba8d6e10e6746ac67016dee1f66",
+      "bytes": 47856
+    },
+    "scripts-tablet-en-dark.png": {
+      "sha256": "5162b70ad8856cca26f1fa96c2410c99282abb726dcae0384da8a6f139563e07",
+      "bytes": 69408
+    },
+    "studies-desktop-en-light.png": {
+      "sha256": "04468737df6be8c70e2abacea2361c6c1e20ded426e512773117815e092a9b87",
+      "bytes": 68292
+    },
+    "studies-mobile-en-light.png": {
+      "sha256": "b3d273d17119c0a3b0e24a518d9c2b470429a2003c2b990bb408c2e29e1d467c",
+      "bytes": 46370
+    },
+    "studies-mobile-zh-light.png": {
+      "sha256": "2205076a265f8b73c42cdc89bbc25fa9407944527dbf62144ac4af907ec41651",
+      "bytes": 48955
+    },
+    "workspace-desktop-dark.png": {
+      "sha256": "1cf5c108dbb0503577fc0fbddacd998b89acafecccc33a9cddeb16149cc3621b",
+      "bytes": 35979
+    },
+    "workspace-mobile-light.png": {
+      "sha256": "1a7fa0a55426bceda04877ab90f965e96cbf8d9d4c1bc2af144c460d3ef87b1e",
+      "bytes": 31690
+    }
+  }
+}

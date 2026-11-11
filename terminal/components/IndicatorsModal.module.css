@@ -1,0 +1,116 @@
+/* Library-only presentation; shared globals remain owned by the application shell. */
+.library .action {
+  border-color: var(--line-3);
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.library .action:hover {
+  background: var(--panel-3);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.library .settingsAction span {
+  display: none;
+}
+
+:global(:root:is([data-terminal-appearance="1"], [data-mmx-shared-shell="1"])[data-theme="light"]) .library {
+  background: var(--panel);
+  border-color: var(--line);
+  box-shadow: var(--pop-shadow-modal);
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .library .scriptAction {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--line-2);
+    background: var(--panel-2);
+    color: var(--text-2);
+  }
+
+  .library .scriptAction:hover {
+    background: var(--panel-3);
+  }
+
+  .library .scriptRow .scriptName {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+
+  .library .action {
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .library .action.settingsAction {
+    width: 44px;
+  }
+
+  .library .navItem {
+    min-height: 44px;
+  }
+
+  .library .renameInput {
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .library .close {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 700px) {
+  .library .scriptRow {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .library .scriptMain,
+  .library .renameInput {
+    flex-basis: 100%;
+  }
+
+  .library .scriptMain {
+    min-height: 44px;
+  }
+
+  .library .scriptActions {
+    gap: 4px;
+  }
+
+  .library .moduleRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .library .moduleActions {
+    justify-content: flex-end;
+    gap: 6px;
+    padding: 0 8px 8px;
+  }
+
+  .library .action,
+  .library .action.settingsAction {
+    width: auto;
+    padding: 0 12px;
+    font-size: 11.5px;
+  }
+
+  .library .action span {
+    display: inline;
+  }
+
+  .library .action svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .library .moduleTitle strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}

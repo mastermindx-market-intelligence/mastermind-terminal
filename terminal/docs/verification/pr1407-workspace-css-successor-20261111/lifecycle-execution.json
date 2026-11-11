@@ -1,0 +1,9 @@
+{
+  "exitCode": 0,
+  "seconds": 0.484,
+  "command": [
+    "/opt/homebrew/opt/node@22/bin/node",
+    "--test",
+    "e2e/tools/capture_f12_b5_2_team_workspaces.test.cjs"
+  ]
+}

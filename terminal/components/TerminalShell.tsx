@@ -8,6 +8,7 @@ import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import replayStyles from "./ReplayTransport.module.css";
+import layoutMenuStyles from "./LayoutMenu.module.css";
 import compactCsvStyles from "./WatchlistCsvCompact.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
 import rollerSlotStyles from "./mobile/RollerStripSlot.module.css";
@@ -6894,7 +6895,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onClose={() => setPhoneWorkspacesOpen(false)}
           escapeKey="bubble"
           title={t("layouts")}
-          className="phone-workspaces-sheet"
+          className={`phone-workspaces-sheet ${layoutMenuStyles.phoneSheet}`}
           detents={[60, 96]}
         >
           {phoneWorkspacesOpen && <LayoutMenu

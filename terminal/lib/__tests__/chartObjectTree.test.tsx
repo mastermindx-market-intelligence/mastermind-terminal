@@ -26,12 +26,26 @@ describe("chart object-tree management", () => {
     input().dispatchEvent(new Event("input", { bubbles: true }));
   }); };
   beforeEach(() => { vi.clearAllMocks(); host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
-  afterEach(async () => { await act(async () => root.unmount()); host.remove(); });
+  afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
   it("focuses search and names each action for its study", async () => {
     await render(); expect(document.activeElement).toBe(input());
     expect(button("Hide Moving Averages")).not.toBeNull(); expect(button("Show Relative Strength")).not.toBeNull();
     expect(button("Remove Moving Averages")).not.toBeNull(); expect(button("Close")).not.toBeNull();
     expect(host.querySelector('[data-layer-key="locked"] .ot-remove')).toBeNull();
+  });
+  it("opens on a non-input control for touch without summoning the keyboard", async () => {
+    vi.stubGlobal("matchMedia", vi.fn((query: string) => ({
+      matches: query === "(pointer: coarse)", addEventListener: vi.fn(), removeEventListener: vi.fn(),
+    })));
+    await render(); expect(document.activeElement).toBe(button("Close")); expect(document.activeElement).not.toBe(input());
+  });
+  it.each([{ isComposing: true }, { keyCode: 229 }])("preserves composing Escape (%j)", async signal => {
+    await render(); await search("EMA");
+    const event = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true, ...signal });
+    const outer = vi.fn(); document.addEventListener("keydown", outer);
+    try { await act(async () => input().dispatchEvent(event)); } finally { document.removeEventListener("keydown", outer); }
+    expect(event.defaultPrevented).toBe(false); expect(input().value).toBe("EMA");
+    expect(close).not.toHaveBeenCalled(); expect(outer).not.toHaveBeenCalled();
   });
   it("searches visible labels and tags without mutating indicator state", async () => {
     await render(); await search(" rSi ");

@@ -1,0 +1,27 @@
+[warmup] /terminal?symbol=NVDA → 200 in 38ms
+[warmup] /options → 200 in 1322ms
+[warmup] /portfolio → 200 in 601ms
+[warmup] /alerts → 200 in 581ms
+[warmup] /analysis → 200 in 952ms
+[warmup] /discover → 200 in 1135ms
+[warmup] /admin → 200 in 398ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 269ms
+[warmup] /login → 200 in 74ms
+[warmup] /reset-password → 200 in 248ms
+[warmup] /api/me → 200 in 294ms
+[warmup] /api/watchlist → 200 in 119ms
+[warmup] /api/layouts → 200 in 123ms
+[warmup] /api/watchlist/annotations → 409 in 95ms
+[warmup] 14 routes compiled in 6s
+[fixture-ready] prophet_idx fixture 200 in 308ms
+
+Running 6 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/shared-shell-refinement.spec.ts:325:6 › legacy workspace recovery › failure stays stable, then explicit retry transfers keyboard focus into the new workspace (2.4s)
+  ✓  2 [desktop] › e2e/shared-shell-refinement.spec.ts:359:6 › legacy workspace recovery › light Chinese recovery remains usable on short screens and preserves a newer focus choice (1.9s)
+  ✓  3 [tablet] › e2e/shared-shell-refinement.spec.ts:325:6 › legacy workspace recovery › failure stays stable, then explicit retry transfers keyboard focus into the new workspace (1.7s)
+  ✓  4 [tablet] › e2e/shared-shell-refinement.spec.ts:359:6 › legacy workspace recovery › light Chinese recovery remains usable on short screens and preserves a newer focus choice (1.9s)
+  ✓  5 [mobile] › e2e/shared-shell-refinement.spec.ts:325:6 › legacy workspace recovery › failure stays stable, then explicit retry transfers keyboard focus into the new workspace (1.7s)
+  ✓  6 [mobile] › e2e/shared-shell-refinement.spec.ts:359:6 › legacy workspace recovery › light Chinese recovery remains usable on short screens and preserves a newer focus choice (1.6s)
+
+  6 passed (32.6s)

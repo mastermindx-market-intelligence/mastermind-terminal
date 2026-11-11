@@ -399,6 +399,12 @@ This choice solves the observed failure without replacing search scoring, compan
 
 ## 10. Cross-turn continuation
 
+### 9 November 2026 — workspace and study controls
+
+The current Chairman assignment continues this programme through a bounded EX-06/EX-16/EX-20/EX-45 slice: [workspace and study control refinement](terminal-workspace-study-refinement-20261109.md). The new operation is `terminal-experience-refinement-20261109-sol-01`, based on protected `57ab4281d87ccb9e01e3bafcd42350034de1b222`, in its own managed source branch. It repairs native workspace actions, composition-safe script renaming, touch targets and Chart Layers focus. Existing source owners and in-flight polish PRs are preserved. Implementation and 128 focused unit checks are complete; final TypeScript passes with no new lint finding. The corrected responsive matrix passed 13 cases with two intentional skips, and the final labelled-action visual delta passed six cases across desktop/tablet/phone and EN/ZH. Ten captures and source-bound evidence are preserved with [PR #1407](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1407). Screenshot review additionally repaired light-theme modal material and faint unreadable-workspace names. The original PR owns protected CI/release; administration-only approval-rule detail is unresolved after a fenced 403, and connected Chrome's extension UI blocks production browser proof. No whole-row, deployment or programme acceptance is claimed.
+
+### Earlier EX-03 / EX-08 history
+
 **Current owned slice:** EX-00 and EX-03.  
 **Workspace operation:** `terminal-experience-masterplan-20261022`.  
 **Branch:** `sol/web-terminal-experience-masterplan-20261022`.  

@@ -1,0 +1,363 @@
+{
+  "bytes": 2050638,
+  "count": 89,
+  "files": {
+    "README.md": {
+      "bytes": 3149,
+      "sha256": "b725b553d090884dee291e7f5dea3a525f87323be7e36a036b1263f9e050c95b"
+    },
+    "aggregate-qualification.json": {
+      "bytes": 13579,
+      "sha256": "2f631d10bb0ea6330b69e082a4f70c74ab54cdc5e50bda5627883692c853734a"
+    },
+    "bind-qualified-continuation.py": {
+      "bytes": 16491,
+      "sha256": "1ebbcd924bb62b4fb618ab43fa3144404ef93c5c338f9b7bfa7e6055f0640bb7"
+    },
+    "browser-current/artifacts/.last-run.json": {
+      "bytes": 733,
+      "sha256": "d888b8e7a915e6cb50d1ac7e2758f549823ff4e786b7892e496a811f89750a50"
+    },
+    "browser-current/artifacts/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-mobile/error-context.md": {
+      "bytes": 1307,
+      "sha256": "d405430bc5e3f767416886935020978c5b20bc4afbc71cd78af51a1d736ce941"
+    },
+    "browser-current/artifacts/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-mobile/trace.zip": {
+      "bytes": 2160,
+      "sha256": "604b3d1b2b42e931e2082405370d623b6c4370dec94b971f9fb95ca522f5e6b7"
+    },
+    "browser-current/artifacts/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-tablet/error-context.md": {
+      "bytes": 1307,
+      "sha256": "d405430bc5e3f767416886935020978c5b20bc4afbc71cd78af51a1d736ce941"
+    },
+    "browser-current/artifacts/ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-tablet/trace.zip": {
+      "bytes": 2151,
+      "sha256": "3ee5ef056fd6064972add2e51f88756c11ac7727946d6c6abc14ba17198e9b91"
+    },
+    "browser-current/artifacts/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-mobile/error-context.md": {
+      "bytes": 1312,
+      "sha256": "4507b1c619ab2e74b0bbb676c46934fd32ab4549814e8603b07c78217e81b911"
+    },
+    "browser-current/artifacts/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-mobile/trace.zip": {
+      "bytes": 2163,
+      "sha256": "6f21a075dc0abaa4b679a99bda4849c827bfb2df75c8b3afd13b0f649623f352"
+    },
+    "browser-current/artifacts/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-tablet/error-context.md": {
+      "bytes": 1312,
+      "sha256": "4507b1c619ab2e74b0bbb676c46934fd32ab4549814e8603b07c78217e81b911"
+    },
+    "browser-current/artifacts/ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-tablet/trace.zip": {
+      "bytes": 2161,
+      "sha256": "77efe7ed5f896ceb60420e7cb2eabd04d2436100b8d418590ebabbfbd65d3833"
+    },
+    "browser-current/artifacts/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-mobile/error-context.md": {
+      "bytes": 1328,
+      "sha256": "7cec899bcddd4a578f089949e9cc130bc26f0e694c3f6e938d400f23ef5e3816"
+    },
+    "browser-current/artifacts/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-mobile/trace.zip": {
+      "bytes": 2159,
+      "sha256": "0e3949d5b19650500e7228408ba226e38383b3db10c4f995b8a5f0968e1fbf93"
+    },
+    "browser-current/artifacts/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-tablet/error-context.md": {
+      "bytes": 1328,
+      "sha256": "7cec899bcddd4a578f089949e9cc130bc26f0e694c3f6e938d400f23ef5e3816"
+    },
+    "browser-current/artifacts/ticker-news-editorial-view-96ac6-ils-in-the-selected-context-tablet/trace.zip": {
+      "bytes": 2166,
+      "sha256": "a36fae631aaf6296f0b5255026a4732a56260a2a4f08c04cd8edd5b6da9bba6d"
+    },
+    "browser-current/artifacts/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-mobile/error-context.md": {
+      "bytes": 1316,
+      "sha256": "96f16e48722f3a3ac809f5164c26d299d734d63c9daa49ec1d91e151cb1284ca"
+    },
+    "browser-current/artifacts/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-mobile/trace.zip": {
+      "bytes": 2162,
+      "sha256": "99c132a60f1127ca8015c2e6387d91a14c068693a790fc37f804876905044be0"
+    },
+    "browser-current/artifacts/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-tablet/error-context.md": {
+      "bytes": 1316,
+      "sha256": "96f16e48722f3a3ac809f5164c26d299d734d63c9daa49ec1d91e151cb1284ca"
+    },
+    "browser-current/artifacts/ticker-news-grouped-report-422c8-hout-leaving-ticker-context-tablet/trace.zip": {
+      "bytes": 2164,
+      "sha256": "13fb6ddc8f8eb2a8200424ead1f5f6b3128596847ea26d2910430e87752c9d61"
+    },
+    "browser-current/artifacts/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-mobile/error-context.md": {
+      "bytes": 1312,
+      "sha256": "1ad4bdaab851c39ce42920cce6009a4ccf22e67da59ffc430e62d11060b68a79"
+    },
+    "browser-current/artifacts/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-mobile/trace.zip": {
+      "bytes": 2169,
+      "sha256": "a8ae0d4f2c344aea7abb9249631b28cfa4cf2d3c9170b54aeee9368092b32ad1"
+    },
+    "browser-current/artifacts/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-tablet/error-context.md": {
+      "bytes": 1312,
+      "sha256": "1ad4bdaab851c39ce42920cce6009a4ccf22e67da59ffc430e62d11060b68a79"
+    },
+    "browser-current/artifacts/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-tablet/trace.zip": {
+      "bytes": 2155,
+      "sha256": "cd2eec4b2469d91cb31d956b2b7278d1a8f82c366616d584a362d020913cacb6"
+    },
+    "browser-current/artifacts/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-mobile/error-context.md": {
+      "bytes": 1292,
+      "sha256": "7d5e4484c658bfd2bb5ae9a040fdb1be24e5008502a1b7b7f7f11ba1b162d8be"
+    },
+    "browser-current/artifacts/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-mobile/trace.zip": {
+      "bytes": 2145,
+      "sha256": "33f2206bc362bba065e20c1569db3461ecf76ede0136a91a5e9887b5fd8b1b21"
+    },
+    "browser-current/artifacts/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-tablet/error-context.md": {
+      "bytes": 1292,
+      "sha256": "7d5e4484c658bfd2bb5ae9a040fdb1be24e5008502a1b7b7f7f11ba1b162d8be"
+    },
+    "browser-current/artifacts/ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-tablet/trace.zip": {
+      "bytes": 2152,
+      "sha256": "0d89a7bfc4f4be7e18e24ebfbdf96d07750d7479c630fa45dfaebf6089c7d746"
+    },
+    "browser-current/artifacts/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-mobile/error-context.md": {
+      "bytes": 1319,
+      "sha256": "4723d3bfd0d8e5a1c242b3360f2e1c3c46ff0970159b45c1d3db931f4cecebc5"
+    },
+    "browser-current/artifacts/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-mobile/trace.zip": {
+      "bytes": 2167,
+      "sha256": "5d0f05b686ec85bfa25efbadb0a8d24c47e4ae32d052687a0e0f380ad1add317"
+    },
+    "browser-current/artifacts/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-tablet/error-context.md": {
+      "bytes": 1319,
+      "sha256": "4723d3bfd0d8e5a1c242b3360f2e1c3c46ff0970159b45c1d3db931f4cecebc5"
+    },
+    "browser-current/artifacts/ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-tablet/trace.zip": {
+      "bytes": 2160,
+      "sha256": "7be9d3df1ceaeea70b26d24ceb397815ae930ba37cc405e63a951812db244bf8"
+    },
+    "browser-current/browser-report.json": {
+      "bytes": 86175,
+      "sha256": "50e89b28baff40d342c607e530bea22475fbe5359dcc761af32dd327ff658376"
+    },
+    "browser-current/browser.log": {
+      "bytes": 34640,
+      "sha256": "ee56b2655f4c04b4b199bb966a2019852876c76e1bc931c37486ba7ee23f1509"
+    },
+    "browser-current/execution.json": {
+      "bytes": 13998,
+      "sha256": "e9ab2cc91cda85202f208e4512dfba69e066b895c19e074adfd0cb46daf149d2"
+    },
+    "browser-current/source-after.json": {
+      "bytes": 247187,
+      "sha256": "cd9da9a4d087b885ed83c6c5a599168ad16fc1ac4ee236b0fdd79684c28de669"
+    },
+    "browser-current/source-before.json": {
+      "bytes": 247187,
+      "sha256": "cd9da9a4d087b885ed83c6c5a599168ad16fc1ac4ee236b0fdd79684c28de669"
+    },
+    "browser-tablet-mobile/artifacts/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "browser-tablet-mobile/browser-report.json": {
+      "bytes": 30086,
+      "sha256": "de252b0f07a2355617933544c60f97c4ae0d5b455bf32094e93602d9474258d3"
+    },
+    "browser-tablet-mobile/browser.log": {
+      "bytes": 2644,
+      "sha256": "7bedf6d1a751ecae630c3d71efbe495fec98e184e3d061a1a2ffe9ff78931154"
+    },
+    "browser-tablet-mobile/execution.json": {
+      "bytes": 11359,
+      "sha256": "31a315ebbfe19d12d79c70dbac5dc999719facd0117b663f26b20f9d055126e5"
+    },
+    "browser-tablet-mobile/source-after.json": {
+      "bytes": 247187,
+      "sha256": "cd9da9a4d087b885ed83c6c5a599168ad16fc1ac4ee236b0fdd79684c28de669"
+    },
+    "browser-tablet-mobile/source-before.json": {
+      "bytes": 247187,
+      "sha256": "cd9da9a4d087b885ed83c6c5a599168ad16fc1ac4ee236b0fdd79684c28de669"
+    },
+    "capture-news-tablet-mobile.py": {
+      "bytes": 15692,
+      "sha256": "bb17b337e84b59dffaa86ea499890ee9fefa32e3fd1c959e1f0a41f7479d6194"
+    },
+    "capture-news.py": {
+      "bytes": 14017,
+      "sha256": "6b98a2eb2a35724848c337f2a7c8735b3674afdf4c835df3bbe6ad32da21769b"
+    },
+    "continuation-preparation.json": {
+      "bytes": 1316,
+      "sha256": "0f5751145f913bcb7100d6d9022d33ac7086b8fd37c0d2c1958abb714c805274"
+    },
+    "dependencies.json": {
+      "bytes": 782,
+      "sha256": "d263561826d516821ec4443316cc874b999dfd8fe24750bef6297f07f39d8e4e"
+    },
+    "failed-first-packet/EVIDENCE.yml": {
+      "bytes": 2760,
+      "sha256": "e1b7a5dea4a9b6abde3df3eaac7ee49d3ac34a33987e2f628dae1ea9c5144859"
+    },
+    "failed-first-packet/desktop-en-dark.png": {
+      "bytes": 52359,
+      "sha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04"
+    },
+    "failed-first-packet/desktop-zh-dark.png": {
+      "bytes": 51972,
+      "sha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d"
+    },
+    "failed-first-packet/mobile-en-dark.png": {
+      "bytes": 52998,
+      "sha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28"
+    },
+    "failed-first-packet/mobile-zh-dark.png": {
+      "bytes": 53955,
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585"
+    },
+    "failed-first-packet/tablet-en-dark.png": {
+      "bytes": 54550,
+      "sha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69"
+    },
+    "failed-first-packet/tablet-zh-dark.png": {
+      "bytes": 55964,
+      "sha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5"
+    },
+    "failed-first-packet/unavailable-desktop-en-dark.png": {
+      "bytes": 10065,
+      "sha256": "570371304d3d8f57d7314f8af18fd2e0040e7e14c37720e09621395665f4ed01"
+    },
+    "failed-first-packet/unavailable-desktop-zh-dark.png": {
+      "bytes": 8590,
+      "sha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8"
+    },
+    "failed-first-packet/unavailable-mobile-en-dark.png": {
+      "bytes": 8131,
+      "sha256": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61"
+    },
+    "failed-first-packet/unavailable-mobile-zh-dark.png": {
+      "bytes": 6792,
+      "sha256": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792"
+    },
+    "generated-preimages-continuation.json": {
+      "bytes": 441,
+      "sha256": "3793aba523adb7fd4bc665e4e129273a7a6dabfb7cc809e2eaa434e5f3e158bc"
+    },
+    "generated-preimages-continuation/next-env.d.ts": {
+      "bytes": 296,
+      "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+    },
+    "generated-preimages-continuation/tsconfig.json": {
+      "bytes": 666,
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3"
+    },
+    "generated-preimages.json": {
+      "bytes": 415,
+      "sha256": "1842dcdaff2ff82973b9e769148c93e8437f75ea7119b4ff5edcc987115154d4"
+    },
+    "generated-preimages/next-env.d.ts": {
+      "bytes": 296,
+      "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+    },
+    "generated-preimages/tsconfig.json": {
+      "bytes": 666,
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3"
+    },
+    "headless-shell-install.json": {
+      "bytes": 1765,
+      "sha256": "f8e7f8397d2693986512a06ced3fa8fad0e187157960e1949347a25d944b5d16"
+    },
+    "headless-shell-install.log": {
+      "bytes": 4539,
+      "sha256": "f0411384500388e9fce513353359babec7d9d55c5920399c90163a5dd1cd147e"
+    },
+    "initial-attempt-reconciliation.json": {
+      "bytes": 4063,
+      "sha256": "ec0f0ad3e81295fb6586344688fe30396a9207c744f264f8e00981e0d9a342a4"
+    },
+    "initial-failed-capture-lifecycle.json": {
+      "bytes": 3905,
+      "sha256": "8e3cd6eeb30f4551933265fe59bdfbef889429d5a63646f1b58f16e47a7cf80a"
+    },
+    "manifest-binding.json": {
+      "bytes": 2125,
+      "sha256": "079a1275376d71d9f04867a87fb184f0ef66307a46f599b6e4b6dbebdad06f0d"
+    },
+    "newer-packets-before.json": {
+      "bytes": 19627,
+      "sha256": "dc5486e7227f81b8fd949eb8f108fa67a283dfcbaca6158c1713720f2b343ee9"
+    },
+    "playwright-install-help.txt": {
+      "bytes": 806,
+      "sha256": "d1ad35e51b9a3f838c4ddea540b6ee78964aa62a2607a02689d8795b73363246"
+    },
+    "preparation.json": {
+      "bytes": 1043,
+      "sha256": "a3f6f7d521ed1cfaceaba5c9c66fc45cd15df368ee780cbea66f97b565234832"
+    },
+    "prior-packet-preservation.json": {
+      "bytes": 1793,
+      "sha256": "27745406f956558e1f124e4d518c53179795330690b9996c77bf06e6a0387831"
+    },
+    "prior-packet/EVIDENCE.yml": {
+      "bytes": 2760,
+      "sha256": "e1b7a5dea4a9b6abde3df3eaac7ee49d3ac34a33987e2f628dae1ea9c5144859"
+    },
+    "prior-packet/desktop-en-dark.png": {
+      "bytes": 52359,
+      "sha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04"
+    },
+    "prior-packet/desktop-zh-dark.png": {
+      "bytes": 51972,
+      "sha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d"
+    },
+    "prior-packet/mobile-en-dark.png": {
+      "bytes": 52998,
+      "sha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28"
+    },
+    "prior-packet/mobile-zh-dark.png": {
+      "bytes": 53955,
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585"
+    },
+    "prior-packet/tablet-en-dark.png": {
+      "bytes": 54550,
+      "sha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69"
+    },
+    "prior-packet/tablet-zh-dark.png": {
+      "bytes": 55964,
+      "sha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5"
+    },
+    "prior-packet/unavailable-desktop-en-dark.png": {
+      "bytes": 10069,
+      "sha256": "d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048"
+    },
+    "prior-packet/unavailable-desktop-zh-dark.png": {
+      "bytes": 8590,
+      "sha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8"
+    },
+    "prior-packet/unavailable-mobile-en-dark.png": {
+      "bytes": 8131,
+      "sha256": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61"
+    },
+    "prior-packet/unavailable-mobile-zh-dark.png": {
+      "bytes": 6792,
+      "sha256": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792"
+    },
+    "source-consumer-execution.json": {
+      "bytes": 1158,
+      "sha256": "937d3befbf0439b0cb29ad73b3f4ca33f27ddaf73bc3c692b0a42af095eb2887"
+    },
+    "source-consumer-report.json": {
+      "bytes": 2072,
+      "sha256": "473969b5bce992a7e97d6368eebfda48718bb201e142212f02ba8683ac50e326"
+    },
+    "source-consumer.log": {
+      "bytes": 357,
+      "sha256": "0f9f95fa85b0e149ef12b8896eda3fa3b033d9312b00c866233a271290283741"
+    },
+    "ticker-news-browser-tablet-mobile-lifecycle.json": {
+      "bytes": 3916,
+      "sha256": "9eade5a8273991652a5510e86a5ec05fdf4927d578d1d4ad35254c89c837dd2f"
+    },
+    "visual-review.json": {
+      "bytes": 2353,
+      "sha256": "662616ed0abfa7986fd6bd6f952920940f5ff694a944b06a72eb48e4c4932408"
+    }
+  },
+  "schema": "terminal.pr1407.news-packet-inventory.v1"
+}
