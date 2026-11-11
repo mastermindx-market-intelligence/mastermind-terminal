@@ -17,9 +17,27 @@ export const GEX_QUICK_ROOTS = ["SPY", "QQQ", "IWM", "NVDA", "TSLA", "META", "AA
 // at the relisting date so the two eras never merge. Its session history is short
 // by design, not by omission.
 export const GEX_AUTOCOMPLETE_ROOTS = [
-  "SPY", "QQQ", "IWM", "DIA", "SPX", "NDX", "RUT",
-  "NVDA", "TSLA", "AAPL", "META", "AMZN", "MSFT", "GOOGL", "GOOG", "AMD", "NFLX",
-  "AVGO", "MU", "PLTR", "COIN", "SMCI", "MSTR", "BABA", "INTC", "CRM", "ORCL",
-  "QCOM", "ARM", "MARA", "SOFI", "UBER", "SPCX", "DIS", "BA", "JPM", "XLF", "XLE",
-  "GLD",
+  // Index and broad-market anchors
+  "SPY", "QQQ", "IWM", "DIA", "SPX", "SPXW", "XSP", "NDX", "RUT",
+  // Macro and cross-asset proxies
+  "GLD", "SLV", "TLT", "HYG", "USO", "UUP", "FXI", "EEM",
+  // Sector and industry anchors
+  "XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY",
+  "KRE", "SMH", "SOXX", "XBI", "ARKK",
+  // Mega-cap and high-liquidity technology
+  "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "TSLA", "AMD", "AVGO",
+  "MU", "WDC", "STX", "SNDK", "INTC", "QCOM", "ARM", "TSM", "ASML", "MRVL",
+  "AMAT", "LRCX", "KLAC", "SMCI", "PLTR", "CRWD", "PANW", "ORCL", "CRM", "NOW", "ADBE",
+  // Consumer, communications, and internet
+  "NFLX", "DIS", "UBER", "ABNB", "DASH", "SHOP", "BABA", "JD", "PDD", "SPCX",
+  // Crypto-linked and high-beta finance
+  "COIN", "MSTR", "MARA", "RIOT", "SOFI", "HOOD",
+  // Financials and payments
+  "JPM", "BAC", "GS", "MS", "WFC", "C", "V", "MA", "PYPL",
+  // Energy, health care, industrials, and defense
+  "XOM", "CVX", "OXY", "SLB", "UNH", "LLY", "NVO", "JNJ", "PFE", "ABBV",
+  "BA", "CAT", "DE", "GE", "LMT", "NOC", "RTX",
+  // Autos, travel, and consumer staples/discretionary
+  "F", "GM", "RIVN", "LCID", "AAL", "DAL", "CCL", "RCL", "WMT", "COST", "HD",
+  "NKE", "SBUX", "MCD", "KO", "PEP",
 ];

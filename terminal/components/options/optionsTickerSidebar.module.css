@@ -1,0 +1,32 @@
+.workspace {
+  min-width: 0;
+}
+
+.sidebar {
+  min-width: 0;
+}
+
+.main {
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .workspace {
+    flex-direction: column;
+    overflow: auto !important;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    max-height: 260px;
+    flex: 0 0 auto;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .main {
+    width: 100%;
+    flex: 0 0 auto !important;
+    overflow: visible !important;
+  }
+}

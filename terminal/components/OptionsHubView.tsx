@@ -17,6 +17,12 @@ import { useFlowStream } from "@/lib/flowStream";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
+import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
+import {
+  buildOptionsTickerChoices,
+  optionsTickerNoDataMessage,
+  parseOptionsTickerCatalog,
+} from "@/lib/optionsTickerCatalog";
 import {
   OPTIONS_SCREENER_EXPORT_SCHEMA,
   buildOptionsScreenerCsv,
@@ -39,6 +45,8 @@ import {
 import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import { OptionsCsvExportButton } from "@/components/options/OptionsCsvExportButton";
 import { OptionsFlowBoardView } from "@/components/options/OptionsFlowBoardView";
+import { OptionsTickerSidebar } from "@/components/options/OptionsTickerSidebar";
+import tickerSidebarStyles from "@/components/options/optionsTickerSidebar.module.css";
 import { FlowFreshnessReceipt } from "@/components/flowdesk/FlowFreshnessReceipt";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
@@ -1579,7 +1587,7 @@ export default function OptionsHubView({
   // `feed` also drives cross-tab consumers (unusual_names → ticker candidates)
   // and the shared freshness chrome, so it must stay fresh off the Tape tab too.
   const { data: feed, connected: feedConnected, error: fetchError } = useFlowStream<FeedPayload>("feed");
-  const flowTimingTab = activeTab === "tape" || activeTab === "zero_dte" || activeTab === "largest" || activeTab === "tide";
+  const flowTimingTab = activeTab === "tape" || activeTab === "zero_dte" || activeTab === "largest" || activeTab === "tide" || activeTab === "tickers";
   const { data: flowMeta } = useFlowStream<unknown>(flowTimingTab ? "meta" : null, { pollMs: 60_000 });
   const lastFeedTs = feed?.asof ?? "";
   const [heat, setHeat] = useState<HeatPayload | null>(null);
@@ -1605,7 +1613,7 @@ export default function OptionsHubView({
   // re-entry. This also fixes a latent bug: the old 45s poll never actually refreshed
   // tide — fetchTide short-circuited on `if (tideData) return` after the first load.
   const { data: tideData, connected: tideConnected, error: tideStreamError } = useFlowStream<TidePayload>(
-    activeTab === "tide" ? "tide" : null,
+    activeTab === "tide" || activeTab === "tickers" ? "tide" : null,
   );
   const [dteTide, setDteTide] = useState<DteTidePayload | null>(null);
   const tideLoading = activeTab === "tide" && !tideData;
@@ -1851,17 +1859,32 @@ export default function OptionsHubView({
     ? `${activeSessionDate ? activeSessionDate + " · " : ""}${fmtAsof(activeAsof)} ET`
     : "";
 
-  // Ticker search candidates from tide top_net_impact + unusual names
-  const tickerCandidates: string[] = useMemo(() => {
-    const set = new Set<string>();
-    (tideData?.top_net_impact ?? []).forEach((n) => set.add(n.root));
-    (feed?.unusual_names ?? []).forEach((n) => set.add(n.root));
-    return Array.from(set).sort();
+  // Coverage is producer-owned. Session activity changes rank, never membership.
+  const tickerCatalog = useMemo(() => parseOptionsTickerCatalog(flowMeta), [flowMeta]);
+  const activeTickerRoots = useMemo(() => {
+    const roots = new Set<string>();
+    (tideData?.top_net_impact ?? []).forEach((row) => roots.add(row.root));
+    (feed?.unusual_names ?? []).forEach((row) => roots.add(row.root));
+    return Array.from(roots);
   }, [tideData, feed]);
-
-  const filteredCandidates = tickerSearch.trim()
-    ? tickerCandidates.filter((r) => r.includes(tickerSearch.toUpperCase()))
-    : tickerCandidates.slice(0, 20);
+  const allTickerChoices = useMemo(() => buildOptionsTickerChoices({
+    catalog: tickerCatalog,
+    activeRoots: activeTickerRoots,
+    fallbackRoots: GEX_AUTOCOMPLETE_ROOTS,
+  }), [activeTickerRoots, tickerCatalog]);
+  const filteredCandidates = useMemo(() => buildOptionsTickerChoices({
+    catalog: tickerCatalog,
+    activeRoots: activeTickerRoots,
+    fallbackRoots: GEX_AUTOCOMPLETE_ROOTS,
+    query: tickerSearch,
+  }), [activeTickerRoots, tickerCatalog, tickerSearch]);
+  const netImpactByRoot = useMemo(() => Object.fromEntries(
+    (tideData?.top_net_impact ?? []).map((row) => [row.root, row.net_prem_soft]),
+  ), [tideData]);
+  const selectedTickerChoice = selectedTicker
+    ? allTickerChoices.find((choice) => choice.root === selectedTicker) ?? null
+    : null;
+  const tickerCatalogAvailable = tickerCatalog.length > 0;
 
   // ── Screener fetch ────────────────────────────────────────────────────────
   const [oiData, setOiData] = useState<OiMoversPayload | null>(null);
@@ -2986,77 +3009,25 @@ export default function OptionsHubView({
                lives here to surface IV surface in the same per-ticker context.
           ═══════════════════════════════════════════════════════════════════ */}
           {activeTab === "tickers" && (
-            <div style={{ flex: 1, overflow: "hidden", display: "flex", minHeight: 0 }}>
-              {/* Left sidebar — ticker search + candidate list */}
-              <div
-                style={{
-                  width: 180, flexShrink: 0, borderRight: "1px solid var(--line)",
-                  display: "flex", flexDirection: "column", minHeight: 0,
+            <div className={tickerSidebarStyles.workspace} style={{ flex: 1, overflow: "hidden", display: "flex", minHeight: 0 }}>
+              {/* Producer-owned coverage catalog; activity controls rank only. */}
+              <OptionsTickerSidebar
+                lang={lang}
+                choices={filteredCandidates}
+                totalCount={allTickerChoices.length}
+                catalogAvailable={tickerCatalogAvailable}
+                selectedTicker={selectedTicker}
+                query={tickerSearch}
+                netImpactByRoot={netImpactByRoot}
+                onQueryChange={setTickerSearch}
+                onSelect={(choice) => {
+                  if (tickerSearch.trim()) trackSearch(choice.root, "flow-tickers", tickerSearch.trim());
+                  setSelectedTicker(choice.root);
                 }}
-              >
-                <div style={{ padding: "10px 10px 8px" }}>
-                  <input
-                    type="text"
-                    placeholder={lang === "zh" ? "搜索代码…" : "Search ticker…"}
-                    value={tickerSearch}
-                    onChange={(e) => setTickerSearch(e.target.value)}
-                    style={{
-                      width: "100%", height: 30, padding: "0 10px",
-                      borderRadius: "var(--r-md)", background: "var(--inset)",
-                      border: "1px solid var(--line)", color: "var(--text)",
-                      font: "13px var(--font-ui)",
-                    }}
-                  />
-                </div>
-                <div style={{ flex: 1, overflow: "auto" }}>
-                  {filteredCandidates.map((root) => {
-                    const imp = tideData?.top_net_impact.find((x) => x.root === root);
-                    const isPos = imp ? imp.net_prem_soft > 0 : null;
-                    return (
-                      <button
-                        key={root}
-                        onClick={() => { if (tickerSearch.trim()) trackSearch(root, "flow-tickers", tickerSearch.trim()); setSelectedTicker(root); }}
-                        style={{
-                          display: "flex", alignItems: "center", gap: 8,
-                          width: "100%", padding: "8px 12px", textAlign: "left",
-                          fontSize: 13, fontWeight: selectedTicker === root ? 700 : 400,
-                          color: selectedTicker === root ? "var(--text)" : "var(--text-2)",
-                          background: selectedTicker === root ? "color-mix(in srgb, var(--brand) 10%, transparent)" : "none",
-                          borderRadius: "var(--r)", cursor: "pointer",
-                          transition: "background var(--t)",
-                        }}
-                        onMouseEnter={(e) => { if (selectedTicker !== root) e.currentTarget.style.background = "var(--panel-2)"; }}
-                        onMouseLeave={(e) => { if (selectedTicker !== root) e.currentTarget.style.background = "none"; }}
-                      >
-                        {root}
-                        {imp && (
-                          <span style={{ marginLeft: "auto", fontSize: 11, color: isPos ? "var(--up)" : "var(--down)", fontVariantNumeric: "tabular-nums" }}>
-                            {fmtPremSigned(imp.net_prem_soft)}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                  {filteredCandidates.length === 0 && (
-                    <div style={{ padding: "20px 12px" }}>
-                      <div className="fin-empty-title" style={{ fontSize: 12 }}>
-                        {t("ohNoResults")}
-                      </div>
-                      {/* Why: the list is session-scoped, not a universe search. */}
-                      <div className="fin-empty-why" style={{ marginTop: 5 }}>
-                        {tickerCandidates.length === 0
-                          ? t("ohNoFlowNames")
-                          : (lang === "zh"
-                              ? `仅列出本时段有期权流的 ${tickerCandidates.length} 个标的。`
-                              : `Only the ${tickerCandidates.length} names with flow this session are listed.`)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              />
 
               {/* Main area — fills remaining width */}
-              <div style={{ flex: 1, overflow: "auto", minWidth: 0 }}>
+              <div className={tickerSidebarStyles.main} style={{ flex: 1, overflow: "auto", minWidth: 0 }}>
                 {!selectedTicker && (
                   <div style={{ padding: "24px 16px" }}>
                     <div className="fin-empty fin-empty-lg">
@@ -3064,7 +3035,11 @@ export default function OptionsHubView({
                         {t("tickersSelectPrompt", "Select a ticker from the list or search above")}
                       </div>
                       <div className="fin-empty-why">
-                        {t("ohListRankedByPremium")}
+                        {tickerCatalogAvailable
+                          ? (lang === "zh"
+                              ? "活跃标的优先显示；核心与轮询覆盖仍可完整搜索。"
+                              : "Active names rank first; core and rotating coverage remain fully searchable.")
+                          : t("ohListRankedByPremium")}
                       </div>
                     </div>
                   </div>
@@ -3078,15 +3053,14 @@ export default function OptionsHubView({
                       <div className="fin-empty-title">
                         {t("tickersNoData", "No flow data for this ticker yet")}
                       </div>
-                      {/* Why: quiet name vs closed market — both derivable from state already here. */}
                       <div className="fin-empty-why">
-                        {marketOpenNow
-                          ? (lang === "zh"
-                              ? `${selectedTicker} 本时段暂无达标的期权成交；一旦出现即会显示。`
-                              : `${selectedTicker} has no qualifying options prints this session — the drill fills in as they cross.`)
-                          : (lang === "zh"
-                              ? `市场休市 — ${selectedTicker} 在上一交易时段没有达标的期权成交。`
-                              : `Market closed — ${selectedTicker} carried no qualifying options prints in the last session.`)}
+                        {optionsTickerNoDataMessage(
+                          selectedTickerChoice,
+                          selectedTicker,
+                          marketOpenNow,
+                          lang,
+                          tickerCatalogAvailable,
+                        )}
                       </div>
                     </div>
                   </div>
