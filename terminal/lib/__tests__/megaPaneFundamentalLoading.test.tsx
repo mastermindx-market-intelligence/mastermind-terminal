@@ -12,7 +12,7 @@ vi.mock("@/lib/useMediaQuery", () => ({ useIsMobile: () => false }));
 vi.mock("@/components/chrome/shared-shell/SharedShellPresentation", () => ({ useOptionalSharedShellPresentation: () => null }));
 vi.mock(import("@/components/fin/ResearchWorkspaceNav"), async (importOriginal) => ({
   ...await importOriginal(),
-  default: () => null,
+  default: () => <></>,
 }));
 vi.mock("@/components/fin/OverviewPage", () => ({ default: ({ fund }: { fund: unknown }) => <p data-fund-child>{fund ? "published data" : "uncovered"}</p> }));
 vi.mock("@/components/fin/StatementsPage", () => ({ default: ({ fund }: { fund: unknown }) => <p data-fund-child>{fund ? "published data" : "uncovered"}</p> }));
