@@ -1,0 +1,35 @@
+{
+  "sourceParent": "c4b3ac8f467f1f1ab6db09807c17f7ae6b68f9b1",
+  "protectedPin": "b418e924c734ad5f457aab1b783cacb75dd5a109",
+  "acceptedHelperMerge": "8bc5f9464c38daff607436b7f192360c6915b0dc",
+  "helperContracts": {
+    "command": "node docs/verification/pr733-marker-readiness-recovery-20261111/helper-regression.cjs",
+    "passed": 6,
+    "originalNegativeDiscriminators": 5,
+    "exit": 0,
+    "kind": "Actual original/candidate helpers executed against scripted jsdom geometry; Playwright poll scheduling substituted; no pointer gesture/browser/server"
+  },
+  "isolatedTypecheck": {
+    "command": "./node_modules/.bin/tsc --noEmit --strict --target ES2020 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --jsx react-jsx --lib DOM,DOM.Iterable,ESNext --types node e2e/marker-tooltip.spec.ts",
+    "exit": 0,
+    "scope": "Changed spec plus imported dependencies, not whole-project CI",
+    "initialSetupFailure": "Sparse checkout lacked e2e/settle.ts and isolated invocation omitted DOM.Iterable. Hydrated exact original file and used original DOM iterable profile; no source workaround."
+  },
+  "eslint": {
+    "command": "./node_modules/.bin/eslint e2e/marker-tooltip.spec.ts",
+    "exit": 0,
+    "diagnostics": 0
+  },
+  "versions": {
+    "@playwright/test": "1.61.1",
+    "typescript": "5.9.3",
+    "eslint": "9.39.4",
+    "jsdom": "26.1.0"
+  },
+  "browserExecution": false,
+  "release": "HOLD: #732 acceptance, current-master composition and exact hosted phone/browser proof remain required; two populated-then-hidden flakes are a distinct unrepaired signature",
+  "whitespace": {
+    "authoredSourceAndProseExit": 0,
+    "exactExtractedSourceEOFBlankLinesPreserved": 2
+  }
+}

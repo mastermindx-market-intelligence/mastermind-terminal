@@ -1,0 +1,7 @@
+{"name":"waits past stale requested topology","before":{"state":"ready","reads":2,"cy":202},"after":{"state":"ready","reads":4,"cy":152}}
+{"name":"waits until chart fills the new wrapper","before":{"state":"ready","reads":2,"cy":202},"after":{"state":"ready","reads":4,"cy":152}}
+{"name":"resets stability across an ineligible sample","before":{"state":"ready","reads":2,"cy":152},"after":{"state":"ready","reads":4,"cy":152}}
+{"name":"never admits unresolved topology","before":{"state":"ready","reads":2,"cy":202},"after":{"state":"unsettled","reads":2}}
+{"name":"never admits an unresolved resize","before":{"state":"ready","reads":2,"cy":202},"after":{"state":"unsettled","reads":2}}
+{"name":"preserves two-read readiness when geometry is already final","before":{"state":"ready","reads":2,"cy":152},"after":{"state":"ready","reads":2,"cy":152}}
+6 helper regression contracts passed; 5 original-helper negative discriminators; no browser execution.

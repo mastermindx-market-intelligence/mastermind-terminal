@@ -1,0 +1,21 @@
+{
+  "head": "c4b3ac8f467f1f1ab6db09807c17f7ae6b68f9b1",
+  "protectedPin": "b418e924c734ad5f457aab1b783cacb75dd5a109",
+  "acceptedRepair": "8bc5f9464c38daff607436b7f192360c6915b0dc",
+  "path": "terminal/e2e/marker-tooltip.spec.ts",
+  "originalBlob": "553e09885aebc15a5981dcb5a9fafba66ec07069",
+  "acceptedBlob": "7c2971c8427e31816e39e47e3fa6fe6efd7acb89",
+  "originalSpan": [
+    8445,
+    10307
+  ],
+  "acceptedSpan": [
+    8500,
+    14271
+  ],
+  "prefixAndSuffixExact": true,
+  "testsUnchanged": 9,
+  "candidateSHA256": "8d60dae28d9098cf278e5694a4f6c98c5c566aa3c0466db5ca08df6d69082c50",
+  "acceptedHelperSHA256": "06a5a9c72ef2faca146ed7640ec3aad12cf2f38b73ad3ddbfaf0b56721376845",
+  "releaseHold": "#732 acceptance and exact phone/browser proof remain; current-master conflict not resolved by this bounded helper repair"
+}
