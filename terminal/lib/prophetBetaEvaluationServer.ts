@@ -3,16 +3,21 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { BILLING_BASE, billingAuthResult } from "@/app/api/billing/gateway";
 import { rateLimit } from "@/lib/rateLimit";
+import { fixtureSeamReachable } from "./fixtureSeam";
 import { decodeBetaEvaluation } from "./prophetBetaEvaluation";
 
 export const PROPHET_BETA_EVALUATION_MAX_BYTES = 160 * 1024;
 export const PROPHET_BETA_EVALUATION_DEADLINE_MS = 10_000;
-/** Committed real-artifact copy served in dev/Playwright fixture mode. */
+/** Committed real-artifact copy served in dev/Playwright fixture mode.
+ * Byte-identical (sha256 b3aca79d…) to Macro PR #11022's public
+ * `site/prophet/beta_evaluation.json` (branch
+ * `fable/prophet-beta-evaluation-20261110`, engine code.commit
+ * f1314c9a4966192f651d8a2c392f562367ba01d9) — not synthetic data. */
 export const PROPHET_BETA_EVALUATION_FIXTURE_FILE = "public/data/prophet_beta_evaluation_fixture.json";
 const HEADERS = { "Cache-Control": "private, no-store", Vary: "Authorization, Cookie", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, noarchive" };
 
-function error(code: string, status: number): Response {
-  return Response.json({ error: code }, { status, headers: HEADERS });
+function error(code: string, status: number, extraHeaders: Record<string, string> = {}): Response {
+  return Response.json({ error: code }, { status, headers: { ...HEADERS, ...extraHeaders } });
 }
 function origin(): string | null {
   try {
@@ -54,7 +59,9 @@ async function readJSON(response: Response, signal: AbortSignal): Promise<unknow
 }
 
 function fixtureMode(): boolean {
-  return process.env.FLOW_FIXTURE === "1" || process.env.TERMINAL_E2E_FIXTURE === "1";
+  // The production guard lives in lib/fixtureSeam.ts: a stray fixture variable
+  // on a production host keeps this route live.
+  return fixtureSeamReachable();
 }
 
 /** Fixture branch: the committed REAL artifact (byte-identical to the engine's
@@ -87,7 +94,7 @@ export async function handleProphetBetaEvaluationRequest(request: Request): Prom
     // BFF): every Playwright project shares one loopback IP, so a hard-coded
     // budget here would starve the matrix. The live branch below keeps 60.
     const limited = rateLimit(request, { name: "prophet-beta-evaluation" });
-    if (!limited.ok) return error("rate_limited", 429);
+    if (!limited.ok) return error("rate_limited", 429, { "Retry-After": String(limited.retryAfterSec) });
     return handleFixture();
   }
 
@@ -105,7 +112,7 @@ export async function handleProphetBetaEvaluationRequest(request: Request): Prom
     if (auth.status === "denied") return error("authentication_required", 401);
     if (auth.status !== "ok" || !auth.token) return error("authentication_unavailable", 502);
     const limited = rateLimit(request, { name: "prophet-beta-evaluation", max: 60 });
-    if (!limited.ok) return error("rate_limited", 429);
+    if (!limited.ok) return error("rate_limited", 429, { "Retry-After": String(limited.retryAfterSec) });
 
     phase = "source";
     const response = await within(controller.signal, () => fetch(
@@ -118,9 +125,15 @@ export async function handleProphetBetaEvaluationRequest(request: Request): Prom
       if (response.status === 401) return error("authentication_required", 401);
       if (response.status === 403) return error("entitlement_required", 403);
       if (response.status === 422) return error("invalid_query", 422);
-      // No artifact yet (404), upstream fault (5xx) or throttle — all are
-      // "nothing to show" for the reader; the UI owns one designed state for it.
-      return error("evaluation_unavailable", response.status === 429 ? 429 : 503);
+      // No artifact yet (404) or upstream fault (5xx) — "nothing to show" for
+      // the reader; the UI owns one designed state for it. A throttle keeps
+      // its 429 and forwards the owner's own wait, as the sector BFF does.
+      if (response.status === 429) {
+        const upstreamRetryAfter = response.headers.get("retry-after");
+        return error("evaluation_unavailable", 429,
+          upstreamRetryAfter !== null && /^\d+$/.test(upstreamRetryAfter) ? { "Retry-After": upstreamRetryAfter } : {});
+      }
+      return error("evaluation_unavailable", 503);
     }
     const raw = await readJSON(response, controller.signal);
     // Closed-contract gate: a body outside `prophet.beta_evaluation/v1` is never

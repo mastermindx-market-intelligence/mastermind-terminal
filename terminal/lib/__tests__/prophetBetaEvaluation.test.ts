@@ -5,8 +5,9 @@ import {
   BENCHMARK_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID, COMPARATOR_ORDER,
   decodeBetaEvaluation, EVALUATION_FROM_MAX, evaluationLevelRank, findComparator,
   intervalIncludesZero, orderedComparators, perPlanHorizonMarks, safeEvaluationFromHref,
-  type EventStudyHorizon,
+  type EventStudyHorizon, type PerPlanHorizonMark,
 } from "@/lib/prophetBetaEvaluation";
+import { buildPerPlanVerdictText, perPlanFigure } from "@/lib/prophetEvaluationStrings";
 
 /** The REAL engine artifact, byte-identical to the committed fixture. */
 const realArtifact = (): unknown =>
@@ -375,5 +376,110 @@ describe("safeEvaluationFromHref — the verdict back link's same-app gate", () 
     ["over the budget", `/a${"b".repeat(EVALUATION_FROM_MAX)}`],
   ])("falls back to /prophet for %s", (_name, input) => {
     expect(safeEvaluationFromHref(input)).toBe("/prophet");
+  });
+});
+
+describe("buildPerPlanVerdictText — the sentence never drops a sign (M4)", () => {
+  const mark = (horizon: string, mean: number, legMean: number | null = null): PerPlanHorizonMark => ({
+    horizon, n: 100, mean, direction: mean < 0 ? "behind" : "ahead", legMean,
+  });
+  const BENCHMARK = "SPY";
+
+  it("mixed directions: EN cites every figure signed — no direction word to carry the sign", () => {
+    const text = buildPerPlanVerdictText({
+      marks: [mark("21", -0.0302), mark("42", 0.0471)], lang: "en", benchmarkName: BENCHMARK,
+    });
+    expect(text).not.toBeNull();
+    expect(text).toContain("-3.0% after 21 sessions");
+    expect(text).toContain("+4.7% after 42 sessions");
+    expect(text).not.toMatch(/\b(behind|ahead of) SPY by\b/); // no single direction word in a mixed sentence
+  });
+
+  it("mixed directions: ZH agrees figure-for-figure with EN", () => {
+    const en = buildPerPlanVerdictText({
+      marks: [mark("21", -0.0302), mark("42", 0.0471)], lang: "en", benchmarkName: BENCHMARK,
+    })!;
+    const zh = buildPerPlanVerdictText({
+      marks: [mark("21", -0.0302), mark("42", 0.0471)], lang: "zh", benchmarkName: BENCHMARK,
+    })!;
+    for (const figure of ["-3.0%", "+4.7%"]) {
+      expect(en).toContain(figure);
+      expect(zh).toContain(figure);
+    }
+    expect(zh).not.toMatch(/(?<![-+])3\.0%/); // ZH never carries the unsigned twin either
+  });
+
+  it("uniform directions: EN keeps the direction word and the unsigned magnitude", () => {
+    const text = buildPerPlanVerdictText({
+      marks: [mark("21", -0.0302), mark("42", -0.066)], lang: "en", benchmarkName: BENCHMARK,
+    })!;
+    expect(text).toContain("behind SPY");
+    expect(text).toContain("3.0% after 21 sessions");
+    expect(text).toContain("6.6% after 42 sessions");
+    expect(text).not.toContain("-3.0%"); // uniform: the word carries the sign, not the figure
+  });
+
+  it("uniform directions: ZH cites the same horizons with signed figures", () => {
+    const zh = buildPerPlanVerdictText({
+      marks: [mark("21", -0.0302), mark("42", -0.066)], lang: "zh", benchmarkName: BENCHMARK,
+    })!;
+    expect(zh).toContain("落后于");
+    expect(zh).toContain("-3.0%");
+    expect(zh).toContain("-6.6%");
+  });
+
+  it("leg clauses ride along signed in both languages", () => {
+    const en = buildPerPlanVerdictText({
+      marks: [mark("21", -0.0302, -0.0304)], lang: "en", benchmarkName: BENCHMARK,
+    })!;
+    expect(en).toContain("-3.0% after 21 sessions"); // the leg figure, signed
+    const zh = buildPerPlanVerdictText({
+      marks: [mark("21", -0.0302, -0.0304)], lang: "zh", benchmarkName: BENCHMARK,
+    })!;
+    expect(zh).toContain("个交易日后 -3.0%"); // ZH leg pattern, same signed figure
+  });
+
+  it("no qualifying horizon, no sentence", () => {
+    expect(buildPerPlanVerdictText({ marks: [], lang: "en", benchmarkName: BENCHMARK })).toBeNull();
+  });
+});
+
+describe("perPlanFigure — a mark never rounds to zero beside 'larger than chance' (m4)", () => {
+  it.each([
+    [-0.0004, true, "-0.04%"],
+    [0.0004, true, "+0.04%"],
+    [-0.0004, false, "0.04%"],
+  ])("%p signed=%p renders %p, never a rounded-to-zero magnitude", (value, signed, expected) => {
+    expect(perPlanFigure(value, signed)).toBe(expected);
+  });
+
+  it.each([
+    [-0.0302, true, "-3.0%"],
+    [0.0471, true, "+4.7%"],
+    [-0.0302, false, "3.0%"],
+    [-0.0049, true, "-0.5%"], // rounds away from zero at one decimal — the honest 1dp form stands
+  ])("%p signed=%p keeps the honest one-decimal form %p", (value, signed, expected) => {
+    expect(perPlanFigure(value, signed)).toBe(expected);
+  });
+
+  it("a near-zero mark in a MIXED sentence reads signed with its decimals, never '-0.0%'", () => {
+    const text = buildPerPlanVerdictText({
+      marks: [
+        { horizon: "21", n: 100, mean: -0.0004, direction: "behind", legMean: null },
+        { horizon: "42", n: 90, mean: 0.0471, direction: "ahead", legMean: null },
+      ],
+      lang: "en", benchmarkName: "SPY",
+    })!;
+    expect(text).toContain("-0.04% after 21 sessions");
+    expect(text).not.toContain("0.0%");
+  });
+
+  it("a near-zero UNIFORM mark keeps the direction word and gains the decimal, never 'by 0.0%'", () => {
+    const text = buildPerPlanVerdictText({
+      marks: [{ horizon: "21", n: 100, mean: -0.0004, direction: "behind", legMean: null }],
+      lang: "en", benchmarkName: "SPY",
+    })!;
+    expect(text).toContain("behind SPY by 0.04% after 21 sessions");
+    expect(text).not.toContain("0.0%");
   });
 });

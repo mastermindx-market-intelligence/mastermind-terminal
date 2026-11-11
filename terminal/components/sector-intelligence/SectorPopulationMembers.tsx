@@ -34,12 +34,15 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { fetchSectorPopulation, POPULATION_QUERY,
   type PopulationGroupIndexEntry, type PopulationPage, type PopulationRead, type PopulationUnservedReason } from "@/lib/sectorPopulation";
 import { DEFAULT_PROPHET_STATE, encodeProphetFrom, parseProphetFrom, prophetHref } from "@/lib/prophetUrlState";
+import {
+  prophetPopulationHref, readProphetPopulationFilters,
+} from "@/lib/prophetPopulationFilters";
 import { makeProphetSectorT, prophetSectorFill } from "@/components/prophet/sector/prophetSectorStrings";
 import { nativeFill } from "./SectorNativeJobShell";
 import styles from "./SectorNative.module.css";
@@ -71,11 +74,23 @@ export default function SectorPopulationMembers() {
   const prophetT = makeProphetSectorT(lang);
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [pages, setPages] = useState<PopulationPage[]>([]);
   const [phase, setPhase] = useState<"loading" | "ready" | PopulationRead["status"]>("loading");
-  const [group, setGroup] = useState<string>("");
-  const [query, setQuery] = useState("");
-  const [applied, setApplied] = useState<string | null>(null);
+  // The picker's filters ARE the address (M3): the two prophet-prefixed keys
+  // this block owns (lib/prophetPopulationFilters.ts) are derived on every
+  // render, so a shared link, a Prophet-lane return and browser Back all
+  // restore the exact selection with no sync machinery to drift. The
+  // workspace's own URL rewrites preserve our keys byte-for-byte — pinned by
+  // the survival test in prophetPopulationFilters.test.ts, not assumed.
+  const urlFilters = readProphetPopulationFilters(searchParams);
+  const group = urlFilters.group ?? "";
+  const applied = urlFilters.q;
+  // The search input's draft is the only local filter state: null means
+  // "mirrors the applied search", so the field follows the address (a Back
+  // to another filter commit, a cleared search) without an effect.
+  const [draftQuery, setDraftQuery] = useState<string | null>(null);
+  const query = draftQuery ?? applied ?? "";
   const [cursorNote, setCursorNote] = useState<string | null>(null);
   // B1 (review): the wire carries `group_index` ONLY on the unfiltered first
   // page. The list is captured once per capture — `contextRef` identifies the
@@ -162,6 +177,19 @@ export default function SectorPopulationMembers() {
     return () => { abort.current?.abort(); };
   }, [run]);
 
+  /** This block's own address write: the current page address with ONLY the
+   * two population keys changed (prophetPopulationHref preserves every other
+   * parameter — the workspace's own state keys are not ours to touch). A
+   * push, not a replace: Back walks filter commits and lands on each one. */
+  const pushPopulationFilters = (next: { group?: string; q?: string | null }) => {
+    const groupValue = next.group !== undefined ? next.group : group;
+    const qValue = next.q !== undefined ? next.q : applied;
+    router.push(prophetPopulationHref(pathname, searchParams, {
+      group: groupValue === "" ? null : groupValue,
+      q: qValue === null || qValue === "" ? null : qValue,
+    }), { scroll: false });
+  };
+
   const head = pages[0] ?? null;
   const counts = head?.counts ?? null;
   // Item 5 (COO 19:15Z) + B-1/N-4 (third review): the ONE stated rule lives in
@@ -203,8 +231,9 @@ export default function SectorPopulationMembers() {
     // B2: `run` is keyed on [group, applied] — an unchanged query fires no
     // request, so it must also never enter a "loading" nothing-will-leave state.
     if (nextApplied === applied) return;
-    setApplied(nextApplied);
+    setDraftQuery(null); // the field mirrors the address again
     setPhase("loading");
+    pushPopulationFilters({ q: nextApplied });
   };
 
   const searchInvalid = query.trim() !== "" && !POPULATION_QUERY.test(query.trim());
@@ -259,8 +288,8 @@ export default function SectorPopulationMembers() {
       <select id="sector-population-group" className={shell.button} value={group}
         onChange={event => {
           if (event.target.value === group) return; // same filter: no request fires, no loading state
-          setGroup(event.target.value);
           setPhase("loading");
+          pushPopulationFilters({ group: event.target.value });
         }} disabled={!groupIndex && !group}>
         <option value="">{t("siPopulationGroupAll")}</option>
         {groupIndex?.map(entry => <option key={entry.groupId} value={entry.groupId}>
@@ -272,11 +301,11 @@ export default function SectorPopulationMembers() {
       <form className={styles.populationSearch} onSubmit={submitSearch} role="search">
         <label className={styles.populationLabel} htmlFor="sector-population-q">{t("siPopulationSearchLabel")}</label>
         <input id="sector-population-q" className={styles.populationInput} value={query}
-          onChange={event => setQuery(event.target.value)} autoComplete="off"
+          onChange={event => setDraftQuery(event.target.value)} autoComplete="off"
           aria-invalid={searchInvalid} placeholder={t("siPopulationSearchLabel")} />
         <button type="submit" className={shell.button} disabled={searchInvalid}>{t("siPopulationSearchSubmit")}</button>
         {applied !== null && <button type="button" className={shell.button}
-          onClick={() => { setQuery(""); setApplied(null); setPhase("loading"); }}>{t("siPopulationSearchClear")}</button>}
+          onClick={() => { setDraftQuery(null); setPhase("loading"); pushPopulationFilters({ q: null }); }}>{t("siPopulationSearchClear")}</button>}
       </form>
     </div>
     {searchInvalid ? <p className={styles.stateCopy} role="alert">{t("siPopulationSearchInvalid")}</p> : null}
@@ -322,6 +351,7 @@ export default function SectorPopulationMembers() {
                   not in the Prophet universe) reads "—", state-free. */}
               <td>{row.prophetEligibility.status === "eligible"
                 ? <Link
+                    className={styles.prophetRowLink}
                     data-testid="population-row-prophet"
                     href={prophetRowHref(row.groupId)}
                     aria-label={prophetSectorFill(prophetT("rowProphetState"), { symbol: row.symbol })}

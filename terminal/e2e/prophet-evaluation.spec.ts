@@ -10,7 +10,7 @@ import {
   fmtSignedPercent, fmtSignedPp,
 } from "../lib/prophetBetaEvaluationFormat";
 import {
-  comparatorShortName, evaluationLevelLabel, getEvaluationStr, humanizeEngineText,
+  comparatorShortName, evaluationLevelLabel, getEvaluationStr, humanizeEngineText, perPlanFigure,
 } from "../lib/prophetEvaluationStrings";
 
 /**
@@ -83,10 +83,14 @@ const h63 = ART.eventStudy.horizons.find(h => h.horizon === "63") ?? null;
 // absent — the tests below assert both directions from this one derivation.
 const perPlan = perPlanHorizonMarks(ART.eventStudy.horizons);
 const perPlanUniform = perPlan.length > 0 && perPlan.every(m => m.direction === perPlan[0].direction);
+// The mark figures use the production grammar (perPlanFigure): unsigned in a
+// uniform-direction sentence (the direction word carries the sign), signed in
+// a mixed one — and never rounded to zero beside the "larger than chance"
+// clause (a second decimal when one decimal would read 0.0%).
 const perPlanMarkEn = (m: { horizon: string; n: number; mean: number }): string =>
-  `${fmtPercent(Math.abs(m.mean))} after ${m.horizon} sessions (${fmtCount(m.n)} plans)`;
+  `${perPlanFigure(m.mean, !perPlanUniform)} after ${m.horizon} sessions (${fmtCount(m.n)} plans)`;
 const perPlanLegEn = (m: { horizon: string; legMean: number | null }): string | null =>
-  m.legMean === null ? null : `${fmtSignedPercent(m.legMean)} after ${m.horizon} sessions`;
+  m.legMean === null ? null : `${perPlanFigure(m.legMean, true)} after ${m.horizon} sessions`;
 const perPlanGapKey = perPlan.length === 1 ? "perPlanGapOne" : perPlan.length === 2 ? "perPlanGapBoth" : "perPlanGapAll";
 
 const EN = getEvaluationStr.bind(null, "en") as (key: Parameters<typeof getEvaluationStr>[1]) => string;

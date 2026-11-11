@@ -7,7 +7,7 @@ vi.mock("@/app/api/billing/gateway", () => ({
   BILLING_BASE: "https://macro.test",
   billingAuthResult: vi.fn(async () => state.auth === "ok" ? { status: "ok", token: state.token } : { status: state.auth }),
 }));
-vi.mock("@/lib/rateLimit", () => ({ rateLimit: () => ({ ok: true }) }));
+vi.mock("@/lib/rateLimit", () => ({ rateLimit: vi.fn(() => ({ ok: true })) }));
 
 import { GET } from "@/app/api/prophet/beta-evaluation/route";
 import { decodeBetaEvaluation } from "@/lib/prophetBetaEvaluation";
@@ -116,6 +116,12 @@ describe("the strategy-evaluation BFF (live path)", () => {
 });
 
 describe("the strategy-evaluation BFF (fixture mode)", () => {
+  /** NODE_ENV is read-only in Next's process typings; the seam reads the same
+   * runtime slot these tests must be able to pin. */
+  const setNodeEnv = (value: string | undefined) => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = value;
+  };
+
   it("serves the committed real artifact through the same closed decoder gate", async () => {
     process.env.TERMINAL_E2E_FIXTURE = "1";
     const response = await GET(request());
@@ -130,5 +136,65 @@ describe("the strategy-evaluation BFF (fixture mode)", () => {
     process.env.FLOW_FIXTURE = "1";
     await GET(request());
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("stays live in a production runtime: a stray fixture variable alone trips the guard", async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    setNodeEnv("production");
+    delete process.env.TERMINAL_E2E_CANARY;
+    process.env.FLOW_FIXTURE = "1";
+    try {
+      const response = await GET(request());
+      expect(response.status).toBe(200); // live path: auth + upstream, no fixture shortcut
+      expect(response.headers.get("x-flow-source")).toBeNull();
+      expect(fetch).toHaveBeenCalled();
+    } finally {
+      setNodeEnv(previousNodeEnv);
+    }
+  });
+
+  it("reaches the fixture branch in production only with the canary marker", async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    setNodeEnv("production");
+    process.env.TERMINAL_E2E_CANARY = "1";
+    process.env.TERMINAL_E2E_FIXTURE = "1";
+    try {
+      const response = await GET(request());
+      expect(response.status).toBe(200);
+      expect(response.headers.get("x-flow-source")).toBe("fixture");
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      setNodeEnv(previousNodeEnv);
+      delete process.env.TERMINAL_E2E_CANARY;
+    }
+  });
+});
+
+describe("the strategy-evaluation BFF (throttling)", () => {
+  it("carries the local limiter's wait on its 429 (Retry-After, as the sector BFF)", async () => {
+    const limited = vi.mocked(await import("@/lib/rateLimit")).rateLimit;
+    limited.mockReturnValueOnce({ ok: false, remaining: 0, retryAfterSec: 37 } as never);
+    const result = await GET(request());
+    expect(result.status).toBe(429);
+    expect(result.headers.get("retry-after")).toBe("37");
+    expect(result.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it("keeps an upstream 429 a 429 and forwards the owner's own wait", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "throttled" }), {
+      status: 429, headers: { "Content-Type": "application/json", "Retry-After": "17" },
+    })));
+    const result = await GET(request());
+    expect(result.status).toBe(429);
+    expect(result.headers.get("retry-after")).toBe("17");
+  });
+
+  it("keeps an upstream 429 a 429 even when the owner sends no usable wait", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "throttled" }), {
+      status: 429, headers: { "Content-Type": "application/json" },
+    })));
+    const result = await GET(request());
+    expect(result.status).toBe(429);
+    expect(result.headers.get("retry-after")).toBeNull();
   });
 });

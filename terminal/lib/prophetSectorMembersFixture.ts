@@ -9,8 +9,16 @@
  * of the rules. The function is pure: it never reads the network or disk; the
  * caller supplies the decoded fixture body (read from the committed
  * `public/data/prophet_sector_members_fixture/` files) and gets a new response
- * object back. Fixtures are synthetic (design-spec numbers); when Macro's real
- * captures land they replace these files and this engine is unchanged.
+ * object back.
+ *
+ * The committed files are REAL captures of Macro's `prophet.sector_members/v1`
+ * (generation `qualify-2026-11-06`, `captured_at: 2026-11-11T04:55:46Z`,
+ * committed in 81e345dd on 2026-11-10) — not synthetic numbers. Every fact
+ * they carry is already public in the Macro repository's `origin/main`:
+ * plan ids, directions, entry/invalidation/target levels and dates in
+ * `site/prophet/plans/<PLAN_ID>.json`, phases and management state in
+ * `site/prophet/states/<PLAN_ID>.json` (verified 2026-11-11 for all 34 plan
+ * ids in the captures).
  */
 import {
   PROPHET_MEMBER_STATES, prophetMemberStateRank, SECTOR_MEMBERS_DEFAULT_LIMIT,

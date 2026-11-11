@@ -39,10 +39,13 @@ const enterSectorLane = async (page: Page) => {
  * `site/prophet/index.json`, asof 2026-11-09, source_asof 2026-11-06; plan row
  * sha256 bcdb39369d807417503c65e25dc3ad62fe4b64d0b9f513a0e75678f2847e7808),
  * projected onto exactly the 19 keys the committed board rows carry — every
- * value verbatim, nothing invented. The committed fixture board is the
- * 2026-07-07 generation and does not contain this plan; the review caught the
- * previous stub relabelling the SBUX template row as CARR, which put
- * Starbucks' levels and thesis on Carrier's setup. */
+ * value verbatim, nothing invented. Every level, date, state and the thesis
+ * are already public in Macro `origin/main` at `site/prophet/plans/
+ * CARR-BULL-20261016.json` and `site/prophet/states/
+ * CARR-BULL-20261016.json` (verified 2026-11-11). The committed fixture board
+ * is the 2026-07-07 generation and does not contain this plan; the review
+ * caught the previous stub relabelling the SBUX template row as CARR, which
+ * put Starbucks' levels and thesis on Carrier's setup. */
 const REAL_CARR_BOARD_PLAN = {
   id: "CARR-BULL-20261016",
   asset: "CARR",
@@ -170,6 +173,13 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(setup.locator(".obs-prophet-analysis").first()).toBeVisible();
     const setupText = await setup.innerText();
     expect(setupText).toContain("CARR");
+    // The membership shown is the one the reader is investigating: CARR sits
+    // in Housing AND Industrials and Housing is memberOf[0] in the capture —
+    // arriving from the Industrials population must show Industrials' own
+    // group context ("What {group} is doing", clocks, return), never
+    // Housing's. also_in_groups is never rendered, so "Housing" can only
+    // reach the screen through the wrong-membership pick (review M1).
+    expect(setupText).not.toContain("Housing");
     expect(setupText).toContain("conviction 53/100"); // the SBUX template reads 42/100
     expect(setupText).toContain("Industrials (Equal-Weight) basket"); // CARR's own basket clause
     expect(setupText).toContain(`$${(56.47).toFixed(2)}`); // entry
@@ -352,6 +362,73 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("prophet-sector-setup")).toContainText("CARR 研究起点");
   });
+
+  test("a >100-member group pages: Next/Prev issues the new offset and the rows change", async ({ page }) => {
+    test.setTimeout(90_000);
+    await withLang(page);
+    // The committed industrials capture has 83 members — one page, no pager
+    // journey. This wire keeps the capture's shape and swaps in a 130-member
+    // roster across two offset-keyed pages of unique symbols, so the pager has
+    // a second page and the fetch key has to carry offset (review M2): before
+    // that fix, Next relabelled the pager and left page one's rows on screen
+    // under a "101–130" label.
+    const group = JSON.parse(readFileSync(
+      "public/data/prophet_sector_members_fixture/group_us_sector_industrials.json", "utf8")) as {
+      members: Record<string, unknown>[];
+      counts: Record<string, number | null>;
+    } & Record<string, unknown>;
+    const template = group.members.find(
+      member => (member.prophet as Record<string, unknown>).state === "none")!;
+    const rows = (offset: number, count: number) => Array.from({ length: count }, (_, i) => ({
+      ...template,
+      symbol: `Z${String(offset + i).padStart(3, "0")}`,
+      name: `Paged Member ${offset + i}`,
+    }));
+    const requestedOffsets: number[] = [];
+    await page.route("**/api/prophet/sector-members?*group=us_sector_industrials*", async route => {
+      const offset = Number(new URL(route.request().url()).searchParams.get("offset") ?? "0");
+      requestedOffsets.push(offset);
+      const pageMeta = offset === 0
+        ? { offset: 0, limit: 100, total_matching: 130, next_offset: 100, q: null, state: null }
+        : { offset: 100, limit: 100, total_matching: 130, next_offset: null, q: null, state: null };
+      return route.fulfill({
+        status: 200,
+        json: {
+          ...group,
+          counts: { ...group.counts, configured: 130, served: 130, none: 130,
+            open_plan: 0, resolved_plan: 0, early_observation: 0, unavailable: 0 },
+          members: offset === 0 ? rows(0, 100) : rows(100, 30),
+          page: pageMeta,
+        },
+        headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store" },
+      });
+    });
+    await page.goto("/options?tab=prophet");
+    await enterSectorLane(page);
+    await page.getByTestId("prophet-sector-pick-us_sector_industrials").click();
+    await expect(page.getByTestId("prophet-sector-open-Z000")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("prophet-sector-pager")).toContainText("Showing 1 of 130–100");
+    await expect(page.getByTestId("prophet-sector-open-Z099")).toBeVisible();
+
+    // Next: a NEW request carrying the new offset — and the first row changes.
+    await page.getByTestId("prophet-sector-page-next").click();
+    await expect(page.getByTestId("prophet-sector-open-Z100")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("prophet-sector-open-Z000")).toHaveCount(0);
+    await expect(page.getByTestId("prophet-sector-open-Z129")).toBeVisible();
+    await expect(page.getByTestId("prophet-sector-pager")).toContainText("Showing 101 of 130–130");
+    await expect(page).toHaveURL(/prophetOffset=100/);
+
+    // Prev: back to page one — again a request, again the rows change, and
+    // offset 0 leaves the address entirely.
+    await page.getByTestId("prophet-sector-page-prev").click();
+    await expect(page.getByTestId("prophet-sector-open-Z000")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("prophet-sector-open-Z100")).toHaveCount(0);
+    await expect(page).not.toHaveURL(/prophetOffset=/);
+
+    // The decisive read: every page turn reached the wire with its own offset.
+    const turns = requestedOffsets.filter((offset, i) => i === 0 || offset !== requestedOffsets[i - 1]);
+    expect(turns).toEqual([0, 100, 0]);
+  });
 });
 
 test.describe("Sector → Prophet entry (needs the isolated sector-side commit)", () => {
@@ -393,15 +470,13 @@ test.describe("Sector → Prophet entry (needs the isolated sector-side commit)"
     return body;
   }
 
-  test("the member row links into Prophet and the return restores the exact origin", async ({ page }) => {
-    test.setTimeout(90_000);
-    await withLang(page);
-    // The dossier needs a decoding generation feed before it renders any view
-    // (its honest no-generation state is a transport card, not the member
-    // table), so this stub serves the whole sector-intelligence family the
-    // same way sector-leadership-dossier.spec.ts does: the shared fixture for
-    // every feed, the population capture extended with Prophet-eligible rows,
-    // and a synthetic generation parent.
+  /** The workspace stub every sector-entry test shares: the whole
+   * sector-intelligence family served the way sector-leadership-dossier.spec.ts
+   * serves it — the shared fixture for every feed, the population capture
+   * extended with Prophet-eligible rows, and a synthetic generation parent
+   * (the dossier needs a decoding generation feed before it renders any
+   * view). */
+  async function stubSectorWorkspace(page: Page) {
     await page.route("**/api/sector-intelligence?**", async route => {
       const source = new URL(route.request().url()).searchParams.get("source") || "";
       if (source === "population") {
@@ -433,6 +508,12 @@ test.describe("Sector → Prophet entry (needs the isolated sector-side commit)"
       }
       return sectorFixture(route);
     });
+  }
+
+  test("the member row links into Prophet and the return restores the exact origin", async ({ page }) => {
+    test.setTimeout(90_000);
+    await withLang(page);
+    await stubSectorWorkspace(page);
 
     // The dossier's Companies view needs the full workspace state in the
     // address: sectorWorkspace=detail alone keeps the legacy detail surface —
@@ -460,5 +541,69 @@ test.describe("Sector → Prophet entry (needs the isolated sector-side commit)"
     await back.click();
     await expect(page).toHaveURL(new RegExp(origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     await expect(page.getByRole("row", { name: /CARR/ }).first()).toBeVisible({ timeout: 20_000 });
+  });
+
+  /** M3's shared proof, run at desktop and at 390px: the picker's group and
+   * the applied search ride the page's address under the population block's
+   * own prophet-prefixed keys, so BOTH return paths — the labelled Prophet
+   * return control and browser Back — restore the exact selection. */
+  async function assertPopulationFiltersSurviveTheProphetRoundTrip(page: Page) {
+    const carrRow = page.getByRole("row", { name: /CARR/ }).first();
+    await expect(carrRow).toBeVisible({ timeout: 20_000 });
+
+    // Change the picker's group, then apply a search, before leaving.
+    await page.locator("#sector-population-group").selectOption("us_sector_industrials");
+    await expect(page).toHaveURL(/prophetPopulationGroup=us_sector_industrials/);
+    await page.locator("#sector-population-q").fill("CA");
+    await page.locator("#sector-population-q").press("Enter");
+    await expect(page).toHaveURL(/prophetPopulationQ=CA/);
+    await expect(page.getByRole("row", { name: /CARR/ }).first()).toBeVisible({ timeout: 20_000 });
+
+    const restored = async () => {
+      await expect(page.getByRole("row", { name: /CARR/ }).first()).toBeVisible({ timeout: 20_000 });
+      await expect(page.locator("#sector-population-group")).toHaveValue("us_sector_industrials");
+      await expect(page.locator("#sector-population-q")).toHaveValue("CA");
+      await expect(page).toHaveURL(/prophetPopulationGroup=us_sector_industrials/);
+      await expect(page).toHaveURL(/prophetPopulationQ=CA/);
+    };
+
+    // Return path 1: the labelled Prophet return control.
+    await carrRow.getByTestId("population-row-prophet").first().click();
+    await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("prophet-sector-return").click();
+    await restored();
+
+    // Return path 2: browser Back onto the same workspace address.
+    await page.getByRole("row", { name: /CARR/ }).first()
+      .getByTestId("population-row-prophet").first().click();
+    await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 20_000 });
+    await page.goBack();
+    await restored();
+  }
+
+  test("the picker's group and search ride the address and survive the Prophet round-trip (desktop)", async ({ page }) => {
+    test.setTimeout(90_000);
+    await withLang(page);
+    await stubSectorWorkspace(page);
+    const origin = "/discover?tab=sectors&sectorWorkspace=detail&sectorJob=research&sectorView=companies&group=us_sector_industrials";
+    await page.goto(origin);
+    await assertPopulationFiltersSurviveTheProphetRoundTrip(page);
+  });
+
+  test("the same round-trip at 390px, on a 44px Prophet row link", async ({ page }) => {
+    test.setTimeout(90_000);
+    await withLang(page);
+    await stubSectorWorkspace(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    const origin = "/discover?tab=sectors&sectorWorkspace=detail&sectorJob=research&sectorView=companies&group=us_sector_industrials";
+    await page.goto(origin);
+    // m3: the row's Prophet affordance is a thumb-sized target at phone
+    // width, not the 13px text line it wraps.
+    const link = page.getByRole("row", { name: /CARR/ }).first()
+      .getByTestId("population-row-prophet").first();
+    await expect(link).toBeVisible({ timeout: 20_000 });
+    const box = await link.boundingBox();
+    expect(box && box.height).toBeGreaterThanOrEqual(44);
+    await assertPopulationFiltersSurviveTheProphetRoundTrip(page);
   });
 });

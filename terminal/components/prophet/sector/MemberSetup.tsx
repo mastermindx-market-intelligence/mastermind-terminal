@@ -28,9 +28,13 @@ import styles from "./prophetSector.module.css";
 interface BoardPlanLike { id: string; [key: string]: unknown }
 interface BoardPayloadLike { plans?: BoardPlanLike[] }
 
-export function MemberSetup({ payload, onBack }: {
+export function MemberSetup({ payload, onBack, originGroupId }: {
   payload: Extract<SectorMembersPayload, { mode: "symbol" }>;
   onBack: () => void;
+  /** The population group the reader arrived from: a multi-group symbol
+   * (CARR sits in Housing AND Industrials) shows THIS group's membership,
+   * falling back to the first only when the origin is not among them. */
+  originGroupId: string | null;
 }) {
   const { lang } = useLang();
   const t = makeProphetSectorT(lang);
@@ -38,7 +42,8 @@ export function MemberSetup({ payload, onBack }: {
   const [boardPlan, setBoardPlan] = useState<BoardPlanLike | null>(null);
   const [boardPhase, setBoardPhase] = useState<"loading" | "ready" | "unavailable">("loading");
 
-  const membership = payload.memberOf[0] ?? null;
+  const membership = payload.memberOf.find(entry => entry.group.id === originGroupId)
+    ?? payload.memberOf[0] ?? null;
   const group = membership?.group ?? null;
   const member = membership?.member ?? null;
   const prophet = payload.prophet;

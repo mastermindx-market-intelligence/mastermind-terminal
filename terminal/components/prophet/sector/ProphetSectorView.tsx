@@ -16,7 +16,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import {
-  fetchProphetSectorMembers, type ProphetMemberState, type SectorMembersPayload, type SectorMembersRead,
+  fetchProphetSectorMembers, sectorGroupFetchKey,
+  type ProphetMemberState, type SectorMembersPayload, type SectorMembersRead,
 } from "@/lib/prophetSectorMembers";
 import { prophetFromReturnHref, type ProphetUrlState } from "@/lib/prophetUrlState";
 import { SectorContextStrip } from "./SectorContextStrip";
@@ -80,8 +81,12 @@ export function ProphetSectorView({ state, update }: {
   const indexFetch = useSectorMembersFetch<Extract<SectorMembersPayload, { mode: "index" }>>(
     true, () => ({}), () => "index");
   // group — the full member population (population view; also the deep-linked
-  // overview context when a group is already selected).
-  const groupKey = `${state.group ?? ""}|${state.q}|${state.state ?? ""}`;
+  // overview context when a group is already selected). The key must name
+  // EVERY input of the request: offset included, or Next/Prev relabels the
+  // page without refetching the rows behind it.
+  const groupKey = sectorGroupFetchKey({
+    group: state.group, q: state.q, state: state.state, offset: state.offset,
+  });
   const groupFetch = useSectorMembersFetch<Extract<SectorMembersPayload, { mode: "group" }>>(
     state.group !== null && state.view !== "setup",
     () => ({ group: state.group ?? undefined, q: state.q || null, state: state.state, offset: state.offset }),
@@ -106,9 +111,13 @@ export function ProphetSectorView({ state, update }: {
   const symbolReady = symbolFetch.read.status === "ready" ? symbolFetch.read.payload : null;
 
   // The context strip's group source: the group read in population, the
-  // symbol's own membership in setup, the index descriptor in overview.
+  // symbol's own membership in setup, the index descriptor in overview. A
+  // multi-group symbol (CARR sits in Housing AND Industrials) shows the group
+  // the reader is investigating, not whichever membership happens to be first.
+  const membershipFor = (memberOf: Extract<SectorMembersPayload, { mode: "symbol" }>["memberOf"]) =>
+    memberOf.find(entry => entry.group.id === state.group) ?? memberOf[0];
   const contextGroup = state.view === "setup"
-    ? symbolReady?.memberOf[0]?.group ?? null
+    ? symbolReady ? membershipFor(symbolReady.memberOf)?.group ?? null : null
     : groupReady?.group ?? (state.group !== null ? indexReady?.groups.find(g => g.id === state.group) ?? null : null);
   const contextEnvelope = state.view === "setup" ? symbolReady : groupReady ?? indexReady;
 
@@ -218,7 +227,7 @@ export function ProphetSectorView({ state, update }: {
 
         {state.view === "setup" ? (
           symbolFetch.read.status === "ready"
-            ? <MemberSetup payload={symbolFetch.read.payload} onBack={backToPopulation} />
+            ? <MemberSetup payload={symbolFetch.read.payload} onBack={backToPopulation} originGroupId={state.group} />
             : fetchStateBlock(symbolFetch.read as Read<never>, symbolFetch.retry, "prophet-sector-symbol")
         ) : null}
       </div>

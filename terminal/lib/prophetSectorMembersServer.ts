@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { BILLING_BASE, billingAuthResult } from "@/app/api/billing/gateway";
 import { rateLimit } from "@/lib/rateLimit";
+import { fixtureSeamReachable } from "./fixtureSeam";
 import {
   decodeProphetSectorMembers, PROPHET_MEMBER_STATES,
   SECTOR_MEMBERS_GROUP_ID, SECTOR_MEMBERS_MAX_LIMIT, SECTOR_MEMBERS_QUERY, SECTOR_MEMBERS_SYMBOL,
@@ -112,12 +113,15 @@ function readQuery(request: Request): { ok: true; query: ForwardedQuery } | { ok
 }
 
 function fixtureMode(): boolean {
-  return process.env.FLOW_FIXTURE === "1" || process.env.TERMINAL_E2E_FIXTURE === "1";
+  // The production guard lives in lib/fixtureSeam.ts: a stray fixture variable
+  // on a production host keeps this route live.
+  return fixtureSeamReachable();
 }
 
-/** Fixture branch: the committed synthetic captures answer without any
- * upstream or billing dependency (dev + Playwright), with the SAME query
- * semantics as the real endpoint (shared engine in prophetSectorMembersFixture). */
+/** Fixture branch: the committed REAL captures (see prophetSectorMembersFixture
+ * for provenance) answer without any upstream or billing dependency
+ * (dev + Playwright), with the SAME query semantics as the real endpoint
+ * (shared engine in prophetSectorMembersFixture). */
 async function handleFixture(query: ForwardedQuery): Promise<Response> {
   try {
     let file: string;

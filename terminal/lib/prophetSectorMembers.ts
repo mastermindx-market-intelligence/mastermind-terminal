@@ -528,6 +528,15 @@ export type SectorMembersFetch = {
   q?: string | null; state?: ProphetMemberState | null; signal?: AbortSignal;
 };
 
+/** Fetch key for the group population read: names EVERY input of the request.
+ * offset is part of the key, or a page turn relabels the pager without
+ * refetching the rows behind it (rows 1-100 shown as "101-200"). */
+export function sectorGroupFetchKey(input: {
+  group: string | null; q: string; state: ProphetMemberState | null; offset: number;
+}): string {
+  return `${input.group ?? ""}|${input.q}|${input.state ?? ""}|${input.offset}`;
+}
+
 /** Client fetch of the BFF proxy. The BFF owns auth/entitlement; this client
  * only forwards contract query parameters. Network failure reads as retry; a
  * caller abort propagates as a throw so React state stays owned by the caller. */

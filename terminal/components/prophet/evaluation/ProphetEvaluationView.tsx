@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useLang, type Lang } from "@/lib/i18n";
 import MobileSheet from "@/components/ui/MobileSheet";
 import {
-  comparatorShortName, evaluationLevelLabel, criterionLabel,
+  buildPerPlanVerdictText, comparatorShortName, evaluationLevelLabel, criterionLabel,
   exclusionReasonLabel, fillTemplate, humanizeEngineText, humanizeIdentifier,
   makeEvaluationT, type EvaluationLexKey,
 } from "@/lib/prophetEvaluationStrings";
@@ -285,46 +285,16 @@ export default function ProphetEvaluationView() {
             Every figure is interpolated from the fixed-horizon study, and the
             sentence renders only when a matured horizon's date-cluster
             interval on excess_vs_spy excludes zero — no qualifying horizon,
-            no sentence. Unmatured horizons are never cited. */}
+            no sentence. Unmatured horizons are never cited. Assembly lives in
+            buildPerPlanVerdictText (lib/prophetEvaluationStrings.ts): signed
+            figures in mixed-direction sentences, never a rounded-to-zero
+            magnitude beside the "larger than chance" clause. */}
         {(() => {
-          const marks = perPlanHorizonMarks(data.eventStudy.horizons);
-          if (marks.length === 0) return null;
-          const uniform = marks.every(m => m.direction === marks[0].direction);
-          const joinMarks = (parts: string[]) => lang === "zh"
-            ? parts.join("，")
-            : parts.length === 2 ? `${parts[0]} and ${parts[1]}`
-              : parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
-          const markTexts = marks.map(m => fillTemplate(t("perPlanMark"), {
-            // EN: the direction word carries the sign, so the magnitude is
-            // unsigned ("behind SPY by 3.0%"). ZH: the figure is signed.
-            mag: fmtPercent(Math.abs(m.mean)),
-            size: fmtSignedPercent(m.mean),
-            h: m.horizon, n: fmtCount(m.n),
-          }));
-          const gapClause = t(
-            marks.length === 1 ? "perPlanGapOne" : marks.length === 2 ? "perPlanGapBoth" : "perPlanGapAll",
-          );
-          const sentence = fillTemplate(
-            t(uniform ? "verdictPerPlanSentence" : "verdictPerPlanSentenceMixed"),
-            uniform
-              ? {
-                  direction: t(marks[0].direction === "behind" ? "perPlanBehind" : "perPlanAhead"),
-                  benchmark: benchmarkName, marks: joinMarks(markTexts), gapClause,
-                }
-              : { benchmark: benchmarkName, marks: joinMarks(markTexts), gapClause },
-          );
-          const legMarks = marks.filter(m => m.legMean !== null);
-          const legSentence = legMarks.length > 0
-            ? fillTemplate(t("verdictPerPlanLegSentence"), {
-                legMarks: legMarks.map(m => fillTemplate(t("perPlanLegMark"), {
-                  size: fmtSignedPercent(m.legMean!), h: m.horizon,
-                })).join(lang === "zh" ? "；" : "; "),
-              })
-            : "";
-          return (
-            <p className="pev-sentence pev-dim" data-testid="pev-verdict-perplan">
-              {sentence}{legSentence}
-            </p>
+          const text = buildPerPlanVerdictText({
+            marks: perPlanHorizonMarks(data.eventStudy.horizons), lang, benchmarkName,
+          });
+          return text === null ? null : (
+            <p className="pev-sentence pev-dim" data-testid="pev-verdict-perplan">{text}</p>
           );
         })()}
         {/* The correction rides WITH the verdict: a cold reader at phone width

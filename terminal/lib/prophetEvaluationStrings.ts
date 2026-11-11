@@ -17,6 +17,8 @@
  *   - Translated strings never appear in HTML `title=` attributes.
  */
 import type { Lang } from "@/lib/i18n";
+import type { PerPlanHorizonMark } from "@/lib/prophetBetaEvaluation";
+import { fmtCount, fmtPercent, fmtSignedPercent } from "@/lib/prophetBetaEvaluationFormat";
 
 export type EvaluationLexKey = keyof typeof PROPHET_EVALUATION_LEX;
 
@@ -765,4 +767,61 @@ export function claimStatusLabel(lang: Lang, status: string): string {
 /** Deviation-kind display name ("population_correction" → reader language). */
 export function deviationKindLabel(lang: Lang, kind: string): string {
   return humanizeIdentifier(lang, kind);
+}
+
+// ── Per-plan verdict sentence assembly (pure — the view renders it as-is) ───
+
+/** A per-plan mark figure never rounds to zero beside a "larger than chance"
+ * clause: when one decimal would read 0.0%, the figure gains a second decimal
+ * (-0.0004 → "-0.04%"), so a qualifying horizon can never print as "by 0.0%".
+ * Signed figures keep their sign at two decimals; the unsigned form is a
+ * magnitude (for the uniform sentence, whose direction word carries the sign). */
+export function perPlanFigure(value: number, signed: boolean): string {
+  const oneDp = signed ? fmtSignedPercent(value) : fmtPercent(Math.abs(value));
+  if (oneDp !== "0.0%" && oneDp !== "+0.0%" && oneDp !== "-0.0%") return oneDp;
+  const magnitude = Math.abs(value) * 100;
+  return signed ? `${value < 0 ? "-" : "+"}${magnitude.toFixed(2)}%` : `${magnitude.toFixed(2)}%`;
+}
+
+export type PerPlanVerdictInput = {
+  marks: readonly PerPlanHorizonMark[];
+  lang: Lang;
+  benchmarkName: string;
+};
+
+/** The verdict's plan-by-plan companion sentence (M4/m4). Uniform-direction:
+ * EN carries the sign in the direction word ("behind SPY by 3.0%"), ZH in the
+ * figure. Mixed-direction: no single direction word exists, so EVERY figure is
+ * signed in both languages — an unsigned EN figure there dropped the sign.
+ * Returns null when no horizon qualifies (no sentence is ever manufactured). */
+export function buildPerPlanVerdictText({ marks, lang, benchmarkName }: PerPlanVerdictInput): string | null {
+  if (marks.length === 0) return null;
+  const t = makeEvaluationT(lang);
+  const uniform = marks.every(m => m.direction === marks[0].direction);
+  const joinMarks = (parts: string[]): string => lang === "zh"
+    ? parts.join("，")
+    : parts.length === 2 ? `${parts[0]} and ${parts[1]}`
+      : parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
+  const markTexts = marks.map(m => fillTemplate(t("perPlanMark"), {
+    mag: uniform ? perPlanFigure(m.mean, false) : perPlanFigure(m.mean, true),
+    size: perPlanFigure(m.mean, true),
+    h: m.horizon, n: fmtCount(m.n),
+  }));
+  const gapClause = t(marks.length === 1 ? "perPlanGapOne" : marks.length === 2 ? "perPlanGapBoth" : "perPlanGapAll");
+  const sentence = fillTemplate(
+    t(uniform ? "verdictPerPlanSentence" : "verdictPerPlanSentenceMixed"),
+    uniform
+      ? {
+          direction: t(marks[0].direction === "behind" ? "perPlanBehind" : "perPlanAhead"),
+          benchmark: benchmarkName, marks: joinMarks(markTexts), gapClause,
+        }
+      : { benchmark: benchmarkName, marks: joinMarks(markTexts), gapClause },
+  );
+  const legMarks = marks.filter(m => m.legMean !== null);
+  if (legMarks.length === 0) return sentence;
+  return sentence + fillTemplate(t("verdictPerPlanLegSentence"), {
+    legMarks: legMarks.map(m => fillTemplate(t("perPlanLegMark"), {
+      size: perPlanFigure(m.legMean!, true), h: m.horizon,
+    })).join(lang === "zh" ? "；" : "; "),
+  });
 }

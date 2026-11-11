@@ -26,7 +26,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   PROPHET_MEMBER_STATES, classifySectorMembersResponse, decodeProphetSectorMembers,
-  fetchProphetSectorMembers, prophetMemberStateRank,
+  fetchProphetSectorMembers, prophetMemberStateRank, sectorGroupFetchKey,
   type ProphetMemberState, type SectorMembersPayload,
 } from "@/lib/prophetSectorMembers";
 
@@ -616,5 +616,37 @@ describe("prophetMemberStateRank — the contract's sort order", () => {
       .toEqual(["open_plan", "early_observation", "resolved_plan", "none", "unavailable"]);
     expect(PROPHET_MEMBER_STATES.map(state => prophetMemberStateRank(state)))
       .toEqual([0, 1, 2, 3, 4]);
+  });
+});
+
+describe("sectorGroupFetchKey — every request input names the fetch key", () => {
+  // M2 (review): the group read's effect key must include offset, or a page
+  // turn relabels the pager without refetching the rows behind it (rows 1–100
+  // shown under a "101–200" label). The key names EVERY input of the request.
+  const base = { group: "us_sector_industrials", q: "", state: null, offset: 0 };
+
+  it("changes on offset alone — Next/Prev is a different request", () => {
+    expect(sectorGroupFetchKey({ ...base, offset: 100 }))
+      .not.toBe(sectorGroupFetchKey(base));
+  });
+
+  it.each([
+    ["the group", { group: "us_sector_defensives" }],
+    ["the search", { q: "carr" }],
+    ["the state filter", { state: "open_plan" as ProphetMemberState }],
+  ] as const)("changes on %s alone", (_name, patch) => {
+    expect(sectorGroupFetchKey({ ...base, ...patch })).not.toBe(sectorGroupFetchKey(base));
+  });
+
+  it("is stable when nothing changed", () => {
+    expect(sectorGroupFetchKey({ ...base, offset: 100 })).toBe(
+      sectorGroupFetchKey({ ...base, offset: 100 }));
+  });
+
+  it("distinguishes the nullable inputs from their empty-string twins", () => {
+    expect(sectorGroupFetchKey({ ...base, state: null })).not.toBe(
+      sectorGroupFetchKey({ ...base, state: "none" as ProphetMemberState }));
+    expect(sectorGroupFetchKey({ group: null, q: "", state: null, offset: 0 }))
+      .not.toBe(sectorGroupFetchKey({ group: "us_sector_industrials", q: "", state: null, offset: 0 }));
   });
 });
