@@ -1,0 +1,31 @@
+HTTP/2.0 201 Created
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset, Warning
+Cache-Control: private, max-age=60, s-maxage=60
+Content-Length: 1987
+Content-Security-Policy: default-src 'none'
+Content-Type: application/json; charset=utf-8
+Date: Wed, 11 Nov 2026 09:37:16 GMT
+Etag: "6263c064918195b3637366522daab9fe25524267c06da5786e79dfa5c5949f1d"
+Location: https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/commits/01550eaca9e1e1f8d816e6fef785b38998710b43
+Referrer-Policy: origin-when-cross-origin, strict-origin-when-cross-origin
+Server: github.com
+Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+Vary: Accept, Authorization, Cookie, X-GitHub-OTP,Accept-Encoding, Accept, X-Requested-With
+X-Accepted-Oauth-Scopes: 
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-Github-Api-Version-Selected: 2022-11-28
+X-Github-Edge-Region: westus2
+X-Github-Media-Type: github.v3; format=json
+X-Github-Request-Id: 9730:335CF6:184E10:2958EC:6AF4374B
+X-Oauth-Client-Id: 178c6fc778ccc68e1d6a
+X-Oauth-Scopes: admin:org, gist, repo, workflow
+X-Ratelimit-Limit: 5000
+X-Ratelimit-Remaining: 4760
+X-Ratelimit-Reset: 1794391361
+X-Ratelimit-Resource: core
+X-Ratelimit-Used: 240
+X-Xss-Protection: 0
+
+{"sha":"01550eaca9e1e1f8d816e6fef785b38998710b43","node_id":"C_kwDOTOzwKNoAKDAxNTUwZWFjYTllMWUxZjhkODE2ZTZmZWY3ODViMzg5OTg3MTBiNDM","url":"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/commits/01550eaca9e1e1f8d816e6fef785b38998710b43","html_url":"https://github.com/mastermindx-market-intelligence/mastermind-terminal/commit/01550eaca9e1e1f8d816e6fef785b38998710b43","author":{"name":"mastermindxryan","email":"ryan@mastermind-x.com","date":"2026-11-11T09:36:22Z"},"committer":{"name":"mastermindxryan","email":"ryan@mastermind-x.com","date":"2026-11-11T09:36:22Z"},"tree":{"sha":"e2cf25126668a68cdf585be25092e52a589eb849","url":"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/trees/e2cf25126668a68cdf585be25092e52a589eb849"},"message":"merge: compose protected Terminal and qualified refinement for Compare evidence","parents":[{"sha":"26862a671763d6eea4a1ea3b93f3bfc79114b6e1","url":"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/commits/26862a671763d6eea4a1ea3b93f3bfc79114b6e1","html_url":"https://github.com/mastermindx-market-intelligence/mastermind-terminal/commit/26862a671763d6eea4a1ea3b93f3bfc79114b6e1"},{"sha":"18fabe9d3c1439c4185559ba5ce491518fe999c9","url":"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/commits/18fabe9d3c1439c4185559ba5ce491518fe999c9","html_url":"https://github.com/mastermindx-market-intelligence/mastermind-terminal/commit/18fabe9d3c1439c4185559ba5ce491518fe999c9"},{"sha":"59f101192d6b48d72b850f98c2428f27a04652bf","url":"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/commits/59f101192d6b48d72b850f98c2428f27a04652bf","html_url":"https://github.com/mastermindx-market-intelligence/mastermind-terminal/commit/59f101192d6b48d72b850f98c2428f27a04652bf"}],"verification":{"verified":false,"reason":"unsigned","signature":null,"payload":null,"verified_at":null}}

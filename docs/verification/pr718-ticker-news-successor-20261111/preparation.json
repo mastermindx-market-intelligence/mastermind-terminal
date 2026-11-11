@@ -1,0 +1,23 @@
+{
+  "branchMutation": false,
+  "captureWrapperSha256": "2b2fb07824c574abd0177b6a11e05cc27f963ad65504fff27be1cc074f12aad3",
+  "expectedAuthoredSkips": 7,
+  "expectedImages": 10,
+  "expectedPassed": 14,
+  "head": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "newerPacketFiles": 103,
+  "parents": [
+    "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+    "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "59f101192d6b48d72b850f98c2428f27a04652bf"
+  ],
+  "port": 61886,
+  "protectedMaster": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "remoteRefStillExpectedAt": "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+  "schema": "terminal.pr718.news-preparation.v1",
+  "sourceEntries": 2121,
+  "sourceProducerBlob": "09edca20e9d77e26306936f125a73305d67fc71a",
+  "sourceTree": "e2cf25126668a68cdf585be25092e52a589eb849",
+  "state": "PREPARED",
+  "templateSha256": "6b98a2eb2a35724848c337f2a7c8735b3674afdf4c835df3bbe6ad32da21769b"
+}

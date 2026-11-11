@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/lib/node_modules/npm/bin/npm-cli.js",
+    "ci",
+    "--prefer-offline",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "browserStore": "/Users/chriswong/Library/Caches/ms-playwright",
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T16:35:24.273893+00:00",
+  "logSha256": "f21f08a6013ab86160a3db78753563fdf1ce6f8492bef43391a6d417780a76f1",
+  "node": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "nodeVersion": "v22.23.4",
+  "packageFiles": {
+    "package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    "package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf"
+  },
+  "packageFilesUnchanged": true,
+  "pid": 33169,
+  "schema": "terminal_pr718_runtime.v1",
+  "seconds": 19.229,
+  "startedAt": "2026-11-10T16:35:04.811701+00:00",
+  "state": "LOCKED_DEPENDENCIES_READY"
+}

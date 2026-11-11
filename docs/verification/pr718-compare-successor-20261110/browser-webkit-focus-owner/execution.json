@@ -1,0 +1,345 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "--config",
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/playwright-successor.config.cjs",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1"
+  ],
+  "browser": "webkit",
+  "cases": [
+    {
+      "project": "desktop",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/attachments/comparison-settings-9ef7c3ab245c946fc22b868c2dcb37e382e4c3c7.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "done-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "close-return-focus"
+            }
+          ],
+          "duration": 8419,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "desktop",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/attachments/comparison-settings-dfac9558eb84cc30917e30c5a30e378bbfd7376c.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "done-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "close-return-focus"
+            }
+          ],
+          "duration": 6751,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "tablet",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "compare-entry",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/compare-entry-96b5d10d8ed7eabe37acc8ba46e907d0a2ce15c7.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/comparison-settings-dc0878de5fb89daad14e3e5024c4f091cc6d6730.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "done-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "close-return-focus"
+            }
+          ],
+          "duration": 7889,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "tablet",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "compare-entry",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/attachments/compare-entry-dfa3c55410f10821553920c4365353dac4107690.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/attachments/comparison-settings-9c3258fefb22592e28a9a0631ccd607aaf6788f7.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "done-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "close-return-focus"
+            }
+          ],
+          "duration": 6586,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "mobile",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/attachments/comparison-settings-79ffff3a448bfc4e9907044df1f61f4ff3ab6b9b.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "done-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "close-return-focus"
+            }
+          ],
+          "duration": 7250,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "mobile",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/attachments/comparison-settings-1e50445bcf0873de674f7f2a20ccbd352a8cf793.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "done-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiRElWIiwKICAiY2xhc3NOYW1lIjogImxnLXJvdyBDaGFydE92ZXJsYXlzLW1vZHVsZV9fUEJNZnBhX19mb2N1c1JvdyBpcy1jbXAiLAogICJsYWJlbCI6ICJBQVBMIgp9",
+              "contentType": "application/json",
+              "name": "close-return-focus"
+            }
+          ],
+          "duration": 7157,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] comparison settings edit the real overlay without losing modal or saved state"
+    }
+  ],
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T17:04:11.797300+00:00",
+  "fixtureContract": "Imports unchanged protected playwright.config.ts webServer environment, native /terminal?symbol=NVDA route and existing global warmup; no layout/comparison seed.",
+  "generatedTypesPreimagePresent": false,
+  "generatedTypesRestored": true,
+  "historicalFileCount": 11,
+  "historicalPacketUnchanged": true,
+  "images": [
+    {
+      "bytes": 333773,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/attachments/comparison-settings-9ef7c3ab245c946fc22b868c2dcb37e382e4c3c7.png",
+      "sha256": "8e998a71ae02ce6b9476b3bf6d685457a30891ab2281937f95d6a50b732a6907"
+    },
+    {
+      "bytes": 333773,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha256": "8e998a71ae02ce6b9476b3bf6d685457a30891ab2281937f95d6a50b732a6907"
+    },
+    {
+      "bytes": 91362,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/attachments/comparison-settings-79ffff3a448bfc4e9907044df1f61f4ff3ab6b9b.png",
+      "sha256": "c7c286a1efc105caa27629b957092e3ebda991779fc72e2f54d2a4d42be37ed7"
+    },
+    {
+      "bytes": 91362,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/comparison-settings.png",
+      "sha256": "c7c286a1efc105caa27629b957092e3ebda991779fc72e2f54d2a4d42be37ed7"
+    },
+    {
+      "bytes": 211439,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/compare-entry-96b5d10d8ed7eabe37acc8ba46e907d0a2ce15c7.png",
+      "sha256": "bb6916083d222ceda78d574509d88d85c548ec8ada2b1857c4c64274a95a3055"
+    },
+    {
+      "bytes": 153865,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/comparison-settings-dc0878de5fb89daad14e3e5024c4f091cc6d6730.png",
+      "sha256": "3ca094efa6df22e6560f2aa3681e0780ba1d7adeb6a6d4b69f347150d68a0f38"
+    },
+    {
+      "bytes": 211439,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/compare-entry.png",
+      "sha256": "bb6916083d222ceda78d574509d88d85c548ec8ada2b1857c4c64274a95a3055"
+    },
+    {
+      "bytes": 153865,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/comparison-settings.png",
+      "sha256": "3ca094efa6df22e6560f2aa3681e0780ba1d7adeb6a6d4b69f347150d68a0f38"
+    },
+    {
+      "bytes": 332308,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/attachments/comparison-settings-dfac9558eb84cc30917e30c5a30e378bbfd7376c.png",
+      "sha256": "825b7db42fc6c6945449dfec34fc1b7d6cafe25d2548263ab6092747dd9c5760"
+    },
+    {
+      "bytes": 332308,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha256": "825b7db42fc6c6945449dfec34fc1b7d6cafe25d2548263ab6092747dd9c5760"
+    },
+    {
+      "bytes": 91920,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/attachments/comparison-settings-1e50445bcf0873de674f7f2a20ccbd352a8cf793.png",
+      "sha256": "8cfa1f67b5f4c9a84b2f6ce12c8394d97665ae20fa8bd3ce973568fc5ffacf03"
+    },
+    {
+      "bytes": 91920,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/comparison-settings.png",
+      "sha256": "8cfa1f67b5f4c9a84b2f6ce12c8394d97665ae20fa8bd3ce973568fc5ffacf03"
+    },
+    {
+      "bytes": 209354,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/attachments/compare-entry-dfa3c55410f10821553920c4365353dac4107690.png",
+      "sha256": "4b75e64afea6ee0f0f3b3cba3ff2d809e80e57bdee53ba352319cf9a8f8c792e"
+    },
+    {
+      "bytes": 153059,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/attachments/comparison-settings-9c3258fefb22592e28a9a0631ccd607aaf6788f7.png",
+      "sha256": "10750316b200788fd29f0f1df7a1f5d19c544facb907bf61fe89fa7633cec92e"
+    },
+    {
+      "bytes": 209354,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/compare-entry.png",
+      "sha256": "4b75e64afea6ee0f0f3b3cba3ff2d809e80e57bdee53ba352319cf9a8f8c792e"
+    },
+    {
+      "bytes": 153059,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/comparison-settings.png",
+      "sha256": "10750316b200788fd29f0f1df7a1f5d19c544facb907bf61fe89fa7633cec92e"
+    }
+  ],
+  "logSha256": "185e04465164c86cf55ab3be53bbfae899aa59ca4ec921b362797dbb3b76ae79",
+  "ownedPortClosed": true,
+  "pid": 8901,
+  "port": 47188,
+  "reportSha256": "2e33ca52e850d732575b69f8148aad3070b162fd5e9060f26d7308b1358c3c16",
+  "retries": 0,
+  "schema": "terminal_pr718_browser_execution.v1",
+  "seconds": 66.312,
+  "sourceFileCount": 3429,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T17:03:05.473721+00:00",
+  "state": "BROWSER_MATRIX_PASSED",
+  "stats": {
+    "duration": 65587.323,
+    "expected": 6,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T17:03:06.183Z",
+    "unexpected": 0
+  },
+  "topLevelErrors": []
+}

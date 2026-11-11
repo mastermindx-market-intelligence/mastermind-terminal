@@ -1,0 +1,61 @@
+{
+  "findings": "EN/ZH labels, headline wrapping, source badges and actions remain readable at desktop, tablet and mobile viewports. Unavailable copy and Retry are visible without overlap or clipping. Viewport labels refer to browser viewports, not panel crop dimensions. Existing fixture headlines retain their authored language.",
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "sha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04",
+      "verdict": "PASS"
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "sha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d",
+      "verdict": "PASS"
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "sha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28",
+      "verdict": "PASS"
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585",
+      "verdict": "PASS"
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "sha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69",
+      "verdict": "PASS"
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "sha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5",
+      "verdict": "PASS"
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "sha256": "d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048",
+      "verdict": "PASS"
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "sha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8",
+      "verdict": "PASS"
+    },
+    {
+      "file": "unavailable-mobile-en-dark.png",
+      "sha256": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61",
+      "verdict": "PASS"
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "sha256": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792",
+      "verdict": "PASS"
+    }
+  ],
+  "method": "Viewed all ten actual PNGs through original C3 read_file image output; exact bytes matched to the qualified current capture.",
+  "reviewedAt": "2026-11-11T10:24:09.425399+00:00",
+  "reviewer": "assigned ChatGPT principal; source contributor; self-check only",
+  "schema": "terminal.pr718.news-visual-review.v1",
+  "sourceHead": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "state": "REVIEWED"
+}

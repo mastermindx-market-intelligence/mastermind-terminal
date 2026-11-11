@@ -1,0 +1,30 @@
+{
+  "childExitCode": null,
+  "childExitNote": "Vitest returned and wrote its completed failing report; wrapper did not persist its child return code before the count assertion failed.",
+  "childPid": 42929,
+  "counts": {
+    "numFailedTests": 6,
+    "numPassedTests": 56,
+    "numPendingTests": 0,
+    "numTotalTests": 62
+  },
+  "driverExitCode": 1,
+  "driverPid": 42902,
+  "harnessFailure": [
+    "comparison settings preserve color and interaction ownership previews a valid integer once and preserves unrelated comparison terms"
+  ],
+  "reconciledAt": "2026-11-10T16:38:43.005143+00:00",
+  "redLogSha256": "690675311e2874e234ad597b2cd28e4d38e927be30ad0c514ee7e87c7cf4c8d9",
+  "redReportSha256": "6d5d591450f3b732947c6881919da679ab85d894a7e64442c6b9280586526d10",
+  "repair": "Replace unavailable convenience matcher with equivalent call-count plus exact last-call assertions; preserve original red report, log and test preimage. No red replay.",
+  "schema": "terminal_pr718_red_reconciliation.v1",
+  "sourceCounterexamples": [
+    "comparison settings preserve color and interaction ownership allows clearing thickness without mutating the chart, then restores an empty commit",
+    "comparison settings preserve color and interaction ownership withholds out-of-range widths during typing and bounds the committed value",
+    "comparison settings preserve color and interaction ownership withholds fractional widths until the existing bounded integer commit",
+    "comparison settings preserve color and interaction ownership withholds negative drafts and applies the minimum only on commit",
+    "comparison settings preserve color and interaction ownership does not carry an uncommitted draft into a different comparison"
+  ],
+  "sourceStable": true,
+  "state": "FIVE_SOURCE_COUNTEREXAMPLES_AND_ONE_HARNESS_MATCHER_FAILURE"
+}

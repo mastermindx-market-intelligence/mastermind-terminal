@@ -1,0 +1,26 @@
+HTTP/2.0 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset, Warning
+Content-Security-Policy: default-src 'none'
+Content-Type: application/json; charset=utf-8
+Date: Wed, 11 Nov 2026 09:37:09 GMT
+Referrer-Policy: origin-when-cross-origin, strict-origin-when-cross-origin
+Server: github.com
+Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+Vary: Accept-Encoding, Accept, X-Requested-With
+X-Accepted-Oauth-Scopes: repo
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-Github-Edge-Region: westus2
+X-Github-Media-Type: github.v4; format=json
+X-Github-Request-Id: 5ACA:89C8B:1753D6:28609C:6AF43745
+X-Oauth-Client-Id: 178c6fc778ccc68e1d6a
+X-Oauth-Scopes: admin:org, gist, repo, workflow
+X-Ratelimit-Limit: 5000
+X-Ratelimit-Remaining: 4293
+X-Ratelimit-Reset: 1794391271
+X-Ratelimit-Resource: graphql
+X-Ratelimit-Used: 707
+X-Xss-Protection: 0
+
+{"data":{"viewer":{"login":"mastermindxryan"},"repository":{"id":"R_kgDOTOzwKA","ref":{"target":{"oid":"26862a671763d6eea4a1ea3b93f3bfc79114b6e1"}},"protected":{"target":{"oid":"18fabe9d3c1439c4185559ba5ce491518fe999c9"}},"pullRequest":{"headRefOid":"26862a671763d6eea4a1ea3b93f3bfc79114b6e1","state":"OPEN","isDraft":true,"labels":{"nodes":[{"name":"hold"}]},"autoMergeRequest":null,"mergeQueueEntry":null,"comments":{"nodes":[{"databaseId":6792323156}]}}}}}

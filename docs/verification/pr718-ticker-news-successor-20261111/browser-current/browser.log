@@ -1,0 +1,47 @@
+[warmup] /terminal?symbol=NVDA → 200 in 185ms
+[warmup] /options → 200 in 3347ms
+[warmup] /portfolio → 200 in 1272ms
+[warmup] /alerts → 200 in 1392ms
+[warmup] /analysis → 200 in 2080ms
+[warmup] /discover → 200 in 2844ms
+[warmup] /admin → 200 in 811ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 640ms
+[warmup] /login → 200 in 310ms
+[warmup] /reset-password → 200 in 659ms
+[warmup] /api/me → 200 in 919ms
+[warmup] /api/watchlist → 200 in 334ms
+[warmup] /api/layouts → 200 in 336ms
+[warmup] /api/watchlist/annotations → 409 in 314ms
+[warmup] 14 routes compiled in 15s
+[fixture-ready] prophet_idx fixture 200 in 768ms
+
+Running 21 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix (2.8m)
+  ✓   2 [desktop] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow (26.3s)
+  ✓   3 [desktop] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (53.4s)
+  ✓   4 [desktop] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context (14.5s)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   5 [desktop] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held (22.8s)
+  ✓   6 [desktop] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context (9.0s)
+  ✓   7 [desktop] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines (1.6m)
+  -   8 [tablet] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  -   9 [tablet] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow
+  ✓  10 [tablet] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (57.7s)
+  -  11 [tablet] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context
+  -  12 [tablet] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held
+  ✓  13 [tablet] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context (11.1s)
+  ✓  14 [tablet] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines (1.9m)
+  -  15 [mobile] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  ✓  16 [mobile] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow (28.7s)
+  ✓  17 [mobile] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (45.1s)
+  -  18 [mobile] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context
+  -  19 [mobile] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held
+  ✓  20 [mobile] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context (8.0s)
+  ✓  21 [mobile] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines (1.8m)
+
+  Slow test file: [desktop] › e2e/ticker-news.spec.ts (6.5m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  7 skipped
+  14 passed (13.6m)

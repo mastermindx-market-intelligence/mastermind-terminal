@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/compareSettingsUx.test.tsx",
+    "lib/__tests__/compareSettingsAccessibility.test.tsx",
+    "lib/__tests__/chartSettingsUi.test.ts",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/green-report.json"
+  ],
+  "counts": {
+    "numFailedTests": 0,
+    "numPassedTests": 62,
+    "numPendingTests": 0,
+    "numTotalTests": 62
+  },
+  "exitCode": 0,
+  "failedTests": [],
+  "finishedAt": "2026-11-10T16:39:38.153552+00:00",
+  "logSha256": "355d814bd072db6060419f65ae242fafa803db1b6deb59f3fc80d9db60124f05",
+  "mode": "green",
+  "pid": 56968,
+  "seconds": 3.371,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T16:39:34.782164+00:00",
+  "state": "AFFECTED_CONTRACTS_PASSED"
+}

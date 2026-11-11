@@ -1,0 +1,10 @@
+{
+  "head": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "remoteExpectedHead": "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+  "port": 61886,
+  "sourceEntries": 2121,
+  "at": "2026-11-11T09:54:32.921891+00:00",
+  "browserBinaryReverified": true,
+  "oldLockReconciled": true,
+  "firstBrowserAttempt": true
+}

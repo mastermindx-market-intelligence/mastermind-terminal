@@ -1,0 +1,11 @@
+{
+  "afterProcessListenerAndWorkspaceAbsenceVerified": true,
+  "at": "2026-11-11T09:51:45.946152+00:00",
+  "beforeAndImmediatelyBeforeUnlinkPreserved": true,
+  "failedReturn": "relative_to(repo) cannot represent control receipt outside repository; failure occurred after unlink, post-checks and complete receipt write",
+  "lockAbsent": true,
+  "receipt": "/tmp/terminal-pr718-news-composition-20261111-c3/preexisting-718-next-lock-lifecycle.json",
+  "receiptSha256": "e8f635d2d8646546d11f56fcc77439a2c7aacd9eec5b64de9ca1e8fb21ddb1c9",
+  "replay": false,
+  "state": "CLEANUP_APPLIED_AND_READ_BACK_RETURN_FORMAT_FAILED"
+}

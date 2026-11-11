@@ -1,0 +1,8 @@
+Auto-merging terminal/components/CompareSettings.module.css
+CONFLICT (add/add): Merge conflict in terminal/components/CompareSettings.module.css
+Auto-merging terminal/components/CompareSettings.tsx
+CONFLICT (content): Merge conflict in terminal/components/CompareSettings.tsx
+Auto-merging terminal/components/TerminalShell.tsx
+Auto-merging terminal/e2e/pane-sync-time-axis.spec.ts
+CONFLICT (content): Merge conflict in terminal/e2e/pane-sync-time-axis.spec.ts
+Automatic merge failed; fix conflicts and then commit the result.

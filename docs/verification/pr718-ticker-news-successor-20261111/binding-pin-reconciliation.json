@@ -1,0 +1,21 @@
+{
+  "actualBlobs": {
+    "01550eaca9e1e1f8d816e6fef785b38998710b43": "bad46f97cc821a56b1be48ec7c888d17e9b88aa9",
+    "26862a671763d6eea4a1ea3b93f3bfc79114b6e1": "bad46f97cc821a56b1be48ec7c888d17e9b88aa9",
+    "59f101192d6b48d72b850f98c2428f27a04652bf": "bad46f97cc821a56b1be48ec7c888d17e9b88aa9"
+  },
+  "actualSha256": "18e014810439152117b9506d6a39b0907266323fc206434597c9f5baffde687a",
+  "binderV1Sha256": "9a6bc0bc1cd811b38ff88cf4cb22d227d5a743b8cae1fdf7d69e1c860e5e9c63",
+  "binderV2Sha256": "35cb5bcfb1c96bee9bb9195cecc7e9edbb742d6be7f15bc05dd3744d913f8e9a",
+  "captureReplayed": false,
+  "consumerModified": false,
+  "failedBindingExit": 1,
+  "failedBindingProcess": 16039,
+  "failedPrecondition": "Incorrectly transcribed expected Git blob in binding-v2; no manifest/qualification/visual/guard writes occurred.",
+  "incorrectExpectedBlob": "26447f52751c5c66b0de909208ad8da002166b75",
+  "matchesCaptureSnapshot": true,
+  "observedAt": "2026-11-11T10:24:00.789736+00:00",
+  "path": "terminal/lib/__tests__/tickerNewsEvidence.test.ts",
+  "schema": "terminal.pr718.binding-pin-reconciliation.v1",
+  "state": "ACTUAL_UNCHANGED_CONSUMER_IDENTITY_VERIFIED"
+}

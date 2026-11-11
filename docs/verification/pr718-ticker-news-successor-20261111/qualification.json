@@ -1,0 +1,403 @@
+{
+  "acceptedCompareProofPreserved": "0b8c80a43db890f67878af75e179d8dbb38e437c",
+  "bindingPinReconciliationSha256": "130bcca5cde7d8825110057fae1c07d7bab1ba912590c12eee7aa7c369912d80",
+  "browserReportSha256": "cc085930da7f23ac01d14eb30624f8968e88b4fca7b875a05023227677c0eb6a",
+  "compositionParents": [
+    "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+    "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "59f101192d6b48d72b850f98c2428f27a04652bf"
+  ],
+  "consumerGitBlob": "bad46f97cc821a56b1be48ec7c888d17e9b88aa9",
+  "consumerSourceSha256": "18e014810439152117b9506d6a39b0907266323fc206434597c9f5baffde687a",
+  "executionSha256": "7075069f8d0cbbcf6f48508ef86a310ade5173ffd84b2eb33d851da22dffe611",
+  "generatedInputReconciliationSha256": "a135bd55fad792975a9fb109bb61dab2c110da03c5920ad6f0bfeb554e1cf4cc",
+  "head": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "images": {
+    "desktop-en-dark.png": {
+      "bytes": 52359,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794390953584468139,
+      "pngHeight": 707,
+      "pngWidth": 344,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04"
+    },
+    "desktop-zh-dark.png": {
+      "bytes": 51972,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794390980444130080,
+      "pngHeight": 707,
+      "pngWidth": 344,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d"
+    },
+    "mobile-en-dark.png": {
+      "bytes": 52998,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794391070795448222,
+      "pngHeight": 669,
+      "pngWidth": 390,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28"
+    },
+    "mobile-zh-dark.png": {
+      "bytes": 53955,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794391095241556899,
+      "pngHeight": 655,
+      "pngWidth": 390,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585"
+    },
+    "tablet-en-dark.png": {
+      "bytes": 54550,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794391011417959494,
+      "pngHeight": 565,
+      "pngWidth": 820,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69"
+    },
+    "tablet-zh-dark.png": {
+      "bytes": 55964,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794391042012505068,
+      "pngHeight": 565,
+      "pngWidth": 820,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5"
+    },
+    "unavailable-desktop-en-dark.png": {
+      "bytes": 10069,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794391110841653589,
+      "pngHeight": 707,
+      "pngWidth": 344,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048"
+    },
+    "unavailable-desktop-zh-dark.png": {
+      "bytes": 8590,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794391122890109311,
+      "pngHeight": 707,
+      "pngWidth": 344,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8"
+    },
+    "unavailable-mobile-en-dark.png": {
+      "bytes": 8131,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794391524323923647,
+      "pngHeight": 180,
+      "pngWidth": 390,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61"
+    },
+    "unavailable-mobile-zh-dark.png": {
+      "bytes": 6792,
+      "modifiedDuringCapture": true,
+      "observedMtimeNs": 1794391538063486898,
+      "pngHeight": 180,
+      "pngWidth": 390,
+      "producingRun": "browser-current/execution.json",
+      "sha256": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792"
+    }
+  },
+  "ownedLifecycleSettled": true,
+  "preparationReconciliationSha256": "d09c1fc93b2974912c9a70118956eabcd878f3270a2be9024f8b55c596ae0f31",
+  "preservedNeighborFiles": 103,
+  "priorManifestSha256": "5e85344159652ac23cfc17e3542e0d02225cc97965f9505df9ef085df85374db",
+  "priorPacketFiles": 11,
+  "protectedAncestor": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "qualifiedAt": "2026-11-11T10:24:09.427936+00:00",
+  "qualifiedCounts": {
+    "passed": 14,
+    "skipped": 7
+  },
+  "qualifiedUniqueCases": [
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    }
+  ],
+  "retries": 0,
+  "schema": "terminal.pr718.news-source-qualification.v1",
+  "scope": "Real local fixture-backed UI and unchanged producer contracts; no authenticated provider, installed-generation, or production-news acceptance.",
+  "singleCaptureInvocation": true,
+  "sourceEntries": 2121,
+  "sourceSnapshotSha256": "747aa6644d24f95163e789d273263ce2f0a71b114a1803d4af2dffa9bdb07f0a",
+  "sourceSnapshotsIdentical": true,
+  "sourceTree": "e2cf25126668a68cdf585be25092e52a589eb849",
+  "state": "QUALIFIED_CURRENT_CAPTURE",
+  "visualReviewSha256": "9df00d0fb8106ede3f83381cacd057a4419d10ceba595f6c4eab542a655e0f17"
+}

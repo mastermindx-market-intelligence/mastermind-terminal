@@ -1,0 +1,832 @@
+{
+  "branchMutation": false,
+  "changedPaths": [
+    "docs/verification/issue1201-chainheat-interception-20261111/README.md",
+    "docs/verification/issue1201-chainheat-interception-20261111/eslint.log",
+    "docs/verification/issue1201-chainheat-interception-20261111/generated-input-before.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/green-artifacts/.last-run.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/green-execution.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/green-report.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/green-start.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/green.log",
+    "docs/verification/issue1201-chainheat-interception-20261111/inventory.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/npm-ci.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/npm-ci.log",
+    "docs/verification/issue1201-chainheat-interception-20261111/qualification.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/source-change.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/static-checks.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/typecheck.log",
+    "docs/verification/issue1201-chainheat-interception-20261111/typegen.log",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/.last-run.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/test-failed-1.png",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/trace.zip",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/test-failed-1.png",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/trace.zip",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-execution.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-report.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-source.ts.txt",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-start.json",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path.log",
+    "docs/verification/issue1201-inspector-empty-20261111/README.md",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/.last-run.json",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/test-failed-1.png",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/trace.zip",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-execution.json",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/.last-run.json",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/test-failed-1.png",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/trace.zip",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-execution.json",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-report.json",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-start.json",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public.log",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-report.json",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-start.json",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline.log",
+    "docs/verification/issue1201-inspector-empty-20261111/capture-public-controls.spec.ts",
+    "docs/verification/issue1201-inspector-empty-20261111/capture-qualified-v2.spec.ts",
+    "docs/verification/issue1201-inspector-empty-20261111/capture-qualified.spec.ts",
+    "docs/verification/issue1201-inspector-empty-20261111/capture-typecheck.json",
+    "docs/verification/issue1201-inspector-empty-20261111/capture-typecheck.log",
+    "docs/verification/issue1201-inspector-empty-20261111/capture.spec.ts",
+    "docs/verification/issue1201-inspector-empty-20261111/inventory.json",
+    "docs/verification/issue1201-inspector-empty-20261111/matrix-execution.json",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/.last-run.json",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/attachments/inspector-empty-dark-en-1440-png-47e4a44e014a0f9d4bcf34e39606886e472ade72.png",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/error-context.md",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/test-failed-1.png",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/trace.zip",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-execution.json",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-report.json",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-start.json",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark.log",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark/inspector-empty-dark-en-1440.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualification.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/.last-run.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/issue1201-inspector-empty--14fff-Inspector-empty-dark-zh-390-desktop/attachments/inspector-empty-dark-zh-390-png-5caa58dcfd4b8e28c828ed21805ae94fb264653c.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/issue1201-inspector-empty--b1b3d-Inspector-empty-dark-en-390-desktop/attachments/inspector-empty-dark-en-390-png-5ee2f66b0df7bedaf453edb39a42f2e47271f1d4.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/attachments/inspector-empty-dark-en-1440-png-631a7e9a3716956248ae271a192322cd45455590.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/issue1201-inspector-empty--ed003-nspector-empty-dark-zh-1440-desktop/attachments/inspector-empty-dark-zh-1440-png-5ed9cc47e95687510537a113a49d8bc8f4bdc183.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-execution.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-report.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-start.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark.log",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-en-1440.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-en-1440.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-en-390.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-en-390.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-zh-1440.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-zh-1440.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-zh-390.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-zh-390.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/.last-run.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/issue1201-inspector-empty--41380-spector-empty-light-zh-1440-desktop/attachments/inspector-empty-light-zh-1440-png-940ed7d285635f36545fbca3a6a3e30e8f51d56d.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/issue1201-inspector-empty--51c48-nspector-empty-light-zh-390-desktop/attachments/inspector-empty-light-zh-390-png-e613c4a0b3c3584b602e309b65a6df13802405ca.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/issue1201-inspector-empty--5b715-nspector-empty-light-en-390-desktop/attachments/inspector-empty-light-en-390-png-e6744749a1050068a02f106289ab4d6d2ae0a166.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/issue1201-inspector-empty--d0c2f-spector-empty-light-en-1440-desktop/attachments/inspector-empty-light-en-1440-png-35843f5f8f33edad342b197d894a789a8a81fedb.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-execution.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-report.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-start.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light.log",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-en-1440.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-en-1440.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-en-390.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-en-390.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-zh-1440.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-zh-1440.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-zh-390.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-zh-390.png",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-matrix-execution.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-typecheck.json",
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-typecheck.log",
+    "docs/verification/issue1201-inspector-empty-20261111/source-change.json",
+    "docs/verification/pr737-financials-integration-20261111/README.md",
+    "docs/verification/pr737-financials-integration-20261111/browser-execution.json",
+    "docs/verification/pr737-financials-integration-20261111/browser-report.json",
+    "docs/verification/pr737-financials-integration-20261111/browser.log",
+    "docs/verification/pr737-financials-integration-20261111/captures/desktop-en.png",
+    "docs/verification/pr737-financials-integration-20261111/captures/mobile-en.png",
+    "docs/verification/pr737-financials-integration-20261111/captures/mobile-zh.png",
+    "docs/verification/pr737-financials-integration-20261111/captures/tablet-en.png",
+    "docs/verification/pr737-financials-integration-20261111/checks.json",
+    "docs/verification/pr737-financials-integration-20261111/receipt.json",
+    "scripts/ci_e2e_scope.py",
+    "terminal/app/fin.css",
+    "terminal/app/observatory.css",
+    "terminal/components/fin/StatementsPage.tsx",
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/EVIDENCE.yml",
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/desktop-en.png",
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/mobile-en.png",
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/mobile-zh.png",
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/tablet-en.png",
+    "terminal/e2e/fin-compare.spec.ts",
+    "terminal/e2e/financial-row-disclosure.spec.ts",
+    "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+    "terminal/e2e/research-workspace-nav.spec.ts",
+    "terminal/lib/__tests__/finComparablePeriods.test.ts",
+    "terminal/lib/__tests__/finCompare.test.ts",
+    "terminal/lib/__tests__/finCumulativeQuarterGap.test.ts",
+    "terminal/lib/__tests__/financialsSnapshotAlignment.test.tsx",
+    "terminal/lib/__tests__/statementsTranscriptIdentity.test.tsx",
+    "terminal/lib/finStatementMath.ts",
+    "terminal/lib/finStatements.ts",
+    "tests/test_ci_e2e_scope.py"
+  ],
+  "changedSourcePaths": [
+    "scripts/ci_e2e_scope.py",
+    "terminal/app/fin.css",
+    "terminal/app/observatory.css",
+    "terminal/components/fin/StatementsPage.tsx",
+    "terminal/e2e/fin-compare.spec.ts",
+    "terminal/e2e/financial-row-disclosure.spec.ts",
+    "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+    "terminal/e2e/research-workspace-nav.spec.ts",
+    "terminal/lib/__tests__/finComparablePeriods.test.ts",
+    "terminal/lib/__tests__/finCompare.test.ts",
+    "terminal/lib/__tests__/finCumulativeQuarterGap.test.ts",
+    "terminal/lib/__tests__/financialsSnapshotAlignment.test.tsx",
+    "terminal/lib/__tests__/statementsTranscriptIdentity.test.tsx",
+    "terminal/lib/finStatementMath.ts",
+    "terminal/lib/finStatements.ts",
+    "tests/test_ci_e2e_scope.py"
+  ],
+  "compareHistoricalQualification": {
+    "chromiumJourneysPassed": 6,
+    "packetTree": "0b8c80a43db890f67878af75e179d8dbb38e437c",
+    "testsPassed": 64,
+    "webkitJourneysPassed": 6
+  },
+  "composedTree": "d3ec35e8bed7376062f423213042403f7d0448df",
+  "createdAt": "2026-11-11T11:03:53.860652+00:00",
+  "cssImpactReview": {
+    "terminal/app/fin.css": "Only .fin-financials selectors and their responsive descendants added; none target the Compare dialog or ticker-news panel. Exact protected blob retained.",
+    "terminal/app/observatory.css": "Only .obs-insp-empty flex-direction:column and gap:8px imported from accepted #1455. Exact protected blob retained."
+  },
+  "currentLockedAndCompareOwnerFiles": {
+    "docs/verification/pr718-compare-successor-20261110/playwright-successor.config.cjs": {
+      "gitBlob": "fc2c998e48bc5063e972c21f5b06c6484c540cab",
+      "sha256": "113a83a2045e679b6e693848a0b8c98b963ff76782c9f506fe39c8189e1fe9ad",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/app/globals.css": {
+      "gitBlob": "10f2df3f3e04f291f028c345b50a1967ba158cb2",
+      "sha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/components/ChartOverlays.tsx": {
+      "gitBlob": "32ee593fa22b67989b2c59f300089ef8cf9668c4",
+      "sha256": "b0e8ccba2f8360528d0d70ab95edd0b58d235099b5f90ce2d4cf0627e4276c5b",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/components/ChartPane.tsx": {
+      "gitBlob": "44dee8337493d5c3dd926cda6ab7e23ad00e8c7c",
+      "sha256": "57da816aabf70b5027b1601104c18738ee71d9f7430e5737a2378932961b3e9b",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/components/CompareSettings.module.css": {
+      "gitBlob": "14ef4a7053e7e713168ebcbaf1a120a211b06455",
+      "sha256": "75984ea5a6f5b4ddaf123524841bcbd7a108529706ab977aa9d082f8b5979e70",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/components/CompareSettings.tsx": {
+      "gitBlob": "fbd344a23919766607901051c6abfbfefd4997fe",
+      "sha256": "ae1ec7d49a2b7283c1a2de2946cbd497014d2c94a45cc54ff4c0de5e270d0d60",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/components/IndicatorSettings.module.css": {
+      "gitBlob": "27e0ddc7c654cf27ec701a201a8ab278ccb118a5",
+      "sha256": "e6ca03573c405d183b9ccf330698f187f17ffe9cea65607a8f91c1ee53e10582",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/components/TerminalShell.tsx": {
+      "gitBlob": "325232fb9304cea7636a98786d0b049ddef784c1",
+      "sha256": "bc6a6138369de95c86aaefec90f63e6a1a6fde835f9e285fbebf9604410d9075",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/components/news/TickerNewsPanel.module.css": {
+      "gitBlob": "4df463f632a5a404254f4e7141de0694b387e1c6",
+      "sha256": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/components/news/TickerNewsPanel.tsx": {
+      "gitBlob": "7ff805873a4926a5e8b28ac27bf6012457524019",
+      "sha256": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/e2e/compare-settings-ux.spec.ts": {
+      "gitBlob": "f149d6ec5c687d1267fb123d9f749733885ab15e",
+      "sha256": "eb6f1dd5c573e99b9ba82c346586fb0269287a9a44dcb92b0681469cdf1c4600",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/e2e/pane-sync-time-axis.spec.ts": {
+      "gitBlob": "94d933cac2ed96eac61c3c45f45ec3349e8aaee3",
+      "sha256": "0737c69d3ecb9339800e351a6f136c868f4461e62ed973a8e2ec57fa94b8faae",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/lib/__tests__/chartSettingsUi.test.ts": {
+      "gitBlob": "b79a344490a39aa7b556cff6fdb653796a7e9b2b",
+      "sha256": "76dd777bbc09fa112898bf80703bf66641e107a03bc1266fadc638bdb3a967e2",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/lib/__tests__/compareSettingsAccessibility.test.tsx": {
+      "gitBlob": "ae17ab0119cd67e27c09501346a82d0d1bcfc02b",
+      "sha256": "b21f025bfaaeda254dd98c2da368822c275b70b6e568ce940bf6a3f242e1ae7c",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/lib/__tests__/compareSettingsUx.test.tsx": {
+      "gitBlob": "d938053fa6331b812593317ee0f79433d4f2971e",
+      "sha256": "2187127b5b1d24eb0fb89ec8a1aa8deedc66c6256512d29927f0e743399d64b2",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/lib/chart-engine/canvas/priceAxis.ts": {
+      "gitBlob": "729b252962b96b1b213c5238d5c1aa823de25939",
+      "sha256": "87cd2deeebacbab40db3a03863f85ad90051a7d015872ccbbb25add24a05e94a",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/lib/chartSettingsUi.ts": {
+      "gitBlob": "9ee1751b9eb783c28584bbba402e704d6318dd68",
+      "sha256": "07f847801c701b11a240df3351e61fdb9bb791b6041e897ec0bef387d28d01c5",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/lib/i18n.tsx": {
+      "gitBlob": "efd3688e2b4ca6bcd9e806d0096854158c1de214",
+      "sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/package-lock.json": {
+      "gitBlob": "43172affa9516ddcbd6e8f7a59bb54888baa7e3b",
+      "sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/package.json": {
+      "gitBlob": "df2e635a0abab248c90e33e3f89bd1f2581f6376",
+      "sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/playwright.config.ts": {
+      "gitBlob": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+      "sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+      "unchangedFromPublishedHead": true
+    },
+    "terminal/vitest.config.ts": {
+      "gitBlob": "312ab156e65c7df9cf85b10c2ca5edcbbacc229c",
+      "sha256": "053949bb45e222617aa7018ded4e66a94e660790d252c3c051639f9c24bdea64",
+      "unchangedFromPublishedHead": true
+    }
+  },
+  "dependencyCommonAncestor": "59f101192d6b48d72b850f98c2428f27a04652bf",
+  "dependencyHead": "54bc3b599471d8360a92963c9ad3b895492593ca",
+  "dependencyPreviewTree": "7f08e555159ce1764e9b57427739073d5f4828db",
+  "evidenceScope": "Historical capture source maps retain their actual capture heads. Broad snapshots are not restamped as a new complete capture; this composition changes 16 inherited source/test/CI paths outside the unchanged locked news/Compare owner set. Natural exact-head CI owns integrated validation.",
+  "expectedHead": "c57d64e977b9bdfb19a34121a3ea362506cf70ca",
+  "historicalGateAdjudication": "The old administrator endpoint visibility gap is historical, not an independent human approval requirement. The original 403 remains fenced. Current required checks, repository review/security holds, #1407 coupled source release and post-deployment Compare acceptance still bind.",
+  "inheritedPathOrigins": {
+    "docs/verification/issue1201-chainheat-interception-20261111/README.md": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/eslint.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/generated-input-before.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/green-artifacts/.last-run.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/green-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/green-report.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/green-start.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/green.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/inventory.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/npm-ci.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/npm-ci.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/qualification.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/source-change.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/static-checks.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/typecheck.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/typegen.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/.last-run.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/test-failed-1.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/trace.zip": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/test-failed-1.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/trace.zip": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-report.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-source.ts.txt": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-start.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/README.md": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/.last-run.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/test-failed-1.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/trace.zip": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/.last-run.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/test-failed-1.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/trace.zip": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-report.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-start.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-report.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-start.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/baseline.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/capture-public-controls.spec.ts": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/capture-qualified-v2.spec.ts": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/capture-qualified.spec.ts": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/capture-typecheck.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/capture-typecheck.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/capture.spec.ts": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/inventory.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/matrix-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/.last-run.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/attachments/inspector-empty-dark-en-1440-png-47e4a44e014a0f9d4bcf34e39606886e472ade72.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/error-context.md": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/test-failed-1.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/trace.zip": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-report.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-start.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark/inspector-empty-dark-en-1440.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualification.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/.last-run.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/issue1201-inspector-empty--14fff-Inspector-empty-dark-zh-390-desktop/attachments/inspector-empty-dark-zh-390-png-5caa58dcfd4b8e28c828ed21805ae94fb264653c.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/issue1201-inspector-empty--b1b3d-Inspector-empty-dark-en-390-desktop/attachments/inspector-empty-dark-en-390-png-5ee2f66b0df7bedaf453edb39a42f2e47271f1d4.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/attachments/inspector-empty-dark-en-1440-png-631a7e9a3716956248ae271a192322cd45455590.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts/issue1201-inspector-empty--ed003-nspector-empty-dark-zh-1440-desktop/attachments/inspector-empty-dark-zh-1440-png-5ed9cc47e95687510537a113a49d8bc8f4bdc183.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-report.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark-start.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-en-1440.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-en-1440.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-en-390.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-en-390.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-zh-1440.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-zh-1440.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-zh-390.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-dark/inspector-empty-dark-zh-390.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/.last-run.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/issue1201-inspector-empty--41380-spector-empty-light-zh-1440-desktop/attachments/inspector-empty-light-zh-1440-png-940ed7d285635f36545fbca3a6a3e30e8f51d56d.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/issue1201-inspector-empty--51c48-nspector-empty-light-zh-390-desktop/attachments/inspector-empty-light-zh-390-png-e613c4a0b3c3584b602e309b65a6df13802405ca.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/issue1201-inspector-empty--5b715-nspector-empty-light-en-390-desktop/attachments/inspector-empty-light-en-390-png-e6744749a1050068a02f106289ab4d6d2ae0a166.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts/issue1201-inspector-empty--d0c2f-spector-empty-light-en-1440-desktop/attachments/inspector-empty-light-en-1440-png-35843f5f8f33edad342b197d894a789a8a81fedb.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-report.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light-start.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-en-1440.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-en-1440.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-en-390.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-en-390.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-zh-1440.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-zh-1440.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-zh-390.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-light/inspector-empty-light-zh-390.png": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-matrix-execution.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-typecheck.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/qualified-typecheck.log": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/issue1201-inspector-empty-20261111/source-change.json": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/README.md": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/browser-execution.json": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/browser-report.json": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/browser.log": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/captures/desktop-en.png": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/captures/mobile-en.png": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/captures/mobile-zh.png": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/captures/tablet-en.png": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/checks.json": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "docs/verification/pr737-financials-integration-20261111/receipt.json": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "scripts/ci_e2e_scope.py": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/app/fin.css": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/app/observatory.css": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/components/fin/StatementsPage.tsx": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/EVIDENCE.yml": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/desktop-en.png": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/mobile-en.png": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/mobile-zh.png": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/docs/pr-crops/research-financials-vnext-20260925/tablet-en.png": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/e2e/fin-compare.spec.ts": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/e2e/financial-row-disclosure.spec.ts": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts": [
+      "54bc3b599471d8360a92963c9ad3b895492593ca",
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/e2e/research-workspace-nav.spec.ts": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/lib/__tests__/finComparablePeriods.test.ts": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/lib/__tests__/finCompare.test.ts": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/lib/__tests__/finCumulativeQuarterGap.test.ts": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/lib/__tests__/financialsSnapshotAlignment.test.tsx": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/lib/__tests__/statementsTranscriptIdentity.test.tsx": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/lib/finStatementMath.ts": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "terminal/lib/finStatements.ts": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ],
+    "tests/test_ci_e2e_scope.py": [
+      "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+    ]
+  },
+  "localHeadAndWorkspaceUnchanged": true,
+  "managedContinuityBranch": "sol/web-terminal-pr-duty-20261110-718-compare-successor",
+  "newsCaptureCounts": {
+    "authoredProjectSkips": 7,
+    "passed": 14
+  },
+  "newsCaptureHead": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "newsManifestSha256": "9fda6846901fd3002e0c4b610874e00429db19b837728d67fc3f4cd5915eabeb",
+  "noNovelApplicationBlobs": true,
+  "orderedParents": [
+    "c57d64e977b9bdfb19a34121a3ea362506cf70ca",
+    "54bc3b599471d8360a92963c9ad3b895492593ca",
+    "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3"
+  ],
+  "originalBranch": "claude/terminal-compare-settings-ux-20260922",
+  "originalIndexSha256": "6190ab12fcaebc0dc328d5f1a9dc492252ed947420f4fb6c3ffee0248b535bec",
+  "preservedTrees": {
+    "docs/verification/pr718-compare-successor-20261110": "0b8c80a43db890f67878af75e179d8dbb38e437c",
+    "docs/verification/pr718-ticker-news-successor-20261111": "0a29a9d9dfd61fb28a2d194ff43f128c39479189",
+    "terminal/docs/pr-crops/ticker-news": "526efc96d1074be41c8bd9be9f044d8a98d9e068"
+  },
+  "priorContinuityLedgerSha256": "5d4bfbad3dbb0d9bddc62fba0cf78acdd19b84a60d71861ff349ec8541f7ad63",
+  "protectedCommonAncestor": "7f0e669f3fc8183497dbd4b795ff7ef4e1487f24",
+  "protectedMaster": "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3",
+  "releaseDisposition": "Draft + hold + auto-off retained until exact-head CI and coupled #1407 source release are qualified. No protected merge or deployment claimed.",
+  "schema": "terminal.pr718.protected-composition-preview.v1",
+  "sourceDiffCheck": {
+    "classification": "Five inherited protected Financials EOF blank-line findings; exact master blobs preserved",
+    "exit": 2,
+    "notRewritten": true,
+    "paths": [
+      "terminal/app/fin.css",
+      "terminal/components/fin/StatementsPage.tsx",
+      "terminal/lib/__tests__/finCompare.test.ts",
+      "terminal/lib/__tests__/finCumulativeQuarterGap.test.ts",
+      "terminal/lib/finStatementMath.ts"
+    ]
+  },
+  "sourcePin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "state": "SOURCE_COMPOSITION_QUALIFIED_FOR_PUBLICATION",
+  "unchangedFileCount": 22
+}

@@ -1,0 +1,72 @@
+from pathlib import Path
+import subprocess,json,hashlib,os,datetime,time,sys,socket,re
+w=Path(__file__).resolve().parents[3];p=Path(__file__).resolve().parent;t=w/'terminal'
+browser=sys.argv[1];assert browser in ['chromium','webkit']
+attempt=sys.argv[2] if len(sys.argv)>2 else 'initial';assert attempt in ['initial','locale-owner','focus-owner']
+out=p/('browser-'+browser+('' if attempt=='initial' else '-'+attempt));assert not out.exists(),'Retain and reconcile the original capture; never overwrite or replay'
+checks=json.loads((p/({'initial':'source-checks.json','locale-owner':'source-checks-locale-owner.json','focus-owner':'source-checks-focus-owner.json'}[attempt])).read_text());assert checks['state']=='SOURCE_CHECKS_PASSED'
+for f,sha in checks['sourceAfter'].items():assert hashlib.sha256((w/f).read_bytes()).hexdigest()==sha,f
+runtime=json.loads((p/'runtime.json').read_text());node=Path(runtime['node'])
+port=47187 if browser=='chromium' else 47188
+with socket.socket() as probe:
+ probe.bind(('127.0.0.1',port))
+out.mkdir()
+env={k:os.environ[k] for k in ['HOME','LANG','TMPDIR','TMP','TEMP'] if k in os.environ}
+env.update(PATH=str(node.parent)+':'+os.environ['PATH'],CI='1',NEXT_TELEMETRY_DISABLED='1',PLAYWRIGHT_BROWSERS_PATH=runtime['browserStore'],TERMINAL_E2E_PORT=str(port),COMPARE_BROWSER=browser,COMPARE_PROOF_OUTPUT=str(out))
+suffixes={'.ts','.tsx','.js','.jsx','.mjs','.cjs','.css','.json','.yaml','.yml'}
+files=[]
+for folder in ['app','components','lib','e2e','scripts','test-fixtures']:
+ files.extend(f for f in (t/folder).rglob('*') if f.is_file() and f.suffix in suffixes)
+for name in ['package.json','package-lock.json','next.config.ts','playwright.config.ts','tsconfig.json','vitest.config.ts','postcss.config.mjs','public/data/manifest.json','public/data/NVDA.json','public/data/NVDA.slice.json','public/data/AAPL.json','public/data/AAPL.slice.json']:
+ f=t/name
+ if f.exists():files.append(f)
+files.extend([p/'playwright-successor.config.cjs',p/'run-browser.py'])
+files=sorted(set(files))
+historical=[w/'docs/TERMINAL_COMPARE_SETTINGS_DEFECTS_2026-09-22.md',*sorted((t/'docs/pr-crops/compare-settings-ux-20260922').rglob('*'))]
+historical=[f for f in historical if f.is_file()]
+def sha(f):return hashlib.sha256(f.read_bytes()).hexdigest()
+def snapshot(items):return {str(f.relative_to(w)):sha(f) for f in items}
+def save(name,value):(out/name).write_text(json.dumps(value,indent=2,sort_keys=True)+'\n')
+before=snapshot(files);history_before=snapshot(historical)
+save('source-before.json',before);save('historical-before.json',history_before)
+nextenv=t/'next-env.d.ts';preimage=nextenv.read_bytes() if nextenv.exists() else None
+if preimage is not None:(out/'next-env.preimage.d.ts.txt').write_bytes(preimage)
+argv=[str(node),'node_modules/@playwright/test/cli.js','test','--config',str(p/'playwright-successor.config.cjs'),'--workers=1','--retries=0','--max-failures=1']
+state={'schema':'terminal_pr718_browser_execution.v1','state':'RUNNING','browser':browser,'port':port,'argv':argv,'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'sourceFileCount':len(files),'historicalFileCount':len(historical),'generatedTypesPreimagePresent':preimage is not None,'fixtureContract':'Imports unchanged protected playwright.config.ts webServer environment, native /terminal?symbol=NVDA route and existing global warmup; no layout/comparison seed.','retries':0}
+def state_save():save('execution.json',state)
+state_save();start=time.monotonic()
+with (out/'execution.log').open('x') as log:
+ child=subprocess.Popen(argv,cwd=t,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,bufsize=1)
+ state['pid']=child.pid;state_save();print(json.dumps({'state':'STARTED','browser':browser,'pid':child.pid,'port':port,'sourceFiles':len(files)}),flush=True)
+ for line in child.stdout:
+  log.write(line);log.flush()
+  plain=re.sub(r'\x1b\[[0-9;]*m','',line)
+  if any(x in plain for x in ['Running 6 tests','[desktop]','[tablet]','[mobile]','passed (','failed','[globalSetup]','Error:']):print(plain.rstrip()[:1600],flush=True)
+ code=child.wait()
+state.update(exitCode=code,seconds=round(time.monotonic()-start,3),finishedAt=datetime.datetime.now(datetime.timezone.utc).isoformat(),logSha256=sha(out/'execution.log'))
+generated=nextenv.read_bytes() if nextenv.exists() else None
+if generated is not None:(out/'next-env.generated.d.ts.txt').write_bytes(generated)
+if preimage is None:
+ if nextenv.exists():nextenv.unlink()
+else:nextenv.write_bytes(preimage)
+state['generatedTypesRestored']=(nextenv.read_bytes() if nextenv.exists() else None)==preimage
+after=snapshot(files);history_after=snapshot(historical)
+save('source-after.json',after);save('historical-after.json',history_after)
+state['sourceStable']=before==after;state['historicalPacketUnchanged']=history_before==history_after
+with socket.socket() as probe:
+ probe.settimeout(1);state['ownedPortClosed']=probe.connect_ex(('127.0.0.1',port))!=0
+report_path=out/'report.json'
+if report_path.exists():
+ report=json.loads(report_path.read_text());state['reportSha256']=sha(report_path);state['stats']=report.get('stats')
+ state['topLevelErrors']=report.get('errors',[])
+ def all_specs(suites):
+  for suite in suites:
+   yield from suite.get('specs',[])
+   yield from all_specs(suite.get('suites',[]))
+ state['cases']=[{'title':spec['title'],'project':test.get('projectName'),'status':test['status'],'results':[{'status':r['status'],'retry':r.get('retry'),'error':r.get('error'),'duration':r.get('duration'),'attachments':r.get('attachments',[])} for r in test['results']]} for spec in all_specs(report.get('suites',[])) for test in spec['tests']]
+pngs=sorted(out.rglob('*.png'));state['images']=[{'path':str(f.relative_to(w)),'sha256':sha(f),'bytes':f.stat().st_size} for f in pngs]
+stats=state.get('stats') or {}
+passed=code==0 and stats.get('expected')==6 and stats.get('unexpected')==stats.get('flaky')==stats.get('skipped')==0 and not state.get('topLevelErrors') and state['sourceStable'] and state['historicalPacketUnchanged'] and state['generatedTypesRestored'] and state['ownedPortClosed']
+state['state']='BROWSER_MATRIX_PASSED' if passed else 'BROWSER_EXECUTION_REQUIRES_CLASSIFICATION';state_save()
+print(json.dumps({k:state.get(k) for k in ['state','browser','exitCode','seconds','stats','sourceFileCount','sourceStable','historicalPacketUnchanged','generatedTypesRestored','ownedPortClosed']}),flush=True)
+raise SystemExit(0 if passed else 1)

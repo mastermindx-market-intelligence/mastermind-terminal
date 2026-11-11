@@ -1,0 +1,116 @@
+{
+  "acceptance": "Draft/hold until current eligible natural PR CI; no new root auto enrollment under retained enforcement coverage gap; exact-generation public comparison proof still owed.",
+  "browserMatrices": [
+    {
+      "browser": "chromium",
+      "executionSha256": "8e79eaacf9be593de2edc9cbfaf9bbdf6ab135f5c85b56d352bcde61ed24434c",
+      "historicalUnchanged": true,
+      "ownedPortClosed": true,
+      "seconds": 113.765,
+      "sourceInputs": 3429,
+      "sourceStable": true,
+      "stats": {
+        "duration": 113392.386,
+        "expected": 6,
+        "flaky": 0,
+        "skipped": 0,
+        "startTime": "2026-11-10T16:57:31.067Z",
+        "unexpected": 0
+      },
+      "uniquePngs": 8
+    },
+    {
+      "browser": "webkit",
+      "executionSha256": "6e552d2fe14ef4df7c088f4794925c29da2b69f34e1842a208df1e1a70e86a6b",
+      "historicalUnchanged": true,
+      "ownedPortClosed": true,
+      "seconds": 66.312,
+      "sourceInputs": 3429,
+      "sourceStable": true,
+      "stats": {
+        "duration": 65587.323,
+        "expected": 6,
+        "flaky": 0,
+        "skipped": 0,
+        "startTime": "2026-11-10T17:03:06.183Z",
+        "unexpected": 0
+      },
+      "uniquePngs": 8
+    }
+  ],
+  "effectiveSourcePaths": [
+    "terminal/components/CompareSettings.tsx",
+    "terminal/components/CompareSettings.module.css",
+    "terminal/components/TerminalShell.tsx",
+    "terminal/e2e/compare-settings-ux.spec.ts",
+    "terminal/lib/__tests__/compareSettingsUx.test.tsx"
+  ],
+  "finalUnitCounts": {
+    "numFailedTests": 0,
+    "numPassedTests": 64,
+    "numPendingTests": 0,
+    "numTotalTests": 64
+  },
+  "fixedProtectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "historicalFilesUnchanged": {
+    "docs/TERMINAL_COMPARE_SETTINGS_DEFECTS_2026-09-22.md": "b95549297b5cc88c2c89c3563d0fed8241358d21cbb1c1999ad111a39251734f",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/EVIDENCE.json": "d82dcbd0afda203819934c1ba1b53f9124d0179462c1ca518097fa3af570fe6b",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-before.png": "f8bc5ed6b791234bc98a7571ab00295567007763eedbf634bde9364d54374bf5",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-en.png": "98b665e3106bcb392d0cdf870c05c7054f82f40d4aec751ba5d1de957cf9fdeb",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-zh.png": "9a7010f8d63cf38740a5f00ec83098ff8a63463f261b3d36d481f61ab7fde001",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/mobile-en.png": "af1e2a83281723a3436e058fda54ba8cffca1ce815f40c74919f69bdaa187d35",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/mobile-zh.png": "a06e6f0bfdd005b0ab83f8424aeac19a3facb2042736d0334ea053834dd73966",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-en-entry.png": "de862c0b881f9b3da8defd1f560ee9284852419d13ad8c1cdf3458f59b3fee77",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-en.png": "4ed8a2dab2ee3415922b4c870490ef1609eecb846209f6788e3b6db0c88e2e0b",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-zh-entry.png": "6bbd91034b3fb0e5b0b1cea139acb2b069ee5023f176134531a17bf3dcf017b5",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-zh.png": "ee07b761777cb2b6f2c4ba6a19f36390efa070c061f5cf446debaaf1778c08b5"
+  },
+  "missingOpenerCounterexample": "focus-red-execution.json",
+  "originalHead": "eac52855170a66e86e347278b3474570d05580c9",
+  "protectedOwnerBlobsUnchanged": {
+    "terminal/app/globals.css": "10f2df3f3e04f291f028c345b50a1967ba158cb2",
+    "terminal/components/ChartOverlays.tsx": "32ee593fa22b67989b2c59f300089ef8cf9668c4",
+    "terminal/components/ChartPane.tsx": "44dee8337493d5c3dd926cda6ab7e23ad00e8c7c",
+    "terminal/components/IndicatorSettings.module.css": "27e0ddc7c654cf27ec701a201a8ab278ccb118a5",
+    "terminal/e2e/pane-sync-time-axis.spec.ts": "94d933cac2ed96eac61c3c45f45ec3349e8aaee3",
+    "terminal/lib/chart-engine/canvas/priceAxis.ts": "729b252962b96b1b213c5238d5c1aa823de25939",
+    "terminal/lib/chartSettingsUi.ts": "9ee1751b9eb783c28584bbba402e704d6318dd68",
+    "terminal/lib/i18n.tsx": "efd3688e2b4ca6bcd9e806d0096854158c1de214",
+    "terminal/package-lock.json": "43172affa9516ddcbd6e8f7a59bb54888baa7e3b",
+    "terminal/package.json": "df2e635a0abab248c90e33e3f89bd1f2581f6376",
+    "terminal/playwright.config.ts": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6"
+  },
+  "publicationAttempted": false,
+  "schema": "terminal_pr718_source_self_check.v1",
+  "scope": "Original comparison UX with shared native dialog/geometry/color/preference owners; no marker/pane-sync replay.",
+  "sourceCounterexamples": [
+    "comparison settings preserve color and interaction ownership allows clearing thickness without mutating the chart, then restores an empty commit",
+    "comparison settings preserve color and interaction ownership withholds out-of-range widths during typing and bounds the committed value",
+    "comparison settings preserve color and interaction ownership withholds fractional widths until the existing bounded integer commit",
+    "comparison settings preserve color and interaction ownership withholds negative drafts and applies the minimum only on commit",
+    "comparison settings preserve color and interaction ownership does not carry an uncommitted draft into a different comparison"
+  ],
+  "sourceHashes": {
+    "docs/verification/pr718-compare-successor-20261110/playwright-successor.config.cjs": "113a83a2045e679b6e693848a0b8c98b963ff76782c9f506fe39c8189e1fe9ad",
+    "terminal/components/CompareSettings.module.css": "75984ea5a6f5b4ddaf123524841bcbd7a108529706ab977aa9d082f8b5979e70",
+    "terminal/components/CompareSettings.tsx": "ae1ec7d49a2b7283c1a2de2946cbd497014d2c94a45cc54ff4c0de5e270d0d60",
+    "terminal/components/IndicatorSettings.module.css": "e6ca03573c405d183b9ccf330698f187f17ffe9cea65607a8f91c1ee53e10582",
+    "terminal/components/TerminalShell.tsx": "b6479bc5ff547ac96708a108d52bbf4ce5dd1dc33bb70ef10822f97f05dda4ca",
+    "terminal/e2e/compare-settings-ux.spec.ts": "eb6f1dd5c573e99b9ba82c346586fb0269287a9a44dcb92b0681469cdf1c4600",
+    "terminal/lib/__tests__/chartSettingsUi.test.ts": "76dd777bbc09fa112898bf80703bf66641e107a03bc1266fadc638bdb3a967e2",
+    "terminal/lib/__tests__/compareSettingsAccessibility.test.tsx": "b21f025bfaaeda254dd98c2da368822c275b70b6e568ce940bf6a3f242e1ae7c",
+    "terminal/lib/__tests__/compareSettingsUx.test.tsx": "2187127b5b1d24eb0fb89ec8a1aa8deedc66c6256512d29927f0e743399d64b2",
+    "terminal/lib/chart-engine/canvas/priceAxis.ts": "87cd2deeebacbab40db3a03863f85ad90051a7d015872ccbbb25add24a05e94a",
+    "terminal/lib/chartSettingsUi.ts": "07f847801c701b11a240df3351e61fdb9bb791b6041e897ec0bef387d28d01c5",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/vitest.config.ts": "053949bb45e222617aa7018ded4e66a94e660790d252c3c051639f9c24bdea64"
+  },
+  "state": "OWNED_DIFF_AND_PROOF_SELF_CHECKED",
+  "terminalShellAdditions": [
+    "+                  <button type=\"button\" role=\"menuitem\" className=\"menu-row\" data-toolbar-menu-action=\"compare\" aria-haspopup=\"dialog\" style={{ minHeight: 44 }} onClick={() => { setToolbarMoreOpen(false); setSearchMode(\"compare\"); setSeed(\"\"); setSearchOpen(true); }}>",
+    "+                    <svg viewBox=\"0 0 24 24\"><path d=\"M4 18l5-9 4 5 3-4 4 8\" /></svg>{t(\"compare\")}",
+    "+                  </button>"
+  ],
+  "visualReviewSha256": "ee96db1cabf4c3ea1d8391a0ce4c7032ef04024e7a7465d6aade43c150da62f7"
+}

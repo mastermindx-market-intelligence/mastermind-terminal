@@ -1,0 +1,29 @@
+{
+  "boundAt": "2026-11-11T10:24:09.433346+00:00",
+  "captureHead": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "currentManifestSha256": "9fda6846901fd3002e0c4b610874e00429db19b837728d67fc3f4cd5915eabeb",
+  "images": {
+    "desktop-en-dark.png": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04",
+    "desktop-zh-dark.png": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d",
+    "mobile-en-dark.png": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28",
+    "mobile-zh-dark.png": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585",
+    "tablet-en-dark.png": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69",
+    "tablet-zh-dark.png": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5",
+    "unavailable-desktop-en-dark.png": "d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048",
+    "unavailable-desktop-zh-dark.png": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8",
+    "unavailable-mobile-en-dark.png": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61",
+    "unavailable-mobile-zh-dark.png": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792"
+  },
+  "layouts": {
+    "terminal/components/TerminalShell.tsx": "bc6a6138369de95c86aaefec90f63e6a1a6fde835f9e285fbebf9604410d9075",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2"
+  },
+  "priorManifestSha256": "5e85344159652ac23cfc17e3542e0d02225cc97965f9505df9ef085df85374db",
+  "qualificationSha256": "363960ad2e87c2f1edec3fb1506908f4c88bdf966fe439ef46b53e4318c305aa",
+  "schema": "terminal.pr718.news-manifest-binding.v1",
+  "scope": "Real local fixture-backed UI and unchanged producer contracts; no authenticated provider, installed-generation, or production-news acceptance.",
+  "sourceEntries": 2121,
+  "sourceTree": "e2cf25126668a68cdf585be25092e52a589eb849",
+  "state": "CURRENT_CAPTURE_BOUND"
+}

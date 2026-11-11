@@ -1,0 +1,31 @@
+HTTP/2.0 201 Created
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset, Warning
+Cache-Control: private, max-age=60, s-maxage=60
+Content-Length: 190
+Content-Security-Policy: default-src 'none'
+Content-Type: application/json; charset=utf-8
+Date: Wed, 11 Nov 2026 09:37:11 GMT
+Etag: "d83d0bc7833961b118a4873eb11ee02bd392405eb2a4357bdfcab3aaaaf8be17"
+Location: https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/325232fb9304cea7636a98786d0b049ddef784c1
+Referrer-Policy: origin-when-cross-origin, strict-origin-when-cross-origin
+Server: github.com
+Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+Vary: Accept, Authorization, Cookie, X-GitHub-OTP,Accept-Encoding, Accept, X-Requested-With
+X-Accepted-Oauth-Scopes: 
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-Github-Api-Version-Selected: 2022-11-28
+X-Github-Edge-Region: westus2
+X-Github-Media-Type: github.v3; format=json
+X-Github-Request-Id: 9714:3E90BC:18A0EC:29B047:6AF43746
+X-Oauth-Client-Id: 178c6fc778ccc68e1d6a
+X-Oauth-Scopes: admin:org, gist, repo, workflow
+X-Ratelimit-Limit: 5000
+X-Ratelimit-Remaining: 4762
+X-Ratelimit-Reset: 1794391361
+X-Ratelimit-Resource: core
+X-Ratelimit-Used: 238
+X-Xss-Protection: 0
+
+{"sha":"325232fb9304cea7636a98786d0b049ddef784c1","url":"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/325232fb9304cea7636a98786d0b049ddef784c1"}
