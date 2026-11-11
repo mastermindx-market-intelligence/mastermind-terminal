@@ -64,6 +64,8 @@ export function useShellEmail(): string {
 // Chart (/terminal) has its own shell and is intentionally absent.
 const TITLE_MAP: Array<[string, string, string]> = [
   ["/intelligence", "shellIntelligence", "Market Intelligence"],
+  // Before /prophet: prefix match is first-wins, and /prophet/evaluation is its own surface.
+  ["/prophet/evaluation", "shellProphetEvaluation", "Strategy Evaluation"],
   ["/prophet", "shellProphet", "Model plans & options"],
   ["/sectors", "shellSectors", "Sector Intelligence"],
   ["/today", "shellToday", "Today"],

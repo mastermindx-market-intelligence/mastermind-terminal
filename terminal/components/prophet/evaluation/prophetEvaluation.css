@@ -1,0 +1,275 @@
+/*
+ * prophetEvaluation.css — Strategy Evaluation surface (`/prophet/evaluation`).
+ *
+ * Scoped `pev-*` classes ONLY; every colour/spacing comes from the shared
+ * globals.css / observatory.css tokens — no new token root. The one thing this
+ * file adds beyond layout is the ≥1080px repositioning of the disclosure
+ * MobileSheet into a right-side panel (the dialog primitive and its focus trap
+ * stay exactly as shipped).
+ */
+
+.pev {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 18px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: var(--text);
+}
+.pev-state { align-items: flex-start; gap: 12px; }
+.pev-state .pev-cta { margin-top: 8px; }
+
+.pev :focus-visible {
+  outline: 2px solid var(--text-2);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────────── */
+.pev-mast { display: flex; flex-direction: column; gap: 6px; }
+.pev-back {
+  font: 500 12.5px/1 var(--font-ui);
+  color: var(--text-2);
+  text-decoration: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  margin-left: -8px;
+  padding: 0 8px;
+}
+.pev-back:hover { color: var(--text); }
+.pev-eyebrow {
+  font: 600 10.5px/1 var(--font-ui);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.pev-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pev-h1 { font: 600 22px/1.2 var(--font-ui); color: var(--text); margin: 0; }
+.pev-window { font: 400 12.5px/1.5 var(--font-ui); color: var(--text-2); }
+
+/* ── Cards / shared ──────────────────────────────────────────────────────── */
+.pev-card {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pev-card > h2 { font: 600 14px/1.3 var(--font-ui); color: var(--text); margin: 0; }
+.pev-card > h3 { font: 600 12.5px/1.3 var(--font-ui); color: var(--text-2); margin: 6px 0 0; }
+.pev-kicker { font: 400 12.5px/1.55 var(--font-ui); color: var(--text-2); margin: 0; }
+.pev-dim { color: var(--muted); }
+.pev-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pev-loading { font: 500 14px/1 var(--font-ui); color: var(--text-2); padding: 24px 0; }
+.pev-lede { font: 400 13.5px/1.6 var(--font-ui); color: var(--text-2); max-width: 62ch; }
+
+.pev-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 600 10.5px/1 var(--font-ui);
+  letter-spacing: .02em;
+  border-radius: 999px;
+  padding: 4px 9px;
+  white-space: nowrap;
+  color: var(--c, var(--text-2));
+  background: color-mix(in srgb, var(--c, var(--muted)) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, var(--muted)) 30%, transparent);
+}
+.pev-chip.is-l0 { --c: var(--muted); }
+.pev-chip.is-met { --c: var(--up); }
+.pev-chip.is-not { --c: var(--down); }
+.pev-chip.is-unknown { --c: var(--muted); }
+
+/* ── Verdict ─────────────────────────────────────────────────────────────── */
+.pev-verdict-level { font: 600 16px/1.4 var(--font-ui); color: var(--text); margin: 0; }
+.pev-verdict-level b { color: var(--text); }
+.pev-sentence { font: 400 14px/1.65 var(--font-ui); color: var(--text); margin: 0; max-width: 88ch; }
+/* The interval verdict earns the emphasis (calm accent, never a win colour):
+   it is the sentence a cold reader should carry away when the CI spans zero. */
+.pev-sentence.pev-distinguish {
+  font-weight: 500;
+  padding-left: 10px;
+  border-left: 2px solid var(--hairline-strong, var(--hairline));
+}
+.pev-minimum { border-top: 1px solid var(--hairline); padding-top: 10px; margin-top: 2px; }
+.pev-minimum h3 { margin: 0 0 6px; }
+.pev-minimum ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pev-minimum li { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font: 400 12.5px/1.5 var(--font-ui); }
+.pev-minimum li > span:first-child { color: var(--text-2); flex: 0 0 auto; }
+
+/* ── Participation tiles ─────────────────────────────────────────────────── */
+.pev-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.pev-tile {
+  background: var(--panel-2);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pev-tile b { font: 600 18px/1.1 var(--font-ui); color: var(--text); font-variant-numeric: tabular-nums; }
+.pev-tile .pev-dim { font: 400 11.5px/1.3 var(--font-ui); }
+
+.pev-criteria summary {
+  cursor: pointer;
+  font: 600 12.5px/44px var(--font-ui);
+  color: var(--text-2);
+  min-height: 44px;
+}
+.pev-criteria[open] summary { line-height: 1.4; padding: 12px 0; }
+
+/* ── Tables (scroll inside their own container — never page-wide) ────────── */
+.pev-table-scroll { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 10px; }
+.pev-table { border-collapse: collapse; width: 100%; font: 400 12px/1.5 var(--font-ui); color: var(--text-2); }
+.pev-table th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  font: 600 10.5px/1.3 var(--font-ui);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--panel);
+  padding: 8px 10px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--hairline);
+}
+.pev-table td { padding: 8px 10px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+.pev-table tbody tr:last-child td { border-bottom: none; }
+.pev-table .pev-row-strong td { color: var(--text); font-weight: 600; background: color-mix(in srgb, var(--text) 3%, transparent); }
+.pev-table .pev-row-unavail td { color: var(--muted); }
+.pev-table .pev-chip { margin-left: 2px; }
+
+/* ── Charts ──────────────────────────────────────────────────────────────── */
+.pev-chart-wrap { width: 100%; }
+.pev-chart-wrap svg { display: block; max-width: 100%; }
+.pev-forest-lbl { font: 500 11px/1.2 var(--font-ui); fill: var(--text-2); }
+.pev-forest-tick { font: 400 10.5px/1 var(--font-ui); fill: var(--muted); }
+.pev-forest-zero { stroke: var(--text); stroke-opacity: .75; stroke-width: 1.5; }
+.pev-forest-axis { stroke: var(--hairline); stroke-width: 1; }
+.pev-ci-neutral { stroke: var(--text-2); }
+.pev-ci-pos { stroke: var(--up); }
+.pev-ci-neg { stroke: var(--down); }
+.pev-ci-point { fill: var(--bg); stroke-width: 1.8; }
+.pev-wf-pos { fill: var(--up); fill-opacity: .82; }
+.pev-wf-neg { fill: var(--down); fill-opacity: .82; }
+.pev-wf-total { fill: var(--text-2); fill-opacity: .9; }
+.pev-wf-val { font: 500 10.5px/1 var(--font-ui); fill: var(--text-2); font-variant-numeric: tabular-nums; }
+
+/* ── Caveats ─────────────────────────────────────────────────────────────── */
+.pev-caveats { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.pev-caveat {
+  background: var(--panel-2);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pev-caveat h3 { margin: 0; font: 600 12.5px/1.4 var(--font-ui); color: var(--text); }
+.pev-caveat p { margin: 0; font: 400 12.5px/1.6 var(--font-ui); color: var(--text-2); }
+
+/* ── Disclosure triggers ─────────────────────────────────────────────────── */
+.pev-panel-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.pev-panel-btn {
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--panel-2);
+  color: var(--text);
+  font: 600 13px/1.3 var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+.pev-panel-btn:hover { background: var(--panel-3); }
+.pev-panel-btn[aria-expanded="true"] { box-shadow: inset 0 0 0 1px var(--text-2); }
+
+/* ── Footer stamps ───────────────────────────────────────────────────────── */
+.pev-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font: 400 11.5px/1.6 var(--font-ui);
+  color: var(--muted);
+}
+
+/* ── Panel bodies (inside the MobileSheet) ───────────────────────────────── */
+.pev-panel-body { display: flex; flex-direction: column; gap: 16px; padding: 2px 16px 16px; }
+.pev-panel-sec { display: flex; flex-direction: column; gap: 8px; }
+.pev-panel-sec > h4 {
+  margin: 0;
+  font: 600 11px/1 var(--font-ui);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 6px;
+}
+.pev-panel-sec > h5 { margin: 4px 0 0; font: 600 12px/1.3 var(--font-ui); color: var(--text-2); }
+.pev-panel-sec p { margin: 0; font: 400 12.5px/1.6 var(--font-ui); color: var(--text-2); }
+.pev-field { display: flex; gap: 10px; font: 400 12px/1.5 var(--font-ui); }
+.pev-field-k { flex: 0 0 40%; color: var(--muted); }
+.pev-field-v { color: var(--text-2); word-break: break-word; }
+.pev-mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: 11.5px; }
+.pev-verbatim { display: flex; flex-direction: column; gap: 6px; }
+.pev-verbatim-body { font: 400 12.5px/1.6 var(--font-ui); color: var(--text-2); }
+.pev-verbatim-note { margin: 0; font: 400 11px/1.5 var(--font-ui); color: var(--muted); font-style: italic; }
+.pev-defs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pev-defs li { display: flex; flex-direction: column; gap: 2px; font: 400 12.5px/1.6 var(--font-ui); color: var(--text-2); }
+.pev-defs li b { color: var(--text); font-weight: 600; }
+.pev-headline-list li { padding-left: 14px; position: relative; }
+.pev-headline-list li::before { content: counter(list-item, decimal) "."; position: absolute; left: 0; color: var(--muted); }
+.pev-tickers { margin: 0; font: 400 11px/1.7 var(--font-ui); color: var(--muted); word-break: break-word; }
+.pev-job { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.pev-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--panel-3);
+  color: var(--text);
+  font: 600 13px/1 var(--font-ui);
+  text-decoration: none;
+  cursor: pointer;
+}
+.pev-cta:hover { background: color-mix(in srgb, var(--text) 8%, var(--panel-3)); }
+
+/* ── Disclosure sheet: drawer by default, right-side panel ≥1080px ───────── */
+@media (min-width: 1080px) {
+  .msheet.pev-panel-sheet {
+    left: auto;
+    right: 24px;
+    top: 24px;
+    bottom: 24px;
+    width: min(680px, 46vw);
+    max-height: none;
+    border-radius: 14px;
+    border: 1px solid var(--hairline);
+    padding-bottom: 0;
+    animation: pev-panel-in 200ms ease forwards;
+  }
+  .msheet.pev-panel-sheet .msheet-body { padding-bottom: 16px; }
+}
+@keyframes pev-panel-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Narrow phones ───────────────────────────────────────────────────────── */
+@media (max-width: 400px) {
+  .pev { padding: 12px 12px 40px; }
+  .pev-card { padding: 12px 12px 14px; }
+  .pev-panel-body { padding: 2px 10px 12px; }
+  .pev-h1 { font-size: 19px; }
+}
