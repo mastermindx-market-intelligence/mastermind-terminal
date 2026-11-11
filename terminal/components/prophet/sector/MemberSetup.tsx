@@ -80,7 +80,11 @@ export function MemberSetup({ payload, onBack }: {
 
       {group !== null && member !== null ? (
         <p className={styles.setupMembership} data-testid="prophet-sector-setup-membership">
-          {prophetSectorFill(t("setupMemberSince"), { group: localGroupName, date: member.memberSince ?? "—" })}
+          {/* A2-1: two different clocks, both labeled. first_known is a lower
+              bound from stored snapshots; member_since is the roster's own
+              effective date — never merged, never presented as one fact. */}
+          {prophetSectorFill(t("setupMemberSince"), { date: member.firstKnown ?? "—" })}
+          {member.memberSince !== null ? ` · ${prophetSectorFill(t("setupRosterSince"), { date: member.memberSince })}` : ""}
           {payload.memberOf.length > 1 ? ` · ${prophetSectorFill(t("setupInGroups"), { n: payload.memberOf.length })}` : ""}
         </p>
       ) : null}

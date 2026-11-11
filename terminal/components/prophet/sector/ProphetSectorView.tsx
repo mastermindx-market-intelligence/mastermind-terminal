@@ -157,7 +157,7 @@ export function ProphetSectorView({ state, update }: {
               <p className={styles.stateCopy}>{t("contextNoGroup")}</p>
             )}
             {indexFetch.read.status === "ready"
-              ? <SectorGroupPicker groups={indexFetch.read.payload.groups} selected={state.group} onPick={pickGroup} />
+              ? <SectorGroupPicker groups={indexFetch.read.payload.groups} totals={indexFetch.read.payload.totals} selected={state.group} onPick={pickGroup} />
               : fetchStateBlock(indexFetch.read as Read<never>, indexFetch.retry, "prophet-sector-index")}
           </>
         ) : null}
@@ -169,23 +169,35 @@ export function ProphetSectorView({ state, update }: {
                 ← {t("pickerTitle")}
               </button>
             </div>
-            {contextGroup !== null && groupReady !== null ? (
-              <SectorContextStrip group={contextGroup} compatibility={groupReady.compatibility} />
-            ) : null}
-            {groupFetch.read.status === "ready"
-              ? <SectorMemberPopulation
-                  payload={groupFetch.read.payload}
-                  q={state.q}
-                  stateFilter={state.state}
-                  offset={state.offset}
-                  onFilter={change => update({
-                    q: change.q !== undefined ? change.q : state.q,
-                    state: change.state !== undefined ? change.state : state.state,
-                    offset: change.offset !== undefined ? change.offset : state.offset,
-                  })}
-                  onOpenMember={openMember}
-                />
-              : fetchStateBlock(groupFetch.read as Read<never>, groupFetch.retry, "prophet-sector-group")}
+            {groupReady !== null && groupReady.group === null ? (
+              // A1-9/A2-4 fail-closed read: the sector side is unavailable and
+              // the wire says so with group null — never an empty-looking list.
+              <div className={styles.stateCopy} data-testid="prophet-sector-group-unavailable" role="status">
+                <p>{t("verdictSectorDown")}</p>
+                <p>{t("groupUnavailableMembers")}</p>
+                <button type="button" className={styles.smallButton} onClick={groupFetch.retry}>{t("retryAction")}</button>
+              </div>
+            ) : (
+              <>
+                {contextGroup !== null && groupReady !== null ? (
+                  <SectorContextStrip group={contextGroup} compatibility={groupReady.compatibility} />
+                ) : null}
+                {groupFetch.read.status === "ready"
+                  ? <SectorMemberPopulation
+                      payload={groupFetch.read.payload}
+                      q={state.q}
+                      stateFilter={state.state}
+                      offset={state.offset}
+                      onFilter={change => update({
+                        q: change.q !== undefined ? change.q : state.q,
+                        state: change.state !== undefined ? change.state : state.state,
+                        offset: change.offset !== undefined ? change.offset : state.offset,
+                      })}
+                      onOpenMember={openMember}
+                    />
+                  : fetchStateBlock(groupFetch.read as Read<never>, groupFetch.retry, "prophet-sector-group")}
+              </>
+            )}
           </>
         ) : null}
 

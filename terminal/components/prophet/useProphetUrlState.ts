@@ -49,8 +49,11 @@ export function useProphetUrlState(): {
     const next = { ...ref.current, ...patch };
     adopt(next);
     const url = new URL(window.location.href);
+    // writeProphetState mutates `url` — capture the pre-write address first,
+    // or the no-op comparison always compares equal and nothing is pushed.
+    const before = url.pathname + url.search + url.hash;
     const href = writeProphetState(url, next);
-    if (href !== url.pathname + url.search + url.hash) {
+    if (href !== before) {
       window.history.pushState({}, "", href);
     }
   }, [adopt]);

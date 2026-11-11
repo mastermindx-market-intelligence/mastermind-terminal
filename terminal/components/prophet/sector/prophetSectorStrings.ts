@@ -47,6 +47,7 @@ export const PROPHET_SECTOR_LEX = {
   // ── Group picker (SX02) ──────────────────────────────────────────────────
   pickerTitle:         ["Groups", "行业组"],
   pickerIntro:         ["Every group in the current sector read, with its Prophet coverage.", "当前行业读数中的全部行业组及其预言台覆盖。"],
+  pickerCoverageHonest: ["{served} served members across {groups} groups. Prophet also covers companies outside these groups.", "{groups} 个行业组共 {served} 只成分。预言台亦覆盖这些组之外的公司。"],
   pickerMembers:       ["{n} members", "{n} 只成分"],
   pickerCoverage:      ["{open} open plans · {early} early observations · {resolved} resolved", "{open} 个进行中计划 · {early} 项早期观察 · {resolved} 个已完结"],
   pickerView:          ["View population", "查看成员"],
@@ -54,6 +55,7 @@ export const PROPHET_SECTOR_LEX = {
 
   // ── Member population (SX04) ─────────────────────────────────────────────
   populationTitle:     ["{group} in Prophet", "预言台中的{group}"],
+  populationTitleNoGroup: ["Members", "成分"],
   populationCounts:    ["{served} served of {configured} configured · {unserved} unmeasured", "配置 {configured} 只，已服务 {served} 只 · {unserved} 只未测量"],
   searchLabel:         ["Search members", "搜索成分"],
   searchPlaceholder:   ["Symbol or name", "代码或名称"],
@@ -63,7 +65,8 @@ export const PROPHET_SECTOR_LEX = {
   columnSymbol:        ["Symbol", "代码"],
   columnName:          ["Name", "名称"],
   columnIndustry:      ["Industry", "行业"],
-  columnSince:         ["Member since", "纳入日期"],
+  columnSince:         ["In group", "组内"],
+  sinceAtLeast:        ["at least {date}", "至少 {date}"],
   columnState:         ["Prophet state", "预言台状态"],
   shownOf:             ["Showing {shown} of {total}", "显示 {shown} / {total}"],
   pagePrev:            ["Previous page", "上一页"],
@@ -102,7 +105,8 @@ export const PROPHET_SECTOR_LEX = {
   setupWhyNoPlan:      ["Why no plan", "为何没有计划"],
   setupObservation:    ["Early observation · {asof}", "早期观察 · {asof}"],
   setupChartLink:      ["Open {symbol} chart", "打开 {symbol} 图表"],
-  setupMemberSince:    ["Member of {group} since {date}", "自 {date} 起为{group}成分"],
+  setupMemberSince:    ["In this group since at least {date}", "至少自 {date} 起在该组"],
+  setupRosterSince:    ["Roster effective {date}", "名单生效 {date}"],
   setupReported:       ["Reported from the Prophet index — not a recommendation.", "来自预言台指数的记录——不构成建议。"],
   setupInGroups:       ["Member of {n} group(s)", "{n} 个组的成分"],
 
@@ -118,8 +122,9 @@ export const PROPHET_SECTOR_LEX = {
   sourcesIndexHash:    ["Index bytes", "指数字节"],
   sourcesQualification:["Qualification {value}", "资质 {value}"],
   sourcesMembership:   ["Membership is the group's current roster, not a point-in-time snapshot.", "成员为该组当前名单，非时点快照。"],
+  sourcesMembershipPit: ["Membership is the current roster; first-known dates are lower bounds from stored snapshots, never true first-in dates.", "成员为当前名单；首次已知日期为存量快照给出的下界，并非真实加入日期。"],
   sourcesMembershipLabel: ["Membership basis", "成员口径"],
-  sourcesTaxonomy:     ["Industry labels are current-basis.", "行业标签为当前口径。"],
+  sourcesTaxonomy:     ["Industry labels are current-basis GICS, not point-in-time.", "行业标签为当前口径的 GICS 分类，非时点口径。"],
   sourcesTaxonomyLabel: ["Taxonomy basis", "分类口径"],
   sourcesJoin:         ["Joined by US listing ticker.", "按美国上市代码关联。"],
   sourcesJoinLabel:    ["Join key", "关联键"],
@@ -138,6 +143,7 @@ export const PROPHET_SECTOR_LEX = {
   // The upstream reading is not published for the Terminal yet (404/502/timeout
   // at the BFF). The designed degradation: say so, keep the rest of Prophet usable.
   unavailableYet:      ["Sector context is not available yet.", "行业背景暂未开放。"],
+  groupUnavailableMembers: ["The group's member list is not part of this read.", "本次读数不包含该组的成员列表。"],
   unavailableNote:     ["This reading is not published for the Terminal yet — the rest of Prophet keeps working.", "该读数尚未向 Terminal 发布——预言台其余功能不受影响。"],
   backToGroups:        ["← All groups", "← 全部行业组"],
 

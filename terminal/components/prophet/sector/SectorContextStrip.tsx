@@ -15,7 +15,7 @@
  */
 import { useLang } from "@/lib/i18n";
 import type {
-  SectorGroupContext, SectorGroupSummary, SectorMembersCompatibility,
+  SectorGroupContext, SectorGroupDescriptor, SectorMembersCompatibility,
 } from "@/lib/prophetSectorMembers";
 import {
   contextNullKey, makeProphetSectorT, prophetSectorFill,
@@ -39,7 +39,7 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: "up
 }
 
 export function SectorContextStrip({ group, compatibility }: {
-  group: SectorGroupSummary;
+  group: SectorGroupDescriptor;
   compatibility: SectorMembersCompatibility;
 }) {
   const { lang } = useLang();

@@ -6,12 +6,13 @@
  * reachable buttons; touch targets stay within the population's 44px law.
  */
 import { useLang } from "@/lib/i18n";
-import type { SectorGroupSummary } from "@/lib/prophetSectorMembers";
+import type { CoverageCounts, SectorGroupSummary } from "@/lib/prophetSectorMembers";
 import { makeProphetSectorT, prophetSectorFill } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
 
-export function SectorGroupPicker({ groups, selected, onPick }: {
+export function SectorGroupPicker({ groups, totals, selected, onPick }: {
   groups: SectorGroupSummary[];
+  totals: CoverageCounts;
   selected: string | null;
   onPick: (groupId: string) => void;
 }) {
@@ -27,6 +28,12 @@ export function SectorGroupPicker({ groups, selected, onPick }: {
       <header className={styles.pickerHead}>
         <h3 className={styles.pickerTitle}>{t("pickerTitle")}</h3>
         <p className={styles.pickerIntro}>{t("pickerIntro")}</p>
+        {/* Coverage honesty (COO term): the wire's own totals, plus the plain
+            statement that Prophet covers companies beyond these groups — the
+            outside count is not on the wire, so no number is invented. */}
+        <p className={styles.pickerCoverageHonest} data-testid="prophet-sector-picker-coverage">
+          {prophetSectorFill(t("pickerCoverageHonest"), { served: totals.served, groups: groups.length })}
+        </p>
       </header>
       <ul className={styles.pickerList} role="list">
         {groups.map(group => {

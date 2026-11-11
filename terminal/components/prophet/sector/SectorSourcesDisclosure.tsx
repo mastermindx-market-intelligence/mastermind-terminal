@@ -50,8 +50,11 @@ export function SectorSourcesDisclosure({ envelope }: { envelope: SectorMembersE
   // under its label — never invented, never silently re-worded.
   const membership = disclosure.membershipBasis === "current_roster_not_point_in_time"
     ? t("sourcesMembership")
-    : `${t("sourcesMembershipLabel")}: ${disclosure.membershipBasis}`;
+    : disclosure.membershipBasis === "current_roster_with_pit_first_known"
+      ? t("sourcesMembershipPit")
+      : `${t("sourcesMembershipLabel")}: ${disclosure.membershipBasis}`;
   const taxonomy = disclosure.taxonomyBasis === "gics_current_labels"
+      || disclosure.taxonomyBasis === "current_gics_industry_not_point_in_time"
     ? t("sourcesTaxonomy")
     : `${t("sourcesTaxonomyLabel")}: ${disclosure.taxonomyBasis}`;
   const join = disclosure.joinKey === "us_listing_ticker"

@@ -1,142 +1,1568 @@
 {
  "schema": "prophet.sector_members/v1",
  "mode": "index",
- "captured_at": "2026-11-07T06:02:11Z",
+ "captured_at": "2026-11-11T04:55:46Z",
  "sector_ref": {
   "owner": "sector_generation",
-  "generation_id": "sgen-2026-11-06-a3f2",
-  "content_id": "1e2d6edf94bcf7b69c1df348fd4694c5146aea1e87497331ab1ee174a32a7b4e",
+  "generation_id": "qualify-2026-11-06",
+  "content_id": "973b72736c5fb9a64823a7707ea06baf113657f47b2c9962d5d692865b6c2ffa",
   "source_session": "2026-11-06",
-  "published_at": "2026-11-07T05:12:00Z",
-  "member_sha256": "ec0597adc20e9d9093ae64305b3e76bde58581be7cd046641727a7308652b944",
-  "qualification": "accepted"
+  "published_at": "2026-11-06T23:00:00+00:00",
+  "member_sha256": "3e51b31bfbecb8f1b08957b52954e0e192525d68000fe3a095f86a7ac2a5edf6",
+  "qualification": "stale"
  },
  "prophet_ref": {
   "owner": "prophet_index",
   "schema": "prophet.index/v1",
-  "asof": "2026-11-06",
-  "generated_at": "2026-11-06T21:40:00Z",
-  "index_sha256": "91f65d13e7d5ab7ca6db0b1760d7252a5bcda8f4f00f32c9ba52197a2880883e",
+  "asof": "2026-11-09",
+  "generated_at": "2026-11-09T09:02:55Z",
+  "index_sha256": "3956748aa58e9a1d4850e3429082f2a4d795da32b1a12667f5b1ce75f3fe2e28",
   "plan_count": 893,
   "open_plan_count": 364
  },
  "compatibility": {
-  "status": "compatible",
+  "status": "mixed_basis",
   "sector_session": "2026-11-06",
-  "prophet_asof": "2026-11-06",
-  "session_gap": 0,
-  "reason": null
+  "prophet_asof": "2026-11-09",
+  "session_gap": 3,
+  "reason": "sessions differ by 3 calendar days and an owner flags a non-accepted basis (sector qualification 'stale')"
  },
  "disclosure": {
-  "membership_basis": "current_roster_not_point_in_time",
-  "taxonomy_basis": "gics_current_labels",
+  "membership_basis": "current_roster_with_pit_first_known",
+  "taxonomy_basis": "current_gics_industry_not_point_in_time",
   "join_key": "us_listing_ticker",
   "descriptive_only": true
  },
  "groups": [
   {
-   "id": "us_sector_health",
+   "id": "ai_agents",
    "kind": "basket",
-   "name": "Healthcare",
-   "name_zh": "医疗保健",
+   "name": "AI Agents & Applications",
+   "name_zh": "AI \u667a\u80fd\u4f53\u4e0e\u5e94\u7528",
    "benchmark": "SPY",
    "context": {
-    "window_sessions": 21,
-    "group_return_pct": 7.6,
-    "market_return_pct": 3.2,
-    "relative_pp": 4.4,
-    "breadth": {
-     "above_trend": 42,
-     "measured": 60
+    "window_sessions": 20,
+    "group_return_pct": -3.8519,
+    "market_return_pct": -5.559,
+    "relative_pp": 1.7071,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
     },
-    "state_label": "Broad advance led by services and equipment",
-    "reasons": {}
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
    },
    "counts": {
-    "configured": 60,
-    "served": 59,
-    "accounted_unserved": 1,
+    "configured": 8,
+    "served": 8,
+    "accounted_unserved": 0,
     "unaccounted": 0,
     "open_plan": 0,
-    "resolved_plan": 0,
-    "early_observation": 1,
-    "none": 58,
+    "resolved_plan": 3,
+    "early_observation": 5,
+    "none": 0,
     "unavailable": 0
    }
   },
   {
-   "id": "us_sector_discretionary",
+   "id": "ai_infra",
    "kind": "basket",
-   "name": "Consumer Discretionary",
-   "name_zh": "非必需消费",
+   "name": "AI Infrastructure",
+   "name_zh": "AI \u57fa\u7840\u8bbe\u65bd",
    "benchmark": "SPY",
    "context": {
-    "window_sessions": 21,
-    "group_return_pct": 2.1,
-    "market_return_pct": 3.2,
-    "relative_pp": -1.1,
-    "breadth": {
-     "above_trend": 17,
-     "measured": 47
-    },
-    "state_label": null,
+    "window_sessions": 20,
+    "group_return_pct": -32.936,
+    "market_return_pct": -5.5589,
+    "relative_pp": -27.3771,
+    "breadth": null,
+    "state_label": "Trough",
     "reasons": {
-     "state_label": "not_produced"
-    }
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
    },
    "counts": {
-    "configured": 47,
-    "served": 47,
+    "configured": 24,
+    "served": 24,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 3,
+    "early_observation": 8,
+    "none": 11,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "ai_neoclouds",
+   "kind": "basket",
+   "name": "AI Neoclouds & HPC Hosting",
+   "name_zh": "AI \u65b0\u4e91\u4e0e\u9ad8\u6027\u80fd\u7b97\u529b\u6258\u7ba1",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -33.2569,
+    "market_return_pct": -5.5589,
+    "relative_pp": -27.698,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 10,
+    "served": 10,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 1,
+    "early_observation": 5,
+    "none": 3,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "ai_semiconductors",
+   "kind": "basket",
+   "name": "AI Semiconductors",
+   "name_zh": "AI\u534a\u5bfc\u4f53",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -30.101,
+    "market_return_pct": -5.5589,
+    "relative_pp": -24.5421,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 12,
+    "served": 12,
     "accounted_unserved": 0,
     "unaccounted": 0,
     "open_plan": 2,
     "resolved_plan": 1,
+    "early_observation": 5,
+    "none": 4,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "ai_software",
+   "kind": "basket",
+   "name": "AI Software & Platforms",
+   "name_zh": "AI \u8f6f\u4ef6\u4e0e\u5e73\u53f0",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -11.2782,
+    "market_return_pct": -5.5589,
+    "relative_pp": -5.7193,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 17,
+    "served": 17,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 3,
+    "resolved_plan": 3,
+    "early_observation": 8,
+    "none": 3,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "big_pharma",
+   "kind": "basket",
+   "name": "Big Pharma",
+   "name_zh": "\u5927\u578b\u836f\u4f01",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 8.0998,
+    "market_return_pct": -5.559,
+    "relative_pp": 13.6588,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 9,
+    "served": 9,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 1,
     "early_observation": 1,
-    "none": 43,
+    "none": 6,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "critical_minerals",
+   "kind": "basket",
+   "name": "Critical Minerals & Rare Earths",
+   "name_zh": "\u5173\u952e\u77ff\u4ea7\u4e0e\u7a00\u571f",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -21.3471,
+    "market_return_pct": -5.5589,
+    "relative_pp": -15.7882,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 11,
+    "served": 11,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 3,
+    "resolved_plan": 2,
+    "early_observation": 1,
+    "none": 5,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "crypto",
+   "kind": "basket",
+   "name": "Crypto & Digital Assets",
+   "name_zh": "\u52a0\u5bc6\u4e0e\u6570\u5b57\u8d44\u4ea7",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -25.4198,
+    "market_return_pct": -5.5589,
+    "relative_pp": -19.8609,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 7,
+    "served": 7,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 0,
+    "resolved_plan": 1,
+    "early_observation": 5,
+    "none": 1,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "crypto_rails",
+   "kind": "basket",
+   "name": "Crypto & Digital Rails",
+   "name_zh": "\u52a0\u5bc6\u4e0e\u6570\u5b57\u8f68\u9053",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -8.0012,
+    "market_return_pct": -5.5589,
+    "relative_pp": -2.4423,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 7,
+    "served": 7,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 0,
+    "early_observation": 4,
+    "none": 2,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "cybersecurity",
+   "kind": "basket",
+   "name": "Cybersecurity",
+   "name_zh": "\u7f51\u7edc\u5b89\u5168",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -19.3025,
+    "market_return_pct": -5.559,
+    "relative_pp": -13.7435,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 10,
+    "served": 10,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 0,
+    "early_observation": 2,
+    "none": 7,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "data_center_power",
+   "kind": "basket",
+   "name": "Data-Center Power & Cooling",
+   "name_zh": "\u6570\u636e\u4e2d\u5fc3\u7535\u529b\u4e0e\u6563\u70ed",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -20.1376,
+    "market_return_pct": -5.5589,
+    "relative_pp": -14.5787,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 8,
+    "served": 8,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 1,
+    "early_observation": 5,
+    "none": 1,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "defense",
+   "kind": "basket",
+   "name": "Defense & Aerospace",
+   "name_zh": "\u56fd\u9632\u4e0e\u822a\u7a7a\u822a\u5929",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -2.0358,
+    "market_return_pct": -5.5589,
+    "relative_pp": 3.5231,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 21,
+    "served": 21,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 3,
+    "resolved_plan": 5,
+    "early_observation": 5,
+    "none": 8,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "defensives",
+   "kind": "basket",
+   "name": "Defensives",
+   "name_zh": "\u9632\u5fa1\u677f\u5757",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 10.3947,
+    "market_return_pct": -5.5589,
+    "relative_pp": 15.9536,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 18,
+    "served": 17,
+    "accounted_unserved": 1,
+    "unaccounted": 0,
+    "open_plan": 6,
+    "resolved_plan": 3,
+    "early_observation": 0,
+    "none": 8,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "energy_complex",
+   "kind": "basket",
+   "name": "US Energy Complex",
+   "name_zh": "\u7f8e\u56fd\u80fd\u6e90\u7efc\u5408",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -6.9879,
+    "market_return_pct": -5.5589,
+    "relative_pp": -1.429,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 22,
+    "served": 22,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 10,
+    "resolved_plan": 3,
+    "early_observation": 0,
+    "none": 9,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "gold_miners",
+   "kind": "basket",
+   "name": "Gold Miners",
+   "name_zh": "\u9ec4\u91d1\u77ff\u4e1a",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -0.0782,
+    "market_return_pct": -5.5589,
+    "relative_pp": 5.4807,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 12,
+    "served": 12,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 3,
+    "resolved_plan": 0,
+    "early_observation": 7,
+    "none": 2,
     "unavailable": 0
    }
   },
   {
    "id": "housing",
    "kind": "basket",
-   "name": "Housing",
-   "name_zh": "住宅建造",
+   "name": "Housing Chain",
+   "name_zh": "\u4f4f\u623f\u4ea7\u4e1a\u94fe",
    "benchmark": "SPY",
    "context": {
-    "window_sessions": 21,
-    "group_return_pct": null,
-    "market_return_pct": 3.2,
-    "relative_pp": null,
+    "window_sessions": 20,
+    "group_return_pct": 14.0738,
+    "market_return_pct": -5.5589,
+    "relative_pp": 19.6327,
     "breadth": null,
-    "state_label": null,
+    "state_label": "Expansion",
     "reasons": {
-     "group_return_pct": "not_produced",
-     "relative_pp": "not_produced",
-     "breadth": "not_observed_at_effective_as_of"
-    }
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
    },
    "counts": {
     "configured": 18,
     "served": 18,
     "accounted_unserved": 0,
     "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 5,
+    "early_observation": 0,
+    "none": 11,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "industrial_distribution",
+   "kind": "basket",
+   "name": "Industrial Distribution & Capital Goods",
+   "name_zh": "\u5de5\u4e1a\u5206\u9500\u4e0e\u8d44\u672c\u54c1",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -2.8958,
+    "market_return_pct": -5.559,
+    "relative_pp": 2.6632,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 12,
+    "served": 12,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 2,
+    "early_observation": 1,
+    "none": 8,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "insurance",
+   "kind": "basket",
+   "name": "Insurance & Brokers",
+   "name_zh": "\u4fdd\u9669\u4e0e\u7ecf\u7eaa",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 10.0235,
+    "market_return_pct": -5.5589,
+    "relative_pp": 15.5824,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 19,
+    "served": 19,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 4,
+    "resolved_plan": 1,
+    "early_observation": 2,
+    "none": 12,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "mag7",
+   "kind": "basket",
+   "name": "Magnificent Seven",
+   "name_zh": "\u4e03\u5de8\u5934",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -8.4551,
+    "market_return_pct": -5.5589,
+    "relative_pp": -2.8962,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 7,
+    "served": 7,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 3,
+    "early_observation": 3,
+    "none": 0,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "managed_care",
+   "kind": "basket",
+   "name": "Managed Care & Insurers",
+   "name_zh": "\u7ba1\u7406\u5f0f\u533b\u7597\u4e0e\u4fdd\u9669",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 1.807,
+    "market_return_pct": -5.5589,
+    "relative_pp": 7.3659,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 9,
+    "served": 9,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 3,
+    "resolved_plan": 0,
+    "early_observation": 3,
+    "none": 3,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "memory_storage",
+   "kind": "basket",
+   "name": "Memory, HBM & Storage",
+   "name_zh": "\u5185\u5b58\u3001HBM \u4e0e\u5b58\u50a8",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -38.8217,
+    "market_return_pct": -5.5589,
+    "relative_pp": -33.2628,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 4,
+    "served": 4,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
     "open_plan": 0,
     "resolved_plan": 0,
+    "early_observation": 1,
+    "none": 3,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "non_ai_software",
+   "kind": "basket",
+   "name": "Non-AI Software",
+   "name_zh": "\u975eAI\u8f6f\u4ef6",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -7.4335,
+    "market_return_pct": -5.5589,
+    "relative_pp": -1.8746,
+    "breadth": null,
+    "state_label": "Peak",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 14,
+    "served": 14,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 2,
+    "early_observation": 7,
+    "none": 4,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "non_ai_tech",
+   "kind": "basket",
+   "name": "Non-AI Tech & Hardware",
+   "name_zh": "\u975eAI\u79d1\u6280\u4e0e\u786c\u4ef6",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -18.1469,
+    "market_return_pct": -5.5589,
+    "relative_pp": -12.588,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 13,
+    "served": 13,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 0,
+    "resolved_plan": 1,
+    "early_observation": 2,
+    "none": 10,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "nuclear_power",
+   "kind": "basket",
+   "name": "Nuclear & SMR Power",
+   "name_zh": "\u6838\u7535\u4e0e\u5c0f\u578b\u6a21\u5757\u5316\u53cd\u5e94\u5806",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -21.5112,
+    "market_return_pct": -5.5589,
+    "relative_pp": -15.9523,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 9,
+    "served": 9,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 3,
+    "early_observation": 3,
+    "none": 1,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "obesity_glp1",
+   "kind": "basket",
+   "name": "GLP-1 & Obesity",
+   "name_zh": "GLP-1 \u4e0e\u51cf\u80a5\u836f",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 1.3097,
+    "market_return_pct": -5.5589,
+    "relative_pp": 6.8686,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 14,
+    "served": 14,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 2,
+    "early_observation": 5,
+    "none": 5,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "payments_fintech",
+   "kind": "basket",
+   "name": "Payments & Fintech",
+   "name_zh": "\u652f\u4ed8\u4e0e\u91d1\u878d\u79d1\u6280",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 3.8922,
+    "market_return_pct": -5.5589,
+    "relative_pp": 9.4511,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 21,
+    "served": 21,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 2,
+    "early_observation": 4,
+    "none": 13,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "pgm_miners",
+   "kind": "basket",
+   "name": "PGM Miners",
+   "name_zh": "\u94c2\u65cf\u91d1\u5c5e\u77ff\u4e1a",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -6.9562,
+    "market_return_pct": -5.5589,
+    "relative_pp": -1.3973,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 4,
+    "served": 4,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 0,
+    "resolved_plan": 0,
+    "early_observation": 4,
+    "none": 0,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "power_grid",
+   "kind": "basket",
+   "name": "Power & Grid Buildout",
+   "name_zh": "\u7535\u529b\u4e0e\u7535\u7f51",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -14.8594,
+    "market_return_pct": -5.5589,
+    "relative_pp": -9.3005,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 24,
+    "served": 24,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 4,
+    "resolved_plan": 10,
+    "early_observation": 6,
+    "none": 4,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "quantum_computing",
+   "kind": "basket",
+   "name": "Quantum Computing",
+   "name_zh": "\u91cf\u5b50\u8ba1\u7b97",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -11.2581,
+    "market_return_pct": -5.5589,
+    "relative_pp": -5.6992,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 11,
+    "served": 11,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 4,
+    "early_observation": 2,
+    "none": 3,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "regional_banks",
+   "kind": "basket",
+   "name": "Regional Banks",
+   "name_zh": "\u533a\u57df\u94f6\u884c",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 3.6586,
+    "market_return_pct": -5.5589,
+    "relative_pp": 9.2175,
+    "breadth": null,
+    "state_label": "Recovery",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 20,
+    "served": 19,
+    "accounted_unserved": 1,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 2,
     "early_observation": 0,
-    "none": 18,
+    "none": 15,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "reshoring",
+   "kind": "basket",
+   "name": "Reshoring & Industrial Capex",
+   "name_zh": "\u56de\u6d41\u4e0e\u5de5\u4e1a\u8d44\u672c\u5f00\u652f",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -5.8668,
+    "market_return_pct": -5.5589,
+    "relative_pp": -0.3079,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 16,
+    "served": 16,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 5,
+    "early_observation": 2,
+    "none": 7,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "retail",
+   "kind": "basket",
+   "name": "Retail",
+   "name_zh": "\u96f6\u552e",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 8.3105,
+    "market_return_pct": -5.5589,
+    "relative_pp": 13.8694,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 21,
+    "served": 21,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 6,
+    "resolved_plan": 8,
+    "early_observation": 1,
+    "none": 6,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "robotics_automation",
+   "kind": "basket",
+   "name": "Robotics & Automation",
+   "name_zh": "\u673a\u5668\u4eba\u4e0e\u81ea\u52a8\u5316",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -11.3915,
+    "market_return_pct": -5.5589,
+    "relative_pp": -5.8326,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 12,
+    "served": 12,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 3,
+    "early_observation": 1,
+    "none": 6,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "semicap_equipment",
+   "kind": "basket",
+   "name": "Semiconductor Equipment (WFE)",
+   "name_zh": "\u534a\u5bfc\u4f53\u8bbe\u5907\uff08\u6676\u5706\u5382\u8bbe\u5907\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -33.3591,
+    "market_return_pct": -5.5589,
+    "relative_pp": -27.8002,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 16,
+    "served": 16,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 5,
+    "early_observation": 5,
+    "none": 5,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "silver_miners",
+   "kind": "basket",
+   "name": "Silver Miners",
+   "name_zh": "\u767d\u94f6\u77ff\u4e1a",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -12.8433,
+    "market_return_pct": -5.559,
+    "relative_pp": -7.2843,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 8,
+    "served": 8,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 1,
+    "resolved_plan": 0,
+    "early_observation": 4,
+    "none": 3,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "space_economy",
+   "kind": "basket",
+   "name": "Space Economy",
+   "name_zh": "\u592a\u7a7a\u7ecf\u6d4e",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -12.5108,
+    "market_return_pct": -5.5589,
+    "relative_pp": -6.9519,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 15,
+    "served": 15,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 4,
+    "resolved_plan": 3,
+    "early_observation": 3,
+    "none": 5,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "travel",
+   "kind": "basket",
+   "name": "Travel & Experiences",
+   "name_zh": "\u65c5\u884c\u4e0e\u4f53\u9a8c",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 8.2022,
+    "market_return_pct": -5.5589,
+    "relative_pp": 13.7611,
+    "breadth": null,
+    "state_label": "Recovery",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 24,
+    "served": 24,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 3,
+    "resolved_plan": 7,
+    "early_observation": 1,
+    "none": 13,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "uranium_miners",
+   "kind": "basket",
+   "name": "Uranium & Nuclear Fuel",
+   "name_zh": "\u94c0\u77ff\u4e0e\u6838\u71c3\u6599",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -22.8598,
+    "market_return_pct": -5.559,
+    "relative_pp": -17.3008,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 10,
+    "served": 10,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 0,
+    "resolved_plan": 2,
+    "early_observation": 6,
+    "none": 2,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_comm",
+   "kind": "basket",
+   "name": "Communication Services (Equal-Weight)",
+   "name_zh": "\u901a\u4fe1\u670d\u52a1\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -0.8899,
+    "market_return_pct": -5.5589,
+    "relative_pp": 4.669,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 23,
+    "served": 21,
+    "accounted_unserved": 2,
+    "unaccounted": 0,
+    "open_plan": 9,
+    "resolved_plan": 2,
+    "early_observation": 8,
+    "none": 2,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_discretionary",
+   "kind": "basket",
+   "name": "Consumer Discretionary (Equal-Weight)",
+   "name_zh": "\u975e\u5fc5\u9700\u6d88\u8d39\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 9.1616,
+    "market_return_pct": -5.5589,
+    "relative_pp": 14.7205,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 47,
+    "served": 47,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 9,
+    "resolved_plan": 13,
+    "early_observation": 5,
+    "none": 20,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_energy",
+   "kind": "basket",
+   "name": "Energy (Equal-Weight)",
+   "name_zh": "\u80fd\u6e90\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -7.5975,
+    "market_return_pct": -5.5589,
+    "relative_pp": -2.0386,
+    "breadth": null,
+    "state_label": "Downturn",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 21,
+    "served": 21,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 10,
+    "resolved_plan": 3,
+    "early_observation": 0,
+    "none": 8,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_financials",
+   "kind": "basket",
+   "name": "Financials (Equal-Weight)",
+   "name_zh": "\u91d1\u878d\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 5.4191,
+    "market_return_pct": -5.5589,
+    "relative_pp": 10.978,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 76,
+    "served": 76,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 14,
+    "resolved_plan": 13,
+    "early_observation": 10,
+    "none": 39,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_health",
+   "kind": "basket",
+   "name": "Health Care (Equal-Weight)",
+   "name_zh": "\u533b\u7597\u4fdd\u5065\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 8.6082,
+    "market_return_pct": -5.5589,
+    "relative_pp": 14.1671,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 60,
+    "served": 60,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 9,
+    "resolved_plan": 8,
+    "early_observation": 9,
+    "none": 34,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_industrials",
+   "kind": "basket",
+   "name": "Industrials (Equal-Weight)",
+   "name_zh": "\u5de5\u4e1a\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 1.1342,
+    "market_return_pct": -5.5589,
+    "relative_pp": 6.6931,
+    "breadth": null,
+    "state_label": "Recovery",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 83,
+    "served": 83,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 7,
+    "resolved_plan": 18,
+    "early_observation": 11,
+    "none": 47,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_materials",
+   "kind": "basket",
+   "name": "Materials (Equal-Weight)",
+   "name_zh": "\u6750\u6599\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 5.6808,
+    "market_return_pct": -5.5589,
+    "relative_pp": 11.2397,
+    "breadth": null,
+    "state_label": "Recovery",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 25,
+    "served": 25,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 10,
+    "resolved_plan": 4,
+    "early_observation": 1,
+    "none": 10,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_realestate",
+   "kind": "basket",
+   "name": "Real Estate (Equal-Weight)",
+   "name_zh": "\u623f\u5730\u4ea7\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 6.0732,
+    "market_return_pct": -5.5589,
+    "relative_pp": 11.6321,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 30,
+    "served": 30,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 10,
+    "resolved_plan": 4,
+    "early_observation": 1,
+    "none": 15,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_staples",
+   "kind": "basket",
+   "name": "Consumer Staples (Equal-Weight)",
+   "name_zh": "\u5fc5\u9700\u6d88\u8d39\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 8.9338,
+    "market_return_pct": -5.5589,
+    "relative_pp": 14.4927,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 33,
+    "served": 32,
+    "accounted_unserved": 1,
+    "unaccounted": 0,
+    "open_plan": 12,
+    "resolved_plan": 7,
+    "early_observation": 0,
+    "none": 13,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_tech",
+   "kind": "basket",
+   "name": "Technology (Equal-Weight)",
+   "name_zh": "\u4fe1\u606f\u6280\u672f\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": -16.5494,
+    "market_return_pct": -5.5589,
+    "relative_pp": -10.9905,
+    "breadth": null,
+    "state_label": "Trough",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 74,
+    "served": 74,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 14,
+    "resolved_plan": 11,
+    "early_observation": 19,
+    "none": 30,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_utilities",
+   "kind": "basket",
+   "name": "Utilities (Equal-Weight)",
+   "name_zh": "\u516c\u7528\u4e8b\u4e1a\uff08\u7b49\u6743\uff09",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 20,
+    "group_return_pct": 4.4223,
+    "market_return_pct": -5.5589,
+    "relative_pp": 9.9812,
+    "breadth": null,
+    "state_label": "Expansion",
+    "reasons": {
+     "breadth": "not_produced"
+    },
+    "window": "20d",
+    "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+   },
+   "counts": {
+    "configured": 31,
+    "served": 31,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 10,
+    "resolved_plan": 12,
+    "early_observation": 1,
+    "none": 8,
     "unavailable": 0
    }
   }
  ],
  "totals": {
-  "configured": 125,
-  "served": 124,
-  "accounted_unserved": 1,
+  "configured": 702,
+  "served": 698,
+  "accounted_unserved": 4,
   "unaccounted": 0,
-  "open_plan": 2,
-  "resolved_plan": 1,
-  "early_observation": 2,
-  "none": 119,
+  "open_plan": 139,
+  "resolved_plan": 131,
+  "early_observation": 122,
+  "none": 306,
   "unavailable": 0
  }
 }

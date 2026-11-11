@@ -1,0 +1,1824 @@
+{
+ "schema": "prophet.sector_members/v1",
+ "mode": "group",
+ "captured_at": "2026-11-11T04:55:46Z",
+ "sector_ref": {
+  "owner": "sector_generation",
+  "generation_id": "qualify-2026-11-06",
+  "content_id": "973b72736c5fb9a64823a7707ea06baf113657f47b2c9962d5d692865b6c2ffa",
+  "source_session": "2026-11-06",
+  "published_at": "2026-11-06T23:00:00+00:00",
+  "member_sha256": "3e51b31bfbecb8f1b08957b52954e0e192525d68000fe3a095f86a7ac2a5edf6",
+  "qualification": "stale"
+ },
+ "prophet_ref": {
+  "owner": "prophet_index",
+  "schema": "prophet.index/v1",
+  "asof": "2026-11-09",
+  "generated_at": "2026-11-09T09:02:55Z",
+  "index_sha256": "3956748aa58e9a1d4850e3429082f2a4d795da32b1a12667f5b1ce75f3fe2e28",
+  "plan_count": 893,
+  "open_plan_count": 364
+ },
+ "compatibility": {
+  "status": "mixed_basis",
+  "sector_session": "2026-11-06",
+  "prophet_asof": "2026-11-09",
+  "session_gap": 3,
+  "reason": "sessions differ by 3 calendar days and an owner flags a non-accepted basis (sector qualification 'stale')"
+ },
+ "disclosure": {
+  "membership_basis": "current_roster_with_pit_first_known",
+  "taxonomy_basis": "current_gics_industry_not_point_in_time",
+  "join_key": "us_listing_ticker",
+  "descriptive_only": true
+ },
+ "group": {
+  "id": "us_sector_industrials",
+  "kind": "basket",
+  "name": "Industrials (Equal-Weight)",
+  "name_zh": "\u5de5\u4e1a\uff08\u7b49\u6743\uff09",
+  "benchmark": "SPY",
+  "context": {
+   "window_sessions": 20,
+   "group_return_pct": 1.1342,
+   "market_return_pct": -5.5589,
+   "relative_pp": 6.6931,
+   "breadth": null,
+   "state_label": "Recovery",
+   "reasons": {
+    "breadth": "not_produced"
+   },
+   "window": "20d",
+   "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+  }
+ },
+ "counts": {
+  "configured": 83,
+  "served": 83,
+  "accounted_unserved": 0,
+  "unaccounted": 0,
+  "open_plan": 7,
+  "resolved_plan": 18,
+  "early_observation": 11,
+  "none": 47,
+  "unavailable": 0
+ },
+ "members": [
+  {
+   "symbol": "CARR",
+   "name": "Carrier Global",
+   "industry": "Building Products",
+   "sub_industry": "Building Products & Equipment",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "housing"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "CARR-BULL-20261016",
+     "direction": "long",
+     "strategy": null,
+     "phase": "pre_trigger",
+     "opened_on": "2026-10-20",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GE",
+   "name": "GE Aerospace",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "GE-BULL-20261029",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-10-29",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "IR",
+   "name": "Ingersoll Rand",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "IR-BULL-20261005",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-10-07",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "NOC",
+   "name": "Northrop Grumman",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "NOC-BULL-20261016",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-10-19",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "SNA",
+   "name": "Snap-on",
+   "industry": "Machinery",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "SNA-BULL-20261029",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-11-02",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "URI",
+   "name": "United Rentals",
+   "industry": "Trading Companies & Distributors",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "industrial_distribution",
+    "reshoring"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "URI-BULL-20261005",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-10-05",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "XYL",
+   "name": "Xylem Inc.",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "XYL-BULL-20261029",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-11-04",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "ADP",
+   "name": "Automatic Data Processing",
+   "industry": "Professional Services",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "BA",
+   "name": "Boeing",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "CHRW",
+   "name": "C.H. Robinson",
+   "industry": "Air Freight & Logistics",
+   "sub_industry": "Integrated Freight & Logistics",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 2,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "DE",
+   "name": "Deere & Company",
+   "industry": "Machinery",
+   "sub_industry": "Farm & Heavy Construction Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring"
+   ],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "ETN",
+   "name": "Eaton Corporation",
+   "industry": "Electrical Equipment",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring",
+    "power_grid",
+    "data_center_power"
+   ],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "GEV",
+   "name": "GE Vernova",
+   "industry": "Electrical Equipment",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "power_grid",
+    "data_center_power",
+    "nuclear_power"
+   ],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "HUBB",
+   "name": "Hubbell Incorporated",
+   "industry": "Electrical Equipment",
+   "sub_industry": "Electrical Equipment & Parts",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "power_grid",
+    "data_center_power"
+   ],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "HWM",
+   "name": "Howmet Aerospace",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "UBER",
+   "name": "Uber",
+   "industry": "Ground Transportation",
+   "sub_industry": "Software - Application",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "VRT",
+   "name": "Vertiv",
+   "industry": "Electrical Equipment",
+   "sub_industry": "Electrical Equipment & Parts",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "power_grid",
+    "data_center_power",
+    "ai_infra"
+   ],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 2,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "WAB",
+   "name": "Wabtec",
+   "industry": "Machinery",
+   "sub_industry": "Railroads",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "CMI",
+   "name": "Cummins",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "CMI-BULL-20261013",
+     "direction": "long",
+     "strategy": null,
+     "phase": "invalidated",
+     "opened_on": "2026-10-14",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DAL",
+   "name": "Delta Air Lines",
+   "industry": "Passenger Airlines",
+   "sub_industry": "Airlines",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "travel"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "DAL-BULL-20260911",
+     "direction": "long",
+     "strategy": null,
+     "phase": "at_t2",
+     "opened_on": "2026-09-11",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DD",
+   "name": "DuPont",
+   "industry": "Chemicals",
+   "sub_industry": "Specialty Chemicals",
+   "member_since": "2026-08-03",
+   "first_known": "2026-10-14",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "DD-BULL-20261005",
+     "direction": "long",
+     "strategy": null,
+     "phase": "at_t1",
+     "opened_on": "2026-10-06",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DOV",
+   "name": "Dover Corporation",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "DOV-BULL-20260930",
+     "direction": "long",
+     "strategy": null,
+     "phase": "between_t1_t2",
+     "opened_on": "2026-10-02",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "EFX",
+   "name": "Equifax",
+   "industry": "Professional Services",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "EFX-BULL-20260701",
+     "direction": "long",
+     "strategy": null,
+     "phase": "overtime",
+     "opened_on": "2026-07-01",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FDX",
+   "name": "FedEx",
+   "industry": "Air Freight & Logistics",
+   "sub_industry": "Integrated Freight & Logistics",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "FDX-BULL-20260810",
+     "direction": "long",
+     "strategy": null,
+     "phase": "overtime",
+     "opened_on": "2026-08-12",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FIX",
+   "name": "Comfort Systems USA",
+   "industry": "Construction & Engineering",
+   "sub_industry": "Engineering & Construction",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "power_grid"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "FIX-BULL-20260917",
+     "direction": "long",
+     "strategy": null,
+     "phase": "invalidated",
+     "opened_on": "2026-09-18",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GNRC",
+   "name": "Generac",
+   "industry": "Electrical Equipment",
+   "sub_industry": "Electrical Equipment & Parts",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring",
+    "power_grid"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "GNRC-BULL-20260917",
+     "direction": "long",
+     "strategy": null,
+     "phase": "overtime",
+     "opened_on": "2026-09-17",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "HII",
+   "name": "Huntington Ingalls Industr",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "HII-BULL-20261013",
+     "direction": "long",
+     "strategy": null,
+     "phase": "between_t1_t2",
+     "opened_on": "2026-10-15",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ITW",
+   "name": "Illinois Tool Works",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "ITW-BULL-20260918",
+     "direction": "long",
+     "strategy": null,
+     "phase": "between_t1_t2",
+     "opened_on": "2026-09-18",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LMT",
+   "name": "Lockheed Martin",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "LMT-BULL-20260626",
+     "direction": "long",
+     "strategy": null,
+     "phase": "at_t1",
+     "opened_on": "2026-06-26",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LUV",
+   "name": "Southwest Airlines",
+   "industry": "Passenger Airlines",
+   "sub_industry": "Airlines",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "travel"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "LUV-BULL-20260911",
+     "direction": "long",
+     "strategy": null,
+     "phase": "at_t2",
+     "opened_on": "2026-09-11",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ODFL",
+   "name": "Old Dominion",
+   "industry": "Ground Transportation",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "ODFL-BULL-20261008",
+     "direction": "long",
+     "strategy": null,
+     "phase": "invalidated",
+     "opened_on": "2026-10-08",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PWR",
+   "name": "Quanta Services",
+   "industry": "Construction & Engineering",
+   "sub_industry": "Engineering & Construction",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring",
+    "power_grid"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "PWR-BULL-20260813",
+     "direction": "long",
+     "strategy": null,
+     "phase": "overtime",
+     "opened_on": "2026-08-17",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ROK",
+   "name": "Rockwell Automation",
+   "industry": "Electrical Equipment",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring",
+    "robotics_automation"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "ROK-BULL-20260930",
+     "direction": "long",
+     "strategy": null,
+     "phase": "invalidated",
+     "opened_on": "2026-09-30",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ROL",
+   "name": "Rollins, Inc.",
+   "industry": "Commercial Services & Supplies",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "ROL-BULL-20260821",
+     "direction": "long",
+     "strategy": null,
+     "phase": "overtime",
+     "opened_on": "2026-08-21",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "UAL",
+   "name": "United Airlines Holdings",
+   "industry": "Passenger Airlines",
+   "sub_industry": "Airlines",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "travel"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "UAL-BULL-20260805",
+     "direction": "long",
+     "strategy": null,
+     "phase": "overtime",
+     "opened_on": "2026-08-05",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "UPS",
+   "name": "United Parcel Service",
+   "industry": "Air Freight & Logistics",
+   "sub_industry": "Integrated Freight & Logistics",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "UPS-BULL-20261013",
+     "direction": "long",
+     "strategy": null,
+     "phase": "at_t1",
+     "opened_on": "2026-10-13",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 2,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ALLE",
+   "name": "Allegion",
+   "industry": "Building Products",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "AME",
+   "name": "Ametek",
+   "industry": "Electrical Equipment",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "AOS",
+   "name": "A. O. Smith",
+   "industry": "Building Products",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "AXON",
+   "name": "Axon Enterprise",
+   "industry": null,
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BE",
+   "name": "Bloom Energy",
+   "industry": "Electrical Equipment",
+   "sub_industry": null,
+   "member_since": "2026-09-21",
+   "first_known": "2026-10-14",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BR",
+   "name": "Broadridge Financial Solut",
+   "industry": "Professional Services",
+   "sub_industry": "Information Technology Services",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CAT",
+   "name": "Caterpillar Inc.",
+   "industry": "Machinery",
+   "sub_industry": "Farm & Heavy Construction Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CPRT",
+   "name": "Copart",
+   "industry": "Commercial Services & Supplies",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CSX",
+   "name": "CSX Corporation",
+   "industry": "Ground Transportation",
+   "sub_industry": "Railroads",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CTAS",
+   "name": "Cintas",
+   "industry": "Commercial Services & Supplies",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "EME",
+   "name": "Emcor",
+   "industry": "Construction & Engineering",
+   "sub_industry": "Engineering & Construction",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "power_grid"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "EMR",
+   "name": "Emerson Electric",
+   "industry": "Electrical Equipment",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring",
+    "robotics_automation"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "EXPD",
+   "name": "Expeditors International",
+   "industry": "Air Freight & Logistics",
+   "sub_industry": "Integrated Freight & Logistics",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FAST",
+   "name": "Fastenal",
+   "industry": "Trading Companies & Distributors",
+   "sub_industry": "Industrial Distribution",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "industrial_distribution",
+    "reshoring"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FDXF",
+   "name": "FedEx Freight",
+   "industry": null,
+   "sub_industry": "Integrated Freight & Logistics",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FERG",
+   "name": "Ferguson Enterprises",
+   "industry": null,
+   "sub_industry": null,
+   "member_since": "2026-08-05",
+   "first_known": "2026-10-14",
+   "also_in_groups": [
+    "industrial_distribution"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FTV",
+   "name": "Fortive",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GD",
+   "name": "General Dynamics",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GWW",
+   "name": "W. W. Grainger",
+   "industry": "Trading Companies & Distributors",
+   "sub_industry": "Industrial Distribution",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "industrial_distribution"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "HON",
+   "name": "Honeywell Technologies",
+   "industry": "Industrial Conglomerates",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring",
+    "quantum_computing"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "HONA",
+   "name": "Honeywell Aerospace",
+   "industry": null,
+   "sub_industry": null,
+   "member_since": "2026-06-29",
+   "first_known": "2026-10-14",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "IEX",
+   "name": "IDEX Corporation",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "J",
+   "name": "Jacobs Solutions",
+   "industry": "Professional Services",
+   "sub_industry": "Engineering & Construction",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "JBHT",
+   "name": "J.B. Hunt",
+   "industry": "Ground Transportation",
+   "sub_industry": "Integrated Freight & Logistics",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "JCI",
+   "name": "Johnson Controls",
+   "industry": "Building Products",
+   "sub_industry": "Building Products & Equipment",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LDOS",
+   "name": "Leidos",
+   "industry": "Professional Services",
+   "sub_industry": "Information Technology Services",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LHX",
+   "name": "L3Harris",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LII",
+   "name": "Lennox International",
+   "industry": "Building Products",
+   "sub_industry": "Building Products & Equipment",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "housing"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MAS",
+   "name": "Masco",
+   "industry": "Building Products",
+   "sub_industry": "Building Products & Equipment",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "housing"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MMM",
+   "name": "3M",
+   "industry": "Industrial Conglomerates",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "NDSN",
+   "name": "Nordson Corporation",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "industrial_distribution",
+    "reshoring",
+    "robotics_automation"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "NSC",
+   "name": "Norfolk Southern",
+   "industry": "Ground Transportation",
+   "sub_industry": "Railroads",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "OTIS",
+   "name": "Otis Worldwide",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PAYX",
+   "name": "Paychex",
+   "industry": "Professional Services",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PCAR",
+   "name": "Paccar",
+   "industry": "Machinery",
+   "sub_industry": "Farm & Heavy Construction Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PH",
+   "name": "Parker Hannifin",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "reshoring",
+    "robotics_automation"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PNR",
+   "name": "Pentair",
+   "industry": "Machinery",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "RSG",
+   "name": "Republic Services",
+   "industry": "Commercial Services & Supplies",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "RTX",
+   "name": "RTX Corporation",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "SWK",
+   "name": "Stanley Black & Decker",
+   "industry": "Machinery",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TDG",
+   "name": "TransDigm Group",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TT",
+   "name": "Trane Technologies",
+   "industry": "Building Products",
+   "sub_industry": "Specialty Industrial Machinery",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TXT",
+   "name": "Textron",
+   "industry": "Aerospace & Defense",
+   "sub_industry": "Aerospace & Defense",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "defense"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "UNP",
+   "name": "Union Pacific Corporation",
+   "industry": "Ground Transportation",
+   "sub_industry": "Railroads",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "VLTO",
+   "name": "Veralto",
+   "industry": "Commercial Services & Supplies",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "VRSK",
+   "name": "Verisk Analytics",
+   "industry": "Professional Services",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "WM",
+   "name": "Waste Management",
+   "industry": "Commercial Services & Supplies",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  }
+ ],
+ "unserved": [],
+ "page": {
+  "offset": 0,
+  "limit": 200,
+  "total_matching": 83,
+  "next_offset": null,
+  "q": null,
+  "state": null
+ }
+}

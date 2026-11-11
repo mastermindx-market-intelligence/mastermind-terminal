@@ -40,7 +40,11 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
   const [draft, setDraft] = useState(q);
 
   const { group, counts, members, unserved, page } = payload;
-  const localName = lang === "zh" ? (group.nameZh || group.name || group.id) : (group.name || group.id);
+  // The fail-closed read (A1-9) carries group null; the population then renders
+  // its neutral title with counts stated as not stated — never invented.
+  const localName = group === null
+    ? t("populationTitleNoGroup")
+    : lang === "zh" ? (group.nameZh || group.name || group.id) : (group.name || group.id);
 
   const searchInvalid = draft.trim() !== "" && !SECTOR_MEMBERS_QUERY.test(draft.trim());
   const submitSearch = (event: React.FormEvent) => {
@@ -75,7 +79,9 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
         <h3 className={styles.populationTitle}>{prophetSectorFill(t("populationTitle"), { group: localName })}</h3>
         <p className={styles.populationCounts} data-testid="prophet-sector-population-counts">
           {prophetSectorFill(t("populationCounts"), {
-            served: counts.served, configured: counts.configured, unserved: counts.accountedUnserved,
+            served: counts.served,
+            configured: counts.configured === null ? t("contextNotStated") : counts.configured,
+            unserved: counts.accountedUnserved,
           })}
         </p>
       </header>
@@ -153,7 +159,13 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
                       ) : null}
                     </td>
                     <td>{member.industry ?? "—"}</td>
-                    <td className={styles.sinceCell}>{member.memberSince ?? "—"}</td>
+                    {/* A2-1: first_known is a LOWER BOUND (stored-snapshot
+                        coverage), never a join date — the "at least" wording is
+                        the honesty law, not decoration. Space buys one date
+                        column here; the Setup shows both labeled clocks. */}
+                    <td className={styles.sinceCell}>
+                      {member.firstKnown !== null ? prophetSectorFill(t("sinceAtLeast"), { date: member.firstKnown }) : "—"}
+                    </td>
                     <td className={styles.stateCell}>
                       <span className={stateToneClass(member.prophet.state)} data-testid={`prophet-sector-state-${member.symbol}`}>
                         {t(PROPHET_STATE_LABEL_KEY[member.prophet.state])}

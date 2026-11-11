@@ -116,13 +116,18 @@ export type SectorGroupContext = {
   reasons: Record<string, string>;
 };
 export type CoverageCounts = {
-  configured: number; served: number; accountedUnserved: number; unaccounted: number;
+  /** null ONLY on the fail-closed read (A1-9): configured unknown, all counts zero. */
+  configured: number | null; served: number; accountedUnserved: number; unaccounted: number;
   openPlan: number; resolvedPlan: number; earlyObservation: number; none: number; unavailable: number;
 };
-export type SectorGroupSummary = {
+/** The group object as the wire carries it in group/symbol modes: no counts
+ * (A1: counts live at group mode's top level; the index's groups carry their own). */
+export type SectorGroupDescriptor = {
   id: string; kind: "basket" | "sector"; name: string | null; nameZh: string | null;
-  benchmark: string | null; context: SectorGroupContext; counts: CoverageCounts;
+  benchmark: string | null; context: SectorGroupContext;
 };
+/** Index-mode group entry: the descriptor plus its own coverage counts. */
+export type SectorGroupSummary = SectorGroupDescriptor & { counts: CoverageCounts };
 export type SectorMemberPlan = {
   id: string; direction: "long" | "short" | null; strategy: string | null;
   phase: string | null; openedOn: string | null; resolvedOn: string | null; outcome: string | null;
@@ -153,15 +158,17 @@ export type SectorMembersEnvelope = {
 export type SectorMembersPayload =
   | ({ mode: "index" } & SectorMembersEnvelope & { groups: SectorGroupSummary[]; totals: CoverageCounts })
   | ({ mode: "group" } & SectorMembersEnvelope & {
-      group: SectorGroupSummary; counts: CoverageCounts; members: SectorMember[];
+      /** null on the fail-closed read (A1-9/A2-4): sector side unavailable. */
+      group: SectorGroupDescriptor | null; counts: CoverageCounts; members: SectorMember[];
       unserved: SectorUnservedEntry[]; page: SectorMembersPage;
     })
   | ({ mode: "symbol" } & SectorMembersEnvelope & {
-      symbol: string; memberOf: { group: SectorGroupSummary; member: SectorMember }[];
+      symbol: string; memberOf: { group: SectorGroupDescriptor; member: SectorMember }[];
       prophet: SectorMemberProphet;
     });
 
 const ENVELOPE_KEYS = ["schema", "mode", "captured_at", "sector_ref", "prophet_ref", "compatibility", "disclosure"];
+const GROUP_DESCRIPTOR_KEYS = ["id", "kind", "name", "name_zh", "benchmark", "context"];
 
 /** Abbreviated evidence hash for disclosure surfaces (copyable full value stays in the wire object). */
 export function abbrevHash(hash: string | null | undefined, keep = 8): string {
@@ -203,7 +210,7 @@ function readCompatibility(value: unknown): SectorMembersCompatibility | null {
     || !(SECTOR_MEMBERS_COMPAT_STATUSES as readonly string[]).includes(String(value.status))
     || !(value.sector_session === null || day(value.sector_session))
     || !(value.prophet_asof === null || day(value.prophet_asof))
-    || !(value.session_gap === null || int(value.session_gap, 0, 366))
+    || !(value.session_gap === null || int(value.session_gap, -366, 366))
     || !strOrNull(value.reason, 400)) return null;
   return {
     status: value.status as SectorMembersCompatStatus,
@@ -258,31 +265,51 @@ function intOrNull(value: unknown, max: number): value is number | null {
 function readCounts(value: unknown): CoverageCounts | null {
   if (!closed(value, ["configured", "served", "accounted_unserved", "unaccounted",
     "open_plan", "resolved_plan", "early_observation", "none", "unavailable"])) return null;
-  const keys = ["configured", "served", "accounted_unserved", "unaccounted",
+  const keys = ["served", "accounted_unserved", "unaccounted",
     "open_plan", "resolved_plan", "early_observation", "none", "unavailable"] as const;
-  const out: Record<string, number> = {};
+  const wire: Record<string, number> = {};
   for (const key of keys) {
     if (!int(value[key], 0, 1_000_000)) return null;
-    out[key] = value[key] as number;
+    wire[key] = value[key] as number;
   }
+  // configured is null ONLY on the fail-closed read (A1-9) — and there every
+  // other count is zero; a null configured beside nonzero counts is contradictory.
+  if (value.configured === null) {
+    if (keys.some(key => wire[key] !== 0)) return null;
+  } else if (!int(value.configured, 0, 1_000_000)) return null;
   // Contract invariant: the five Prophet states account for every served member.
-  if (out.open_plan + out.resolved_plan + out.early_observation + out.none + out.unavailable !== out.served) return null;
-  return out as unknown as CoverageCounts;
+  if (wire.open_plan + wire.resolved_plan + wire.early_observation + wire.none + wire.unavailable !== wire.served) return null;
+  // Map wire snake_case to the decoded camelCase surface explicitly — a cast
+  // would leave snake keys under a camelCase type for every consumer.
+  return {
+    configured: value.configured as number | null,
+    served: wire.served, accountedUnserved: wire.accounted_unserved, unaccounted: wire.unaccounted,
+    openPlan: wire.open_plan, resolvedPlan: wire.resolved_plan, earlyObservation: wire.early_observation,
+    none: wire.none, unavailable: wire.unavailable,
+  };
 }
 
-function readGroupSummary(value: unknown): SectorGroupSummary | null {
-  if (!closed(value, ["id", "kind", "name", "name_zh", "benchmark", "context", "counts"])
+function readGroupDescriptor(value: unknown, extraKeys: string[] = []): SectorGroupDescriptor | null {
+  if (!closed(value, [...GROUP_DESCRIPTOR_KEYS, ...extraKeys])
     || typeof value.id !== "string" || !SECTOR_MEMBERS_GROUP_ID.test(value.id)
     || (value.kind !== "basket" && value.kind !== "sector")
     || !strOrNull(value.name, 200) || !strOrNull(value.name_zh, 200)
     || !(value.benchmark === null || (typeof value.benchmark === "string" && SECTOR_MEMBERS_SYMBOL.test(value.benchmark)))) return null;
   const context = readGroupContext(value.context);
-  const counts = readCounts(value.counts);
-  if (!context || !counts) return null;
+  if (!context) return null;
   return {
     id: value.id, kind: value.kind, name: value.name, nameZh: value.name_zh,
-    benchmark: value.benchmark, context, counts,
+    benchmark: value.benchmark, context,
   };
+}
+
+function readGroupSummary(value: unknown): SectorGroupSummary | null {
+  // The index entry is the descriptor plus its own counts key.
+  const descriptor = readGroupDescriptor(value, ["counts"]);
+  if (descriptor === null) return null;
+  const counts = readCounts((value as Record<string, unknown>).counts);
+  if (!counts) return null;
+  return { ...descriptor, counts };
 }
 
 function readMemberProphet(value: unknown): SectorMemberProphet | null {
@@ -320,9 +347,9 @@ function readMemberProphet(value: unknown): SectorMemberProphet | null {
     if (!closed(o, ["kind", "asof"]) || !str(o.kind, 128) || !day(o.asof)) return null;
     observation = { kind: o.kind, asof: o.asof };
   }
-  // early_observation without an observation object cannot state what it observed.
-  if (state === "early_observation" && observation === null) return null;
-  if (state !== "early_observation" && observation !== null) return null;
+  // The contract's MemberProphet carries observation as an independent nullable
+  // object — real bytes pair it with open_plan too (e.g. a turn_watch beside a
+  // live plan), so the decoder checks shape only, never state coupling.
   return {
     state, reason: value.reason as string | null, plan,
     openPlanCount: value.open_plan_count as number,
@@ -416,8 +443,10 @@ export function decodeProphetSectorMembers(value: unknown): SectorMembersPayload
 
   if (mode === "group") {
     if (!closed(value, [...ENVELOPE_KEYS, "group", "counts", "members", "unserved", "page"])) return null;
-    const group = readGroupSummary(value.group);
-    if (!group) return null;
+    // A1-9/A2-4: with the sector side unavailable the group object itself is
+    // null (no capture → no roster), members/unserved empty, counts zeroed.
+    const group = value.group === null ? null : readGroupDescriptor(value.group);
+    if (value.group !== null && group === null) return null;
     const counts = readCounts(value.counts);
     if (!counts) return null;
     const page = readPage(value.page);
@@ -444,6 +473,8 @@ export function decodeProphetSectorMembers(value: unknown): SectorMembersPayload
     // An empty list from a q/state filter or a past-the-end offset is legitimate.
     if (members.length === 0 && sectorRef !== null && page.q === null && page.state === null
       && page.offset === 0 && page.totalMatching === 0 && counts.served > 0) return null;
+    // The fail-closed shape is coherent or it is refused: group null ⇒ no roster.
+    if (group === null && (counts.configured !== null || counts.served !== 0 || members.length !== 0)) return null;
     return { mode: "group", ...envelope, group, counts, members, unserved, page };
   }
 
@@ -451,10 +482,10 @@ export function decodeProphetSectorMembers(value: unknown): SectorMembersPayload
   if (!closed(value, [...ENVELOPE_KEYS, "symbol", "member_of", "prophet"])) return null;
   if (typeof value.symbol !== "string" || !SECTOR_MEMBERS_SYMBOL.test(value.symbol)) return null;
   if (!Array.isArray(value.member_of) || value.member_of.length > 32) return null;
-  const memberOf: { group: SectorGroupSummary; member: SectorMember }[] = [];
+  const memberOf: { group: SectorGroupDescriptor; member: SectorMember }[] = [];
   for (const entry of value.member_of) {
     if (!closed(entry, ["group", "member"])) return null;
-    const group = readGroupSummary(entry.group);
+    const group = readGroupDescriptor(entry.group);
     const member = readMember(entry.member);
     if (!group || !member || member.symbol !== value.symbol) return null;
     memberOf.push({ group, member });
