@@ -31,10 +31,10 @@ export default async function ProphetPage() {
  if (!isSharedShellEnabled(process.env.MMX_SHARED_SHELL)) notFound();
  const member = await readShellMember();
  if (member.state === "unavailable") return <MemberVerificationUnavailable />;
- if (member.state === "guest") return <OptionsPaywall />;
+ if (member.state === "guest") return <OptionsPaywall variant="prophet" />;
  // Exactly the incumbent paid feature; no separate Prophet subscription or authority.
  const access = await getLiveOptionsAccess();
- if (access === "denied") return <OptionsPaywall />;
+ if (access === "denied") return <OptionsPaywall variant="prophet" />;
  if (access !== "allowed") return <OptionsServiceUnavailable />;
  return <IntelligenceToolMount key={member.subjectId} ownerKey={member.subjectId} kind="prophet" />;
 }
