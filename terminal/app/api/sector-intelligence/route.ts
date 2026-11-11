@@ -10,7 +10,8 @@ import { rateLimit } from "@/lib/rateLimit";
 import { NW_BASE } from "@/lib/upstreams";
 import { qualifyRiskEnvelope } from "@/lib/marketRisk";
 import { object, number, feedSourceStamp, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
-import { SECTOR_GENERATION_PATH, sectorNativeGeneration } from "@/lib/sectorNativeGeneration";
+import { SECTOR_GENERATION_AUDIENCE, SECTOR_GENERATION_PATH, SECTOR_GENERATION_PREVIEW_AUDIENCE,
+  SECTOR_GENERATION_PREVIEW_PATH, sectorNativeGeneration, type SectorGenerationAudience } from "@/lib/sectorNativeGeneration";
 import { POPULATION_TOKEN, POPULATION_GROUP_ID, POPULATION_QUERY, POPULATION_MAX_LIMIT, POPULATION_MIN_LIMIT, sectorPopulationPage } from "@/lib/sectorPopulation";
 
 export const runtime = "nodejs";
@@ -35,6 +36,21 @@ const PATHS: Record<SectorFeed, string> = {
   intraday: "/live/basket_pulse.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
+
+/** R2 (COO rulings 2026-11-11): the generation read's closed two-path walk.
+ * The fixed entitled path is asked first; exactly one step down to the fixed
+ * preview path follows a 403 on the entitled read — and nothing else ever
+ * steps down, preview is never asked first, no path is asked twice, and there
+ * is no third request or retry. Every other source makes exactly one request
+ * to its own fixed path. The audience recorded with each step is the audience
+ * of that exact path; the qualifier binds the fetched path, both document
+ * audience labels and the receipt path together (R3). */
+const OWNER_STEPS: Partial<Readonly<Record<SectorFeed, readonly { path: string; audience?: SectorGenerationAudience }[]>>> = {
+  generation: [
+    { path: SECTOR_GENERATION_PATH, audience: SECTOR_GENERATION_AUDIENCE },
+    { path: SECTOR_GENERATION_PREVIEW_PATH, audience: SECTOR_GENERATION_PREVIEW_AUDIENCE },
+  ],
+};
 
 const SUPABASE_AUTH_COOKIE = /^sb-[A-Za-z0-9_-]+-auth-token(?:\.\d+)?$/;
 type CookieValue = { name: string; value: string };
@@ -160,7 +176,12 @@ export type FeedFailure =
   /** The caller hung up before the origin answered. */
   | "request_aborted"
   /** The body arrived but is not the owner envelope. */
-  | "payload_invalid";
+  | "payload_invalid"
+  /** Both fixed generation paths (entitled, then preview) answered 403: the
+   *  member's subscription does not include the Sector Intelligence read.
+   *  This is the only subscription cause — a 403 on the entitled read alone
+   *  steps down to the preview document, never to this envelope (R2). */
+  | "entitlement_required";
 
 async function readIncumbent(req: Request): Promise<Response> {
   const source = new URL(req.url).searchParams.get("source") || "";
@@ -171,9 +192,14 @@ async function readIncumbent(req: Request): Promise<Response> {
   const key = source as SectorFeed;
   const baseReceipt: FeedReceipt = { source: key, path: PATHS[key], status: "unavailable",
     asOf: null, observedAt: null, stale: false, contentHash: null };
+  // R3: a receipt follows the fixed path actually fetched. After the R2
+  // step-down, the preview read's receipt carries the fixed preview path, so
+  // the browser's four-way binding — fetched path, outer audience, nested
+  // audience, receipt path — stays intact whichever path answered.
+  let fetchedReceipt = baseReceipt;
   const failure = (status: number, state: FeedReceipt["status"], cause: FeedFailure,
     extra?: Record<string, string>) => NextResponse.json(
-    { data: null, receipt: { ...baseReceipt, status: state, failure: cause } },
+    { data: null, receipt: { ...fetchedReceipt, status: state, failure: cause } },
     { status, headers: { ...HEADERS, "X-Sector-Failure": cause, ...(extra ?? {}) } });
   const rl = rateLimit(req, { name: "sector-intelligence", max: 60 });
   if (!rl.ok) return failure(429, "error", "rate_limited", { "Retry-After": String(rl.retryAfterSec) });
@@ -207,80 +233,134 @@ async function readIncumbent(req: Request): Promise<Response> {
 
   // The established Neural Web origin also owns these static Macro outputs.
   // Never send a caller cookie to arbitrary env hosts, redirects, R2, or a sidecar.
-  let url: URL;
+  let ownerOrigin: string;
   try {
     const base = new URL(NW_BASE);
     if (base.protocol !== "https:" || !["mastermind-x.com", "www.mastermind-x.com"].includes(base.hostname)
       || base.username || base.password || base.port) return failure(503, "unavailable", "upstream_unavailable");
     // Production canonicalizes the bare host to www. Resolve that known redirect
     // before fetch so redirect:"manual" can continue rejecting every response redirect.
-    const ownerOrigin = base.hostname === "mastermind-x.com"
+    ownerOrigin = base.hostname === "mastermind-x.com"
       ? "https://www.mastermind-x.com"
       : base.origin;
-    url = new URL(PATHS[key], ownerOrigin);
   } catch { return failure(503, "unavailable", "upstream_unavailable"); }
   const controller = new AbortController();
   const abort = () => controller.abort();
   req.signal.addEventListener("abort", abort, { once: true });
   if (req.signal.aborted) controller.abort();
   let timedOut = false;
+  // One shared deadline for the whole walk (R2): the timer starts before owner
+  // request 1 and equally bounds owner request 2 after a step-down.
   const timer = setTimeout(() => { timedOut = true; abort(); }, 6000);
   try {
-    const response = await fetch(url, {
-      signal: controller.signal, redirect: "manual", cache: "no-store",
-      headers: { Cookie: authCookie, Accept: "application/json" },
-    });
-    if (response.status === 401 || response.status === 403) return failure(response.status, "access", "upstream_unauthorized");
-    if (response.status === 404) return failure(404, "unavailable", "upstream_not_found");
-    if (response.status === 429) {
-      // The owner origin's own limiter, not this gateway's. Its Retry-After is
-      // relayed verbatim; none is invented when the origin sent none.
-      const retryAfter = response.headers.get("retry-after");
-      return failure(429, "error", "upstream_rate_limited", retryAfter ? { "Retry-After": retryAfter } : undefined);
+    // R2: one fixed-path walk per browser request. The generation arm is the
+    // closed entitled-then-preview sequence; every other source walks its own
+    // single fixed path. Both generation requests share this one reader, one
+    // stream parser, one qualifier, one origin discipline, one filtered
+    // cookie, one deadline and one caller-abort — no second implementation.
+    const steps = OWNER_STEPS[key] ?? [{ path: PATHS[key] }];
+    for (let index = 0; index < steps.length; index += 1) {
+      const step = steps[index]!;
+      fetchedReceipt = { ...baseReceipt, path: step.path };
+      if (index > 0 && controller.signal.aborted) {
+        // The caller aborted between the two owner requests: request 2 is not
+        // started. Hand the abort to the shared transport classifier below.
+        throw new Error("caller_aborted_between_owner_requests");
+      }
+      const response = await fetch(new URL(step.path, ownerOrigin), {
+        signal: controller.signal, redirect: "manual", cache: "no-store",
+        headers: { Cookie: authCookie, Accept: "application/json" },
+      });
+      if (key === "generation" && response.status === 403 && index === 0) {
+        // R2: the owner refused the ENTITLED read for this member. The denial
+        // body is never read — Macro's verdict is the status alone. Exactly
+        // one step down to the fixed preview path follows; no other failure
+        // ever reaches this branch, and preview is never asked first.
+        // SF-1: cancelling (never reading) the unread denial body releases its
+        // socket before request 2 — one pending undici body per member per
+        // refresh otherwise. The cancel never throws and never pulls.
+        await response.body?.cancel().catch(() => {});
+        continue;
+      }
+      if (key === "generation" && response.status === 403) {
+        // Both fixed paths denied (entitled, then preview): the global
+        // subscription envelope — the ONLY subscription cause. Its receipt
+        // path is the fixed preview path this walk ended on (R2), and no
+        // owner error body, cookie or token is relayed.
+        await response.body?.cancel().catch(() => {});
+        return failure(403, "access", "entitlement_required");
+      }
+      if (response.status === 401 || response.status === 403) {
+        await response.body?.cancel().catch(() => {});
+        return failure(response.status, "access", "upstream_unauthorized");
+      }
+      if (response.status === 404) {
+        await response.body?.cancel().catch(() => {});
+        return failure(404, "unavailable", "upstream_not_found");
+      }
+      if (response.status === 429) {
+        // The owner origin's own limiter, not this gateway's. Its Retry-After is
+        // relayed verbatim; none is invented when the origin sent none.
+        const retryAfter = response.headers.get("retry-after");
+        await response.body?.cancel().catch(() => {});
+        return failure(429, "error", "upstream_rate_limited", retryAfter ? { "Retry-After": retryAfter } : undefined);
+      }
+      // A 502 from the owner origin is that origin's own upstream failing — it
+      // lost ITS upstream. It is a different class from another 5xx and is
+      // relayed as the owner sent it. The status does not say which upstream
+      // fault it was, so the class stays neutral and no reset is claimed.
+      if (response.status === 502) {
+        await response.body?.cancel().catch(() => {});
+        return failure(502, "error", "upstream_bad_gateway");
+      }
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => {});
+        return failure(503, "error", "upstream_unavailable");
+      }
+      let parsed: { data: unknown; hash: string };
+      try { parsed = await readJson(response); }
+      catch (error) {
+        // The headers already arrived, so the transport classifier below has not
+        // run yet. A body read that did not complete is a transport question, not
+        // a payload verdict: hand it to that classifier so the recorded deadline
+        // and caller-abort evidence decides the class. A body that completed and
+        // failed a content check stays payload_invalid.
+        if (error instanceof InterruptedOwnerBody) throw error;
+        return failure(502, "invalid", "payload_invalid");
+      }
+      // R3: the qualifier receives the audience of the exact fixed path this
+      // step fetched; the fetched path, both document audience labels and the
+      // receipt path must all agree before anything is relayed.
+      const generation = key === "generation" ? sectorNativeGeneration(parsed.data, step.audience) : null;
+      if (key === "generation" ? !generation : !readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid", "payload_invalid");
+      const riskRead = key === "risk" ? qualifyRiskEnvelope(parsed.data) : null;
+      const receipt: FeedReceipt = { ...fetchedReceipt, status: "ready", asOf: feedSourceStamp(key, parsed.data),
+        observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true || riskRead?.qualified === false
+          || (generation !== null && generation.receipt.qualification === "stale"),
+        contentHash: parsed.hash, ...(riskRead ? { qualificationReasons: riskRead.reasons } : {}) };
+      // Transport factual identity/membership/measurements only, never vendor prose.
+      const owner = object(parsed.data);
+      const membershipRead = key === "finviz"
+        ? qualifyFinvizMembershipManifest(owner.membership_manifest, normalizeFinviz(owner)) : null;
+      if (membershipRead?.status === "invalid") return failure(502, "invalid", "payload_invalid");
+      const factualPerf = (value: unknown) => Object.fromEntries(TIMEFRAMES.map(tf => [tf, number(object(value)[tf])]));
+      const data = key === "finviz" ? {
+        map_type: owner.map_type, source: owner.source, asof: owner.asof,
+        generated_utc: owner.generated_utc, n_tiles: owner.n_tiles, n_members: owner.n_members,
+        ...(membershipRead?.status === "qualified" ? { membership_manifest: membershipRead.manifest } : {}),
+        size_basis: owner.size_basis, timeframes: (owner.timeframes as unknown[]).map(value => { const row = object(value); return { key: row.key, available: row.available === true }; }),
+        sectors: (owner.sectors as unknown[]).map(value => { const row = object(value); return { key: row.key, en: row.en, zh: row.zh }; }),
+        tiles: (owner.tiles as unknown[]).map(value => {
+          const tile = object(value);
+          return { t: tile.t, name: tile.name, sector: tile.sector, size: tile.size, perf: factualPerf(tile.perf),
+            members: (tile.members as unknown[]).map(value => { const member = object(value); return { t: member.t, perf: factualPerf(member.perf) }; }) };
+        }),
+      } : riskRead ? riskRead.envelope : parsed.data;
+      return NextResponse.json({ data, receipt }, { headers: HEADERS });
     }
-    // A 502 from the owner origin is that origin's own upstream failing — it
-    // lost ITS upstream. It is a different class from another 5xx and is
-    // relayed as the owner sent it. The status does not say which upstream
-    // fault it was, so the class stays neutral and no reset is claimed.
-    if (response.status === 502) return failure(502, "error", "upstream_bad_gateway");
-    if (!response.ok) return failure(503, "error", "upstream_unavailable");
-    let parsed: { data: unknown; hash: string };
-    try { parsed = await readJson(response); }
-    catch (error) {
-      // The headers already arrived, so the transport classifier below has not
-      // run yet. A body read that did not complete is a transport question, not
-      // a payload verdict: hand it to that classifier so the recorded deadline
-      // and caller-abort evidence decides the class. A body that completed and
-      // failed a content check stays payload_invalid.
-      if (error instanceof InterruptedOwnerBody) throw error;
-      return failure(502, "invalid", "payload_invalid");
-    }
-    const generation = key === "generation" ? sectorNativeGeneration(parsed.data) : null;
-    if (key === "generation" ? !generation : !readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid", "payload_invalid");
-    const riskRead = key === "risk" ? qualifyRiskEnvelope(parsed.data) : null;
-    const receipt: FeedReceipt = { ...baseReceipt, status: "ready", asOf: feedSourceStamp(key, parsed.data),
-      observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true || riskRead?.qualified === false
-        || (generation !== null && generation.receipt.qualification === "stale"),
-      contentHash: parsed.hash, ...(riskRead ? { qualificationReasons: riskRead.reasons } : {}) };
-    // Transport factual identity/membership/measurements only, never vendor prose.
-    const owner = object(parsed.data);
-    const membershipRead = key === "finviz"
-      ? qualifyFinvizMembershipManifest(owner.membership_manifest, normalizeFinviz(owner)) : null;
-    if (membershipRead?.status === "invalid") return failure(502, "invalid", "payload_invalid");
-    const factualPerf = (value: unknown) => Object.fromEntries(TIMEFRAMES.map(tf => [tf, number(object(value)[tf])]));
-    const data = key === "finviz" ? {
-      map_type: owner.map_type, source: owner.source, asof: owner.asof,
-      generated_utc: owner.generated_utc, n_tiles: owner.n_tiles, n_members: owner.n_members,
-      ...(membershipRead?.status === "qualified" ? { membership_manifest: membershipRead.manifest } : {}),
-      size_basis: owner.size_basis, timeframes: (owner.timeframes as unknown[]).map(value => { const row = object(value); return { key: row.key, available: row.available === true }; }),
-      sectors: (owner.sectors as unknown[]).map(value => { const row = object(value); return { key: row.key, en: row.en, zh: row.zh }; }),
-      tiles: (owner.tiles as unknown[]).map(value => {
-        const tile = object(value);
-        return { t: tile.t, name: tile.name, sector: tile.sector, size: tile.size, perf: factualPerf(tile.perf),
-          members: (tile.members as unknown[]).map(value => { const member = object(value); return { t: member.t, perf: factualPerf(member.perf) }; }) };
-      }),
-    } : riskRead ? riskRead.envelope : parsed.data;
-    return NextResponse.json({ data, receipt }, { headers: HEADERS });
+    // Unreachable: the generation walk's two steps and every other source's
+    // single step each return inside the loop. Present for the type checker.
+    return failure(502, "invalid", "payload_invalid");
   } catch {
     // The three transport outcomes are distinct and must stay distinct: an
     // elapsed fetch budget is not an unreachable origin, and neither is the
@@ -290,7 +370,15 @@ async function readIncumbent(req: Request): Promise<Response> {
     if (req.signal.aborted) return failure(499, "error", "request_aborted");
     return failure(502, "error", "upstream_transport");
   }
-  finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
+  finally {
+    clearTimeout(timer); req.signal.removeEventListener("abort", abort);
+    // SF-1 class: every exit releases the owner's body. The classifier above
+    // has already chosen status, class and code; aborting the shared
+    // controller afterwards only drops any still-open owner socket — the
+    // mid-stream early stop and any exit that never read the body. Completed
+    // reads and already-cancelled bodies are untouched no-ops.
+    controller.abort();
+  }
 }
 
 /** Lane 1 population member list (COO order 2, 2026-11-10).

@@ -45,6 +45,13 @@ export interface SectorNativeContext {
   language: "en" | "zh";
   theme: "dark" | "light";
   binding: SectorNativeBinding;
+  /** R2 (COO rulings 2026-11-11): the both-denied generation envelope's closed
+   * cause, present only when the workspace's own lineage check recorded it.
+   * The factory normalizes it to `undefined` unless the generation is absent,
+   * the live transport is `access`, and the received cause is exactly
+   * `entitlement_required` — never inferred from a tier, a status alone or any
+   * other source. */
+  accessCause?: "entitlement_required";
 }
 
 /** Wire ids in producer source-ordinal order. The measured read carries
@@ -127,6 +134,7 @@ export function sectorNativeContext(input: {
   language: "en" | "zh";
   theme: "dark" | "light";
   ownerRevision: string;
+  accessCause?: "entitlement_required";
 }): SectorNativeContext {
   const { generation } = input;
   const subject = generation && input.subjectId
@@ -136,6 +144,11 @@ export function sectorNativeContext(input: {
   return {
     generation,
     transport: input.transport,
+    // Normalized, never relayed blind: the cause survives only in the exact
+    // state that can honestly show it (no generation, live access transport,
+    // and the one closed cause the workspace lineage-checked).
+    accessCause: !generation && input.transport === "access" && input.accessCause === "entitlement_required"
+      ? input.accessCause : undefined,
     qualification: generation?.receipt.qualification || null,
     subject: subject ? {
       id: text(subject.id), ticker: text(subject.ticker),
