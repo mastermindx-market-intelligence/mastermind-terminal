@@ -167,3 +167,113 @@ describe("Prophet PERF cross-field truth invariants", () => {
     expect(normalizeProphetPerfPayload(incompleteBenchmark)).toBeNull();
   });
 });
+
+describe("Prophet PERF summary agrees with admitted plan rows", () => {
+  const rawSummary = (value: Record<string, unknown>) =>
+    (value.summary as Record<string, unknown>).raw_stock_return as Record<string, unknown>;
+  const planRows = (value: Record<string, unknown>) => value.plans as Array<Record<string, unknown>>;
+
+  async function unavailableReturns() {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    for (const row of planRows(value)) {
+      if (row.outcome === "NO_ENTRY") continue;
+      row.stock_result_pct = null;
+      row.stock_result_pct_unavailable_reason = "canonical_ledger_null";
+    }
+    Object.assign(rawSummary(value), {
+      available_count: 0, unavailable_count: 3,
+      positive_count: 0, negative_count: 0, zero_count: 0,
+      mean_pct: null, median_pct: null, min_pct: null, max_pct: null,
+      unavailable_reason: "canonical_ledger_null",
+    });
+    return value;
+  }
+
+  function expectUnchangedAdmission(value: Record<string, unknown>) {
+    const before = cloneFixture(value);
+    const admitted = normalizeProphetPerfPayload(value);
+    expect(admitted).not.toBeNull();
+    expect(admitted!.summary).toEqual(value.summary);
+    expect(admitted!.plans).toEqual(value.plans);
+    expect(value).toEqual(before);
+  }
+
+  it("rejects an outcome substitution that preserves terminal and no-entry totals", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    const outcomes = (value.summary as Record<string, unknown>).outcome_counts as Record<string, unknown>;
+    outcomes.T1_HIT = 0;
+    outcomes.T2_HIT = 1;
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it("rejects less declared coverage when all three entered rows still publish returns", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    Object.assign(rawSummary(value), { available_count: 2, unavailable_count: 1, positive_count: 1 });
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it.each([
+    { positive_count: 1, negative_count: 2, zero_count: 0 },
+    { positive_count: 1, negative_count: 1, zero_count: 1 },
+  ])("rejects total-preserving sign substitutions: %j", async (counts) => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    Object.assign(rawSummary(value), counts);
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it("rejects a newly unavailable row when the summary still claims full coverage", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    planRows(value)[0].stock_result_pct = null;
+    planRows(value)[0].stock_result_pct_unavailable_reason = "canonical_ledger_null";
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it.each(["mean_pct", "median_pct", "min_pct", "max_pct"])(
+    "rejects a published %s when no entered row has a raw return", async (field) => {
+      const value = await unavailableReturns();
+      rawSummary(value)[field] = 1;
+      expect(normalizeProphetPerfPayload(value)).toBeNull();
+    },
+  );
+
+  it("admits consistent partial coverage without changing the producer's values", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    planRows(value)[0].stock_result_pct = null;
+    planRows(value)[0].stock_result_pct_unavailable_reason = "canonical_ledger_null";
+    Object.assign(rawSummary(value), {
+      available_count: 2, unavailable_count: 1, positive_count: 1,
+      mean_pct: -1, median_pct: -1, min_pct: -3.25, max_pct: 1.25,
+    });
+    expectUnchangedAdmission(value);
+  });
+
+  it("admits a genuine zero and counts a positive BEAR price move as positive", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    planRows(value)[0].stock_result_pct = 0;
+    Object.assign(rawSummary(value), {
+      positive_count: 1, zero_count: 1,
+      mean_pct: -0.6667, median_pct: 0, min_pct: -3.25, max_pct: 1.25,
+    });
+    expectUnchangedAdmission(value);
+  });
+
+  it("admits explicitly unavailable raw returns without including NO_ENTRY in coverage", async () => {
+    expectUnchangedAdmission(await unavailableReturns());
+  });
+
+  it("admits an honest empty ledger with no raw statistics", async () => {
+    const value = await unavailableReturns();
+    value.plans = [];
+    const summary = value.summary as Record<string, unknown>;
+    Object.assign(summary, {
+      terminal_plan_count: 0, closed_plan_count: 0, no_entry_count: 0,
+      outcome_counts: Object.fromEntries(Object.keys(summary.outcome_counts as object).map(key => [key, 0])),
+    });
+    Object.assign(rawSummary(value), { unavailable_count: 0, unavailable_reason: "no_closed_plans" });
+    Object.assign(value.source as object, {
+      latest_asof: null, latest_close_date: null, freshness_unavailable_reason: "no_terminal_plans",
+    });
+    value.integrity = Object.fromEntries(Object.keys(value.integrity as object).map(key => [key, 0]));
+    expectUnchangedAdmission(value);
+  });
+});

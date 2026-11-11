@@ -336,6 +336,26 @@ export function normalizeProphetPerfPayload(value: unknown): ProphetPerfPayload 
       )
   ) return null;
 
+  // The v1 projection includes every terminal row. Summary counts must describe
+  // that admitted population; successful validation preserves the wire values.
+  const actualOutcomes = Object.fromEntries(
+    PROPHET_PERF_OUTCOMES.map((outcome) => [outcome, 0]),
+  ) as Record<ProphetPerfOutcome, number>;
+  for (const plan of plans) actualOutcomes[plan.outcome] += 1;
+  if (PROPHET_PERF_OUTCOMES.some((outcome) => outcomeCounts[outcome] !== actualOutcomes[outcome])) return null;
+
+  const values = plans
+    .filter((plan) => plan.outcome !== "NO_ENTRY" && plan.stock_result_pct !== null)
+    .map((plan) => plan.stock_result_pct as number);
+  if (
+    rawAvailable !== values.length ||
+    rawUnavailable !== closedCount - values.length ||
+    rawPositive !== values.filter((value) => value > 0).length ||
+    rawNegative !== values.filter((value) => value < 0).length ||
+    rawZero !== values.filter((value) => value === 0).length
+  ) return null;
+  if (values.length === 0 && [rawMean, rawMedian, rawMin, rawMax].some((value) => value !== null)) return null;
+
   return {
     schema: PROPHET_PERF_SCHEMA,
     stale,

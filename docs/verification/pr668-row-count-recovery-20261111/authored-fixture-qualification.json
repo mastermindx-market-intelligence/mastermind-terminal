@@ -1,0 +1,22 @@
+{
+  "schema": "prophet.perf-authored-payload-qualification.v1",
+  "sourceSpec": "terminal/e2e/prophet-perf-responsive.spec.ts",
+  "sourceSpecBlob": "f720d28c4f98672da99be3182b5db2cfd726016f",
+  "method": "Evaluate only the existing literal empty/partial fixtures and apply the compiled actual normalizer; no Playwright/browser or request execution.",
+  "cases": [
+    {
+      "case": "empty",
+      "admitted": true,
+      "inputUnchanged": true,
+      "suppliedSummaryAndPlansUnchanged": true,
+      "plans": 0
+    },
+    {
+      "case": "partial",
+      "admitted": true,
+      "inputUnchanged": true,
+      "suppliedSummaryAndPlansUnchanged": true,
+      "plans": 2
+    }
+  ]
+}
