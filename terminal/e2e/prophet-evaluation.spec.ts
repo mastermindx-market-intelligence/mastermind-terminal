@@ -5,9 +5,12 @@ import {
   decodeBetaEvaluation, findComparator, INCUMBENT_COMPARATOR_ID, intervalIncludesZero,
 } from "../lib/prophetBetaEvaluation";
 import {
-  fmtCi95, fmtCount, fmtCriterionObserved, fmtPercent, fmtP, fmtRatio, fmtSignedPercent, fmtSignedPp,
+  fmtCi95, fmtCount, fmtCriterionObserved, fmtDate, fmtPercent, fmtP, fmtRatio,
+  fmtSignedPercent, fmtSignedPp,
 } from "../lib/prophetBetaEvaluationFormat";
-import { comparatorShortName, evaluationLevelLabel, getEvaluationStr } from "../lib/prophetEvaluationStrings";
+import {
+  comparatorShortName, evaluationLevelLabel, getEvaluationStr, humanizeEngineText,
+} from "../lib/prophetEvaluationStrings";
 
 /**
  * `/prophet/evaluation` — the Strategy Evaluation surface (SX05/SX12).
@@ -22,8 +25,12 @@ import { comparatorShortName, evaluationLevelLabel, getEvaluationStr } from "../
  * The dev server's fixture seam (TERMINAL_E2E_FIXTURE=1) makes the BFF serve
  * that same file through the closed decoder gate as the live path. Evidence
  * shots land in the programme's recon directory (overridable).
+ *
+ * Every sheet screenshot waits for the panel's entrance animation to settle
+ * first: the D-set capture fault was a mid-animation frame (opacity 0.576 at
+ * 66.7ms of the 200ms `pev-panel-in`), not a styling defect.
  */
-const SHOTS = process.env.PROPHET_EVAL_SHOTS_DIR || "/home/ubuntu2/tmp/prophet-recon/shots/D";
+const SHOTS = process.env.PROPHET_EVAL_SHOTS_DIR || "/home/ubuntu2/tmp/prophet-recon/shots/D2";
 const PANELS = ["details", "attribution", "coverage", "portfolio"] as const;
 
 // ── The artifact, decoded once ───────────────────────────────────────────────
@@ -48,6 +55,8 @@ const post = ART.postHocDiagnostics.books.find(entry => entry.bookId === INCUMBE
 const exName = post?.withoutTopContributor ?? null;
 const topContrib = post?.topContributors[0] ?? null;
 const h21 = ART.eventStudy.horizons.find(h => h.horizon === "21") ?? null;
+const h21Full = h21 && h21.excessVsSpy && h21.shareBeatingSpy && h21.stockMinusSectorEtf && h21.sectorEtfMinusSpy
+  ? h21 : null;
 const bridge = ART.attribution.find(entry => entry.bookId === INCUMBENT_COMPARATOR_ID)?.book ?? null;
 const globalMin = ART.release.globalMinimumForL1;
 const requiredDigits = (criterion: string): string => {
@@ -56,13 +65,24 @@ const requiredDigits = (criterion: string): string => {
 };
 const ddRequired = globalMin.find(c => c.criterion === "spy_drawdown_present")?.required ?? "";
 
+// D5 correction facts (all from the artifact; the page never hard-codes them).
+const cohort = ART.population?.excludedCohort ?? null;
+const sensitivity = ART.sensitivity ?? null;
+const variant = sensitivity?.backfillReplaysAdmittedAfterAvailability ?? null;
+const superseded = sensitivity?.supersededAsRun ?? null;
+const oldC6 = superseded?.rows.find(entry => entry.comparatorId === INCUMBENT_COMPARATOR_ID)?.row ?? null;
+const OLD_EXCESS = oldC6?.excessTotalVsSpy ?? null;
+const populationDeviation = ART.deviations.find(d => d.kind === "population_correction") ?? null;
+const correctionDate = populationDeviation?.when.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? null;
+const h63 = ART.eventStudy.horizons.find(h => h.horizon === "63") ?? null;
+
 const EN = getEvaluationStr.bind(null, "en") as (key: Parameters<typeof getEvaluationStr>[1]) => string;
 const chipEn = evaluationLevelLabel("en", ART.release.overallLevel);
 const benchmarkName = ART.basis.benchmark;
 const incumbentLabel = comparatorShortName("en", INCUMBENT_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID);
 
-// One explicit-viewport worker: the spec sets 1440/390/320 itself, so the
-// desktop/tablet/mobile project matrix would only triple identical work.
+// One explicit-viewport worker: the spec sets 1440/820/390/320 itself, so the
+// desktop/tablet/mobile project matrix would only multiply identical work.
 test.beforeEach(({}, testInfo) => {
   testInfo.skip(testInfo.project.name !== "desktop", "explicit-viewport evidence spec");
 });
@@ -80,11 +100,35 @@ function shot(page: Page, name: string) {
   return page.screenshot({ path: path.join(SHOTS, name), fullPage: true });
 }
 
+/** Wait until every animation inside the open sheet has finished (plus one
+ * paint) so captures show the settled surface, never a mid-fade frame. */
+async function settleSheets(page: Page) {
+  await page.evaluate(() => {
+    const anims = Array.from(document.querySelectorAll<HTMLElement>(".msheet"))
+      .flatMap(el => el.getAnimations({ subtree: true }));
+    return Promise.all(anims.map(animation => animation.finished.catch(() => undefined)));
+  });
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+}
+
 async function expectNoHorizontalOverflow(page: Page) {
   const fits = await page.evaluate(
     () => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
   );
   expect(fits).toBe(true);
+}
+
+// ── Copy law sweep: no raw internal identifier survives on the page ─────────
+const SNAKE_TOKEN = /(?<![A-Za-z0-9_/])[a-z][a-z0-9]*(?:_[a-z0-9]+)+(?![A-Za-z0-9_])/;
+const COMPARATOR_TOKEN = /(?<![A-Za-z0-9_])[KCX]\d[A-Za-z0-9_]{0,63}(?![A-Za-z0-9_])/;
+/** File references and repo paths stay byte-intact by design; strip them
+ * before sweeping. */
+const stripPaths = (text: string): string => text.replace(/[A-Za-z0-9_.\-]+(?:\/[A-Za-z0-9_.\-]+)+/g, " ");
+
+function expectNoRawIds(text: string, where: string) {
+  const clean = stripPaths(text);
+  expect(clean.match(SNAKE_TOKEN), `${where}: raw snake_case identifier visible`).toBeNull();
+  expect(clean.match(COMPARATOR_TOKEN), `${where}: raw comparator/contrast id visible`).toBeNull();
 }
 
 const PANEL_PROOF: Record<(typeof PANELS)[number], (page: Page) => Promise<void>> = {
@@ -104,14 +148,38 @@ const PANEL_PROOF: Record<(typeof PANELS)[number], (page: Page) => Promise<void>
     await expect(page.getByRole("dialog")).toContainText(fmtSignedPp(bridge.bridge.sectorAllocation));
     await expect(page.getByRole("dialog")).toContainText(fmtSignedPp(bridge.bridge.selectionWithinSector));
     await expect(page.getByRole("dialog")).toContainText((bridge.identityError * 100).toFixed(4));
+    // The method line reads as reader language, never the raw engine slug.
+    await expect(page.getByRole("dialog")).toContainText("Daily accounting split using sector ETFs");
+    await expect(page.getByRole("dialog")).not.toContainText("daily_arithmetic");
   },
-  // Hit rate and the excluded-name census.
+  // Hit rate, the excluded-name census, the outage cohort and the horizons.
   coverage: async page => {
+    const dialog = page.getByRole("dialog");
     if (c6.hitRateVsSpy) {
-      await expect(page.getByRole("dialog")).toContainText(fmtCount(c6.hitRateVsSpy.beatSpy));
-      await expect(page.getByRole("dialog")).toContainText(fmtCount(c6.hitRateVsSpy.n));
+      await expect(dialog).toContainText(fmtCount(c6.hitRateVsSpy.beatSpy));
+      await expect(dialog).toContainText(fmtCount(c6.hitRateVsSpy.n));
     }
-    await expect(page.getByRole("dialog")).toContainText(fmtCount(ART.coverage.evaluatedPositions));
+    await expect(dialog).toContainText(fmtCount(ART.coverage.evaluatedPositions));
+    if (cohort) {
+      // The cohort line reads at census level; the split is one level down.
+      await expect(dialog).toContainText(`${fmtCount(cohort.eraPlansExcluded)} plans excluded`);
+      await dialog.getByTestId("pev-cohort").locator("summary").click();
+      if (cohort.ofWhichReplayedReceiptedBake !== null) {
+        await expect(dialog).toContainText(`${fmtCount(cohort.ofWhichReplayedReceiptedBake)} replays`);
+      }
+      if (cohort.ofWhichSyntheticBoardReconstructions !== null) {
+        await expect(dialog).toContainText(
+          `${fmtCount(cohort.ofWhichSyntheticBoardReconstructions)} synthetic-board reconstructions`,
+        );
+      }
+    }
+    // Fixed-horizon marks: every live-published plan, 63 rendered as unmatured.
+    if (ART.eventStudy.excludedBackfilledPlans !== null) {
+      await expect(dialog).toContainText(fmtCount(ART.eventStudy.excludedBackfilledPlans));
+    }
+    if (h63 && h63.status === "unmatured") {
+      await expect(dialog.getByTestId("pev-horizons")).toContainText(EN("horizonUnmatured"));
+    }
   },
   // The model-book line plus the existing portfolio destination.
   portfolio: async page => {
@@ -119,7 +187,17 @@ const PANEL_PROOF: Record<(typeof PANELS)[number], (page: Page) => Promise<void>
   },
 };
 
-test("cold reader: verdict, participation, comparison family and caveats (EN 1440)", async ({ page, baseURL }) => {
+/** Dialog innerText minus the declared raw-identifier home (`.pev-source-raw`). */
+async function dialogSweepText(page: Page): Promise<string> {
+  const dialog = page.getByRole("dialog");
+  let text = await dialog.innerText();
+  for (const raw of await dialog.locator(".pev-source-raw").allInnerTexts()) {
+    text = text.split(raw).join(" ");
+  }
+  return text;
+}
+
+test("cold reader: verdict, correction, participation, comparison and caveats (EN 1440)", async ({ page, baseURL }) => {
   await prepare(page, baseURL);
   // A validated same-origin ?from is honoured by the back link.
   await page.goto("/prophet/evaluation?from=/today");
@@ -159,6 +237,17 @@ test("cold reader: verdict, participation, comparison family and caveats (EN 144
     }
   }
 
+  // The correction is visible near the headline WITHOUT opening anything:
+  // the closed What-changed summary carries old → corrected figures.
+  const whatChanged = page.getByTestId("pev-what-changed-summary");
+  await expect(whatChanged).toBeVisible();
+  await expect(whatChanged).toContainText(EN("whatChangedTitle"));
+  if (correctionDate) await expect(whatChanged).toContainText(fmtDate(correctionDate));
+  if (OLD_EXCESS !== null) {
+    await expect(whatChanged).toContainText(fmtSignedPp(OLD_EXCESS));
+    await expect(whatChanged).toContainText(fmtSignedPp(DIFF));
+  }
+
   // Market participation: beta with its interval, invested weight, captures.
   const participation = page.getByTestId("pev-participation");
   if (c6.beta !== null) await expect(participation).toContainText(fmtRatio(c6.beta));
@@ -174,6 +263,14 @@ test("cold reader: verdict, participation, comparison family and caveats (EN 144
   await expect(table).toContainText(fmtSignedPp(DIFF));
   await expect(table).toContainText(fmtCi95(CI[0], CI[1], "pp"));
   await expect(page.getByTestId("pev-k-table")).toContainText(fmtP(ART.contrasts.rows[0].pHolm));
+  // The raw header definition ("C6 - C1") no longer renders; insignificant
+  // comparisons read "value not shown", and the note states the law.
+  await expect(page.getByTestId("pev-k-table")).not.toContainText(ART.contrasts.rows[0].headerDefinition);
+  const notShownCount = ART.contrasts.rows.filter(k => !k.rejectH0).length;
+  if (notShownCount > 0) {
+    await expect(page.getByTestId("pev-k-table")).toContainText(EN("notShownChip"));
+    await expect(page.getByTestId("pev-notshown-note")).toContainText("not shown");
+  }
 
   // Material caveats in place, at full size, not buried.
   const caveats = page.getByTestId("pev-caveats");
@@ -184,10 +281,12 @@ test("cold reader: verdict, participation, comparison family and caveats (EN 144
     await expect(caveats).toContainText(fmtSignedPp(topContrib.grossContribution));
   }
   if (post) await expect(caveats).toContainText(fmtPercent(post.top5ShareOfPositiveContribution));
-  if (h21) {
-    await expect(caveats).toContainText(fmtSignedPp(h21.excessVsSpy.mean));
-    await expect(caveats).toContainText(fmtCi95(h21.excessVsSpy.ci95DateCluster[0], h21.excessVsSpy.ci95DateCluster[1], "pp"));
-    await expect(caveats).toContainText(fmtPercent(h21.shareBeatingSpy.rate));
+  if (h21Full) {
+    await expect(caveats).toContainText(fmtSignedPp(h21Full.excessVsSpy!.mean));
+    await expect(caveats).toContainText(
+      fmtCi95(h21Full.excessVsSpy!.ci95DateCluster[0], h21Full.excessVsSpy!.ci95DateCluster[1], "pp"),
+    );
+    await expect(caveats).toContainText(fmtPercent(h21Full.shareBeatingSpy!.rate));
   }
 
   // Copy law: no alpha/outperformance/edge vocabulary anywhere on the surface.
@@ -196,6 +295,61 @@ test("cold reader: verdict, participation, comparison family and caveats (EN 144
 
   await expectNoHorizontalOverflow(page);
   await shot(page, "main-1440.png");
+});
+
+test("what changed: the D5 correction disclosure and its two sensitivity blocks (EN 1440)", async ({ page, baseURL }) => {
+  test.skip(!sensitivity || OLD_EXCESS === null || !cohort || !correctionDate,
+    "fixture without a superseded population has nothing to disclose");
+  await prepare(page, baseURL);
+  await page.goto("/prophet/evaluation");
+  const disclosure = page.getByTestId("pev-what-changed");
+  await page.getByTestId("pev-what-changed-summary").click();
+
+  // The full correction sentence, every figure from the artifact.
+  const body = disclosure.locator("details > p.pev-sentence");
+  await expect(body.first()).toContainText(fmtDate(correctionDate!));
+  await expect(body.first()).toContainText(fmtSignedPp(OLD_EXCESS!));
+  await expect(body.first()).toContainText(fmtSignedPp(DIFF));
+  await expect(body.first()).toContainText(fmtCount(cohort!.eraPlansExcluded));
+  await expect(disclosure).toContainText(EN("whatChangedPopulationNote"));
+
+  // The engine's own correction record, one level down, humanized.
+  if (populationDeviation) {
+    const source = disclosure.locator(".pev-what-source");
+    await source.locator("summary").click();
+    await expect(source).toContainText(humanizeEngineText(populationDeviation.what).slice(0, 60));
+  }
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "what-changed-1440.png");
+
+  // Both sensitivity blocks exist, are CLOSED by default, and never
+  // headline-styled: each carries the engine's own label when opened.
+  const variantBlock = page.getByTestId("pev-sensitivity-variant");
+  const supersededBlock = page.getByTestId("pev-sensitivity-superseded");
+  await expect(variantBlock).not.toHaveAttribute("open", "");
+  await expect(supersededBlock).not.toHaveAttribute("open", "");
+
+  await variantBlock.locator("summary").click();
+  await expect(variantBlock).toContainText(EN("sensitivityChip"));
+  await expect(variantBlock).toContainText(sensitivity!.label);
+  if (variant) {
+    await expect(variantBlock).toContainText(fmtSignedPp(variant.excessTotalVsSpy!));
+    await expect(variantBlock).toContainText(humanizeEngineText(variant.definition).slice(0, 40));
+  }
+  await shot(page, "sensitivity-variant-1440.png");
+
+  await supersededBlock.locator("summary").click();
+  await expect(supersededBlock).toContainText(EN("supersededChip"));
+  await expect(supersededBlock).toContainText(sensitivity!.label);
+  await expect(supersededBlock).toContainText(EN("supersededSameEngineNote"));
+  // The earlier headline figure, retained but marked superseded.
+  await expect(supersededBlock).toContainText(fmtSignedPp(OLD_EXCESS!));
+  await expect(supersededBlock).toContainText(fmtSignedPercent(oldC6!.totalNetReturn!));
+  if (superseded && superseded.contrasts.length > 0) {
+    await expect(supersededBlock).toContainText("comparison 1");
+  }
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "sensitivity-superseded-1440.png");
 });
 
 test("four disclosures open by click, close with Esc and return focus (EN 1440)", async ({ page, baseURL }) => {
@@ -210,12 +364,41 @@ test("four disclosures open by click, close with Esc and return focus (EN 1440)"
     await expect(dialog).toBeVisible();
     await expect(trigger).toHaveAttribute("aria-expanded", "true");
     await PANEL_PROOF[key](page);
+    // Capture the SETTLED panel (entrance animation finished), never a frame
+    // mid-fade — the D-set see-through attribution shot was exactly that.
+    await settleSheets(page);
     await shot(page, `${key}-1440.png`);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
     // The opener receives focus back after the sheet closes.
     await expect(trigger).toBeFocused();
+  }
+});
+
+test("raw identifiers never survive on the reading surface (EN 1440)", async ({ page, baseURL }) => {
+  await prepare(page, baseURL);
+  await page.goto("/prophet/evaluation");
+  expectNoRawIds(await page.locator(".pev").innerText(), "main surface");
+
+  // Every disclosure, open, with the What-changed + cohort disclosures open
+  // too — the declared raw home (.pev-source-raw) is excluded by design.
+  await page.getByTestId("pev-what-changed-summary").click();
+  await page.getByTestId("pev-sensitivity-variant").locator("summary").click();
+  await page.getByTestId("pev-sensitivity-superseded").locator("summary").click();
+  expectNoRawIds(await page.locator(".pev").innerText(), "main surface with disclosures open");
+
+  for (const key of PANELS) {
+    await page.getByTestId(`pev-open-${key}`).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    if (key === "coverage") {
+      await dialog.getByTestId("pev-cohort").locator("summary").click();
+    }
+    await settleSheets(page);
+    expectNoRawIds(await dialogSweepText(page), `${key} panel`);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
   }
 });
 
@@ -287,22 +470,83 @@ test("the full surface reads in Chinese (ZH 1440)", async ({ page, baseURL }) =>
   await expect(page.getByTestId("pev-verdict-level")).toContainText(evaluationLevelLabel("zh", ART.release.overallLevel));
   await expect(page.locator(".pev-back")).toContainText(ZH("backToProphet"));
   await expect(page.getByTestId("pev-verdict-book")).toContainText(ZH(CI_SPANS_ZERO ? "ciIncludesZero" : "ciExcludesZero"));
+  // The correction disclosure reads in Chinese too.
+  await expect(page.getByTestId("pev-what-changed-summary")).toContainText(ZH("whatChangedTitle"));
   await expectNoHorizontalOverflow(page);
   await shot(page, "main-zh-1440.png");
 });
 
-test("phone width 390 holds without horizontal scroll (EN)", async ({ page, baseURL }) => {
+test("tablet 820×1180 holds with the correction disclosure open (EN)", async ({ page, baseURL }) => {
+  await prepare(page, baseURL);
+  await page.setViewportSize({ width: 820, height: 1180 });
+  await page.goto("/prophet/evaluation");
+  await expect(page.getByTestId("pev-level-chip")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "main-820.png");
+  await page.getByTestId("pev-what-changed-summary").click();
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "what-changed-820.png");
+  await page.getByTestId("pev-sensitivity-superseded").locator("summary").click();
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "sensitivity-superseded-820.png");
+  for (const key of PANELS) {
+    await page.getByTestId(`pev-open-${key}`).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    await settleSheets(page);
+    await shot(page, `${key}-820.png`);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toBeHidden();
+  }
+});
+
+test("phone width 390: the cold reader learns the correction in one screen (EN)", async ({ page, baseURL }) => {
   await prepare(page, baseURL);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/prophet/evaluation");
   await expect(page.getByTestId("pev-level-chip")).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await shot(page, "main-390.png");
+  // The first screen must tell a cold reader the result is not distinguishable
+  // from the market AND that it was corrected — both without opening anything.
+  const firstScreen = await page.evaluate(() => {
+    const fold = window.innerHeight;
+    return Array.from(document.querySelectorAll<HTMLElement>(".pev [data-testid], .pev .pev-sentence, .pev .pev-verdict-level, .pev summary"))
+      .filter(el => el.getBoundingClientRect().top < fold)
+      .map(el => el.innerText)
+      .join("\n");
+  });
+  expect(firstScreen).toContain(
+    CI_SPANS_ZERO ? "not distinguishable from simply holding" : "does not include zero",
+  );
+  await expect(page.getByTestId("pev-what-changed-summary")).toBeVisible();
+  expect(firstScreen).toContain(EN("whatChangedTitle"));
+  if (OLD_EXCESS !== null) expect(firstScreen).toContain(fmtSignedPp(OLD_EXCESS));
+
+  await page.getByTestId("pev-what-changed-summary").click();
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "what-changed-390.png");
+  await page.getByTestId("pev-sensitivity-superseded").locator("summary").click();
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "sensitivity-superseded-390.png");
+  await page.getByTestId("pev-what-changed-summary").click();
+
   for (const key of PANELS) {
     await page.getByTestId(`pev-open-${key}`).click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    if (key === "coverage") {
+      const dialog = page.getByRole("dialog");
+      if (cohort) await dialog.getByTestId("pev-cohort").locator("summary").click();
+      await settleSheets(page);
+      if (h63 && h63.status === "unmatured") {
+        await expect(dialog.getByTestId("pev-horizons")).toContainText(EN("horizonUnmatured"));
+      }
+      await shot(page, `${key}-390.png`);
+    } else {
+      await settleSheets(page);
+      await shot(page, `${key}-390.png`);
+    }
     await expectNoHorizontalOverflow(page);
-    await shot(page, `${key}-390.png`);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
   }
@@ -321,10 +565,21 @@ test("narrow 320 width still fits (EN)", async ({ page, baseURL }) => {
   await expect(page.getByTestId("pev-level-chip")).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await shot(page, "main-320.png");
+  await page.getByTestId("pev-what-changed-summary").click();
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "what-changed-320.png");
+  await page.getByTestId("pev-sensitivity-variant").locator("summary").click();
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "sensitivity-variant-320.png");
+  await page.getByTestId("pev-sensitivity-superseded").locator("summary").click();
+  await expectNoHorizontalOverflow(page);
+  await shot(page, "sensitivity-superseded-320.png");
+  await page.getByTestId("pev-what-changed-summary").click();
   for (const key of PANELS) {
     await page.getByTestId(`pev-open-${key}`).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await expectNoHorizontalOverflow(page);
+    await settleSheets(page);
     await shot(page, `${key}-320.png`);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
