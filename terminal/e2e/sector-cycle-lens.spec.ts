@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
 
 /* Cycles lane e2e — the /dev/sector-cycles harness (deterministic inline
  * fixtures, no network, clearly labelled as fixture data on the page itself).
@@ -62,8 +62,141 @@ const T = (lang: "en" | "zh") => ({
   headsAbsent: lang === "zh" ? "未附带预测能力分块" : "No forecast capability block",
 });
 
+
+async function expectMeasuredPlot(svg: Locator) {
+  await expect(svg).toBeVisible();
+  const geometry = () => svg.evaluate((element) => {
+    const chart = element as SVGSVGElement;
+    return {
+      container: chart.parentElement!.clientWidth,
+      width: Number(chart.getAttribute("width")),
+      viewBox: chart.viewBox.baseVal.width,
+      rendered: chart.getBoundingClientRect().width,
+    };
+  });
+  expect((await geometry()).container).toBeGreaterThanOrEqual(240);
+  await expect.poll(async () => {
+    const value = await geometry();
+    return Math.max(
+      Math.abs(value.width - value.container),
+      Math.abs(value.viewBox - value.container),
+      Math.abs(value.rendered - value.container),
+    );
+  }, { message: "SVG coordinates must follow the current measured content width" }).toBeLessThanOrEqual(1);
+  return geometry();
+}
+
 for (const [lang, theme] of cases) {
   const L = T(lang);
+
+  for (const transition of ["table", "empty"] as const) {
+    test(`cycles chart measurement survives ${transition} transitions ${lang} ${theme}`, async ({ page }, info) => {
+      await page.goto("/dev/sector-cycles");
+      await page.getByRole("radio", { name: lang === "zh" ? "ZH" : "EN", exact: true }).check();
+      await page.getByRole("radio", { name: theme === "light" ? "Light" : "Dark", exact: true }).check();
+
+      const initialViewport = page.viewportSize()!;
+      // Remain in the same responsive band, so a remounted panel cannot hide
+      // the lost observer. The final capture returns to the contract viewport.
+      const widths = initialViewport.width >= 981 ? [1100, 1280]
+        : initialViewport.width >= 641 ? [700, 900] : [510, 430];
+      const panel = page.getByTestId("cycle-chart-panel");
+      const svg = panel.locator("svg");
+      const expectThemePaint = async (selected: "light" | "dark") => {
+        await expect.poll(() => panel.evaluate(element => {
+          const root = document.documentElement;
+          const tokens = getComputedStyle(root);
+          const paint = getComputedStyle(element);
+          return {
+            theme: root.dataset.theme,
+            appearance: root.dataset.terminalAppearance,
+            sharedShell: root.dataset.mmxSharedShell ?? null,
+            backgroundToken: tokens.getPropertyValue("--bg").trim(),
+            secondaryPanelToken: tokens.getPropertyValue("--panel-2").trim(),
+            textToken: tokens.getPropertyValue("--text").trim(),
+            background: paint.backgroundColor,
+            foreground: paint.color,
+          };
+        })).toEqual({
+          theme: selected, appearance: "1", sharedShell: null,
+          backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+          secondaryPanelToken: selected === "light" ? "#eef1f6" : "#15171d",
+          textToken: selected === "light" ? "#202632" : "#d6dae3",
+          background: selected === "light" ? "rgb(255, 255, 255)" : "rgb(13, 15, 19)",
+          foreground: selected === "light" ? "rgb(32, 38, 50)" : "rgb(214, 218, 227)",
+        });
+      };
+      await expectThemePaint(theme);
+      const otherTheme = theme === "light" ? "dark" : "light";
+      await page.getByRole("radio", { name: otherTheme === "light" ? "Light" : "Dark", exact: true }).check();
+      await expectThemePaint(otherTheme);
+      await page.getByRole("radio", { name: theme === "light" ? "Light" : "Dark", exact: true }).check();
+      await expectThemePaint(theme);
+      const initial = await expectMeasuredPlot(svg);
+      const originalPanel = await panel.elementHandle();
+      const contentHost = await svg.locator("..").locator("..").elementHandle();
+      expect(originalPanel).not.toBeNull();
+      expect(contentHost).not.toBeNull();
+
+      const observation = page.getByTestId("cycle-observation");
+      if (transition === "table") {
+        await panel.getByLabel(L.obs).focus();
+        await page.keyboard.press("Home");
+      }
+      const date = (await observation.locator("time").textContent())!.trim();
+      const value = (await observation.locator("strong").first().textContent())!.trim();
+      const selectFamily = async (label: string) => {
+        if (initialViewport.width >= 641 && initialViewport.width <= 980) {
+          await page.getByTestId("sector-cycle-lens").getByRole("button", { name: L.changeSeries, exact: true }).click();
+          const sheet = page.getByRole("dialog");
+          await expect(sheet).toBeVisible();
+          await sheet.getByRole("button", { name: label, exact: true }).click();
+          await expect(sheet).toBeHidden();
+        } else {
+          await page.getByTestId("cycle-phase-rail").getByRole("tab", { name: label }).click();
+        }
+      };
+
+      if (transition === "table") {
+        await panel.getByRole("button", { name: L.table, exact: true }).click();
+        const row = panel.locator(`table tbody tr:has(> th:text-is("${date}"))`).first();
+        await expect(row.locator("td").first()).toHaveText(value);
+      } else {
+        await selectFamily(L.baskets);
+        await expect(panel.getByRole("status")).toBeVisible();
+      }
+      await expect(svg).toHaveCount(0);
+      await page.setViewportSize({ ...initialViewport, width: widths[0] });
+      expect(await originalPanel!.evaluate(node => node.isConnected)).toBe(true);
+      expect(await contentHost!.evaluate(node => node.isConnected)).toBe(true);
+
+      if (transition === "table") {
+        await panel.getByRole("button", { name: L.chart, exact: true }).click();
+      } else {
+        await selectFamily(L.sectorsTab);
+      }
+      const restored = await expectMeasuredPlot(svg);
+      expect(Math.abs(restored.container - initial.container)).toBeGreaterThan(1);
+      expect(await svg.evaluate((node, original) => node.parentElement!.parentElement === original, contentHost)).toBe(true);
+      expect(await panel.evaluate((node, original) => node === original, originalPanel)).toBe(true);
+      await expect(observation.locator("time")).toHaveText(date);
+      await expect(observation.locator("strong").first()).toHaveText(value);
+
+      await page.setViewportSize({ ...initialViewport, width: widths[1] });
+      await expectMeasuredPlot(svg);
+      await page.setViewportSize(initialViewport);
+      await expectMeasuredPlot(svg);
+      await expect(observation.locator("time")).toHaveText(date);
+      await expect(observation.locator("strong").first()).toHaveText(value);
+      expect(await panel.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
+      await expectThemePaint(theme);
+      await panel.screenshot({
+        path: info.outputPath(`cycles-measurement-${transition}-${lang}-${info.project.name}.png`),
+        animations: "disabled",
+      });
+    });
+  }
+
 
   test(`cycles core journey ${lang} ${theme}`, async ({ page }, info) => {
     await page.goto("/dev/sector-cycles");

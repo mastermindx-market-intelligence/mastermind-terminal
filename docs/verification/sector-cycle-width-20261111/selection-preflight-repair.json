@@ -1,0 +1,6 @@
+{
+  "originalState": "PRETEST_SELECTION_ASSERTION_FAILED",
+  "browserStarted": false,
+  "repair": "Accept the Playwright singular test count; preserve original selection and source snapshot",
+  "driverSha256": "63e927397926f9fc3366e0479f048cc86efc2b813c25310551dceebbaac87a14"
+}
