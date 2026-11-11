@@ -1,0 +1,19 @@
+{
+  "browserLaunchAttempted": false,
+  "captureNotPreviouslyAttempted": true,
+  "cleanupOutcome": "APPLIED_AND_READ_BACK; return-path relative formatting raised after completed unlink and post-check receipt; never replayed.",
+  "cleanupReadback": "preexisting-lock-cleanup-readback.json",
+  "failure": "Assertion before proof directory, packet, browser or publication effect; assumed Playwright internal registry module path was absent.",
+  "initialExit": 1,
+  "initialProcess": 68444,
+  "installationExecuted": false,
+  "officialDryRun": "browser-dry-run.json",
+  "originalPreparationSha256": "3a9f315c9a500d68df6ed7f0b297f11f6100b04591189532a1df1d476432fd1c",
+  "originalRemoteHead": "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+  "preexistingLock": "PID9022/port47188; exact process/listener/FD/workspace absence proven before owned stale-lock unlink.",
+  "qualifiedPreparationSha256": "76993b04ae3b3e5a269c00f9caf5d3a67280a16fe16a8d1550708f60c2c8c289",
+  "secondFailure": "Stopped before proof directory/browser mutation on a preexisting Next lock.",
+  "secondPreparationExit": 1,
+  "secondPreparationProcess": 80681,
+  "state": "ASSUMED_INTERNAL_MODULE_PATH_REPLACED_WITH_OFFICIAL_CLI_DISCOVERY"
+}

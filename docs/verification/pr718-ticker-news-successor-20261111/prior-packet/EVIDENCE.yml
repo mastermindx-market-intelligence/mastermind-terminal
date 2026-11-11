@@ -1,0 +1,68 @@
+# Same-source qualification: 14 passing cases and 7 authored project skips across 21 unique cases.
+# Historical first attempt: 7 desktop passes and 14 missing-browser launch failures; retained unchanged.
+# Targeted continuation after dependency repair: 7 passes and 7 authored skips; no qualified retries.
+# Eight first-attempt images and two continuation images are fresh within their respective producing intervals.
+# Source tree: df6f2dfeb5587acd42d83847ea8582a9e1da0a39
+# Protected ancestor: 74c007125129090cc762f2bc4b1b152123326444
+# Proof: docs/verification/pr1407-ticker-news-successor-20261111/aggregate-qualification.json
+# Source snapshot SHA256: cd9da9a4d087b885ed83c6c5a599168ad16fc1ac4ee236b0fdd79684c28de669
+# Panel crops: viewport labels describe browser viewports, not PNG dimensions.
+capturedAtHead: 5338557e44e2a8b5ca789aac7cd295037db9692d
+layoutFiles:
+  - path: terminal/components/news/TickerNewsPanel.tsx
+    sha256: d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2
+  - path: terminal/components/news/TickerNewsPanel.module.css
+    sha256: 46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358
+  - path: terminal/components/TerminalShell.tsx
+    sha256: 50542114260c737b88546aecf1856a9fae230d66ee371c7faee150fe7af60639
+crops:
+  - file: desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: live-feed
+    sha256: 1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04
+  - file: desktop-zh-dark.png
+    viewport: 1440x900
+    lang: zh
+    state: live-feed
+    sha256: bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d
+  - file: mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: live-feed
+    sha256: e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28
+  - file: mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: live-feed
+    sha256: 38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585
+  - file: tablet-en-dark.png
+    viewport: 820x1180
+    lang: en
+    state: live-feed
+    sha256: 97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69
+  - file: tablet-zh-dark.png
+    viewport: 820x1180
+    lang: zh
+    state: live-feed
+    sha256: 17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5
+  - file: unavailable-desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: unavailable
+    sha256: 570371304d3d8f57d7314f8af18fd2e0040e7e14c37720e09621395665f4ed01
+  - file: unavailable-desktop-zh-dark.png
+    viewport: 1440x900
+    lang: zh
+    state: unavailable
+    sha256: b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8
+  - file: unavailable-mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: unavailable
+    sha256: 85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61
+  - file: unavailable-mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: unavailable
+    sha256: 92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792

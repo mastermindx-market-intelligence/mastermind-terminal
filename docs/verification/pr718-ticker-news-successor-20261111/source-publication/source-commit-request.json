@@ -1,0 +1,19 @@
+{
+  "author": {
+    "date": "2026-11-11T09:36:22Z",
+    "email": "ryan@mastermind-x.com",
+    "name": "mastermindxryan"
+  },
+  "committer": {
+    "date": "2026-11-11T09:36:22Z",
+    "email": "ryan@mastermind-x.com",
+    "name": "mastermindxryan"
+  },
+  "message": "merge: compose protected Terminal and qualified refinement for Compare evidence",
+  "parents": [
+    "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+    "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "59f101192d6b48d72b850f98c2428f27a04652bf"
+  ],
+  "tree": "e2cf25126668a68cdf585be25092e52a589eb849"
+}

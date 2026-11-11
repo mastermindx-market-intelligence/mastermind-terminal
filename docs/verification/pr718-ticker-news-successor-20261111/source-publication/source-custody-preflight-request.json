@@ -1,0 +1,6 @@
+{
+  "query": "query($ref:String!){viewer{login} repository(owner:\"mastermindx-market-intelligence\",name:\"mastermind-terminal\"){id ref(qualifiedName:$ref){target{oid}} protected:ref(qualifiedName:\"refs/heads/master\"){target{oid}} pullRequest(number:718){headRefOid state isDraft labels(first:20){nodes{name}} autoMergeRequest{enabledAt} mergeQueueEntry{id} comments(last:1){nodes{databaseId}}}}}",
+  "variables": {
+    "ref": "refs/heads/claude/terminal-compare-settings-ux-20260922"
+  }
+}

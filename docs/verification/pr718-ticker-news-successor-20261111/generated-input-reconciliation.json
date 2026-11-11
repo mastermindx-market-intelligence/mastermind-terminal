@@ -1,0 +1,26 @@
+{
+  "backup": "generated-after-capture/next-env.d.ts",
+  "captureRerun": false,
+  "completedAt": "2026-11-11T10:20:23.498517+00:00",
+  "createdAt": "2026-11-11T10:20:23.495100+00:00",
+  "observedGenerated": {
+    "bytes": 296,
+    "device": 16777252,
+    "inode": 354805053,
+    "mtimeNs": 1794390887998053167,
+    "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+  },
+  "originalBindingExit": 1,
+  "originalBindingFailure": "Precondition line66: capture-generated next-env.d.ts was present, preimage absent; no manifest/qualification/visual/guard writes occurred.",
+  "originalBindingProcess": 5173,
+  "originalBindingScriptSha256": "9a6bc0bc1cd811b38ff88cf4cb22d227d5a743b8cae1fdf7d69e1c860e5e9c63",
+  "originalPreimage": {
+    "present": false
+  },
+  "path": "terminal/next-env.d.ts",
+  "publicationReplayed": false,
+  "schema": "terminal.pr718.generated-input-reconciliation.v1",
+  "serverAbsenceVerified": true,
+  "state": "ABSENT_PREIMAGE_RESTORED_AND_READ_BACK",
+  "trackedTsconfigUnchanged": true
+}

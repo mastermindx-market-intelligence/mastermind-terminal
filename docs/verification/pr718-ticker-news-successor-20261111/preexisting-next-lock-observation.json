@@ -1,0 +1,70 @@
+{
+  "at": "2026-11-11T09:47:07.080558+00:00",
+  "checks": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:47188",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "501",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcess": {
+      "command": [
+        "ps",
+        "-p",
+        "9022",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "lock": {
+    "content": {
+      "appUrl": "http://127.0.0.1:47188",
+      "hostname": "127.0.0.1",
+      "pid": 9022,
+      "port": 47188,
+      "startedAt": 1794330187572
+    },
+    "dev": 16777252,
+    "ino": 350649003,
+    "mtimeNs": 1794330187573150097,
+    "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal/.next/dev/lock",
+    "sha256": "e5c9a78295ea552c3510d1be7613f4813be482e576b99c60ed5e794a7d8c5cc4",
+    "size": 108
+  },
+  "mutation": false,
+  "schema": "terminal.pr718.preexisting-next-lock-observation.v1",
+  "sourceHead": "01550eaca9e1e1f8d816e6fef785b38998710b43"
+}

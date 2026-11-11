@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/tickerNewsEvidence.test.ts",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-ticker-news-successor-20261111/source-consumer-report.json"
+  ],
+  "completedAt": "2026-11-11T10:24:16.776523+00:00",
+  "exit": 0,
+  "failed": 0,
+  "head": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "logSha256": "b963c0300c0929fe4402ac61f193b874d2ae95de045d6847372be15ddc59cdbf",
+  "manifestSha256": "9fda6846901fd3002e0c4b610874e00429db19b837728d67fc3f4cd5915eabeb",
+  "passed": 4,
+  "reportSha256": "1f57fb2e907872015ca68f3f33d3574e228f060c53aa1f0efaf8125a57735550",
+  "schema": "terminal.pr718.news-source-consumer.v1",
+  "seconds": 7.34,
+  "sourceStillIdentical": true,
+  "startedAt": "2026-11-11T10:24:09.434006+00:00",
+  "state": "PASS"
+}

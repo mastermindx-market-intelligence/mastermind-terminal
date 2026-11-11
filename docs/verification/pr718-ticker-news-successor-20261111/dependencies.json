@@ -1,0 +1,30 @@
+{
+  "browser": {
+    "bytes": 159293248,
+    "expectedInstallPath": "/Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228",
+    "name": "chromium-headless-shell",
+    "officialDryRunSha256": "c0be2490a5af71d4de249fd578a7c33a298be31e238ea0d10934194cac6d7068",
+    "path": "/Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell",
+    "sha256": "11e393326c7d20a7c56641a7c65def33ea9c280da3b0b74cf8563b07989a0ee3"
+  },
+  "dependencyInstallPerformed": false,
+  "freshReadAt": "2026-11-11T09:52:14.759537+00:00",
+  "node": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "nodeVersion": "v22.23.4",
+  "packages": {
+    "@playwright/test": {
+      "installed": "1.61.1",
+      "locked": "1.61.1"
+    },
+    "next": {
+      "installed": "16.4.6",
+      "locked": "16.4.6"
+    },
+    "vitest": {
+      "installed": "2.1.9",
+      "locked": "2.1.9"
+    }
+  },
+  "state": "MATCHING_DEPENDENCIES_AND_EXISTING_BROWSER_CACHE_READY"
+}

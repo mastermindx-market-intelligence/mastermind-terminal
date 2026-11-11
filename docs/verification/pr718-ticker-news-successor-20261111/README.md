@@ -1,0 +1,21 @@
+# PR 718 ticker-news source qualification
+
+The immutable capture source is 01550eaca9e1e1f8d816e6fef785b38998710b43, tree e2cf25126668a68cdf585be25092e52a589eb849, with ordered parents 26862a671763d6eea4a1ea3b93f3bfc79114b6e1, 18fabe9d3c1439c4185559ba5ce491518fe999c9 and 59f101192d6b48d72b850f98c2428f27a04652bf. It composes the original Compare work with the actual protected baseline and #1407's qualified source/evidence. The only novel application blob is TerminalShell's combination of the existing Compare overflow action with the protected and workspace changes. Source object publication receipts are retained; the original PR ref remained at 26862a6 during capture.
+
+## Actual execution and review
+
+One complete existing ticker-news spec invocation passed fourteen cases with seven authored project skips, zero unexpected results, flakes or retries. All ten original panel PNGs were freshly produced within that invocation. The principal visually reviewed all ten actual files, including EN/ZH desktop, tablet, mobile and unavailable states. Nine PNGs are byte-identical to the inherited packet; timestamps and producer receipts establish actual recapture. One unavailable-desktop crop changed bytes.
+
+Before/after and fresh membership-discovering snapshots agree across 2,121 source inputs. The prior eleven-file active packet, older protected eleven-file archive, all 103 neighboring editorial/recovery/CN-HK files and accepted Compare packet are preserved. The accepted 64 tests and twelve Chromium/WebKit Compare journeys were not rerun or restamped.
+
+The initial preparation assumed a missing private Playwright module path and stopped before capture mutation. Official CLI dry-run discovery established the already-installed matching browser location. A second preparation stopped on a preexisting Next lock. Exact stale ownership and server absence were proved before cleanup; cleanup succeeded, but its return formatting failed afterward. Original receipt and independent readback establish the applied cleanup; it was never replayed. The actual browser capture started once, after preparation qualified. Its own server/lock lifecycle is settled. The first binding preflight then stopped before evidence mutation because the capture-created, ignored next-env.d.ts remained present although its preimage was absent. Its exact bytes were archived and the absence restored after owned-server checks. Tracked tsconfig bytes were unchanged. The original failed binding script and reconciliation receipt remain; the second binding attempt then stopped before evidence writes on an incorrectly transcribed consumer Git-blob precondition. Direct Git reads of the capture head and both inherited heads establish the identical actual guard blob bad46f97cc821a56b1be48ec7c888d17e9b88aa9 and the exact captured SHA256. binding-pin-reconciliation.json retains that diagnostic. No test or consumer source changed. This third, corrected binding attempt proceeds on those verified identities.
+
+## Binding and validation
+
+qualification.json binds actual cases, fresh images, source closure and lifecycle. visual-review.json records the ten exact image hashes. EVIDENCE.yml and manifest-binding.json name the real capture commit, three exact layout hashes and ten image hashes. No future publication commit is presented as the capture head. The unchanged tickerNewsEvidence.test.ts consumer passed all four tests with source inputs still identical. inventory.json records exact packet membership.
+
+The current source composition preserves inherited workspace, editorial and other separately qualified packets. Full natural head CI owns any required VI/PL6 composition recapture; inherited history and this focused news guard do not substitute for that stage.
+
+## Acceptance and publication boundary
+
+This is fixture-backed local browser proof, not authenticated provider, installed production or live-news acceptance. Principal visual/diff review is a self-check, not formal independent GitHub approval. Draft/hold and current release dependencies remain until explicitly reconciled by their owners. The evidence publication is a child of the real capture source, through the original native GitHub-object publisher and original PR branch; local managed-branch continuity is not a second publisher.

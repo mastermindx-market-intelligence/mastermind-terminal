@@ -1,0 +1,1229 @@
+{
+  "baseTree": "9154c2f8291cc3b66ffdffd9800ac809178cff7a",
+  "branchMutation": false,
+  "consumedContinuationComment": 6792323156,
+  "coupledHolds": [
+    "#1407 release qualification and #1456 source-overlap reconciliation",
+    "#718 exact-head required CI and original live Compare acceptance"
+  ],
+  "expectedSourceCommit": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "localAlignmentReceipt": "/tmp/terminal-pr718-news-composition-20261111-c3/source-local-alignment/receipt.json",
+  "localAlignmentSha256": "d4b15b97d7a02acd0e5b80e685975037f1857a0f4fe0250c5a659b9aede2b72f",
+  "localCaptureHead": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "nativeActor": "mastermindxryan",
+  "newBlobs": {
+    "325232fb9304cea7636a98786d0b049ddef784c1": "terminal/components/TerminalShell.tsx"
+  },
+  "originalBranch": "claude/terminal-compare-settings-ux-20260922",
+  "originalHelperSha256": "8ba006e457f127810231d18ace9d8bc70c628d81f4447aabb3874521e8d6b4f0",
+  "originalLedgerSha256": "fa1757ca607796b100c97ef545a74e645dd62d1440e6998d0ef59426a511e8e9",
+  "ownedCompositionReceiptSha256": "6de2f8269b161ac929ba7411a0c22a260c18d3ee08d4f1b41e8bbaafbd66ea42",
+  "preparedAt": "2026-11-11T09:36:22.992955+00:00",
+  "publicationAttempted": true,
+  "remoteExpectedHead": "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "repositoryId": "R_kgDOTOzwKA",
+  "requests": [
+    {
+      "completedAt": "2026-11-11T09:37:10.033109+00:00",
+      "exit": 0,
+      "label": "source-custody-preflight",
+      "method": "POST",
+      "mutation": false,
+      "path": "graphql",
+      "request": "source-custody-preflight-request.json",
+      "requestId": "5ACA:89C8B:1753D6:28609C:6AF43745",
+      "response": "source-custody-preflight-response.txt",
+      "responseSha256": "71a92d51d5481f8dc7e50a0b3a8b803ff5e09a3bd3e2e234cac6a2a94b5af56d",
+      "startedAt": "2026-11-11T09:37:08.483926+00:00",
+      "state": "ACKNOWLEDGED"
+    },
+    {
+      "completedAt": "2026-11-11T09:37:11.821091+00:00",
+      "exit": 0,
+      "label": "source-blob-000",
+      "method": "POST",
+      "mutation": true,
+      "path": "repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs",
+      "request": "source-blob-000-request.json",
+      "requestId": "9714:3E90BC:18A0EC:29B047:6AF43746",
+      "response": "source-blob-000-response.txt",
+      "responseSha256": "24faf296c44c78d42bbc7274f5614950a57b57b73c6b7fe0f156f95ca18189f7",
+      "startedAt": "2026-11-11T09:37:10.177849+00:00",
+      "state": "ACKNOWLEDGED"
+    },
+    {
+      "completedAt": "2026-11-11T09:37:15.166018+00:00",
+      "exit": 0,
+      "label": "source-tree",
+      "method": "POST",
+      "mutation": true,
+      "path": "repos/mastermindx-market-intelligence/mastermind-terminal/git/trees",
+      "request": "source-tree-request.json",
+      "requestId": "971E:22621E:17B025:28B8C8:6AF43748",
+      "response": "source-tree-response.txt",
+      "responseSha256": "bfdf76dc5ed883611b9627985cfc68f89a55351bd0dea34e93ef8db9bfeb02af",
+      "startedAt": "2026-11-11T09:37:11.848361+00:00",
+      "state": "ACKNOWLEDGED"
+    },
+    {
+      "completedAt": "2026-11-11T09:37:16.107200+00:00",
+      "exit": 0,
+      "label": "source-commit",
+      "method": "POST",
+      "mutation": true,
+      "path": "repos/mastermindx-market-intelligence/mastermind-terminal/git/commits",
+      "request": "source-commit-request.json",
+      "requestId": "9730:335CF6:184E10:2958EC:6AF4374B",
+      "response": "source-commit-response.txt",
+      "responseSha256": "78b3c4329eedfb3b2cf401eba0b6870382542423e04083bd94e771a11849c400",
+      "startedAt": "2026-11-11T09:37:15.206749+00:00",
+      "state": "ACKNOWLEDGED"
+    },
+    {
+      "completedAt": "2026-11-11T09:37:16.650616+00:00",
+      "exit": 0,
+      "label": "source-commit-readback",
+      "method": "GET",
+      "mutation": false,
+      "path": "repos/mastermindx-market-intelligence/mastermind-terminal/git/commits/01550eaca9e1e1f8d816e6fef785b38998710b43",
+      "request": "source-commit-readback-request.json",
+      "requestId": "9736:3B4AA7:17CFFE:28D1D8:6AF4374C",
+      "response": "source-commit-readback-response.txt",
+      "responseSha256": "dc1f1b3a3924d3931d5a8ef5fbf83d51230b9a6d29f92306efcfc3d62b5179d6",
+      "startedAt": "2026-11-11T09:37:16.136992+00:00",
+      "state": "ACKNOWLEDGED"
+    }
+  ],
+  "schema": "terminal.pr718.same-carrier-news-continuation.v1",
+  "sourceAcknowledgedAt": "2026-11-11T09:37:16.662025+00:00",
+  "sourceCommit": "01550eaca9e1e1f8d816e6fef785b38998710b43",
+  "sourceCommitPayload": {
+    "author": {
+      "date": "2026-11-11T09:36:22Z",
+      "email": "ryan@mastermind-x.com",
+      "name": "mastermindxryan"
+    },
+    "committer": {
+      "date": "2026-11-11T09:36:22Z",
+      "email": "ryan@mastermind-x.com",
+      "name": "mastermindxryan"
+    },
+    "message": "merge: compose protected Terminal and qualified refinement for Compare evidence",
+    "parents": [
+      "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+      "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+      "59f101192d6b48d72b850f98c2428f27a04652bf"
+    ],
+    "tree": "e2cf25126668a68cdf585be25092e52a589eb849"
+  },
+  "sourceCompositionParents": [
+    "26862a671763d6eea4a1ea3b93f3bfc79114b6e1",
+    "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "59f101192d6b48d72b850f98c2428f27a04652bf"
+  ],
+  "sourceTree": "e2cf25126668a68cdf585be25092e52a589eb849",
+  "sourceTreeElements": [
+    {
+      "mode": "100644",
+      "path": "docs/TERMINAL_COMPARE_SETTINGS_DEFECTS_2026-09-22.md",
+      "sha": "7c752385e2ffe6f9d01c1cff36820e72c620aecf",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/.gitignore",
+      "sha": "09b3615d9b7ba773461b84492d78488bbeeffab5",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/INVENTORY.before-segmentation.json",
+      "sha": "f9c79a3f3cbf34a7049ac5360ede8c41d30025a8",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/INVENTORY.json",
+      "sha": "b964476b1cc375c5496a4670ea3a7188c70565c0",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/README.md",
+      "sha": "524f6e91b158f30f3963337826a660f718f743f0",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/affected-eslint.log",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/.last-run.json",
+      "sha": "cbcc1fbac11a74b608b2b3edc3a2ffd6ab639cb2",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/attachments/comparison-settings-4f342ca3cc38fe478ecc2e3957ed31f0e843d7a0.png",
+      "sha": "43f722a94b6d05c9bb7b6514dd91f9f4a0b21745",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha": "43f722a94b6d05c9bb7b6514dd91f9f4a0b21745",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/attachments/comparison-settings-8579822188e74b7738da8160669b3675f37ee2a8.png",
+      "sha": "3ccb1c0ab63e7db1067e765d72c8b90bdb8104bb",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/comparison-settings.png",
+      "sha": "3ccb1c0ab63e7db1067e765d72c8b90bdb8104bb",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/compare-entry-df214961b2c0ea11e86351d1283e94c046fd84e4.png",
+      "sha": "2575c611ebb7b2376f7c451b2314a9e08f81750b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/comparison-settings-99c67dabfbf17582b94e76f3303acf1ec131d912.png",
+      "sha": "7c28b121642420f8b022dbb7b18ecdf07a86f9c1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/compare-entry.png",
+      "sha": "2575c611ebb7b2376f7c451b2314a9e08f81750b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/comparison-settings.png",
+      "sha": "7c28b121642420f8b022dbb7b18ecdf07a86f9c1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/attachments/comparison-settings-e2a8fdb7c1fc9c02959434c56c7cdf81ebf19cae.png",
+      "sha": "ed18c6191b55d0b57afec7a2a2f8f3f4cbebb7fb",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha": "ed18c6191b55d0b57afec7a2a2f8f3f4cbebb7fb",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/attachments/comparison-settings-599f4cdc956edaf8b3692b30f9b7fb05a7b465d9.png",
+      "sha": "4ca5a00f4450108ed0ff5f3dcdd8f54e1dba3a1e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/comparison-settings.png",
+      "sha": "4ca5a00f4450108ed0ff5f3dcdd8f54e1dba3a1e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/attachments/compare-entry-deb1962479927199db6217a08f27ee064e8f0cdd.png",
+      "sha": "55272501b1783f5844ca82926d5c586f0f947ef0",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/attachments/comparison-settings-e9ce6d691d15e44bea86fb4d54921f26c99a4431.png",
+      "sha": "c88e9339d12f80b2c31c8dbb5c5339a97ce1325f",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/compare-entry.png",
+      "sha": "55272501b1783f5844ca82926d5c586f0f947ef0",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/comparison-settings.png",
+      "sha": "c88e9339d12f80b2c31c8dbb5c5339a97ce1325f",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/execution.json",
+      "sha": "f0836c1384e79cab69a9508dc5fb0c24aad0cd38",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/execution.log",
+      "sha": "e04f67e1d1f734aa41ba04a7f58bc2191a2e496b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/historical-after.json",
+      "sha": "ba9fa7effcb65e0adfb0e9159799332591925e4e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/historical-before.json",
+      "sha": "ba9fa7effcb65e0adfb0e9159799332591925e4e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/next-env.generated.d.ts.txt",
+      "sha": "a419cbe4e3a5e8d4b481b851dbf4ac767de069e6",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/report.json",
+      "sha": "f6242e9bde282cd8ce326f80c353c9563a36ae18",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/source-after.json",
+      "sha": "780e530503fdcfbe5127b2c09abf664cc3fc5d72",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-focus-owner/source-before.json",
+      "sha": "780e530503fdcfbe5127b2c09abf664cc3fc5d72",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/.last-run.json",
+      "sha": "25664aa3600bd3beb3c5873e0a09ba108aca45ce",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/attachments/comparison-settings-2726b4a4b73fc870319bbfc9af0b4965bfcf0cbf.png",
+      "sha": "30f066b9934b0f4d4eb2d908c03242d1560f17a2",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha": "30f066b9934b0f4d4eb2d908c03242d1560f17a2",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/compare-entry-548593195f5700105424c3cbff48e5e490e58d79.png",
+      "sha": "fd64c0fb0593a8b319b2068be7abbcbe889d0967",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/comparison-settings-8cebca0e878f2f89450388d7ba40b6152874c3bf.png",
+      "sha": "9e17ecc6a9914aaca01371d8562f885d278f70c1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/compare-entry.png",
+      "sha": "fd64c0fb0593a8b319b2068be7abbcbe889d0967",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/comparison-settings.png",
+      "sha": "9e17ecc6a9914aaca01371d8562f885d278f70c1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/error-context.md",
+      "sha": "16aad05413923ce43228aff7898831ecd60f83d8",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/test-failed-1.png",
+      "sha": "bb619d0d556618ef1a8ae9b3df972848642c5a54",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/trace.zip",
+      "sha": "754c0eede43b21c4520253558e66b7a02d01b93c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/attachments/comparison-settings-23965fca44e4e3c3a2a2373a777faa7d65e27c2c.png",
+      "sha": "47749851f232b47f19c310d3cde07b9e6468f754",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha": "47749851f232b47f19c310d3cde07b9e6468f754",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/execution.json",
+      "sha": "e2ff4180fe9a62a8c9f85a783f7eb89238b54374",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/execution.log",
+      "sha": "3adbacfb94f3378bb490eb86479e00086addd823",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/historical-after.json",
+      "sha": "ba9fa7effcb65e0adfb0e9159799332591925e4e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/historical-before.json",
+      "sha": "ba9fa7effcb65e0adfb0e9159799332591925e4e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/next-env.generated.d.ts.txt",
+      "sha": "a419cbe4e3a5e8d4b481b851dbf4ac767de069e6",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/report.json",
+      "sha": "fda4ecb149b44f46b25b6c52c752816844db89d2",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/source-after.json",
+      "sha": "7b250079dd988621b839f1da1dac7a2fbc8fd72e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/source-before.json",
+      "sha": "7b250079dd988621b839f1da1dac7a2fbc8fd72e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/.last-run.json",
+      "sha": "8ed29b05cff476d0ab8b6d5c59046c117bf22b0e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/attachments/comparison-settings-7d179086549195e99d0cb7132ba5b920be9f0a8d.png",
+      "sha": "ed9356587bede8239019503f05f62490debbfdb7",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha": "ed9356587bede8239019503f05f62490debbfdb7",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/error-context.md",
+      "sha": "a12542ee08cf289b72056a94d0ece786faae9bf8",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/test-failed-1.png",
+      "sha": "486f8f5998ae253cfe3c978f293b99bc02204325",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-000.bin",
+      "sha": "ca1ca3668f12e47278ae222a7e9b4dfa2ac4fcd4",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-001.bin",
+      "sha": "cef6064fde6a7a85c08d30574fb0d0d701aea6a3",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-002.bin",
+      "sha": "607ae5cc5368207b5eb65d7c89319cbfce352171",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-003.bin",
+      "sha": "d0438e4647f4f8ef401a81aacc7466b4d709e045",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-004.bin",
+      "sha": "e435fa5ea8ef7fd994292e0eae72cb6538d3cbfb",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-005.bin",
+      "sha": "e09342762982382531894c4839cd1b3aa654eea9",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-006.bin",
+      "sha": "2e0895e3d1c11669690d27e33376f2e818aaeffd",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-007.bin",
+      "sha": "c997c166d9b3e484c642f9d64552d82755af3b5c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-008.bin",
+      "sha": "5393dc828a0c43c3a12aad01ebb250a38b514492",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-009.bin",
+      "sha": "9cac03e3bd12bc3de0f372ad03869d3d14cedfa6",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-010.bin",
+      "sha": "e61068d0299bb88ed8b261e7bb69c70897481b72",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-011.bin",
+      "sha": "9c4b1989f4432ef585dc7f255d2dc94b19a5de4b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/execution.json",
+      "sha": "4bff058b15646a43d881bb748ea547971fc488c3",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/execution.log",
+      "sha": "cf5dfb1da792a31764e5c7c024827e32f338bb23",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/historical-after.json",
+      "sha": "ba9fa7effcb65e0adfb0e9159799332591925e4e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/historical-before.json",
+      "sha": "ba9fa7effcb65e0adfb0e9159799332591925e4e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/next-env.generated.d.ts.txt",
+      "sha": "a419cbe4e3a5e8d4b481b851dbf4ac767de069e6",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/report.json",
+      "sha": "534ee6b283f7c93c6c858edb598de9fa5295907c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/source-after.json",
+      "sha": "40bc7a5f758f012c977e910e3f8e58e6a458a8c5",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/source-before.json",
+      "sha": "40bc7a5f758f012c977e910e3f8e58e6a458a8c5",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-list.log",
+      "sha": "2b6b0de03e6931a7ed3cb3fe0abf746a7bd55a31",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-spec.initial.ts.txt",
+      "sha": "535d5f568b3b8837b82a0c4ffb1e666b23884c24",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/.last-run.json",
+      "sha": "cbcc1fbac11a74b608b2b3edc3a2ffd6ab639cb2",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/attachments/comparison-settings-9ef7c3ab245c946fc22b868c2dcb37e382e4c3c7.png",
+      "sha": "a6d57423fce4057139e3fc3d3c2628eae288ae9c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha": "a6d57423fce4057139e3fc3d3c2628eae288ae9c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/attachments/comparison-settings-79ffff3a448bfc4e9907044df1f61f4ff3ab6b9b.png",
+      "sha": "887f07def6da485404c02bc8282283b7daabf3a7",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/comparison-settings.png",
+      "sha": "887f07def6da485404c02bc8282283b7daabf3a7",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/compare-entry-96b5d10d8ed7eabe37acc8ba46e907d0a2ce15c7.png",
+      "sha": "672c7e138d3e4c566e7878a3c8b68756e12ed91e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/comparison-settings-dc0878de5fb89daad14e3e5024c4f091cc6d6730.png",
+      "sha": "04a67dd39bf38f09c3efb3d20c0e575b3557a3b3",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/compare-entry.png",
+      "sha": "672c7e138d3e4c566e7878a3c8b68756e12ed91e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/comparison-settings.png",
+      "sha": "04a67dd39bf38f09c3efb3d20c0e575b3557a3b3",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/attachments/comparison-settings-dfac9558eb84cc30917e30c5a30e378bbfd7376c.png",
+      "sha": "3a05a55986aa6adb9362bbe26f13da46db7d60b1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha": "3a05a55986aa6adb9362bbe26f13da46db7d60b1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/attachments/comparison-settings-1e50445bcf0873de674f7f2a20ccbd352a8cf793.png",
+      "sha": "78050527c868cad90798caa76974ee5b8d8ad8c6",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/comparison-settings.png",
+      "sha": "78050527c868cad90798caa76974ee5b8d8ad8c6",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/attachments/compare-entry-dfa3c55410f10821553920c4365353dac4107690.png",
+      "sha": "e5dbb230fa9b02af4e0598c514b1bcfb7c22a6ee",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/attachments/comparison-settings-9c3258fefb22592e28a9a0631ccd607aaf6788f7.png",
+      "sha": "64e5a89a22702caa9f7e79e35f5adc43380f3a15",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/compare-entry.png",
+      "sha": "e5dbb230fa9b02af4e0598c514b1bcfb7c22a6ee",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/comparison-settings.png",
+      "sha": "64e5a89a22702caa9f7e79e35f5adc43380f3a15",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/execution.json",
+      "sha": "3debb88d72a4167a0c468829192702376d14c230",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/execution.log",
+      "sha": "00cb10118bdacdd42ecf2b6990c79f05ea52c14c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/historical-after.json",
+      "sha": "ba9fa7effcb65e0adfb0e9159799332591925e4e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/historical-before.json",
+      "sha": "ba9fa7effcb65e0adfb0e9159799332591925e4e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/next-env.generated.d.ts.txt",
+      "sha": "a419cbe4e3a5e8d4b481b851dbf4ac767de069e6",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/report.json",
+      "sha": "be0d17e362600e581d9653a88efa3685b1053170",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/source-after.json",
+      "sha": "780e530503fdcfbe5127b2c09abf664cc3fc5d72",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-webkit-focus-owner/source-before.json",
+      "sha": "780e530503fdcfbe5127b2c09abf664cc3fc5d72",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/chromium/report.json",
+      "sha": "20d3763b541cb2a8abe42218bc3f8ac12fa37c53",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/component-before-focus-repair.tsx.txt",
+      "sha": "25765e30a892fbb9359e3c1d8133e408ab85ce7a",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/composition-initial.json",
+      "sha": "fba8d3e9f22ee0664c3f87d0fae71413735a475e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-checks-driver-before-syntax-fix.py.txt",
+      "sha": "163b5077cc798783926f1742cc19b2aa0d523921",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-eslint.log",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-green-execution.json",
+      "sha": "2c0b8a4c5f5883b1dcd6c08eb6896712e3a9c7c8",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-green-report.json",
+      "sha": "b8113350f37f6c790435509702be6555f6aea95b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-green.log",
+      "sha": "86f3c8fc40593a3ddeecb3ea7b582b44bf9d163a",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-lint-report.json",
+      "sha": "28d48880541741287632de61d7c6741cea7ab1e9",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-red-execution.json",
+      "sha": "53d884893a6df438ba4ef0b0e4cf0892e1ea5257",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-red-report.json",
+      "sha": "4901526da9b8a2bea8b5b9dfa0147cea72090673",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-red.log",
+      "sha": "9be92b8277784a645ea7c8e57a42837752461853",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-typegen.log",
+      "sha": "7bab5fceadb39ca7d44c9f1a13fba79599520d0b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/focus-typescript.log",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/green-execution.json",
+      "sha": "9b1694f4ca0ae1aa19cbce35ee8a052075b8641d",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/green-report.json",
+      "sha": "5d127f76bd474a29114239e40762cad2f8fb0afe",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/green.log",
+      "sha": "7dfa2c988560288cdc9a6804d5a9d7a273345894",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/lint-report.json",
+      "sha": "613575ad69eafc4eba1fc4c5fd6a6eff37582ad0",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/locale-eslint.log",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/locale-lint-report.json",
+      "sha": "935d717fcf449edf2096e0224c6aa41332dc7920",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/locale-typegen.log",
+      "sha": "7bab5fceadb39ca7d44c9f1a13fba79599520d0b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/locale-typescript.log",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/next-env.generated.d.ts.txt",
+      "sha": "ce4e94a6b10f160ee021fe18939af160d2927dcf",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/npm-ci.log",
+      "sha": "070bdaa4b00a8e57fc859fc93d88472cce68752a",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/package-proof.py",
+      "sha": "f4cabd0bde456fa4ac260b7948ca8da31d979374",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/playwright-successor.config.cjs",
+      "sha": "fc2c998e48bc5063e972c21f5b06c6484c540cab",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/protected-control-source.json",
+      "sha": "e2851364e8bb647db95bbc57ce6ac6768d30c37c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/protected-merge.stderr",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/protected-merge.stdout",
+      "sha": "6fe863d279afe2a9db038d004a1bab9ba98383fc",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/publication-preflight-reconciliation.json",
+      "sha": "75b4c03a7ce5828e6c968e8307347c9b61cf8fad",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/reconstruct-trace.py",
+      "sha": "4eae103480d49353d405d8b34c1c0f7a6e81935c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/red-execution.json",
+      "sha": "03d4426296fe04bd70db0aa1fa180fdfa0c400cc",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/red-reconciliation.json",
+      "sha": "873820f3b911b30792f55a12827816f530bd4cd7",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/red-report.json",
+      "sha": "b794c65b8f231eed6ecbc3b7f4795f4a4422b29d",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/red-test-preimage.tsx.txt",
+      "sha": "de57b042c99b91ea3cbff5048a0cd686b97d28d9",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/red.log",
+      "sha": "7f08309420bb8d149631e8f08378e5d9d40abf12",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-browser.initial.py.txt",
+      "sha": "f007d526d094b1ec3289e1d79e0ff375a2a5bb38",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-browser.locale-owner.py.txt",
+      "sha": "858cd28b8aa7103f8b3710b8fbdd19cef1d6876f",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-browser.py",
+      "sha": "9f8b49e1a5d86ecd85109f0f6e3c172044c7facb",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-focus-checks.py",
+      "sha": "af095926bed73c78a9c8d2be526492b10a05b60f",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-focus-regression.py",
+      "sha": "92010356b6103a689fc2f4f8a6f43b465116536c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-focused.py",
+      "sha": "c18a2ce79dee074bdd00363508a0f7e04787ea9b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-locale-checks.py",
+      "sha": "2eaa3ea5618d30f0ee5537d0ef6b57babae14ed4",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-runtime.py",
+      "sha": "6b747b80ed8764451651e9a05690fb7174f48256",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/run-source-checks.py",
+      "sha": "ab4fb6c33397e10fe380ebbad6614e88b7948620",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/runtime.json",
+      "sha": "6cbf114ac80860824ff6fbc3dc47c20be126113b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/segmented-trace-manifest.json",
+      "sha": "44854783aa15426cba8f6ba56c85ec6748017a87",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-after-focus-green.json",
+      "sha": "eb689a98645020d1d5aa29f48ad6a07669b70d12",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-after-focus-red.json",
+      "sha": "08b01bf776656c5f1a6a7dd138a93f78213276e8",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-after-green.json",
+      "sha": "ee36908f5b52415396ceb9a3f22a24582535dbc1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-after-red.json",
+      "sha": "a8bf8e59ed0a866b2c17c56ea5dbba0b212b5fde",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-before-focus-green.json",
+      "sha": "eb689a98645020d1d5aa29f48ad6a07669b70d12",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-before-focus-red.json",
+      "sha": "08b01bf776656c5f1a6a7dd138a93f78213276e8",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-before-green.json",
+      "sha": "ee36908f5b52415396ceb9a3f22a24582535dbc1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-before-red.json",
+      "sha": "a8bf8e59ed0a866b2c17c56ea5dbba0b212b5fde",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-checks-focus-owner.json",
+      "sha": "a057a1f9aceb529b1a897b9233c01b654b3d2e4f",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-checks-locale-owner.json",
+      "sha": "f1854f836b5592d17a8df6db4ec4a0c478090e2f",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-checks.json",
+      "sha": "d6c08ce0a7d048a4542b64edddb733343dd4e651",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/source-review.json",
+      "sha": "d5659fecd738bc35ba045c2d10a5e2b34ec8b8e8",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/typegen.log",
+      "sha": "7bab5fceadb39ca7d44c9f1a13fba79599520d0b",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/typescript.log",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/unit-before-focus-repair.tsx.txt",
+      "sha": "3579dad053755c0013a6577f364a31f1804b6819",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "docs/verification/pr718-compare-successor-20261110/visual-review.json",
+      "sha": "a89a1c95683fd3341d8dee2e6f30b17b197aaf04",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/components/CompareSettings.module.css",
+      "sha": "14ef4a7053e7e713168ebcbaf1a120a211b06455",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/components/CompareSettings.tsx",
+      "sha": "fbd344a23919766607901051c6abfbfefd4997fe",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/components/TerminalShell.tsx",
+      "sha": "325232fb9304cea7636a98786d0b049ddef784c1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/components/screener/CrossMarketStrip.module.css",
+      "sha": "86555e1b58b1af6679b4f1e9229f2d1e6214aac4",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/EVIDENCE.json",
+      "sha": "a8e3754bcef296710c67f7b0b37d875c4e8f1538",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-before.png",
+      "sha": "9a12620a349c58fd45afadf50782359834783b59",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-en.png",
+      "sha": "30b1776e19fac85be5139064cb1ef19c9e7de085",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-zh.png",
+      "sha": "1f099686743531c5ac3d0790f29fbc9e66797c8c",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/mobile-en.png",
+      "sha": "fd44cdf4b4428a4b2c3aa3b02e15d5aeca11afcd",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/mobile-zh.png",
+      "sha": "4c37067e841a24782b58e2b1cbe0fec9f64e3e95",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-en-entry.png",
+      "sha": "c8975230ed42c3cfe32a1c2503c55fb7e05e9171",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-en.png",
+      "sha": "8b07d9f7dc90f6e29732383a98d2c02c1f2b68a1",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-zh-entry.png",
+      "sha": "9e06f9d7585b4a407a2f66c4ff07fcb6e81b3b52",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-zh.png",
+      "sha": "82098333a9d25ecee1f901b0d6987c3f760eb8c2",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/e2e/compare-settings-ux.spec.ts",
+      "sha": "f149d6ec5c687d1267fb123d9f749733885ab15e",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/e2e/screener-cross-market.spec.ts",
+      "sha": "63bee8256a49cb0468d81c12074510b906c93cb7",
+      "type": "blob"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/lib/__tests__/compareSettingsUx.test.tsx",
+      "sha": "d938053fa6331b812593317ee0f79433d4f2971e",
+      "type": "blob"
+    }
+  ],
+  "state": "IMMUTABLE_SOURCE_READY_FOR_CAPTURE_REF_UNCHANGED",
+  "treeBaseCommit": "59f101192d6b48d72b850f98c2428f27a04652bf",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor"
+}
