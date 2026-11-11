@@ -101,7 +101,6 @@ async function installInputs(page, deliveries, reads, writes, invalidReads) {
 async function assertState(page, shot) {
   const inbox = page.locator('[data-briefs-module="inbox"]'), copy = COPY[shot.lang];
   await expect(inbox).toBeVisible();
-  await inbox.scrollIntoViewIfNeeded();
   await expect(inbox).toHaveAttribute("aria-busy", "false");
   await expect(inbox.getByText(copy.title, { exact: true })).toBeVisible();
   await expect(inbox.getByTestId("briefs-email-null")).toHaveText(copy.email);
@@ -164,6 +163,9 @@ async function captureCase(browser, shot, stage) {
     const inbox = await assertState(page, shot);
     await page.evaluate(async () => { await document.fonts.ready; });
     await page.mouse.move(0, 0);
+    // Settled rows and fonts can grow the mobile module after its first render.
+    // Finish screenshot scrolling before recording viewport-relative geometry.
+    await inbox.scrollIntoViewIfNeeded();
     const before = { crop: await inbox.boundingBox(), text: await inbox.innerText() };
     assert.ok(before.crop);
     const bytes = await inbox.screenshot({ path: join(stage, shot.file), animations: "disabled" });

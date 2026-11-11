@@ -1,0 +1,6 @@
+$ node --check e2e/tools/capture_b_f11_7_recurring_briefs.cjs
+
+exit=0
+$ ./node_modules/.bin/eslint e2e/tools/capture_b_f11_7_recurring_briefs.cjs
+
+exit=0
