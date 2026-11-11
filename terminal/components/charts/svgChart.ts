@@ -47,13 +47,17 @@ import type { RefObject } from "react";
  * empty/loading branch — otherwise the observer never gets an element to watch
  * and the chart stays pinned at `fallback` forever.
  *
+ * For a conditionally mounted surface, pass its open state as active so the
+ * observer binds after the ref appears and disconnects when it closes.
+ *
  * Returns at least 240 so a collapsed/hidden container can never produce a
  * degenerate (or negative) plot band.
  */
-export function useChartWidth(ref: RefObject<HTMLElement | null>, fallback = 600): number {
+export function useChartWidth(ref: RefObject<HTMLElement | null>, fallback = 600, active = true): number {
   const [w, setW] = useState<number>(fallback);
 
   useEffect(() => {
+    if (!active) return;
     const el = ref.current;
     if (!el) return;
     const read = () => {
@@ -65,7 +69,7 @@ export function useChartWidth(ref: RefObject<HTMLElement | null>, fallback = 600
     const ro = new ResizeObserver(read);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [ref]);
+  }, [ref, active]);
 
   return Math.max(240, w);
 }
@@ -99,8 +103,26 @@ export function niceTicks(lo: number, hi: number, target = 4): { values: number[
  * can never render identical.
  */
 export function fmtTick(v: number, step: number): string {
-  const d = step >= 1 ? 0 : step >= 0.1 ? 1 : 2;
-  return v.toFixed(d);
+  if (!Number.isFinite(v)) return String(v);
+  const gap = Math.abs(step);
+  if (!Number.isFinite(gap) || gap === 0) return String(v);
+
+  // Fit the actual step, including fractional strike grids. A small tolerance
+  // absorbs subtraction noise, but must never admit a display quantum larger
+  // than the gap: otherwise offset ticks can still round to the same label.
+  for (let digits = 0; digits <= 100; digits++) {
+    const quantum = Number(`1e-${digits}`);
+    const scaled = gap / quantum;
+    if (!Number.isFinite(scaled)) break;
+    const integer = Math.round(scaled);
+    if (integer > 0 && quantum <= gap && Math.abs(scaled - integer) <= 1e-9) {
+      const label = v.toFixed(digits);
+      return Number(label) === 0 && label.startsWith("-") ? label.slice(1) : label;
+    }
+  }
+  // toFixed supports at most 100 decimals. The shortest representation keeps
+  // finite subnormal values distinct instead of rendering them all as zero.
+  return String(v);
 }
 
 /**

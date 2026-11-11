@@ -1,0 +1,45 @@
+{
+  "at": "2026-11-11T23:46:08.223921+00:00",
+  "images": [
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/cycles-precision-tiny-fullscreen-zh-tablet.png",
+      "sha256": "9a1d5ea0e3ff08a581ab97838b022b94740c50b91970a50987be8549043a8543",
+      "inspection": "labels legible, corrected fullscreen buttons fit; actual final image viewed"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/cycles-precision-fractional-inline-zh-mobile.png",
+      "sha256": "2eaf4aa2f2349291250f89a347709f499a1c8c6122b1facd6f108d468f564259",
+      "inspection": "labels legible, corrected fullscreen buttons fit; actual final image viewed"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/cycles-precision-tiny-fullscreen-en-desktop.png",
+      "sha256": "c048c09cada69ab4143bd869bff2c11347a776720fffcee261f912a21bbff777",
+      "inspection": "labels legible, corrected fullscreen buttons fit; actual final image viewed"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/cycles-precision-tiny-fullscreen-zh-mobile.png",
+      "sha256": "8c06e0f1ecc9ecdfb7fdfa03ffc910c20e15927452f6fdf046f322fbf8127ce5",
+      "inspection": "labels legible, corrected fullscreen buttons fit; actual final image viewed"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/cycles-precision-tiny-fullscreen-en-tablet.png",
+      "sha256": "666515a3dd5e7df4e926c374540408ca38a819c99e012440a5f12f25760e0375",
+      "inspection": "labels legible, corrected fullscreen buttons fit; actual final image viewed"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/cycles-precision-fractional-inline-en-desktop.png",
+      "sha256": "a0ac0d118e71515aa26fddee057c60c85a835f5dc43800ca1d35e2f56b0b0655",
+      "inspection": "labels legible, corrected fullscreen buttons fit; actual final image viewed"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/cycles-precision-tiny-fullscreen-en-mobile.png",
+      "sha256": "0d9ce0f7579e41c5ad356a6cfe632b87b47b70e85c5a7c019fb5c0b1bf5c50c2",
+      "inspection": "labels legible, corrected fullscreen buttons fit; actual final image viewed"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/cycles-precision-tiny-fullscreen-zh-desktop.png",
+      "sha256": "d978cc487cf983520318d8fb1042990b11819aefb0bf9af152bb64b82004ea92",
+      "inspection": "labels legible, corrected fullscreen buttons fit; actual final image viewed"
+    }
+  ]
+}
