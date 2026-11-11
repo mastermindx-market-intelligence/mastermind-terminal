@@ -118,6 +118,58 @@ def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
     # step's command and both capture-skip conditions are pinned above.
 
 
+def test_pr_touched_path_census_stays_in_a_file(tmp_path: Path) -> None:
+    """Execute the actual recording step with a census larger than the
+    439,184-byte value that prevented GitHub's runner from spawning bash."""
+    record = next(
+        step for step in jobs()["terminal-unit"]["steps"]
+        if step.get("name") == "Record PR-touched paths for the evidence drift gate"
+    )
+    census = "".join(
+        f"docs/verification/{'long-proof-path-' * 12}{i}/trace.zip\n"
+        for i in range(3000)
+    ) + "terminal/components/last-drifted-source.tsx\n"
+    assert len(census.encode()) > 439_184
+    source = tmp_path / "complete-census.txt"
+    source.write_text(census, encoding="utf-8")
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    git = binary / "git"
+    git.write_text(
+        "#!/bin/sh\n"
+        'case "$1" in\n'
+        "  rev-parse) printf '%s\\n' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ;;\n"
+        '  diff) cat "$TEST_CENSUS_INPUT" ;;\n'
+        "  *) exit 97 ;;\n"
+        "esac\n",
+        encoding="utf-8",
+    )
+    git.chmod(0o755)
+    runner_temp = tmp_path / "runner"
+    runner_temp.mkdir()
+    github_env = tmp_path / "github-env"
+    result = subprocess.run(
+        ["/bin/bash", "-c", record["run"]],
+        env={
+            **os.environ,
+            "PATH": str(binary) + os.pathsep + os.environ.get("PATH", ""),
+            "RUNNER_TEMP": str(runner_temp),
+            "GITHUB_ENV": str(github_env),
+            "TEST_CENSUS_INPUT": str(source),
+        },
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    touched_file = runner_temp / "evidence-pr-touched.txt"
+    assert touched_file.read_text(encoding="utf-8") == census
+    assert github_env.read_text(encoding="utf-8") == (
+        f"EVIDENCE_PR_TOUCHED_FILE={touched_file}\n"
+    )
+    assert github_env.stat().st_size < 1024
+
+
 def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None:
     aggregate = jobs()["terminal"]
     assert aggregate["name"] == "Terminal typecheck + tests"
