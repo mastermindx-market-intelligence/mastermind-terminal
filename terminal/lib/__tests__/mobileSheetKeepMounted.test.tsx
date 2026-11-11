@@ -10,6 +10,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MobileSheet from "@/components/ui/MobileSheet";
+import { dispatchTimedPointerDrag } from "../../e2e/helpers/timedPointerDrag";
 
 let rootEl: HTMLDivElement, host: Root;
 let mountCount = 0;
@@ -234,6 +235,39 @@ describe("mobileSheetKeepMounted (k5) detent state survives parking and resets o
     await render({ open: true, keepMounted: false, onClose, detents: [60, 94] });
     await flushFrames();
     expect(document.querySelector('[data-detent]')!.getAttribute("data-detent")).toBe("initial");
+  });
+});
+
+describe("mobile sheet timed flick fixture", () => {
+  it("distinguishes a slow short drag from the defined flick through the real handlers", async () => {
+    const onClose = vi.fn();
+    await render({ open: true, onClose, detents: [62, 96] });
+    const sheet = document.querySelector<HTMLElement>("[data-detent]")!;
+    const handle = sheet.querySelector<HTMLElement>('[data-handle="1"]')!;
+    vi.spyOn(sheet, "getBoundingClientRect").mockImplementation(() => ({
+      height: window.innerHeight * (sheet.dataset.detent === "full" ? 0.96 : 0.62),
+    } as DOMRect));
+    await act(async () => dispatchTimedPointerDrag(handle, {
+      from: { x: 195, y: 600 }, dy: -240, durationMs: 600,
+    }));
+    expect(sheet.dataset.detent).toBe("full");
+
+    // Same 70px path as the browser case: a slow release correctly stays full.
+    await act(async () => dispatchTimedPointerDrag(sheet, {
+      from: { x: 195, y: 120 }, dy: 70, durationMs: 300,
+    }));
+    expect(sheet.dataset.detent).toBe("full");
+    expect(onClose).not.toHaveBeenCalled();
+
+    await act(async () => dispatchTimedPointerDrag(sheet, {
+      from: { x: 195, y: 120 }, dy: 70, durationMs: 80,
+    }));
+    expect(sheet.dataset.detent).toBe("initial");
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => dispatchTimedPointerDrag(handle, {
+      from: { x: 195, y: 300 }, dy: 70, durationMs: 80,
+    }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
 

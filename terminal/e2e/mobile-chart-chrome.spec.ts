@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { DRAWING_TOOL_REGISTRY } from "../lib/drawingTools";
 import { settled } from "./settle";
 import { readNativeChartGeometry } from "./helpers/nativeChartGeometry";
+import { dispatchTimedPointerDrag } from "./helpers/timedPointerDrag";
 
 // Phone chart chrome (R2.1–R2.4): the bottom roller strip, the TV-anatomy Drawings sheet and the
 // Analysis hub replace the phone's top toolbar row and its floating drawing dock. Everything here
@@ -28,8 +29,8 @@ async function openTerminal(page: Page) {
   ).toBe(true);
 }
 
-/** Pointer drags through dispatchEvent: deterministic in headless Chromium, and it is the same
- *  primary-pointer shape the components' capture handlers expect. */
+/** Position-based drags use the primary-pointer shape expected by capture handlers.
+ *  Velocity-sensitive cases use dispatchTimedPointerDrag with an explicit duration. */
 async function pointerDrag(page: Page, target: string, from: { x: number; y: number }, dy: number, dx = 0) {
   const base = { pointerId: 11, pointerType: "touch", isPrimary: true, button: 0, buttons: 1 };
   const locator = page.locator(target);
@@ -474,8 +475,9 @@ test("phone: tapping the symbol wheel opens the ticker picker as a drawer", asyn
   await expect(drawer).toHaveAttribute("data-detent", "full");
   expect(await ratio()).toBeGreaterThan(0.9);
 
-  // A short, quick flick down steps one detent back rather than needing a full-height drag.
-  await pointerDrag(page, ".msheet.msheet-search", { x: 195, y: 120 }, 70);
+  // A 70px / 80ms flick steps one detent back. Explicit event times keep a slow
+  // runner's inter-command latency from turning this into a different, slow drag.
+  await drawer.evaluate(dispatchTimedPointerDrag, { from: { x: 195, y: 120 }, dy: 70, durationMs: 80 });
   await expect(drawer).toHaveAttribute("data-detent", "initial");
   // The snap animates, and a drag reads the height it starts from — let it land first.
   await expect.poll(ratio).toBeCloseTo(0.62, 1);
@@ -483,7 +485,9 @@ test("phone: tapping the symbol wheel opens the ticker picker as a drawer", asyn
   // …and the same short flick from the resting detent dismisses it.
   const GRABBER = ".msheet.msheet-search .msheet-handle-wrap";
   const grabber = (await page.locator(GRABBER).boundingBox())!;
-  await pointerDrag(page, GRABBER, { x: grabber.x + grabber.width / 2, y: grabber.y + 2 }, 70);
+  await page.locator(GRABBER).evaluate(dispatchTimedPointerDrag, {
+    from: { x: grabber.x + grabber.width / 2, y: grabber.y + 2 }, dy: 70, durationMs: 80,
+  });
   await expect(drawer).toHaveCount(0);
 
   // Picking a symbol from the drawer charts it and closes — the tap still lands even though the
