@@ -1,0 +1,157 @@
+{
+  "artifact_id": 13836430747,
+  "artifact_name": "unit-evidence-42974801855-1",
+  "run_id": 42974801855,
+  "attempt": 1,
+  "job_id": 130371910733,
+  "artifact_sha256": "b29f730c9266951d3f79730c37771b7d883608cd89e406e2be2a7b63b257b823",
+  "source_head": "1b9273093e868b49007965177a4810f4a0151728",
+  "actual_checkout": {
+    "commit": "e71dcd53e21ae632bed69b2cd40eff630adc1894",
+    "tree": "67a54c99256c8d4e80d0bdd4ffc438eb82c36bbf"
+  },
+  "source_hashes": {
+    "terminal/components/alerts/AlertBulkManager.tsx": "7ebdb5f4f4918e3b13afe465293288d8a1ce84b58dd6fd29bac6b9b7f58bef27",
+    "terminal/components/alerts/alertBulk.module.css": "204bd08ac5e221aaf5a5a5bb04f4eae7f017d7eafedd90254a1fbfa9608c5ba8",
+    "terminal/lib/alertBulk.ts": "34a6b791f500b217184d7b23ccb9b71cbbc83dd6bc55824d73937008d0f5633c",
+    "terminal/lib/alertBulkLex.ts": "35f1b91b9b331cbce4231ed7d106b8ad0b1524e46fbd0c2b22a872dc336c03dd",
+    "terminal/e2e/tools/capture_e18_alert_management.cjs": "a97f08742f1c664e673b1870f800e4559e1f5a853a1b2186b08042d6bc743e88",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
+  },
+  "package_lock_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "images": [
+    {
+      "file": "results-desktop-en.png",
+      "sha256": "e57049c613e64aef518fba0d03386909844753cd702faebd1c122dca7de46cee",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "results-desktop-zh.png",
+      "sha256": "137a9548895d9dbcc667ec31dbc267bfcd16897e74f4d3bedbf3850a2354659f",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "results-mobile-en.png",
+      "sha256": "dee1b218717abd727e87a4ad1e98b8c7f71b54b8320e59e4e0b27ed0fc91e848",
+      "dimensions": [
+        390,
+        844
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "results-mobile-zh.png",
+      "sha256": "1effe8a19e6e83603e25d72a340d0062461cb15e0d5a57fafa56178c6f96d4c3",
+      "dimensions": [
+        390,
+        844
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "results-tablet-en.png",
+      "sha256": "913767550df312d5e466bcca63bf7a6c1f3cefc27edf1f990a5c298585f1a5c8",
+      "dimensions": [
+        820,
+        1180
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "results-tablet-zh.png",
+      "sha256": "187fcef53cd668088a1a0805edbc7736b2998991739722eed2df814b32811b3a",
+      "dimensions": [
+        820,
+        1180
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "review-desktop-en.png",
+      "sha256": "e5b4186771b3c43914417a2d8456fff4212bd375308bfa9eb2f2c623c62fd7a6",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "review-desktop-zh.png",
+      "sha256": "7f218e3deae0d4834459b3a4e53a18d0bdde948a3385dcfff44ee66056585a54",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "review-mobile-en.png",
+      "sha256": "4a4d54c835fdf7fc01f7dfc538a174345e59edfc4f83505a452d63bc3121bfea",
+      "dimensions": [
+        390,
+        844
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "review-mobile-zh.png",
+      "sha256": "0310614f0cc86d8900c943a1841d0cdded1898b68e43f7621fef48866090e166",
+      "dimensions": [
+        390,
+        844
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "review-tablet-en.png",
+      "sha256": "ad66eff467566fabde048f8262a99a9e382c41900a1e14a242905a0d5aea5e52",
+      "dimensions": [
+        820,
+        1180
+      ],
+      "same_as_prior_packet": false
+    },
+    {
+      "file": "review-tablet-zh.png",
+      "sha256": "dabe48782440119b87a65123d0297a39e7aeeda617eb3f8f3b26019937f0efb1",
+      "dimensions": [
+        820,
+        1180
+      ],
+      "same_as_prior_packet": false
+    }
+  ],
+  "stage_matches_promoted_packet": true,
+  "e18_step": "success",
+  "unit_tests": {
+    "passed": 23028,
+    "skipped": 50,
+    "todo": 3
+  },
+  "actual_parent_reconciliation": "Canonical actual checkout parents are ffcc39bcdf89cb19b08444b8bb64cadbc1a3a5ec and the source head. The event base projection is f689. Their eight-path delta is exclusively upstream host-slot files/runbook/tests, outside every E18 input.",
+  "remaining": "New import-head CI and unchanged admission/release holds; no deployment or production acceptance.",
+  "focused_import_tests": {
+    "passed": 69,
+    "files": 3,
+    "command": "vitest run lib/__tests__/alertBulk.test.ts lib/__tests__/e18AlertManagementEvidence.test.ts lib/__tests__/alertBulkReviewValidation.test.tsx"
+  },
+  "visual_review": {
+    "reviewer": "author self-check",
+    "images": [
+      "review-desktop-en.png",
+      "review-mobile-zh.png",
+      "results-tablet-en.png",
+      "results-mobile-zh.png"
+    ],
+    "finding": "Review counts, per-alert outcomes, unknown-state wording, localized labels and action controls are readable at the selected desktop, tablet and mobile sizes. All 12 PNGs were fully decoded and checked against their actual viewport dimensions."
+  }
+}

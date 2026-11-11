@@ -1,0 +1,21 @@
+{
+  "operationIds": {
+    "pl6": "ci-42974801855-1-pl6",
+    "vi": "ci-42974801855-1-vi",
+    "composition": "ci-42974801855-1-current",
+    "prefix": "ci-42974801855-1"
+  },
+  "actualCheckout": {
+    "commit": "e71dcd53e21ae632bed69b2cd40eff630adc1894",
+    "tree": "67a54c99256c8d4e80d0bdd4ffc438eb82c36bbf"
+  },
+  "githubEvent": {
+    "name": "pull_request",
+    "sha": "e71dcd53e21ae632bed69b2cd40eff630adc1894",
+    "ref": "refs/pull/1346/merge",
+    "pullRequestBase": "f68936b190ec25670ddc2d0e817d4998b2253d1c",
+    "pullRequestHead": "1b9273093e868b49007965177a4810f4a0151728",
+    "mergeGroupBase": null,
+    "mergeGroupHead": null
+  }
+}

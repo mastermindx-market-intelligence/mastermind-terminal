@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/pr1346-validation/terminal
+
+ ✓ lib/__tests__/e18AlertManagementEvidence.test.ts (5 tests) 12ms
+ ✓ lib/__tests__/alertBulk.test.ts (26 tests) 15ms
+ ✓ lib/__tests__/alertBulkReviewValidation.test.tsx (38 tests) 793ms
+
+ Test Files  3 passed (3)
+      Tests  69 passed (69)
+   Start at  02:26:40
+   Duration  1.84s (transform 251ms, setup 0ms, collect 323ms, tests 819ms, environment 469ms, prepare 241ms)
+
