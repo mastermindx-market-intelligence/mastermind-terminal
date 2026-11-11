@@ -1,0 +1,7 @@
+{
+  "sent_at": "2026-10-22T02:59:19.305385+00:00",
+  "pid": 85706,
+  "signal": "SIGINT",
+  "reason": "Snapshot proves shell fixture is guest on /portfolio; Settings responsive fixtures use the established signed-in /terminal fixture route. No product mutation required.",
+  "observed_process": "node /Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/node_modules/.bin/playwright test e2e/portfolio-targets.spec.ts --grep target feedback is actionable --workers=1 --retries=0 --project=desktop --project=tablet --project=mobile --reporter=line,json"
+}

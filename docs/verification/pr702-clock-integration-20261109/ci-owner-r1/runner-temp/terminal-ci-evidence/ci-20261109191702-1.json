@@ -1,0 +1,153 @@
+{
+  "operationIds": {
+    "pl6": "ci-20261109191702-1-pl6",
+    "vi": "ci-20261109191702-1-vi",
+    "composition": "ci-20261109191702-1-current",
+    "prefix": "ci-20261109191702-1"
+  },
+  "state": "SELECTED",
+  "children": [
+    {
+      "packet": "pl6",
+      "command": [
+        "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+        "e2e/tools/capture_pl6_batch1.cjs"
+      ],
+      "stdoutPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/docs/verification/pr702-clock-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109191702-1-pl6.stdout.log",
+      "stderrPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/docs/verification/pr702-clock-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109191702-1-pl6.stderr.log",
+      "state": "RETURNED",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "packet": "vi",
+      "command": [
+        "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+        "e2e/tools/capture_visual_evidence.cjs",
+        "--id",
+        "ci-20261109191702-1-vi",
+        "--port",
+        "3537"
+      ],
+      "stdoutPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/docs/verification/pr702-clock-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109191702-1-vi.stdout.log",
+      "stderrPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/docs/verification/pr702-clock-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109191702-1-vi.stderr.log",
+      "state": "RETURNED",
+      "status": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "actualCheckout": {
+    "commit": "c31fe105d4a101531def3518e7b9801e70cc4867",
+    "tree": "017f79beb99c5294f8c7ba37f8903c9a7feef7c9"
+  },
+  "githubEvent": {
+    "name": "local_validation",
+    "sha": null,
+    "ref": null,
+    "pullRequestBase": null,
+    "pullRequestHead": null,
+    "mergeGroupBase": null,
+    "mergeGroupHead": null
+  },
+  "profile": {
+    "fixture": "terminal-e2e.v1",
+    "buildMode": "next-dev",
+    "sharedShell": "0",
+    "investorShellPreview": "0",
+    "theme": "dark"
+  },
+  "batch2": {
+    "required": false,
+    "reasons": [],
+    "manifestPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml",
+    "manifestSha256": "f9b8ef60a6cd360d1398141a53ab664de4afd24f9d03fd3196fdeb3dad7bb0fc",
+    "sourceFiles": {
+      "terminal/components/GuidePanel.tsx": "502cdfde51e973b35c8895682feafaedb062ac1acbd9202186ec80b0fc991146",
+      "terminal/components/levels/LevelsView.tsx": "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9",
+      "terminal/components/levels/LevelsLearn.tsx": "15e58675e29e147ecc39f7b9c3527aba9f67ea81df6978ecffe450ccf1562d92",
+      "terminal/components/ChartConductor.tsx": "492f2580d8a7fc06d601b19ccbab65e75393481bd87e55f422376e50cc01b795",
+      "terminal/lib/plainLabels.ts": "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a",
+      "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+    },
+    "imageHashes": {
+      "ChartConductor-1440-zh.png": "fda7d66325f7c8957a3dd8497c84f738eabd7f1254ec42e569e790ffc2aaabcf",
+      "ChartConductor-1440.png": "fe0b5380d10099c9959706504fba8176754cebfdb8f0a8a58021c26a1c9ddcd3",
+      "ChartConductor-390-zh.png": "2a2ef5203c042645671e5ab0974e97175b8fa1f07328f1414bc5ba211300b5ec",
+      "ChartConductor-390.png": "a848ac853c889ee6fe3d8232cf25aee38347660bd9af19d0c22ae3b4f183870f",
+      "ChartConductor-820-zh.png": "bc5633cf705d6903690352858fab78ee0249800f38972d6cca99d38257f88588",
+      "ChartConductor-820.png": "335c91baf353a005e024c26a0b76f218396d3574bf32502bda8bc5f816887e59",
+      "GuidePanel-1440-zh.png": "7b1ca37ed3d03089e4e9ee70940831d491563daf2b3942e5c500d5404f57d5eb",
+      "GuidePanel-1440.png": "7d138a58591022f50857e301c2a18d230dfad670633fce089fa7436e80f65e99",
+      "GuidePanel-390-zh.png": "f57301a51594b9d2d96578a35c109f70bac65649aba947a483f0d664f59827b9",
+      "GuidePanel-390.png": "5b22742253e686c8b57cd91c5d953a75319a7f7e855db59eac4bb66825e3af3b",
+      "GuidePanel-820-zh.png": "369a0f3e8233d8c141a01529297363dbc55789ff60ee3a69f0ffcbba792aa3f0",
+      "GuidePanel-820.png": "09502573aab30393c635d448ffb7bc07eabcf809aa86c06c5906ebc1e357d741",
+      "LevelsLearn-1440-zh.png": "ff6e9b5fa9b7f9b742746b6b1d48fad592a7608a34022a9fb0357455813ed747",
+      "LevelsLearn-1440.png": "8a428602b4f7fbc38d60327036ff33ba4d14321fdaaa2ca03a905065e412bf12",
+      "LevelsLearn-390-zh.png": "6857811b0e1f83c608f5e457fb171a3369a483d0d47c46b25a0d9d9a258924b6",
+      "LevelsLearn-390.png": "53cd928e1f1ba98628c3eaa4d68a16b3ce51a97e7968e2db5a4a0a89b02ef4ae",
+      "LevelsLearn-820-zh.png": "f8268941bf60046fc925d2975bba672bc1fa8642f00a648ca88e0eafd9326469",
+      "LevelsLearn-820.png": "f82cc59099e59a8e762b5799a2bc19396f22a7d301c2c763458db1a188b27eab",
+      "LevelsView-1440-zh.png": "8f1b89411ba3bbb4ea1da920bb7c210f6fe366d5af5a6a51057654493041f8e9",
+      "LevelsView-1440.png": "6c8cef9274ac45d73f0dd2b238144a7054ef0032e14fe28d183bac74db00622b",
+      "LevelsView-390-zh.png": "40139b94ebc77fed6d3116e842609c26bbf15cc7d750815681a27dc338ea43c7",
+      "LevelsView-390.png": "b185a8ae10d1a8ba216645f75f1d149dc75b5f8672c4cf71179d3fb6bd776a97",
+      "LevelsView-820-zh.png": "a7fd97d2c04f73a0a4759c737b7f227c1d81c0d1fa2c14aa6195da742280e07d",
+      "LevelsView-820.png": "1a6b4de5b2d6ca9f6598bd01060ea612f5abc64ac643574a7d142359c7847c84"
+    },
+    "historicalManifest": "history/before-deterministic-c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f.yml",
+    "state": "EXISTING_PACKET_AWAITING_NATIVE_VALIDATION"
+  },
+  "optionsAxis": {
+    "required": false,
+    "sources": {
+      "terminal/components/ChartPanel.tsx": "655095c14c7b1ee5739f4826ceafd3aa41a039faff98be113b631bfcbc6aa13f",
+      "terminal/lib/optionsLevels.ts": "4098ca48d107fd2cf2bd40ce96fca87d51757f3e2578e7ea8f8301d1d8e6d7fc",
+      "terminal/lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
+    },
+    "controls": {
+      "terminal/docs/pr-crops/options-level-axis-labels/capture.mjs": "91da3a38facfcaca3a1a11405fe7328312793ff67b7e1231be8693b8da9b8cf8",
+      "terminal/e2e/tools/capture_ci_evidence.cjs": "476924e45e29dbf4577bc17b262b429fca2ac4a4501438e1ff0f56c9c93f145f",
+      "terminal/e2e/tools/capture_pl6_batch1.cjs": "097589bdeaf813696a323dcc63281ad78d1ee68b14fdc3d0338676e1b8f19189",
+      "terminal/next.config.ts": "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+    },
+    "state": "EXISTING_PACKET_AWAITING_UNIT_VALIDATION",
+    "manifestSha256": "bbc79ccd1f36477f09814096ffbf260a0e153f4282aaf63e5bf5c6c32456859e"
+  },
+  "legacyPackets": {
+    "pine": {
+      "state": "EXISTING_PACKET_AWAITING_UNIT_VALIDATION",
+      "sources": {
+        "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+        "terminal/components/ChartOverlays.module.css": "2a885372804b5e3fae7617e002954e394894991f656d5fb7ed1e95fe908d83cd",
+        "terminal/components/ChartOverlays.tsx": "b0e8ccba2f8360528d0d70ab95edd0b58d235099b5f90ce2d4cf0627e4276c5b",
+        "terminal/components/PineEditor.tsx": "941c5d5951c18e805605baccd820a9aad9c5f8f6046727968cbc3580625c4ef0",
+        "terminal/lib/pineChartRun.ts": "460ee8f0d12990e8772b84bc819e2ec76f325c865f1d07181d907581f072100c",
+        "terminal/lib/pineRunLex.ts": "a814e31a926ad2f7562eed0716cae2af5ee88f14bbfdf7312bb08c4078963971"
+      },
+      "controls": {
+        "terminal/e2e/tools/capture_ci_evidence.cjs": "476924e45e29dbf4577bc17b262b429fca2ac4a4501438e1ff0f56c9c93f145f",
+        "terminal/e2e/tools/capture_pine_boot_pending.cjs": "cf805338bbecf12ca8fa1962e22021d1cb533e0cff4647e787210146416eab70",
+        "terminal/next.config.ts": "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+      },
+      "priorManifestSha256": "fa13ad94d4f9a41b86ca55a6772dc1e8b7ef419471404610b97e064947d95582"
+    }
+  },
+  "references": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109191702-1-pl6--operation.json",
+      "sha256": "8ad06fff6ce82b2d53a77f56f67d25db8884e2c9cdb49b3faac1a613fe10ccec"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-20261109191702-1-vi--operation.json",
+      "sha256": "d1ee4fb2ba7a7b73952f3f562088769da413afd7d8802fcc85a4c6176828d2f6"
+    }
+  ],
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109191702-1-current.composition.json",
+    "sha256": "04a223909d992c00977ab97dcb3da732e9699b89eea5220dd807f135847ca359",
+    "selectedCases": 50
+  }
+}

@@ -6,7 +6,7 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { act } from "react";
+import { act, useLayoutEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import React from "react";
 import SectionAccuracy, { accuracyGlanceState } from "@/components/settings/SectionAccuracy";
@@ -22,6 +22,104 @@ import type { AccuracyProps } from "@/components/settings/SectionAccuracy";
 import { TEAM_ROUTE_MESSAGES } from "@/lib/teams";
 
 const OWNER = accountIdentity("8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22", "a@example.com");
+
+describe("Accuracy team read belongs to the current team", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+  let requests: Array<{ url: string; resolve: (response: Response) => void }>;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.append(container);
+    root = createRoot(container);
+    requests = [];
+    vi.stubGlobal("fetch", vi.fn((url: string) => new Promise<Response>((resolve) => {
+      requests.push({ url, resolve });
+    })));
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    vi.unstubAllGlobals();
+  });
+
+  // Capture the committed DOM before passive fetch effects run: clearing state
+  // only inside an effect would still expose the old team for this commit.
+  function Probe({ teamId, lang, onCommit }: {
+    teamId: string | null | undefined;
+    lang: "en" | "zh";
+    onCommit?: () => void;
+  }) {
+    useLayoutEffect(() => { onCommit?.(); });
+    return React.createElement(SectionAccuracy, baseProps(lang, { teamId }));
+  }
+
+  async function render(teamId: string | null | undefined, lang: "en" | "zh" = "en", onCommit?: () => void) {
+    await act(async () => root.render(React.createElement(Probe, { teamId, lang, onCommit })));
+  }
+
+  async function answer(index: number, members = 19, status = 200) {
+    await act(async () => requests[index].resolve(new Response(
+      JSON.stringify(status === 200 ? { kind: "no_rows", memberCount: members } : { error: "unavailable" }),
+      { status, headers: { "content-type": "application/json" } },
+    )));
+  }
+
+  it.each(["en", "zh"] as const)("%s hides team A on the first commit of pending team B", async (lang) => {
+    await render("team-A", lang);
+    await answer(0);
+    expect(container.textContent).toContain("19");
+    let firstCommit = "";
+    await render("team-B", lang, () => { firstCommit = container.innerHTML; });
+    expect(firstCommit).toContain('data-acc-team-state="loading"');
+    expect(firstCommit).not.toContain('data-acc-team-state="no_rows"');
+    expect(firstCommit).not.toContain("19");
+    expect(requests.map((r) => r.url)).toEqual([
+      "/api/teams/team-A/accuracy/rollup", "/api/teams/team-B/accuracy/rollup",
+    ]);
+    await answer(1, 7);
+    expect(container.querySelector('[data-acc-team-state="no-rows"]')?.textContent).toContain("7");
+    expect(container.textContent).not.toContain("19");
+  });
+
+  it.each([403, 503])("does not carry team A's %s error into pending team B", async (status) => {
+    await render("team-A");
+    await answer(0, 0, status);
+    expect(container.querySelector(`[data-acc-team-state="${status === 503 ? "unavailable" : "load-err"}"]`)).not.toBeNull();
+    await render("team-B");
+    expect(container.querySelector('[data-acc-team-state="loading"]')).not.toBeNull();
+    expect(container.querySelector('[data-acc-team-state="unavailable"], [data-acc-team-state="load-err"]')).toBeNull();
+  });
+
+  it("ignores team A's late response after team B has settled", async () => {
+    await render("team-A");
+    await render("team-B");
+    await answer(1, 7);
+    await answer(0, 19);
+    expect(container.querySelector('[data-acc-team-state="no-rows"]')?.textContent).toContain("7");
+    expect(container.textContent).not.toContain("19");
+  });
+
+  it.each([null, undefined])("clears the old team when membership becomes %s", async (teamId) => {
+    await render("team-A");
+    await answer(0);
+    await render(teamId);
+    expect(container.textContent).not.toContain("19");
+    expect(container.querySelector('[data-acc-team-state="no_rows"]')).toBeNull();
+    expect(requests).toHaveLength(1);
+    expect(container.querySelector('[data-acc-team-state="none"]') !== null).toBe(teamId === null);
+  });
+
+  it("keeps a settled read when only the language changes", async () => {
+    await render("team-A");
+    await answer(0);
+    await render("team-A", "zh");
+    expect(requests).toHaveLength(1);
+    expect(container.querySelector('[data-acc-team-state="no-rows"]')?.textContent).toContain("19");
+    expect(container.textContent).toContain(LEX.accTeamTitle[1]);
+  });
+});
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

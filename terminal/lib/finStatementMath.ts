@@ -256,6 +256,7 @@ export interface IncomeView {
   periods: string[];
   cadence: StatementReportingCadence;
   sourceFamily: StatementSourceFamily;
+  sourceFamilyBasis?: StatementPeriodSet["source_family_basis"];
   /** Vendor statement family aligned to each period; historical HK issuers can change schema. */
   sourceFamilies: StatementSourceFamily[];
   /** True when this artifact explicitly says its values are already presentation-ready. */
@@ -441,10 +442,15 @@ export function financialFamilyDisclosure(
 
 /** Structural disclosure for a complete view, without describing mixed history as one family. */
 export function incomeViewFamilyDisclosure(
-  view: Pick<IncomeView, "sourceFamily" | "sourceFamilies">,
+  view: Pick<IncomeView, "sourceFamily" | "sourceFamilies" | "sourceFamilyBasis">,
   zh: boolean,
 ): string | null {
   const families = view.sourceFamilies.length > 0 ? view.sourceFamilies : [view.sourceFamily];
+  if (view.sourceFamilyBasis === "profile_financial_historical_unqualified") {
+    return zh
+      ? "当前公司资料属于金融行业，但部分历史报表格式尚未验证。营业收入与营业费用保留来源口径，营业成本、毛利和 EBITDA 等工业企业项目暂不显示。"
+      : "The current company profile is financial-sector, but some historical statement formats are unqualified. Source-reported income and expenses are retained; industrial COGS, gross profit and EBITDA are withheld.";
+  }
   if (families.includes("ambiguous")) {
     return zh
       ? "来源行同时包含多套完整报表格式，且没有可验证的主格式。该期按不明确来源处理，并隐藏特定报表格式的工业企业项目。"
@@ -468,6 +474,18 @@ export function priorComparableIndex(
   const kinds = set?.period_kind;
   const numbers = set?.period_number;
   const n = set?.periods?.length ?? 0;
+  const qualifiedComparable = (prior: number | null): number | null => {
+    if (prior == null) return null;
+    const durations = set?.period_duration_months;
+    const basis = set?.comparison_basis;
+    if (durations && (durations.length !== n || durations[index] == null ||
+        durations[prior] == null || durations[index] !== durations[prior])) return null;
+    if (basis && (basis.length !== n || !basis[index] || basis[index] !== basis[prior])) return null;
+    return prior;
+  };
+  // Partial metadata must not silently fall back to positional lag-four arithmetic.
+  if ((set?.period_duration_months || set?.comparison_basis) &&
+      (years?.length !== n || kinds?.length !== n || numbers?.length !== n)) return null;
   if (
     years?.length === n && kinds?.length === n && numbers?.length === n &&
     years[index] != null && kinds[index] != null
@@ -485,12 +503,12 @@ export function priorComparableIndex(
       .filter((i) => sameIdentity(i, year));
     const priorMatches = Array.from({ length: index }, (_, i) => i)
       .filter((i) => sameIdentity(i, year - 1));
-    return currentMatches.length === 1 && priorMatches.length === 1
+    return qualifiedComparable(currentMatches.length === 1 && priorMatches.length === 1
       ? priorMatches[0]
-      : null;
+      : null);
   }
   const lag = timeframe === "annual" ? 1 : 4;
-  return index >= lag ? index - lag : null;
+  return qualifiedComparable(index >= lag ? index - lag : null);
 }
 
 /** Year-over-year percent changes using explicit fiscal identity when available. */
@@ -545,6 +563,7 @@ export function incomeView(
       periods,
       cadence,
       sourceFamily,
+      sourceFamilyBasis: set?.source_family_basis,
       sourceFamilies: periods.map((_, i) => set?.source_family_by_period?.[i] ?? sourceFamily),
       producerNormalized,
       income: EMPTY_INCOME,
@@ -587,6 +606,7 @@ export function incomeView(
     periods,
     cadence,
     sourceFamily,
+    sourceFamilyBasis: set?.source_family_basis,
     sourceFamilies,
     producerNormalized,
     income,
@@ -626,6 +646,11 @@ export function incomeChartValues(view: IncomeView): {
 export function cumulativeQuarterNote(view: IncomeView, zh: boolean): string | null {
   if (!view.cumulative) return null;
   if (view.market === "cn") {
+    if (view.producerNormalized && view.cadence === "mixed") {
+      return zh
+        ? "历史累计期间（H1、9M、FY）与数据商提供的独立季度按各自标签保留。不同期间长度或来源口径不计算同比；缺失项目显示为短横线。"
+        : "Historical YTD periods (H1, 9M, FY) and vendor-reported discrete quarters retain their own labels. Growth is withheld across different durations or source conventions; missing values show a dash.";
+    }
     return zh
       ? "中国内地财报按年初至今累计口径披露；可加总项目由相邻期差分得出。缺少累计基数或无法安全差分的每股收益显示为短横线。"
       : "Additive quarterly flows are differenced from the cumulative year-to-date totals mainland-China filings report. Missing bases and EPS that cannot be safely differenced show a dash.";

@@ -1,0 +1,22 @@
+[
+  {
+    "mutation": "old-byte-proxy",
+    "exit": 1,
+    "expected": "RED",
+    "log": "/tmp/portfolio-terminal-owner-recovery-20261021/old-byte-proxy-mutant.log",
+    "sha256": "b3c0ffc721d38b4c97f06d32d0a2a42ab8edb0b6287e932b3e218c17b04af8ae"
+  },
+  {
+    "mutation": "header-only",
+    "exit": 1,
+    "expected": "RED",
+    "log": "/tmp/portfolio-terminal-owner-recovery-20261021/header-only-mutant.log",
+    "sha256": "a6a2ec393104b50522598f242686d7f92d20ff3730a32b34c41b449ec2d824f5"
+  },
+  {
+    "test": "all six actual EN/ZH crops decode",
+    "exit": 1,
+    "log": "/tmp/portfolio-terminal-owner-recovery-20261021/real-crops-decoded.log",
+    "sha256": "d9597f17693f8f1fd0f7491368df2963adc21b077aae0dbd3b6095717f638fc8"
+  }
+]

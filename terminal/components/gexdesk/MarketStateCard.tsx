@@ -88,13 +88,9 @@ export interface GexStatePayload {
 
 // ─── Regime colors ────────────────────────────────────────────────────────────
 
-/**
- * Flip violet. `--cat-2` is referenced all over this desk but is defined nowhere in the
- * token set, so every `var(--cat-2)` site silently fell back (invisible markers, plain-text
- * values). `--ai` is defined and is the identical hue (#9d86ff) — kept behind --cat-2 so a
- * real definition would still win.
- */
-const FLIP_VIOLET = "var(--cat-2, var(--ai))";
+// Structural levels are data, not locked content. Keep their labels and markers
+// on the shared neutral text rung; the explicit flip label supplies the meaning.
+const STRUCTURAL_LEVEL_INK = "var(--text-2)";
 
 // (regime colours: see the REGIME_COLORS import at the top — one table for every surface)
 
@@ -258,8 +254,7 @@ function StructuralRangeBar({
             style={{
               ...RANGE_BAR_MARKER,
               left: `${flipPct}%`,
-              background: FLIP_VIOLET,
-              boxShadow: `0 0 6px ${FLIP_VIOLET}`,
+              background: STRUCTURAL_LEVEL_INK,
             }}
           />
         )}
@@ -284,7 +279,7 @@ function StructuralRangeBar({
             style={{
               ...RANGE_BAR_SUB_LBL,
               left: `${Math.min(flipPct, 85)}%`,
-              color: FLIP_VIOLET,
+              color: STRUCTURAL_LEVEL_INK,
             }}
           >
             {t("stateFlipMark")}
@@ -335,13 +330,8 @@ function WhatIfFlipBreaks({
           </div>
         )}
         {flip != null && (
-          <div
-            style={{
-              ...WHATIF_BOX,
-              borderColor: "color-mix(in srgb, var(--ai) 25%, transparent)",
-            }}
-          >
-            <span style={{ ...WHATIF_BOX_VAL, color: FLIP_VIOLET }}>
+          <div style={WHATIF_BOX}>
+            <span style={{ ...WHATIF_BOX_VAL, color: STRUCTURAL_LEVEL_INK }}>
               {fmtLevel(flip)}
             </span>
             <span style={WHATIF_BOX_LBL}>{t("stateFlipMark")}</span>
@@ -362,10 +352,21 @@ function WhatIfFlipBreaks({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+/**
+ * What the state read established. Only "absent" (a published 404/410, or bytes that
+ * are not this root's state) may say the state is still computing; "unavailable" is a
+ * read that did not land and says nothing about whether the state exists.
+ */
+export type StateReadStatus = "loading" | "data" | "absent" | "unavailable";
+
 interface MarketStateCardProps {
   statePayload: GexStatePayload | null;
   gexPayload?: GexPayload | null;
   isIndexProduct: boolean;
+  /** Defaults to the payload's presence — a caller that does not classify keeps the old read. */
+  stateRead?: StateReadStatus;
+  /** Re-reads the state in place after a failed read. */
+  onRetry?: () => void;
   lang: Lang;
 }
 
@@ -373,6 +374,8 @@ export function MarketStateCard({
   statePayload,
   gexPayload,
   isIndexProduct,
+  stateRead,
+  onRetry,
   lang,
 }: MarketStateCardProps) {
   const t = makeGexT(lang);
@@ -400,15 +403,30 @@ export function MarketStateCard({
   const flipLevel = statePayload?.gamma_flip ?? gexPayload?.gamma_flip ?? null;
   const spotRef = statePayload?.spot ?? gexPayload?.spot_ref ?? null;
 
+  const readStatus: StateReadStatus = stateRead ?? (statePayload ? "data" : "absent");
+  const retryButton = onRetry ? (
+    <button type="button" className="btn btn-ghost load-retry" onClick={onRetry}>{t("errorRetry")}</button>
+  ) : null;
+
   if (!statePayload) {
     return (
       <div className="obs-card obs-scroll obs-gex-state" style={CARD_OUTER} data-tut="gex-state-card">
         <div className="obs-card-hd" style={CARD_HEADER}>
           <span className="obs-lbl">{t("stateTitle")}</span>
         </div>
-        <div style={PLACEHOLDER}>
-          <span style={PLACEHOLDER_TEXT}>{t("stateComputing")}</span>
-        </div>
+        {readStatus === "unavailable" ? (
+          <div style={PLACEHOLDER_ERROR} data-testid="gex-state-error" role="alert">
+            <div style={ERROR_ROW}>
+              <span style={ERROR_TITLE}>{t("stateErrorTitle")}</span>
+              {retryButton}
+            </div>
+            <span style={ERROR_WHY}>{t("stateErrorWhy")}</span>
+          </div>
+        ) : (
+          <div style={PLACEHOLDER}>
+            <span style={PLACEHOLDER_TEXT}>{readStatus === "loading" ? t("loading") : t("stateComputing")}</span>
+          </div>
+        )}
         <PassportBlock
           passportText={passportText}
           singleNameNote={singleNameNote}
@@ -464,6 +482,14 @@ export function MarketStateCard({
         <span className="obs-lbl">{t("stateTitle")}</span>
       </div>
 
+      {/* A refresh that did not land keeps the last state on screen and says so. */}
+      {readStatus === "unavailable" && (
+        <div style={STALE_ROW} data-testid="gex-state-refresh-failed" role="alert">
+          <span>{t("stateRefreshFailed")}</span>
+          {retryButton}
+        </div>
+      )}
+
       {/* ── Regime group ─────────────────────────────────────────────────────
           REGIME-DYNAMICS LAW: a state label never stands alone. The regime name, its
           γ-polarity, its stability and its distance to the flip now live in ONE bounded
@@ -472,7 +498,7 @@ export function MarketStateCard({
           γ-polarity chip is the Net-γ readout that used to sit detached in the stats
           column, and the regime chip that used to float in the card header is this
           section's own hero (it said the same word twice). */}
-      <div style={{ ...REGIME_GROUP, borderLeftColor: regimeColor } as React.CSSProperties}>
+      <div style={REGIME_GROUP}>
         <div style={REGIME_HEAD}>
           {/* Large state label — the translated regime name, not the raw enum key. In EN
               the two read identically (PIN/PIN); in ZH the chip said 锁定 while the hero
@@ -653,7 +679,7 @@ export function MarketStateCard({
             <>
               <span
                 className="num"
-                style={{ ...METRIC_BLOCK_HERO, color: FLIP_VIOLET }}
+                style={{ ...METRIC_BLOCK_HERO, color: STRUCTURAL_LEVEL_INK }}
               >
                 {fmtLevel(pin.strike)}
               </span>
@@ -753,14 +779,12 @@ const CARD_HEADER: React.CSSProperties = {
 
 /**
  * One bounded section holding the regime name AND everything that qualifies it
- * (γ-polarity, stability, distance to flip). The 2px rail carries the regime's own
- * colour, so the group reads as a single verdict rather than a label with orphaned
- * statistics scattered below it.
+ * (γ-polarity, stability, distance to flip). Surface depth groups the verdict;
+ * the labeled state retains its semantic ink without a colored container edge.
  */
 const REGIME_GROUP: React.CSSProperties = {
-  /* Full-bleed so the 3px rail lands on the card edge; inner rows carry --sp-3, which
-     puts their text at 15px — level with the --sp-4 sections below. */
-  borderLeft: "3px solid var(--muted)",
+  // Preserve the existing inner alignment after removing the decorative rail.
+  paddingLeft: 3,
   background: "color-mix(in srgb, var(--panel-2) 55%, transparent)",
   paddingBottom: "var(--sp-1)",
 };
@@ -976,6 +1000,45 @@ const PLACEHOLDER_TEXT: React.CSSProperties = {
   fontStyle: "italic",
   textAlign: "center",
   lineHeight: 1.5,
+};
+
+// Compact and top-aligned: the card is a short scroll box on desktop, so Retry rides on
+// the title's row, right under the header, instead of below a centred, padded block that
+// pushed it past the card's fold.
+const PLACEHOLDER_ERROR: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--sp-1)",
+  padding: "var(--sp-2) var(--sp-3)",
+};
+
+const ERROR_ROW: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "var(--sp-2)",
+};
+
+const ERROR_TITLE: React.CSSProperties = {
+  fontSize: "var(--fs-label)",
+  fontWeight: 600,
+  color: "var(--text)",
+};
+
+const ERROR_WHY: React.CSSProperties = {
+  ...PLACEHOLDER_TEXT,
+  textAlign: "start",
+};
+
+const STALE_ROW: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: "var(--sp-2)",
+  padding: "var(--sp-1) var(--sp-3)",
+  fontSize: "var(--fs-label)",
+  color: "var(--text-2)",
 };
 
 const PASSPORT_BLOCK: React.CSSProperties = {

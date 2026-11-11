@@ -1,0 +1,5485 @@
+{
+  "base_sha": "c923cc46d179dd92cb6e3bd6d10c03c9bac17c76",
+  "generated_at": "2026-10-12T04:37:23Z",
+  "importers": [
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "imports": [
+        "CandlestickSeries",
+        "BarSeries",
+        "LineSeries",
+        "AreaSeries",
+        "HistogramSeries",
+        "BaselineSeries",
+        "createSeriesMarkers",
+        "ISeriesMarkersPluginApi",
+        "createTextWatermark",
+        "CrosshairMode",
+        "ColorType",
+        "LineStyle",
+        "LineType",
+        "MismatchDirection",
+        "PriceScaleMode",
+        "IChartApi",
+        "ISeriesApi",
+        "IPaneApi",
+        "IPriceLine"
+      ],
+      "consumer_class": "main-chart",
+      "migration": "in-closure"
+    },
+    {
+      "file": "terminal/components/ChartPane.tsx",
+      "imports": [
+        "IChartApi"
+      ],
+      "consumer_class": "main-chart",
+      "migration": "in-closure"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "imports": [
+        "IChartApi",
+        "PriceScaleMode"
+      ],
+      "consumer_class": "main-chart",
+      "migration": "in-closure"
+    },
+    {
+      "file": "terminal/components/ChartSettingsModal.tsx",
+      "imports": [
+        "PriceScaleMode",
+        "IChartApi"
+      ],
+      "consumer_class": "main-chart",
+      "migration": "in-closure"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "imports": [
+        "IChartApi",
+        "ISeriesApi",
+        "SeriesType",
+        "Time"
+      ],
+      "consumer_class": "lib-helper",
+      "migration": "in-closure"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "imports": [
+        "ISeriesApi",
+        "ISeriesPrimitive",
+        "SeriesType"
+      ],
+      "consumer_class": "lib-helper",
+      "migration": "in-closure"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "imports": [
+        "ISeriesPrimitive",
+        "ISeriesApi",
+        "SeriesType",
+        "IPrimitivePaneView",
+        "IPrimitivePaneRenderer",
+        "PrimitivePaneViewZOrder",
+        "IChartApi",
+        "SeriesAttachedParameter",
+        "Time"
+      ],
+      "consumer_class": "lib-helper",
+      "migration": "in-closure"
+    },
+    {
+      "file": "terminal/lib/chartTimeAxis.ts",
+      "imports": [
+        "TickMarkType",
+        "Time"
+      ],
+      "consumer_class": "lib-helper",
+      "migration": "in-closure"
+    },
+    {
+      "file": "terminal/components/TideChartLazy.tsx",
+      "imports": [
+        "createChart",
+        "LineSeries",
+        "AreaSeries",
+        "IChartApi",
+        "ISeriesApi"
+      ],
+      "consumer_class": "options-suite",
+      "migration": "excluded-until-owner-changes"
+    },
+    {
+      "file": "terminal/components/surface/SurfacePane.tsx",
+      "imports": [
+        "createChart",
+        "CandlestickSeries",
+        "IChartApi",
+        "ISeriesApi",
+        "MouseEventParams",
+        "Time"
+      ],
+      "consumer_class": "options-suite",
+      "migration": "excluded-until-owner-changes"
+    },
+    {
+      "file": "terminal/components/surface/StrikeEvolutionModal.tsx",
+      "imports": [
+        "createChart",
+        "LineSeries",
+        "createSeriesMarkers",
+        "IChartApi",
+        "ISeriesApi",
+        "Time"
+      ],
+      "consumer_class": "options-suite",
+      "migration": "excluded-until-owner-changes"
+    },
+    {
+      "file": "terminal/components/surface/SessionFlowPane.tsx",
+      "imports": [
+        "createChart",
+        "LineSeries",
+        "AreaSeries",
+        "IChartApi",
+        "ISeriesApi",
+        "Time"
+      ],
+      "consumer_class": "options-suite",
+      "migration": "excluded-until-owner-changes"
+    },
+    {
+      "file": "terminal/lib/heatSeries.ts",
+      "imports": [
+        "ICustomSeriesPaneView",
+        "ICustomSeriesPaneRenderer",
+        "PaneRendererCustomData",
+        "CustomSeriesPricePlotValues",
+        "PriceToCoordinateConverter",
+        "CustomData",
+        "CustomSeriesOptions",
+        "Time",
+        "WhitespaceData",
+        "customSeriesDefaultOptions"
+      ],
+      "consumer_class": "options-suite",
+      "migration": "excluded-until-owner-changes"
+    },
+    {
+      "file": "terminal/lib/surfaceContract.ts",
+      "imports": [
+        "Time"
+      ],
+      "consumer_class": "options-suite",
+      "migration": "excluded-until-owner-changes"
+    },
+    {
+      "file": "terminal/app/embed/chart/EmbedChart.tsx",
+      "imports": [
+        "createChart",
+        "CandlestickSeries",
+        "HistogramSeries",
+        "LineSeries",
+        "CrosshairMode",
+        "ColorType",
+        "LineStyle",
+        "IChartApi",
+        "ISeriesApi",
+        "MouseEventParams",
+        "Time"
+      ],
+      "consumer_class": "standalone-embed",
+      "migration": "excluded-until-owner-changes"
+    },
+    {
+      "file": "terminal/lib/chart-engine/lwc/index.ts",
+      "imports": [
+        "createChart",
+        "CandlestickSeries",
+        "BarSeries",
+        "LineSeries",
+        "AreaSeries",
+        "HistogramSeries",
+        "BaselineSeries",
+        "createSeriesMarkers",
+        "createTextWatermark",
+        "IChartApi",
+        "ISeriesApi",
+        "IPaneApi",
+        "ITimeScaleApi",
+        "IPriceLine",
+        "ISeriesMarkersPluginApi",
+        "ITextWatermarkPluginApi",
+        "SeriesType",
+        "SeriesDefinition",
+        "SeriesMarker",
+        "Time",
+        "SeriesDataItemTypeMap",
+        "SeriesPartialOptionsMap",
+        "MouseEventParams",
+        "LogicalRange",
+        "DeepPartial",
+        "ChartOptions",
+        "TextWatermarkOptions"
+      ],
+      "consumer_class": "lib-helper",
+      "migration": "excluded-until-owner-changes"
+    }
+  ],
+  "raw_calls": [
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 71,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Normal",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 148,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 153,
+      "receiver": "timeScale",
+      "method": "fitContent",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.fitContent(): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 162,
+      "receiver": "timeScale",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.applyOptions(opts: Record<string, unknown>): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 163,
+      "receiver": "timeScale",
+      "method": "scrollToRealTime",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.scrollToRealtime(): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 164,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 167,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 181,
+      "receiver": "timeScale",
+      "method": "setVisibleRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.setVisibleRange(range: EngineRange<EngineTime>): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 182,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 183,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 279,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 280,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 284,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 290,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 291,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 295,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 313,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Normal",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 313,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Percentage",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 313,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Percentage",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 316,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Logarithmic",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 316,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Logarithmic",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 316,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Normal",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 376,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 377,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 379,
+      "receiver": "timeScale",
+      "method": "timeToCoordinate",
+      "args_shape": "(gotoDate as any)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.timeToCoordinate(time: EngineTime): number | null"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 381,
+      "receiver": "timeScale",
+      "method": "coordinateToLogical",
+      "args_shape": "(coord)",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.coordinateToLogical(x: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 382,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 387,
+      "receiver": "timeScale",
+      "method": "setVisibleRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.setVisibleRange(range: EngineRange<EngineTime>): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 478,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(s.scaleLeft ? \"left\" : \"right\")",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 478,
+      "receiver": "priceScale",
+      "method": "setAutoScale",
+      "args_shape": "(next)",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.setAutoScale(on: boolean): void"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 500,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Normal",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 501,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Percentage",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 502,
+      "receiver": "enum",
+      "method": "PriceScaleMode.IndexedTo100",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartFrameBar.tsx",
+      "line": 503,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Logarithmic",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 568,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 639,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 639,
+      "receiver": "timeScale",
+      "method": "getVisibleRange",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.getVisibleRange(): EngineRange<EngineTime> | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 753,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 763,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1093,
+      "receiver": "series",
+      "method": "removePriceLine",
+      "args_shape": "(priceLine)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "PriceLineHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1101,
+      "receiver": "series",
+      "method": "removePriceLine",
+      "args_shape": "(priceLine)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "PriceLineHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1120,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1124,
+      "receiver": "enum",
+      "method": "LineStyle.Dotted",
+      "args_shape": "LineStyle",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1284,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1285,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1286,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1286,
+      "receiver": "enum",
+      "method": "LineType.WithSteps",
+      "args_shape": "LineType",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1287,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(AreaSeries, options, paneIndex?)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1288,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(BaselineSeries, options, paneIndex?)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1294,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(BarSeries, options, paneIndex?)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1295,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(CandlestickSeries, options, paneIndex?)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1325,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1325,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1334,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1334,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1340,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1340,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1354,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(HistogramSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1363,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(\"volume\")",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1363,
+      "receiver": "priceScale",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "PriceScaleHandle.applyOptions(opts: Record<string, unknown>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1364,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1370,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1371,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1372,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1372,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1389,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(HistogramSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1390,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(\"stochsig\")",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1390,
+      "receiver": "priceScale",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "PriceScaleHandle.applyOptions(opts: Record<string, unknown>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1391,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1392,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1393,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1394,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1394,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1397,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1397,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1397,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1406,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1412,
+      "receiver": "markersPlugin",
+      "method": "createSeriesMarkers",
+      "args_shape": "(series, markers)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setMarkers(marks: MarkerSpec[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1416,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(HistogramSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1416,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1417,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1417,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1418,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1418,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1419,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1482,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(HistogramSeries, options, paneIndex?)",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1483,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1485,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(AreaSeries, options, paneIndex?)",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1486,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1488,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1489,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1524,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1532,
+      "receiver": "markersPlugin",
+      "method": "createSeriesMarkers",
+      "args_shape": "(series, markers)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setMarkers(marks: MarkerSpec[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1546,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1553,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(s)",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1608,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1609,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1610,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1611,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1620,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1621,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1622,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1622,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1632,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1633,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1634,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1635,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1660,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1668,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1712,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1723,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1724,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1725,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1726,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1738,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1739,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1747,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1748,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1756,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1757,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1781,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1782,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1783,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1784,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1784,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1784,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1786,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1787,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1796,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1797,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1800,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1821,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1825,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1836,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1841,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1843,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1848,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1897,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1941,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 1995,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2021,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2022,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2028,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(HistogramSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2032,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2034,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2038,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2041,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2067,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(HistogramSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2068,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2071,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2081,
+      "receiver": "markersPlugin",
+      "method": "createSeriesMarkers",
+      "args_shape": "(series, markers)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setMarkers(marks: MarkerSpec[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2094,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2098,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2100,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2101,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2106,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2107,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2108,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2109,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2122,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(BaselineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2128,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2188,
+      "receiver": "pane",
+      "method": "setStretchFactor",
+      "args_shape": "(s)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.setStretchFactor(factor: number): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2206,
+      "receiver": "pane",
+      "method": "getHTMLElement",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.getHTMLElement(): HTMLElement | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2232,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2232,
+      "receiver": "pane",
+      "method": "priceScale",
+      "args_shape": "(\"right\")",
+      "cluster": "M01-mount",
+      "contract_status": "needs_method",
+      "proposed": "PaneHandle.priceScale(priceScaleId: string): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2232,
+      "receiver": "priceScale",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PriceScaleHandle.applyOptions(opts: Record<string, unknown>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2237,
+      "receiver": "pane",
+      "method": "getStretchFactor",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.stretchFactor(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2241,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2241,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2342,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2364,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2371,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2384,
+      "receiver": "pane",
+      "method": "getHTMLElement",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.getHTMLElement(): HTMLElement | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2392,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2406,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2406,
+      "receiver": "chart",
+      "method": "swapPanes",
+      "args_shape": "(pi, tgt)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.swapPanes(first: number, second: number): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2410,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2423,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2435,
+      "receiver": "priceLine",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "PriceLineHandle.applyOptions(opts: Partial<PriceLineSpec>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2439,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2441,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2448,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2449,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2450,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(s)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2464,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2470,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2472,
+      "receiver": "series",
+      "method": "createPriceLine",
+      "args_shape": "(priceLineSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.createPriceLine(opts: PriceLineSpec): PriceLineHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2547,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2554,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2557,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2560,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2565,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2569,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2570,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2571,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2575,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2576,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2577,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2641,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(s)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2662,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2663,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2668,
+      "receiver": "chart",
+      "method": "addSeries",
+      "args_shape": "(LineSeries, options, paneIndex?)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 2669,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3019,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3035,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(s)",
+      "cluster": "L-live",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3037,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "L-live",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3189,
+      "receiver": "series",
+      "method": "update",
+      "args_shape": "(bar | point)",
+      "cluster": "L-live",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.update(row: EngineSeriesRow, historicalUpdate?: boolean): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3212,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(bar.c)",
+      "cluster": "L-live",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3278,
+      "receiver": "series",
+      "method": "update",
+      "args_shape": "(bar | point)",
+      "cluster": "L-live",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.update(row: EngineSeriesRow, historicalUpdate?: boolean): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3319,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3319,
+      "receiver": "timeScale",
+      "method": "width",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.width(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3322,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3322,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3322,
+      "receiver": "timeScale",
+      "method": "fitContent",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.fitContent(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3322,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3358,
+      "receiver": "series",
+      "method": "priceLines",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.priceLines(): PriceLineHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3464,
+      "receiver": "chart",
+      "method": "takeScreenshot",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.takeScreenshot(): HTMLCanvasElement"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3500,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3501,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3504,
+      "receiver": "chart",
+      "method": "paneSize",
+      "args_shape": "(i)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.paneSize(paneIndex?: number): { width: number; height: number }"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3505,
+      "receiver": "chart",
+      "method": "paneSize",
+      "args_shape": "(maxIdx)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.paneSize(paneIndex?: number): { width: number; height: number }"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3507,
+      "receiver": "chart",
+      "method": "paneSize",
+      "args_shape": "(i)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.paneSize(paneIndex?: number): { width: number; height: number }"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3734,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3746,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3761,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(\"right\")",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3761,
+      "receiver": "priceScale",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.options(): Record<string, unknown>"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3765,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3765,
+      "receiver": "pane",
+      "method": "priceScale",
+      "args_shape": "(\"right\")",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "PaneHandle.priceScale(priceScaleId: string): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3765,
+      "receiver": "priceScale",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.options(): Record<string, unknown>"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3766,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3766,
+      "receiver": "timeScale",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.options(): Record<string, unknown>"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3767,
+      "receiver": "chart",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "ChartEngine.options(): EngineOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3768,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(\"volume\")",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3768,
+      "receiver": "priceScale",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.options(): Record<string, unknown>"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3774,
+      "receiver": "series",
+      "method": "data",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.data(): EngineSeriesRow[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3775,
+      "receiver": "series",
+      "method": "data",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.data(): EngineSeriesRow[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3780,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3780,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3781,
+      "receiver": "priceScale",
+      "method": "getVisibleRange",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.getVisibleRange(): EngineRange<number> | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3781,
+      "receiver": "series",
+      "method": "priceScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.priceScale(): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3782,
+      "receiver": "priceScale",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.options(): Record<string, unknown>"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3782,
+      "receiver": "series",
+      "method": "priceScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.priceScale(): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3785,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3785,
+      "receiver": "timeScale",
+      "method": "timeToCoordinate",
+      "args_shape": "(last.time as any)",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.timeToCoordinate(time: EngineTime): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3874,
+      "receiver": "series",
+      "method": "data",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.data(): EngineSeriesRow[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3920,
+      "receiver": "enum",
+      "method": "CrosshairMode.Normal",
+      "args_shape": "CrosshairMode",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3936,
+      "receiver": "chart",
+      "method": "unwrap",
+      "args_shape": "<IChartApi>()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.unwrap<T>(): T"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3941,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 3948,
+      "receiver": "watermarkPlugin",
+      "method": "createTextWatermark",
+      "args_shape": "(pane, WatermarkSpec)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.setWatermark(paneIndex: number, spec: WatermarkSpec | WatermarkLine[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4177,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4177,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4185,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4186,
+      "receiver": "pane",
+      "method": "getHTMLElement",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.getHTMLElement(): HTMLElement | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4194,
+      "receiver": "chart",
+      "method": "paneSize",
+      "args_shape": "(priceIdx())",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.paneSize(paneIndex?: number): { width: number; height: number }"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4198,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Normal",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4198,
+      "receiver": "priceScale",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.options(): Record<string, unknown>"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4198,
+      "receiver": "series",
+      "method": "priceScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.priceScale(): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4201,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4201,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4204,
+      "receiver": "enum",
+      "method": "MismatchDirection.NearestRight",
+      "args_shape": "MismatchDirection",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4204,
+      "receiver": "series",
+      "method": "dataByIndex",
+      "args_shape": "(Math.floor(range.from), MismatchDirection.NearestRight)",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.dataByIndex(logicalIndex: number, mismatch?: \"nearest-left\" | \"nearest-right\" | \"none\"): EngineSeriesRow | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4211,
+      "receiver": "enum",
+      "method": "PriceScaleMode.IndexedTo100",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4211,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Percentage",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4213,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Percentage",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4228,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(price)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4268,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(quote!.extPrice!)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4385,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(level.price)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4535,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(hoverState.snappedPrice)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4538,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(y)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4550,
+      "receiver": "chart",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "ChartEngine.options(): EngineOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4587,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4587,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4587,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4588,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4592,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(value)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4601,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(nearestY)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4611,
+      "receiver": "chart",
+      "method": "subscribeCrosshairMove",
+      "args_shape": "(handler)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.subscribeCrosshairMove(handler: EngineMouseHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4646,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4646,
+      "receiver": "timeScale",
+      "method": "logicalToCoordinate",
+      "args_shape": "(logical as any)",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.logicalToCoordinate(logical: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4648,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4648,
+      "receiver": "timeScale",
+      "method": "timeToCoordinate",
+      "args_shape": "(snapT(tm) as any)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.timeToCoordinate(time: EngineTime): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4662,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4662,
+      "receiver": "pane",
+      "method": "getSeries",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "PaneHandle.getSeries(): SeriesHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4686,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(p)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4699,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(localY)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4724,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(point.p)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 4726,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(legacyRootY - pane.top)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 5126,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 5126,
+      "receiver": "timeScale",
+      "method": "coordinateToLogical",
+      "args_shape": "(px)",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.coordinateToLogical(x: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6628,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6630,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6631,
+      "receiver": "timeScale",
+      "method": "logicalToCoordinate",
+      "args_shape": "(i as any)",
+      "cluster": "M02-studies",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.logicalToCoordinate(logical: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6640,
+      "receiver": "pane",
+      "method": "getHTMLElement",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.getHTMLElement(): HTMLElement | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6640,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6642,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(pv)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6695,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(p)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6696,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6696,
+      "receiver": "timeScale",
+      "method": "timeToCoordinate",
+      "args_shape": "(tm as any)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.timeToCoordinate(time: EngineTime): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6931,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6933,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6934,
+      "receiver": "timeScale",
+      "method": "logicalToCoordinate",
+      "args_shape": "(i as any)",
+      "cluster": "M02-studies",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.logicalToCoordinate(logical: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6944,
+      "receiver": "pane",
+      "method": "getHTMLElement",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.getHTMLElement(): HTMLElement | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6944,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6978,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 6978,
+      "receiver": "timeScale",
+      "method": "width",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.width(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7032,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7036,
+      "receiver": "timeScale",
+      "method": "logicalToCoordinate",
+      "args_shape": "(index as any)",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.logicalToCoordinate(logical: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7042,
+      "receiver": "priceScale",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.options(): Record<string, unknown>"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7042,
+      "receiver": "series",
+      "method": "priceScale",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.priceScale(): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7045,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(base)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7045,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(base + step)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7124,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7124,
+      "receiver": "timeScale",
+      "method": "subscribeVisibleLogicalRangeChange",
+      "args_shape": "(handler)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.subscribeVisibleLogicalRangeChange(handler: EngineLogicalRangeHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7176,
+      "receiver": "chart",
+      "method": "subscribeCrosshairMove",
+      "args_shape": "(handler)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.subscribeCrosshairMove(handler: EngineMouseHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7184,
+      "receiver": "chart",
+      "method": "subscribeCrosshairMove",
+      "args_shape": "(handler)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.subscribeCrosshairMove(handler: EngineMouseHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7195,
+      "receiver": "chart",
+      "method": "subscribeCrosshairMove",
+      "args_shape": "(handler)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.subscribeCrosshairMove(handler: EngineMouseHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7207,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7210,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7212,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7220,
+      "receiver": "pane",
+      "method": "getHTMLElement",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.getHTMLElement(): HTMLElement | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7260,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(\"right\")",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7260,
+      "receiver": "priceScale",
+      "method": "width",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PriceScaleHandle.width(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7261,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(\"left\")",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7261,
+      "receiver": "priceScale",
+      "method": "width",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PriceScaleHandle.width(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7291,
+      "receiver": "chart",
+      "method": "panes",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.panes(): PaneHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7291,
+      "receiver": "pane",
+      "method": "getSeries",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PaneHandle.getSeries(): SeriesHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7293,
+      "receiver": "pane",
+      "method": "priceScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PaneHandle.priceScale(priceScaleId: string): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7301,
+      "receiver": "series",
+      "method": "priceScale",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.priceScale(): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7303,
+      "receiver": "priceScale",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.options(): Record<string, unknown>"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7324,
+      "receiver": "priceScale",
+      "method": "getVisibleRange",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.getVisibleRange(): EngineRange<number> | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7328,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Logarithmic",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7329,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7358,
+      "receiver": "priceScale",
+      "method": "setVisibleRange",
+      "args_shape": "(range)",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.setVisibleRange(range: EngineRange<number>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7359,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Logarithmic",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7370,
+      "receiver": "priceScale",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "PriceScaleHandle.applyOptions(opts: Record<string, unknown>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7371,
+      "receiver": "priceScale",
+      "method": "setAutoScale",
+      "args_shape": "(true)",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.setAutoScale(on: boolean): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 7384,
+      "receiver": "priceScale",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "PriceScaleHandle.applyOptions(opts: Record<string, unknown>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8395,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(referenceY + 10)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8435,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(targetY)",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8468,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8468,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8469,
+      "receiver": "chart",
+      "method": "resize",
+      "args_shape": "(pendW, pendH)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.resize(width: number, height: number, forceRepaint?: boolean): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8470,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8470,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8480,
+      "receiver": "chart",
+      "method": "unsubscribeCrosshairMove",
+      "args_shape": "(handler)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.unsubscribeCrosshairMove(handler: EngineMouseHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8481,
+      "receiver": "chart",
+      "method": "unsubscribeCrosshairMove",
+      "args_shape": "(handler)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.unsubscribeCrosshairMove(handler: EngineMouseHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8560,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8643,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(last.c)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8644,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8644,
+      "receiver": "timeScale",
+      "method": "timeToCoordinate",
+      "args_shape": "(last.time)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.timeToCoordinate(time: EngineTime): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8710,
+      "receiver": "chart",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.applyOptions(options: EngineOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8749,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(priceS)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8753,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8754,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8755,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8765,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(s)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8786,
+      "receiver": "chart",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.applyOptions(options: EngineOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8920,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(priceS)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8925,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8927,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 8928,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9014,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(price)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9021,
+      "receiver": "pane",
+      "method": "getSeries",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "PaneHandle.getSeries(): SeriesHandle[]"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9021,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9024,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9024,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9024,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9024,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9024,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9025,
+      "receiver": "series",
+      "method": "options",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.options(): EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9027,
+      "receiver": "series",
+      "method": "dataByIndex",
+      "args_shape": "(index)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.dataByIndex(logicalIndex: number, mismatch?: \"nearest-left\" | \"nearest-right\" | \"none\"): EngineSeriesRow | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9030,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(value)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9038,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(nearestY)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9049,
+      "receiver": "chart",
+      "method": "subscribeCrosshairMove",
+      "args_shape": "(handler)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.subscribeCrosshairMove(handler: EngineMouseHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9050,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9050,
+      "receiver": "timeScale",
+      "method": "subscribeVisibleLogicalRangeChange",
+      "args_shape": "(handler)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.subscribeVisibleLogicalRangeChange(handler: EngineLogicalRangeHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9053,
+      "receiver": "chart",
+      "method": "unsubscribeCrosshairMove",
+      "args_shape": "(handler)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.unsubscribeCrosshairMove(handler: EngineMouseHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9054,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9054,
+      "receiver": "timeScale",
+      "method": "unsubscribeVisibleLogicalRangeChange",
+      "args_shape": "(handler)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.unsubscribeVisibleLogicalRangeChange(handler: EngineLogicalRangeHandler): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9067,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9067,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9077,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(s)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9131,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9132,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9133,
+      "receiver": "chart",
+      "method": "removeSeries",
+      "args_shape": "(s)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.remove(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9177,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9177,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9205,
+      "receiver": "pane",
+      "method": "paneIndex",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "PaneHandle.index(): number"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9205,
+      "receiver": "series",
+      "method": "getPane",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.pane(): PaneHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9231,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9231,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9236,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9236,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9249,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9249,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9260,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9260,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9303,
+      "receiver": "markersPlugin",
+      "method": "detach",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "MarkersHandle.detach(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9318,
+      "receiver": "markersPlugin",
+      "method": "createSeriesMarkers",
+      "args_shape": "(series, markers)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setMarkers(marks: MarkerSpec[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9439,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9439,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9451,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9451,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "P-pine",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9476,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9491,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9501,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9501,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9502,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9502,
+      "receiver": "timeScale",
+      "method": "fitContent",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.fitContent(): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9548,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9548,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "X-other",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9599,
+      "receiver": "chart",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.applyOptions(options: EngineOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9611,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9613,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9614,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9618,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9620,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9631,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9664,
+      "receiver": "chart",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.applyOptions(options: EngineOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9665,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9679,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(scaleId)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9679,
+      "receiver": "priceScale",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "PriceScaleHandle.applyOptions(opts: Record<string, unknown>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9685,
+      "receiver": "enum",
+      "method": "ColorType.VerticalGradient",
+      "args_shape": "ColorType",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9686,
+      "receiver": "enum",
+      "method": "ColorType.Solid",
+      "args_shape": "ColorType",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9687,
+      "receiver": "chart",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.applyOptions(options: EngineOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9706,
+      "receiver": "enum",
+      "method": "CrosshairMode.Magnet",
+      "args_shape": "CrosshairMode",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9706,
+      "receiver": "enum",
+      "method": "CrosshairMode.Normal",
+      "args_shape": "CrosshairMode",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9726,
+      "receiver": "watermarkPlugin",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "WatermarkHandle.applyOptions(opts: Partial<WatermarkSpec>): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9768,
+      "receiver": "series",
+      "method": "applyOptions",
+      "args_shape": "(partialOptions)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.applyOptions(opts: EngineSeriesOptions): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9770,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartPanel.tsx",
+      "line": 9790,
+      "receiver": "series",
+      "method": "setData",
+      "args_shape": "(rows)",
+      "cluster": "M02-studies",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.setData(rows: EngineSeriesRow[]): void"
+    },
+    {
+      "file": "terminal/components/ChartSettingsModal.tsx",
+      "line": 367,
+      "receiver": "chart",
+      "method": "priceScale",
+      "args_shape": "(s.scaleLeft ? \"left\" : \"right\")",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/components/ChartSettingsModal.tsx",
+      "line": 367,
+      "receiver": "priceScale",
+      "method": "setAutoScale",
+      "args_shape": "(value)",
+      "cluster": "I-interaction",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.setAutoScale(on: boolean): void"
+    },
+    {
+      "file": "terminal/components/ChartSettingsModal.tsx",
+      "line": 373,
+      "receiver": "enum",
+      "method": "PriceScaleMode.IndexedTo100",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartSettingsModal.tsx",
+      "line": 373,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Logarithmic",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartSettingsModal.tsx",
+      "line": 373,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Normal",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/components/ChartSettingsModal.tsx",
+      "line": 373,
+      "receiver": "enum",
+      "method": "PriceScaleMode.Percentage",
+      "args_shape": "PriceScaleMode",
+      "cluster": "I-interaction",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/lib/chartTimeAxis.ts",
+      "line": 36,
+      "receiver": "enum",
+      "method": "TickMarkType.DayOfMonth",
+      "args_shape": "TickMarkType",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/lib/chartTimeAxis.ts",
+      "line": 48,
+      "receiver": "enum",
+      "method": "TickMarkType.Time",
+      "args_shape": "TickMarkType",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/lib/chartTimeAxis.ts",
+      "line": 48,
+      "receiver": "enum",
+      "method": "TickMarkType.TimeWithSeconds",
+      "args_shape": "TickMarkType",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/lib/chartTimeAxis.ts",
+      "line": 55,
+      "receiver": "enum",
+      "method": "TickMarkType.TimeWithSeconds",
+      "args_shape": "TickMarkType",
+      "cluster": "M01-mount",
+      "contract_status": "covered",
+      "proposed": "string-union literal on EngineOptions / EngineSeriesOptions"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 7,
+      "receiver": "priceScale",
+      "method": "getVisibleRange",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.getVisibleRange(): EngineRange<number> | null"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 7,
+      "receiver": "series",
+      "method": "priceScale",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.priceScale(): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 13,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(range.from)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 14,
+      "receiver": "series",
+      "method": "priceToCoordinate",
+      "args_shape": "(range.to)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.priceToCoordinate(price: number): number | null"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 17,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(fromY)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 18,
+      "receiver": "series",
+      "method": "coordinateToPrice",
+      "args_shape": "(toY)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.coordinateToPrice(y: number): number | null"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 19,
+      "receiver": "priceScale",
+      "method": "getVisibleRange",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "PriceScaleHandle.getVisibleRange(): EngineRange<number> | null"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 19,
+      "receiver": "series",
+      "method": "priceScale",
+      "args_shape": "()",
+      "cluster": "D-drawings",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.priceScale(): PriceScaleHandle"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 39,
+      "receiver": "series",
+      "method": "detachPrimitive",
+      "args_shape": "(primitive)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.detachPrimitive(primitive: unknown): void"
+    },
+    {
+      "file": "terminal/lib/drawingPaneReadiness.ts",
+      "line": 70,
+      "receiver": "series",
+      "method": "attachPrimitive",
+      "args_shape": "(primitive)",
+      "cluster": "D-drawings",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.attachPrimitive(primitive: unknown): void"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 109,
+      "receiver": "chart",
+      "method": "clearCrosshairPosition",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "ChartEngine.clearCrosshairPosition(): void"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 110,
+      "receiver": "chart",
+      "method": "setCrosshairPosition",
+      "args_shape": "(price, time, series)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "ChartEngine.setCrosshairPosition(price: number, time: EngineTime, series: SeriesHandle): void"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 124,
+      "receiver": "chart",
+      "method": "clearCrosshairPosition",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "ChartEngine.clearCrosshairPosition(): void"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 140,
+      "receiver": "chart",
+      "method": "clearCrosshairPosition",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "ChartEngine.clearCrosshairPosition(): void"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 208,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 208,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 343,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 343,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 346,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 346,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 397,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 397,
+      "receiver": "timeScale",
+      "method": "timeToIndex",
+      "args_shape": "(time, false)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.timeToIndex(time: EngineTime, findNearest?: boolean): number | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 405,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 406,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 412,
+      "receiver": "timeScale",
+      "method": "setVisibleLogicalRange",
+      "args_shape": "(range)",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.setVisibleLogicalRange(range: EngineLogicalRange): void"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 413,
+      "receiver": "chart",
+      "method": "setCrosshairPosition",
+      "args_shape": "(price, time, series)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "ChartEngine.setCrosshairPosition(price: number, time: EngineTime, series: SeriesHandle): void"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 449,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 449,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 485,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 487,
+      "receiver": "series",
+      "method": "dataByIndex",
+      "args_shape": "(Number.MIN_SAFE_INTEGER, NEAREST_RIGHT)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.dataByIndex(logicalIndex: number, mismatch?: \"nearest-left\" | \"nearest-right\" | \"none\"): EngineSeriesRow | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 488,
+      "receiver": "series",
+      "method": "dataByIndex",
+      "args_shape": "(Number.MAX_SAFE_INTEGER, NEAREST_LEFT)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.dataByIndex(logicalIndex: number, mismatch?: \"nearest-left\" | \"nearest-right\" | \"none\"): EngineSeriesRow | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 490,
+      "receiver": "timeScale",
+      "method": "timeToIndex",
+      "args_shape": "(firstBar.time as Time, false)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.timeToIndex(time: EngineTime, findNearest?: boolean): number | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 491,
+      "receiver": "timeScale",
+      "method": "timeToIndex",
+      "args_shape": "(lastBar.time as Time, false)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.timeToIndex(time: EngineTime, findNearest?: boolean): number | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 502,
+      "receiver": "series",
+      "method": "dataByIndex",
+      "args_shape": "(i)",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.dataByIndex(logicalIndex: number, mismatch?: \"nearest-left\" | \"nearest-right\" | \"none\"): EngineSeriesRow | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 529,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 529,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 530,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/paneSync.ts",
+      "line": 530,
+      "receiver": "timeScale",
+      "method": "getVisibleRange",
+      "args_shape": "()",
+      "cluster": "S-sync",
+      "contract_status": "needs_method",
+      "proposed": "TimeScaleHandle.getVisibleRange(): EngineRange<EngineTime> | null"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "line": 83,
+      "receiver": "chart",
+      "method": "timeScale",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "ChartEngine.timeScale(): TimeScaleHandle"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "line": 84,
+      "receiver": "timeScale",
+      "method": "getVisibleLogicalRange",
+      "args_shape": "()",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.getVisibleLogicalRange(): EngineLogicalRange | null"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "line": 88,
+      "receiver": "series",
+      "method": "barsInLogicalRange",
+      "args_shape": "(visRange)",
+      "cluster": "M03-decorations",
+      "contract_status": "needs_method",
+      "proposed": "SeriesHandle.barsInLogicalRange(range: EngineLogicalRange): { from: EngineTime; to: EngineTime } | null"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "line": 106,
+      "receiver": "timeScale",
+      "method": "timeToCoordinate",
+      "args_shape": "(visibleBars[0].time as unknown as Time)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.timeToCoordinate(time: EngineTime): number | null"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "line": 107,
+      "receiver": "timeScale",
+      "method": "timeToCoordinate",
+      "args_shape": "(visibleBars[1].time as unknown as Time)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.timeToCoordinate(time: EngineTime): number | null"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "line": 140,
+      "receiver": "timeScale",
+      "method": "timeToCoordinate",
+      "args_shape": "(bar.time as unknown as Time)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "TimeScaleHandle.timeToCoordinate(time: EngineTime): number | null"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "line": 255,
+      "receiver": "series",
+      "method": "attachPrimitive",
+      "args_shape": "(prim as unknown as ISeriesPrimitive<Time>)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.attachPrimitive(primitive: unknown): void"
+    },
+    {
+      "file": "terminal/lib/sessionShading.ts",
+      "line": 268,
+      "receiver": "series",
+      "method": "detachPrimitive",
+      "args_shape": "(prim as unknown as ISeriesPrimitive<Time>)",
+      "cluster": "M03-decorations",
+      "contract_status": "covered",
+      "proposed": "SeriesHandle.detachPrimitive(primitive: unknown): void"
+    }
+  ],
+  "proposed_contract_additions": [
+    {
+      "handle": "MarkersHandle",
+      "method": "detach",
+      "signature": "(): void",
+      "semantics": "Detach the markers plugin from its host series. ChartPanel detaches BEFORE removeSeries (clearAllIndicators at :2448). SeriesHandle.remove() already detaches internally; an explicit detach remains needed when the series survives and only the marks go.",
+      "lwc_mapping": "ISeriesMarkersPluginApi.detach()",
+      "consumers": 10,
+      "needed_by_clusters": [
+        "M03-decorations"
+      ]
+    },
+    {
+      "handle": "SeriesHandle",
+      "method": "options",
+      "signature": "(): EngineSeriesOptions",
+      "semantics": "Read back live series options (visible, priceScaleId). Magnet-crosshair and isRequestedPriceScaleApplied depend on this.",
+      "lwc_mapping": "ISeriesApi.options()",
+      "consumers": 10,
+      "needed_by_clusters": [
+        "I-interaction",
+        "M01-mount",
+        "S-sync",
+        "X-other"
+      ]
+    },
+    {
+      "handle": "PriceScaleHandle",
+      "method": "options",
+      "signature": "(): Record<string, unknown>",
+      "semantics": "Read back scale mode/margins. Axis-wheel zoom inspects mode + scaleMargins (ChartPanel.tsx:7303).",
+      "lwc_mapping": "IPriceScaleApi.options()",
+      "consumers": 7,
+      "needed_by_clusters": [
+        "D-drawings",
+        "I-interaction",
+        "X-other"
+      ]
+    },
+    {
+      "handle": "SeriesHandle",
+      "method": "priceScale",
+      "signature": "(): PriceScaleHandle",
+      "semantics": "The price scale this series is attached to. drawingPaneReadiness and axis-wheel zoom go through this.",
+      "lwc_mapping": "ISeriesApi.priceScale()",
+      "consumers": 7,
+      "needed_by_clusters": [
+        "D-drawings",
+        "I-interaction",
+        "X-other"
+      ]
+    },
+    {
+      "handle": "SeriesHandle",
+      "method": "dataByIndex",
+      "signature": "(logicalIndex: number, mismatch?: \"nearest-left\" | \"nearest-right\" | \"none\"): EngineSeriesRow | null",
+      "semantics": "Lookup a row by logical index. MismatchDirection.NearestRight finds the first visible bar for percent/indexed scales; paneSync uses min/max integer with nearest-left/right.",
+      "lwc_mapping": "ISeriesApi.dataByIndex(index, mismatch?)",
+      "consumers": 5,
+      "needed_by_clusters": [
+        "I-interaction",
+        "S-sync"
+      ]
+    },
+    {
+      "handle": "PriceScaleHandle",
+      "method": "getVisibleRange",
+      "signature": "(): EngineRange<number> | null",
+      "semantics": "Visible price window. drawingPaneReadiness uses this as the scale-ready probe; axis-wheel zoom reads it before mutating.",
+      "lwc_mapping": "IPriceScaleApi.getVisibleRange()",
+      "consumers": 4,
+      "needed_by_clusters": [
+        "D-drawings",
+        "I-interaction",
+        "X-other"
+      ]
+    },
+    {
+      "handle": "TimeScaleHandle",
+      "method": "logicalToCoordinate",
+      "signature": "(logical: number): number | null",
+      "semantics": "Map a fractional logical index to CSS-px x. Drawing/SVG overlays (xOf, suite xi) depend on this.",
+      "lwc_mapping": "ITimeScaleApi.logicalToCoordinate(logical)",
+      "consumers": 4,
+      "needed_by_clusters": [
+        "D-drawings",
+        "M02-studies"
+      ]
+    },
+    {
+      "handle": "ChartEngine",
+      "method": "clearCrosshairPosition",
+      "signature": "(): void",
+      "semantics": "Clear a programmatic crosshair. Idempotent if none is set.",
+      "lwc_mapping": "IChartApi.clearCrosshairPosition()",
+      "consumers": 3,
+      "needed_by_clusters": [
+        "S-sync"
+      ]
+    },
+    {
+      "handle": "PaneHandle",
+      "method": "getSeries",
+      "signature": "(): SeriesHandle[]",
+      "semantics": "Series currently living in this pane (magnet-crosshair candidate scan, drawing seriesForPane).",
+      "lwc_mapping": "IPaneApi.getSeries()",
+      "consumers": 3,
+      "needed_by_clusters": [
+        "D-drawings",
+        "I-interaction",
+        "S-sync"
+      ]
+    },
+    {
+      "handle": "PaneHandle",
+      "method": "priceScale",
+      "signature": "(priceScaleId: string): PriceScaleHandle",
+      "semantics": "Per-pane price scale. applyPaneTickDensity writes tickMarkDensity onto every pane's right scale (ChartPanel.tsx:2232).",
+      "lwc_mapping": "IPaneApi.priceScale(priceScaleId)",
+      "consumers": 3,
+      "needed_by_clusters": [
+        "I-interaction",
+        "M01-mount",
+        "X-other"
+      ]
+    },
+    {
+      "handle": "PriceScaleHandle",
+      "method": "setAutoScale",
+      "signature": "(on: boolean): void",
+      "semantics": "Toggle autoscale. Axis-dblclick reset (ChartPanel.tsx:7371), ChartFrameBar lock toggle, ChartSettingsModal Scales tab.",
+      "lwc_mapping": "IPriceScaleApi.setAutoScale(on)",
+      "consumers": 3,
+      "needed_by_clusters": [
+        "I-interaction"
+      ]
+    },
+    {
+      "handle": "SeriesHandle",
+      "method": "data",
+      "signature": "(): EngineSeriesRow[]",
+      "semantics": "Return the series' current data array (ChartPanel e2e census slices the last 120 rows at :3774).",
+      "lwc_mapping": "ISeriesApi.data()",
+      "consumers": 3,
+      "needed_by_clusters": [
+        "X-other"
+      ]
+    },
+    {
+      "handle": "TimeScaleHandle",
+      "method": "timeToIndex",
+      "signature": "(time: EngineTime, findNearest?: boolean): number | null",
+      "semantics": "Resolve a calendar time to a (possibly nearest) logical index. paneSync converts a peer's time into the local axis.",
+      "lwc_mapping": "ITimeScaleApi.timeToIndex(time, findNearest)",
+      "consumers": 3,
+      "needed_by_clusters": [
+        "S-sync"
+      ]
+    },
+    {
+      "handle": "ChartEngine",
+      "method": "options",
+      "signature": "(): EngineOptions",
+      "semantics": "Read back live chart options. ChartPanel uses layout.fontSize for the axis tag (ChartPanel.tsx:3767, :4550). Returns the owned EngineOptions shape.",
+      "lwc_mapping": "IChartApi.options()",
+      "consumers": 2,
+      "needed_by_clusters": [
+        "I-interaction",
+        "X-other"
+      ]
+    },
+    {
+      "handle": "ChartEngine",
+      "method": "setCrosshairPosition",
+      "signature": "(price: number, time: EngineTime, series: SeriesHandle): void",
+      "semantics": "Place the crosshair on a series at (time, price). LWC does not fire crosshairMove for this, so DOM labels listen via paneSync onCrosshair.",
+      "lwc_mapping": "IChartApi.setCrosshairPosition(price, time, series)",
+      "consumers": 2,
+      "needed_by_clusters": [
+        "S-sync"
+      ]
+    },
+    {
+      "handle": "TimeScaleHandle",
+      "method": "coordinateToLogical",
+      "signature": "(x: number): number | null",
+      "semantics": "Inverse of logicalToCoordinate. Drawing hit-testing converts pointer x to a logical index.",
+      "lwc_mapping": "ITimeScaleApi.coordinateToLogical(x)",
+      "consumers": 2,
+      "needed_by_clusters": [
+        "D-drawings",
+        "I-interaction"
+      ]
+    },
+    {
+      "handle": "TimeScaleHandle",
+      "method": "getVisibleRange",
+      "signature": "(): EngineRange<EngineTime> | null",
+      "semantics": "Calendar (time-domain) visible window. Distinct from getVisibleLogicalRange. Pane-sync law: mirror a CALENDAR window, never bar indexes.",
+      "lwc_mapping": "ITimeScaleApi.getVisibleRange()",
+      "consumers": 2,
+      "needed_by_clusters": [
+        "S-sync",
+        "X-other"
+      ]
+    },
+    {
+      "handle": "TimeScaleHandle",
+      "method": "setVisibleRange",
+      "signature": "(range: EngineRange<EngineTime>): void",
+      "semantics": "Set the visible window by calendar time (ChartFrameBar 1D/1W/1M/YTD keys). Distinct from setVisibleLogicalRange.",
+      "lwc_mapping": "ITimeScaleApi.setVisibleRange(range)",
+      "consumers": 2,
+      "needed_by_clusters": [
+        "I-interaction"
+      ]
+    },
+    {
+      "handle": "TimeScaleHandle",
+      "method": "width",
+      "signature": "(): number",
+      "semantics": "Plot-area width in CSS px. applyView (ChartPanel.tsx:3319) sizes a logical window from it.",
+      "lwc_mapping": "ITimeScaleApi.width()",
+      "consumers": 2,
+      "needed_by_clusters": [
+        "I-interaction",
+        "M02-studies"
+      ]
+    },
+    {
+      "handle": "PriceScaleHandle",
+      "method": "setVisibleRange",
+      "signature": "(range: EngineRange<number>): void",
+      "semantics": "Set the visible price window (axis-wheel zoom writes the zoomed range). Pointer-anchored: the value under the pointer stays fixed (<=1 CSS px).",
+      "lwc_mapping": "IPriceScaleApi.setVisibleRange(range)",
+      "consumers": 1,
+      "needed_by_clusters": [
+        "I-interaction"
+      ]
+    },
+    {
+      "handle": "SeriesHandle",
+      "method": "barsInLogicalRange",
+      "signature": "(range: EngineLogicalRange): { from: EngineTime; to: EngineTime } | null",
+      "semantics": "Bars of this series that fall inside a logical range, with the first/last bar times. sessionShading uses this to iterate visible bars for session tint.",
+      "lwc_mapping": "ISeriesApi.barsInLogicalRange(range)",
+      "consumers": 1,
+      "needed_by_clusters": [
+        "M03-decorations"
+      ]
+    },
+    {
+      "handle": "SeriesHandle",
+      "method": "priceLines",
+      "signature": "(): PriceLineHandle[]",
+      "semantics": "Live price-line inventory on this series. chartOwnershipCensus counts them (ChartPanel.tsx:3358) to detect unpooled lines.",
+      "lwc_mapping": "ISeriesApi.priceLines()",
+      "consumers": 1,
+      "needed_by_clusters": [
+        "X-other"
+      ]
+    },
+    {
+      "handle": "TimeScaleHandle",
+      "method": "options",
+      "signature": "(): Record<string, unknown>",
+      "semantics": "Read back time-scale options (e2e hook __mmChartAxisOpts at ChartPanel.tsx:3766).",
+      "lwc_mapping": "ITimeScaleApi.options()",
+      "consumers": 1,
+      "needed_by_clusters": [
+        "X-other"
+      ]
+    },
+    {
+      "handle": "WatermarkHandle",
+      "method": "applyOptions",
+      "signature": "(opts: Partial<WatermarkSpec>): void",
+      "semantics": "Mutate the existing pane watermark without detach+recreate. ChartPanel Effect 7 toggles visible/color this way (ChartPanel.tsx:9726); setWatermark replace-semantics would flash.",
+      "lwc_mapping": "ITextWatermarkPluginApi.applyOptions(opts)",
+      "consumers": 1,
+      "needed_by_clusters": [
+        "M03-decorations"
+      ]
+    }
+  ],
+  "exclusions": [
+    {
+      "file": "terminal/components/TideChartLazy.tsx",
+      "reason": "Options-hub Tide tab; the only LWC consumer in OptionsHubView, lazy-loaded. Stays on createChart until the options-suite owner migrates it (C01-A04)."
+    },
+    {
+      "file": "terminal/components/surface/SurfacePane.tsx",
+      "reason": "Options surface 3D/2D pane; standalone createChart + setCrosshairPosition. Outside the main-chart migration closure (C01-A04)."
+    },
+    {
+      "file": "terminal/components/surface/StrikeEvolutionModal.tsx",
+      "reason": "Options strike-evolution modal; standalone createChart + createSeriesMarkers. Outside the main-chart migration closure (C01-A04)."
+    },
+    {
+      "file": "terminal/components/surface/SessionFlowPane.tsx",
+      "reason": "Options session-flow pane; standalone createChart. Outside the main-chart migration closure (C01-A04)."
+    },
+    {
+      "file": "terminal/lib/heatSeries.ts",
+      "reason": "Options heatmap custom series (ICustomSeriesPaneView). Custom-series kinds are not in the six first-class series; stays with the options surface (C01-A04)."
+    },
+    {
+      "file": "terminal/lib/surfaceContract.ts",
+      "reason": "Type-only Time import for the options surface contract. No runtime LWC calls (C01-A04)."
+    },
+    {
+      "file": "terminal/app/embed/chart/EmbedChart.tsx",
+      "reason": "Standalone /embed/chart iframe widget. Deliberately isolated from AppShell/ChartPanel; owner-changes required (C01-A04)."
+    },
+    {
+      "file": "terminal/lib/chart-engine/lwc/index.ts",
+      "reason": "The LWC adapter is the one module allowed to import lightweight-charts. It implements api.ts; it is not a consumer to migrate off LWC."
+    },
+    {
+      "file": "terminal/lib/chart-engine/api.ts",
+      "reason": "Mentions lightweight-charts only in comments (law 1: this file MUST NOT import it). Not an importer."
+    }
+  ],
+  "enum_uses": [
+    {
+      "enum": "ColorType",
+      "members_used": [
+        "Solid",
+        "VerticalGradient"
+      ],
+      "replacement": "string-union literal"
+    },
+    {
+      "enum": "CrosshairMode",
+      "members_used": [
+        "Magnet",
+        "Normal"
+      ],
+      "replacement": "string-union literal"
+    },
+    {
+      "enum": "LineStyle",
+      "members_used": [
+        "Dotted"
+      ],
+      "replacement": "contract constant"
+    },
+    {
+      "enum": "LineType",
+      "members_used": [
+        "WithSteps"
+      ],
+      "replacement": "string-union literal"
+    },
+    {
+      "enum": "MismatchDirection",
+      "members_used": [
+        "NearestRight"
+      ],
+      "replacement": "string-union literal"
+    },
+    {
+      "enum": "PriceScaleMode",
+      "members_used": [
+        "IndexedTo100",
+        "Logarithmic",
+        "Normal",
+        "Percentage"
+      ],
+      "replacement": "string-union literal"
+    },
+    {
+      "enum": "TickMarkType",
+      "members_used": [
+        "DayOfMonth",
+        "Time",
+        "TimeWithSeconds"
+      ],
+      "replacement": "string-union literal"
+    }
+  ]
+}

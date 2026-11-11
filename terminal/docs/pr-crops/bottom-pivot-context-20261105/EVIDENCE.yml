@@ -1,0 +1,109 @@
+# Native Terminal dark-only treatment: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Original source base 691bb74ccb277b24b01298698f834e4ff179e515; layoutFiles bind actual tested bytes.
+# All values and caller auth are synthetic local fixtures. This is NOT production acceptance.
+layoutFiles:
+  terminal/app/api/nw/route.ts: a9fa7d3f13737443687e1d3553683ffeb234588529c5d77f8468d4e614b4e82e
+  terminal/components/fin/BottomPivotContextCard.module.css: 2eb8a98e1fc252d40e741dcc198350954b5dc1f95bac25a6afadc550a3be9886
+  terminal/components/fin/BottomPivotContextCard.tsx: 4ea875ee5536ea703a0309d0643ba4893ab01ff7243fdbde41ef93758f861e23
+  terminal/components/fin/MegaPane.tsx: 6a29696b50fda71364aaddbfe9fde7882d832b4402db4d04479d001ab56ee46b
+  terminal/components/fin/bottomPivotLex.ts: ca3197b39ff3778f0ef59dee17fc1a466c16eb9d67e25ae2e7d7c913a3bd2e31
+  terminal/e2e/bottom-pivot-context.spec.ts: 1679c14dfac3f6188612a69bb5872b4126244ea913279076718a1196f7e20c2e
+  terminal/lib/__tests__/BottomPivotContextCard.test.tsx: 5002d73527fc39dfdbbc7b3f8f3631cf2c7e6b18c9621996944513ed792b769e
+  terminal/lib/__tests__/bottomPivotContext.test.ts: 57043f0e6b8b609be5d0339f4d5f78682f60d319783457cec6e2a5936f61064b
+  terminal/lib/__tests__/fixtures/bottom-pivot/context.json: 89e586e5430d5017a4a7761fd704f6efe9ba1825e46034847e359c168f9573a8
+  terminal/lib/__tests__/nwRoute.test.ts: 468fb34c1b51051f0b1f3512619b24e4683cde11fe706f884e7cc5f49e3e4800
+  terminal/lib/bottomPivotContext.ts: f97212de2bb459a7f0dc5ef3891562c0f7053af20b6755c89a92401c9e50cabc
+  terminal/app/globals.css: b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517
+  terminal/app/fin.css: 0ef210f0d6181849a582dd1e4a5aa80aeeabf0f769fe5c41035aeabc80d37fd1
+  terminal/components/fin/TechnicalsPage.tsx: be5983e6ba1d6f203751cca997e306209a900db31bffd3c705a759e676c08622
+  terminal/components/workspaces/AnalysisWorkspace.tsx: 28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b
+theme: dark
+languages:
+- en
+- zh
+viewports:
+- name: desktop
+  width: 1440
+  height: 900
+- name: tablet
+  width: 820
+  height: 1180
+- name: mobile
+  width: 390
+  height: 844
+surfaces:
+- BottomPivotContextCard
+- MegaPane technicals branch
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: Existing Playwright webServer local development fixture; no production
+  auth bypass or live data claim.
+command: 'cd terminal
+
+  TERMINAL_E2E_PORT=<unused-port> TERMINAL_VISUAL_EVIDENCE_OPERATION=bottom-pivot-delivery-20261105
+  npm run test:e2e:responsive -- e2e/bottom-pivot-context.spec.ts --project=desktop
+  --project=tablet --project=mobile --workers=1'
+files:
+- desktop-dark-en-observed-card.png
+- desktop-dark-en-observed-footer-viewport.png
+- desktop-dark-en-observed-viewport.png
+- desktop-dark-zh-observed-card.png
+- desktop-dark-zh-observed-footer-viewport.png
+- desktop-dark-zh-observed-viewport.png
+- desktop-historical-card.png
+- desktop-historical-footer-viewport.png
+- desktop-historical-viewport.png
+- desktop-partial-conflict-card.png
+- desktop-partial-conflict-footer-viewport.png
+- desktop-partial-conflict-viewport.png
+- desktop-refusal-401-card.png
+- desktop-refusal-401-footer-viewport.png
+- desktop-refusal-401-viewport.png
+- desktop-refusal-403-card.png
+- desktop-refusal-403-footer-viewport.png
+- desktop-refusal-403-viewport.png
+- desktop-refusal-503-card.png
+- desktop-refusal-503-footer-viewport.png
+- desktop-refusal-503-viewport.png
+- desktop-stale-source-card.png
+- desktop-stale-source-footer-viewport.png
+- desktop-stale-source-viewport.png
+- mobile-dark-en-observed-footer-viewport.png
+- mobile-dark-en-observed-viewport.png
+- mobile-dark-zh-observed-footer-viewport.png
+- mobile-dark-zh-observed-viewport.png
+- mobile-historical-footer-viewport.png
+- mobile-historical-viewport.png
+- mobile-partial-conflict-footer-viewport.png
+- mobile-partial-conflict-viewport.png
+- mobile-refusal-401-footer-viewport.png
+- mobile-refusal-401-viewport.png
+- mobile-refusal-403-footer-viewport.png
+- mobile-refusal-403-viewport.png
+- mobile-refusal-503-footer-viewport.png
+- mobile-refusal-503-viewport.png
+- mobile-stale-source-footer-viewport.png
+- mobile-stale-source-viewport.png
+- tablet-dark-en-observed-card.png
+- tablet-dark-en-observed-footer-viewport.png
+- tablet-dark-en-observed-viewport.png
+- tablet-dark-zh-observed-card.png
+- tablet-dark-zh-observed-footer-viewport.png
+- tablet-dark-zh-observed-viewport.png
+- tablet-historical-card.png
+- tablet-historical-footer-viewport.png
+- tablet-historical-viewport.png
+- tablet-partial-conflict-card.png
+- tablet-partial-conflict-footer-viewport.png
+- tablet-partial-conflict-viewport.png
+- tablet-refusal-401-card.png
+- tablet-refusal-401-footer-viewport.png
+- tablet-refusal-401-viewport.png
+- tablet-refusal-403-card.png
+- tablet-refusal-403-footer-viewport.png
+- tablet-refusal-403-viewport.png
+- tablet-refusal-503-card.png
+- tablet-refusal-503-footer-viewport.png
+- tablet-refusal-503-viewport.png
+- tablet-stale-source-card.png
+- tablet-stale-source-footer-viewport.png
+- tablet-stale-source-viewport.png

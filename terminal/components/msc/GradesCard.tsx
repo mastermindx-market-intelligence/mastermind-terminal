@@ -105,7 +105,10 @@ export function GradesCard({
   if (!g || !g.roles || Object.keys(g.roles).length === 0) return null;
 
   const rows = ROLE_ORDER.filter((r) => g.roles?.[r.key]?.scored);
-  const anyBeats = rows.some((r) => g.roles?.[r.key]?.beats_null === true);
+  const anyBeats = rows.some((r) => {
+    const d = g.roles![r.key]!;
+    return (isNum(d.null_equidistant?.p_hold) ? d.beats_equidistant_null : d.beats_null) === true;
+  });
   const boards = g.boards ?? {};
   const win = g.window ?? {};
 

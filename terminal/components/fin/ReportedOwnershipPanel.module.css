@@ -1,0 +1,131 @@
+/* Reported institutional holders — provider-disclosed positions, never verified 13F.
+   Token-based like every other Terminal surface, so both art directions come for free.
+   The table wrapper owns horizontal scrolling: the document itself must never overflow, so
+   nothing here sets a fixed min-width that could push the page wider than the viewport. */
+
+.wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile);
+  background: var(--panel-2);
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 510 11px/1.4 var(--font-ui);
+}
+
+.table th,
+.table td {
+  padding: 8px 11px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel-3);
+  color: var(--muted);
+  font: 640 9.5px/1.3 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Holder names can be long and are text, so they wrap instead of forcing the table wider. */
+.holder {
+  color: var(--text);
+  font-weight: 560;
+  overflow-wrap: anywhere;
+}
+
+.date {
+  color: var(--text-2);
+  font: 520 10.5px/1.4 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.numeric {
+  color: var(--text-2);
+  font: 520 10.5px/1.4 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.unknown {
+  color: var(--text-dim);
+}
+
+.metaRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.metaRow strong {
+  color: var(--muted);
+  font: 600 9px/1 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.metaRow a {
+  color: var(--link);
+  font: 560 10px/1 var(--font-ui);
+  text-decoration: none;
+}
+
+.metaRow a:hover {
+  text-decoration: underline;
+}
+
+.metaRow time {
+  color: var(--text);
+  font: 560 10px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  margin: 0;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile);
+  background: var(--panel-2);
+  color: var(--muted);
+  font: 510 10.5px/1.45 var(--font-ui);
+  overflow-wrap: anywhere;
+}
+
+.stale {
+  color: var(--muted);
+}
+
+.note {
+  margin: 0;
+  color: var(--muted);
+  font: 500 9.5px/1.5 var(--font-ui);
+  max-width: 980px;
+}
+
+@media (max-width: 640px) {
+  .metaRow {
+    justify-content: flex-start;
+    white-space: normal;
+  }
+  .table th,
+  .table td {
+    padding: 7px 9px;
+  }
+}

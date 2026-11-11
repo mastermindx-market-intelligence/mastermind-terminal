@@ -1,0 +1,23 @@
+{
+  "sourceHead": "08bca3d53b52f245f081fed26cfd7ac352c52488",
+  "capturedAt": "2026-10-24T07:25:47.255104+00:00",
+  "environment": "isolated M2 SSD; canonical local deterministic Next fixtures; not Chrome Person1/authenticated/public",
+  "profile": "ordinary Terminal; MMX_SHARED_SHELL and MMX_INVESTOR_SHELL_PREVIEW unset; Next bakes MMX_SHARED_SHELL=0",
+  "scope": [
+    "ChartChrome-1440.png",
+    "ChartChrome-1440-zh.png",
+    "ChartChrome-390.png",
+    "ChartChrome-390-zh.png"
+  ],
+  "cropHashes": {
+    "ChartChrome-1440.png": "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d",
+    "ChartChrome-1440-zh.png": "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d",
+    "ChartChrome-390.png": "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0",
+    "ChartChrome-390-zh.png": "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce"
+  },
+  "onlyChangedLayoutInput": {
+    "terminal/next.config.ts": "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
+  },
+  "qualification": "Actual affected-only screenshot-producing cases. Other crops and historical reports retained under true original identities.",
+  "command": "NODE_OPTIONS=--no-experimental-webstorage CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=37166 node e2e/tools/capture_pl6_batch1.cjs"
+}

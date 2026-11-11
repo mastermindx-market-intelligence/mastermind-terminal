@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
 import AlertsCockpitMount from "@/components/alerts/AlertsCockpitMount";
 import AlertsViewMount from "@/components/mounts/AlertsViewMount";
+import AlertBulkManagerMount from "@/components/mounts/AlertBulkManagerMount";
 import SignupGate from "@/components/gates/SignupGate";
 
 // Alerts (Wave-3 IA) — split back out of the former Automate page into its own
@@ -24,12 +26,14 @@ import SignupGate from "@/components/gates/SignupGate";
 // second page-level <main>/`.pg` — this is one page composition, not two mounts
 // stitched together at the page level.
 
-export const metadata: Metadata = { title: "Alerts · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Alerts");
 
 function AlertsSurfaces({ email }: { email: string }) {
   return (
     <AlertsCockpitMount email={email}>
       <AlertsViewMount email={email} listOnly />
+      {/* E18: filter, select and pause/resume several alerts, each with its own result. */}
+      <AlertBulkManagerMount email={email} />
     </AlertsCockpitMount>
   );
 }

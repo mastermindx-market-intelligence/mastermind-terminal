@@ -1,0 +1,260 @@
+{
+  "schema": "prophet.wmko.continuation_evidence/v1",
+  "root": "prophet-wmko-miss-20261018",
+  "protected_mastermind_pin": "d5cce731a23588ddbf4df806bd9e8dcfa5eecf24",
+  "publication_checkpoint": "TESTED_PENDING_HOSTED_CI_AND_INDEPENDENT_EVIDENCE_REVIEW",
+  "source": {
+    "head": "6b91c3dba40d36be2bb32fd3cf27078e49d5d2c0",
+    "preserved_prophet_head": "1163e6f48cf31a0e338e985d22f8cd110de2cfd7",
+    "integrated_protected_master": "e45bde2cac07ac3b29285ff70c40d68900fad62c",
+    "merge_kind": "normal merge; no conflicts",
+    "repair_scope": "six existing Chart Context evidence files; no new application/test logic edits"
+  },
+  "previous_hosted_run": {
+    "id": 39185235687,
+    "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/39185235687",
+    "synthetic_checkout": "6c7518330fabd976fdb46f023c4e193e86acc64a",
+    "result": "failure",
+    "browser_shards_passed": 8,
+    "units": {
+      "files_passed": 777,
+      "files_failed": 1,
+      "tests_passed": 13089,
+      "tests_failed": 1,
+      "todo": 4
+    },
+    "failure": "visualIntelligenceEvidence source hash: integrated TerminalShell",
+    "aggregate": "failure"
+  },
+  "capture": {
+    "started_at": "2026-10-19T04:51:39.422Z",
+    "manifest_path": "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+    "manifest_sha256": "ee0500f40d241dbbeedd79ddad833a435175abd0b0e8269ca5ba92739a18b0ef",
+    "report_path": "terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json",
+    "report_sha256": "0751cf788a86859f5d07c8b92aac17d0a6f8e445d38260c2cab88719816e9319",
+    "source_locks": 25,
+    "passed": 30,
+    "failed": 0,
+    "skipped": 0,
+    "retries": 0,
+    "flaky": 0,
+    "workers": 1,
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "viewports": {
+      "desktop": "1440x900",
+      "tablet": "820x1180",
+      "mobile": "390x844"
+    },
+    "all_six_images_regenerated": true,
+    "byte_identical_images": [
+      "mobile-context.png",
+      "mobile-context-zh.png"
+    ],
+    "scope": "actual local NVDA fixture UI captures; not authenticated production WM/KO evidence"
+  },
+  "local_verification": {
+    "typegen_exit": 0,
+    "typecheck_exit": 0,
+    "unconstrained": {
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit": 1,
+      "files_passed": 782,
+      "files_failed": 3,
+      "tests_passed": 13225,
+      "tests_failed": 3,
+      "todo": 4,
+      "timings_ms": {
+        "aggregation": 238.8406,
+        "recording": 513.6051,
+        "geometry": 351.3847
+      }
+    },
+    "controlled": {
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "--no-file-parallelism"
+      ],
+      "exit": 0,
+      "files_passed": 785,
+      "files_failed": 0,
+      "tests_passed": 13228,
+      "tests_failed": 0,
+      "todo": 4,
+      "duration_seconds": 755.12,
+      "timings_ms": {
+        "aggregation": 12.37,
+        "recording": 125.26,
+        "geometry": 6.17
+      },
+      "runtime": {
+        "node": "v26.5.0",
+        "available_parallelism": 24,
+        "host_load_at_start": [
+          152.5693359375,
+          144.95068359375,
+          143.84619140625
+        ]
+      }
+    },
+    "unchanged_limits_ms": {
+      "aggregation": 200,
+      "recording": 400,
+      "geometry": 250
+    },
+    "hosted_gate": "Node 20, unchanged bare npm test, required on final published commit",
+    "prior_failure_preserved": true
+  },
+  "independent_review_at_publication": {
+    "context_reviewer": "/root/terminal_evidence_review",
+    "context_status": "IN_PROGRESS",
+    "configuration_reviewer": "/root/macro_repair_movement",
+    "configuration_status": "COMPLETE",
+    "completed_transcript_review_status": "IN_PROGRESS",
+    "final_verdict_location": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1054"
+  },
+  "release_owner": {
+    "protected_commit": "e45bde2cac07ac3b29285ff70c40d68900fad62c",
+    "archive_path": "/var/tmp/prophet-terminal-ops-e45bde2cac07ac3b29285ff70c40d68900fad62c",
+    "archive_sha256": "d18c51511ef0238c32940ac766478017b0bc1a60bdd023e284cb5654385468f7",
+    "owner_sha256": "4d1b7c05d975a30be21de9556cc9eef964d07f30ba468f88abd0b40a61a84247",
+    "preflight_sha256": "a8d1db606afed780cf43b5471ef27d127621eb5de843d36d8d310ba62a8a0b23",
+    "preflight_receipt_id": "05a356012c036952d5700cc6fc87e9501f3d978122085497bd1bad68269d53c8",
+    "preflight_receipt_path": "/var/lib/mastermind-terminal/release-preflight/20261019T045641Z-e1c66d0b137bec948e9a714b22ae81e0e72a382f-05a356012c036952d5700cc6fc87e9501f3d978122085497bd1bad68269d53c8.json",
+    "preflight_result": "CLEAN",
+    "preflight_exit": 0,
+    "findings": 0,
+    "outgoing_accepted_sha": "e1c66d0b137bec948e9a714b22ae81e0e72a382f",
+    "source_audit_receipt_id": "c7d27646226d61b38787ce9000fe3eceb3b60ef2d02a23fc222c29336d916c16",
+    "separate_readback": {
+      "file_mode": "0640",
+      "owner": "root",
+      "receipt_sha256": "e3d52b3c0b9555e980654a3ef43cb9f9449c79e0de648186c36d4f1d0f5d4e8b",
+      "policy_digest": "0d0ec2dafc2a7ffbd7ceeba5f6d5cb0c2790d97670097df3e7bd08c3244bb76a",
+      "nested_findings": 0
+    },
+    "application_deployed_by_this_continuation": false
+  },
+  "remaining_gates": {
+    "macro": "PR #9610 remains held at 9779142d9cb1fdce378703f46297d287b4041f77 by genuine Full RIG owner repair; no fabricated receipts or retry",
+    "live_navigation": {
+      "classification": "AUTO_REVIEW_BLOCKED",
+      "effect": "EFFECT_NONE",
+      "reason": "Automatic approval review could not complete because its selected model was at capacity; not a determination of unsafe action",
+      "bypass_attempted": false
+    },
+    "prior_blocked_macro_6817_write_replayed": false
+  },
+  "raw_and_published_transcripts": [
+    {
+      "source": "prophet-context-evidence-red-20261019.log",
+      "raw_sha256": "a914ef47d8e371395b5f31b1cf6f9a4a3ffe14c49c6664071c2e5d58669172fe",
+      "published_path": "docs/prophet-wmko-review-20261019/terminal-context-evidence-red.log",
+      "published_sha256": "a914ef47d8e371395b5f31b1cf6f9a4a3ffe14c49c6664071c2e5d58669172fe",
+      "raw_bytes": 2093,
+      "published_bytes": 2093,
+      "removed_trailing_whitespace_bytes": 0,
+      "source_preserved": true
+    },
+    {
+      "source": "prophet-context-recapture-20261019.log",
+      "raw_sha256": "182c1ee6c96851d11058e5b8033d2b4a3bd3b9ad1fc796faff2aff9e965acbe4",
+      "published_path": "docs/prophet-wmko-review-20261019/terminal-context-recapture.log",
+      "published_sha256": "182c1ee6c96851d11058e5b8033d2b4a3bd3b9ad1fc796faff2aff9e965acbe4",
+      "raw_bytes": 6178,
+      "published_bytes": 6178,
+      "removed_trailing_whitespace_bytes": 0,
+      "source_preserved": true
+    },
+    {
+      "source": "prophet-integrated-final-unit-types-20261019.log",
+      "raw_sha256": "9c2d013c822ddf8bd55d717e941d67c514843f793493e3fef7155d88fdd2f987",
+      "published_path": "docs/prophet-wmko-review-20261019/terminal-integrated-unit-types.log",
+      "published_sha256": "d0bf97a4a09e741d03797421c1b4c8a725b3b67c37bee252c974ae39567ddfce",
+      "raw_bytes": 311665,
+      "published_bytes": 311664,
+      "removed_trailing_whitespace_bytes": 1,
+      "source_preserved": true
+    },
+    {
+      "source": "prophet-release-owner-adoption-e45-20261019.log",
+      "raw_sha256": "fd8365f4d5faf2db214243d0e08ef9bfd5b9feaca363c5512d9923dd7e859604",
+      "published_path": "docs/prophet-wmko-review-20261019/terminal-release-owner-adoption-e45.log",
+      "published_sha256": "fd8365f4d5faf2db214243d0e08ef9bfd5b9feaca363c5512d9923dd7e859604",
+      "raw_bytes": 850,
+      "published_bytes": 850,
+      "removed_trailing_whitespace_bytes": 0,
+      "source_preserved": true
+    },
+    {
+      "source": "prophet-release-preflight-e45-20261019.log",
+      "raw_sha256": "1a11a550e939f721d0c8482a5c1e9dec788ec0db41881aceca4e82b386657c84",
+      "published_path": "docs/prophet-wmko-review-20261019/terminal-release-preflight-e45.log",
+      "published_sha256": "1a11a550e939f721d0c8482a5c1e9dec788ec0db41881aceca4e82b386657c84",
+      "raw_bytes": 1187,
+      "published_bytes": 1187,
+      "removed_trailing_whitespace_bytes": 0,
+      "source_preserved": true
+    },
+    {
+      "source": "prophet-integrated-units-serial-20261019.log",
+      "raw_sha256": "45a34590ccebeb79f3c0a0d8e2d15e0ec09548f8719b1c952ef0976a449cdcfd",
+      "published_path": "docs/prophet-wmko-review-20261019/terminal-integrated-units-serial.log",
+      "published_sha256": "45a34590ccebeb79f3c0a0d8e2d15e0ec09548f8719b1c952ef0976a449cdcfd",
+      "raw_bytes": 186400,
+      "published_bytes": 186400,
+      "removed_trailing_whitespace_bytes": 0,
+      "source_preserved": true
+    }
+  ],
+  "preserved_original_terminal_untracked_sha256": {
+    "prophet-auth-native-fixture-green-20261018.log": "077fd24fa86b2ad12012cf6a7bf21175373de93157a701b7a095483b0f52dae5",
+    "prophet-ci-pr1054-head58ca-20261018.log": "90c66bd7054131a2b6f6a72909cd18df0761dfc9f29c2f984a96bfc220b7e8e6",
+    "prophet-context-evidence-red-20261019.log": "a914ef47d8e371395b5f31b1cf6f9a4a3ffe14c49c6664071c2e5d58669172fe",
+    "prophet-context-recapture-20261019.log": "182c1ee6c96851d11058e5b8033d2b4a3bd3b9ad1fc796faff2aff9e965acbe4",
+    "prophet-context-recapture-report-20261019.json": "0751cf788a86859f5d07c8b92aac17d0a6f8e445d38260c2cab88719816e9319",
+    "prophet-coverage-integration-green-20261018.log": "514affd3667d58f143636b39fe4d39d050ffa275706f8ac276c044c02b6da1da",
+    "prophet-coverage-integration-red-20261018.log": "15d2803208929eaf8976dc646386c7bdf90a2b3495da33fb664b29c07bad09d4",
+    "prophet-final-review-green-20261019.log": "43df00ceb283a59a65a95bfa16dc074ca1c994fece66dec2f9f74afb2324ca7f",
+    "prophet-final-review-red-20261019.log": "16fee1faabad860020546359606828842e9ccec12de41b53495370f3f1e71ce1",
+    "prophet-final-review-types-green-20261019.log": "992563c45cc3d5efa5691a12843d96c5bd92b0da1cad86b704cbe1a789d84533",
+    "prophet-final-unit-types-20261018.log": "b4c37d28860733c0a1dfee0fd8bd8588ba6a488c2344f04e9b2eb176917d21c5",
+    "prophet-hook-green.log": "e6f2ddd61b50d3d3e4f0188ab59293ceb8741ae33dd74c92a28ae6116ec3b5d0",
+    "prophet-hook-red.log": "28f36b5363eb0b9cd88228a9898dfa85e914fc8b4df90adf81ede75ecdb24c85",
+    "prophet-integrated-final-unit-types-20261019.log": "9c2d013c822ddf8bd55d717e941d67c514843f793493e3fef7155d88fdd2f987",
+    "prophet-integrated-responsive-20261018.log": "80d5e0d8e301d4c29c611c4d8ffa1267a1d78e8123e1212794691cdd05546210",
+    "prophet-integrated-unit-types-20261018.log": "036b0911837bcec3b9254c7845d6280b2f1085fad3b7664ea30d26eaff304b09",
+    "prophet-launcher-red.log": "8fde09dc8632c7b9e01be0625981ed43b5cd1e1e28d757a5b45272a0710bdb9f",
+    "prophet-mobile-final-unit-types-responsive-20261019.log": "3ea3d3a1d7a6f956094bab3665997572a0d8bccd4faac7dec3c4394da541153f",
+    "prophet-mobile-fold-final-20261019.log": "ebe74e7247787ea0422b83c5a99b94789bb4a1f8ec1544725c0dd6cce453a462",
+    "prophet-mobile-fold-red-20261019.log": "691455c057e3e5f2768b29919a61bf2c4995fb738a28bcd9d7bd65ff4996eea2",
+    "prophet-mobile-fold-repair-20261019.log": "2859b38300fdd0edb93e9e710dc7e100583f2993e04e3995ba9952886c859b07",
+    "prophet-npm-ci.log": "bb0fac2c241ee77d7c615305523932beb37e6a428efb98216832f1b528c12ae3",
+    "prophet-observation-green.log": "1b77cdab56b74a7cf04b8546c7dfd217d6d1acaf05cf1f0f3ea25ce4b1b39c85",
+    "prophet-release-owner-adoption-3e0be25-20261019.log": "20f945c0af3a43430eb44f80f2920501680ac541d65b57b60f2ff98f605a12b8",
+    "prophet-release-owner-adoption-e45-20261019.log": "fd8365f4d5faf2db214243d0e08ef9bfd5b9feaca363c5512d9923dd7e859604",
+    "prophet-release-preflight-before-merge-20261019.log": "91c9129990d13ad3a49a61e59e1608c8d4e15bc8c5b4351fe59fcfb6067eb7ca",
+    "prophet-release-preflight-e45-20261019.log": "1a11a550e939f721d0c8482a5c1e9dec788ec0db41881aceca4e82b386657c84",
+    "prophet-responsive-20261018.log": "f7ee08f8706f6f7d31f3d358363cb3d5dc8531d7caeb6690081ef1f01a5006d6",
+    "prophet-responsive-native-final-20261018.log": "d37ce8559374e9ab3be66ca56dd53b685eb857a790b0e523e1ddce0f0b6f418f",
+    "prophet-responsive-native-green-20261018.log": "e5f637f7a14055ea5a02fecf48411bbfac501ae5ee41520f3a5ed441eaca2273",
+    "prophet-resume-typecheck-20261018.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "prophet-review-responsive-20261019.log": "ab51d94e1d11a06c4233c7340c6bb0104cf08fb300cfe130f2588d59b436a0ab",
+    "prophet-route-green.log": "d4e313c124bb348c09c30f8225242c33d6da9283c010bcba5849c1eb82a846a9",
+    "prophet-route-red.log": "e42f116a4c60e3eb32c03a89d73512db060c2290d075dcf2cbd60fa740541a30",
+    "prophet-timing-ui-green-20261018.log": "325b96e4612a173b86733cb8a861f79e421cabbc5a13a71e679b5f557e639c2a",
+    "prophet-timing-ui-red-20261018.log": "8c7a11481f5b7fdcb74db44605d213ed683507fbcfbbb6ed61c0647245ce93f7",
+    "prophet-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "prophet-workspace-green.log": "e14c384ad9e706dc615d7e57a953a04a9f8adfdd608ed283ade6c4903ffb8682",
+    "prophet-workspace-red.log": "6c030ac758c28f18912afdc6e3326b983ca23a82e7fd8e202ac7144f7bbceaa8",
+    "prophet-integrated-units-serial-20261019.log": "45a34590ccebeb79f3c0a0d8e2d15e0ec09548f8719b1c952ef0976a449cdcfd"
+  },
+  "recorded_at_utc": "2026-10-19T05:33:38.395242+00:00"
+}

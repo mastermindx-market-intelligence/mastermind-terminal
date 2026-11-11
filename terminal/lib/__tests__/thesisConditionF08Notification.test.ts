@@ -7,7 +7,7 @@ import { buildAlertsView, copy, type OutboxRow, type Alert } from "../alertsView
 // behaviour only. Do not assert the unfixed behaviour here.
 
 const NOW = Date.parse("2026-09-05T12:00:00Z");
-const THESIS_ID = "00000000-0000-0000-0000-000000000001";
+const THESIS_ID = "11111111-1111-4111-8111-111111111111";
 
 const baseRun = {
   lane: "alerts_engine", run_id: "r1", started_at: "2026-09-05T11:58:00Z",
@@ -28,7 +28,47 @@ function thesisConditionOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
     created_at: "2026-09-05T11:59:30Z",
     payload: {
       thesis_id: THESIS_ID,
-      kind: "thesis_condition",
+      category: "thesis_window",
+      source: "macro.thesis_condition_monitor",
+    },
+    ...over,
+  };
+}
+
+// F11-11b-pre: producer's real shape — no kind, category + source, synthetic alert_id.
+// The producer's alert_id is a synthetic uuid5 of "thesis:<THESIS_ID>"; the thesis_id is bare.
+const PRODUCER_REAL_ALERT_ID = "e8e75107-3228-56c2-997c-05c4961bd088";
+function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
+  return {
+    alert_id: PRODUCER_REAL_ALERT_ID,
+    fire_event_id: "fe-thesis-real",
+    status: "pending",
+    attempts: 0,
+    last_error: null,
+    deliver_after: null,
+    delivered_at: null,
+    created_at: "2026-09-05T11:59:30Z",
+    payload: {
+      thesis_id: THESIS_ID,
+      thesis_version: 1,
+      fired_at: "2026-09-05T11:58:00Z",
+      tripwire_id: "11111111-1111-1111-a111-111111111111",
+      tripwire_version: 1,
+      category: "thesis_window",
+      source: "macro.thesis_condition_monitor",
+      subject: "Your NVDA thesis window has closed.",
+      subject_zh: "你的英伟达论点观察窗口已结束。",
+      summary_plain: "Your NVDA thesis window has closed.",
+      summary_plain_zh: "你的英伟达论点观察窗口已结束。",
+      condition_plain: "Your NVDA thesis window has closed.",
+      condition_plain_zh: "你的英伟达论点观察窗口已结束。",
+      engine_window_plain: "The watch window expired.",
+      engine_window_plain_zh: "观察窗口已到期。",
+      evidence_url: null,
+      requires_tier: undefined,
+      coverage: "full",
+      ticker: "NVDA",
+      ...(over.payload as Record<string, unknown> ?? {}),
     },
     ...over,
   };
@@ -79,19 +119,24 @@ function viewOf(outbox: OutboxRow[], alerts: Alert[] = []) {
   });
 }
 
+function thesisRowId(fireEventId = "fe-thesis-1"): string {
+  return `thesis:${THESIS_ID}:${fireEventId}`;
+}
+
 describe("alert_id null thesis_condition row surfaces as one delivery notice", () => {
   it("exactly one row whose thesisId is the payload thesis_id and whose alertId is thesis:<uuid>", () => {
     const view = viewOf([thesisConditionOutbox({ alert_id: null as unknown as string })]);
     expect(view.rows.length).toBe(1);
     expect(view.rows[0].thesisId).toBe(THESIS_ID);
-    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}`);
+    expect(view.rows[0].alertId).toBe(thesisRowId());
     expect(view.rows[0].delivery).toBe("pending");
   });
 });
 
 describe("thesis_condition row without payload.thesis_id is dropped", () => {
   it("zero rows — never rendered as an ordinary alert", () => {
-    const view = viewOf([thesisConditionOutbox({ payload: { kind: "thesis_condition" } })]);
+    const legacyPayload: Record<string, unknown> = { kind: "thesis_condition" };
+    const view = viewOf([thesisConditionOutbox({ payload: legacyPayload as OutboxRow["payload"] })]);
     expect(view.rows.length).toBe(0);
   });
 });
@@ -101,7 +146,7 @@ describe("one pending row identifiable by thesis id", () => {
     const view = viewOf([thesisConditionOutbox()]);
     expect(view.rows.length).toBe(1);
     expect(view.rows[0].thesisId).toBe(THESIS_ID);
-    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}`);
+    expect(view.rows[0].alertId).toBe(thesisRowId());
     expect(view.rows[0].delivery).toBe("pending");
   });
 });
@@ -140,5 +185,39 @@ describe("price alert and thesis_condition outbox row both appear", () => {
     );
     expect(view.rows.length).toBe(2);
     expect(view.rows.map((r) => r.delivery).sort()).toEqual(["pending", "sent"]);
+  });
+});
+
+// F11-11b-pre: producer's real row shape (category+source, synthetic alert_id)
+// surfaces as a thesis row — proving the cockpit recognises the real contract.
+describe("F11-11b-pre producer real shape (category+source, synthetic alert_id)", () => {
+  it("producer-shaped row surfaces as a thesis row", () => {
+    const view = viewOf([producerRealOutbox()]);
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+    expect(view.rows[0].alertId).toBe(thesisRowId("fe-thesis-real"));
+    expect(view.rows[0].delivery).toBe("pending");
+  });
+
+  it("does not surface category-only producer payloads", () => {
+    const view = viewOf([producerRealOutbox({
+      payload: { ...producerRealOutbox().payload, source: undefined as unknown as string, category: "thesis_window" },
+    })]);
+    expect(view.rows.length).toBe(0);
+  });
+
+  it("does not surface source-only producer payloads", () => {
+    const view = viewOf([producerRealOutbox({
+      payload: { ...producerRealOutbox().payload, category: undefined as unknown as string, source: "macro.thesis_condition_monitor" },
+    })]);
+    expect(view.rows.length).toBe(0);
+  });
+
+  it("producer row + ordinary fired alert → 2 rows", () => {
+    const view = viewOf(
+      [producerRealOutbox(), ordinaryOutbox({ alert_id: "a-price" })],
+      [priceAlert()],
+    );
+    expect(view.rows.length).toBe(2);
   });
 });

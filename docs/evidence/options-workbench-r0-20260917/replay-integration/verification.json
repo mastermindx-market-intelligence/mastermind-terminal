@@ -1,0 +1,94 @@
+{
+  "state": "BUILT_NOT_PROVEN",
+  "parent_issue": 603,
+  "pr": 608,
+  "base": "75c22083249e7a1529be3d6baf819b9ad5ea509f",
+  "prior_head": "bd578978746fac3ce8974c9a769484f5486d855f",
+  "skillpack": "320f586126b7c82c843ef17612f12d40d20a42e0",
+  "focused_tests": {
+    "passed": 167,
+    "failed": 0
+  },
+  "production_proof": false,
+  "source_sha256": {
+    "terminal/components/surface/replayContext.tsx": "a3d79a1e1da44fa90ab294995a8324289254557b4770916f434294db7d0bff46",
+    "terminal/components/surface/SurfaceView.tsx": "244372bfd565340e49655e5ed3acb2fe1363ca46669d4fab7deedfc431dfd580",
+    "terminal/components/surface/SurfacePane.tsx": "3e7940b90ba49298432778e4e0814d1ac5f40a5e574ef8dbdb2c73ee6e42cd17",
+    "terminal/components/surface/ReplayBar.tsx": "797276f39b8d6fcd8e481e1e9c22648b958fe04abe61a8f903656edb46e4766f",
+    "terminal/components/surface/surfaceStrings.ts": "e07661727f9c411be143e9e7260898499e1f8aac2195ddab01e75384030ac067",
+    "terminal/lib/replayEngine.ts": "23b4cfd246e0a03a10e85ee51851327c93091e535c835a29f28ca45280cac5c3",
+    "terminal/lib/surfaceContract.ts": "5bbecedeb534cd764acc4e0c31c3f6c00aadc0a209c197e86810ab9527fa4a31"
+  },
+  "full_vitest": {
+    "files_passed": 336,
+    "tests_passed": 5546,
+    "failed": 0,
+    "existing_todo": 4
+  },
+  "typecheck": {
+    "exit_code": 0
+  },
+  "browser": {
+    "real_route_cases_passed": 12,
+    "failed": 0,
+    "retries": 0,
+    "workers": 1,
+    "cold_owned_server": true,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "synthetic_inputs": true
+  },
+  "browser_captures": {
+    "browser/desktop-desktop-en-surface-aligned.png": "a3aec16ab9dcece8e96408475cfbb77feec21deefeabfad760b8986e51ebf0c2",
+    "browser/desktop-desktop-zh-surface-aligned.png": "64da8ff77b8305411195f32472edd0067810cfa8f9c26348eb622955109847af",
+    "browser/desktop-en-after-index-growth.png": "2cbe2dafafa27a13663537de447f939f1af73fdee7c0c294692ed802e0f11f97",
+    "browser/desktop-en-after-quad.png": "b09118171c87d78ac1b43ded64ff073faa2be200d182cfed231db252e9e115c9",
+    "browser/desktop-en-archived-session.png": "7b0504f8a9b19915db300cdc2a49fa30b62463acfddc6dcbc9e3c3f455184e8a",
+    "browser/desktop-en-paused-single.png": "209cc204e3e8abdf5b32532055c51d885fa6d576b2dfc0ae6827548f92770ec5",
+    "browser/desktop-en-retained-on-error.png": "a3921be9ce76746acb4b209bcca32a79d1553ff120f395cc1223d405a7cf15bc",
+    "browser/desktop-zh-after-index-growth.png": "4f77c5c7eb8e948bdbc29169063b5a485df1d49e2d57cb89605581f37f894d69",
+    "browser/desktop-zh-after-quad.png": "9c63714605d1a4a69e75e4b9c937457a4884957da9e1a1c8cf9660ac14b62c66",
+    "browser/desktop-zh-archived-session.png": "af8a10a95391184ac87c84528e952dcf18071949ce5754a5f4a635a7c2c58e71",
+    "browser/desktop-zh-paused-single.png": "fb2faf7ee1f3102b52f2fa3fab12a39f5945cdfd3e20987f9457b9645c3e7736",
+    "browser/desktop-zh-retained-on-error.png": "bd471e9c8b606998b2815b39aa0744c80670bb1b57813d8aa35ed006e828e92c",
+    "browser/mobile-en-after-index-growth.png": "0b6f5abbb82b3f921d08cc74adc92ab0e3fd8e615d15ecbf2d87f6a502637bdf",
+    "browser/mobile-en-after-quad.png": "72988443ffa86b2be3fc769fe532b4688bbd392f4cb6e85228d47866e7ca6a78",
+    "browser/mobile-en-archived-session.png": "25d735c81f62bdee9ce323222345073479c5ab0adbf33a5891b77d0c55af235f",
+    "browser/mobile-en-paused-single.png": "28876b158df72c3443d37abfaf4d2e1cfa02e546382e4142ed9b400ca6f23fff",
+    "browser/mobile-en-retained-on-error.png": "5824673b85a3c12b3047130d100c870bf96dd90b173f8c363aa9b255cdef2021",
+    "browser/mobile-mobile-en-surface-aligned.png": "3582a42350b0a659611946dbb0d5c6c7e188ecea182cd83c0aa61827e61383ad",
+    "browser/mobile-mobile-zh-surface-aligned.png": "d1550c244820f8261a2339e43b66821c8574d6ca2355358c6008583e2caf6c8a",
+    "browser/mobile-zh-after-index-growth.png": "3ed28e426b792189f71f0017b48330f80c470168d54bdb92f81dec98ee16a072",
+    "browser/mobile-zh-after-quad.png": "db3cabb6e3d812a3148ff8d2c96985f6253b5fd01817a40d8b39990b6de83e1e",
+    "browser/mobile-zh-archived-session.png": "7efa3c719d9c2d6e3cdd509a80517e238b361c5d578b4732bebaaa5b57d1d46e",
+    "browser/mobile-zh-paused-single.png": "7d5dc5dda080eebb5e157763b9bd80519f728cdbf75df7f077a1dfb81aa3d019",
+    "browser/mobile-zh-retained-on-error.png": "d9921e050800a2c53fc0e1637e21c35f1d009324719ffcddfa021051588d9525",
+    "browser/tablet-en-after-index-growth.png": "d6cca4588881040599b29108fd4adfa1e8da6e5bb5d546a4c4f2c2dd929197fb",
+    "browser/tablet-en-after-quad.png": "b858040a0f9df0b1a192342ceb39aa6d67a8c46ca9444571b3f5d0fa48146b28",
+    "browser/tablet-en-archived-session.png": "1616e83dafcaaa3ad06f171e0e2c298bee40d3e2b21bd737f0718f719aaf864e",
+    "browser/tablet-en-paused-single.png": "9629bf700b213ac056848b1f89b9a15a53a8856373c647e0c26f282a5eb7fd7a",
+    "browser/tablet-en-retained-on-error.png": "af36a6a25a9511a6dc97da8bee9b441d76f523b180fc3e1ff06f3da6ee9337fe",
+    "browser/tablet-tablet-en-surface-aligned.png": "acb52a260c9399ea2d86b4085b1692e3fbd8c9f4eccd39743a4ed8dddef1b17c",
+    "browser/tablet-tablet-zh-surface-aligned.png": "bcaf41b089fcd7e72a2356941beafc8c1aba68d63b39f02566ff325490123a96",
+    "browser/tablet-zh-after-index-growth.png": "278c1f2e30c299c60b5b9172c31227a0d00d48cb5ffa59deac141f5d851de06e",
+    "browser/tablet-zh-after-quad.png": "5276d14f96650da213dc9c3185a275f5808226bb22b046dc4abf24fabc465b73",
+    "browser/tablet-zh-archived-session.png": "531f73d28452cd05a6919511b896059aede1a5ded05d5bc5f747efe774ad0a8e",
+    "browser/tablet-zh-paused-single.png": "664b60acc377515730e25dee4d10e306f5950bd073172b562a7966eb1fd69a9c",
+    "browser/tablet-zh-retained-on-error.png": "841febad8259ae7b627ac1e49b4a1166220f48b367f18d012441e9dcb1c0ce8b"
+  },
+  "broader_responsive_run": {
+    "state": "RUNNING_AT_CHECKPOINT",
+    "device_id": "3f5ce987-e3eb-40a3-af9f-4b0ae54919cc",
+    "process_id": 32987,
+    "log": "r0-responsive-full.log",
+    "command": "CI=1 TERMINAL_E2E_PORT=33764 node_modules/.bin/playwright test --workers=1 --retries=0 --reporter=list",
+    "complete": false
+  }
+}

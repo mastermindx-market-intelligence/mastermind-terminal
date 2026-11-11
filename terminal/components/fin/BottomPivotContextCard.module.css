@@ -1,0 +1,30 @@
+.card { min-width: 0; margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); color: var(--text); }
+.header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+.header h3 { margin: 0; font-size: 14px; font-weight: 650; line-height: 1.4; }
+.scope { display: block; margin-top: 3px; font-size: 11px; color: var(--text-2); }
+.button { min-height: 44px; max-width: 100%; padding: 8px 12px; border: 1px solid var(--line-3); border-radius: var(--r-md); background: var(--panel-2); color: var(--text); font: inherit; line-height: 1.4; white-space: normal; text-align: left; cursor: pointer; }
+.button:hover { border-color: var(--brand-2); }
+.button:focus-visible, .details summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+.body { min-width: 0; padding-top: 12px; }
+.body p { margin: 0 0 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.meta { display: flex; flex-direction: column; gap: 5px; margin: 12px 0; font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
+.meta strong { color: var(--text); font-weight: 600; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 14px 0; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; }
+.grid > div { min-width: 0; padding: 12px; background: var(--panel); overflow-wrap: anywhere; }
+.grid dt { color: var(--text-2); font-size: 12px; line-height: 1.4; }
+.grid dd { margin: 7px 0 5px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.grid small { display: block; font-size: 11px; line-height: 1.5; color: var(--text-2); }
+.details { border-top: 1px solid var(--line); margin: 14px 0; }
+.details summary { display: list-item; min-height: 44px; padding: 12px 0; cursor: pointer; font-size: 12px; }
+.sources { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sources > div { min-width: 0; padding: 10px; background: var(--panel-2); border-radius: var(--r-md); overflow-wrap: anywhere; }
+.sources dt { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.sources dd { margin: 3px 0; font-size: 11px; line-height: 1.6; color: var(--text-2); }
+.sources code { font: inherit; }
+.limit { color: var(--text-2); font-size: 12px; }
+@media (max-width: 600px) {
+  .card { padding: 12px; }
+  .header { align-items: flex-start; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sources { grid-template-columns: minmax(0, 1fr); }
+}

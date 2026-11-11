@@ -1,0 +1,10 @@
+{
+  "schema": "futures.review_recovery/v1",
+  "runId": "terminal-futures-pr964-book-review-20261014-r2",
+  "root": "terminal-futures-gex-pr964",
+  "lineageState": "VERIFIED_TERMINAL",
+  "rc": 1,
+  "failure": "provider output-token maximum; no findings delivered",
+  "accepted": false,
+  "harnessLimitsChanged": false
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { fmtDate, pick } from "../../lib/finFormat";
 import type { Fund } from "../../lib/fund";
@@ -8,12 +8,21 @@ import {
   getTickerTranscriptIndex,
   type TranscriptIndexCall,
   type TranscriptIndexResult,
+  type TranscriptIndexWarning,
 } from "../../lib/transcripts";
+import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
+import {
+  readTranscriptCompareParams,
+  writeTranscriptCompareParams,
+  type TranscriptCompareLink,
+} from "../../lib/transcriptCompare";
+import { useTranscriptCompareT } from "../../lib/transcriptCompareLex";
+import TranscriptCompare from "./TranscriptCompare";
 
 export interface TranscriptsPageProps {
   sym: string;
   fund: Fund | null;
-  onOpenTx: (txId: string) => void;
+  onOpenTx: (target: string | TranscriptOpenTarget) => void;
 }
 
 interface ArchiveState {
@@ -21,6 +30,20 @@ interface ArchiveState {
   retryNonce: number;
   result: TranscriptIndexResult | null;
 }
+
+/** Drop the comparison keys from the address bar without adding a history entry. */
+function clearCompareParams() {
+  const url = new URL(window.location.href);
+  const before = url.search;
+  writeTranscriptCompareParams(url.searchParams, null);
+  if (url.search !== before) window.history.replaceState(window.history.state, "", url.toString());
+}
+
+const WARNING_ZH: Record<TranscriptIndexWarning, string> = {
+  rebuilding: "单只股票元数据正在重建；当前显示全档案回退索引。",
+  timeout: "单只股票元数据请求超时；当前显示全档案回退索引。",
+  invalid: "单只股票元数据未提交或无效；当前显示全档案回退索引。",
+};
 
 function fallbackCall(sym: string, id: string): TranscriptIndexCall {
   return {
@@ -48,19 +71,47 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
   const [archive, setArchive] = useState<ArchiveState>({ sym: "", retryNonce: -1, result: null });
   const [queryState, setQueryState] = useState({ sym: "", value: "" });
   const [filterState, setFilterState] = useState<{ sym: string; value: "all" | "qa" }>({ sym: "", value: "all" });
+  const tc = useTranscriptCompareT();
+  const [compare, setCompare] = useState<{ sym: string; link: TranscriptCompareLink | null } | null>(null);
+  const compareEntryRef = useRef<HTMLButtonElement>(null);
+  const returnFocusToEntry = useRef(false);
+  const previousSym = useRef(sym);
 
+  // A comparison link is read once, after the client URL is available. A link
+  // for another ticker is still shown as "not applied" but leaves the URL now.
   useEffect(() => {
-    let alive = true;
-    getTickerTranscriptIndex(sym, { retryNonce })
+    const link = readTranscriptCompareParams(new URL(window.location.href).searchParams);
+    if (!link) return;
+    if (link.ticker !== sym.toUpperCase()) clearCompareParams();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot URL hydration
+    setCompare({ sym, link });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once per mount
+  }, []);
+
+  // Calls belong to one ticker: a symbol change closes the comparison and its URL keys.
+  // The page stays mounted across a picker switch, so the state must close too — otherwise
+  // NVDA -> AMD -> NVDA would reopen the old comparison while the address bar no longer
+  // names it. Focus is not pulled back to the entry button: the user is in the picker.
+  useEffect(() => {
+    if (previousSym.current === sym) return;
+    previousSym.current = sym;
+    clearCompareParams();
+    setCompare(null);
+  }, [sym]);
+
+  // A ticker switch, a retry, or unmount cancels the requests still in flight.
+  useEffect(() => {
+    const controller = new AbortController();
+    getTickerTranscriptIndex(sym, { retryNonce, signal: controller.signal })
       .then((result) => {
-        if (alive) setArchive({ sym, retryNonce, result });
+        if (!controller.signal.aborted) setArchive({ sym, retryNonce, result });
       })
       .catch(() => {
-        if (alive) setArchive({ sym, retryNonce, result: { status: "error", message: "Archive request failed" } });
+        if (!controller.signal.aborted) {
+          setArchive({ sym, retryNonce, result: { status: "error", message: "Archive request failed" } });
+        }
       });
-    return () => {
-      alive = false;
-    };
+    return () => controller.abort();
   }, [sym, retryNonce]);
 
   const fundFallback = useMemo<TranscriptIndexCall[]>(() => {
@@ -87,6 +138,18 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
 
   const retry = () => setRetryNonce(Date.now());
 
+  const compareOpen = compare?.sym === sym;
+  useEffect(() => {
+    if (compareOpen || !returnFocusToEntry.current) return;
+    returnFocusToEntry.current = false;
+    compareEntryRef.current?.focus();
+  }, [compareOpen]);
+  const closeCompare = () => {
+    clearCompareParams();
+    returnFocusToEntry.current = true;
+    setCompare(null);
+  };
+
   return (
     <div className="fin-transcripts">
       <section className="fin-sec">
@@ -103,6 +166,23 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
           )}
         </div>
       </section>
+
+      {compareOpen && archive.sym === sym ? (
+        <TranscriptCompare
+          key={sym}
+          sym={sym}
+          calls={calls}
+          initialLink={compare?.link ?? null}
+          onOpenTx={onOpenTx}
+          onClose={closeCompare}
+          onDetachLink={clearCompareParams}
+        />
+      ) : !loading && calls.length >= 2 ? (
+        <div className="fin-tx-notice" data-testid="transcript-compare-entry">
+          <span>{tc("tcOpenWhy")}</span>
+          <button ref={compareEntryRef} type="button" onClick={() => setCompare({ sym, link: null })}>{tc("tcOpen")}</button>
+        </div>
+      ) : null}
 
       {!loading && calls.length > 0 && (
         <div className="fin-tx-controls" role="search" aria-label={pick(zh, "Search transcript archive", "搜索电话会档案")}>
@@ -131,7 +211,7 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
 
       {result?.status === "ok" && result.warning && (
         <div className="fin-tx-notice" role="status">
-          <span>{pick(zh, result.warning, "单只股票元数据正在重建；当前显示全档案回退索引。")}</span>
+          <span>{pick(zh, result.warning, WARNING_ZH[result.warningCode ?? "invalid"])}</span>
           <button onClick={retry}>{pick(zh, "Retry", "重试")}</button>
         </div>
       )}
@@ -156,7 +236,9 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
       ) : result?.status === "error" && calls.length === 0 ? (
         <div className="fin-empty fin-empty-lg fin-tx-error" role="alert">
           <div className="fin-empty-title">{pick(zh, "Archive unavailable", "档案不可用")}</div>
-          <div className="fin-empty-why">{pick(zh, result.message, "无法验证档案索引。")}</div>
+          <div className="fin-empty-why">
+            {pick(zh, result.message, result.timedOut ? "档案提交标记请求超时，请重试。" : "无法验证档案索引。")}
+          </div>
           <button className="fin-tx-retry" onClick={retry}>{pick(zh, "Retry archive", "重试档案")}</button>
         </div>
       ) : calls.length > 0 && visibleCalls.length > 0 ? (

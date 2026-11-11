@@ -1,0 +1,36 @@
+{
+  "sourceHead": "42d78dbb108eae0dc37fd73d7ece947612cb1ce0",
+  "captureEnvironment": "M2 macOS; isolated SSD checkout; incumbent local deterministic fixtures; not normal Chrome or production",
+  "capturedAt": "2026-10-21T15:49:01.656957+00:00",
+  "scope": [
+    "desktop-context.png",
+    "desktop-context-zh.png",
+    "tablet-context.png",
+    "tablet-context-zh.png",
+    "mobile-context.png",
+    "mobile-context-zh.png"
+  ],
+  "cropHashes": {
+    "desktop-context.png": "f53d4463b9ac760fdf39c0303aa527332c1aeeabfaa4f47b35ea2cea0f17c6e7",
+    "desktop-context-zh.png": "7411ed51ae15fde50befe1e7b24e0c9ece065d8f506082586e9716400792a7e8",
+    "tablet-context.png": "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23",
+    "tablet-context-zh.png": "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  },
+  "profile": "ordinary Terminal, MMX_SHARED_SHELL unset; deterministic fixture environment",
+  "qualification": "Actual local browser capture and fixture assertions; hosted CI, authenticated data and public served acceptance remain separate. Existing historical qualifications and unrecaptured surfaces are retained.",
+  "functionalReport": {
+    "path": "browser-report.json",
+    "sourceHead": "fbc850932e778fb53543d26e07f6ac11c5c70611",
+    "sha256": "5f6c3c2865897683eaf93e47ce14f5a14409699f5227ce85926ec245cdf7b568",
+    "qualification": "Complete30-case actual ordinary-profile run retained under its true fbc identity; final semantic diff changes only the inactive shared-shell branch for these cases."
+  },
+  "finalCaptureReport": {
+    "path": "shared-shell-capture-report.json",
+    "sourceHead": "42d78dbb108eae0dc37fd73d7ece947612cb1ce0",
+    "sha256": "f6747bd8259e3bd6e07f5e85df3e45dfe0b1f1da1fef67bc3aa6c1d04f240004",
+    "qualification": "Two screenshot-producing named cases across desktop/tablet/mobile on exact final source, without retries."
+  },
+  "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=37167 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/shared-shell-capture-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1 --grep 'default context explains|Chinese context uses' --reporter=list,json"
+}

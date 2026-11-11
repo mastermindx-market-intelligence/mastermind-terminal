@@ -1,0 +1,696 @@
+{
+  "purpose": "Hash-bound synthetic responsive evidence, not production acceptance",
+  "operation": "bottom-pivot-delivery-20261105",
+  "passed": 24,
+  "theme": "native dark only",
+  "artifacts": [
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "variant": "dark-en-observed",
+      "geometry": {
+        "width": 1236,
+        "height": 584.703125,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "desktop-dark-en-observed-receipt.json": "fcb89d780a22532fdd513dfcff952b2e9daaec79bad50f50e19c4c54b651656f",
+        "desktop-dark-en-observed-viewport.png": "183a6a2413baff1dd2d62b3267c28760b34309a006962be291efc79466785c23",
+        "desktop-dark-en-observed-footer-viewport.png": "b8a218ff191904306f2f2043b01c037fa6c2cad2e33ad089655d222561b2cd93",
+        "desktop-dark-en-observed-card.png": "30fb19384d5a2495ebc0ad2a93a3341dd5f971ce7d630d619fcba04528de559a"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "variant": "dark-en-observed",
+      "geometry": {
+        "width": 366,
+        "height": 754.15625,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "mobile-dark-en-observed-receipt.json": "e82d78e1401095e0b7cce8c0bc802bdaca371abaaa4f570ab2c0c20abc2f04af",
+        "mobile-dark-en-observed-viewport.png": "8549774fd94de2ef2545e99788139da18f497b238d63a0b6e44a38d94be5e25c",
+        "mobile-dark-en-observed-footer-viewport.png": "626e23ef3516c0316c168b4312fcc9d432cbb4a86ca4da3fe97dd323738fc388"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "variant": "dark-en-observed",
+      "geometry": {
+        "width": 788,
+        "height": 605.5,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "tablet-dark-en-observed-receipt.json": "f683e4f27901121face4082e8da3a9f068f8225ef6c0c7529e8a9d2ecdb7e9dc",
+        "tablet-dark-en-observed-footer-viewport.png": "b9a4ca381df31ecc15d581d5d96caad50a297406f329e62b59af0a4977de9491",
+        "tablet-dark-en-observed-card.png": "5dec4e96c39327e5a959672085f93b6a589012f04769fa08e857362b192ca957",
+        "tablet-dark-en-observed-viewport.png": "b962d782935d5bd16d33187b5bc1a4dea1186d4101bdeaae124f66af9983eed8"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "variant": "dark-zh-observed",
+      "geometry": {
+        "width": 1236,
+        "height": 584.703125,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "zh",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "desktop-dark-zh-observed-receipt.json": "ee0a4c083046d3c26977e92aad1a264730dfe7fcb81972dcbd1cbf5755bdb322",
+        "desktop-dark-zh-observed-viewport.png": "f23fec11bf073864481379a2489b1f2863f9cb217a0b54ac0922a46c42e22f06",
+        "desktop-dark-zh-observed-card.png": "c590f63e5e8121171b315899f4b9f05fba037f850e61452bbc1a3971651f3640",
+        "desktop-dark-zh-observed-footer-viewport.png": "21037121ec1df7e88195c1f15c0f11a8cbc73b4ff85011d8c200e37d13b27074"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "variant": "dark-zh-observed",
+      "geometry": {
+        "width": 366,
+        "height": 714.171875,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "zh",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "mobile-dark-zh-observed-receipt.json": "98bc2a385954c22522bc6619d2b00c69dc6124f8a4e79d2a9376ba0c08d6f274",
+        "mobile-dark-zh-observed-footer-viewport.png": "4b4cc517ad5b3076f71120622b7d094501610327c6387afc83462301188ec928",
+        "mobile-dark-zh-observed-viewport.png": "4997583e997b00e5d10c346c3d8a0ebce67556210ca52e3a26fa14391b927895"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "variant": "dark-zh-observed",
+      "geometry": {
+        "width": 788,
+        "height": 584.703125,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "zh",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "tablet-dark-zh-observed-receipt.json": "ea76647ba428851b990fb297befd08ad71a1c6659b069a54b6ea353762611083",
+        "tablet-dark-zh-observed-viewport.png": "2bc74bd013babc6396d0da2c1b3c4b13727af0868733a66d0074d0940af464a9",
+        "tablet-dark-zh-observed-card.png": "89aa6739a342688cbca571ac0118ff6ba231f494b362401525143a348f14973c",
+        "tablet-dark-zh-observed-footer-viewport.png": "edada83d9ea77d294f806c8453a066d0ce41c32cf73ff80eb40ac1a3bacd113f"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "variant": "historical",
+      "geometry": {
+        "width": 1236,
+        "height": 584.703125,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "desktop-historical-receipt.json": "853fcda3b1d541a1e36a7f23596855d24ffbf65c07165db4c93f0fcf604a97d4",
+        "desktop-historical-footer-viewport.png": "cf0ad245ab6cad8ea507fba0532f8b86287e776b4ca697cb9cfb3fac1b551656",
+        "desktop-historical-viewport.png": "1cf2c41d47f218c17698c747d5e050d1998cbe4e00bf6d598806bd43820cd065",
+        "desktop-historical-card.png": "b757e336b32213f84539e0c51d85983cbf7d96881ea1301c2cc55c1c063d8798"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "variant": "historical",
+      "geometry": {
+        "width": 366,
+        "height": 754.15625,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "mobile-historical-receipt.json": "c9e908b58fcecae97ce1f6e4309c254b2169794ba1ac610794129d6ceffe1320",
+        "mobile-historical-viewport.png": "2038d426094e3bd07578830de7b8df135c610f16d5d3229100e9e1b8ce3d1c2f",
+        "mobile-historical-footer-viewport.png": "50b76f73fcbd4bd0606769e4cefe627e52c2cd0ad1856f1d0ddc6279266e4ec6"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "variant": "historical",
+      "geometry": {
+        "width": 788,
+        "height": 605.5,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "tablet-historical-receipt.json": "185b3bba1ece86e7f9fed260806769d9ef3562c48230ba4788e29dc0c228a759",
+        "tablet-historical-card.png": "d676ceffe18a0e3474ece71f4c3973b75cafb568470fe763f23a9c160685b3fd",
+        "tablet-historical-viewport.png": "4959dd91d4955ab8b1213aa2101846cf5cf27697b4c0a485578435258ce4655c",
+        "tablet-historical-footer-viewport.png": "cab81fae9dd312f48ac1bcde66460d314bfef8186c8d7154cacfafa0cfbba000"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "variant": "partial-conflict",
+      "geometry": {
+        "width": 1236,
+        "height": 584.703125,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "desktop-partial-conflict-receipt.json": "0b153171810a85885b2e12d7c0aec8053c0c78f4c20483f687a4174521065e16",
+        "desktop-partial-conflict-viewport.png": "a72c12bb8ea2223369dc47eb316a51e1d1d26fa8a953bd0b74f31506a4f980a7",
+        "desktop-partial-conflict-card.png": "51118c2d9c4417d483efc8110500bf54a6e09df4c97ad32e2e9bf0ce87d3f60a",
+        "desktop-partial-conflict-footer-viewport.png": "d7dcf22107dadd8be715bb229351f23c74a6645d887eced13cb26c05eda61e21"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "variant": "partial-conflict",
+      "geometry": {
+        "width": 366,
+        "height": 793.84375,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "mobile-partial-conflict-receipt.json": "260060583cf314ced90c3cd5bca77c153ee90953dab6698205d8fe25ecf589b6",
+        "mobile-partial-conflict-viewport.png": "0bba00e2de1344bb2af93c080c1bf94d0677e146d4837f67d8f58607994d9316",
+        "mobile-partial-conflict-footer-viewport.png": "a839a29e40449151b7b708d1f14cd5d467615584649e5b8d47454119f098139a"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "variant": "partial-conflict",
+      "geometry": {
+        "width": 788,
+        "height": 605.5,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "tablet-partial-conflict-receipt.json": "e612abc60b4383e3c16277b95ed075570d3805cfd811f28295b7a5d462c3ffce",
+        "tablet-partial-conflict-viewport.png": "b84d7cbd55fc872565929405955115bedced28b575d84f6d3d3ab01c89db5303",
+        "tablet-partial-conflict-footer-viewport.png": "dd8914acce2938ab44b28344ff53937e6837cb15f594e6a3e39e2de5aa774a09",
+        "tablet-partial-conflict-card.png": "c5a82e32bce109291d2144a8013878325e3e76098635e6795fa34fa12b29eb44"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "variant": "refusal-503",
+      "geometry": {
+        "width": 1236,
+        "height": 257.96875,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "desktop-refusal-503-receipt.json": "d2ed4351760e9298c157b87d4003a0940e5422186d16af9c87660610c48129d1",
+        "desktop-refusal-503-card.png": "5280b5fec39e814d42eecde091de093402da2b8238247a2264f40a98e65e5868",
+        "desktop-refusal-503-footer-viewport.png": "937a6ea843bb136c832edd6da4dfd160845b42dea62a24a6eee2fb0599b5fedc",
+        "desktop-refusal-503-viewport.png": "12a439d676cef61737385b9df1ee5e741f4b1e15f14a1bb85ce61bf26ddffd87"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "variant": "refusal-503",
+      "geometry": {
+        "width": 366,
+        "height": 354.734375,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "mobile-refusal-503-receipt.json": "0504805a7a2826f8841d83fd5c09e6f1c2829c95e32cc8c9354cd0baa874f41b",
+        "mobile-refusal-503-footer-viewport.png": "83c156c0bdf560b7f00304327963ad142107fe153d370dc272147f3f604adf70",
+        "mobile-refusal-503-viewport.png": "83c156c0bdf560b7f00304327963ad142107fe153d370dc272147f3f604adf70"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "variant": "refusal-503",
+      "geometry": {
+        "width": 788,
+        "height": 278.765625,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "tablet-refusal-503-receipt.json": "f8a133e68feac833ad1b7d724d5d7ae6948ec12479b071979e3d05093c7e3fcb",
+        "tablet-refusal-503-card.png": "9abac8d0838b956a49332286ea60dc87805e123c764281aff00f55154281b57f",
+        "tablet-refusal-503-viewport.png": "ed6fb904e6e459aa1119bb88003cd558e8b154820167519f0c784d5392e3f958",
+        "tablet-refusal-503-footer-viewport.png": "ed6fb904e6e459aa1119bb88003cd558e8b154820167519f0c784d5392e3f958"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "variant": "refusal-403",
+      "geometry": {
+        "width": 1236,
+        "height": 213.96875,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "desktop-refusal-403-receipt.json": "fd76dd1bc362c34162846a5d3fa5707e722afd9f87ea9bc98cbcd0cae67ffd1e",
+        "desktop-refusal-403-footer-viewport.png": "79114974a54984017459720a19a26bfbb38f4639a7abf290bcdfc2a5e4633134",
+        "desktop-refusal-403-card.png": "b50858fef325e32ce252a61e8a9c2541e68a6e7ef69addd0f8c38334f99e281a",
+        "desktop-refusal-403-viewport.png": "79114974a54984017459720a19a26bfbb38f4639a7abf290bcdfc2a5e4633134"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "variant": "refusal-403",
+      "geometry": {
+        "width": 366,
+        "height": 310.734375,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "mobile-refusal-403-receipt.json": "cf57197bb4395f813e827762abd5e6951168598b5b8a3bdd441d5a3ccf19cdae",
+        "mobile-refusal-403-viewport.png": "8a65a8094d4569342b08181d8ba339b05dbefbd513ea40dfc90362e5e2ccdb57",
+        "mobile-refusal-403-footer-viewport.png": "8a65a8094d4569342b08181d8ba339b05dbefbd513ea40dfc90362e5e2ccdb57"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "variant": "refusal-403",
+      "geometry": {
+        "width": 788,
+        "height": 234.765625,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "tablet-refusal-403-receipt.json": "5fb970b54c095d849bb17595f3b69927b71babe101f9899670f9a906c43ecb13",
+        "tablet-refusal-403-footer-viewport.png": "a8471d35db57dce726fd2d302ea575f4edd2754179dfc9d7b91540e6a7b12a82",
+        "tablet-refusal-403-viewport.png": "a8471d35db57dce726fd2d302ea575f4edd2754179dfc9d7b91540e6a7b12a82",
+        "tablet-refusal-403-card.png": "31f4a87fff809bec8b5f041e0160b8170dfd990b6fba47cd63b26c5bca3b6467"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "variant": "refusal-401",
+      "geometry": {
+        "width": 1236,
+        "height": 213.96875,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "desktop-refusal-401-receipt.json": "81edcd0cc16f4763bee542d604cbee8256770cc989c58bbf60244576dffa71c8",
+        "desktop-refusal-401-footer-viewport.png": "c89f4c69baa87176fa6f67c783387cde58235fa5d59da39a75fbb32c74ddd916",
+        "desktop-refusal-401-viewport.png": "c89f4c69baa87176fa6f67c783387cde58235fa5d59da39a75fbb32c74ddd916",
+        "desktop-refusal-401-card.png": "72bbeb09a3650d27d8a893e8ef6e6741f69a01f9ccb22a0b2164dcb1d73f524b"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "variant": "refusal-401",
+      "geometry": {
+        "width": 366,
+        "height": 310.734375,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "mobile-refusal-401-receipt.json": "19079c64c328f6dbd62bbe059ef547e7d57779639c039696d6f60ef7a63968c0",
+        "mobile-refusal-401-viewport.png": "46b1953489220ff42618d25dfde7e4b2d8c8fe18a22e61df7a6c0ffab3a4fcab",
+        "mobile-refusal-401-footer-viewport.png": "46b1953489220ff42618d25dfde7e4b2d8c8fe18a22e61df7a6c0ffab3a4fcab"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "variant": "refusal-401",
+      "geometry": {
+        "width": 788,
+        "height": 234.765625,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "tablet-refusal-401-receipt.json": "badf6aa0eabc8e8df6e4fc73d75fe230691fe8002033886f0354a18d76312a2f",
+        "tablet-refusal-401-card.png": "a15d8cf6b7c486454dac6d9023f83c80a55d9afb37dc58212718aa4418e7f933",
+        "tablet-refusal-401-footer-viewport.png": "82c13cf31fb8ebbcd83cff36fb60520c590ff4a54b23ca2de47062c4ac9049fd",
+        "tablet-refusal-401-viewport.png": "82c13cf31fb8ebbcd83cff36fb60520c590ff4a54b23ca2de47062c4ac9049fd"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "variant": "stale-source",
+      "geometry": {
+        "width": 1236,
+        "height": 584.703125,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "desktop-stale-source-receipt.json": "a461a1a11fc2055e75349d2ed37e4bfac18349ce5f6aa7f825c1b0d5a51706a5",
+        "desktop-stale-source-viewport.png": "19d6974a090df62911ecf5579c2faafef2940e96c33299e20eed14ddd441fb67",
+        "desktop-stale-source-footer-viewport.png": "31a09abb39f516136283544f1eb555028a0201b4b601fd0981c6092e65614bbf",
+        "desktop-stale-source-card.png": "ebf177fd67abe3851427ca0454d076d04a31506451d7aaaac174521b71304029"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "variant": "stale-source",
+      "geometry": {
+        "width": 366,
+        "height": 754.15625,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "mobile-stale-source-receipt.json": "a18ba2708df5092391458a5187d13dd850a6dc4f9ec60176929c71976caf482f",
+        "mobile-stale-source-footer-viewport.png": "858e13e018d93ad089090ab4f9221ed5f982443344aa222496a291ab24518a03",
+        "mobile-stale-source-viewport.png": "eeb63845694131358c806e64a19557c0b85121d8f5fb2b512cb202aac1075e09"
+      }
+    },
+    {
+      "fixture": true,
+      "production": false,
+      "route": "/analysis?symbol=AAPL&page=technicals",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "variant": "stale-source",
+      "geometry": {
+        "width": 788,
+        "height": 605.5,
+        "background": "rgb(13, 15, 19)",
+        "theme": "dark",
+        "lang": "en",
+        "documentOverflow": 0
+      },
+      "fixedClock": "2026-11-05T22:00:00Z",
+      "footerUncovered": true,
+      "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+      "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+      "requestsOnStartup": 0,
+      "files": {
+        "tablet-stale-source-receipt.json": "2a5d147f757d60d9f9b0443b7503206db5e44c42e4d06229b40a4d8a8c2e9bb0",
+        "tablet-stale-source-footer-viewport.png": "156f8da5837bef98b698d162ec340cb0b96ef4cbbbc4ed4c5afc419ecb8c7d42",
+        "tablet-stale-source-card.png": "0c01c5fc390d70d14af3242a1a24f3e200069a1a481191e399e891081907a9b3",
+        "tablet-stale-source-viewport.png": "26559cdcf98aa1bed8be71db732b7ab5be346d284ff953721d6ae7768535d7d6"
+      }
+    }
+  ]
+}

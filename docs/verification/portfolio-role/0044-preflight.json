@@ -1,0 +1,155 @@
+{
+  "at": "2026-10-24T20:43:14.732734+00:00",
+  "source_sha256": "2db2e52171fd525ffbbe6d2e6e75dc7291da65ad1512e037dd5e5349f7fb2075",
+  "helper_sha256": "938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55",
+  "project_ref_sha256": "3c3fdb6cd955da0235540fa60d7ab8a35d9579e913aa5460bb962027ee1fed81",
+  "project_binding": "existing root.env and terminal.env.local publicURL match exact existing Management project reference",
+  "dryrun_rc": 0,
+  "catalog": [
+    {
+      "catalog": {
+        "table": {
+          "name": "portfolio_targets",
+          "rls": true,
+          "force_rls": false,
+          "acl": [
+            "postgres=arwdDxtm/postgres",
+            "anon=arwdDxtm/postgres",
+            "authenticated=arwdDxtm/postgres",
+            "service_role=arwdDxtm/postgres"
+          ],
+          "owner": "postgres"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "notnull": true,
+            "hasdefault": true,
+            "generated": ""
+          },
+          {
+            "name": "user_id",
+            "type": "uuid",
+            "notnull": true,
+            "hasdefault": false,
+            "generated": ""
+          },
+          {
+            "name": "ticker",
+            "type": "text",
+            "notnull": true,
+            "hasdefault": false,
+            "generated": ""
+          },
+          {
+            "name": "target_weight_pct",
+            "type": "numeric",
+            "notnull": true,
+            "hasdefault": false,
+            "generated": ""
+          },
+          {
+            "name": "band_pct",
+            "type": "numeric",
+            "notnull": true,
+            "hasdefault": true,
+            "generated": ""
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "notnull": true,
+            "hasdefault": true,
+            "generated": ""
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "notnull": true,
+            "hasdefault": true,
+            "generated": ""
+          }
+        ],
+        "constraints": [
+          {
+            "name": "portfolio_targets_band_pct_check",
+            "type": "c",
+            "definition": "CHECK (((band_pct >= (0)::numeric) AND (band_pct <= (50)::numeric)))",
+            "validated": true,
+            "noinherit": false
+          },
+          {
+            "name": "portfolio_targets_pkey",
+            "type": "p",
+            "definition": "PRIMARY KEY (id)",
+            "validated": true,
+            "noinherit": true
+          },
+          {
+            "name": "portfolio_targets_target_weight_pct_check",
+            "type": "c",
+            "definition": "CHECK (((target_weight_pct >= (0)::numeric) AND (target_weight_pct <= (100)::numeric)))",
+            "validated": true,
+            "noinherit": false
+          },
+          {
+            "name": "portfolio_targets_user_id_fkey",
+            "type": "f",
+            "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+            "validated": true,
+            "noinherit": true
+          },
+          {
+            "name": "portfolio_targets_user_id_ticker_key",
+            "type": "u",
+            "definition": "UNIQUE (user_id, ticker)",
+            "validated": true,
+            "noinherit": true
+          }
+        ],
+        "policies": [
+          {
+            "name": "portfolio_targets_delete_own",
+            "cmd": "d",
+            "roles": [
+              "0"
+            ],
+            "qual": "(auth.uid() = user_id)",
+            "check": null
+          },
+          {
+            "name": "portfolio_targets_insert_own",
+            "cmd": "a",
+            "roles": [
+              "0"
+            ],
+            "qual": null,
+            "check": "(auth.uid() = user_id)"
+          },
+          {
+            "name": "portfolio_targets_select_own",
+            "cmd": "r",
+            "roles": [
+              "0"
+            ],
+            "qual": "(auth.uid() = user_id)",
+            "check": null
+          },
+          {
+            "name": "portfolio_targets_update_own",
+            "cmd": "w",
+            "roles": [
+              "0"
+            ],
+            "qual": "(auth.uid() = user_id)",
+            "check": "(auth.uid() = user_id)"
+          }
+        ],
+        "triggers": null,
+        "other_table_locks": 0,
+        "other_active_0044": 0
+      }
+    }
+  ]
+}

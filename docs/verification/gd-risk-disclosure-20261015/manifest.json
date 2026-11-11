@@ -1,0 +1,192 @@
+{
+  "schema": "grey_deer.risk_disclosure_verification.v1",
+  "base_sha": "73a935e0246fa1245f538a0fc77447911b38179a",
+  "source_sha256": {
+    "terminal/lib/marketRisk.ts": "b4178a12297f08ce2d4cd300f597e445a0c93b90f025cd584dba077bf67196c3",
+    "terminal/components/fin/OracleDash.tsx": "5f190158eada127bab871c4505565ff8caefa7e6baf7be6323f0c520466ce6cb",
+    "terminal/lib/__tests__/marketRiskDisclosure.test.tsx": "c1bdcefbd4cd449af2577b41d86f04bdec8a3cf64b87d43da06beb29e8c73e19",
+    "terminal/e2e/market-risk-disclosure.spec.ts": "a86f861f08aff3eb9199d9a92d642a0dffede540d01d643b32625a037fad013f"
+  },
+  "evidence_class": "LOCAL_SYNTHETIC_BROWSER_ONLY",
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      820,
+      1180
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "language_and_requested_theme": [
+    [
+      "en",
+      "light"
+    ],
+    [
+      "zh",
+      "dark"
+    ]
+  ],
+  "note": "The existing Terminal chip inherits its existing theme tokens. Theme requests are not a claim that a new light-mode implementation was added.",
+  "unit_cases": 106,
+  "browser_cases": 12,
+  "screenshots": [
+    {
+      "path": "screenshots/risk-conflict-desktop-en-light.png",
+      "bytes": 7045,
+      "sha256": "80bd1a86bc37ea5df9a15576b729a71d9b0674c1a6647db3a7658f18f5317a69"
+    },
+    {
+      "path": "screenshots/risk-data-gap-desktop-en-light.png",
+      "bytes": 6038,
+      "sha256": "10aea0cf59f99d2ebc9129063d00487eba4f24a596ebe3c305f27d156c3bf401"
+    },
+    {
+      "path": "screenshots/risk-fragile-desktop-en-light.png",
+      "bytes": 5108,
+      "sha256": "7a31ec257e929079edca79394124a1c0b6061b0d464399d5b62ac34ed8854fe7"
+    },
+    {
+      "path": "screenshots/risk-provisional-desktop-en-light.png",
+      "bytes": 6443,
+      "sha256": "568cd788a3e1c5517ef5732b9a33794fb1043ef9be8e81f34f39f25b5f1f3410"
+    },
+    {
+      "path": "screenshots/risk-stale-required-desktop-en-light.png",
+      "bytes": 86538,
+      "sha256": "4580938333de9e1376424db0004ff9946628a04219f64c0b9e2b7e1b5aad644e"
+    },
+    {
+      "path": "screenshots/risk-conflict-mobile-en-light.png",
+      "bytes": 7071,
+      "sha256": "9c5baaa323bd5eecef3d6f1d1f8f570be44019fa753441bc1aba5fdf3a67996e"
+    },
+    {
+      "path": "screenshots/risk-data-gap-mobile-en-light.png",
+      "bytes": 6012,
+      "sha256": "8ffedc7fef118f851cee3656c067e824b4b18b0bfba84af082c8501dae9579e4"
+    },
+    {
+      "path": "screenshots/risk-fragile-mobile-en-light.png",
+      "bytes": 5066,
+      "sha256": "900160ad36109643c50038e3ccff43d7cc02c3ada7faae417720255e4bbe3696"
+    },
+    {
+      "path": "screenshots/risk-provisional-mobile-en-light.png",
+      "bytes": 6467,
+      "sha256": "37942439e9a56bb054af854a3d7bd1fdae7348edf3868dd03311f4e05c27ff61"
+    },
+    {
+      "path": "screenshots/risk-stale-required-mobile-en-light.png",
+      "bytes": 60874,
+      "sha256": "94c3d1f4352618bd464979b87168b1c95c862a44019225cf01afdcfd78e85370"
+    },
+    {
+      "path": "screenshots/risk-conflict-tablet-en-light.png",
+      "bytes": 7754,
+      "sha256": "8f86ac420aa59e0ca8e130918af23b021da2c5edf82015102b7eeca09fc1f35b"
+    },
+    {
+      "path": "screenshots/risk-data-gap-tablet-en-light.png",
+      "bytes": 6742,
+      "sha256": "19f14356644d66dcc3759cae64023cc7b6963c03fd31fb4650fb3c25d5599d44"
+    },
+    {
+      "path": "screenshots/risk-fragile-tablet-en-light.png",
+      "bytes": 5774,
+      "sha256": "863574488c01f179b37d750b7d1c9445807a5a8cf72ba2eef1ec70601f7eafcd"
+    },
+    {
+      "path": "screenshots/risk-provisional-tablet-en-light.png",
+      "bytes": 7127,
+      "sha256": "d74f2243910be47ef054d687af342bf027818e37c6c2655d19fec8af8157c2fc"
+    },
+    {
+      "path": "screenshots/risk-stale-required-tablet-en-light.png",
+      "bytes": 82143,
+      "sha256": "a0be67b3ae9d78aabd5b5818bd92164bd6965c7092111ad68552851b6f47be6e"
+    },
+    {
+      "path": "screenshots/risk-conflict-desktop-zh-dark.png",
+      "bytes": 7951,
+      "sha256": "91d42f0035e3559fd5fd0677a50b883dad6df35696c1a0399e481caa2055d462"
+    },
+    {
+      "path": "screenshots/risk-data-gap-desktop-zh-dark.png",
+      "bytes": 6029,
+      "sha256": "a8b6cab14db5c533efa6f08a76be8cb634db6f2dffed7294ec3e6529d91217a7"
+    },
+    {
+      "path": "screenshots/risk-fragile-desktop-zh-dark.png",
+      "bytes": 5534,
+      "sha256": "93da7e20239a440459686a0e67e6c41e5001764e7c2e42e930902be7a693b880"
+    },
+    {
+      "path": "screenshots/risk-provisional-desktop-zh-dark.png",
+      "bytes": 7072,
+      "sha256": "e32b46b24273432df11a0861d78ea4d095ac52061563619c99332792bbaa10ac"
+    },
+    {
+      "path": "screenshots/risk-stale-required-desktop-zh-dark.png",
+      "bytes": 82179,
+      "sha256": "f391b17eb3d36365167da31ae1b837a18c267f14fa8936ee9c73360e001fc862"
+    },
+    {
+      "path": "screenshots/risk-conflict-mobile-zh-dark.png",
+      "bytes": 8037,
+      "sha256": "515dd1cbd65d237185d0afa2297685557e7c39dd8d2d1927abb71e917561d8cb"
+    },
+    {
+      "path": "screenshots/risk-data-gap-mobile-zh-dark.png",
+      "bytes": 6069,
+      "sha256": "a36038fe9a9254dfa69418572819fb174689e8096bbdbae32a2a53f0f81e0d37"
+    },
+    {
+      "path": "screenshots/risk-fragile-mobile-zh-dark.png",
+      "bytes": 5589,
+      "sha256": "340ee90fdc766ec0dbfed018cd32cc29f09606ff2e679dc150bda4d3b7e3eec6"
+    },
+    {
+      "path": "screenshots/risk-provisional-mobile-zh-dark.png",
+      "bytes": 7135,
+      "sha256": "ad78c9950715a820754d8d98e35a4533c80bba711b34a5151883b58d39d5b5ae"
+    },
+    {
+      "path": "screenshots/risk-stale-required-mobile-zh-dark.png",
+      "bytes": 79722,
+      "sha256": "abbf978b77368d76fc7da9a0257f1992c4ed276389241a20d54dfeacc9a37721"
+    },
+    {
+      "path": "screenshots/risk-conflict-tablet-zh-dark.png",
+      "bytes": 8791,
+      "sha256": "5d5cd90eddb0364c9da430d3c7026176797534d66aa36413121ac51b3726d30d"
+    },
+    {
+      "path": "screenshots/risk-data-gap-tablet-zh-dark.png",
+      "bytes": 6681,
+      "sha256": "e1e7aba6ee02f287dfbb8beb63ef5294df8584c34292360562cc319c3fedea07"
+    },
+    {
+      "path": "screenshots/risk-fragile-tablet-zh-dark.png",
+      "bytes": 6329,
+      "sha256": "54287bef1a8aae4a8d509189e2618830c42919ed2e659af1013fa8f92ef80d4f"
+    },
+    {
+      "path": "screenshots/risk-provisional-tablet-zh-dark.png",
+      "bytes": 7814,
+      "sha256": "eaebb9af5b3638ef59bab0a931f3f65f992c4ef0bc99d076b1f72b1047726b4c"
+    },
+    {
+      "path": "screenshots/risk-stale-required-tablet-zh-dark.png",
+      "bytes": 81154,
+      "sha256": "1204b250aef6c6033684a78fe226f2bb83b7c17335abc2460834ba403630250b"
+    }
+  ],
+  "production_verified": false,
+  "review_revision": "qualifications-repaired"
+}

@@ -1,0 +1,172 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (19 tests | 3 failed) 791ms
+   × withdraws the old field while a different selected frame is still loading 45ms
+     → expected <div …(2)>…(6)</div> to be null
+   × does not refetch the whole candle session just because the replay selection changes 24ms
+     → expected [ '/api/intraday', '/api/intraday' ] to have a length of 1 but got 2
+   × does not refit the price axis each time a new candle arrives 23ms
+     → expected [ { from: 99.725, to: 105.275 }, …(2) ] to have a length of 2 but got 3
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > withdraws the old field while a different selected frame is still loading
+AssertionError: expected <div …(2)>…(6)</div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  class="obs-surf-data-strip"
+  role="status"
+>
+  <span
+    class="obs-surf-data-item"
+  >
+    <span
+      class="obs-lbl"
+    >
+      Session
+    </span>
+    <strong
+      class="num"
+    >
+      —
+    </strong>
+  </span>
+  <span
+    class="obs-surf-data-item"
+  >
+    <span
+      class="obs-lbl"
+    >
+      Surface
+    </span>
+    <strong
+      class="num"
+    >
+      0
+
+      observed frames
+    </strong>
+    <span
+      class="obs-surf-data-detail"
+    >
+      · cadence pending
+    </span>
+  </span>
+  <span
+    class="obs-surf-data-item"
+  >
+    <span
+      class="obs-lbl"
+    >
+      Price
+    </span>
+    <strong
+      class="num"
+    >
+      5
+      m
+      candles
+    </strong>
+  </span>
+  <span
+    class="obs-surf-observed-badge"
+  >
+    <span
+      aria-hidden="true"
+      class="obs-live-dot"
+    />
+    Observed only · no interpolation
+  </span>
+  <span
+    class="obs-surf-data-legend"
+  >
+    <span
+      style="display: inline-flex; align-items: center; gap: var(--sp-1);"
+    >
+      <span
+        style="display: inline-block; width: 10px; height: 8px; border-radius: 2px; background: var(--metric-netprem-pos);"
+      />
+      <span
+        class="obs-lbl"
+      >
+        inflow
+      </span>
+    </span>
+    <span
+      style="display: inline-flex; align-items: center; gap: var(--sp-1);"
+    >
+      <span
+        style="display: inline-block; width: 10px; height: 8px; border-radius: 2px; background: var(--metric-netprem-neg);"
+      />
+      <span
+        class="obs-lbl"
+      >
+        outflow
+      </span>
+    </span>
+  </span>
+  <span
+    class="obs-surf-data-source"
+  >
+    OPRA per-strike flow
+  </span>
+</div>
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:273:54
+    271|   delayedFrame = new Promise(resolve => { finish = resolve; });
+    272|   await first();
+    273|   expect(host.querySelector(".obs-surf-data-strip")).toBeNull();
+       |                                                      ^
+    274|   await act(async () => { finish(json(null)); });
+    275| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > does not refetch the whole candle session just because the replay selection changes
+AssertionError: expected [ '/api/intraday', '/api/intraday' ] to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:294:52
+    292|   const before = calls.filter(f => f === "/api/intraday").length;
+    293|   await first();
+    294|   expect(calls.filter(f => f === "/api/intraday")).toHaveLength(before…
+       |                                                    ^
+    295| });
+    296|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > does not refit the price axis each time a new candle arrives
+AssertionError: expected [ { from: 99.725, to: 105.275 }, …(2) ] to have a length of 2 but got 3
+
+- Expected
++ Received
+
+- 2
++ 3
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:302:30
+    300|   expect(before).toBeGreaterThan(0);
+    301|   frameRevision = 10; await advance();
+    302|   expect(chartWrites.ranges).toHaveLength(before);
+       |                              ^
+    303| });
+    304|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 16 passed (19)
+   Start at  16:11:30
+   Duration  2.85s (transform 262ms, setup 0ms, collect 476ms, tests 791ms, environment 914ms, prepare 158ms)

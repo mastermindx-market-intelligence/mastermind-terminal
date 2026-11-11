@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-11-09T11:04:00.322379+00:00",
+  "sourceHead": "a89cb179c0012d0b08b5e8a654de1706f14ba6fe",
+  "review": "Primary-session visual inspection of all six B-F11 screenshots and four B4 dark crops",
+  "observations": [
+    "Desktop and tablet EN/ZH show direct Saved research and Your theses controls without overlap",
+    "Mobile EN/ZH show a single-row company toolbar and closed research disclosure",
+    "No visible development error overlay or indicator in the inspected captures",
+    "B4 empty-state text is visible and contained at desktop/mobile in EN/ZH",
+    "Four light comparisons are byte-identical to dark and remain unsupported-light GAP"
+  ],
+  "captureLogCaveat": "B-F11 server log contains Turbopack HMR subscription warnings; actual producer waits/screenshots succeeded. Interaction tests are separate."
+}

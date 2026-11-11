@@ -1,0 +1,20 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/shared-shell-sector-exposure-return-20261102-5c0b11563707b8bc/terminal
+
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (6 tests) 101ms
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (5 tests) 118ms
+ ✓ lib/__tests__/exposureOrigin.test.ts (13 tests) 9ms
+ ✓ lib/__tests__/sectorDepthReturn.test.ts (22 tests) 21ms
+ ✓ lib/__tests__/investigationOptionsSelectionMigrationContract.test.ts (12 tests) 14ms
+ ✓ lib/__tests__/sectorExposureDepthReturn.test.ts (10 tests) 112ms
+ ✓ lib/__tests__/ExposureOriginStrip.test.tsx (5 tests) 84ms
+(node:24330) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/gexDeskStateRace.test.tsx (12 tests) 729ms
+
+ Test Files  8 passed (8)
+      Tests  85 passed (85)
+   Start at  00:18:48
+   Duration  6.99s (transform 3.59s, setup 0ms, collect 6.90s, tests 1.19s, environment 3.79s, prepare 2.93s)
+

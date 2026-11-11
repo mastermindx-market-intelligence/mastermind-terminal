@@ -7,7 +7,7 @@ import {
 } from "@/lib/layouts";
 import {
   createLayoutFixtureDb, fixtureLayoutUserId, fixtureTeamName, GUEST_COOKIE, LAYOUT_FAULT_COOKIE,
-  LAYOUT_STORE_COOKIE, LAYOUT_TEAM_COOKIE, LAYOUT_TEAM_ROLE_COOKIE,
+  LAYOUT_STORE_COOKIE, LAYOUT_TEAM_COOKIE, LAYOUT_TEAM_ROLE_COOKIE, LAYOUT_USER_COOKIE,
   type LayoutFault, type LayoutTeamRole,
 } from "@/lib/layoutsFixtureDb";
 import { validateEnvelope, SCHEMA as WORKSPACE_SCHEMA } from "@/lib/workspaceLayout";
@@ -53,15 +53,22 @@ async function resolveDb(): Promise<LayoutSession | null> {
     // The guest spec needs the API to agree with the page: one cookie drives both.
     if (jar.get(GUEST_COOKIE)?.value === "1") return null;
     const key = jar.get(LAYOUT_STORE_COOKIE)?.value || "default";
+    const identity = jar.get(LAYOUT_USER_COOKIE)?.value || "owner";
     const fault = (jar.get(LAYOUT_FAULT_COOKIE)?.value || "") as LayoutFault;
     const teamId = jar.get(LAYOUT_TEAM_COOKIE)?.value || "";
     const role = fixtureRole(jar.get(LAYOUT_TEAM_ROLE_COOKIE)?.value);
     const team: Team | null = teamId
       ? { id: teamId, name: fixtureTeamName(teamId), role: role as TeamRole, createdAt: null }
       : null;
+    const userId = fixtureLayoutUserId(key, identity);
     return {
-      db: createLayoutFixtureDb(key, fault, team ? { teamId, role, teamName: team.name } : null) as unknown as LayoutDb & TenancyDb,
-      userId: fixtureLayoutUserId(key),
+      db: createLayoutFixtureDb(
+        key,
+        fault,
+        team ? { teamId, role, teamName: team.name } : null,
+        userId,
+      ) as unknown as LayoutDb & TenancyDb,
+      userId,
       teams: team ? [team] : [],
     };
   }

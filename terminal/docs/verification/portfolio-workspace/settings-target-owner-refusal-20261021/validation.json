@@ -1,0 +1,175 @@
+{
+  "recorded_at": "2026-10-21T13:35:02.560244+00:00",
+  "source_base": "c5fd88bf26bcdd9af74c79c00cfb9b42cb08a271",
+  "source_sha256": {
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "e1d68442c5c4fde0a5789b8e93e89a435aff85cbf413d1f61a111a82f4d14725",
+    "terminal/components/settings/__tests__/SectionPortfolioTargets.test.tsx": "627f246387b0036863d39e77ad544fbaea07b8edc8015e8a8be7e64bf488df2f"
+  },
+  "local_runtime": {
+    "node": "v26.5.0",
+    "npm": "11.17.0"
+  },
+  "red": {
+    "failed": 2,
+    "excluded_by_filter": 52,
+    "at": "2026-10-21T13:32:35.409544+00:00",
+    "source_base": "c5fd88bf26bcdd9af74c79c00cfb9b42cb08a271",
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+      "-t",
+      "unreadable owner-refusal"
+    ],
+    "exit_code": 1,
+    "log_sha256": "641a32ba19ec9d1c6b6c11eefbf1404b2ff686230c81a5408c3a337d3ca30a8f"
+  },
+  "affected_unit": {
+    "passed": 153,
+    "files": 5,
+    "skipped": 0,
+    "started_at": "2026-10-21T13:33:01.294930+00:00",
+    "finished_at": "2026-10-21T13:33:03.429412+00:00",
+    "source_base": "c5fd88bf26bcdd9af74c79c00cfb9b42cb08a271",
+    "source_sha256": {
+      "terminal/components/settings/SectionPortfolioTargets.tsx": "e1d68442c5c4fde0a5789b8e93e89a435aff85cbf413d1f61a111a82f4d14725",
+      "terminal/components/settings/__tests__/SectionPortfolioTargets.test.tsx": "627f246387b0036863d39e77ad544fbaea07b8edc8015e8a8be7e64bf488df2f"
+    },
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+      "components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx",
+      "lib/__tests__/portfolioTargetsView.test.tsx",
+      "lib/__tests__/portfolioTargetsRoute.test.ts",
+      "lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx"
+    ],
+    "exit_code": 0,
+    "log_sha256": "632342750a74682e95b055b8e2311c3c163f0587f2fa2e10b05804dd708b0ee5"
+  },
+  "typecheck_final": {
+    "started_at": "2026-10-21T13:33:03.430156+00:00",
+    "finished_at": "2026-10-21T13:33:45.742872+00:00",
+    "source_base": "c5fd88bf26bcdd9af74c79c00cfb9b42cb08a271",
+    "source_sha256": {
+      "terminal/components/settings/SectionPortfolioTargets.tsx": "e1d68442c5c4fde0a5789b8e93e89a435aff85cbf413d1f61a111a82f4d14725",
+      "terminal/components/settings/__tests__/SectionPortfolioTargets.test.tsx": "627f246387b0036863d39e77ad544fbaea07b8edc8015e8a8be7e64bf488df2f"
+    },
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "exit_code": 0,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "reused_browser_evidence": {
+    "source_head": "c5fd88bf26bcdd9af74c79c00cfb9b42cb08a271",
+    "path": "terminal/docs/verification/portfolio-workspace/settings-target-owner-scope-20261021",
+    "fresh_run_for_this_revision": false,
+    "passed": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "retries": 0,
+    "reason": "Only non-OK HTTP409 response handling changed. Successful POST handling, shared UI, E2E and CSS remain unchanged. Fresh unit regressions cover the changed refusal branch; actual-head review and hosted CI remain required."
+  },
+  "preservation": {
+    "terminal/lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx": {
+      "sha256": "2e6a076b2cf9dddbb5657b49893a8b47df62daf7695de7cd26e0159e1aa5d9b1",
+      "git_blob": "8cda4de0b776b0db02e126f63b857315b34991e7",
+      "unchanged": true
+    },
+    "terminal/lib/portfolioRiskHistory.ts": {
+      "sha256": "b03afe2a7bf55e17bea15676d974e6e37b2571ed0fab2ebbc86ff49d6893ad7e",
+      "git_blob": "49ed026399ab4ce709bff766b389a2485d2e6619",
+      "unchanged": true
+    },
+    "terminal/package.json": {
+      "sha256": "49a5d19c384aa136867ae093093c303aa49c8f5078ac6e59b8a5a3ea88e3f59e",
+      "git_blob": "9dd3604673872fd8dee0b9828603e358f05dd048",
+      "unchanged": true
+    },
+    "terminal/package-lock.json": {
+      "sha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+      "git_blob": "2e162a8eb37dd72aad7a01e88c590370a324d0d1",
+      "unchanged": true
+    },
+    "supabase/migrations/0036_portfolio_entry_currency.sql": {
+      "sha256": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c",
+      "git_blob": "8b3c3d2dc919fc78131f31837c41283f9301e875",
+      "unchanged": true
+    },
+    "terminal/docs/verification/portfolio-workspace/0036-production-receipt.json": {
+      "sha256": "511faa4788ca35b8946070bdc8420057fcd0bd62be96fa289c058609e3fe3ff1",
+      "git_blob": "f7cc99df05f822420d73de9fad8ce7b7c636db70",
+      "unchanged": true
+    },
+    "terminal/app/api/portfolio/risk-history/route.ts": {
+      "sha256": "6b10d78519ba88f7c506037f8a8ffe0bc91413d10f115b27e0e364d31672569c",
+      "git_blob": "966b187272d86531462bac53b2801e1e8ca57178",
+      "unchanged": true
+    },
+    "terminal/lib/__tests__/portfolioRiskHistoryRoute.test.ts": {
+      "sha256": "c82fa4a71921f8968db5d6617a3204ff143d8da0675b5606c5ba192f70117449",
+      "git_blob": "e0b04caf04ad3ad10b8bfdfc99d7c20ec69d7631",
+      "unchanged": true
+    },
+    "terminal/lib/portfolioTreasuryHistory.server.ts": {
+      "sha256": "7f47b4d4dd3b92ffb5cf7b9eb84c2638d9c502040efcd36873fa83c88bf1c289",
+      "git_blob": "104160dafa673acbad2414c696387b0d4d2dd8cb",
+      "unchanged": true
+    },
+    "terminal/lib/__tests__/portfolioTreasuryHistory.test.ts": {
+      "sha256": "ca745ce15fec497c34917db73371755ad9e6b75c4ef4a2e1beefc28ee88b222e",
+      "git_blob": "761f83b77b8cdcc98e5ed6f94e0bb336ac5e16e8",
+      "unchanged": true
+    },
+    "terminal/lib/__tests__/portfolioRiskHistoryTreasuryRoute.test.ts": {
+      "sha256": "3bfd2cffe8dc4b9d53c3caf8e19c4e85a931cfdf8b27062d1da2e406e98c8fa9",
+      "git_blob": "1300975a48ea8ab3e3624f5e902d0722212746b2",
+      "unchanged": true
+    },
+    "terminal/components/PortfolioView.tsx": {
+      "sha256": "7935ccbe8153a71b5b83bb7f5d3b5aa6d990fdc1f4eeac5f38103b9c2383d115",
+      "git_blob": "52bcc3842f9bae6d290ad3084dfc460b748a6f97",
+      "unchanged": true
+    },
+    "terminal/app/api/portfolio/targets/route.ts": {
+      "sha256": "01f8209caaf77bf785646f0fee7ea97f29135cbdf63c9dd9a4e63e44bc36d3d9",
+      "git_blob": "39a58fc8ed8f237ec7b508f168752da1276398e9",
+      "unchanged": true
+    },
+    "terminal/lib/__tests__/portfolioTargetsView.test.tsx": {
+      "sha256": "8366176eeb13b57f64c3e6f3157dca6e291901f07d442f0d09059b3723e19236",
+      "git_blob": "437ac339585db88df10662b3676141f306fd87e2",
+      "unchanged": true
+    },
+    "terminal/e2e/portfolio-targets.spec.ts": {
+      "sha256": "bdaa3b3bd1729bbf1b3f48fad11d24d6e79365a5f498d55344886d2198abdad9",
+      "git_blob": "ed46d7c489dfe04653ff188ed244abf3b549c191",
+      "unchanged": true
+    }
+  },
+  "logs": {
+    "red-tests.log.gz": {
+      "raw_bytes": 2320,
+      "raw_sha256": "641a32ba19ec9d1c6b6c11eefbf1404b2ff686230c81a5408c3a337d3ca30a8f",
+      "gzip_bytes": 872,
+      "gzip_sha256": "33804ffbfc07b0f604b50e35b6dd0c8c3da5ed20244af04353eed5e4b7170de2"
+    },
+    "affected-tests.log.gz": {
+      "raw_bytes": 9252,
+      "raw_sha256": "632342750a74682e95b055b8e2311c3c163f0587f2fa2e10b05804dd708b0ee5",
+      "gzip_bytes": 1056,
+      "gzip_sha256": "37795f89aeac374d7f193d5d1bcd23332c8aef7ae7b402bd774aca0fb6b70c3f"
+    },
+    "typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

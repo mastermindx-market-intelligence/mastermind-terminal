@@ -1,0 +1,128 @@
+/* E03 cross-market strip: scan state, the screened taxonomy, the money scope and the filters a
+   market change cleared. Sits between the Screener's filter bar and its status row. */
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line, #23262f);
+  font: 500 11.5px/1.4 var(--font-ui, system-ui, sans-serif);
+  color: var(--muted, #717a8e);
+  flex: none;
+  min-width: 0;
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  min-width: 0;
+}
+
+.warn {
+  color: var(--warn, #e8a33d);
+}
+
+.name {
+  color: var(--text, #d6dae3);
+  font-weight: 600;
+}
+
+.auth {
+  max-width: 44ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count b {
+  color: var(--text, #d6dae3);
+  font-variant-numeric: tabular-nums;
+}
+
+.sep {
+  color: var(--text-dim, #4a5468);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line, #23262f);
+  border-radius: var(--r-md, 6px);
+  background: var(--panel-2, #15171d);
+  color: var(--text-2, #9ba3b4);
+  font: 600 11.5px/1 var(--font-ui, system-ui, sans-serif);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn[aria-pressed="true"] {
+  border-color: var(--brand-2, #4d82ff);
+  color: var(--brand-2, #4d82ff);
+}
+
+/* ── table cells ─────────────────────────────────────────────────────────── */
+
+/* listing currency beside the ticker: the unit of every money cell in that row */
+.ccy {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 4px;
+  border: 1px solid var(--line, #23262f);
+  border-radius: 3px;
+  font: 600 9.5px/14px var(--font-ui, system-ui, sans-serif);
+  letter-spacing: 0.02em;
+  color: var(--muted, #717a8e);
+  vertical-align: 1px;
+}
+
+/* taxonomy chip in the sector cell — every label names the taxonomy it belongs to */
+.tax {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--inset, #08090c);
+  font: 600 9.5px/15px var(--font-ui, system-ui, sans-serif);
+  color: var(--muted, #717a8e);
+}
+
+.stale {
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--warn, #e8a33d);
+}
+
+.unc {
+  color: var(--muted, #717a8e);
+  font-style: italic;
+}
+
+.emptyNote {
+  max-width: 56ch;
+  margin: 8px auto 0;
+  font: 500 12px/1.5 var(--font-ui, system-ui, sans-serif);
+  color: var(--warn, #e8a33d);
+  white-space: normal;
+}
+
+@media (max-width: 860px) {
+  .strip {
+    padding: 8px 10px;
+  }
+  .btn {
+    min-height: 36px;
+  }
+  .auth {
+    max-width: 100%;
+  }
+}
+
+@media (pointer: coarse) {
+  .btn {
+    min-height: 36px;
+  }
+}

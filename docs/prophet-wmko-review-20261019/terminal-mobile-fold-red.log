@@ -1,0 +1,55 @@
+[warmup] /terminal?symbol=NVDA → 200 in 69ms
+[warmup] /options → 200 in 119ms
+[warmup] /portfolio → 200 in 63ms
+[warmup] /alerts → 200 in 65ms
+[warmup] /analysis → 200 in 118ms
+[warmup] /discover → 200 in 85ms
+[warmup] /admin → 200 in 44ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 36ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 62ms
+[warmup] /api/me → 200 in 50ms
+[warmup] /api/watchlist → 200 in 27ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 22ms
+[warmup] 14 routes compiled in 1s
+
+Running 1 test using 1 worker
+
+  ✘  1 [mobile] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart (3.6s)
+
+
+  1) [mobile] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart
+
+    Error: expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 845
+    Received:    875.390625
+
+      320 |   const fold = await page.evaluate(() => window.innerHeight);
+      321 |   const signals = (await page.locator(".detail-scroll .sig-btn").boundingBox())!;
+    > 322 |   expect(signals.y + signals.height).toBeLessThanOrEqual(fold + 1);
+          |                                      ^
+      323 |   const trend = (await page.locator(".detail-scroll .trend-row").first().boundingBox())!;
+      324 |   expect(trend.y).toBeGreaterThan(signals.y);
+      325 |
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/mobile-chart-chrome.spec.ts:322:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/prophet-mobile-fold-red-20261019/mobile-chart-chrome-phone--4dd9a-survives-the-expanded-chart-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/prophet-mobile-fold-red-20261019/mobile-chart-chrome-phone--4dd9a-survives-the-expanded-chart-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/prophet-mobile-fold-red-20261019/mobile-chart-chrome-phone--4dd9a-survives-the-expanded-chart-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/prophet-mobile-fold-red-20261019/mobile-chart-chrome-phone--4dd9a-survives-the-expanded-chart-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [mobile] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart
+
+MOBILE_FOLD_REPRO_EXIT 1

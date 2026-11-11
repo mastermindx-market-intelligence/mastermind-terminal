@@ -40,6 +40,7 @@ from pathlib import Path
 
 CA_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CA_ROOT))
+from ingest.reported_ownership import build_reported_ownership  # noqa: E402
 from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
 MACRO = Path(os.environ.get("MACRO_REPO") or "/Users/chriswong/Documents/Cluade/Macro Dashboard")
 HK_FUND = MACRO / "data" / "hk_fund"
@@ -1045,6 +1046,7 @@ def main(argv: list[str]) -> int:
     only = _arg(argv, "--only")
     limit = int(_arg(argv, "--limit", 0) or 0)
     out_dir = Path(_arg(argv, "--out", str(DEFAULT_OUT)))
+    previous_dir = Path(_arg(argv, "--previous-dir", str(out_dir)))
     no_merge = "--no-merge" in argv
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1064,12 +1066,26 @@ def main(argv: list[str]) -> int:
             rec = json.loads(cache.read_text())
             fund = build_fund(sym, rec)
             dest = out_dir / f"{sym}.fund.json"
-            if not no_merge and dest.exists():
-                try:
-                    fund = _merge_fund(fund, json.loads(dest.read_text()))
-                    merged_n += 1
-                except Exception:
-                    pass   # unreadable existing → plain fresh write
+            previous = previous_dir / dest.name
+            existing = {}
+            if not no_merge and previous.exists():
+                # A failed incumbent read/merge cannot authorize replacing its history.
+                existing = json.loads(previous.read_text())
+                fund = _merge_fund(fund, existing)
+                merged_n += 1
+            reported_root = MACRO / "data" / "reported_ownership" / "hk"
+            raw_ownership = reported_root / f"{sym}.json"
+            attempt_path = reported_root / "_attempts" / f"{sym}.json"
+            try:
+                attempt = json.loads(attempt_path.read_text())
+            except (OSError, ValueError):
+                attempt = {}
+            prior_reported = (existing.get("ownership") or {}).get("reported")
+            fund.setdefault("ownership", {})["reported"] = build_reported_ownership(
+                raw_ownership, expected_ticker=sym, previous=prior_reported,
+                latest_attempt_at=attempt.get("attempted_at"),
+                attempt_reason=attempt.get("reason"),
+            )
             atomic_write(dest, strict_json_dumps(fund))
             written.add(dest)
             ok += 1

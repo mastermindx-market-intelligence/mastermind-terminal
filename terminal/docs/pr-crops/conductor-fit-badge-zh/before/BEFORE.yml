@@ -1,0 +1,35 @@
+# Conductor fit chip in zh: the defect, captured before the fix
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# These crops come from the session probe that e2e/tools/capture_conductor_fit_badge_zh.cjs was cut
+# from, run with the product at base (the fix commit's parent): the same next dev server with
+# TERMINAL_E2E_FIXTURE, the same /dev/theater demo, the queue drained to 7 rows with the done plate up,
+# the step-2 row scrolled into view and the same 8px .cmx-rail crop. The probe's after run matches
+# this packet's crops pixel for pixel (no channel off by more than 8), so the code under test is the
+# only difference.
+# zh: every chip reads the English template, the leak this PR fixes.
+# en: the same text as after. The only pixels that move (1440, 820) are the anti-aliasing phase of
+# the h in "touches" in the multi-digit chips: the old JSX rendered four sibling text nodes, the
+# new string is one.
+base: b7a3357b06847f560022a829b8fd6c4fea3d4d47
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+# chipText: every fit chip's text in the rail when the crop was taken, in row order (as EVIDENCE.yml).
+chipText:
+  rail-1440-zh.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+  rail-1440.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+  rail-390-zh.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+  rail-390.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+  rail-820-zh.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+  rail-820.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+files:
+  - rail-1440-zh.png
+  - rail-1440.png
+  - rail-390-zh.png
+  - rail-390.png
+  - rail-820-zh.png
+  - rail-820.png

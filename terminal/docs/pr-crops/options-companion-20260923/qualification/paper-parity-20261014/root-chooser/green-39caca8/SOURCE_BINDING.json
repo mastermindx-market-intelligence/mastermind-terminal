@@ -1,0 +1,13 @@
+{
+  "sourceHead": "39caca8b0cf8370737687db9f69c907d84eafe4c",
+  "fullIndexDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "availableBytes": 345540079616,
+  "fixture": false,
+  "ownedFixturePid": 2721686,
+  "testPath": "terminal/e2e/exposure-state-identity.spec.ts",
+  "testSha256": "bdf20be1493517c63898f425b66f5a00c6ef05ce311c741f6c1902b9d7e6281b",
+  "previousCandidate": "bb3748d9668a591ecc83c533ddd347b4dc4c328b",
+  "changedPaths": [
+    "terminal/e2e/exposure-state-identity.spec.ts"
+  ]
+}

@@ -12,6 +12,15 @@
 // no bearer to send there is nothing for the desk to key a per-user brief on, so we 401
 // locally and never contact the gateway (the panel treats 401 as "hidden").
 //
+// FRESHNESS: this proxy holds NO success cache. The producer owns freshness — macro's
+// /api/portfolio/brief loads the CURRENT holdings BEFORE it consults its own
+// (uid, ctx-file-mtime, holdings-fingerprint) cache, so a brief it serves is keyed to the
+// book as it stands now. A token-keyed cache here sat in front of that and could hand
+// back a brief composed for an EARLIER book (and replay a success after a later failure),
+// which is exactly the stale-brief symptom this route must not create. Every
+// authenticated read therefore reaches the producer, and the upstream read is explicit
+// `cache: "no-store"` so no framework-level cache can reintroduce the same staleness.
+//
 // Required env: BRAIN_GATEWAY_URL (default https://mastermind-x.com).
 
 export const runtime = "nodejs";
@@ -22,35 +31,6 @@ import { rateLimit, tooMany } from "@/lib/rateLimit";
 
 const GATEWAY = process.env.BRAIN_GATEWAY_URL || "https://mastermind-x.com";
 const UPSTREAM = `${GATEWAY}/api/portfolio/brief`;
-
-// Optional tiny per-user cache: the brief is a once-a-day artifact, so a short TTL keeps
-// tab-switches and re-mounts from re-hitting the gateway. Keyed by the access token
-// (per-user, per-session). Bounded so a token churn can't grow it unboundedly.
-const CACHE_TTL_MS = 5 * 60 * 1000;
-const CACHE_MAX = 500;
-type CacheEntry = { at: number; status: number; body: string; contentType: string };
-const cache = new Map<string, CacheEntry>();
-
-function cacheGet(token: string): CacheEntry | null {
-  const e = cache.get(token);
-  if (!e) return null;
-  if (Date.now() - e.at > CACHE_TTL_MS) {
-    cache.delete(token);
-    return null;
-  }
-  return e;
-}
-
-function cacheSet(token: string, entry: CacheEntry): void {
-  // Only cache successful briefs — 403/503/errors must re-check on the next load so an
-  // upgrade or a recovered artifact is reflected promptly.
-  if (entry.status !== 200) return;
-  if (cache.size >= CACHE_MAX) {
-    const oldest = cache.keys().next().value;
-    if (oldest !== undefined) cache.delete(oldest);
-  }
-  cache.set(token, entry);
-}
 
 // Verify the session and return the access token, or null when there is no valid session.
 // We NEVER read or forward a client-supplied Authorization header — the only Bearer this
@@ -77,32 +57,24 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
 
-  const hit = cacheGet(token);
-  if (hit) {
-    return new Response(hit.body, {
-      status: hit.status,
-      headers: {
-        "Content-Type": hit.contentType,
-        "Cache-Control": "private, no-store",
-        "X-Brief-Cache": "hit",
-      },
-    });
-  }
-
   try {
     const upstream = await fetch(UPSTREAM, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      // Explicitly uncached: the producer is the freshness authority (it keys its own
+      // cache to the live holdings), so this read must always observe the remote.
+      cache: "no-store",
       signal: req.signal,
     });
     const contentType =
       upstream.headers.get("content-type") || "application/json; charset=utf-8";
     const body = await upstream.text();
-    cacheSet(token, { at: Date.now(), status: upstream.status, body, contentType });
     return new Response(body, {
       status: upstream.status,
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "private, no-store",
+        // Diagnostic only. There is no proxy cache any more, so a response can never be
+        // a proxy-cache hit — say "miss" truthfully rather than claim a hit.
         "X-Brief-Cache": "miss",
       },
     });

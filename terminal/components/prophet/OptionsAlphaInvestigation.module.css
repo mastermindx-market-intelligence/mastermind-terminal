@@ -1,0 +1,57 @@
+.workspace { display: grid; gap: 16px; min-width: 0; }
+.toolbar { display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; }
+.toolbar input, .saveControls select { min-height: 44px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); border-radius: 10px; padding: 10px 14px; background: var(--bg); color: currentColor; font: inherit; }
+.toolbar input { width: min(100%, 360px); font-size: 13px; }
+.toolbar span { color: var(--muted); font-size: 12px; }
+.activityGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.activityRow { min-width: 0; display: flex; flex-direction: column; }
+.activityRow > article { flex: 1; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.inspect { display: flex; align-items: center; justify-content: space-between; min-height: 44px; width: 100%; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); border-top: 0; border-radius: 0 0 12px 12px; padding: 10px 14px; background: color-mix(in srgb, currentColor 5%, var(--bg)); color: currentColor; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.inspect:hover, .action:hover { background: color-mix(in srgb, currentColor 10%, var(--bg)); }
+.inspect span { font-size: 16px; }
+.empty { padding: 24px 0; color: var(--muted); }
+.action, .primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border-radius: 10px; padding: 10px 16px; font: inherit; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.action { color: currentColor; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); background: transparent; }
+.primary { border: 1px solid currentColor; background: color-mix(in srgb, currentColor 8%, transparent); color: inherit; }
+.primary:disabled { cursor: default; opacity: .48; }
+.workspace button:focus-visible, .workspace input:focus-visible, .dialog button:focus-visible, .dialog a:focus-visible, .dialog select:focus-visible, .dialog summary:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.dialog { box-sizing: border-box; width: min(760px, calc(100vw - 32px)); max-width: calc(100vw - 32px); max-height: calc(100dvh - 40px); padding: 0; margin: auto; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 20px; background: var(--bg, #101216); color: inherit; box-shadow: 0 28px 100px rgba(0,0,0,.5); overflow: auto; }
+.dialog::backdrop { background: rgba(0,0,0,.65); backdrop-filter: blur(5px); }
+.dialogBody { padding: 26px; display: grid; gap: 18px; min-width: 0; }
+.detailHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.eyebrow { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.detailHeader h2 { margin: 8px 0 0; font-size: 28px; line-height: 1.2; letter-spacing: -.03em; }
+.detailHeader small { display: block; margin-top: 8px; font-size: 14px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+.close { display: grid; place-items: center; flex: 0 0 44px; height: 44px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); border-radius: 50%; background: transparent; color: currentColor; font-size: 24px; cursor: pointer; }
+.caption, .boundary p { color: var(--muted); font-size: 12px; line-height: 1.65; margin: 0; }
+.notice { padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--warn, orange) 40%, transparent); border-radius: 10px; font-size: 12px; line-height: 1.6; margin: 0; }
+.observation, .saveArea { padding: 18px; border: 1px solid color-mix(in srgb, currentColor 12%, transparent); border-radius: 14px; background: color-mix(in srgb, currentColor 3%, transparent); }
+.observation h3, .saveArea h3 { margin: 0 0 12px; font-size: 13px; }
+.observation > p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--muted); }
+.observation > p strong { color: currentColor; }
+.metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 24px; margin: 20px 0 0; }
+.metrics dt, .sourceDetail dt { color: var(--muted); font-size: 11px; }
+.metrics dd { font-size: 18px; margin: 5px 0 0; font-variant-numeric: tabular-nums; }
+.chartAction { display: grid; gap: 10px; justify-items: start; }
+.saveControls { display: flex; gap: 10px; flex-wrap: wrap; }
+.saveControls select { flex: 1; min-width: 100px; }
+.saveStatus { margin: 10px 0 6px; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.saveStatus:empty { display: none; }
+.saveArea > .caption { margin-top: 10px; }
+.sourceDetail { border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent); padding-top: 16px; }
+.sourceDetail summary { cursor: pointer; font-size: 12px; overflow-wrap: anywhere; line-height: 1.6; }
+.sourceDetail dl { display: grid; gap: 12px; margin: 16px 0 0; }
+.sourceDetail dd { margin: 5px 0 0; font-size: 12px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.boundary { display: grid; gap: 7px; padding-top: 4px; }
+.boundary b { font-size: 12px; }
+@media (max-width: 700px) {
+  .activityGrid { grid-template-columns: minmax(0,1fr); }
+  .toolbar { gap: 10px; }
+  .toolbar input { width: 100%; }
+  .dialog { width: calc(100vw - 20px); max-width: calc(100vw - 20px); max-height: calc(100dvh - 24px); border-radius: 16px; }
+  .dialogBody { padding: 18px; gap: 16px; }
+  .metrics { gap: 16px; }
+  .metrics dd { font-size: 16px; overflow-wrap: anywhere; }
+  .saveControls { flex-direction: column; }
+  .saveControls > * { width: 100%; box-sizing: border-box; }
+}

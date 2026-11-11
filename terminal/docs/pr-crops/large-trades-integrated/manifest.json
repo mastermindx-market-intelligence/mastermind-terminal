@@ -1,0 +1,1932 @@
+{
+  "schema": "mastermind.large_trades_integrated_browser_evidence.v1",
+  "preparedAt": "2026-10-11T12:35:20.596760+00:00",
+  "status": "LOCAL_SOURCE_AND_RESPONSIVE_BROWSER_VERIFIED_PRODUCTION_UNPROVEN",
+  "capture": {
+    "startedAt": "2026-10-11T12:18:30.886047+00:00",
+    "endedAt": "2026-10-11T12:25:14.235862+00:00",
+    "seconds": 403.3471047079656,
+    "captureBaseHead": "0c87bb10f237ecb18d074298299f027eb8b46783",
+    "captureUsedReviewedWorkingTreeBytes": true,
+    "sourceUnchangedDuringRun": true,
+    "sourceCommit": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+    "commitBytesIndependentlyMatchedToCapture": true,
+    "command": [
+      "./node_modules/.bin/playwright",
+      "test",
+      "e2e/large-trades.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--output",
+      ".large-trades-evidence/export-candidate/integrated-full-run1",
+      "--reporter=list,json"
+    ],
+    "environment": {
+      "TERMINAL_E2E_PORT": "3117",
+      "MMX_LARGE_TRADES_RESEARCH_ARTIFACT": "private reviewed NVDA historical envelope; exact bytes bound below"
+    },
+    "sourceSnapshotSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+    "runReceiptSha256": "5c3600384d2141255512ef3d722f18f30af06871d50e83e3336af19fa1285790",
+    "resultReportSha256": "a6f9e3eb8981e845c68079d65b718a4e9bb697aabd901b85a73c3cfae4ac2b47",
+    "originalArtifactIndexSha256": "836989ea52e9460b8512622cea75c2c4bb6ad6b7563741674d2fda295ea69642",
+    "commandPresentation": "The output directory is shown relative to the repository; the original command remains bound by the private run-receipt SHA256."
+  },
+  "sourceFiles": {
+    "terminal/components/ChartPanel.tsx": "2ac3f6b132f23ffe6c08237357cca7c8493b875bd946259f1064cfe5e350f7a5",
+    "terminal/components/LargeTradesOverlay.tsx": "763253597cc3b017e81b2c254e517b2ba2ee41910b956325ab4c876815295067",
+    "terminal/components/LargeTradesOverlay.module.css": "8711801a87641519447de52925f2852dce2cbfb0160ee0794e59727e1ae6ff00",
+    "terminal/lib/largeTrades/visibility.ts": "5e9effb66fee7bdafb8c07c5897ef524c9665f441bea63bbdc9b3ab5faf1ca35",
+    "terminal/lib/largeTrades/snapshot.ts": "918c08178aa089599bd2ef71f9e26b9adedeb56e2f7d749ac8975a6eb0897bc0",
+    "terminal/lib/__tests__/largeTradesVisibility.test.ts": "83b8ce08692917d005ad4baf30b4f64052eb99d10d4e6473db7116b6e2d76436",
+    "terminal/lib/__tests__/largeTradesSnapshot.test.ts": "76c1837d024407259bc43db5747f5c60052fdc0632090786f0dd91d07964d5fd",
+    "terminal/e2e/large-trades.spec.ts": "9a91a69604b9f9a60d716a8ba1524a5c32bb0b13f1f2971108f87be2b9313679",
+    "terminal/lib/largeTrades/labels.ts": "24867923e4c5e5e0c2df9c82e84f22edc43f122a8fabd75f27a43c7f88dc2b3b",
+    "terminal/app/globals.css": "f18d02a2e2317946973ad981075a0726751d86ef3e74d1375d3f65f74a628cae"
+  },
+  "results": {
+    "passed": 46,
+    "skipped": 14,
+    "failed": 0,
+    "flaky": 0,
+    "retries": 0,
+    "reportErrors": 0,
+    "desktop": {
+      "passed": 20,
+      "skipped": 0
+    },
+    "tablet": {
+      "passed": 13,
+      "skipped": 7
+    },
+    "mobile": {
+      "passed": 13,
+      "skipped": 7
+    }
+  },
+  "tests": [
+    {
+      "title": "exact executions, reports and responsive inspection en dark",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:18:32.659Z",
+          "duration": 6598
+        }
+      ]
+    },
+    {
+      "title": "exact executions, reports and responsive inspection zh dark",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:18:39.449Z",
+          "duration": 5050
+        }
+      ]
+    },
+    {
+      "title": "settings cap quantity markers and expose adaptive warmup",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:18:44.506Z",
+          "duration": 16067
+        }
+      ]
+    },
+    {
+      "title": "canonical replay excludes future executions and waits for price response",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:19:00.587Z",
+          "duration": 15187
+        }
+      ]
+    },
+    {
+      "title": "unavailable transaction source never turns coordinate candle volume into markers",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:19:15.784Z",
+          "duration": 3281
+        }
+      ]
+    },
+    {
+      "title": "an exact-arithmetic overflow is isolated as invalid evidence",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:19:19.073Z",
+          "duration": 2973
+        }
+      ]
+    },
+    {
+      "title": "the canonical language event retitles the mounted legend, inspector and settings",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:19:22.055Z",
+          "duration": 6273
+        }
+      ]
+    },
+    {
+      "title": "settings normalize stored bounds and persist the exact applied criteria",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:19:28.335Z",
+          "duration": 15346
+        }
+      ]
+    },
+    {
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:19:43.690Z",
+          "duration": 6696
+        }
+      ]
+    },
+    {
+      "title": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:19:50.396Z",
+          "duration": 7321
+        }
+      ]
+    },
+    {
+      "title": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:19:57.725Z",
+          "duration": 14226
+        }
+      ]
+    },
+    {
+      "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:20:11.959Z",
+          "duration": 4904
+        }
+      ]
+    },
+    {
+      "title": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:20:16.871Z",
+          "duration": 9030
+        }
+      ]
+    },
+    {
+      "title": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:20:25.909Z",
+          "duration": 10690
+        }
+      ]
+    },
+    {
+      "title": "native PNG waits while the requested symbol has no accepted native source",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:20:36.607Z",
+          "duration": 5057
+        }
+      ]
+    },
+    {
+      "title": "left price scale places executions after the native axis and exports the same plot",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:20:41.672Z",
+          "duration": 3551
+        }
+      ]
+    },
+    {
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:20:45.228Z",
+          "duration": 5115
+        }
+      ]
+    },
+    {
+      "title": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:20:50.350Z",
+          "duration": 6326
+        }
+      ]
+    },
+    {
+      "title": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:20:56.685Z",
+          "duration": 10908
+        }
+      ]
+    },
+    {
+      "title": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "project": "desktop",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:21:07.603Z",
+          "duration": 12513
+        }
+      ]
+    },
+    {
+      "title": "exact executions, reports and responsive inspection en dark",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:21:21.045Z",
+          "duration": 6651
+        }
+      ]
+    },
+    {
+      "title": "exact executions, reports and responsive inspection zh dark",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:21:27.882Z",
+          "duration": 5140
+        }
+      ]
+    },
+    {
+      "title": "settings cap quantity markers and expose adaptive warmup",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:21:33.028Z",
+          "duration": 15466
+        }
+      ]
+    },
+    {
+      "title": "canonical replay excludes future executions and waits for price response",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:21:48.501Z",
+          "duration": 22266
+        }
+      ]
+    },
+    {
+      "title": "unavailable transaction source never turns coordinate candle volume into markers",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:22:10.775Z",
+          "duration": 6542
+        }
+      ]
+    },
+    {
+      "title": "an exact-arithmetic overflow is isolated as invalid evidence",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:22:17.325Z",
+          "duration": 6509
+        }
+      ]
+    },
+    {
+      "title": "the canonical language event retitles the mounted legend, inspector and settings",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:22:23.841Z",
+          "duration": 13239
+        }
+      ]
+    },
+    {
+      "title": "settings normalize stored bounds and persist the exact applied criteria",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:22:37.088Z",
+          "duration": 11360
+        }
+      ]
+    },
+    {
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:22:48.455Z",
+          "duration": 5437
+        }
+      ]
+    },
+    {
+      "title": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "project": "tablet",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One native separator policy case; responsive owner transitions are covered separately.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 459,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:22:53.900Z",
+          "duration": 95
+        }
+      ]
+    },
+    {
+      "title": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "project": "tablet",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One boundary geometry journey; the standard phone and tablet interaction matrices remain separate.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 573,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:22:54.002Z",
+          "duration": 71
+        }
+      ]
+    },
+    {
+      "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:22:54.079Z",
+          "duration": 7073
+        }
+      ]
+    },
+    {
+      "title": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:23:01.159Z",
+          "duration": 8595
+        }
+      ]
+    },
+    {
+      "title": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "project": "tablet",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One asynchronous ownership case; responsive export is covered separately.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 783,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:23:09.764Z",
+          "duration": 94
+        }
+      ]
+    },
+    {
+      "title": "native PNG waits while the requested symbol has no accepted native source",
+      "project": "tablet",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One source-ownership admission case.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 856,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:23:09.865Z",
+          "duration": 74
+        }
+      ]
+    },
+    {
+      "title": "left price scale places executions after the native axis and exports the same plot",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:23:09.945Z",
+          "duration": 5705
+        }
+      ]
+    },
+    {
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "project": "tablet",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:23:15.657Z",
+          "duration": 4513
+        }
+      ]
+    },
+    {
+      "title": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "project": "tablet",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One integrated RSI-instance compatibility journey; responsive owner transitions are covered separately.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 963,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:23:20.179Z",
+          "duration": 90
+        }
+      ]
+    },
+    {
+      "title": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "project": "tablet",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One two-visible-chart ownership compatibility journey; broader link behavior is covered by chart-link-groups.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 1030,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:23:20.280Z",
+          "duration": 80
+        }
+      ]
+    },
+    {
+      "title": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "project": "tablet",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One deterministic scheduling falsifier; real responsive pointer/touch acceptance is separate.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 1118,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:23:20.368Z",
+          "duration": 94
+        }
+      ]
+    },
+    {
+      "title": "exact executions, reports and responsive inspection en dark",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:23:21.029Z",
+          "duration": 5520
+        }
+      ]
+    },
+    {
+      "title": "exact executions, reports and responsive inspection zh dark",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:23:26.786Z",
+          "duration": 4198
+        }
+      ]
+    },
+    {
+      "title": "settings cap quantity markers and expose adaptive warmup",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:23:30.991Z",
+          "duration": 17034
+        }
+      ]
+    },
+    {
+      "title": "canonical replay excludes future executions and waits for price response",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:23:48.034Z",
+          "duration": 13928
+        }
+      ]
+    },
+    {
+      "title": "unavailable transaction source never turns coordinate candle volume into markers",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:24:01.968Z",
+          "duration": 2310
+        }
+      ]
+    },
+    {
+      "title": "an exact-arithmetic overflow is isolated as invalid evidence",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:24:04.285Z",
+          "duration": 4298
+        }
+      ]
+    },
+    {
+      "title": "the canonical language event retitles the mounted legend, inspector and settings",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:24:08.590Z",
+          "duration": 17457
+        }
+      ]
+    },
+    {
+      "title": "settings normalize stored bounds and persist the exact applied criteria",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:24:26.054Z",
+          "duration": 13299
+        }
+      ]
+    },
+    {
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:24:39.363Z",
+          "duration": 5134
+        }
+      ]
+    },
+    {
+      "title": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "project": "mobile",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One native separator policy case; responsive owner transitions are covered separately.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 459,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:24:44.506Z",
+          "duration": 67
+        }
+      ]
+    },
+    {
+      "title": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "project": "mobile",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One boundary geometry journey; the standard phone and tablet interaction matrices remain separate.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 573,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:24:44.579Z",
+          "duration": 74
+        }
+      ]
+    },
+    {
+      "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:24:44.659Z",
+          "duration": 3502
+        }
+      ]
+    },
+    {
+      "title": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:24:48.167Z",
+          "duration": 12959
+        }
+      ]
+    },
+    {
+      "title": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "project": "mobile",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One asynchronous ownership case; responsive export is covered separately.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 783,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:25:01.137Z",
+          "duration": 123
+        }
+      ]
+    },
+    {
+      "title": "native PNG waits while the requested symbol has no accepted native source",
+      "project": "mobile",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One source-ownership admission case.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 856,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:25:01.270Z",
+          "duration": 105
+        }
+      ]
+    },
+    {
+      "title": "left price scale places executions after the native axis and exports the same plot",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:25:01.387Z",
+          "duration": 9656
+        }
+      ]
+    },
+    {
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "project": "mobile",
+      "status": "expected",
+      "annotations": [],
+      "results": [
+        {
+          "status": "passed",
+          "startTime": "2026-10-11T12:25:11.050Z",
+          "duration": 2827
+        }
+      ]
+    },
+    {
+      "title": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "project": "mobile",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One integrated RSI-instance compatibility journey; responsive owner transitions are covered separately.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 963,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:25:13.884Z",
+          "duration": 73
+        }
+      ]
+    },
+    {
+      "title": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "project": "mobile",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One two-visible-chart ownership compatibility journey; broader link behavior is covered by chart-link-groups.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 1030,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:25:13.963Z",
+          "duration": 74
+        }
+      ]
+    },
+    {
+      "title": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "project": "mobile",
+      "status": "skipped",
+      "annotations": [
+        {
+          "type": "skip",
+          "description": "One deterministic scheduling falsifier; real responsive pointer/touch acceptance is separate.",
+          "location": {
+            "file": "terminal/e2e/large-trades.spec.ts",
+            "line": 1118,
+            "column": 8
+          }
+        }
+      ],
+      "results": [
+        {
+          "status": "skipped",
+          "startTime": "2026-10-11T12:25:14.044Z",
+          "duration": 54
+        }
+      ]
+    }
+  ],
+  "realHistoricalInput": {
+    "artifactSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9",
+    "provider": "IEX",
+    "dataset": "HIST DEEP+ 1.0",
+    "symbol": "NVDA",
+    "dataMode": "historical",
+    "venueScope": "IEX only",
+    "coverage": "partial",
+    "sourceRecords": 408,
+    "minQuantityForDemonstration": 1000,
+    "visibleQuantitiesShares": [
+      1200,
+      1100,
+      1200
+    ],
+    "executionReportCounts": [
+      4,
+      5,
+      6
+    ],
+    "distinctOrderCount": null,
+    "transport": "Explicit same-origin historical envelope interception in a local fixture server",
+    "chartCoordinates": "OHLC derived from the same partial native IEX executions. Marker quantities come directly from execution reports.",
+    "coreReceipt": "docs/evidence/large-trades/real-data-verification.json",
+    "outOfSampleEfficacy": "NOT_ESTIMABLE"
+  },
+  "limits": [
+    "Local browser proof does not establish production publication, authentication, deployment, or a live feed.",
+    "Outer application chrome and other source cases use deterministic fixtures. Native IEX export coordinates derive from the reviewed partial transaction cohort.",
+    "Seven desktop-specific journeys intentionally skip tablet and mobile; the real IEX export runs on all three.",
+    "Phone gestures use trusted browser-native emulated touch events with no supplied timestamps; this is not physical-device or human-cadence evidence.",
+    "The exact browser boundary was198x89 CSS px at a261x900 viewport; the198x88 admission threshold also has unit coverage. Classic scrollbar allowance is a reviewed source budget.",
+    "The1,000,000,000 quantity is synthetic. No distinct-order, trapped-trader, live-CME or predictive-efficacy claim is made.",
+    "Older original-candidate evidence remains historical and is not restamped."
+  ],
+  "images": [
+    {
+      "file": "images/desktop-large-trades-replay-observed.png",
+      "project": "desktop",
+      "sha256": "32eb66e456e775cd12860c2678c0645656701f037de866fdde81febf4433af16",
+      "bytes": 266720,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:19:15.696227+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-replay-pending.png",
+      "project": "desktop",
+      "sha256": "576d9015c14603a54f763682390aa2cf33a24aee5d8edeb3977632f3a8730a55",
+      "bytes": 262049,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:19:08.634408+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-replay-observed.png",
+      "project": "mobile",
+      "sha256": "f6d9a4ba88852b5387a6b9345ec5e59f5e2d215bf7a0c0bac3138828f2d8ece2",
+      "bytes": 88983,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:24:01.928844+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-replay-pending.png",
+      "project": "mobile",
+      "sha256": "20c659f1d8ea43522aed2bfa976c6502567fd34dcf4ec80400fbc2885cc53d74",
+      "bytes": 91101,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:23:54.893852+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-replay-observed.png",
+      "project": "tablet",
+      "sha256": "c71114231c5292c6061ee084f8496a52dd7bb685ed599ea4067b59ee51713ad1",
+      "bytes": 170639,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:22:10.701035+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-replay-pending.png",
+      "project": "tablet",
+      "sha256": "709b00cb2dd8fc1c5faddea5e1598924ec6e33a0fe7bf6148c59e4765d3e8299",
+      "bytes": 164624,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:22:00.899597+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-zh-dark-chart.png",
+      "project": "desktop",
+      "sha256": "bbcd4c0f95f8ce75546a9c1aeedcf391ac036c961fbe8ae495ae80de8d0b903b",
+      "bytes": 229534,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:18:43.382084+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-zh-dark-inspection-overview.png",
+      "project": "desktop",
+      "sha256": "b8e64ff1b74fafee623aabc3f5970b1a8b0c9e1b7842f11bcae2237cc2621d51",
+      "bytes": 282831,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:18:44.109828+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-zh-dark-inspection.png",
+      "project": "desktop",
+      "sha256": "20cff3917808f4928f6bf9bddb660fca4dad83e90c8183fd0993e72e301e930c",
+      "bytes": 282925,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:18:44.387479+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-zh-dark-chart.png",
+      "project": "mobile",
+      "sha256": "ea94ad0b4cf6569d2a0e7077986ed6f98e737eee69840f6ee3659c0da182c734",
+      "bytes": 99876,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:23:30.273500+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-zh-dark-inspection-overview.png",
+      "project": "mobile",
+      "sha256": "e900dac8237ec4bc07b5e39d9dbc80cb0ac6cbbe9424cd547ed49e1e5f2a4c99",
+      "bytes": 98110,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:23:30.542274+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-zh-dark-inspection.png",
+      "project": "mobile",
+      "sha256": "811f2e12c020d10562f597492f780b37132f0b6f8312db491bcd4eba9d6c7bbd",
+      "bytes": 95566,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:23:30.819776+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-zh-dark-chart.png",
+      "project": "tablet",
+      "sha256": "52f3bf4e80115e47a52ddc3bf5d781a401fa63f32b4676e84e35a429ab608239",
+      "bytes": 157614,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:21:31.790316+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-zh-dark-inspection-overview.png",
+      "project": "tablet",
+      "sha256": "f1ab6b0c57f7370bdcbc9c126e2020447c410278a87868469a31e5c7407440e3",
+      "bytes": 178680,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:21:32.375349+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-zh-dark-inspection.png",
+      "project": "tablet",
+      "sha256": "1b5617da2b0bef3574c985b5495da6c9c9954e92083db30c8b736bd334c30879",
+      "bytes": 175504,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:21:32.604646+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-adverse-selling-continued.png",
+      "project": "desktop",
+      "sha256": "e8067909e025446a6ff1238d4c0bb710ee6add52f3754c65da8983a6e25dba20",
+      "bytes": 280747,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:18:39.328911+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-en-dark-chart.png",
+      "project": "desktop",
+      "sha256": "cc856e342c4eb32c274bbe63c6da39914dd1e31e3c2fcca74efdc11cb438aa08",
+      "bytes": 228083,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:18:38.541645+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-en-dark-inspection-overview.png",
+      "project": "desktop",
+      "sha256": "47d6ec012dd5b50acdb6564bc509c0e3c632f8490c7bab457c4fb1861987a93f",
+      "bytes": 280311,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:18:38.827916+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-en-dark-inspection.png",
+      "project": "desktop",
+      "sha256": "1dc8400eaec7d3c6613988313822fac9f07e5e2fb7b33c5eb40f55d3cb1fdc71",
+      "bytes": 279996,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:18:39.091378+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-adverse-selling-continued.png",
+      "project": "mobile",
+      "sha256": "5d89bd608e6db2a82f26100ab13c385a6ce169afd490615d69b70cb0bc20fc49",
+      "bytes": 97490,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:23:26.624418+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-en-dark-chart.png",
+      "project": "mobile",
+      "sha256": "4a85273956e91cba91672b4b335bf5a20bc4470f041c21e335b980ba7e44b6d2",
+      "bytes": 101242,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:23:25.785051+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-en-dark-inspection-overview.png",
+      "project": "mobile",
+      "sha256": "128af398ad38afa95e4c1caf5b084617838eb39f67a60dd542b154bd7c7ed9a7",
+      "bytes": 98058,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:23:26.081336+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-en-dark-inspection.png",
+      "project": "mobile",
+      "sha256": "fddd05880d4d316020b7018d6c794af33e121890d2491d530e1208b8ff2f0356",
+      "bytes": 95430,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:23:26.368368+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-adverse-selling-continued.png",
+      "project": "tablet",
+      "sha256": "887791670d6beaecc31ee27d581e1ca8fe139be8e247e495e2036c444849e4d5",
+      "bytes": 189539,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:21:27.792574+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-en-dark-chart.png",
+      "project": "tablet",
+      "sha256": "24c32803e8b3fb0715247b55ade79ab603f7d3ced83d3adc01379c7190bc2487",
+      "bytes": 154802,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:21:27.109818+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-en-dark-inspection-overview.png",
+      "project": "tablet",
+      "sha256": "b983a9aee3bd9b0b5e5b97efef8ef30528a1e83c9d718b6dc925854d5b33a515",
+      "bytes": 184224,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:21:27.375189+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-en-dark-inspection.png",
+      "project": "tablet",
+      "sha256": "0e2d85322b8f36a0d87d1825570812d655650faff648a794d5ad0fe71484861b",
+      "bytes": 169293,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:21:27.580360+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-boundary-restored.png",
+      "project": "desktop",
+      "sha256": "9f293d1f0633e72aef7d417d2a46027da00dd2098b57e2383b56f369583b9edc",
+      "bytes": 83216,
+      "pixelWidth": 261,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:20:11.913987+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-desktop-height-boundary-terms.png",
+      "project": "desktop",
+      "sha256": "7026168945870d1c3a77bdce46b11238edea8ca1f284631b3379e53befc2e76b",
+      "bytes": 229658,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:20:03.437769+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-narrow-width-and-height-boundary-terms.png",
+      "project": "desktop",
+      "sha256": "8db24e31ef7f908552163acb348aec90a5ca0a3a43c7492339d58981e93859ea",
+      "bytes": 84614,
+      "pixelWidth": 261,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:20:09.473923+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-short-owner-co-hidden.png",
+      "project": "desktop",
+      "sha256": "d9124d83bf3f7d88cd9f099a22e2678abb3d89cf995cef21cfcec392ec2abb6f",
+      "bytes": 215934,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:19:56.896002+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-short-owner-restored.png",
+      "project": "desktop",
+      "sha256": "0794c2eb6f06977d778ac7bf08392ec5b9bdab524485ba84664898586016df70",
+      "bytes": 233230,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:19:57.635336+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-nonprice-maximized-fixed.png",
+      "project": "desktop",
+      "sha256": "c8c1a80f915b0393258ed06e427f9f031849cba5e8fb445990f70ac650877f3d",
+      "bytes": 204522,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:19:49.754151+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-price-restored-fixed.png",
+      "project": "desktop",
+      "sha256": "15cbf569398d42a2095ce3fc05ef823adf4be754381e2b2a59adb25eb838330a",
+      "bytes": 230409,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:19:50.137519+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-phone-touch-maximized-fixed.png",
+      "project": "mobile",
+      "sha256": "6d3c7b85c8344d21ae624f32306d99a6c361803e55dcc47ae831fd919b78b493",
+      "bytes": 81719,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:24:44.128939+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-phone-touch-restored-fixed.png",
+      "project": "mobile",
+      "sha256": "e05cdb2070e2790b39fffddf4546094dcd90020238efea26c667ef54fef4187d",
+      "bytes": 104376,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:24:44.455512+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-nonprice-maximized-fixed.png",
+      "project": "tablet",
+      "sha256": "83bb2ac7a470df8d1e6c23a28807e45f4a8c4bbb8b048208820d5b0f532d53d4",
+      "bytes": 140145,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:22:51.805580+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-price-restored-fixed.png",
+      "project": "tablet",
+      "sha256": "201489380c4c615bc2c5ef70e1323836cd819f4799b05aac419be855499b5927",
+      "bytes": 159798,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:22:52.188450+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-tablet-restore-and-fullscreen-fixed.png",
+      "project": "tablet",
+      "sha256": "9b65cb367cd549a8979dad99aca478ad8f558f12ffe9e409e7a5b153d43f8981",
+      "bytes": 159913,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:22:53.847594+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-additional-rsi-maximized.png",
+      "project": "desktop",
+      "sha256": "bf9dd5e742d216ca7995c997d64c2315aff8adc23fa1957f668a10a399b245ef",
+      "bytes": 291798,
+      "pixelWidth": 1934,
+      "pixelHeight": 1600,
+      "capturedAt": "2026-10-11T12:20:53.922472+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-additional-rsi-price-owner-restored.png",
+      "project": "desktop",
+      "sha256": "406b2b4934c5ed32704a6e4c24b13d20280926599acab955b7d80afd91d535d7",
+      "bytes": 225813,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:20:56.353036+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-price-owner-after-rsi-reorder.png",
+      "project": "desktop",
+      "sha256": "8a0d651de909de34270ad43ec66ebf3e94d28a3bdd04925942eff540a8902614",
+      "bytes": 351218,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:20:55.790454+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-left-axis-aligned.png",
+      "project": "desktop",
+      "sha256": "58bac84557917d4952eb31c82268c357082f41f0e4d5f54bd2a8b3b02cfae709",
+      "bytes": 228112,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:20:45.044599+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-native-export-left-axis.png",
+      "project": "desktop",
+      "sha256": "5ffde1495bcaa2247180c291d4cb32af42b00b7a592f5ac61afd8cb7ef35353e",
+      "bytes": 342143,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:20:45.125920+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-left-axis-aligned.png",
+      "project": "mobile",
+      "sha256": "abb5e3cb2fd02d90b561aab78c893e2f402be515f6fe24d71e543173b4333dfa",
+      "bytes": 101186,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:25:10.920998+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-native-export-left-axis.png",
+      "project": "mobile",
+      "sha256": "651b6b83f30a67f42206c0f40b080ba025f8b4414f2f25ebd0d025c76878580d",
+      "bytes": 166076,
+      "pixelWidth": 780,
+      "pixelHeight": 984,
+      "capturedAt": "2026-10-11T12:25:10.981583+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-left-axis-aligned.png",
+      "project": "tablet",
+      "sha256": "9f0807e329724c6a32e8ecd418178f5b44e0cd02a11a383be812f1f5886e6240",
+      "bytes": 159542,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:23:15.518179+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-native-export-left-axis.png",
+      "project": "tablet",
+      "sha256": "e31cae2ec02d49263d5631e2ae3c50007fa15fd19e34c0dd6b63d7121173ea50",
+      "bytes": 243015,
+      "pixelWidth": 1640,
+      "pixelHeight": 1158,
+      "capturedAt": "2026-10-11T12:23:15.588519+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-linked-aapl-owner.png",
+      "project": "desktop",
+      "sha256": "918c53227bb6609c3f6c755bad6207fa981caa8d81fd17483f1f416d0c95dd53",
+      "bytes": 277150,
+      "pixelWidth": 966,
+      "pixelHeight": 1704,
+      "capturedAt": "2026-10-11T12:21:00.677449+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-linked-active-symbol-msft.png",
+      "project": "desktop",
+      "sha256": "4e6568446367c52931febd6f9582640a1decb57ad2ca0058d90758db3eb2ea0e",
+      "bytes": 279607,
+      "pixelWidth": 966,
+      "pixelHeight": 1704,
+      "capturedAt": "2026-10-11T12:21:04.165517+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-linked-distinct-owners-restored.png",
+      "project": "desktop",
+      "sha256": "88ef364238a8774a3ae6934964a4031e79aaaa52474e7f43c54f16e1ade50906",
+      "bytes": 244095,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:21:07.516191+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-linked-nvda-owner.png",
+      "project": "desktop",
+      "sha256": "3d80e346eafd85f646494e68763608df8b1a4be7607c5622802df99e192ff519",
+      "bytes": 278882,
+      "pixelWidth": 966,
+      "pixelHeight": 1704,
+      "capturedAt": "2026-10-11T12:21:01.989866+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-regrouped-msft-owner.png",
+      "project": "desktop",
+      "sha256": "383f764a9f0e48a567e7f21621c3ca1fd153ddf1553e0bb407ce99e8cd8605e5",
+      "bytes": 279744,
+      "pixelWidth": 966,
+      "pixelHeight": 1704,
+      "capturedAt": "2026-10-11T12:21:05.663505+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-rejoined-aapl-owner.png",
+      "project": "desktop",
+      "sha256": "c55399b94a1cf9b19565e1dee5293ff60cfad744adcca8d38d762beb32f7b374",
+      "bytes": 277131,
+      "pixelWidth": 966,
+      "pixelHeight": 1704,
+      "capturedAt": "2026-10-11T12:21:07.398760+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-native-export-before-async-mutations.png",
+      "project": "desktop",
+      "sha256": "046c43076bd8d1ad3afd2015e7e80b9f4c18caa5072df35f7a68e6a80b66c825",
+      "bytes": 339239,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:20:30.476669+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-native-export-frozen-before-symbol-change.png",
+      "project": "desktop",
+      "sha256": "046c43076bd8d1ad3afd2015e7e80b9f4c18caa5072df35f7a68e6a80b66c825",
+      "bytes": 339239,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:20:36.221659+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-export-visible-chart.png",
+      "project": "desktop",
+      "sha256": "14a534b46fe97636ea7711cad0ff515b35286e61f9302a7db2a10e7b0724ec48",
+      "bytes": 228189,
+      "pixelWidth": 1440,
+      "pixelHeight": 900,
+      "capturedAt": "2026-10-11T12:20:16.142186+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-native-export-inspector-excluded.png",
+      "project": "desktop",
+      "sha256": "21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4",
+      "bytes": 343481,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:20:16.434594+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-native-export.png",
+      "project": "desktop",
+      "sha256": "21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4",
+      "bytes": 343481,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:20:16.221074+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-export-visible-chart.png",
+      "project": "mobile",
+      "sha256": "6a3e9213288223531c17c911dfca110d4d6fdef76cb547a8d96d7a3188c663c6",
+      "bytes": 101233,
+      "pixelWidth": 390,
+      "pixelHeight": 844,
+      "capturedAt": "2026-10-11T12:24:47.773754+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-native-export-inspector-excluded.png",
+      "project": "mobile",
+      "sha256": "c7a323a413f35c5617fb31133960b189baeba70111769632cba3124839632f5f",
+      "bytes": 166724,
+      "pixelWidth": 780,
+      "pixelHeight": 984,
+      "capturedAt": "2026-10-11T12:24:48.020491+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-native-export.png",
+      "project": "mobile",
+      "sha256": "c7a323a413f35c5617fb31133960b189baeba70111769632cba3124839632f5f",
+      "bytes": 166724,
+      "pixelWidth": 780,
+      "pixelHeight": 984,
+      "capturedAt": "2026-10-11T12:24:47.832247+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-export-visible-chart.png",
+      "project": "tablet",
+      "sha256": "f3a49dcad9b1baf421db4e17c7d68a32629591838905b3b1e5d3200f83e22d6f",
+      "bytes": 161022,
+      "pixelWidth": 820,
+      "pixelHeight": 1180,
+      "capturedAt": "2026-10-11T12:23:00.559670+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-native-export-inspector-excluded.png",
+      "project": "tablet",
+      "sha256": "2dbcd77a9414d6094231eb00ec3ff3b9ac87c79349bd9305112525accdba1878",
+      "bytes": 244926,
+      "pixelWidth": 1640,
+      "pixelHeight": 1158,
+      "capturedAt": "2026-10-11T12:23:00.871928+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-native-export.png",
+      "project": "tablet",
+      "sha256": "2dbcd77a9414d6094231eb00ec3ff3b9ac87c79349bd9305112525accdba1878",
+      "bytes": 244926,
+      "pixelWidth": 1640,
+      "pixelHeight": 1158,
+      "capturedAt": "2026-10-11T12:23:00.672831+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-native-export-labels-off.png",
+      "project": "desktop",
+      "sha256": "93dd049ef8eb7b7746fc1989ad106d6332c70e511d36478f1a1e506f39143e57",
+      "bytes": 389316,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:20:23.572264+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-native-export-replay.png",
+      "project": "desktop",
+      "sha256": "3a62104828e8419b9f6c3ef448af4e58f9419ccbdb4681f516baabefdb13c930",
+      "bytes": 307328,
+      "pixelWidth": 1934,
+      "pixelHeight": 1694,
+      "capturedAt": "2026-10-11T12:20:25.811961+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-native-export-labels-off.png",
+      "project": "mobile",
+      "sha256": "64f437a0a5cae3b2d00c7e602c64fbc007844d3fa176ff273f9ac597baeaa38e",
+      "bytes": 156668,
+      "pixelWidth": 780,
+      "pixelHeight": 984,
+      "capturedAt": "2026-10-11T12:24:58.634668+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-native-export-replay.png",
+      "project": "mobile",
+      "sha256": "45b8190523015c778e58de0437dedf1f6daeed753c59e43cf6c7bae21ac18801",
+      "bytes": 159933,
+      "pixelWidth": 780,
+      "pixelHeight": 1012,
+      "capturedAt": "2026-10-11T12:25:01.059037+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-native-export-labels-off.png",
+      "project": "tablet",
+      "sha256": "be2ab1b69151eb2e2e21bce185000dc4c4b656a27531a355957273ca622cf506",
+      "bytes": 250925,
+      "pixelWidth": 1640,
+      "pixelHeight": 1158,
+      "capturedAt": "2026-10-11T12:23:07.569591+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-native-export-replay.png",
+      "project": "tablet",
+      "sha256": "09b8ef15847c0361afbed351261a0e30a9a1673bd1ca9bc44b3b1afd7e58abe4",
+      "bytes": 210113,
+      "pixelWidth": 1640,
+      "pixelHeight": 1186,
+      "capturedAt": "2026-10-11T12:23:09.681263+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-before-pending-native-geometry.png",
+      "project": "desktop",
+      "sha256": "8040821cb938f6b6bb6ede45bdf69ab4e2d949e51de607020fa6c8b41f22588d",
+      "bytes": 344300,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:21:14.193222+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-pending-native-price-height-100.png",
+      "project": "desktop",
+      "sha256": "4dc2cee67c8027467f237aa35f174279379eb575abbf42b189e1d0ab37f2196c",
+      "bytes": 307658,
+      "pixelWidth": 1934,
+      "pixelHeight": 1600,
+      "capturedAt": "2026-10-11T12:21:15.612094+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-pending-native-price-height-220.png",
+      "project": "desktop",
+      "sha256": "75c162f14e672de3ea485a82298d8f525c87ba3aa297e08feab07e05e483095d",
+      "bytes": 382188,
+      "pixelWidth": 1934,
+      "pixelHeight": 1760,
+      "capturedAt": "2026-10-11T12:21:14.682603+00:00"
+    },
+    {
+      "file": "images/desktop-large-trades-native-export-real-iex.png",
+      "project": "desktop",
+      "sha256": "3029ab68b66ce0eb28e0079ca262c40d901066bc88903523e4ee55cd8d53d3f0",
+      "bytes": 327695,
+      "pixelWidth": 1934,
+      "pixelHeight": 1816,
+      "capturedAt": "2026-10-11T12:20:50.239163+00:00"
+    },
+    {
+      "file": "images/mobile-large-trades-native-export-real-iex.png",
+      "project": "mobile",
+      "sha256": "fa5246bbd0d642d575ac96a88bc4819bd70e181605855ffc023d800b2ec86963",
+      "bytes": 193536,
+      "pixelWidth": 780,
+      "pixelHeight": 1096,
+      "capturedAt": "2026-10-11T12:25:13.830094+00:00"
+    },
+    {
+      "file": "images/tablet-large-trades-native-export-real-iex.png",
+      "project": "tablet",
+      "sha256": "2c9562991eda996ef11c259da3fe2659dabb5c1bb64c92a8830042dd0b4a9ba7",
+      "bytes": 232532,
+      "pixelWidth": 1640,
+      "pixelHeight": 1214,
+      "capturedAt": "2026-10-11T12:23:20.088001+00:00"
+    }
+  ],
+  "proofs": [
+    {
+      "sha256": "a1cea19b9002f9249ba81a19d73c3eb4fe85c17fdefa3827eed089c6c27bd401",
+      "project": "desktop",
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-before-maximize",
+      "testStartedAt": "2026-10-11T12:19:43.690Z",
+      "file": "proofs/desktop-price-owned-dock-before-maximize.json"
+    },
+    {
+      "sha256": "a1cea19b9002f9249ba81a19d73c3eb4fe85c17fdefa3827eed089c6c27bd401",
+      "project": "desktop",
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-after-pointer-restore",
+      "testStartedAt": "2026-10-11T12:19:43.690Z",
+      "file": "proofs/desktop-price-owned-dock-after-pointer-restore.json"
+    },
+    {
+      "sha256": "a1cea19b9002f9249ba81a19d73c3eb4fe85c17fdefa3827eed089c6c27bd401",
+      "project": "desktop",
+      "title": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "attachment": "short-owner-restored-dock-bounds",
+      "testStartedAt": "2026-10-11T12:19:50.396Z",
+      "file": "proofs/desktop-short-owner-restored-dock-bounds.json"
+    },
+    {
+      "sha256": "de2a19e3a52115b3d7368bc560b48866fd3f118ec85c7508db3a746fe182b74e",
+      "project": "desktop",
+      "title": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "attachment": "desktop-height-boundary-hit-footprints",
+      "testStartedAt": "2026-10-11T12:19:57.725Z",
+      "file": "proofs/desktop-desktop-height-boundary-hit-footprints.json"
+    },
+    {
+      "sha256": "1e3fbe256dfa896a0022c7e709e530e95e97cda9a74c7cc2b8fd798e2f91ace4",
+      "project": "desktop",
+      "title": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "attachment": "narrow-width-and-height-boundary-hit-footprints",
+      "testStartedAt": "2026-10-11T12:19:57.725Z",
+      "file": "proofs/desktop-narrow-width-and-height-boundary-hit-footprints.json"
+    },
+    {
+      "sha256": "80cba96a77a721cb137ae3c2b7be7c923756dd18ca6c3265ed3f255281778d78",
+      "project": "desktop",
+      "title": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "attachment": "async-capture-frame-equality",
+      "testStartedAt": "2026-10-11T12:20:25.909Z",
+      "file": "proofs/desktop-async-capture-frame-equality.json"
+    },
+    {
+      "sha256": "b5c2273e8e6a64f787b93fa9b54372a7cdbd64a3638555501a292d07f543a9d4",
+      "project": "desktop",
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "native-iex-export-provenance",
+      "testStartedAt": "2026-10-11T12:20:45.228Z",
+      "file": "proofs/desktop-native-iex-export-provenance.json"
+    },
+    {
+      "sha256": "a249d51dd1d523fc03d5eaf68cb0a4798bc8ccb064d1416314f5f77ec39999a1",
+      "project": "desktop",
+      "title": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "attachment": "additional-rsi-owner-proof",
+      "testStartedAt": "2026-10-11T12:20:50.350Z",
+      "file": "proofs/desktop-additional-rsi-owner-proof.json"
+    },
+    {
+      "sha256": "98491f45d736957244b59429fabc63fcd6753a2f404e7b33c6dd0ddc60c5b194",
+      "project": "desktop",
+      "title": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "attachment": "linked-chart-execution-owners",
+      "testStartedAt": "2026-10-11T12:20:56.685Z",
+      "file": "proofs/desktop-linked-chart-execution-owners.json"
+    },
+    {
+      "sha256": "b080090f6690e1d1924789c77468b9152e2b0d2789687ea58fe415fa62bae9c7",
+      "project": "desktop",
+      "title": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "attachment": "pending-native-geometry-proof",
+      "testStartedAt": "2026-10-11T12:21:07.603Z",
+      "file": "proofs/desktop-pending-native-geometry-proof.json"
+    },
+    {
+      "sha256": "55b50c01bd30c71c5342eadbe8659374b59e30ade41d133cee4685c430b40ec2",
+      "project": "tablet",
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-before-maximize",
+      "testStartedAt": "2026-10-11T12:22:48.455Z",
+      "file": "proofs/tablet-price-owned-dock-before-maximize.json"
+    },
+    {
+      "sha256": "55b50c01bd30c71c5342eadbe8659374b59e30ade41d133cee4685c430b40ec2",
+      "project": "tablet",
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-after-pointer-restore",
+      "testStartedAt": "2026-10-11T12:22:48.455Z",
+      "file": "proofs/tablet-price-owned-dock-after-pointer-restore.json"
+    },
+    {
+      "sha256": "b5c2273e8e6a64f787b93fa9b54372a7cdbd64a3638555501a292d07f543a9d4",
+      "project": "tablet",
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "native-iex-export-provenance",
+      "testStartedAt": "2026-10-11T12:23:15.657Z",
+      "file": "proofs/tablet-native-iex-export-provenance.json"
+    },
+    {
+      "sha256": "86855309ba37a053c579f58b60251fa4dca5c9fc23e1e7fa4b7a5ff7a9947b69",
+      "project": "mobile",
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-before-maximize",
+      "testStartedAt": "2026-10-11T12:24:39.363Z",
+      "file": "proofs/mobile-price-owned-dock-before-maximize.json"
+    },
+    {
+      "sha256": "43b7061bde1b5e75db1c78e86353b69e1dceb40153a1c303162a1e43af167d6f",
+      "project": "mobile",
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "phone-maximize-native-touch-events",
+      "testStartedAt": "2026-10-11T12:24:39.363Z",
+      "file": "proofs/mobile-phone-maximize-native-touch-events.json"
+    },
+    {
+      "sha256": "5ab5a0fa5cb3aba2216dabec0b0bf7b24c4e33607a0bd45e43cdb6e9c495630e",
+      "project": "mobile",
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "phone-restore-native-touch-events",
+      "testStartedAt": "2026-10-11T12:24:39.363Z",
+      "file": "proofs/mobile-phone-restore-native-touch-events.json"
+    },
+    {
+      "sha256": "c3d6114ea4273762cc10c191504d93e1401aa73fd57fe0d81e85dbb42f89440e",
+      "project": "mobile",
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-after-phone-restore",
+      "testStartedAt": "2026-10-11T12:24:39.363Z",
+      "file": "proofs/mobile-price-owned-dock-after-phone-restore.json"
+    },
+    {
+      "sha256": "b5c2273e8e6a64f787b93fa9b54372a7cdbd64a3638555501a292d07f543a9d4",
+      "project": "mobile",
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "native-iex-export-provenance",
+      "testStartedAt": "2026-10-11T12:25:11.050Z",
+      "file": "proofs/mobile-native-iex-export-provenance.json"
+    }
+  ],
+  "compatibility": {
+    "manifest": "compatibility-e09/manifest.json",
+    "manifestSha256": "34c8341e0e087112dcdc61c9bf11abda3857d2a995184a897c1a4dc3bbcefd54",
+    "sourceCommit": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+    "startedAt": "2026-10-11T12:32:40.579096+00:00",
+    "endedAt": "2026-10-11T12:36:56.305762+00:00",
+    "sourceUnchanged": true,
+    "counts": {
+      "total": {
+        "passed": 32,
+        "skipped": 4,
+        "failed": 0,
+        "retries": 0
+      },
+      "bySpec": {
+        "chart-link-groups.spec.ts": {
+          "passed": 20,
+          "skipped": 4,
+          "failed": 0,
+          "byProject": {
+            "desktop": {
+              "passed": 7,
+              "skipped": 1,
+              "failed": 0
+            },
+            "tablet": {
+              "passed": 7,
+              "skipped": 1,
+              "failed": 0
+            },
+            "mobile": {
+              "passed": 6,
+              "skipped": 2,
+              "failed": 0
+            }
+          }
+        },
+        "study-instances.spec.ts": {
+          "passed": 12,
+          "skipped": 0,
+          "failed": 0,
+          "byProject": {
+            "desktop": {
+              "passed": 4,
+              "skipped": 0,
+              "failed": 0
+            },
+            "tablet": {
+              "passed": 4,
+              "skipped": 0,
+              "failed": 0
+            },
+            "mobile": {
+              "passed": 4,
+              "skipped": 0,
+              "failed": 0
+            }
+          }
+        }
+      }
+    },
+    "freshImages": 7,
+    "historicalOriginalPathsRestored": true,
+    "scope": "Separate existing study-instance and chart-link regression run; these counts are not part of the 46-pass feature matrix."
+  }
+}

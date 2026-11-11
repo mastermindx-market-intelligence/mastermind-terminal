@@ -78,6 +78,7 @@ export interface JsonRecord {
   url: string;
   data: any;
   ts: number;
+  observedAtMs?: number;
 }
 
 /** True only in a browser-like context that actually exposes IndexedDB. */
@@ -334,7 +335,7 @@ let putsSinceEvict = 0;
  * hot path. Skips oversized values (see estimatePersistBytes) and runs a lazy
  * eviction sweep every EVICT_EVERY successful puts.
  */
-export async function idbPut(url: string, data: any, ts: number): Promise<void> {
+export async function idbPut(url: string, data: any, ts: number, observedAtMs?: number): Promise<void> {
   if (!isAvailable()) return;
 
   // Single-record safety cap. estimatePersistBytes returns null when it cannot
@@ -344,7 +345,7 @@ export async function idbPut(url: string, data: any, ts: number): Promise<void> 
   if (est !== null && est > MAX_RECORD_BYTES) return;
 
   try {
-    const ok = await reqToPromise<IDBValidKey>((s) => s.put({ url, data, ts } as JsonRecord), "readwrite");
+    const ok = await reqToPromise<IDBValidKey>((s) => s.put({ url, data, ts, observedAtMs } satisfies JsonRecord), "readwrite");
     if (ok === null) return; // write failed silently; skip eviction bookkeeping
     putsSinceEvict++;
     if (putsSinceEvict >= EVICT_EVERY) {

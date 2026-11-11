@@ -1,0 +1,185 @@
+[warmup] /terminal?symbol=NVDA → 200 in 90ms
+[warmup] /options → 200 in 161ms
+[warmup] /portfolio → 200 in 655ms
+[warmup] /alerts → 200 in 865ms
+[warmup] /analysis → 200 in 2023ms
+[warmup] /discover → 200 in 1148ms
+[warmup] /admin → 200 in 544ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 414ms
+[warmup] /login → 200 in 84ms
+[warmup] /reset-password → 200 in 511ms
+[warmup] /api/me → 200 in 246ms
+[warmup] /api/watchlist → 200 in 205ms
+[warmup] /api/layouts → 200 in 281ms
+[warmup] /api/watchlist/annotations → 409 in 221ms
+[warmup] 14 routes compiled in 7s
+
+Running 5 tests using 1 worker
+
+  ✘  1 [desktop] › e2e/options-gex-load-failure.spec.ts:118:5 › a failed market-state or matrix read stays in its card and never takes the ladder down (1.9s)
+  ✘  2 [desktop] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in en, above the geometry (1.6s)
+  ✘  3 [desktop] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in zh, above the geometry (2.0s)
+  ✘  4 [desktop] › e2e/responsive.spec.ts:1425:5 › Exposure desk replays an archived session's full ladder at every supported width (1.3s)
+  ✘  5 [desktop] › e2e/selection-cohort-tile.spec.ts:66:7 › Selection cohort masthead tile (D2) › grid height matches master with tile closed and popover open (1.3s)
+
+
+  1) [desktop] › e2e/options-gex-load-failure.spec.ts:118:5 › a failed market-state or matrix read stays in its card and never takes the ladder down
+
+    Error: the control sits above the card's fold
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 839.09375
+    Received:    843.09375
+
+      60 |   expect(box.scrollTop).toBe(0);
+      61 |   expect(box.top).toBeGreaterThanOrEqual(box.cardTop);
+    > 62 |   expect(box.bottom, "the control sits above the card's fold").toBeLessThanOrEqual(box.cardBottom + 0.5);
+         |                                                                ^
+      63 | }
+      64 |
+      65 | async function expectNoPageOverflow(page: Page) {
+        at expectInsideCardFold (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/e2e/options-gex-load-failure.spec.ts:62:64)
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/e2e/options-gex-load-failure.spec.ts:139:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-gex-load-failure-a-2c5cd-never-takes-the-ladder-down-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-gex-load-failure-a-2c5cd-never-takes-the-ladder-down-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-gex-load-failure-a-2c5cd-never-takes-the-ladder-down-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-gex-load-failure-a-2c5cd-never-takes-the-ladder-down-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in en, above the geometry
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 80
+    Received:    46
+
+      375 |       });
+      376 |       expect(fold, "the panel has no stance block to protect").not.toBeNull();
+    > 377 |       expect(fold!.visible).toBeGreaterThanOrEqual(80);
+          |                             ^
+      378 |       // And the header block stays a one-liner — prose here is what caused the drop.
+      379 |       expect(noteBox.height).toBeLessThanOrEqual(48);
+      380 |     }
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/e2e/prophet-origination.spec.ts:377:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/prophet-origination-Prophe-a4b65-on-in-en-above-the-geometry-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/prophet-origination-Prophe-a4b65-on-in-en-above-the-geometry-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/prophet-origination-Prophe-a4b65-on-in-en-above-the-geometry-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/prophet-origination-Prophe-a4b65-on-in-en-above-the-geometry-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [desktop] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in zh, above the geometry
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 80
+    Received:    46
+
+      375 |       });
+      376 |       expect(fold, "the panel has no stance block to protect").not.toBeNull();
+    > 377 |       expect(fold!.visible).toBeGreaterThanOrEqual(80);
+          |                             ^
+      378 |       // And the header block stays a one-liner — prose here is what caused the drop.
+      379 |       expect(noteBox.height).toBeLessThanOrEqual(48);
+      380 |     }
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/e2e/prophet-origination.spec.ts:377:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/prophet-origination-Prophe-26642-on-in-zh-above-the-geometry-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/prophet-origination-Prophe-26642-on-in-zh-above-the-geometry-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/prophet-origination-Prophe-26642-on-in-zh-above-the-geometry-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/prophet-origination-Prophe-26642-on-in-zh-above-the-geometry-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [desktop] › e2e/responsive.spec.ts:1425:5 › Exposure desk replays an archived session's full ladder at every supported width
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 150
+    Received:    108
+
+      1443 |     .locator(".obs-gexdesk-ladder-region")
+      1444 |     .evaluate((el) => el.getBoundingClientRect().height);
+    > 1445 |   expect(ladderRegionH).toBeGreaterThanOrEqual(150);
+           |                         ^
+      1446 |
+      1447 |   // Pick an archived session → that session's FULL ladder, labelled as archived.
+      1448 |   await picker.selectOption("2026-07-02");
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/e2e/responsive.spec.ts:1445:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/responsive-Exposure-desk-r-0269c-er-at-every-supported-width-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/responsive-Exposure-desk-r-0269c-er-at-every-supported-width-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/responsive-Exposure-desk-r-0269c-er-at-every-supported-width-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/responsive-Exposure-desk-r-0269c-er-at-every-supported-width-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [desktop] › e2e/selection-cohort-tile.spec.ts:66:7 › Selection cohort masthead tile (D2) › grid height matches master with tile closed and popover open
+
+    Error: expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 1
+    Received:    44
+
+      42 |     };
+      43 |   });
+    > 44 |   expect(Math.abs(metrics.gridH - MASTER_GRID_CLIENT_HEIGHT_1440x900)).toBeLessThanOrEqual(1);
+         |                                                                        ^
+      45 |   expect(metrics.scrollH).toBeLessThanOrEqual(metrics.innerH);
+      46 | }
+      47 |
+        at assertGridGeometry (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/e2e/selection-cohort-tile.spec.ts:44:72)
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/e2e/selection-cohort-tile.spec.ts:71:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/selection-cohort-tile-Sele-f3bf7-ile-closed-and-popover-open-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/selection-cohort-tile-Sele-f3bf7-ile-closed-and-popover-open-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/selection-cohort-tile-Sele-f3bf7-ile-closed-and-popover-open-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/selection-cohort-tile-Sele-f3bf7-ile-closed-and-popover-open-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5 failed
+    [desktop] › e2e/options-gex-load-failure.spec.ts:118:5 › a failed market-state or matrix read stays in its card and never takes the ladder down
+    [desktop] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in en, above the geometry
+    [desktop] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in zh, above the geometry
+    [desktop] › e2e/responsive.spec.ts:1425:5 › Exposure desk replays an archived session's full ladder at every supported width
+    [desktop] › e2e/selection-cohort-tile.spec.ts:66:7 › Selection cohort masthead tile (D2) › grid height matches master with tile closed and popover open

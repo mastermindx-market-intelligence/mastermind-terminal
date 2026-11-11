@@ -1,0 +1,44 @@
+[dev:err] npm notice run terminal@0.1.0 dev
+[dev:err] npm notice run next dev --hostname 127.0.0.1 --port 34379
+[dev] ✓ Ready in 123ms
+[warmup] /terminal?symbol=NVDA → 200 in 49ms
+[warmup] /options → 200 in 949ms
+[warmup] /portfolio → 200 in 320ms
+[warmup] /alerts → 200 in 364ms
+[warmup] /analysis → 200 in 559ms
+[warmup] /discover → 200 in 602ms
+[warmup] /admin → 200 in 248ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 211ms
+[warmup] /login → 200 in 34ms
+[warmup] /reset-password → 200 in 220ms
+[warmup] /api/me → 200 in 202ms
+[warmup] /api/watchlist → 200 in 75ms
+[warmup] /api/layouts → 200 in 89ms
+[warmup] /api/watchlist/annotations → 409 in 69ms
+[warmup] 14 routes compiled in 4s
+capture DiscoverLeaders-1440.png … ok
+capture OptionsHubView-1440.png … ok
+capture SearchModal-1440.png … ok
+capture StockAnalysis-1440.png … ok
+capture AnalysisWorkspace-1440.png … ok
+capture ChartChrome-1440.png … ok
+capture DiscoverLeaders-1440-zh.png … ok
+capture OptionsHubView-1440-zh.png … ok
+capture SearchModal-1440-zh.png … ok
+capture StockAnalysis-1440-zh.png … ok
+capture AnalysisWorkspace-1440-zh.png … ok
+capture ChartChrome-1440-zh.png … ok
+capture DiscoverLeaders-390.png … ok
+capture OptionsHubView-390.png … ok
+capture SearchModal-390.png … ok
+capture StockAnalysis-390.png … ok
+capture AnalysisWorkspace-390.png … ok
+capture ChartChrome-390.png … ok
+capture DiscoverLeaders-390-zh.png … ok
+capture OptionsHubView-390-zh.png … ok
+capture SearchModal-390-zh.png … ok
+capture StockAnalysis-390-zh.png … ok
+capture AnalysisWorkspace-390-zh.png … ok
+capture ChartChrome-390-zh.png … ok
+capturedAtHead da02d533f17e209abd63f8c23bcc8b68952d49ae
+wrote 24 crops + EVIDENCE.yml to /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/b-pl-6-batch-1

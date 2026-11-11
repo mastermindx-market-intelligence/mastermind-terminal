@@ -3,10 +3,11 @@ import type { ThesisDetail, ThesisSummary, ThesisVersion } from "@/lib/theses";
 import type { ServerWatchlist } from "@/lib/watchlists";
 import type { UserClaim } from "@/lib/personalAccuracy";
 import type { Position } from "@/lib/portfolio";
+import { API_V1_READ_SCHEMA_VERSION, inferenceMetadata, type ApiV1InferenceMetadata } from "@/lib/apiV1Metadata";
 
 /** Public API v1 contract freeze (B-F12-10 / MO-PAID-055). Version pin is the seat date. */
 export const API_V1_VERSION = "2026-09-13";
-export const API_V1_CEILING = "read_only_projection" as const;
+export const API_V1_CEILING = "read_projection_and_opt_in_watchlist_add" as const;
 export const API_KEY_HEAD = "mmx_";
 export const API_KEY_SECRET_LEN = 40;
 export const API_KEY_PREFIX_LEN = 8;
@@ -17,9 +18,9 @@ export const API_V1_RATE_LIMIT_MINUTE = 60;
 export const API_V1_RATE_LIMIT_DAY = 5_000;
 
 export const API_V1_TRUTH_EN =
-  "This API returns what you already see in the Terminal. It originates no signals, rankings or advice.";
+  "API reads return what you already see in the Terminal. Opt-in keys may add tickers to your watchlists. It originates no signals, rankings or advice.";
 export const API_V1_TRUTH_ZH =
-  "本接口只返回你在终端里已经能看到的内容。它不产生任何信号、排名或建议。";
+  "接口读取你在终端里已有的内容。主动开启写入权限的密钥可向你的自选列表添加代码。它不产生信号、排名或建议。";
 
 export const API_V1_TEAM_KEYS_NULL_EN =
   "Team keys aren't available yet — keys are personal for now.";
@@ -37,7 +38,9 @@ export type ApiV1ErrorCode =
   | "not_found"
   | "rate_limited"
   | "invalid_request"
-  | "server_error";
+  | "server_error"
+  | "idempotency_conflict"
+  | "unavailable";
 
 export const API_V1_ERROR_MESSAGES: Record<ApiV1ErrorCode, [string, string]> = {
   unauthorized: [
@@ -45,8 +48,8 @@ export const API_V1_ERROR_MESSAGES: Record<ApiV1ErrorCode, [string, string]> = {
     "这次请求没有带上有效的个人 API 密钥。",
   ],
   forbidden: [
-    "This key cannot read that resource.",
-    "此密钥无法读取该资源。",
+    "This key cannot access that resource or operation.",
+    "此密钥无法访问该资源或操作。",
   ],
   not_found: [
     "Nothing matching that id is visible with this key.",
@@ -60,6 +63,8 @@ export const API_V1_ERROR_MESSAGES: Record<ApiV1ErrorCode, [string, string]> = {
     "This request could not be read. Check the path, the cursor and the limit.",
     "无法读取这次请求。请检查路径、游标和条数上限。",
   ],
+  idempotency_conflict: ["This request ID was already used for a different operation.", "此请求编号已用于不同操作。"],
+  unavailable: ["The write could not be confirmed. Retry with the same request ID and payload.", "无法确认写入结果。请使用相同请求编号和内容重试。"],
   server_error: [
     "The API could not prepare a safe response. Try again later.",
     "接口无法准备安全的响应。请稍后再试。",
@@ -73,6 +78,8 @@ export type ApiV1Page = { next_cursor: string | null; limit: number };
 export type ApiV1Envelope<T> = {
   schema: string;
   version: typeof API_V1_VERSION;
+  schema_version: typeof API_V1_READ_SCHEMA_VERSION;
+  inference_metadata: ApiV1InferenceMetadata;
   asof: string;
   data: T;
   page: ApiV1Page;
@@ -128,6 +135,7 @@ export const API_V1_RESOURCES = [
   { path: "/api/v1/alerts/{id}/fires", schema: "mm.api.v1.alert_fires", version: API_V1_VERSION },
   { path: "/api/v1/claims", schema: "mm.api.v1.claims", version: API_V1_VERSION },
   { path: "/api/v1/positions", schema: "mm.api.v1.positions", version: API_V1_VERSION },
+  { path: "/api/v1/event-impact", schema: "mm.api.v1.event_impact", version: API_V1_VERSION },
   { path: "/api/v1/openapi.json", schema: "mm.api.v1.openapi", version: API_V1_VERSION },
 ] as const;
 
@@ -237,6 +245,8 @@ export function envelope<T>(
   return {
     schema,
     version: API_V1_VERSION,
+    schema_version: API_V1_READ_SCHEMA_VERSION,
+    inference_metadata: inferenceMetadata(schema, data),
     asof,
     data,
     page,
@@ -254,6 +264,8 @@ export function errorStatus(code: ApiV1ErrorCode): number {
   if (code === "forbidden") return 403;
   if (code === "not_found") return 404;
   if (code === "rate_limited") return 429;
+  if (code === "idempotency_conflict") return 409;
+  if (code === "unavailable") return 503;
   if (code === "server_error") return 500;
   return 400;
 }

@@ -1,0 +1,86 @@
+export const LEADERS_PREVIEW_ROWS = 12;
+
+export function visibleLeaderRows<T>(rows: readonly T[], expanded: boolean): T[] {
+  return expanded ? [...rows] : rows.slice(0, LEADERS_PREVIEW_ROWS);
+}
+
+export function normalizeLeaderQuery(query: string): string {
+  return query.trim().replace(/^\$+/, "").toUpperCase();
+}
+
+export function filterLeaderRows<T extends { ticker: string }>(
+  rows: readonly T[],
+  query: string,
+): T[] {
+  const normalized = normalizeLeaderQuery(query);
+  if (!normalized) return [...rows];
+  return rows.filter((row) => row.ticker.toUpperCase().includes(normalized));
+}
+
+export function leaderSearchCountLabel(
+  lang: "en" | "zh",
+  matches: number,
+  boardTotal: number,
+  universeTotal: number,
+): string {
+  if (lang === "zh") return `匹配 ${matches} / ${boardTotal} · ${universeTotal} 标的范围`;
+  return `${matches} match${matches === 1 ? "" : "es"} in ${boardTotal} · ${universeTotal}-name universe`;
+}
+
+export function leaderSearchEmptyLabel(lang: "en" | "zh", query: string): string {
+  const normalized = normalizeLeaderQuery(query);
+  return lang === "zh"
+    ? `没有标的匹配“${normalized}”`
+    : `No names match “${normalized}”`;
+}
+
+export function leaderCountLabel(
+  lang: "en" | "zh",
+  shown: number,
+  boardTotal: number,
+  universeTotal: number,
+): string {
+  return lang === "zh"
+    ? `显示 ${shown} / ${boardTotal} · ${universeTotal} 标的范围`
+    : `Showing ${shown} of ${boardTotal} · ${universeTotal}-name universe`;
+}
+
+export function leaderEmptyLabel(lang: "en" | "zh"): string {
+  return lang === "zh" ? "此快照中暂无满足条件的标的" : "No qualifying names in this snapshot";
+}
+
+export function leaderMissingRecurrenceLabel(
+  lang: "en" | "zh",
+  stale: boolean,
+  staleReason?: string | null,
+): string {
+  if (stale && staleReason === "insufficient_same_session_coverage") {
+    return lang === "zh" ? "暂无" : "unavailable";
+  }
+  if (stale) return lang === "zh" ? "历史" : "historical";
+  return lang === "zh" ? "累积中" : "accruing";
+}
+
+export function leaderHistoryLabel(lang: "en" | "zh", sessions: number): string {
+  if (lang === "zh") return `${sessions} 个历史会话`;
+  return `${sessions} session${sessions === 1 ? "" : "s"} of history`;
+}
+
+const LEGACY_DIRECTION_NOTE = "Net premium direction is ~-soft (approximate) for all sources until multi-session tape calibration extension passes (FL-R3). Magnitude leads direction.";
+
+export function leaderDirectionCaveat(
+  lang: "en" | "zh",
+  sourceNote: string = LEGACY_DIRECTION_NOTE,
+): string {
+  // Translate only this known legacy disclosure; retain any different producer qualification.
+  if (sourceNote !== LEGACY_DIRECTION_NOTE) return sourceNote;
+  return lang === "zh"
+    ? "此快照中，幅度比方向更可靠。"
+    : "Magnitude is more reliable than direction in this snapshot.";
+}
+
+export function leaderCoverageFootnote(lang: "en" | "zh", tapeNames: number): string {
+  return lang === "zh"
+    ? `Tape 签名覆盖 ${tapeNames} 个标的。仅供展示，不构成投资建议。`
+    : `Tape-signed coverage: ${tapeNames} names. Display only — not investment advice.`;
+}

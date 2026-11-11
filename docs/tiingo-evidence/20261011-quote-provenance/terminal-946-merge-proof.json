@@ -1,0 +1,12 @@
+{
+  "schema": "tiingo_terminal_merge_marker_evidence.v1",
+  "source_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/pulls/946",
+  "pr": 946,
+  "state": "closed",
+  "merged": true,
+  "merged_at": "2026-10-11T19:02:37Z",
+  "merge_commit_sha": "2957bd64eec9ac3246a52789acb0f7de55400144",
+  "head_sha": "32955c95f68ddf2b93d80b49d96606cfc8bd3e41",
+  "source_only_metadata_repair": true,
+  "database_application_claim": false
+}

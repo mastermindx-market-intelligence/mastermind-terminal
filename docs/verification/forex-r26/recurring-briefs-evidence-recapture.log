@@ -1,0 +1,23 @@
+[dev] ✓ Ready in 274ms
+capture list-1440.png … ok
+capture list-1440-zh.png … ok
+capture list-390.png … ok
+capture list-390-zh.png … ok
+capture empty-1440.png … ok
+capture empty-1440-zh.png … ok
+capture empty-390.png … ok
+capture empty-390-zh.png … ok
+capture subscribe-1440.png … [dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+FAIL locator.waitFor: Timeout 45000ms exceeded.
+Call log:
+[2m  - waiting for getByTestId('brief-subscribe') to be visible[22m
+
+locator.waitFor: Timeout 45000ms exceeded.
+Call log:
+[2m  - waiting for getByTestId('brief-subscribe') to be visible[22m
+
+    at openSubscribe (/Volumes/Mastermind 2/agent-workspaces/terminal/web/forex-r26-account-owner-20261021-sol-002/terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs:301:45)
+    at async main (/Volumes/Mastermind 2/agent-workspaces/terminal/web/forex-r26-account-owner-20261021-sol-002/terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs:337:13) {
+  log: [ "  - waiting for getByTestId('brief-subscribe') to be visible" ],
+  name: 'TimeoutError'
+}

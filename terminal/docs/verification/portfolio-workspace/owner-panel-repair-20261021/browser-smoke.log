@@ -1,0 +1,24 @@
+
+[WebServer] npm notice run terminal@0.1.0 dev
+
+[WebServer] npm notice run next dev --hostname 127.0.0.1 --port 3493
+[warmup] /terminal?symbol=NVDA → 200 in 48ms
+[warmup] /options → 200 in 930ms
+[warmup] /portfolio → 200 in 322ms
+[warmup] /alerts → 200 in 367ms
+[warmup] /analysis → 200 in 557ms
+[warmup] /discover → 200 in 601ms
+[warmup] /admin → 200 in 259ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 214ms
+[warmup] /login → 200 in 34ms
+[warmup] /reset-password → 200 in 217ms
+[warmup] /api/me → 200 in 208ms
+[warmup] /api/watchlist → 200 in 78ms
+[warmup] /api/layouts → 200 in 90ms
+[warmup] /api/watchlist/annotations → 409 in 91ms
+[warmup] 14 routes compiled in 4s
+
+Running 1 test using 1 worker
+
+[1/1] [desktop] › e2e/portfolio-workspace.spec.ts:135:5 › tabs, filters and malformed optional analysis leave holdings usable
+  1 passed (10.8s)

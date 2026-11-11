@@ -1,0 +1,12 @@
+{
+ "asof": "2026-07-14",
+ "profile": {
+  "industry": "Oil & Gas Refining & Marketing",
+  "sector": "Energy"
+ },
+ "quote_currency": "INR",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "RELIANCE.NS"
+}

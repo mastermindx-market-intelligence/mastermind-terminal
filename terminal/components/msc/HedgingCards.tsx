@@ -3,8 +3,8 @@
  * HedgingCards — the hedging-requirement reframing (Volland-parity W1, rebuilt in the
  * 2026-08-01 production sweep).
  *
- * THE REFRAMING: every greek renders on ONE axis — the dollars of underlying a
- * continuously hedged dealer must transact. Not the exposure — the trade it forces.
+ * THE FRAMING: every greek lens renders on ONE axis — USD mn of modeled hedge
+ * sensitivity under the stated shock. Not the exposure itself, and not a spot-path total.
  *
  * Sweep changes, each answering a defect the operator saw on production:
  *   • By-strike chart: STRIKE AXIS LABELS (the first pass drew a price chart with no
@@ -64,7 +64,7 @@ const BAND_KEY: Record<TenorBand, MscKey> = {
 const sideColor = (v: number) =>
   v > 0 ? "var(--flow-buy)" : v < 0 ? "var(--flow-sell)" : "var(--text-dim)";
 
-// ─── Card 1: hedging requirement by strike ───────────────────────────────────────────
+// ─── Card 1: snapshot hedge sensitivity by strike ────────────────────────────────────
 
 export function HedgingByStrikeCard({
   byStrike,
@@ -262,12 +262,18 @@ export function HedgingByStrikeCard({
         )}
       </div>
 
+      {hasData && geom && (
+        <div style={{ ...UNIT, textAlign: "center", marginTop: 2 }}>{t("hgStrikeAxis")}</div>
+      )}
+
       <CardSpacer />
       <CardFoot>
-        {t("hgLegend")}
+        {t("hgLegendByStrike")}
         {hasData
           ? ` · ${t("hgScale").replace("{v}", fmtMnMag(view === "bars" ? p.maxAbsMn : p.maxAbsCumMn))}`
           : ""}
+        {` · ${t("hgCoverage").replace("{known}", String(p.knownRows)).replace("{total}", String(p.inputRows))}`}
+        {p.missingRows > 0 ? ` · ${t("hgPartial")}` : ""}
         {windowNote ? ` · ${windowNote}` : ""}
       </CardFoot>
     </MscCard>
@@ -275,10 +281,10 @@ export function HedgingByStrikeCard({
 }
 
 function perUnitKey(u: string): MscKey {
-  return u === "1% spot" ? "unitSpot"
-    : u === "1 vol point" ? "unitVol"
-    : u === "1 day" ? "unitDay"
-    : "unitPosition";
+  return u === "1% spot" ? "hgUnitSpot"
+    : u === "1 vol point" ? "hgUnitVol"
+    : u === "1 day" ? "hgUnitDay"
+    : "hgUnitPosition";
 }
 
 // ─── Card 2: term structure — zero-centred bars per expiration ──────────────────────

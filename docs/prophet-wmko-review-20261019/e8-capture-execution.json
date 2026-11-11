@@ -1,0 +1,73 @@
+{
+  "source_head": "aaeada599ec119df9ea5b69c7b090b12fcd34b44",
+  "source_tree": "edc4b1820875fa7eaf2ac8c79853d857eb5553a0",
+  "started_at": "2026-10-19T10:20:30.726850+00:00",
+  "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal",
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/visual-intelligence.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=test-results/prophet-context-recapture-20261019-e8"
+  ],
+  "explicit_environment": {
+    "PLAYWRIGHT_JSON_OUTPUT_FILE": "../prophet-context-recapture-report-20261019-e8.json",
+    "TERMINAL_E2E_PORT": "32871"
+  },
+  "scope": "Existing localhost NVDA fixture harness only; no authenticated production proof",
+  "source_locks": {
+    "terminal/components/ChartPanel.tsx": "f100d02a69a224e6742a9c7bffc93420f6a7fecb87c81ae4c1d221d0c6ef71f1",
+    "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
+    "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
+    "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
+    "terminal/components/DrawingSidebar.module.css": "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2",
+    "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
+    "terminal/components/VisualIntelligencePanel.tsx": "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356",
+    "terminal/components/VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df",
+    "terminal/components/ChartTableView.tsx": "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b",
+    "terminal/lib/visualIntelligence.ts": "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970",
+    "terminal/lib/visualIntelligenceCopy.ts": "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3",
+    "terminal/lib/suites/trend/candlePainter.ts": "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1",
+    "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
+    "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
+    "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
+    "terminal/components/TerminalShell.tsx": "79109241966290d01e3fa7ecd87301dc8d6fe74f99076c6f71facd0cf860b5d8",
+    "terminal/components/ChartPane.tsx": "e3dc3396a717c727d7e4f696a16e38b6b2fdb8098cd261884b1ef3c11df664bb",
+    "terminal/components/ChartContextDock.ts": "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9",
+    "terminal/components/ChartContextPlacement.module.css": "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0",
+    "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
+    "terminal/components/options-companion/OptionsCompanion.module.css": "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915",
+    "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
+    "terminal/components/mobile/AnalysisHubSheet.module.css": "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846",
+    "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
+    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "d18c59d7474eb29c49624c7ebe0404770f83a092f75f922b2ae3269de1a10331"
+  },
+  "raw_files_preserved_before": 44,
+  "ended_at": "2026-10-19T10:25:56.418845+00:00",
+  "duration_seconds": 325.694,
+  "process_exit": 0,
+  "raw_files_preserved_after": 44,
+  "source_locks_preserved": true,
+  "head_preserved": true,
+  "log_sha256": "432d7b714af36a732258c4c413da03b24a696648c8283d78ce1338b3ea3e9c79",
+  "report_exists": true,
+  "report_stats": {
+    "startTime": "2026-10-19T10:20:31.400Z",
+    "duration": 325001.43299999996,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "report_errors": [],
+  "report_sha256": "5ff97bcda63b782b789bebdd9648344b688c50101f58e90746a9801907110f8d",
+  "tracked_status_after": [
+    " M terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+    " M terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png"
+  ]
+}

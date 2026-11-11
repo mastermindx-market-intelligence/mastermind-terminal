@@ -1,0 +1,44 @@
+{
+  "basis": "Only three modified production files restored to exact protected Terminal2ded360 for two controlled Discover visits; existing development harness and fixture; no deployment",
+  "base": "2ded360882b9c721e690907ff363b553781fb920",
+  "time": "2026-11-04T01:22:51.851546+00:00",
+  "baselineSourceHashes": {
+    "components/chrome/shared-shell/ShellDirectory.tsx": "24b78589a0be817b02ca980a7aa242f7be078bbd769ee37b4774441129fb563e",
+    "components/chrome/shared-shell/shared-shell.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2",
+    "lib/sharedShellCopy.ts": "2b66cde3a3fe1cda365c8b7ef07d307d70980a6764fd8263d96ab756a5176b6e"
+  },
+  "productionDiff": "",
+  "exit": 0,
+  "stats": {
+    "startTime": "2026-11-04T01:22:52.740Z",
+    "duration": 18915.016,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "observations": [
+    {
+      "attempt": 1,
+      "httpErrors": [],
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "attempt": 2,
+      "httpErrors": [
+        "404 /_next/static/chunks/components_0jv6p3_._.js"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found) [http://127.0.0.1:3139/_next/static/chunks/components_0jv6p3_._.js]"
+      ],
+      "pageErrors": []
+    }
+  ],
+  "restoredFinalHashes": {
+    "components/chrome/shared-shell/ShellDirectory.tsx": "0dec62b6bf353d8ec3d28509810c29652a65cb5967cd33a37141d6c50ef52bc0",
+    "components/chrome/shared-shell/shared-shell.css": "ace6eda93612f229031e426b6246315dd5cdeb49add7ce1d24c45165e7eb2660",
+    "lib/sharedShellCopy.ts": "4cef78b0145bc9968cb4fb324ad7f17b3a8a3f631fa62ba9402c0f5701abb2d3"
+  },
+  "finalSourceRestored": true
+}

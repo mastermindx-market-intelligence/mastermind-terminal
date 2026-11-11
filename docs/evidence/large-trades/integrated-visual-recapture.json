@@ -1,0 +1,3327 @@
+{
+  "schema": "mastermind.large_trades_integrated_visual_recap.v1",
+  "verifiedAt": "2026-10-11T13:15:54.732745+00:00",
+  "status": "ACTUAL_CAPTURES_AND_REQUIRED_LOCAL_EVIDENCE_GATES_PASSED",
+  "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+  "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+  "baseline": {
+    "sha256": "c7c9b237075ceca690e9150aacaf2ffd8d9a474c626918cb401b9c81e400113d",
+    "head": "0c87bb10f237ecb18d074298299f027eb8b46783",
+    "recordedAt": "2026-10-11T12:01:21.007728+00:00"
+  },
+  "scope": "Six enforced legacy visual families, using local deterministic fixtures. This is not production or live market evidence.",
+  "totals": {
+    "freshImages": 281,
+    "byteIdenticalToBaseline": 240,
+    "changedFromBaseline": 41,
+    "historicalImagesPreserved": 57
+  },
+  "families": [
+    {
+      "family": "terminal-visual-intelligence",
+      "status": "FRESH_CAPTURES_VERIFIED",
+      "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+      "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+      "sourceFiles": 1710,
+      "sourceUnchanged": true,
+      "startedAt": "2026-10-11T12:38:44.778087+00:00",
+      "endedAt": "2026-10-11T12:41:44.189827+00:00",
+      "seconds": 179.41069404198788,
+      "command": [
+        "./node_modules/.bin/playwright",
+        "test",
+        "e2e/visual-intelligence.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output",
+        ".large-trades-evidence/legacy-recaptures-0e8/visual-run1-output"
+      ],
+      "commandPresentation": "Any output paths are presented relative to the repository; the private original receipt retains the exact command.",
+      "exitCode": 0,
+      "privateReceiptSha256": "982519c2640eac12017e0d1d417d45268666a08eee9b3a82e1bb9f7a8717b13b",
+      "manifest": {
+        "file": "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+        "sha256": "64fed9c6b90a68d369eff6a1682f1c8f1ed18051a109ffe659dc1737c6294f1e"
+      },
+      "freshImages": 6,
+      "byteIdenticalToBaseline": 0,
+      "changedFromBaseline": 6,
+      "historicalImageCount": 2,
+      "historicalImagesPreserved": true,
+      "images": [
+        {
+          "file": "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+          "sha256": "d36699607c7f043007004fd337e75b04807685ca0a9abc71b6e4ca221efcb003",
+          "bytes": 322946,
+          "width": 1440,
+          "height": 900,
+          "captureMtimeNs": 1791722384351663080,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png",
+          "sha256": "b2e718e439a1584f8160de6552a4198a752d430c1f6af0d1b434fe4d7e3d9fd8",
+          "bytes": 314087,
+          "width": 1440,
+          "height": 900,
+          "captureMtimeNs": 1791722334151295982,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context-zh.png",
+          "sha256": "e7dc5ee34cdc18233527b5278f7212578d61e1e527c1d39014c09a3e0b244910",
+          "bytes": 107325,
+          "width": 390,
+          "height": 844,
+          "captureMtimeNs": 1791722503257038083,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context.png",
+          "sha256": "518ec72e29248c2b2fbfc5c6a12531968d8a9538a85b557e4c90d6bb68b11a3a",
+          "bytes": 105728,
+          "width": 390,
+          "height": 844,
+          "captureMtimeNs": 1791722455286952657,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context-zh.png",
+          "sha256": "df307fd23fa39b7db1f49267a909fb05b73fde003d1793b55c46ae0c92d7a364",
+          "bytes": 224923,
+          "width": 820,
+          "height": 1180,
+          "captureMtimeNs": 1791722446629774217,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context.png",
+          "sha256": "f3e5e8a557e3dd2a03fa2b3871b121315eb3572b6b3d57fac65d01135e824911",
+          "bytes": 223402,
+          "width": 820,
+          "height": 1180,
+          "captureMtimeNs": 1791722393575176049,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        }
+      ],
+      "historicalImages": [
+        {
+          "file": "terminal/docs/pr-crops/terminal-visual-intelligence/candles-production/existing-default-on.png",
+          "sha256": "b4c41db1fbabd4e328027bd0464aa607ab1aa93955f0ae9617d6c72b59db8787"
+        },
+        {
+          "file": "terminal/docs/pr-crops/terminal-visual-intelligence/candles-production/fresh-default-on.png",
+          "sha256": "29ee2dfa6c520c4333ee57ce97d8438524221f07c181c7ad2560c1691b725674"
+        }
+      ]
+    },
+    {
+      "family": "options-level-axis-labels",
+      "status": "FRESH_CAPTURES_VERIFIED",
+      "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+      "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+      "sourceFiles": 1710,
+      "sourceUnchanged": true,
+      "startedAt": "2026-10-11T12:42:39.674786+00:00",
+      "endedAt": "2026-10-11T12:42:56.832550+00:00",
+      "seconds": 17.15598579100333,
+      "command": [
+        "node",
+        "docs/pr-crops/options-level-axis-labels/capture.mjs"
+      ],
+      "commandPresentation": "Any output paths are presented relative to the repository; the private original receipt retains the exact command.",
+      "exitCode": 0,
+      "privateReceiptSha256": "c4c393aa2e38f717d4ed9fa987c9a964deccbd91f964fb76908ea7380c60cce5",
+      "manifest": {
+        "file": "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+        "sha256": "d022f744272ac92f55c606b498ecdd182a5b7c5a6b37d5613d818e0c932dd3dc"
+      },
+      "freshImages": 5,
+      "byteIdenticalToBaseline": 0,
+      "changedFromBaseline": 5,
+      "historicalImageCount": 0,
+      "historicalImagesPreserved": true,
+      "images": [
+        {
+          "file": "terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png",
+          "sha256": "170c352a170080cf0dfb2d33bc10d1322269c74a45e8b67f8fcc4b24d915eea7",
+          "bytes": 118972,
+          "width": 1440,
+          "height": 430,
+          "captureMtimeNs": 1791722576548027234,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png",
+          "sha256": "e247681880234ce81eb7651251b929073f65af6f601b71e4424b324d584ac4a2",
+          "bytes": 230199,
+          "width": 1440,
+          "height": 900,
+          "captureMtimeNs": 1791722573685654908,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/options-level-axis-labels/desktop.png",
+          "sha256": "a3f1270c819048fc670a6565ce9a20443a3dfaa80230de50d5ce5a8ad4995047",
+          "bytes": 212268,
+          "width": 1440,
+          "height": 900,
+          "captureMtimeNs": 1791722565683217100,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/options-level-axis-labels/mobile.png",
+          "sha256": "e29e8bc5aea239f685bcd4733cfdfe4e2680368d54edbb2149dcfa727287e411",
+          "bytes": 98868,
+          "width": 390,
+          "height": 844,
+          "captureMtimeNs": 1791722570201821184,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/options-level-axis-labels/tablet.png",
+          "sha256": "957b5eba422f9297f428f134390e4d2de93b306b052ad5a8999c315bafb44aac",
+          "bytes": 151328,
+          "width": 820,
+          "height": 1180,
+          "captureMtimeNs": 1791722567840206546,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        }
+      ],
+      "historicalImages": []
+    },
+    {
+      "family": "b-pl-6-batch-1",
+      "status": "FRESH_CAPTURES_VERIFIED",
+      "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+      "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+      "sourceFiles": 1710,
+      "sourceUnchanged": true,
+      "startedAt": "2026-10-11T12:45:09.880148+00:00",
+      "endedAt": "2026-10-11T12:46:16.575220+00:00",
+      "seconds": 66.69408887508325,
+      "command": [
+        "node",
+        "e2e/tools/capture_pl6_batch1.cjs"
+      ],
+      "commandPresentation": "Any output paths are presented relative to the repository; the private original receipt retains the exact command.",
+      "exitCode": 0,
+      "privateReceiptSha256": "130d83dc151b564faf7631ae557bd451ac0d126d199bfc0cc46c5056f206db47",
+      "manifest": {
+        "file": "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+        "sha256": "8e0590b787b176d0529eabc1a668542f7ae2cc90471dc650fccc7dfbf6d5a376"
+      },
+      "freshImages": 24,
+      "byteIdenticalToBaseline": 20,
+      "changedFromBaseline": 4,
+      "historicalImageCount": 0,
+      "historicalImagesPreserved": true,
+      "images": [
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/AnalysisWorkspace-1440-zh.png",
+          "sha256": "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1",
+          "bytes": 16525,
+          "width": 1392,
+          "height": 84,
+          "captureMtimeNs": 1791722740403376113,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/AnalysisWorkspace-1440.png",
+          "sha256": "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e",
+          "bytes": 17759,
+          "width": 1392,
+          "height": 84,
+          "captureMtimeNs": 1791722727961433170,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/AnalysisWorkspace-390-zh.png",
+          "sha256": "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781",
+          "bytes": 8941,
+          "width": 390,
+          "height": 137,
+          "captureMtimeNs": 1791722766629018505,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/AnalysisWorkspace-390.png",
+          "sha256": "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595",
+          "bytes": 8375,
+          "width": 390,
+          "height": 137,
+          "captureMtimeNs": 1791722754324171701,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/ChartChrome-1440-zh.png",
+          "sha256": "7057542932a880efa04ce06975e6523312694e29505624d8504b19135a877ee4",
+          "bytes": 5513,
+          "width": 174,
+          "height": 77,
+          "captureMtimeNs": 1791722742762282590,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/ChartChrome-1440.png",
+          "sha256": "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78",
+          "bytes": 4334,
+          "width": 174,
+          "height": 77,
+          "captureMtimeNs": 1791722730992769541,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/ChartChrome-390-zh.png",
+          "sha256": "bf8d89fdfa98496183f17a2b3b10ee1d478bba1781c09616bb5a4b06768b3076",
+          "bytes": 10127,
+          "width": 390,
+          "height": 80,
+          "captureMtimeNs": 1791722769470066991,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/ChartChrome-390.png",
+          "sha256": "9915d470680b0f7e65b666967cea936c1dd5a504dc50c4cd505ec4571315dc0f",
+          "bytes": 10656,
+          "width": 390,
+          "height": 80,
+          "captureMtimeNs": 1791722756715434248,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/DiscoverLeaders-1440-zh.png",
+          "sha256": "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97",
+          "bytes": 35800,
+          "width": 1388,
+          "height": 198,
+          "captureMtimeNs": 1791722732284666545,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/DiscoverLeaders-1440.png",
+          "sha256": "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b",
+          "bytes": 30880,
+          "width": 1388,
+          "height": 198,
+          "captureMtimeNs": 1791722717583498331,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/DiscoverLeaders-390-zh.png",
+          "sha256": "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7",
+          "bytes": 32053,
+          "width": 390,
+          "height": 236,
+          "captureMtimeNs": 1791722758027007802,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/DiscoverLeaders-390.png",
+          "sha256": "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672",
+          "bytes": 29767,
+          "width": 390,
+          "height": 302,
+          "captureMtimeNs": 1791722744124381391,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/OptionsHubView-1440-zh.png",
+          "sha256": "63148a21a922d3d1a118fca06b7981a57c86746567d5bb721b916cb8be7cff60",
+          "bytes": 42483,
+          "width": 1372,
+          "height": 401,
+          "captureMtimeNs": 1791722733565809277,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/OptionsHubView-1440.png",
+          "sha256": "9a6a08cfd970ed4c1c836f7049924caabb53d58d672a46ad6a346cf3ec957614",
+          "bytes": 41251,
+          "width": 1372,
+          "height": 401,
+          "captureMtimeNs": 1791722718964592183,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/OptionsHubView-390-zh.png",
+          "sha256": "16dbf093ed02ceffe534df093933c562e5caec3d4af9a4a37dc1dd17b1a32f94",
+          "bytes": 22983,
+          "width": 382,
+          "height": 287,
+          "captureMtimeNs": 1791722759325958003,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/OptionsHubView-390.png",
+          "sha256": "8e0cd7440a003206f0d6a8296fb28515ea6d791fac91e8e570609f5a02ac20f1",
+          "bytes": 17315,
+          "width": 382,
+          "height": 287,
+          "captureMtimeNs": 1791722745442589143,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/SearchModal-1440-zh.png",
+          "sha256": "e63b28dd4f3c8875b3d8eaa2115c9488aab94862a74836e07f6c3b67fb5bd82e",
+          "bytes": 25925,
+          "width": 580,
+          "height": 211,
+          "captureMtimeNs": 1791722736364447669,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/SearchModal-1440.png",
+          "sha256": "1d936a6c65312d0bf26e1ba63aa83e1cf25bf27270a1033d45117f5a4adeaaa9",
+          "bytes": 19427,
+          "width": 580,
+          "height": 211,
+          "captureMtimeNs": 1791722722744297069,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/SearchModal-390-zh.png",
+          "sha256": "68d740d8b74d25e9f549b1795559116c3a93bb2862dfa87743b84b60edd5f677",
+          "bytes": 28139,
+          "width": 390,
+          "height": 532,
+          "captureMtimeNs": 1791722762374324261,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/SearchModal-390.png",
+          "sha256": "c157f465e83c1efd87d8efdf856dd96aa7f652d01f23df158995a8ff70182a19",
+          "bytes": 26545,
+          "width": 390,
+          "height": 532,
+          "captureMtimeNs": 1791722750231738140,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/StockAnalysis-1440-zh.png",
+          "sha256": "ac77cc62601cbd85c1b4a7194172bb39778b116835538badd243a6f2ce808bc3",
+          "bytes": 3492,
+          "width": 314,
+          "height": 41,
+          "captureMtimeNs": 1791722739119574970,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/StockAnalysis-1440.png",
+          "sha256": "73b9959ffe71bd2d55817ff65c84d9754388b77425ed90b60f33287b560914cc",
+          "bytes": 3482,
+          "width": 314,
+          "height": 41,
+          "captureMtimeNs": 1791722726396833171,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/StockAnalysis-390-zh.png",
+          "sha256": "d956f9c665d04684bd487e88a169a851e7d2f67e575162bf96c5f349255dea2c",
+          "bytes": 3530,
+          "width": 364,
+          "height": 41,
+          "captureMtimeNs": 1791722765185790508,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/b-pl-6-batch-1/StockAnalysis-390.png",
+          "sha256": "4fac7139dc4913cd46afd79efd1af1313745d065f2c4bf9a636069c24a20c061",
+          "bytes": 3519,
+          "width": 364,
+          "height": 41,
+          "captureMtimeNs": 1791722753002211082,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        }
+      ],
+      "historicalImages": []
+    },
+    {
+      "family": "conductor-fit-badge-zh",
+      "status": "FRESH_CAPTURES_VERIFIED",
+      "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+      "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+      "sourceFiles": 1710,
+      "sourceUnchanged": true,
+      "startedAt": "2026-10-11T12:50:49.416329+00:00",
+      "endedAt": "2026-10-11T12:51:43.291851+00:00",
+      "seconds": 53.873,
+      "command": {
+        "argv": [
+          "node",
+          "e2e/tools/capture_conductor_fit_badge_zh.cjs"
+        ],
+        "cwd": "terminal",
+        "environment": {
+          "CAPTURE_ONLY": "",
+          "UPDATE_HEATMAP_EVIDENCE": "",
+          "TERMINAL_CROP_PORT": "3563"
+        }
+      },
+      "commandPresentation": "Any output paths are presented relative to the repository; the private original receipt retains the exact command.",
+      "exitCode": 0,
+      "privateReceiptSha256": "301cffa545107f915b8a81a9b26b2d5009037b774ceda8589a28dcc3edd16d3f",
+      "manifest": {
+        "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/EVIDENCE.yml",
+        "sha256": "56187b289b95165a75e8e3db2981c5bc04401fab0d850e2c53b6cdfc762be7b2"
+      },
+      "freshImages": 6,
+      "byteIdenticalToBaseline": 4,
+      "changedFromBaseline": 2,
+      "historicalImageCount": 6,
+      "historicalImagesPreserved": true,
+      "images": [
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/rail-1440-zh.png",
+          "sha256": "6e4d62370b9796c6efeebc4820be9770c8e9c49af2fc7c8a59d5224990b7a824",
+          "bytes": 33646,
+          "width": 336,
+          "height": 209,
+          "captureMtimeNs": 1791723069531513831,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/rail-1440.png",
+          "sha256": "13b90c261d5a3a7e0a0e508c3e699512ea15d64a8a90f90cc2b165f457b3d105",
+          "bytes": 32707,
+          "width": 336,
+          "height": 209,
+          "captureMtimeNs": 1791723062730856889,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/rail-390-zh.png",
+          "sha256": "c24588c7250dfbbd5d0bb5bc4175fa1b7a1ad8b547fff82c18443ac0d765b93a",
+          "bytes": 16290,
+          "width": 348,
+          "height": 97,
+          "captureMtimeNs": 1791723096613787093,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/rail-390.png",
+          "sha256": "6dc6d637574ba2a912c3dd2b3237a63b394fd3aad0482aa8e42a382b18ef355b",
+          "bytes": 15809,
+          "width": 348,
+          "height": 97,
+          "captureMtimeNs": 1791723089831726370,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/rail-820-zh.png",
+          "sha256": "67ecbd08eb5e3f99ce021b62ba7934567457d2d3229dcf8763c0b3b27f731ca6",
+          "bytes": 26630,
+          "width": 336,
+          "height": 183,
+          "captureMtimeNs": 1791723083071246068,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/rail-820.png",
+          "sha256": "6be60eaec2013bcb09b0bbbc74906e04a08e7bdb0be7bc5c4f46484137c72b08",
+          "bytes": 26430,
+          "width": 336,
+          "height": 183,
+          "captureMtimeNs": 1791723076290930717,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        }
+      ],
+      "historicalImages": [
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/before/rail-1440-zh.png",
+          "sha256": "4d611b3b37bcac3fd1fef8aedaf41b5afd5ee78616e81427543097ff65391ce8"
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/before/rail-1440.png",
+          "sha256": "c8d6631024f6fee2e66ddff5074ac62198e107b5e0e2a74297e9823dc5e6179e"
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/before/rail-390-zh.png",
+          "sha256": "534c13a3ed9a063a9ee7563e2656d420e7431a0c484603042e5ddecbe5fc9bfc"
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/before/rail-390.png",
+          "sha256": "10d004f4c87586ad691030e5314792c95e57e2ba670a0d24eea2c8d1f520adff"
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/before/rail-820-zh.png",
+          "sha256": "4290431f15be39ce01a1b30a89e733f81341a5a15ad30e9a2906602865820a10"
+        },
+        {
+          "file": "terminal/docs/pr-crops/conductor-fit-badge-zh/before/rail-820.png",
+          "sha256": "aa0f459b10d39fb452bd1c1fd7edcac35fb7b2b890c3c72a88b89cb827f70a4c"
+        }
+      ]
+    },
+    {
+      "family": "gex-levels-heatmap-load-failure",
+      "status": "FRESH_CAPTURES_VERIFIED",
+      "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+      "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+      "sourceFiles": 1710,
+      "sourceUnchanged": true,
+      "startedAt": "2026-10-11T12:52:02.309385+00:00",
+      "endedAt": "2026-10-11T12:55:23.199451+00:00",
+      "seconds": 200.906,
+      "command": {
+        "argv": [
+          "node",
+          "e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+        ],
+        "cwd": "terminal",
+        "environment": {
+          "CAPTURE_ONLY": "",
+          "UPDATE_HEATMAP_EVIDENCE": "",
+          "TERMINAL_CROP_PORT": "3564"
+        }
+      },
+      "commandPresentation": "Any output paths are presented relative to the repository; the private original receipt retains the exact command.",
+      "exitCode": 0,
+      "privateReceiptSha256": "301cffa545107f915b8a81a9b26b2d5009037b774ceda8589a28dcc3edd16d3f",
+      "manifest": {
+        "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+        "sha256": "ac6d656efa26c25308f162ff93d0f0b11b8576f48c289b3b9dfdd068b125e2f4"
+      },
+      "freshImages": 114,
+      "byteIdenticalToBaseline": 102,
+      "changedFromBaseline": 12,
+      "historicalImageCount": 25,
+      "historicalImagesPreserved": true,
+      "images": [
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-absent-1440-zh.png",
+          "sha256": "fa53ebcfe3468c744347df7285c59a4de060dfe3cdd3ae25fe14ec3db8a16cc6",
+          "bytes": 13073,
+          "width": 1020,
+          "height": 286,
+          "captureMtimeNs": 1791723162344979222,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-absent-1440.png",
+          "sha256": "03f5335f5fd228c9b9c0df6a624a7ff43a9c58f5b6be5b2406ad992d0a6f1924",
+          "bytes": 11315,
+          "width": 1020,
+          "height": 286,
+          "captureMtimeNs": 1791723132220764857,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-absent-390-zh.png",
+          "sha256": "7c394bad4b32b07f0f3fa3e04b93c35f26b4b457137c1ae2ca83fa7a4805e7f9",
+          "bytes": 12419,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723285357337299,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-absent-390.png",
+          "sha256": "3ac036554a7e7e838eee69edf03cb70505b9b2577f6b606b913b8cf34b0e5ece",
+          "bytes": 10335,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723253745380644,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-absent-820-zh.png",
+          "sha256": "20c61ff5d52e9f9a62249ee4397e815ecce1b4559b9eca162b9688b10ccfa812",
+          "bytes": 13598,
+          "width": 820,
+          "height": 430,
+          "captureMtimeNs": 1791723223827647130,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-absent-820.png",
+          "sha256": "1374c091217937cf96a37d6bbcedcb060eb528d68063fa026e0c4037cba11258",
+          "bytes": 11913,
+          "width": 820,
+          "height": 430,
+          "captureMtimeNs": 1791723194595896128,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-retried-1440-zh.png",
+          "sha256": "2d4c70b1b67398efb782ac707484dfb458b20b931dfe206a9060aa162526db32",
+          "bytes": 35211,
+          "width": 1020,
+          "height": 152,
+          "captureMtimeNs": 1791723160786316506,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-retried-1440.png",
+          "sha256": "45ef7f3cda3ecf3658d1c04be8220c9dccac8a338fb715cdd36aa135334dc6be",
+          "bytes": 32125,
+          "width": 1020,
+          "height": 152,
+          "captureMtimeNs": 1791723130962077879,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-retried-390-zh.png",
+          "sha256": "2ebbc921d1bda5de02439e12352aa955ba9ff9ff4a5017bb9193e3da475dd39c",
+          "bytes": 39555,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723283926947963,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-retried-390.png",
+          "sha256": "e4656b3998b2cbf68fa903fadc5df57492fd4ae906e1a1edc28ad56740f94ac9",
+          "bytes": 37680,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723252485639446,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-retried-820-zh.png",
+          "sha256": "e20dbb91a7941d3ac181880a1ddec8cae8e2e882adb5cfa3f87f76d708918de8",
+          "bytes": 66847,
+          "width": 820,
+          "height": 430,
+          "captureMtimeNs": 1791723222455693678,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-retried-820.png",
+          "sha256": "d120e5c84cbad649b2c95afa9a16448b42581b0634dfea778493ef1314b76bdc",
+          "bytes": 63085,
+          "width": 820,
+          "height": 430,
+          "captureMtimeNs": 1791723193237977777,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-unavailable-1440-zh.png",
+          "sha256": "efe24e371002f523543dbfc0ca5824a4ea2466fd10761f22ea7f10176fe8e838",
+          "bytes": 12622,
+          "width": 1020,
+          "height": 286,
+          "captureMtimeNs": 1791723159287754104,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-unavailable-1440.png",
+          "sha256": "d9b9442594993a5b00babd3da39fbf9427b16fbdd0c867d6dcce78cb3ea9dd42",
+          "bytes": 11713,
+          "width": 1020,
+          "height": 286,
+          "captureMtimeNs": 1791723129600693993,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-unavailable-390-zh.png",
+          "sha256": "d685e5ec8ac7aedd39e0bf161db39ae3736bf75a86fb76c28c40070567ad3f7e",
+          "bytes": 12088,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723282267125197,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-unavailable-390.png",
+          "sha256": "178bf2c649c7a85697c624a2355683b4ffcec9d54d6101b1cf8ae487ed8a5b55",
+          "bytes": 10587,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723251044517650,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-unavailable-820-zh.png",
+          "sha256": "2f102b165d57ec6293c77d4b31815b2e15e05725c7383ed800de5aed526b09e9",
+          "bytes": 13167,
+          "width": 820,
+          "height": 430,
+          "captureMtimeNs": 1791723220866266574,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-ladder-unavailable-820.png",
+          "sha256": "410d2d0c39323fd89ceaf71eccc09daf5f056e7952e6f87a480b46cbb6352781",
+          "bytes": 12323,
+          "width": 820,
+          "height": 430,
+          "captureMtimeNs": 1791723191785895046,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440-zh.png",
+          "sha256": "32d23c3de072b33ec8c3304d7a6c3706a413a8b8d05fcff6b80ef49a68bffc60",
+          "bytes": 35309,
+          "width": 1380,
+          "height": 222,
+          "captureMtimeNs": 1791723171995148137,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440.png",
+          "sha256": "057d1e5fdf4057aa5f6c73d8e2978bbb6d64856dfb447e344e9d58cd12ed6d8f",
+          "bytes": 35217,
+          "width": 1380,
+          "height": 222,
+          "captureMtimeNs": 1791723140243212339,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390-zh.png",
+          "sha256": "21ff6da469fa321fd20096b0f1667359ba9436214b4b015f8f158f5b03401d14",
+          "bytes": 26216,
+          "width": 390,
+          "height": 419,
+          "captureMtimeNs": 1791723294991182957,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390.png",
+          "sha256": "bf6dbd4bcb67b94fc91904ac3e9080fd12ac4ef0d82c38e3fecf7c8359bc103f",
+          "bytes": 26349,
+          "width": 390,
+          "height": 419,
+          "captureMtimeNs": 1791723261843389035,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820-zh.png",
+          "sha256": "dfb892acfa1563f8be45c962289c40ccaf10d2a5e767a7319385f2c038ebcb91",
+          "bytes": 44640,
+          "width": 820,
+          "height": 282,
+          "captureMtimeNs": 1791723232166450101,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820.png",
+          "sha256": "17c110d5b98129759c68c7d13189743a98b41e0ac936f78af0b8479fcf2d5476",
+          "bytes": 43958,
+          "width": 820,
+          "height": 282,
+          "captureMtimeNs": 1791723202516455242,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440-zh.png",
+          "sha256": "f7573f6acaa599aa8973633f09442d671131481fa7ed3288e1fdbaf3aa8b8746",
+          "bytes": 30344,
+          "width": 1380,
+          "height": 175,
+          "captureMtimeNs": 1791723173591828872,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440.png",
+          "sha256": "ba3f6bdcaf42168bc71a619a7128e6c21ece309d16c3cf67fa2f346be1194a50",
+          "bytes": 30811,
+          "width": 1380,
+          "height": 175,
+          "captureMtimeNs": 1791723141581303432,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390-zh.png",
+          "sha256": "014da273c443ddc6c4415d31f19ecfc724eb25dc2290a66b5ffe8471a701a770",
+          "bytes": 21731,
+          "width": 390,
+          "height": 366,
+          "captureMtimeNs": 1791723296609315986,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390.png",
+          "sha256": "eeeebd392a183003675a855aeebe89db31bfc0e678bcdaed108de092a3fa6c92",
+          "bytes": 22338,
+          "width": 390,
+          "height": 366,
+          "captureMtimeNs": 1791723263266155554,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820-zh.png",
+          "sha256": "82310c4e51026971082ed554b8b110fa9d6b1a4fe34f1c80d6a62ca9cc67f9f1",
+          "bytes": 29507,
+          "width": 820,
+          "height": 229,
+          "captureMtimeNs": 1791723233685872963,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820.png",
+          "sha256": "363e0539b032aef476806d905c1e787f6d05af55844dd7a2d0e3a8600dad05aa",
+          "bytes": 29822,
+          "width": 820,
+          "height": 229,
+          "captureMtimeNs": 1791723203864406526,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-pick-absent-1440-zh.png",
+          "sha256": "e0b089534c438c3dd0cefc38512ff5dba3697955b46274531d7aff654f3f95de",
+          "bytes": 22449,
+          "width": 359,
+          "height": 250,
+          "captureMtimeNs": 1791723165229281302,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-pick-absent-1440.png",
+          "sha256": "a61b5fe4f7cb3c89badf81dace74b0ae09a4d6190d04a33f89dc5ccf57fa213d",
+          "bytes": 20049,
+          "width": 359,
+          "height": 250,
+          "captureMtimeNs": 1791723134879525697,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-pick-absent-390-zh.png",
+          "sha256": "133fb1b3aa2a47486b081899aa0e07213a3c5ea2a82bcb9d9ac4ccdb6b607fce",
+          "bytes": 53818,
+          "width": 359,
+          "height": 325,
+          "captureMtimeNs": 1791723289057071418,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-pick-absent-390.png",
+          "sha256": "18d0db020f63f1ce58a9f079db75eac16fb319d9a4f7c9c3ebb24397f24a472d",
+          "bytes": 57830,
+          "width": 359,
+          "height": 325,
+          "captureMtimeNs": 1791723256376529111,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-pick-absent-820-zh.png",
+          "sha256": "e4ac65abaadf4ca7dd5b420a1181c0aa62d8a8ad305a249bce0344b4878b9ea5",
+          "bytes": 27610,
+          "width": 359,
+          "height": 325,
+          "captureMtimeNs": 1791723226543680011,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-pick-absent-820.png",
+          "sha256": "841cd457e07339aa77c7877b58da7954f591e73314c5792656c4b1b3edbaa817",
+          "bytes": 25341,
+          "width": 359,
+          "height": 325,
+          "captureMtimeNs": 1791723197170928193,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-retried-1440-zh.png",
+          "sha256": "1fe3c7d7e443ab97fbd0804d9b1475c26d1123dbed9ac23e573ff714cf2558c5",
+          "bytes": 23180,
+          "width": 359,
+          "height": 250,
+          "captureMtimeNs": 1791723166906304109,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-retried-1440.png",
+          "sha256": "0f85743b965096919afc6217a658d006f4837d08dd2b757c76be3ed1dfabea55",
+          "bytes": 23262,
+          "width": 359,
+          "height": 250,
+          "captureMtimeNs": 1791723136360153796,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-retried-390-zh.png",
+          "sha256": "796494ed63be4a97e010ada762eda12617eb1ed3e547926321b700e0a2a92b10",
+          "bytes": 69417,
+          "width": 359,
+          "height": 387,
+          "captureMtimeNs": 1791723290619763443,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-retried-390.png",
+          "sha256": "375fde2880c70d15b0370680c1912d2960b1f930518b97ea8c266e6620ecc59c",
+          "bytes": 69497,
+          "width": 359,
+          "height": 387,
+          "captureMtimeNs": 1791723257876824630,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-retried-820-zh.png",
+          "sha256": "1f1ee80885b519f386d4895c76d2585e8b3a49d0d5d37a0428559390a724012b",
+          "bytes": 36019,
+          "width": 359,
+          "height": 387,
+          "captureMtimeNs": 1791723228082285476,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-retried-820.png",
+          "sha256": "1e90cab363e62fc8c7a6faba47229e27bd563a4b45ee69ac40beeefc5e2ed8e6",
+          "bytes": 35368,
+          "width": 359,
+          "height": 387,
+          "captureMtimeNs": 1791723198631053411,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-unavailable-1440-zh.png",
+          "sha256": "aef87f1ff160cf8cd6a57dcb4fcb6a94f3817f759aa563d9680df13a90bcb145",
+          "bytes": 17176,
+          "width": 359,
+          "height": 214,
+          "captureMtimeNs": 1791723163723202788,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-unavailable-1440.png",
+          "sha256": "07d8463ff7a4ef5ff26da11b957a58aab4138bd4a8d054d91f29ce205eb239f7",
+          "bytes": 17377,
+          "width": 359,
+          "height": 230,
+          "captureMtimeNs": 1791723133619296055,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-unavailable-390-zh.png",
+          "sha256": "026032508d698cbf37d101479f05eacc7cf2b73a22f864ab5b493c54b02ec988",
+          "bytes": 17194,
+          "width": 359,
+          "height": 222,
+          "captureMtimeNs": 1791723287269247743,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-unavailable-390.png",
+          "sha256": "52df6dba0adce23ba3d5f5b20d7a5e0d03379f36ab20d7f0e8668e71efc5410f",
+          "bytes": 17436,
+          "width": 359,
+          "height": 254,
+          "captureMtimeNs": 1791723255042520544,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-unavailable-820-zh.png",
+          "sha256": "026032508d698cbf37d101479f05eacc7cf2b73a22f864ab5b493c54b02ec988",
+          "bytes": 17194,
+          "width": 359,
+          "height": 222,
+          "captureMtimeNs": 1791723225140441119,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-rail-unavailable-820.png",
+          "sha256": "52df6dba0adce23ba3d5f5b20d7a5e0d03379f36ab20d7f0e8668e71efc5410f",
+          "bytes": 17436,
+          "width": 359,
+          "height": 254,
+          "captureMtimeNs": 1791723195871239702,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-state-refresh-failed-1440-zh.png",
+          "sha256": "8b69b6ec0c9445b26f3add38df998bfedcd56bbef10eb97c21ee204e78915bf7",
+          "bytes": 20222,
+          "width": 359,
+          "height": 248,
+          "captureMtimeNs": 1791723170027742534,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-state-refresh-failed-1440.png",
+          "sha256": "719ff0505a324e5bd1be31f8d4fb4bbca0611c6750ccb65cd283f4540d65a7f5",
+          "bytes": 21255,
+          "width": 359,
+          "height": 248,
+          "captureMtimeNs": 1791723138959516237,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-state-refresh-failed-390-zh.png",
+          "sha256": "b619abac00ba4c8396f839679ad1360b30d6ef82264c2c4499c538bb79669671",
+          "bytes": 53658,
+          "width": 359,
+          "height": 254,
+          "captureMtimeNs": 1791723293459705204,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-state-refresh-failed-390.png",
+          "sha256": "6907a7d70f961fb05cdf2d5237619428693e9960df11d7458a17884dcb8d4087",
+          "bytes": 55143,
+          "width": 359,
+          "height": 254,
+          "captureMtimeNs": 1791723260439008192,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-state-refresh-failed-820-zh.png",
+          "sha256": "6259168772c3d102848dc51d86a80c934f742a41461982e395c12bb3c5e25915",
+          "bytes": 20228,
+          "width": 359,
+          "height": 254,
+          "captureMtimeNs": 1791723230803365671,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-state-refresh-failed-820.png",
+          "sha256": "669eb12b539fdebac4dabd963fc977fa58bfbb726285856fc47694cb0bf83a00",
+          "bytes": 21221,
+          "width": 359,
+          "height": 254,
+          "captureMtimeNs": 1791723201254228353,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-absent-1440-zh.png",
+          "sha256": "6a3c43450ac299a8562c15fdecd289dd42a6cf75c473b817ec31555ad0cdda83",
+          "bytes": 33813,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723185022437374,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-absent-1440.png",
+          "sha256": "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9",
+          "bytes": 32793,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723152816884558,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-absent-390-zh.png",
+          "sha256": "cb197a569d504f266055e86b03d7bf27eea64a2cb87dcd44bfb84daeed8269dc",
+          "bytes": 25542,
+          "width": 390,
+          "height": 199,
+          "captureMtimeNs": 1791723309192842105,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-absent-390.png",
+          "sha256": "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a",
+          "bytes": 23029,
+          "width": 390,
+          "height": 199,
+          "captureMtimeNs": 1791723274286393712,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-absent-820-zh.png",
+          "sha256": "b399a37a1f4c8e2523351c15c48d218c5a3f15fc273347efd6da02ba81243f65",
+          "bytes": 25947,
+          "width": 820,
+          "height": 149,
+          "captureMtimeNs": 1791723244462767934,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-absent-820.png",
+          "sha256": "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229",
+          "bytes": 24983,
+          "width": 820,
+          "height": 149,
+          "captureMtimeNs": 1791723214089871270,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-failed-1440-zh.png",
+          "sha256": "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb",
+          "bytes": 136806,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723186735383327,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-failed-1440.png",
+          "sha256": "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960",
+          "bytes": 133354,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723154486540044,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-failed-390-zh.png",
+          "sha256": "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59",
+          "bytes": 87399,
+          "width": 390,
+          "height": 687,
+          "captureMtimeNs": 1791723311422154725,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-failed-390.png",
+          "sha256": "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673",
+          "bytes": 81834,
+          "width": 390,
+          "height": 672,
+          "captureMtimeNs": 1791723276153120017,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-failed-820-zh.png",
+          "sha256": "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df",
+          "bytes": 119031,
+          "width": 820,
+          "height": 683,
+          "captureMtimeNs": 1791723246180878614,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-failed-820.png",
+          "sha256": "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83",
+          "bytes": 115207,
+          "width": 820,
+          "height": 683,
+          "captureMtimeNs": 1791723215904785572,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-refused-1440-zh.png",
+          "sha256": "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb",
+          "bytes": 136806,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723188510061092,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-refused-1440.png",
+          "sha256": "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960",
+          "bytes": 133354,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723156185409146,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-refused-390-zh.png",
+          "sha256": "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59",
+          "bytes": 87399,
+          "width": 390,
+          "height": 687,
+          "captureMtimeNs": 1791723313262683839,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-refused-390.png",
+          "sha256": "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673",
+          "bytes": 81834,
+          "width": 390,
+          "height": 672,
+          "captureMtimeNs": 1791723278522163965,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-refused-820-zh.png",
+          "sha256": "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df",
+          "bytes": 119031,
+          "width": 820,
+          "height": 683,
+          "captureMtimeNs": 1791723247917245983,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-refresh-refused-820.png",
+          "sha256": "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83",
+          "bytes": 115207,
+          "width": 820,
+          "height": 683,
+          "captureMtimeNs": 1791723217682315551,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-retried-1440-zh.png",
+          "sha256": "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c",
+          "bytes": 132278,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723190373209788,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-retried-1440.png",
+          "sha256": "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283",
+          "bytes": 128955,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723157892414484,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-retried-390-zh.png",
+          "sha256": "e07427eddd3322a8015f4e5fa9f3fc39318c5e28eaeb26632c5f8c175f8f91ec",
+          "bytes": 92486,
+          "width": 390,
+          "height": 687,
+          "captureMtimeNs": 1791723315144112329,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-retried-390.png",
+          "sha256": "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176",
+          "bytes": 87820,
+          "width": 390,
+          "height": 672,
+          "captureMtimeNs": 1791723280914360453,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-retried-820-zh.png",
+          "sha256": "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03",
+          "bytes": 114998,
+          "width": 820,
+          "height": 630,
+          "captureMtimeNs": 1791723249740762068,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-persisted-retried-820.png",
+          "sha256": "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08",
+          "bytes": 111521,
+          "width": 820,
+          "height": 630,
+          "captureMtimeNs": 1791723219459350129,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-retried-1440-zh.png",
+          "sha256": "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c",
+          "bytes": 132278,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723183633246702,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-retried-1440.png",
+          "sha256": "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283",
+          "bytes": 128955,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723151564990569,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-retried-390-zh.png",
+          "sha256": "2c0892b280fb204d981c7f324e1a6aa79e6f5001d427e2b90ca94cfeaffc4618",
+          "bytes": 92490,
+          "width": 390,
+          "height": 687,
+          "captureMtimeNs": 1791723306951108071,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-retried-390.png",
+          "sha256": "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280",
+          "bytes": 87820,
+          "width": 390,
+          "height": 672,
+          "captureMtimeNs": 1791723272953612274,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-retried-820-zh.png",
+          "sha256": "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03",
+          "bytes": 114998,
+          "width": 820,
+          "height": 630,
+          "captureMtimeNs": 1791723243161687630,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-retried-820.png",
+          "sha256": "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08",
+          "bytes": 111521,
+          "width": 820,
+          "height": 630,
+          "captureMtimeNs": 1791723212843343225,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-unavailable-1440-zh.png",
+          "sha256": "dbac4df02d0922c6081ec3920280362ba1e68cb17ead9ec2719ba86d7d54c68a",
+          "bytes": 42203,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723182121825322,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-unavailable-1440.png",
+          "sha256": "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1",
+          "bytes": 40651,
+          "width": 1380,
+          "height": 728,
+          "captureMtimeNs": 1791723150215762578,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-unavailable-390-zh.png",
+          "sha256": "000a5b6aaf61e9d2e124fc3b536de3dbd74f45e17180421826f083f0c61936af",
+          "bytes": 34065,
+          "width": 390,
+          "height": 276,
+          "captureMtimeNs": 1791723305193785232,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-unavailable-390.png",
+          "sha256": "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9",
+          "bytes": 31074,
+          "width": 390,
+          "height": 294,
+          "captureMtimeNs": 1791723271206688179,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-unavailable-820-zh.png",
+          "sha256": "f7248994e9fb1d785df3b3a09e08272eaae1bc6c64cbb3977ccf27e46949e5c8",
+          "bytes": 35062,
+          "width": 820,
+          "height": 226,
+          "captureMtimeNs": 1791723241670329863,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/heatmap-unavailable-820.png",
+          "sha256": "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce",
+          "bytes": 33688,
+          "width": 820,
+          "height": 244,
+          "captureMtimeNs": 1791723211473525592,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-absent-1440-zh.png",
+          "sha256": "10111af4cf84b5f93d0c8eee774a9d5f197c8947147921dfecfab5fc9e31968c",
+          "bytes": 75995,
+          "width": 1380,
+          "height": 649,
+          "captureMtimeNs": 1791723177826937064,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-absent-1440.png",
+          "sha256": "af29d369bc2b63024f221e06b14eeb944e40e38b6fb324010ef114a93f23be9d",
+          "bytes": 68002,
+          "width": 1380,
+          "height": 649,
+          "captureMtimeNs": 1791723146112696161,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-absent-390-zh.png",
+          "sha256": "b5b679b5233cf32742373d6129959c9497f3ff492d96d43b8b24e4e23d1fbbdf",
+          "bytes": 21826,
+          "width": 390,
+          "height": 624,
+          "captureMtimeNs": 1791723301232011594,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-absent-390.png",
+          "sha256": "5d112497fbc7ff4101b0255335c236bca9f00a4a3c91a0f6110b272068529987",
+          "bytes": 18487,
+          "width": 390,
+          "height": 624,
+          "captureMtimeNs": 1791723267266866040,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-absent-820-zh.png",
+          "sha256": "da28ddf1171875d871fdeefc7b919c4ba9be66d524b2ebbbff445c9ae4af95de",
+          "bytes": 72633,
+          "width": 820,
+          "height": 646,
+          "captureMtimeNs": 1791723237794556814,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-absent-820.png",
+          "sha256": "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5",
+          "bytes": 65982,
+          "width": 820,
+          "height": 679,
+          "captureMtimeNs": 1791723207761003969,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-refresh-failed-1440-zh.png",
+          "sha256": "8f0a205737dda69905d8361919bb527e0704bca9dda31474f335bbd01ede92c2",
+          "bytes": 148451,
+          "width": 1380,
+          "height": 649,
+          "captureMtimeNs": 1791723180661663313,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-refresh-failed-1440.png",
+          "sha256": "1f5fe76e983fd0dc16ba5a6ebcb9ecbe3ea63834b8f31dda6f7651386783ba8c",
+          "bytes": 140463,
+          "width": 1380,
+          "height": 649,
+          "captureMtimeNs": 1791723148615857308,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-refresh-failed-390-zh.png",
+          "sha256": "8d45d55714f47507b3f0c7ae8e423c2f1ea9a55d429e686149266f9057c67192",
+          "bytes": 56712,
+          "width": 390,
+          "height": 624,
+          "captureMtimeNs": 1791723303818650575,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-refresh-failed-390.png",
+          "sha256": "6f55f6b012527b2224452e295d1a404fd5eed56976e83e8fd299922c48090204",
+          "bytes": 55535,
+          "width": 390,
+          "height": 624,
+          "captureMtimeNs": 1791723269773347039,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-refresh-failed-820-zh.png",
+          "sha256": "83da013d842f6447e3394b018b0262c1dffa18461159fdf3e0a7d9f8fe75c367",
+          "bytes": 136829,
+          "width": 820,
+          "height": 842,
+          "captureMtimeNs": 1791723240386494288,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-refresh-failed-820.png",
+          "sha256": "3cde0b09e6aa199a9d626ad16321b8cba86043f2f67240ee2d43b2d05789551e",
+          "bytes": 127577,
+          "width": 820,
+          "height": 874,
+          "captureMtimeNs": 1791723210216043148,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-retried-1440-zh.png",
+          "sha256": "bdc10fd401c7713880f96cf274ce1ccfc2d039706395ee84078a3a7c2c018d32",
+          "bytes": 145657,
+          "width": 1380,
+          "height": 649,
+          "captureMtimeNs": 1791723176501370659,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-retried-1440.png",
+          "sha256": "5b9bfc68fe984375ca47f54357cb9d7c33ee224a1af039664835278ecb756439",
+          "bytes": 138880,
+          "width": 1380,
+          "height": 649,
+          "captureMtimeNs": 1791723144836366713,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-retried-390-zh.png",
+          "sha256": "6288b67ccf7e89bf3d9ebad68f2827534a1adc7bb139cff916f9290c9f66a293",
+          "bytes": 57698,
+          "width": 390,
+          "height": 624,
+          "captureMtimeNs": 1791723299919289319,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-retried-390.png",
+          "sha256": "bb8d5929274be93b315e840b820d4b42152539677b481347b2308e96c4ca03a7",
+          "bytes": 56671,
+          "width": 390,
+          "height": 624,
+          "captureMtimeNs": 1791723266033680062,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-retried-820-zh.png",
+          "sha256": "bdd00055926396b50b3b0065c42b9c94206db032b93fa306e77de954bc74c9ae",
+          "bytes": 133289,
+          "width": 820,
+          "height": 834,
+          "captureMtimeNs": 1791723236463719469,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-retried-820.png",
+          "sha256": "764f16e22873dca319deae69d1afe2374e24cd2c3e372326092da6e923d66db0",
+          "bytes": 125005,
+          "width": 820,
+          "height": 866,
+          "captureMtimeNs": 1791723206533901723,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-unavailable-1440-zh.png",
+          "sha256": "ef244d3503672ccdd58b3f0f34bd003b0fd3e093557966765e0e321892788fa1",
+          "bytes": 68855,
+          "width": 1380,
+          "height": 649,
+          "captureMtimeNs": 1791723174981175168,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-unavailable-1440.png",
+          "sha256": "af67c57c5064d71d2394678f3a60d7ba181acca099c921f37be4510ade07793c",
+          "bytes": 59482,
+          "width": 1380,
+          "height": 649,
+          "captureMtimeNs": 1791723143495285876,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-unavailable-390-zh.png",
+          "sha256": "f6dd3c8d442f042e1d4e788ab27faa3e7a85260a48dbdba306893741984a458e",
+          "bytes": 19892,
+          "width": 390,
+          "height": 624,
+          "captureMtimeNs": 1791723298433889486,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-unavailable-390.png",
+          "sha256": "0cb8495f7dc12075e70abfb0bb492e99cbff412c36fd96bf700351c48b383839",
+          "bytes": 18154,
+          "width": 390,
+          "height": 624,
+          "captureMtimeNs": 1791723264564318787,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-unavailable-820-zh.png",
+          "sha256": "2a8bfdd40ff5174b4008128f9262fab269c0a7010c71b72bf64b098b8e0bf67e",
+          "bytes": 65496,
+          "width": 820,
+          "height": 646,
+          "captureMtimeNs": 1791723234969006654,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/levels-unavailable-820.png",
+          "sha256": "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34",
+          "bytes": 57501,
+          "width": 820,
+          "height": 679,
+          "captureMtimeNs": 1791723205219774214,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        }
+      ],
+      "historicalImages": [
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before-stream-fences/gex-live-refresh-failed-desktop.png",
+          "sha256": "94e2755b758abb453c09c173f199aac70bab9e307774c7b9307a4da003be90ba"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before-stream-fences/gex-live-refresh-failed-mobile.png",
+          "sha256": "fa9bc0e33e7195d4021f1028b6550734f0df1edbe9d557b670b884eb8769a20f"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before-stream-fences/gex-live-refresh-failed-tablet.png",
+          "sha256": "77433ecfc24da5d82d7626d2b6792b7c6980006e38370786d111bacd566541b0"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before-stream-fences/gex-pick-absent-desktop.png",
+          "sha256": "1baed4034aff007329f774a57f2c8f6e860dc8a565a049d60d42a4afddb1e1df"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before-stream-fences/gex-pick-absent-mobile.png",
+          "sha256": "0b47240bcc7cbb043a1984c0d0fa83aaebf68584e6375dcd954de365722d2395"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before-stream-fences/gex-pick-absent-tablet.png",
+          "sha256": "33bf4bd4fc3ff41b08542c08e9e87740c36bf507621b97442500cfe61bfa0e60"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before-stream-fences/gex-state-error-below-fold-desktop.png",
+          "sha256": "26dfb85a09c5ea7de8db3336a15f44b88dbfb11020ea04d8060fddad89c89924"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/gex-ladder-unavailable-desktop.png",
+          "sha256": "eade5e168ef7d35b2c87170f1a16541fbe6b8b82abc4d7e11adb0d3b6837bd0f"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/gex-ladder-unavailable-mobile.png",
+          "sha256": "86cbd09cdc98750fa6abb3efac322bafeb2d58a8b9437d43021325cddfc0e002"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/gex-ladder-unavailable-tablet.png",
+          "sha256": "b694a1558a13b0c8c50c5615e7a86504b582bc3b8a49c97a29fb33119e25548f"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/gex-state-pick-unavailable-desktop.png",
+          "sha256": "7a901238e204247fa3c8960ee2eda4e939bc3f58124dfc9bad6c67aaf556836c"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/gex-state-pick-unavailable-mobile.png",
+          "sha256": "c59b6b15763180d9a44d485aebab98fb13e31697f8bc13dac15e8f8fd99cd1ab"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/gex-state-pick-unavailable-tablet.png",
+          "sha256": "97d20001e0843f2611b6c87c18f29c54590ba209923d87accc8926911eab24cf"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-persisted-refresh-503-desktop.png",
+          "sha256": "6a567090e67faf7581f54577ed8ce852e76b7af63e473f206bff2a93c02d5fe1"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-persisted-refresh-503-mobile.png",
+          "sha256": "cb5d83715fd04d8a6e6556d8e93b3974e22bb4524ce39bfc8be0f00b5f9c44c7"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-persisted-refresh-503-tablet.png",
+          "sha256": "ddf6ff81606a21713e880559fa45fe2c194d01ce72e2a68d96a2da23b306ebfb"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-persisted-refresh-refused-desktop.png",
+          "sha256": "6a567090e67faf7581f54577ed8ce852e76b7af63e473f206bff2a93c02d5fe1"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-persisted-refresh-refused-mobile.png",
+          "sha256": "cb5d83715fd04d8a6e6556d8e93b3974e22bb4524ce39bfc8be0f00b5f9c44c7"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-persisted-refresh-refused-tablet.png",
+          "sha256": "ddf6ff81606a21713e880559fa45fe2c194d01ce72e2a68d96a2da23b306ebfb"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-unavailable-desktop.png",
+          "sha256": "bd8ecd156d1136ca4112b53f5945fac2bc305655452d7db8d528208dd822db2a"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-unavailable-mobile.png",
+          "sha256": "81c43001d26bf19a951e5eeb02b2406bd4f8de758ca8b4f885b05c7e82a0c8b1"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/heatmap-unavailable-tablet.png",
+          "sha256": "a5c1e411fe99a72a4c461829ae8d4244d618055d677be715d511737e23b22f72"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/levels-unavailable-desktop.png",
+          "sha256": "e8861ce74f96149e0dcd0f5457264c010407303a301f8e3eb5497ccbff68fdc1"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/levels-unavailable-mobile.png",
+          "sha256": "da185244786ea5c3e887a9e067a2d1817b4def91eb514fb2c3ba61eb0dfb918b"
+        },
+        {
+          "file": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/before/levels-unavailable-tablet.png",
+          "sha256": "455369d6c27b512615a798b1636cd79eba91b1ca9692c1956b9489ab5753e197"
+        }
+      ]
+    },
+    {
+      "family": "eod-heatmap-flowdesk-load-failure",
+      "status": "FRESH_CAPTURES_VERIFIED",
+      "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+      "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+      "sourceFiles": 1710,
+      "sourceUnchanged": true,
+      "startedAt": "2026-10-11T12:56:00.340625+00:00",
+      "endedAt": "2026-10-11T13:00:55.231235+00:00",
+      "seconds": 294.886,
+      "command": {
+        "argv": [
+          "node",
+          "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+        ],
+        "cwd": "terminal",
+        "environment": {
+          "CAPTURE_ONLY": "",
+          "UPDATE_HEATMAP_EVIDENCE": "",
+          "TERMINAL_CROP_PORT": "3566"
+        }
+      },
+      "commandPresentation": "Any output paths are presented relative to the repository; the private original receipt retains the exact command.",
+      "exitCode": 0,
+      "privateReceiptSha256": "301cffa545107f915b8a81a9b26b2d5009037b774ceda8589a28dcc3edd16d3f",
+      "manifest": {
+        "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+        "sha256": "e347b76ae6af3c095b59a0f64beddfaefccbf16609985595942f1908c43e073b"
+      },
+      "freshImages": 126,
+      "byteIdenticalToBaseline": 114,
+      "changedFromBaseline": 12,
+      "historicalImageCount": 24,
+      "historicalImagesPreserved": true,
+      "images": [
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-absent-1440-zh.png",
+          "sha256": "d0d73744048bec9abe040ea6f7258e7812f7826b1d70b4497747730ec3da1460",
+          "bytes": 6318,
+          "width": 310,
+          "height": 513,
+          "captureMtimeNs": 1791723486130045854,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-absent-1440.png",
+          "sha256": "677f0a61e860ba0b34d9740b39767d93749c699583809e34471d0cf0f922231b",
+          "bytes": 6046,
+          "width": 310,
+          "height": 497,
+          "captureMtimeNs": 1791723448361718029,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-absent-390-zh.png",
+          "sha256": "3a6b7b82e623ba210aaee676425273cb97bb101e782a34f0c657de564481dc71",
+          "bytes": 4730,
+          "width": 300,
+          "height": 99,
+          "captureMtimeNs": 1791723628189423390,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-absent-390.png",
+          "sha256": "88e7aff442d1e4a9b88b5efe4397bf141e8db17c0f4a515f1fe8e27f92d79d8f",
+          "bytes": 4616,
+          "width": 300,
+          "height": 116,
+          "captureMtimeNs": 1791723592042181025,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-absent-820-zh.png",
+          "sha256": "3a6b7b82e623ba210aaee676425273cb97bb101e782a34f0c657de564481dc71",
+          "bytes": 4730,
+          "width": 300,
+          "height": 99,
+          "captureMtimeNs": 1791723557259758560,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-absent-820.png",
+          "sha256": "88e7aff442d1e4a9b88b5efe4397bf141e8db17c0f4a515f1fe8e27f92d79d8f",
+          "bytes": 4616,
+          "width": 300,
+          "height": 116,
+          "captureMtimeNs": 1791723520452037771,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-refresh-failed-1440-zh.png",
+          "sha256": "4bb20e9d9254f83b0cb35d37b7fbd70285570e0d7be64f7719c5475f4a86b47b",
+          "bytes": 64975,
+          "width": 310,
+          "height": 513,
+          "captureMtimeNs": 1791723489208874326,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-refresh-failed-1440.png",
+          "sha256": "cddd0bd1471ac345d79282903bd0768ddaa6d24824560d9e6bf9ce9a56aca092",
+          "bytes": 51959,
+          "width": 310,
+          "height": 497,
+          "captureMtimeNs": 1791723451023148090,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-refresh-failed-390-zh.png",
+          "sha256": "8f22617daf11dd4f8dbff23d56e31706b136beb706b96f83ab520ef2aeecc474",
+          "bytes": 39111,
+          "width": 300,
+          "height": 340,
+          "captureMtimeNs": 1791723630881242400,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-refresh-failed-390.png",
+          "sha256": "d84b99a5e7570a7c4af2b2be3b0741425647d86e3a529f96157f814d906a8e94",
+          "bytes": 34635,
+          "width": 300,
+          "height": 340,
+          "captureMtimeNs": 1791723594748215316,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-refresh-failed-820-zh.png",
+          "sha256": "8f22617daf11dd4f8dbff23d56e31706b136beb706b96f83ab520ef2aeecc474",
+          "bytes": 39111,
+          "width": 300,
+          "height": 340,
+          "captureMtimeNs": 1791723559943207166,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-refresh-failed-820.png",
+          "sha256": "d84b99a5e7570a7c4af2b2be3b0741425647d86e3a529f96157f814d906a8e94",
+          "bytes": 34635,
+          "width": 300,
+          "height": 340,
+          "captureMtimeNs": 1791723523097542874,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-retried-1440-zh.png",
+          "sha256": "0312bf3b71d9eddcf8721759dff8499b220a1bbcd8ba0584d952664090491676",
+          "bytes": 60087,
+          "width": 310,
+          "height": 513,
+          "captureMtimeNs": 1791723484730299807,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-retried-1440.png",
+          "sha256": "c2e27695ea498083ec8889bdaa9f6e8cfe531f93fe87399860a5dfae67a7a13f",
+          "bytes": 52154,
+          "width": 310,
+          "height": 497,
+          "captureMtimeNs": 1791723447021820602,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-retried-390-zh.png",
+          "sha256": "84b63a654b069980ee385df3ed188a6d0bfc974905b4ac636012a2f6b0ffbe26",
+          "bytes": 42973,
+          "width": 300,
+          "height": 339,
+          "captureMtimeNs": 1791723626352752033,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-retried-390.png",
+          "sha256": "67b346df0174fdf3625e1f113f69eeff6448e6c65f8a1483a54b4d7364ea8c49",
+          "bytes": 34859,
+          "width": 300,
+          "height": 339,
+          "captureMtimeNs": 1791723590691953944,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-retried-820-zh.png",
+          "sha256": "1a90a16944dd7f42944653c89d6755cc4fb5806c47cde7dd59b92d0accdcb931",
+          "bytes": 42993,
+          "width": 300,
+          "height": 339,
+          "captureMtimeNs": 1791723555861663334,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-retried-820.png",
+          "sha256": "67b346df0174fdf3625e1f113f69eeff6448e6c65f8a1483a54b4d7364ea8c49",
+          "bytes": 34859,
+          "width": 300,
+          "height": 339,
+          "captureMtimeNs": 1791723519012178193,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": false
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-unavailable-1440-zh.png",
+          "sha256": "b18c0fccb414adc950c7bcf0e0c9863477642407037b7271d57911c6c596d7ee",
+          "bytes": 11688,
+          "width": 310,
+          "height": 513,
+          "captureMtimeNs": 1791723482726156424,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-unavailable-1440.png",
+          "sha256": "dc5c967a89ad29ae09238de0c729ec54b5cb31bd0208c54137305174c7abe54f",
+          "bytes": 10013,
+          "width": 310,
+          "height": 497,
+          "captureMtimeNs": 1791723445662406597,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-unavailable-390-zh.png",
+          "sha256": "51bd4399984b705e5606a07a69f1b452acbeef0aafc984a231a5a621255c3ae7",
+          "bytes": 10040,
+          "width": 300,
+          "height": 149,
+          "captureMtimeNs": 1791723624412931478,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-unavailable-390.png",
+          "sha256": "e818f1a63c81831f726e6433bee18ea5219b9e73a457b5b484b5d42c9ce1e6bd",
+          "bytes": 8591,
+          "width": 300,
+          "height": 165,
+          "captureMtimeNs": 1791723589188424283,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-unavailable-820-zh.png",
+          "sha256": "51bd4399984b705e5606a07a69f1b452acbeef0aafc984a231a5a621255c3ae7",
+          "bytes": 10040,
+          "width": 300,
+          "height": 149,
+          "captureMtimeNs": 1791723554338101388,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-unavailable-820.png",
+          "sha256": "e818f1a63c81831f726e6433bee18ea5219b9e73a457b5b484b5d42c9ce1e6bd",
+          "bytes": 8591,
+          "width": 300,
+          "height": 165,
+          "captureMtimeNs": 1791723517610981530,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-absent-1440-zh.png",
+          "sha256": "8dcb13b9b3cfc0de773dd32e617cc4f69eda2b6bee42ccb1b79cec26c62db5d4",
+          "bytes": 7585,
+          "width": 316,
+          "height": 72,
+          "captureMtimeNs": 1791723473941110805,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-absent-1440.png",
+          "sha256": "f7346dd906d8fa815ca4d16cf4f837dd9a9a9c28ff7fa8ad2fd6d9eb9b620321",
+          "bytes": 7721,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723438663555124,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-absent-390-zh.png",
+          "sha256": "8dcb13b9b3cfc0de773dd32e617cc4f69eda2b6bee42ccb1b79cec26c62db5d4",
+          "bytes": 7585,
+          "width": 316,
+          "height": 72,
+          "captureMtimeNs": 1791723616491574900,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-absent-390.png",
+          "sha256": "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762",
+          "bytes": 7731,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723582148144522,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-absent-820-zh.png",
+          "sha256": "dd4f1551f902089591e637c47f5eceddc86ceaebc6ba97881e03b7a566c24308",
+          "bytes": 7602,
+          "width": 316,
+          "height": 72,
+          "captureMtimeNs": 1791723545236951281,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-absent-820.png",
+          "sha256": "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762",
+          "bytes": 7731,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723510773461276,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-retried-1440-zh.png",
+          "sha256": "c1e4ed45e5e46b8a6ef15672dd3f5cb448c99d5bd3b8914d54c525c8028922d5",
+          "bytes": 11775,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723472102235927,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-retried-1440.png",
+          "sha256": "098207d0ea1df6a52b9777d30cebee5eeb3e29072f2b9f3c3c47ad86d0b75363",
+          "bytes": 9476,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723437314122438,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-retried-390-zh.png",
+          "sha256": "c1e4ed45e5e46b8a6ef15672dd3f5cb448c99d5bd3b8914d54c525c8028922d5",
+          "bytes": 11775,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723614571135926,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-retried-390.png",
+          "sha256": "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2",
+          "bytes": 9486,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723580324320499,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-retried-820-zh.png",
+          "sha256": "5d5ba75d3df58afe5cc4e721ed7d9b62447534280cf873421e905275f91f00df",
+          "bytes": 11792,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723543735572314,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-retried-820.png",
+          "sha256": "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2",
+          "bytes": 9486,
+          "width": 316,
+          "height": 87,
+          "captureMtimeNs": 1791723509427606959,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-unavailable-1440-zh.png",
+          "sha256": "2a0827b9d54ea74ea8bb3c35da63b40c2eef26808d5d259641070419beb4ff8d",
+          "bytes": 8766,
+          "width": 316,
+          "height": 116,
+          "captureMtimeNs": 1791723470460784629,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-unavailable-1440.png",
+          "sha256": "4867f99790bb933734d81c93e22adf5b34e708f5787dedcb7342e7924480f68e",
+          "bytes": 8869,
+          "width": 316,
+          "height": 131,
+          "captureMtimeNs": 1791723435885981979,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-unavailable-390-zh.png",
+          "sha256": "d3256a975de95bdb9290cc6fd48500ce037478223d5562fb816b7e0baf077616",
+          "bytes": 8800,
+          "width": 316,
+          "height": 122,
+          "captureMtimeNs": 1791723612613189781,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-unavailable-390.png",
+          "sha256": "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615",
+          "bytes": 8917,
+          "width": 316,
+          "height": 137,
+          "captureMtimeNs": 1791723578808234755,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-unavailable-820-zh.png",
+          "sha256": "38f2b79b18b548e90b9643f39ede36f47826e8b05b91b0030d7adf46bf378249",
+          "bytes": 8814,
+          "width": 316,
+          "height": 122,
+          "captureMtimeNs": 1791723541625266208,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-darkpool-unavailable-820.png",
+          "sha256": "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615",
+          "bytes": 8917,
+          "width": 316,
+          "height": 137,
+          "captureMtimeNs": 1791723507928966849,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-absent-1440-zh.png",
+          "sha256": "d1a7b2606073d3216d448e3c86b30267ea55f5a848462bcef5f51cde61f0c2ec",
+          "bytes": 27393,
+          "width": 1380,
+          "height": 88,
+          "captureMtimeNs": 1791723481324769138,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-absent-1440.png",
+          "sha256": "9b639395ade6e99d88911ab1b5ccf176843959bb5ed20008eb7047bd2c1ed762",
+          "bytes": 25902,
+          "width": 1380,
+          "height": 88,
+          "captureMtimeNs": 1791723444479232728,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-absent-390-zh.png",
+          "sha256": "e0355c59a69362a8c1b447655b6b70c0b1b2d2f6f8a3ee718adfa48799aee3c5",
+          "bytes": 28226,
+          "width": 390,
+          "height": 327,
+          "captureMtimeNs": 1791723623014959961,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-absent-390.png",
+          "sha256": "f37a423329596df05383e9d3ec0b811330219a0bfbf5d2ea4f8bd7294c99aced",
+          "bytes": 27964,
+          "width": 390,
+          "height": 387,
+          "captureMtimeNs": 1791723587807561152,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-absent-820-zh.png",
+          "sha256": "59bcc635ac056ed65679d0bb0d6433dc6716f6b7216f9b3b0da360b6937f23dc",
+          "bytes": 26529,
+          "width": 820,
+          "height": 207,
+          "captureMtimeNs": 1791723552902928697,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-absent-820.png",
+          "sha256": "aac2ac8e8d77e5fe024df84e117f368e918a68cc21a4a8093a82eb8cf5b93565",
+          "bytes": 26311,
+          "width": 820,
+          "height": 207,
+          "captureMtimeNs": 1791723516216480572,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-partial-1440-zh.png",
+          "sha256": "e46677be6419c2575364298464d926ddd8221d4cc49a3af9a5714bbbe46d0664",
+          "bytes": 34072,
+          "width": 1380,
+          "height": 108,
+          "captureMtimeNs": 1791723475388800578,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-partial-1440.png",
+          "sha256": "4b9352e44ba182da0c6cd7e0adf936fa830dba8971c652a13e9d7fd17a5c9d00",
+          "bytes": 31763,
+          "width": 1380,
+          "height": 108,
+          "captureMtimeNs": 1791723440066202795,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-partial-390-zh.png",
+          "sha256": "4c6739fb51d99dc14936b24fe495e5b319c178e853d2f47fb76637d5d386c7d8",
+          "bytes": 35858,
+          "width": 390,
+          "height": 413,
+          "captureMtimeNs": 1791723617995543976,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-partial-390.png",
+          "sha256": "ce1b5787fa6ba4797ef83f66b33ff93f2dabc947615d6ab0bf575e115b34f9b7",
+          "bytes": 34232,
+          "width": 390,
+          "height": 488,
+          "captureMtimeNs": 1791723583628495001,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-partial-820-zh.png",
+          "sha256": "1cfef623cf52644b4650b1fd84acc3e8756f52b4ec7998d19d1c96ce556d05c1",
+          "bytes": 34293,
+          "width": 820,
+          "height": 260,
+          "captureMtimeNs": 1791723547160779232,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-partial-820.png",
+          "sha256": "140d3cb775bcbffbc85e658435001ed2762aca7b45802532d2655343f26f12f8",
+          "bytes": 32081,
+          "width": 820,
+          "height": 260,
+          "captureMtimeNs": 1791723512091745149,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-retried-1440-zh.png",
+          "sha256": "6aacf36aa2425566df63f1c3110539a8d1300d4839a53245f98953cad8eae14a",
+          "bytes": 31781,
+          "width": 1380,
+          "height": 88,
+          "captureMtimeNs": 1791723477406308579,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-retried-1440.png",
+          "sha256": "38d5ebec724d5b1a18d41e6daacaaa55c3cb1a16f5fe8aba0976d179ae0a3996",
+          "bytes": 28685,
+          "width": 1380,
+          "height": 88,
+          "captureMtimeNs": 1791723441637680695,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-retried-390-zh.png",
+          "sha256": "5614d5b38944335eaaba0337efde06861f095e196bf259ab98351d714c1b1061",
+          "bytes": 32179,
+          "width": 390,
+          "height": 327,
+          "captureMtimeNs": 1791723619553128658,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-retried-390.png",
+          "sha256": "0099b889d54bdb9c21336e685d7f3c1fb594afb70f90910fb7556c2948887020",
+          "bytes": 31821,
+          "width": 390,
+          "height": 446,
+          "captureMtimeNs": 1791723585128801475,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-retried-820-zh.png",
+          "sha256": "08f87843f4023964cb5945e1ad29ad4357334072184cc629b610fc3563fee4cb",
+          "bytes": 30115,
+          "width": 820,
+          "height": 207,
+          "captureMtimeNs": 1791723549118909375,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-retried-820.png",
+          "sha256": "271e53c93aa34457d899204ee97530707647c005a1b63695bacc4374b79e2f64",
+          "bytes": 30264,
+          "width": 820,
+          "height": 207,
+          "captureMtimeNs": 1791723513558075969,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-unavailable-1440-zh.png",
+          "sha256": "22e81f1a4392cd297fc8d1f4c0a5b3b793c12746ee54a9892c14c2f48b8c2c6f",
+          "bytes": 24371,
+          "width": 1380,
+          "height": 88,
+          "captureMtimeNs": 1791723479425630195,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-unavailable-1440.png",
+          "sha256": "c6c48415d73b827e944069c59c71f8ed6df6613951dc849155899c7d8b31ed2a",
+          "bytes": 22070,
+          "width": 1380,
+          "height": 88,
+          "captureMtimeNs": 1791723443016884233,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-unavailable-390-zh.png",
+          "sha256": "1b95203fdb08d9a7078b5ac10ecba582ca3b65f4c70571ef8811c75016f86111",
+          "bytes": 23346,
+          "width": 390,
+          "height": 201,
+          "captureMtimeNs": 1791723621430708620,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-unavailable-390.png",
+          "sha256": "6687c0dd9077376049dffd6350b4e0b768051d0ef0f8754fcd7611b13a44b463",
+          "bytes": 21463,
+          "width": 390,
+          "height": 233,
+          "captureMtimeNs": 1791723586447965925,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-unavailable-820-zh.png",
+          "sha256": "63fc33db0db562be946a1f099f46d82ac471a8744f68f0bd90c887125a662804",
+          "bytes": 24465,
+          "width": 820,
+          "height": 146,
+          "captureMtimeNs": 1791723551041545877,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/eod-structure-unavailable-820.png",
+          "sha256": "53939bc3550c0beeed70b634ae97bda4b15ff56680aa4265d4fb6f5c808f3167",
+          "bytes": 22688,
+          "width": 820,
+          "height": 146,
+          "captureMtimeNs": 1791723514892790235,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-absent-1440-zh.png",
+          "sha256": "1813929aabbfcd0b5b9c633129ff8b75e1d9d4da0eab7957fda6049d38b62104",
+          "bytes": 55073,
+          "width": 1380,
+          "height": 277,
+          "captureMtimeNs": 1791723493898014510,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-absent-1440.png",
+          "sha256": "83e883057e333977e45049f51fb3563100042b9d95d87eef9455d601b430f5f7",
+          "bytes": 51833,
+          "width": 1380,
+          "height": 277,
+          "captureMtimeNs": 1791723455486526307,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-absent-390-zh.png",
+          "sha256": "6ecad5235f64f9d7deb21050638b126b4c4d422e8bae7874b24aaa894de30fe0",
+          "bytes": 42786,
+          "width": 390,
+          "height": 352,
+          "captureMtimeNs": 1791723635257113054,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-absent-390.png",
+          "sha256": "2028252a54fbf6c9385f46d87191f415992f34a38b0f25370cf130b123138d4b",
+          "bytes": 39277,
+          "width": 390,
+          "height": 352,
+          "captureMtimeNs": 1791723598990440262,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-absent-820-zh.png",
+          "sha256": "30277f847593b5f2e8b49dc3f0c2bf7633c22ef9071c96d8f122624e51063ca2",
+          "bytes": 54365,
+          "width": 820,
+          "height": 302,
+          "captureMtimeNs": 1791723564366862926,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-absent-820.png",
+          "sha256": "55721c751c4b011b3c523d2768b78c31e6792dcf6ea1f7b4f8079d108b04da33",
+          "bytes": 50525,
+          "width": 820,
+          "height": 302,
+          "captureMtimeNs": 1791723527538981683,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-auth-1440-zh.png",
+          "sha256": "e3a81edd82532cbd9cadd355f4f887217f14e590cbc97f749f664a711e5e1d2b",
+          "bytes": 56014,
+          "width": 1380,
+          "height": 277,
+          "captureMtimeNs": 1791723495396343704,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-auth-1440.png",
+          "sha256": "562ee5fd41adefbfe667f01b6746d5dde76ae18d75e51345b2fb7b39b0e8a5ac",
+          "bytes": 52532,
+          "width": 1380,
+          "height": 277,
+          "captureMtimeNs": 1791723456869374667,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-auth-390-zh.png",
+          "sha256": "f5b7bc7771c32860efc2414e256468eb4a698e3dbe10ae66332b82290535c35a",
+          "bytes": 43705,
+          "width": 390,
+          "height": 352,
+          "captureMtimeNs": 1791723636698017707,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-auth-390.png",
+          "sha256": "34771d0368e1e404ff9796d19f4bd08831f51247a67bbd38ff50d6e79a2195cb",
+          "bytes": 39993,
+          "width": 390,
+          "height": 352,
+          "captureMtimeNs": 1791723600477001325,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-auth-820-zh.png",
+          "sha256": "e76f061a3fcce910262d1f90359c089106fb65f873e0e06aa39aed4b0fae927d",
+          "bytes": 55269,
+          "width": 820,
+          "height": 302,
+          "captureMtimeNs": 1791723566065442184,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-auth-820.png",
+          "sha256": "d531cf37ba3939e630dea6ff5df772661b820082001d276722684e1608abd682",
+          "bytes": 51269,
+          "width": 820,
+          "height": 302,
+          "captureMtimeNs": 1791723529066423020,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-failed-1440-zh.png",
+          "sha256": "3cdaabb6d21a82f55c5cb91ee48e2bf07b9556a1445f7de27a90928aaf3c43a8",
+          "bytes": 60540,
+          "width": 1380,
+          "height": 335,
+          "captureMtimeNs": 1791723499939609094,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-failed-1440.png",
+          "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+          "bytes": 55669,
+          "width": 1380,
+          "height": 335,
+          "captureMtimeNs": 1791723461387848157,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-failed-390-zh.png",
+          "sha256": "079c40e8fe07c3b137098519adc6945d9382d1892f724e9aaf76a377d99115aa",
+          "bytes": 48558,
+          "width": 390,
+          "height": 416,
+          "captureMtimeNs": 1791723641239426863,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-failed-390.png",
+          "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+          "bytes": 44321,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723604911258517,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-failed-820-zh.png",
+          "sha256": "03ed960c3144925a40cd0b37f750a60818a658acce17cd11a2bab5fe7207bea0",
+          "bytes": 48189,
+          "width": 820,
+          "height": 366,
+          "captureMtimeNs": 1791723570527928898,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-failed-820.png",
+          "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+          "bytes": 42730,
+          "width": 820,
+          "height": 366,
+          "captureMtimeNs": 1791723533680971989,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-refused-1440-zh.png",
+          "sha256": "3cdaabb6d21a82f55c5cb91ee48e2bf07b9556a1445f7de27a90928aaf3c43a8",
+          "bytes": 60540,
+          "width": 1380,
+          "height": 335,
+          "captureMtimeNs": 1791723501755425169,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-refused-1440.png",
+          "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+          "bytes": 55669,
+          "width": 1380,
+          "height": 335,
+          "captureMtimeNs": 1791723463115828510,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-refused-390-zh.png",
+          "sha256": "079c40e8fe07c3b137098519adc6945d9382d1892f724e9aaf76a377d99115aa",
+          "bytes": 48558,
+          "width": 390,
+          "height": 416,
+          "captureMtimeNs": 1791723643222803050,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-refused-390.png",
+          "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+          "bytes": 44321,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723606731267440,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-refused-820-zh.png",
+          "sha256": "03ed960c3144925a40cd0b37f750a60818a658acce17cd11a2bab5fe7207bea0",
+          "bytes": 48189,
+          "width": 820,
+          "height": 366,
+          "captureMtimeNs": 1791723572571490859,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-refresh-refused-820.png",
+          "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+          "bytes": 42730,
+          "width": 820,
+          "height": 366,
+          "captureMtimeNs": 1791723535702201219,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-retried-1440-zh.png",
+          "sha256": "033646ceae33f640189f1838aa54ef8839787db62a7d36b1a16386a6713af286",
+          "bytes": 56427,
+          "width": 1380,
+          "height": 288,
+          "captureMtimeNs": 1791723503777500269,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-retried-1440.png",
+          "sha256": "e9b63947a233371ef21baeef49652fe82915881e73d166cba606f32755dc05fb",
+          "bytes": 52403,
+          "width": 1380,
+          "height": 288,
+          "captureMtimeNs": 1791723465791062618,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-retried-390-zh.png",
+          "sha256": "8e5b55d6bfa2a7ddb9bccb68400c195de114fa99d75750d5366eaccf064dcd3c",
+          "bytes": 43712,
+          "width": 390,
+          "height": 363,
+          "captureMtimeNs": 1791723645216555836,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-retried-390.png",
+          "sha256": "18b85a52c1ba2d7f47ee7ff84f95f02ec44457a9c05cf6df9f9d1fcc1c1e9ab2",
+          "bytes": 40220,
+          "width": 390,
+          "height": 377,
+          "captureMtimeNs": 1791723608570885360,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-retried-820-zh.png",
+          "sha256": "ee67479c680a395bf93fd9b4dfa4f08a1aff98c8d80ef0338ae33df2b2f033c4",
+          "bytes": 43103,
+          "width": 820,
+          "height": 313,
+          "captureMtimeNs": 1791723574577524106,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-persisted-retried-820.png",
+          "sha256": "6fd832ff2a07ecb291f39e16ccd2335a1bda2939a786ecd6a3f17482638f4f05",
+          "bytes": 38424,
+          "width": 820,
+          "height": 313,
+          "captureMtimeNs": 1791723537520623444,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-refresh-failed-1440-zh.png",
+          "sha256": "3cdaabb6d21a82f55c5cb91ee48e2bf07b9556a1445f7de27a90928aaf3c43a8",
+          "bytes": 60540,
+          "width": 1380,
+          "height": 335,
+          "captureMtimeNs": 1791723498135867316,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-refresh-failed-1440.png",
+          "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+          "bytes": 55669,
+          "width": 1380,
+          "height": 335,
+          "captureMtimeNs": 1791723459487450228,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-refresh-failed-390-zh.png",
+          "sha256": "079c40e8fe07c3b137098519adc6945d9382d1892f724e9aaf76a377d99115aa",
+          "bytes": 48558,
+          "width": 390,
+          "height": 416,
+          "captureMtimeNs": 1791723639357564220,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-refresh-failed-390.png",
+          "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+          "bytes": 44321,
+          "width": 390,
+          "height": 430,
+          "captureMtimeNs": 1791723603038335399,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-refresh-failed-820-zh.png",
+          "sha256": "03ed960c3144925a40cd0b37f750a60818a658acce17cd11a2bab5fe7207bea0",
+          "bytes": 48189,
+          "width": 820,
+          "height": 366,
+          "captureMtimeNs": 1791723568751372316,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-refresh-failed-820.png",
+          "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+          "bytes": 42730,
+          "width": 820,
+          "height": 366,
+          "captureMtimeNs": 1791723531721834851,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-retried-1440-zh.png",
+          "sha256": "033646ceae33f640189f1838aa54ef8839787db62a7d36b1a16386a6713af286",
+          "bytes": 56427,
+          "width": 1380,
+          "height": 288,
+          "captureMtimeNs": 1791723492454429500,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-retried-1440.png",
+          "sha256": "e9b63947a233371ef21baeef49652fe82915881e73d166cba606f32755dc05fb",
+          "bytes": 52403,
+          "width": 1380,
+          "height": 288,
+          "captureMtimeNs": 1791723454065951863,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-retried-390-zh.png",
+          "sha256": "8e5b55d6bfa2a7ddb9bccb68400c195de114fa99d75750d5366eaccf064dcd3c",
+          "bytes": 43712,
+          "width": 390,
+          "height": 363,
+          "captureMtimeNs": 1791723633816554148,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-retried-390.png",
+          "sha256": "18b85a52c1ba2d7f47ee7ff84f95f02ec44457a9c05cf6df9f9d1fcc1c1e9ab2",
+          "bytes": 40220,
+          "width": 390,
+          "height": 377,
+          "captureMtimeNs": 1791723597628260051,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-retried-820-zh.png",
+          "sha256": "ee67479c680a395bf93fd9b4dfa4f08a1aff98c8d80ef0338ae33df2b2f033c4",
+          "bytes": 43103,
+          "width": 820,
+          "height": 313,
+          "captureMtimeNs": 1791723562963844524,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-retried-820.png",
+          "sha256": "6fd832ff2a07ecb291f39e16ccd2335a1bda2939a786ecd6a3f17482638f4f05",
+          "bytes": 38424,
+          "width": 820,
+          "height": 313,
+          "captureMtimeNs": 1791723526018351718,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-unavailable-1440-zh.png",
+          "sha256": "78e3b2b83ff2baee77a55b38bf979835e864ef48b82575fefe0840da75ab5e35",
+          "bytes": 62952,
+          "width": 1380,
+          "height": 300,
+          "captureMtimeNs": 1791723490654607906,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-unavailable-1440.png",
+          "sha256": "218cfdc673da261975aa2ecaf2d77daf2f9d034a0e37dc36e4d69273836e1653",
+          "bytes": 58349,
+          "width": 1380,
+          "height": 300,
+          "captureMtimeNs": 1791723452487247206,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-unavailable-390-zh.png",
+          "sha256": "e56ac464fdf549d98ea4f5f58318129641d815907aa039a90ab2416620e9e67b",
+          "bytes": 47548,
+          "width": 390,
+          "height": 400,
+          "captureMtimeNs": 1791723632278507255,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-unavailable-390.png",
+          "sha256": "17e6e28099c6503103d345e89a96e53d328d4e05bb2b9441f0782a5a61e8604d",
+          "bytes": 43043,
+          "width": 390,
+          "height": 418,
+          "captureMtimeNs": 1791723596112007265,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-unavailable-820-zh.png",
+          "sha256": "561be5e3f2465e23432b87083bcd5a9f052ac22049de563c1b4e8f009ed130a1",
+          "bytes": 59094,
+          "width": 820,
+          "height": 331,
+          "captureMtimeNs": 1791723561404850101,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-flow-unavailable-820.png",
+          "sha256": "174f139c390f61b603a4919f7bb183e9a8f4d463a405f7e12dc7e939c40e4ecb",
+          "bytes": 54161,
+          "width": 820,
+          "height": 331,
+          "captureMtimeNs": 1791723524478486962,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-live-failed-1440-zh.png",
+          "sha256": "85bc3adb1fa11178769466a3b4ccb560d9782deb1d3d2c6a930fbf7e84c51119",
+          "bytes": 15830,
+          "width": 1380,
+          "height": 32,
+          "captureMtimeNs": 1791723505112013326,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-live-failed-1440.png",
+          "sha256": "22df829040403f2ad2e2d5ea72359981a36bb035dce1f19698a05fb027f92940",
+          "bytes": 16197,
+          "width": 1380,
+          "height": 32,
+          "captureMtimeNs": 1791723467085072647,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-live-failed-390-zh.png",
+          "sha256": "181c7a24ee7ec651f0262af4e207caa161f762d590708a0e0c483da1c9669aa4",
+          "bytes": 13219,
+          "width": 390,
+          "height": 52,
+          "captureMtimeNs": 1791723646558610095,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-live-failed-390.png",
+          "sha256": "1e91ea54237cfea413a02e6eacfedab43dcca00c76aa5240a7f29d79b97e5e07",
+          "bytes": 12340,
+          "width": 390,
+          "height": 70,
+          "captureMtimeNs": 1791723609893572703,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-live-failed-820-zh.png",
+          "sha256": "231a7c8a9ffe596ba962489f9cc70b7bb4705c12da8ba45e82f1b1a371033ea7",
+          "bytes": 12872,
+          "width": 820,
+          "height": 32,
+          "captureMtimeNs": 1791723576123034368,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-live-failed-820.png",
+          "sha256": "fe8b4ba17002350081fd1cf5f828725af550bc0c3f206431a119233a9c7b2d10",
+          "bytes": 13439,
+          "width": 820,
+          "height": 32,
+          "captureMtimeNs": 1791723538774173949,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-no-match-1440-zh.png",
+          "sha256": "2783dee321225e1bc8a2c2e575cae93494db216f6704d2057c81e9e14cbd53f0",
+          "bytes": 39308,
+          "width": 1380,
+          "height": 697,
+          "captureMtimeNs": 1791723506525433284,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-no-match-1440.png",
+          "sha256": "f74c703cd4138d0ec8547c7cbacaf184a4254d6efd15cf4edb205637d03ada0f",
+          "bytes": 34375,
+          "width": 1380,
+          "height": 697,
+          "captureMtimeNs": 1791723468414908565,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-no-match-390-zh.png",
+          "sha256": "e5b6459b9a5cd69b8fe49ced2f5e3d05b9951b5d7b4c70c87cf2f59990dd1fe7",
+          "bytes": 27457,
+          "width": 390,
+          "height": 219,
+          "captureMtimeNs": 1791723647962982572,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-no-match-390.png",
+          "sha256": "7b7ce7a64e109aa60a9d7ac353daff944ed523d47f7d5a9fb128abe4b28fffa5",
+          "bytes": 23875,
+          "width": 390,
+          "height": 219,
+          "captureMtimeNs": 1791723611152933920,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-no-match-820-zh.png",
+          "sha256": "1fa5225a3761f28a4a301b600c5c94e391332db4c1cee90211c7648cc8fdc439",
+          "bytes": 33238,
+          "width": 820,
+          "height": 169,
+          "captureMtimeNs": 1791723577464784753,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/heatmap-no-match-820.png",
+          "sha256": "f7e6d5a6ed7c40e3a44f42bf89702802e4ef6e5215ddb1bf02fdf8d4a5013c4f",
+          "bytes": 27742,
+          "width": 820,
+          "height": 169,
+          "captureMtimeNs": 1791723540119837601,
+          "freshWriteVerified": true,
+          "sameBytesAsBaseline": true
+        }
+      ],
+      "historicalImages": [
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/belt-503-desktop.png",
+          "sha256": "51eb7b0bda94a0b3510f348c186d7c8873e130672c801cf552bbaad32fcddba6"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/belt-503-mobile.png",
+          "sha256": "a934d4e6169ea1bc1a3cba3f160ffb47284f893375f5025821743d3e852d9bd8"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/belt-503-tablet.png",
+          "sha256": "c86c342043691cd96033e7ebfa535461d446888904089edcfed07e069d7a71f2"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-404-desktop.png",
+          "sha256": "963b7890ee9831f66ceebd9746639ac18eab810db0d0c0fccc54de80be4d64c1"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-404-mobile.png",
+          "sha256": "11a6f760fce08c8eb433f4974699749548b81064451d5284991f102756fdcd11"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-404-tablet.png",
+          "sha256": "1133da799cc1f20a8501641d362e0392fb6522cbb5aea44621e2c2023633f412"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-503-desktop.png",
+          "sha256": "963b7890ee9831f66ceebd9746639ac18eab810db0d0c0fccc54de80be4d64c1"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-503-mobile.png",
+          "sha256": "11a6f760fce08c8eb433f4974699749548b81064451d5284991f102756fdcd11"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-503-tablet.png",
+          "sha256": "1133da799cc1f20a8501641d362e0392fb6522cbb5aea44621e2c2023633f412"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-refused-desktop.png",
+          "sha256": "963b7890ee9831f66ceebd9746639ac18eab810db0d0c0fccc54de80be4d64c1"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-refused-mobile.png",
+          "sha256": "11a6f760fce08c8eb433f4974699749548b81064451d5284991f102756fdcd11"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/chainheat-refused-tablet.png",
+          "sha256": "1133da799cc1f20a8501641d362e0392fb6522cbb5aea44621e2c2023633f412"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-flow-403-desktop.png",
+          "sha256": "4a06e65257f08877d10c01f6ee0b24e9d08744c3da9e521678cfb64a435cd971"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-flow-403-mobile.png",
+          "sha256": "0e7041fe47daeca7e8d20e7b87371c40ae0ab1ccc62a03d2f22565482432d093"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-flow-403-tablet.png",
+          "sha256": "6d48bbbebb50c99b28bb7a549c1a3b811ca733ea23f9fea501f9d473cb1a8e3f"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-flow-503-desktop.png",
+          "sha256": "4a06e65257f08877d10c01f6ee0b24e9d08744c3da9e521678cfb64a435cd971"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-flow-503-mobile.png",
+          "sha256": "0e7041fe47daeca7e8d20e7b87371c40ae0ab1ccc62a03d2f22565482432d093"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-flow-503-tablet.png",
+          "sha256": "536e3701910e7568ae2a249ffdac1d3993ba98bd510b4a1a136da02f33a1c16a"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-no-match-desktop.png",
+          "sha256": "e0486f39437b0ae82a7cc60a6a44bd5ab1f13a710b7a12398dc068c8ec85e8c4"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-no-match-mobile.png",
+          "sha256": "b76d9d8e088384e287335c903572774adaf7e84d2f8042f6053bd0676e79ccb7"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-no-match-tablet.png",
+          "sha256": "488f4455004545c6a1371b9ee16c698d8bfdb2a43fcb560f77cb22b976025c1c"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-quotes-failed-desktop.png",
+          "sha256": "984597426273916026a9aab0b1f4deb03f45c038159414b5def27d3a430f0adf"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-quotes-failed-mobile.png",
+          "sha256": "785499635d3703243e04b77d0a835acb10c71073494122e520d2445127214772"
+        },
+        {
+          "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/before/heatmap-quotes-failed-tablet.png",
+          "sha256": "2178579ae07c68ba2a9c636ccb8e29e8d802dee64d4ef704e3af559e1b5b72db"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "scope": "Representative static inspection, not inspection of all 281 images. Individual scoped receipts are bound in the final local verification receipt.",
+    "conductorConcern": "The apparent Chinese phone badge change was withdrawn: exact RGB comparison showed only one changed pixel outside the badge and an identical right half.",
+    "rootConductorPixelReviewSha256": "78624175c44c07ac757238d175839d70db705649b9fc95fd92aac5bfcaaebd1d",
+    "rootBplVisualReviewSha256": "ac5eeb885595f2cd2890bb5cb66cc6d0f7202c344e2c3d5ed76f772efcc7005c",
+    "optionsPlacementResolution": {
+      "result": "No new Options tag-placement regression is established. Custom badges are initially axis-side, then the shared lane can move inward to avoid legend and control collisions.",
+      "privateReceiptSha256": "4b7b1d27f0f5496522557817cf832f7c0e96f2451adf28a76fc4e6a6b66a8613"
+    }
+  },
+  "finalRepositoryGates": {
+    "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+    "privateGateReceiptSha256": "c5977d96e56e7396676d6d0f50c949b683ca8b5406b4a20875c0c355d9d7bcb8",
+    "terminalUnitFilesPassed": 548,
+    "terminalUnitTestsPassed": 9058,
+    "todoTests": 4,
+    "failedTests": 0,
+    "enforcedEvidenceFiles": [
+      {
+        "file": "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "status": "passed",
+        "assertions": 4
+      },
+      {
+        "file": "terminal/lib/__tests__/conductorFitBadgeZhEvidence.test.ts",
+        "status": "passed",
+        "assertions": 7
+      },
+      {
+        "file": "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "status": "passed",
+        "assertions": 5
+      },
+      {
+        "file": "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "status": "passed",
+        "assertions": 6
+      },
+      {
+        "file": "terminal/lib/__tests__/optionsLevelAxisEvidence.test.ts",
+        "status": "passed",
+        "assertions": 3
+      },
+      {
+        "file": "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "status": "passed",
+        "assertions": 3
+      }
+    ],
+    "countingNote": "The 28 assertions in these six files are included in the 9058 total; they are not additional test runs. Original capture receipts retain their original pending-gate wording."
+  }
+}

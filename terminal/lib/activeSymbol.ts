@@ -51,8 +51,8 @@ export function normalizeActiveSymbol(value: unknown): string | null {
 }
 
 function readStorage(): string | null {
-  if (typeof localStorage === "undefined") return null;
   try {
+    if (typeof localStorage === "undefined") return null;
     return normalizeActiveSymbol(localStorage.getItem(ACTIVE_SYMBOL_KEY));
   } catch {
     // Private-mode / blocked site data. A cursor is a convenience; its absence is not an error.

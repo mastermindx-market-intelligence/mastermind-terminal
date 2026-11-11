@@ -1,0 +1,14 @@
+{
+  "producerRepository": "mastermindx-market-intelligence/macro",
+  "producerCommit": "6cc0858fa93fa3200268390c9588bcc67358eb23",
+  "producerPath": "engine/tick_plane/stream_events.py",
+  "producerBlob": "1d85b29cda38bf763d0e517c964e384cced53fdf",
+  "producerSha256": "636b8fa03638c2fe955d7289ee2d5a4c500a4a7b869ba5e3c0b8298cb4114a33",
+  "nativeFixtureSha256": "cab0972a4183a4c823ea564e804dd95dea601ffa109f1e682c2d6638d088834d",
+  "envelopeSha256": "cae784e1c3915afd8c36880fd806e8b9e1ef4f79eb439ba615f8eec33fd54179",
+  "nativeRows": 6,
+  "uniqueReportedShares": 3101,
+  "fixtureOnly": true,
+  "sourceAuthenticated": false,
+  "publicDeliveryAllowed": false
+}

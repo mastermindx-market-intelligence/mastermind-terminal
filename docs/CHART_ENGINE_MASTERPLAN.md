@@ -144,3 +144,33 @@ path lets each of those be conquered behind a flag with LWC as the always-on con
   `engine-unwrap:` bridge — the engine is in the production path, downstream call sites
   byte-identical. P2 next: migrate clusters (series builders, markers, price lines,
   watermark, priceScale sites) behind the contract and drive the unwrap count to zero.
+- 2026-10-12 · P2 canvas foundation (PR #969, 24-lane fan-out): `lib/chart-engine/canvas/**`
+  dark-launched as impl `"mm"` behind `createEngine(el, opts, "mm")`; `CANVAS_CAPABILITIES`
+  and the typed `EngineRefusalError` make an unsupported option group a refusal, never a
+  silent downgrade. The factory-agnostic conformance corpus runs against both engines.
+- 2026-10-13 · Mount selection (PR #982), canvas paint + input + bench harness (PR #987),
+  wave-4 hardening (PR #991) and the ChartPanel primary migration at the F-13 stage (PR #992,
+  master `0e011e81c`): `?engine=` / `mm.engine` resolve per mount, default and unknown values
+  keep lwc with no storage write, `[data-chart-engine]` marks the host. Perf wave (PR #994),
+  presented-frame cadence instrument (PR #995) and Q03b per-input presentation latency (PR #998)
+  followed, each deployed through the git-gated build and live-proven.
+- 2026-10-13 · Q03 ruling: the pan half is LIFTED (official Q03b v1 receipt at `e206cd046`, mm
+  p95 9.138 / p99 9.639 ms); the zoom half FAILED (p95 20.562 / p99 37.175 ms) and is HELD.
+- 2026-10-17 · Boundary closure (PR #999, master `9938c0cb0`, ce8): the forced-lwc fallback is
+  gone, so `?engine=mm` mounts the owned Canvas2D engine with no warning; ChartPanel has no
+  direct `lightweight-charts` import and no `.unwrap(` (it still reaches LWC types through
+  `lib/chartTimeAxis` and `lib/sessionShading`). PaneHandle identity is ruled (one pane per
+  handle, `index()` tracks the current slot).
+- 2026-10-17 · Q03b protocol v2 (PR #1027, master `3c115e5d1`, ce9): wall-clock seeded wheel
+  dispatch and a harness rAF awake start. The one official v2 receipt (head `1b7ec6a6b`) is a
+  VALID FAIL: mm zoom input-to-present p95 21.655 / p99 42.429 ms vs <= 20 / <= 33.4 (pan PASS
+  8.905 / 9.686); the lwc comparator fails the same budgets. Per D10 nothing is amended after
+  the result and no receipt is committed; the bench readiness retry (PR #1028) is
+  harness-only.
+- 2026-10-17 · Acceptance close: PR #993 (GAPS, 24fd0ce6f) and PR #997 (census follow-ups,
+  3e6e9591d) landed; `docs/chart-engine-completion/acceptance-ledger.md` records all 136 rows
+  (102 ACCEPTED / 31 UNRESOLVED / 3 EXCLUDED) with each UNRESOLVED row's gate. Live at
+  `3e6e9591d21b` (ce11): P01 opt-in mm, default lwc, bogus lwc and the `engineProbe=refuse`
+  rollback all PASS. P03 (default -> mm, branch `claude/ce-p03-1013`) and P04 (LWC retirement)
+  stay HELD on the zoom half; the next step is a prospective v3 decision with a new falsifiable
+  diagnosis, not a re-measurement.

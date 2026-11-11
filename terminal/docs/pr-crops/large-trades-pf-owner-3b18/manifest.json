@@ -1,0 +1,446 @@
+{
+  "schema": "mastermind.large_trades.pf_owner_browser_evidence.v1",
+  "status": "PASS_LOCAL_SYNTHETIC_BROWSER_INDEPENDENT_REVIEWED",
+  "scope": "Two 1440x900 desktop synthetic-fixture journeys on3b18. Five original screenshots and three native exports reviewed; seven unmodified PNG files published.",
+  "captureSource": {
+    "head": "3b18fd7360903f2a3a7097700f0d0182e6294386",
+    "tree": "2dccaf8d6d8c705f7b57be4c7af373bc77e0df2a",
+    "sourceFileCount": 1779,
+    "sourceBundleSha256": "f6538dc98fa126f7ff22a05edb6c945e0ca2d1694be14832a462fd3423cdde59",
+    "unchangedDuringRun": true
+  },
+  "ownerRepairCommit": "48adce815b0642217ede7af5d6c52e10ae4448de",
+  "laterProtectedIntegration": {
+    "head": "914b83d7c9cbe43d32953d5c74f360aeb651a92e",
+    "protected": "e0c405a09b6897df3b5e4a2f22344f3560b800a4",
+    "incomingPaths": 22,
+    "exactIncomingBlobsPreserved": true,
+    "captureBytesUnchanged": true,
+    "receiptSha256": "2efe83a24d35e8a958e703c35fd67378ddad4eb996dcaa374323efc31f01fe1e",
+    "doesNotRestampCaptureSource": true
+  },
+  "runner": {
+    "c7": {
+      "bytes": 39170,
+      "sha256": "965630040340f1bec068874d4d9530748dedaa3d61c5269e9083969d5afefcec"
+    },
+    "r10": {
+      "bytes": 15535,
+      "sha256": "7464f22619fb428188d2315210acc6594e4f0bc16ba663fa820a8693826588c3"
+    },
+    "h5": {
+      "bytes": 34008,
+      "sha256": "03b73a6b885430c752bb7402e8baaa4f434d4f755b0ee9b4c2c9b1d08f107c7b"
+    }
+  },
+  "custody": {
+    "receipt": {
+      "bytes": 225039,
+      "sha256": "3bf74cfd057e380a853ac6fde2b624d4633bcae54e2b05564429b10e5712f37c"
+    },
+    "startedAtUtc": "2026-10-12T04:42:50.000028+00:00",
+    "endedAtUtc": "2026-10-12T04:43:50.347731+00:00",
+    "elapsedSeconds": 60.352,
+    "wrapperExitCode": 0,
+    "browserDisconnected": true,
+    "serverExitCode": 143,
+    "remainingKnownProcesses": 0,
+    "finalObservedAtUtc": "2026-10-12T04:43:50.345849+00:00",
+    "listeners": 0,
+    "fixtureProcesses": 0,
+    "unresolvedFixtureProcesses": 0
+  },
+  "witnessReceipt": {
+    "bytes": 436115,
+    "sha256": "ca300c573b36dba97d373abd2cacfc1939a3b54c2175c44d79fb5a35889754f0"
+  },
+  "independentReview": {
+    "receipt": {
+      "bytes": 34836,
+      "sha256": "be48dca0c95b82c9bd7306551b77aada82af57603fe6a0e9424c25f90c503072"
+    },
+    "status": "PASS_SCOPED_LOCAL_SYNTHETIC_BROWSER_WITH_LOW_VISUAL_NOTE",
+    "actualImagesOpened": 8,
+    "writerExitCode": 0
+  },
+  "cases": [
+    {
+      "name": "same-owner-control",
+      "status": "PASS_LOCAL_SYNTHETIC_BROWSER",
+      "startedAtUtc": "2026-10-12T04:43:04.784Z",
+      "endedAtUtc": "2026-10-12T04:43:18.920Z",
+      "receipt": {
+        "bytes": 178560,
+        "sha256": "f5d9d2426ddf96df2ad535521238152370ff484c6bdaffa0845e7b1b7395c8d5"
+      },
+      "fixtureEnvelopes": {
+        "AAPL": {
+          "sha256": "cd3bacabfd2a0a842af27058be83e5286374ce775cb64ade7069764e5191c6bf",
+          "reports": 7,
+          "quantity": 6201,
+          "sourceId": "fixture:remount:AAPL",
+          "mode": "fixture",
+          "quantityUnit": "shares",
+          "modification": "Explicit synthetic owner multiplier and price offset; original event/knowledge clocks retained"
+        }
+      },
+      "startup": {
+        "firstVisibleToolbarFavorites": [
+          "3D"
+        ],
+        "firstVisibleLegend": [],
+        "pickerSelectedBeforeConfiguration": [
+          "5s"
+        ],
+        "verifiedPickerSelections": [
+          "5s",
+          "5s"
+        ],
+        "finalVisibleLegend": [
+          "Large trades"
+        ],
+        "finalVisibleToolbarFavorites": [],
+        "savedPreferenceRestorationCertified": false
+      },
+      "errorCounts": {
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "routeErrors": 0,
+        "failedResponses": 0,
+        "diagnosticsOverflow": 0
+      },
+      "failedRequestDiagnostics": {
+        "count": 8,
+        "reasons": {
+          "net::ERR_ABORTED": 8
+        }
+      },
+      "pageClosed": true,
+      "contextClosed": true,
+      "routeDrainComplete": true,
+      "pngEvidence": {
+        "checkedAt": "2026-10-12T04:43:18.920Z",
+        "count": 3,
+        "unchanged": true
+      },
+      "pendingRequest": {
+        "symbol": "AAPL",
+        "tf": "5s",
+        "time": 1791192610,
+        "status": null,
+        "index": null
+      },
+      "finalFocus": {
+        "symbol": "AAPL",
+        "tf": "5s",
+        "time": 1791192610,
+        "status": "exact",
+        "index": 2
+      },
+      "nativeExports": [
+        {
+          "recordedMember": "same-owner-control-aapl-native.png",
+          "downloadFilename": "AAPL_5s_20261012.png",
+          "symbol": "AAPL",
+          "timeframe": "5s",
+          "providerSourceSha256": null,
+          "markers": [
+            {
+              "quantity": 1301,
+              "reports": 3
+            },
+            {
+              "quantity": 1500,
+              "reports": 2
+            },
+            {
+              "quantity": 1800,
+              "reports": 1
+            },
+            {
+              "quantity": 1600,
+              "reports": 1
+            }
+          ],
+          "footer": [
+            "Large trades \u00b7 Test fixture \u00b7 AAPL \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+            "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+            "Synthetic executions for deterministic testing. This is not a market feed.",
+            "Synthetic fixture. No market transactions or investment evidence."
+          ],
+          "bytes": 332837,
+          "sha256": "ab23a1817e8f41286a4be6a8e3603fdf5dd487489f3fca391b99d35a1c783cc8"
+        }
+      ]
+    },
+    {
+      "name": "different-owner-pending",
+      "status": "PASS_LOCAL_SYNTHETIC_BROWSER",
+      "startedAtUtc": "2026-10-12T04:43:18.929Z",
+      "endedAtUtc": "2026-10-12T04:43:40.275Z",
+      "receipt": {
+        "bytes": 298618,
+        "sha256": "3cbef4c830ea044ca971c88bd52429981fba34d953a469a59b3981022513287b"
+      },
+      "fixtureEnvelopes": {
+        "AAPL": {
+          "sha256": "cd3bacabfd2a0a842af27058be83e5286374ce775cb64ade7069764e5191c6bf",
+          "reports": 7,
+          "quantity": 6201,
+          "sourceId": "fixture:remount:AAPL",
+          "mode": "fixture",
+          "quantityUnit": "shares",
+          "modification": "Explicit synthetic owner multiplier and price offset; original event/knowledge clocks retained"
+        },
+        "NVDA": {
+          "sha256": "caf7d7704b16551d6338c84245c7e4f01ac2babdfe31baf6ae885961e0f2049b",
+          "reports": 7,
+          "quantity": 12402,
+          "sourceId": "fixture:remount:NVDA",
+          "mode": "fixture",
+          "quantityUnit": "shares",
+          "modification": "Explicit synthetic owner multiplier and price offset; original event/knowledge clocks retained"
+        }
+      },
+      "startup": {
+        "firstVisibleToolbarFavorites": [
+          "3D"
+        ],
+        "firstVisibleLegend": [],
+        "pickerSelectedBeforeConfiguration": [
+          "5s"
+        ],
+        "verifiedPickerSelections": [
+          "5s",
+          "5s"
+        ],
+        "finalVisibleLegend": [
+          "Large trades"
+        ],
+        "finalVisibleToolbarFavorites": [],
+        "savedPreferenceRestorationCertified": false
+      },
+      "errorCounts": {
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "routeErrors": 0,
+        "failedResponses": 0,
+        "diagnosticsOverflow": 0
+      },
+      "failedRequestDiagnostics": {
+        "count": 9,
+        "reasons": {
+          "net::ERR_ABORTED": 9
+        }
+      },
+      "pageClosed": true,
+      "contextClosed": true,
+      "routeDrainComplete": true,
+      "pngEvidence": {
+        "checkedAt": "2026-10-12T04:43:40.275Z",
+        "count": 5,
+        "unchanged": true
+      },
+      "pendingRequest": {
+        "symbol": "AAPL",
+        "tf": "5s",
+        "time": 1791192610,
+        "status": null,
+        "index": null
+      },
+      "finalFocus": {
+        "symbol": "AAPL",
+        "tf": "5s",
+        "time": 1791192610,
+        "status": "replaced",
+        "index": null
+      },
+      "nativeExports": [
+        {
+          "recordedMember": "different-owner-pending-nvda-before-old-response-native.png",
+          "downloadFilename": "NVDA_5s_20261012.png",
+          "symbol": "NVDA",
+          "timeframe": "5s",
+          "providerSourceSha256": null,
+          "markers": [
+            {
+              "quantity": 2602,
+              "reports": 3
+            },
+            {
+              "quantity": 3000,
+              "reports": 2
+            },
+            {
+              "quantity": 3600,
+              "reports": 1
+            },
+            {
+              "quantity": 3200,
+              "reports": 1
+            }
+          ],
+          "footer": [
+            "Large trades \u00b7 Test fixture \u00b7 NVDA \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+            "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+            "Synthetic executions for deterministic testing. This is not a market feed.",
+            "Synthetic fixture. No market transactions or investment evidence."
+          ],
+          "bytes": 335832,
+          "sha256": "7d4f00b837cdc42c1ab1b812a293545af2862f0bc8da871e17b9d3068cc953d4"
+        },
+        {
+          "recordedMember": "different-owner-pending-nvda-after-old-response-native.png",
+          "downloadFilename": "NVDA_5s_20261012.png",
+          "symbol": "NVDA",
+          "timeframe": "5s",
+          "providerSourceSha256": null,
+          "markers": [
+            {
+              "quantity": 2602,
+              "reports": 3
+            },
+            {
+              "quantity": 3000,
+              "reports": 2
+            },
+            {
+              "quantity": 3600,
+              "reports": 1
+            },
+            {
+              "quantity": 3200,
+              "reports": 1
+            }
+          ],
+          "footer": [
+            "Large trades \u00b7 Test fixture \u00b7 NVDA \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+            "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+            "Synthetic executions for deterministic testing. This is not a market feed.",
+            "Synthetic fixture. No market transactions or investment evidence."
+          ],
+          "bytes": 335832,
+          "sha256": "7d4f00b837cdc42c1ab1b812a293545af2862f0bc8da871e17b9d3068cc953d4"
+        }
+      ],
+      "oldResponseRelease": {
+        "beforeFocus": {
+          "symbol": "AAPL",
+          "tf": "5s",
+          "time": 1791192610,
+          "status": "replaced",
+          "index": null
+        },
+        "afterFocus": {
+          "symbol": "AAPL",
+          "tf": "5s",
+          "time": 1791192610,
+          "status": "replaced",
+          "index": null
+        },
+        "afterPendingFocus": null,
+        "beforeOverlay": [
+          {
+            "symbol": "NVDA",
+            "state": "ready",
+            "mode": "fixture",
+            "ownerVisible": "true"
+          }
+        ],
+        "afterOverlay": [
+          {
+            "symbol": "NVDA",
+            "state": "ready",
+            "mode": "fixture",
+            "ownerVisible": "true"
+          }
+        ],
+        "nativeExportsByteIdentical": true
+      }
+    }
+  ],
+  "images": [
+    {
+      "file": "aapl-table-selection.png",
+      "recordedMember": "same-owner-control-table-aapl-selected.png",
+      "kind": "browser_screenshot",
+      "bytes": 259085,
+      "sha256": "22fe430b0c26cefdf47efbcbccb184e3b77d1bf1c52b7e4faed81bfd351f7ecb",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "aapl-restored.png",
+      "recordedMember": "same-owner-control-aapl-restored.png",
+      "kind": "browser_screenshot",
+      "bytes": 224760,
+      "sha256": "47d28f7faaf35586c8cfc6a717252159afd634338aa772775c44ece98e68cf0e",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "aapl-native-export.png",
+      "recordedMember": "same-owner-control-aapl-native.png",
+      "kind": "native_export",
+      "bytes": 332837,
+      "sha256": "ab23a1817e8f41286a4be6a8e3603fdf5dd487489f3fca391b99d35a1c783cc8",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "file": "nvda-before-old-response.png",
+      "recordedMember": "different-owner-pending-nvda-before-old-response.png",
+      "kind": "browser_screenshot",
+      "bytes": 219120,
+      "sha256": "20ee9cf227d9f7876367d218f50999522d21722102aff79126379f7bda0b88a1",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "nvda-after-old-response.png",
+      "recordedMember": "different-owner-pending-nvda-after-old-response.png",
+      "kind": "browser_screenshot",
+      "bytes": 218946,
+      "sha256": "51eb1c9922852017cf46283c64165d437821a63ee59479024e8b543f61ce1045",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "nvda-native-before.png",
+      "recordedMember": "different-owner-pending-nvda-before-old-response-native.png",
+      "kind": "native_export",
+      "bytes": 335832,
+      "sha256": "7d4f00b837cdc42c1ab1b812a293545af2862f0bc8da871e17b9d3068cc953d4",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "file": "nvda-native-after.png",
+      "recordedMember": "different-owner-pending-nvda-after-old-response-native.png",
+      "kind": "native_export",
+      "bytes": 335832,
+      "sha256": "7d4f00b837cdc42c1ab1b812a293545af2862f0bc8da871e17b9d3068cc953d4",
+      "width": 1934,
+      "height": 1760
+    }
+  ],
+  "omittedDuplicateRole": {
+    "recordedMember": "different-owner-pending-table-aapl-selected.png",
+    "bytes": 260460,
+    "sha256": "4deca299dc990886fdfa6f1b8618424772c70a6dda37c939465b620b4d2efa2b",
+    "reason": "Second AAPL table role remains in original reviewed evidence."
+  },
+  "limitations": [
+    "All quantities are explicit synthetic shares from fixture transaction reports; no candle volume is used for executed quantity. Distinct orders are unavailable.",
+    "Whole-shell quotes/status values are ancillary fixtures and are not coherent market-price evidence for these synthetic candles.",
+    "Saved-preference restoration is not certified; actual visible UI establishes the requested state.",
+    "LOW: right-side table headings are crowded; the selected09:30:10 row and Show on chart remain readable.",
+    "The NVDA left circle is plot-clipped while its complete2602 label remains visible.",
+    "No new mobile/replay/real-feed/CME/absorption/hosted-CI/production result is established by this witness."
+  ],
+  "history": {
+    "file": "history.json",
+    "bytes": 3422,
+    "sha256": "907b0d26a66c6b1b5a9799b5987ee036b4f7fc1c0dd9f611b13bad39cd45af76"
+  }
+}

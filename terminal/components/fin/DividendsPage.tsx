@@ -46,8 +46,7 @@ function payoutFmt(v: number | null | undefined): string {
 }
 
 // Find the most recent future (or most recent past) ex-dividend date
-function nextExDate(events: DividendEvent[]): DividendEvent | null {
-  const today = new Date().toISOString().slice(0, 10)
+function nextExDate(events: DividendEvent[], today: string): DividendEvent | null {
   // upcoming: ex >= today
   const upcoming = events.filter((e) => e.ex >= today).sort((a, b) => a.ex.localeCompare(b.ex))
   if (upcoming.length) return upcoming[0]
@@ -97,7 +96,16 @@ export default function DividendsPage({ sym, fund, zh }: DividendsPageProps) {
 
   // ── Populated state ──────────────────────────────────────────────────────
   const events = div.events ?? []
-  const nextEx = nextExDate(events)
+  const today = new Date().toISOString().slice(0, 10)
+  const nextEx = nextExDate(events, today)
+  // The selector deliberately falls back to history. Do not call that past event "next".
+  // Invalid/missing dates carry no temporal claim; keep the existing event and values intact.
+  const ex = nextEx?.ex
+  const exInstant = ex && /^\d{4}-\d{2}-\d{2}$/.test(ex) ? new Date(`${ex}T00:00:00Z`) : null
+  const validEx = exInstant != null && Number.isFinite(exInstant.getTime()) && exInstant.toISOString().slice(0, 10) === ex
+  const exLabel = !validEx ? pick(!!zh, "Ex-date", "除息日")
+    : ex! >= today ? pick(!!zh, "Next ex-date", "下次除息日")
+    : pick(!!zh, "Last ex-date", "上次除息日")
 
   // Most recent event for "Last dividend" card
   const lastEvent = [...events].sort((a, b) => b.ex.localeCompare(a.ex))[0]
@@ -138,7 +146,7 @@ export default function DividendsPage({ sym, fund, zh }: DividendsPageProps) {
             <span className="v">{payoutFmt(div.payout_ratio)}</span>
           </div>
           <div className="fin-kpi">
-            <span className="k">{pick(!!zh, "Next ex-date", "下次除息日")}</span>
+            <span className="k">{exLabel}</span>
             <span className="v">{nextEx ? fmtDate(nextEx.ex) : "—"}</span>
             {nextEx?.amount != null && (
               <span className="s">

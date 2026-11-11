@@ -1,0 +1,100 @@
+{
+  "schema": "portfolio_paper_runtime_qualification.v1",
+  "recorded_at_utc": "2026-10-19T00:16:57.505545+00:00",
+  "protected_merge": "b92743765aa356a9e918054056ae92f704141723",
+  "pull_request": "https://github.com/mastermindx-market-intelligence/Mastermind/pull/1611",
+  "installer_sha256": "461126dad0905962cdc7df51674edbde29896ab3e5d61e10018bdd6d08f4f07a",
+  "independent_source_review": "ACCEPT including inherited Fabric delta at protected merge",
+  "operator": "existing independent RDC m2studio identity",
+  "account": "ChatGPT4",
+  "prior_selection": "v10",
+  "selected_selection": "v12",
+  "stop": {
+    "calls": 1,
+    "first_response": "EFFECT_UNKNOWN after bootout",
+    "retry_performed": false,
+    "reconciled": true,
+    "positive_absence_rule": "launchctl rc113 with empty stdout and exact service-not-found diagnostic; readyz connection refused; listener absent"
+  },
+  "selection": {
+    "calls": 1,
+    "state": "APPLIED",
+    "service_started": false
+  },
+  "start": {
+    "calls": 1,
+    "started": true
+  },
+  "gateway_generation": "04560d87-7698-4b7d-8e08-b42f9476026a",
+  "catalog_sha256": "1b9afff4c9bcf6f11f5ca2db301bf25ccdc442025344e2ec402459cedcd6a2db",
+  "accepted_for_write": true,
+  "bridge_sha256": "82bc7f2d75aec423711922198b68f317618a83de177bf4934b73d7b418a6ecfb",
+  "stop_reconciliation": {
+    "observed_at": "2026-10-18T12:01:58.344937+00:00",
+    "target": "gui/501/com.mastermind.studio-direct-private.chatgpt4",
+    "launchctl_returncode": 113,
+    "stdout": "",
+    "stderr": "Bad request.\nCould not find service \"com.mastermind.studio-direct-private.chatgpt4\" in domain for user gui: 501\n",
+    "readyz_returncode": 7,
+    "readyz_stdout": "",
+    "readyz_stderr": "curl: (7) Failed to connect to 127.0.0.1 port 45024 after 0 ms: Couldn't connect to server\n",
+    "listener_returncode": 1,
+    "listener_output": "",
+    "manifest_sha256": "849e0af6b498408eba843bcbf2c9c500e199c218db06f00db9cb13b54303b071",
+    "config_sha256": "bada228d827e63017c9fee6aa7817ad531338115d3597773ceb9762967db997b"
+  },
+  "post_start_readback": {
+    "observed_at": "2026-10-18T12:03:43.152638+00:00",
+    "launchctl_returncode": 0,
+    "job_fields": {
+      "path": "/Users/chriswong/Library/LaunchAgents/com.mastermind.studio-direct-private.chatgpt4.plist",
+      "state": "running",
+      "pid": "81038"
+    },
+    "readyz_returncode": 0,
+    "readyz": {
+      "ok": true,
+      "ready": true,
+      "accepting": true,
+      "version": "0.1.10",
+      "uptimeMs": 42387,
+      "sessions": {
+        "active": 0,
+        "capacity": 256,
+        "full": false,
+        "tainted": 0,
+        "reclaimable": 0,
+        "busy": 0
+      }
+    },
+    "manifest_sha256": "5b7e4ea4b83d1cff6f371dc1ccb3862762222336ba9bb24c0444ad42d3d959c9",
+    "config_sha256": "e6c1495c7552241a847b3d541f99913e6a74838e0fb5aee9477b861e92d2a48b",
+    "plist_sha256": "b63dcc9017b61553888b95d9ffc68c572020ef02b74e73ee60c990ed1f89fe16"
+  },
+  "logs": {
+    "paper-c4-protected-fresh-preflight.log": {
+      "sha256": "12e92d909fea3256970c46dd2e5c7296ec4559baab19376d5f7601bdb5de7a73",
+      "bytes": 594
+    },
+    "paper-c4-live-stop.log": {
+      "sha256": "d5cdb92477f3144f7e82c68ce612c24a416a4e77dbeff5f898591a96e629e515",
+      "bytes": 501
+    },
+    "paper-c4-stop-reconciliation.json": {
+      "sha256": "c3f5c8a66648bc14c0ac1ebcceb64b2d524f6fb1f2050c98b5e244d1bd1c81db",
+      "bytes": 697
+    },
+    "paper-c4-live-select.log": {
+      "sha256": "ba66f20cbfa2e99677ede9039fabac5fa2af6d28ea9c53db898285f4de368419",
+      "bytes": 591
+    },
+    "paper-c4-live-start.log": {
+      "sha256": "1e188172a247f94d27c527289564e3455aacb3bb137fd404aceab0d991d3a521",
+      "bytes": 214
+    },
+    "paper-c4-post-start-operator-readback.json": {
+      "sha256": "dfc755448f5d2c777ca0c4ec8a247bd6175d15e1ef2578bdbc7548787388dcac",
+      "bytes": 816
+    }
+  }
+}

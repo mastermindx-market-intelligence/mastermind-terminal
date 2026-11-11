@@ -1,0 +1,28 @@
+{
+  "operation": "sector-intelligence-terminal-20260926-sol-001",
+  "base_head": "a4c8e1d56a0bcdfd40f9c2679b8bcc8a12ca2322",
+  "source_sha256": {
+    "terminal/app/api/sector-intelligence/route.ts": "2270188be7142a1a75e16950da70275f5b128189036c09c7466b4d748aa87e6f",
+    "terminal/components/sector-intelligence/SectorGroupBrowser.tsx": "62b3f3f5efe0896a14020033978e0551eb4dc9eca9580a2dee999e8e459f0b1e",
+    "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx": "3a4dcb5a33b8b4c3acd7fa378dd6d4caec585b2e314acc74af35a2d19bbb3a12",
+    "terminal/e2e/sector-group-discovery.spec.ts": "7c0946412164778bdaebdb1e37c6d76fc863ac9275271bbbc46a1bdf61ab38ee",
+    "terminal/e2e/tools/capture_sector_company_workflow.cjs": "be513ebb89b25f042065600bf655a7355359afda0c5c15b7f06b1dd9570115c2",
+    "terminal/e2e/tools/qualify_sector_owner_payloads.cjs": "b74110ad0a905c3fd0461b76037751f4df8539b81da99b8a4aebea8b3ebf43f4",
+    "terminal/lib/sectorIntelligence.ts": "ff130db94057ce89b0acdc08a41825184326bf658c219034c0e27deeb24d96c1",
+    "terminal/lib/sectorIntelligenceLex.ts": "02e0e2b902e30e3a42b79fa0c97006db33962132db9a9f445773af2500c79427",
+    "terminal/lib/__tests__/sectorOwnerEnvelope.test.ts": "9d48cf65e86c44615984ec06176cfd6b438f81bdf1eaac835f20a7eb37149f4e",
+    "terminal/lib/__tests__/sectorOwnerGateway.test.ts": "5bf2944260c4adb3acbe6e338bc4bde061ca6adf3f41daea5302bc387dee7ef8"
+  },
+  "full_vitest": {
+    "files_passed": 394,
+    "tests_passed": 6333,
+    "todo": 4,
+    "exit": 0
+  },
+  "typecheck_exit": 0,
+  "scoped_lint_exit": 0,
+  "real_owner_browser_checks": 25,
+  "current_persistent_browser_gate": "HOLD: fixture envelope migration blocked; earlier 33/33 preceded exact owner-envelope changes",
+  "production_auth_proof": false,
+  "independent_design_acceptance": false
+}

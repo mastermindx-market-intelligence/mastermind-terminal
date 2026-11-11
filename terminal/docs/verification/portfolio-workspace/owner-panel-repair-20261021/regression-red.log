@@ -1,0 +1,128 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal
+
+ × lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > retires the previous account's settled content before the next account's response
+   → expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_BRIEF_current'
+ × lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late fetch completion
+   → expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_BRIEF_current'
+ × lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late body completion
+   → expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_BRIEF_current'
+ × lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > does not revive a retired request after A to B to A
+   → expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_BRIEF_retired'
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > preserves a live request through a same-owner seed and email refresh
+ × lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > retires the previous account's settled content before the next account's response
+   → expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_EVENTS_current'
+ × lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late fetch completion
+   → expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_EVENTS_current'
+ × lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late body completion
+   → expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_EVENTS_current'
+ × lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > does not revive a retired request after A to B to A
+   → expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_EVENTS_retired'
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > preserves a live request through a same-owner seed and email refresh
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > retires the previous account's settled content before the next account's response
+AssertionError: expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_BRIEF_current'
+
+Expected: "OWNER_A_BRIEF_current"
+Received: "PortfolioAdd position1 securities·1 recordsHoldings checked 22:42OverviewHoldingsRisk & exposureTargetsPriced value—0/1 priced recordsDay change—Current prices for sized records.Since entry—0 records with comparable entry pricesCoverage & calculationPrice change on the priced, based records.0/1 priced records. Current prices for sized records. Price change on the priced, based records. Cash flows, income and fees are not included. No currency conversion is applied.Price unavailable: NVDAReview coverage Your holdings1 recordsView all holdingsSecuritySharesMarket valueSince entryActionsNVNVDANVDA10——Review recordFrom the deskSource coverage and population are shown inside.+Your book todayas of 2026-07-23 · by cost basisReading your 1 open positions.OWNER_A_BRIEF_currentWhere your book is41% of your book is Technology — today's desk read on Technology is Cautious (a bounce, not a turn), so your effective diversification is thinner than it looks.Signal states2 of your names sit in Buy now lanes; NVDA has its entry gate shut for now.Earnings3 of your 9 names report earnings inside 10 days — AVGO is first, on Jul 29.Filings this weekThe filings desks touched 2 of your names this week: a Congress buy in NVDA and a fund trim in AAPL.Events affecting your holdings+What's coming for what you holdDates come from the macro calendar. An event is listed only when the source names one of your open positions.Checking your positions…Review nextDetails that unlock a clearer picture.1Review price coverageNVDACost concentrationShare of the eligible cost basis.Comparable, positive entry costs are needed.Explore exposureOpen 1Closed 0Search symbol, company or notesFilter recordsAll recordsNeeds entry detailsPrice coverageSecuritySharesEntry priceLast priceMarket valueSince entryActionsNVNVDANVDA10100.00USD———Review recordShowing 1–1 of 1 recordsSee where your holdings overlap.Share of the eligible cost basis. No currency conversion is applied.We could not read your holdings shape in time. It will try again next time you reload.Historical contextToday's cost-weighted holdings, viewed through past prices.This is a historical model of today's holdings. It is not your account return.Loading analysis…Compare your holdings with the targets you set.Targets use the same eligible cost basis as exposure.We could not read your targets in time. It will try again next time you reload."
+
+ ❯ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx:129:34
+    127|     expect(node.textContent).toContain(marker(panel, "A"));
+    128|     await show("B"); // Distinct, equally sized nonempty books; the em…
+    129|     expect(node.textContent).not.toContain(marker(panel, "A"));
+       |                                  ^
+    130|     expect(forOwner(panel, "B")).toHaveLength(1);
+    131|     await settle(forOwner(panel, "B")[0], "B");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late fetch completion
+ FAIL  lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late body completion
+AssertionError: expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_BRIEF_current'
+
+Expected: "OWNER_A_BRIEF_current"
+Received: "PortfolioAdd position1 securities·1 recordsHoldings checked 22:42OverviewHoldingsRisk & exposureTargetsPriced value—0/1 priced recordsDay change—Current prices for sized records.Since entry—0 records with comparable entry pricesCoverage & calculationPrice change on the priced, based records.0/1 priced records. Current prices for sized records. Price change on the priced, based records. Cash flows, income and fees are not included. No currency conversion is applied.Price unavailable: NVDAReview coverage Your holdings1 recordsView all holdingsSecuritySharesMarket valueSince entryActionsNVNVDANVDA10——Review recordFrom the deskSource coverage and population are shown inside.+Your book todayas of 2026-07-23 · by cost basisReading your 1 open positions.OWNER_A_BRIEF_currentWhere your book is41% of your book is Technology — today's desk read on Technology is Cautious (a bounce, not a turn), so your effective diversification is thinner than it looks.Signal states2 of your names sit in Buy now lanes; NVDA has its entry gate shut for now.Earnings3 of your 9 names report earnings inside 10 days — AVGO is first, on Jul 29.Filings this weekThe filings desks touched 2 of your names this week: a Congress buy in NVDA and a fund trim in AAPL.Events affecting your holdings+What's coming for what you holdDates come from the macro calendar. An event is listed only when the source names one of your open positions.Checking your positions…Review nextDetails that unlock a clearer picture.1Review price coverageNVDACost concentrationShare of the eligible cost basis.Comparable, positive entry costs are needed.Explore exposureOpen 1Closed 0Search symbol, company or notesFilter recordsAll recordsNeeds entry detailsPrice coverageSecuritySharesEntry priceLast priceMarket valueSince entryActionsNVNVDANVDA10100.00USD———Review recordShowing 1–1 of 1 recordsSee where your holdings overlap.Share of the eligible cost basis. No currency conversion is applied.We could not read your holdings shape in time. It will try again next time you reload.Historical contextToday's cost-weighted holdings, viewed through past prices.This is a historical model of today's holdings. It is not your account return.Loading analysis…Compare your holdings with the targets you set.Targets use the same eligible cost basis as exposure.We could not read your targets in time. It will try again next time you reload."
+
+ ❯ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx:143:34
+    141|     if (b) await settle(b, "B");
+    142|     await settle(a, "A");
+    143|     expect(node.textContent).not.toContain(marker(panel, "A"));
+       |                                  ^
+    144|     expect(forOwner(panel, "B")).toHaveLength(1);
+    145|     expect(node.textContent).toContain(marker(panel, "B"));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > does not revive a retired request after A to B to A
+AssertionError: expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_BRIEF_retired'
+
+Expected: "OWNER_A_BRIEF_retired"
+Received: "PortfolioAdd position1 securities·1 recordsHoldings checked 22:42OverviewHoldingsRisk & exposureTargetsPriced value—0/1 priced recordsDay change—Current prices for sized records.Since entry—0 records with comparable entry pricesCoverage & calculationPrice change on the priced, based records.0/1 priced records. Current prices for sized records. Price change on the priced, based records. Cash flows, income and fees are not included. No currency conversion is applied.Price unavailable: NVDAReview coverage Your holdings1 recordsView all holdingsSecuritySharesMarket valueSince entryActionsNVNVDANVDA10——Review recordFrom the deskSource coverage and population are shown inside.+Your book todayas of 2026-07-23 · by cost basisReading your 1 open positions.OWNER_A_BRIEF_retiredWhere your book is41% of your book is Technology — today's desk read on Technology is Cautious (a bounce, not a turn), so your effective diversification is thinner than it looks.Signal states2 of your names sit in Buy now lanes; NVDA has its entry gate shut for now.Earnings3 of your 9 names report earnings inside 10 days — AVGO is first, on Jul 29.Filings this weekThe filings desks touched 2 of your names this week: a Congress buy in NVDA and a fund trim in AAPL.Events affecting your holdings+What's coming for what you holdDates come from the macro calendar. An event is listed only when the source names one of your open positions.Checking your positions…Review nextDetails that unlock a clearer picture.1Review price coverageNVDACost concentrationShare of the eligible cost basis.Comparable, positive entry costs are needed.Explore exposureOpen 1Closed 0Search symbol, company or notesFilter recordsAll recordsNeeds entry detailsPrice coverageSecuritySharesEntry priceLast priceMarket valueSince entryActionsNVNVDANVDA10100.00USD———Review recordShowing 1–1 of 1 recordsSee where your holdings overlap.Share of the eligible cost basis. No currency conversion is applied.We could not read your holdings shape in time. It will try again next time you reload.Historical contextToday's cost-weighted holdings, viewed through past prices.This is a historical model of today's holdings. It is not your account return.Loading analysis…Compare your holdings with the targets you set.Targets use the same eligible cost basis as exposure.We could not read your targets in time. It will try again next time you reload."
+
+ ❯ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx:158:34
+    156|     if (nextA && nextA !== originalA) await settle(nextA, "A", "new");
+    157|     await settle(originalA, "A", "retired");
+    158|     expect(node.textContent).not.toContain(marker(panel, "A", "retired…
+       |                                  ^
+    159|     expect(node.textContent).toContain(marker(panel, "A", "new"));
+    160|     expect(forOwner(panel, "A")).toHaveLength(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > retires the previous account's settled content before the next account's response
+AssertionError: expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_EVENTS_current'
+
+Expected: "OWNER_A_EVENTS_current"
+Received: "PortfolioAdd position1 securities·1 recordsHoldings checked 22:42OverviewHoldingsRisk & exposureTargetsPriced value—0/1 priced recordsDay change—Current prices for sized records.Since entry—0 records with comparable entry pricesCoverage & calculationPrice change on the priced, based records.0/1 priced records. Current prices for sized records. Price change on the priced, based records. Cash flows, income and fees are not included. No currency conversion is applied.Price unavailable: NVDAReview coverage Your holdings1 recordsView all holdingsSecuritySharesMarket valueSince entryActionsNVNVDANVDA10——Review recordFrom the deskSource coverage and population are shown inside.+Your book todayEvents affecting your holdings+What's coming for what you holdDates come from the macro calendar. An event is listed only when the source names one of your open positions.2026-10-30In 9 daysNVDA reports earnings on 2026-10-30.You hold 10 sharesDirectionNot stated in the sourceHow it reaches youOWNER_A_EVENTS_currentOver what periodNot stated in the sourceWhat would void this: A last close has printed on the report date.Two calendars we publish don't name individual holdings, so they aren't listed here: .Open positions only. Source: the macro calendar, as of 2026-10-21. Nothing here is advice.Review nextDetails that unlock a clearer picture.1Review price coverageNVDACost concentrationShare of the eligible cost basis.Comparable, positive entry costs are needed.Explore exposureOpen 1Closed 0Search symbol, company or notesFilter recordsAll recordsNeeds entry detailsPrice coverageSecuritySharesEntry priceLast priceMarket valueSince entryActionsNVNVDANVDA10100.00USD———Review recordShowing 1–1 of 1 recordsSee where your holdings overlap.Share of the eligible cost basis. No currency conversion is applied.We could not read your holdings shape in time. It will try again next time you reload.Historical contextToday's cost-weighted holdings, viewed through past prices.This is a historical model of today's holdings. It is not your account return.Loading analysis…Compare your holdings with the targets you set.Targets use the same eligible cost basis as exposure.We could not read your targets in time. It will try again next time you reload."
+
+ ❯ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx:129:34
+    127|     expect(node.textContent).toContain(marker(panel, "A"));
+    128|     await show("B"); // Distinct, equally sized nonempty books; the em…
+    129|     expect(node.textContent).not.toContain(marker(panel, "A"));
+       |                                  ^
+    130|     expect(forOwner(panel, "B")).toHaveLength(1);
+    131|     await settle(forOwner(panel, "B")[0], "B");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late fetch completion
+ FAIL  lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late body completion
+AssertionError: expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_EVENTS_current'
+
+Expected: "OWNER_A_EVENTS_current"
+Received: "PortfolioAdd position1 securities·1 recordsHoldings checked 22:42OverviewHoldingsRisk & exposureTargetsPriced value—0/1 priced recordsDay change—Current prices for sized records.Since entry—0 records with comparable entry pricesCoverage & calculationPrice change on the priced, based records.0/1 priced records. Current prices for sized records. Price change on the priced, based records. Cash flows, income and fees are not included. No currency conversion is applied.Price unavailable: NVDAReview coverage Your holdings1 recordsView all holdingsSecuritySharesMarket valueSince entryActionsNVNVDANVDA10——Review recordFrom the deskSource coverage and population are shown inside.+Your book todayEvents affecting your holdings+What's coming for what you holdDates come from the macro calendar. An event is listed only when the source names one of your open positions.2026-10-30In 9 daysNVDA reports earnings on 2026-10-30.You hold 10 sharesDirectionNot stated in the sourceHow it reaches youOWNER_A_EVENTS_currentOver what periodNot stated in the sourceWhat would void this: A last close has printed on the report date.Two calendars we publish don't name individual holdings, so they aren't listed here: .Open positions only. Source: the macro calendar, as of 2026-10-21. Nothing here is advice.Review nextDetails that unlock a clearer picture.1Review price coverageNVDACost concentrationShare of the eligible cost basis.Comparable, positive entry costs are needed.Explore exposureOpen 1Closed 0Search symbol, company or notesFilter recordsAll recordsNeeds entry detailsPrice coverageSecuritySharesEntry priceLast priceMarket valueSince entryActionsNVNVDANVDA10100.00USD———Review recordShowing 1–1 of 1 recordsSee where your holdings overlap.Share of the eligible cost basis. No currency conversion is applied.We could not read your holdings shape in time. It will try again next time you reload.Historical contextToday's cost-weighted holdings, viewed through past prices.This is a historical model of today's holdings. It is not your account return.Loading analysis…Compare your holdings with the targets you set.Targets use the same eligible cost basis as exposure.We could not read your targets in time. It will try again next time you reload."
+
+ ❯ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx:143:34
+    141|     if (b) await settle(b, "B");
+    142|     await settle(a, "A");
+    143|     expect(node.textContent).not.toContain(marker(panel, "A"));
+       |                                  ^
+    144|     expect(forOwner(panel, "B")).toHaveLength(1);
+    145|     expect(node.textContent).toContain(marker(panel, "B"));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > does not revive a retired request after A to B to A
+AssertionError: expected 'PortfolioAdd position1 securities·1 r…' not to contain 'OWNER_A_EVENTS_retired'
+
+Expected: "OWNER_A_EVENTS_retired"
+Received: "PortfolioAdd position1 securities·1 recordsHoldings checked 22:42OverviewHoldingsRisk & exposureTargetsPriced value—0/1 priced recordsDay change—Current prices for sized records.Since entry—0 records with comparable entry pricesCoverage & calculationPrice change on the priced, based records.0/1 priced records. Current prices for sized records. Price change on the priced, based records. Cash flows, income and fees are not included. No currency conversion is applied.Price unavailable: NVDAReview coverage Your holdings1 recordsView all holdingsSecuritySharesMarket valueSince entryActionsNVNVDANVDA10——Review recordFrom the deskSource coverage and population are shown inside.+Your book todayEvents affecting your holdings+What's coming for what you holdDates come from the macro calendar. An event is listed only when the source names one of your open positions.2026-10-30In 9 daysNVDA reports earnings on 2026-10-30.You hold 10 sharesDirectionNot stated in the sourceHow it reaches youOWNER_A_EVENTS_retiredOver what periodNot stated in the sourceWhat would void this: A last close has printed on the report date.Two calendars we publish don't name individual holdings, so they aren't listed here: .Open positions only. Source: the macro calendar, as of 2026-10-21. Nothing here is advice.Review nextDetails that unlock a clearer picture.1Review price coverageNVDACost concentrationShare of the eligible cost basis.Comparable, positive entry costs are needed.Explore exposureOpen 1Closed 0Search symbol, company or notesFilter recordsAll recordsNeeds entry detailsPrice coverageSecuritySharesEntry priceLast priceMarket valueSince entryActionsNVNVDANVDA10100.00USD———Review recordShowing 1–1 of 1 recordsSee where your holdings overlap.Share of the eligible cost basis. No currency conversion is applied.We could not read your holdings shape in time. It will try again next time you reload.Historical contextToday's cost-weighted holdings, viewed through past prices.This is a historical model of today's holdings. It is not your account return.Loading analysis…Compare your holdings with the targets you set.Targets use the same eligible cost basis as exposure.We could not read your targets in time. It will try again next time you reload."
+
+ ❯ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx:158:34
+    156|     if (nextA && nextA !== originalA) await settle(nextA, "A", "new");
+    157|     await settle(originalA, "A", "retired");
+    158|     expect(node.textContent).not.toContain(marker(panel, "A", "retired…
+       |                                  ^
+    159|     expect(node.textContent).toContain(marker(panel, "A", "new"));
+    160|     expect(forOwner(panel, "A")).toHaveLength(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 2 passed (10)
+   Start at  22:42:37
+   Duration  776ms (transform 184ms, setup 0ms, collect 247ms, tests 228ms, environment 109ms, prepare 43ms)
+

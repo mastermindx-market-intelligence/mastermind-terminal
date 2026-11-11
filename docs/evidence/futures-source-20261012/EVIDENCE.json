@@ -1,0 +1,29 @@
+{
+  "schema": "futures.source_conformance_evidence/v1",
+  "tested_on": "M2 Studio, Node 26.5.0, Python 3.14, databento-dbn 0.70.0",
+  "base_commit": "b6666b4476506123ff02165054448f97509ecdb6",
+  "results": {
+    "hub": {
+      "pass": 498,
+      "fail": 0,
+      "new_source_tests": 46
+    },
+    "sdk_unittest": {
+      "pass": 15,
+      "fail": 0
+    }
+  },
+  "live": false,
+  "full_session_canary": false,
+  "assets_provenance": "hub/tests/fixtures/databento-dbn/SOURCE.json",
+  "files": {
+    "hub/lib/futuresMbo.js": "f32755fadfb45541fd0731e0be301dd2baab0ac2ab973500411868087f00e814",
+    "hub/lib/futuresSource.js": "b560e27923647316e770f9af2bd2680df8c98221b8e57ee7fd0a66b747efa609",
+    "hub/tools/normalize_futures_dbn.py": "fbb677f4d58dc5aa106ce01a1368b92618eef1a35a8f143d59a2ac50698329ca",
+    "hub/tools/replay_futures_source.js": "a56bdf9a6bccf1fff12719fc49d52fd270b1727725a5c4bfd30fa82ee54ac36d",
+    "hub/tests/futuresSource.test.js": "e2344e157ed291210c7e0e1ce17bf054acf79f2ef52ac06b89e764c6a4350cac",
+    "hub/tests/test_futures_dbn.py": "c38630cf36bd4aa6b7cd7cec09208528de87bbbd22d6042f17a37e7d470f8c8b",
+    "hub/requirements-futures.txt": "78912c8e5a4c948591ee84d2f038804bd9f7605381f9f221448638a7d245bcab",
+    ".github/workflows/ci.yml": "d10b2c5262644951271326e8ee54a5264248d14e51a1cd7ba833092587b9d771"
+  }
+}

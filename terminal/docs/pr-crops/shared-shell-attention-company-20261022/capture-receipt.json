@@ -1,0 +1,85 @@
+{
+  "sourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "recordedAt": "2026-10-22T09:09:36.403366+00:00",
+  "kind": "ISOLATED_ACTUAL_COMPONENT_FIXTURE",
+  "qualification": "Actual production components and source CSS; SDK/router boundaries and API data are deterministic fixtures. Non-loopback requests blocked. These captures do not prove live authentication, data freshness, full shell composition, deployment, or public delivery.",
+  "designReference": {
+    "paperFile": "01M2WGNCX9475G79JRKJTCM08P",
+    "page": "p-23-0",
+    "artboards": [
+      "SS01",
+      "SS02",
+      "SS15"
+    ],
+    "note": "Existing accepted Paper design used as reference. Paper reported a file-size/data-loss warning; no unsafe document mutation was attempted."
+  },
+  "commands": {
+    "today": "CAPTURE_SOURCE_HEAD=6c9cde3550d2ab6281c2ea309c56f714f58b2ae1 /tmp/mastermind-shared-shell-node20/node-v20.20.2-darwin-arm64/bin/node /tmp/shared-shell-pr1124-composed-captures/today/capture.mjs",
+    "company": "/tmp/mastermind-shared-shell-node20/node-v20.20.2-darwin-arm64/bin/node /tmp/shared-shell-pr1124-composed-captures/company/capture.mjs"
+  },
+  "sourceHashes": {
+    "terminal/components/workspaces/TodayWorkspace.tsx": "1abe21712fc7901c950763c1daa5a918253a7e0e12bac99f1d8496c90ca5936d",
+    "terminal/components/workspaces/TodayWorkspace.module.css": "6ae1e8910bf6079f644ad346cb9d0770221aee2a8304ca90faf542c422b984be",
+    "terminal/components/workspaces/TodayResearchAttention.tsx": "fd40f2b65cec636ba3f26aaa9de8c8d1dfb73a3972ce9d475805fc6ef8b8dfb6",
+    "terminal/components/workspaces/TodayWatchAttention.tsx": "9ffcb64cc0aa89ee716f585e672f4934bcbfb794b09af2c836354f7c105b29af",
+    "terminal/components/workspaces/MonitorEventAttention.tsx": "41dfa4ea0d85418f3379ec8eb955bffbac8503dced0e35a0f32e9bf816f78dd1",
+    "terminal/lib/shared-shell/useReadingScope.ts": "74a487e2f5e2cc702279772344ffa9f20a40eacee7f6f9a66268e1795501dd07",
+    "terminal/components/fin/CompanyIntelligenceV2Current.tsx": "ac30c357ac824fc7bf8256f542732f8127f16287251d9cf549dc5f6f7d559ae3",
+    "terminal/components/fin/CompanyIntelligenceBriefLayout.tsx": "45efa2911339025ee728e94b7f76fae38408bf277e82041efebea0f18af5ad79",
+    "terminal/lib/eventWorkspacePresent.ts": "fb3e7b40cd9569379777e15e60f54c69a64fdb0cbc3bcb268cf2904db5e491d9",
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/app/fin.css": "0ef210f0d6181849a582dd1e4a5aa80aeeabf0f769fe5c41035aeabc80d37fd1",
+    "terminal/lib/__tests__/fixtures/aapl-event-workspace.json": "c7006d50c0969094c222878ba5555fb71c39a08284702b82274081df74721f37"
+  },
+  "results": {
+    "today": {
+      "cells": 11,
+      "reportSha256": "0df65f9ea19c438090a94526df932346b1642bc3b92b3406f1c54fb6dc9a7536",
+      "harnessSha256": "d999b3e28d6a778c9817b3386525bbaaf8d05734edc7846c55ea3ee9561f3542",
+      "captures": {
+        "1440-dark-en-initial.png": "a585674ca9436675aa7d1ab7845ba675143ebb14f05a0b395adf42ae7f79cd60",
+        "1440-dark-en-ready.png": "e81cbd1f4a0e1d6d4ee0a2c73290226c1130405903a5e869ac81c79acc0de00c",
+        "1440-dark-zh-initial.png": "f70e9e0c1b8ceb86039afd32dcada71a0d87a3180eda0fb339368c940991dfee",
+        "1440-dark-zh-ready.png": "f70e9e0c1b8ceb86039afd32dcada71a0d87a3180eda0fb339368c940991dfee",
+        "1440-light-en-initial.png": "011c296f2f8fe324f33719ab065ef0bcc8277984224e601383c64a24f44663aa",
+        "1440-light-en-ready.png": "011c296f2f8fe324f33719ab065ef0bcc8277984224e601383c64a24f44663aa",
+        "1440-light-zh-initial.png": "f694a4b5295a8733f4dd4455cedd2dc96606c927ec07ce1da576832ed7a45f58",
+        "1440-light-zh-ready.png": "f694a4b5295a8733f4dd4455cedd2dc96606c927ec07ce1da576832ed7a45f58",
+        "320-light-zh-initial.png": "c99d6d79af5ca9487d7f3bd9d87cd04d423e749ec8c69c551d460bb90ce5ce61",
+        "320-light-zh-ready.png": "c99d6d79af5ca9487d7f3bd9d87cd04d423e749ec8c69c551d460bb90ce5ce61",
+        "390-dark-en-initial.png": "6b219fa523171872f784f5b9c3a2b4dc01272e1830e7e39dc6fc3eba4042bd4e",
+        "390-dark-en-ready.png": "6b219fa523171872f784f5b9c3a2b4dc01272e1830e7e39dc6fc3eba4042bd4e",
+        "390-dark-zh-initial.png": "a83e31f349aeb2f81414fb7810943241fae22717494a51d65543cc2c1af88286",
+        "390-dark-zh-ready.png": "a83e31f349aeb2f81414fb7810943241fae22717494a51d65543cc2c1af88286",
+        "390-light-en-initial.png": "1d2eb0abdba7ebfaa0a442369c6bd597571ba5fe92afd43e62c6c7f73b3f282f",
+        "390-light-en-ready.png": "1d2eb0abdba7ebfaa0a442369c6bd597571ba5fe92afd43e62c6c7f73b3f282f",
+        "390-light-zh-initial.png": "152f41be4d409b0939f2b8d2aacbdab15679fa6f6409766f219a562158359d8e",
+        "390-light-zh-macro503.png": "847eb3c4d2abd51be3936e70e26b68f8d7f32e3b4f7aa29b9be8a345cef77f83",
+        "390-light-zh-ready.png": "21c42da031f8aa1bc953a8b01f95d62613cf3c7e7ea81ba8ccd896f0d23a31b2",
+        "390-light-zh-watch401.png": "832dcd47c75969bba2cd2d377a9a368454bf9767fe32a86c82e3807d42114778"
+      }
+    },
+    "company": {
+      "cells": 9,
+      "reportSha256": "155564c352d9f173c2be12bea49833f4104932ff38269d459410360d3d32f827",
+      "harnessSha256": "89ca3ba5f16d7fad44073d9e0572af4ea77052b36d214dd859a1591055869742",
+      "captures": {
+        "1440-light-en-brief.png": "8d4a0422e6f155e5f53415635fc7fcd58ccdb4de7e39ad875b330d8ccd7bd75a",
+        "1440-light-en-results.png": "5bd71f0c9be1d799984dbad748b1161f736f662b7eb3f6cdaffae9c9cfd5a169",
+        "1440-light-zh-brief.png": "ef7372ff10032b6884b2d538945911c7c4fefbfa4576d4f163058311a429e12f",
+        "1440-light-zh-results.png": "33263051df1e670eb61041bfebd265032be50ad8618ad15949ca113936d94d5b",
+        "390-dark-en-brief.png": "40bd911b185468ad0f4f2f3818c6bc92745bffaf85ab58041446852bc50b8ade",
+        "390-light-en-brief.png": "e13afb1ae49075cf3e485b3343226cc8e7d1455e018134530f265959b65995a2",
+        "390-light-en-results.png": "0f9361f410b38056bcc1862562f037cf9f3801f8f5cc61af35a879b253ceb8ce",
+        "390-light-zh-brief.png": "643875090bb418b13517caa73c2529d82ec594391e8c222ad2d1c7d6185cbded",
+        "390-light-zh-results.png": "ed1b1a0ad1053097749ff7f24ce65dc06cc923169438821a7753fe95614ac0f6"
+      }
+    }
+  },
+  "review": {
+    "source": "Independent final review accepted exact source; no blocking findings.",
+    "visual": "Root reviewed desktop dark Today, mobile light Chinese Today, desktop light Company and mobile light Chinese Company; retained source dates, readable hierarchy, and no horizontal overflow."
+  }
+}

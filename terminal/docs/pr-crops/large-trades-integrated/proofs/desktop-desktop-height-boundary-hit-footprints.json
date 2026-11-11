@@ -1,0 +1,810 @@
+{
+  "controls": {
+    "x": 112,
+    "y": 146,
+    "width": 904,
+    "height": 89
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "refreshProof": {
+    "rect": {
+      "x": 952,
+      "y": 164,
+      "width": 44,
+      "height": 44,
+      "top": 164,
+      "right": 996,
+      "bottom": 208,
+      "left": 952
+    },
+    "visibleWidth": 44,
+    "visibleHeight": 44,
+    "hits": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "scrollports": [
+      {
+        "testId": "large-trades-dock",
+        "clientWidth": 312,
+        "clientHeight": 73,
+        "scrollWidth": 312,
+        "scrollHeight": 225,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "10px",
+          "12px",
+          "10px",
+          "12px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "testId": "large-trades-controls",
+        "clientWidth": 904,
+        "clientHeight": 89,
+        "scrollWidth": 904,
+        "scrollHeight": 89,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 967,
+        "clientHeight": 774,
+        "scrollWidth": 967,
+        "scrollHeight": 774,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 1019,
+        "clientHeight": 818,
+        "scrollWidth": 1019,
+        "scrollHeight": 818,
+        "scrollTop": 0,
+        "scrollbarWidth": 1,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "1px",
+          "0px",
+          "0px"
+        ]
+      }
+    ],
+    "wheelSteps": [
+      {
+        "target": {
+          "x": 952,
+          "y": 164,
+          "width": 44,
+          "height": 44,
+          "top": 164,
+          "right": 996,
+          "bottom": 208,
+          "left": 952
+        },
+        "visibleWidth": 44,
+        "visibleHeight": 44,
+        "hits": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "port": {
+          "x": 696,
+          "y": 154,
+          "width": 312,
+          "height": 73,
+          "scrollTop": 0,
+          "scrollHeight": 225,
+          "outerWidth": 312,
+          "outerHeight": 73
+        },
+        "wheelDelta": -4.5
+      }
+    ]
+  },
+  "inspectProof": {
+    "rect": {
+      "x": 708,
+      "y": 168.5,
+      "width": 72.625,
+      "height": 44,
+      "top": 168.5,
+      "right": 780.625,
+      "bottom": 212.5,
+      "left": 708
+    },
+    "visibleWidth": 72.625,
+    "visibleHeight": 44,
+    "hits": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "scrollports": [
+      {
+        "testId": "large-trades-dock",
+        "clientWidth": 312,
+        "clientHeight": 73,
+        "scrollWidth": 312,
+        "scrollHeight": 225,
+        "scrollTop": 64,
+        "scrollbarWidth": 0,
+        "padding": [
+          "10px",
+          "12px",
+          "10px",
+          "12px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "testId": "large-trades-controls",
+        "clientWidth": 904,
+        "clientHeight": 89,
+        "scrollWidth": 904,
+        "scrollHeight": 89,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 967,
+        "clientHeight": 774,
+        "scrollWidth": 967,
+        "scrollHeight": 774,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 1019,
+        "clientHeight": 818,
+        "scrollWidth": 1019,
+        "scrollHeight": 818,
+        "scrollTop": 0,
+        "scrollbarWidth": 1,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "1px",
+          "0px",
+          "0px"
+        ]
+      }
+    ],
+    "wheelSteps": [
+      {
+        "target": {
+          "x": 708,
+          "y": 232.5,
+          "width": 72.625,
+          "height": 44,
+          "top": 232.5,
+          "right": 780.625,
+          "bottom": 276.5,
+          "left": 708
+        },
+        "visibleWidth": 72.625,
+        "visibleHeight": 0,
+        "hits": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "port": {
+          "x": 696,
+          "y": 154,
+          "width": 312,
+          "height": 73,
+          "scrollTop": 0,
+          "scrollHeight": 225,
+          "outerWidth": 312,
+          "outerHeight": 73
+        },
+        "wheelDelta": 64
+      },
+      {
+        "target": {
+          "x": 708,
+          "y": 168.5,
+          "width": 72.625,
+          "height": 44,
+          "top": 168.5,
+          "right": 780.625,
+          "bottom": 212.5,
+          "left": 708
+        },
+        "visibleWidth": 72.625,
+        "visibleHeight": 44,
+        "hits": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "port": {
+          "x": 696,
+          "y": 154,
+          "width": 312,
+          "height": 73,
+          "scrollTop": 64,
+          "scrollHeight": 225,
+          "outerWidth": 312,
+          "outerHeight": 73
+        },
+        "wheelDelta": 4
+      }
+    ]
+  },
+  "closeProof": {
+    "rect": {
+      "x": 948,
+      "y": 168,
+      "width": 44,
+      "height": 44,
+      "top": 168,
+      "right": 992,
+      "bottom": 212,
+      "left": 948
+    },
+    "visibleWidth": 44,
+    "visibleHeight": 44,
+    "hits": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "scrollports": [
+      {
+        "testId": "large-trades-inspector",
+        "clientWidth": 588,
+        "clientHeight": 73,
+        "scrollWidth": 588,
+        "scrollHeight": 715,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "testId": "large-trades-controls",
+        "clientWidth": 904,
+        "clientHeight": 89,
+        "scrollWidth": 904,
+        "scrollHeight": 89,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 967,
+        "clientHeight": 774,
+        "scrollWidth": 967,
+        "scrollHeight": 774,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 1019,
+        "clientHeight": 818,
+        "scrollWidth": 1019,
+        "scrollHeight": 818,
+        "scrollTop": 0,
+        "scrollbarWidth": 1,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "1px",
+          "0px",
+          "0px"
+        ]
+      }
+    ]
+  },
+  "termsProof": {
+    "rect": {
+      "x": 755.109375,
+      "y": 202.46875,
+      "width": 53.046875,
+      "height": 12,
+      "top": 202.46875,
+      "right": 808.15625,
+      "bottom": 214.46875,
+      "left": 755.109375
+    },
+    "visibleWidth": 53.046875,
+    "visibleHeight": 12,
+    "hits": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "scrollports": [
+      {
+        "testId": "large-trades-inspector",
+        "clientWidth": 588,
+        "clientHeight": 73,
+        "scrollWidth": 588,
+        "scrollHeight": 715,
+        "scrollTop": 642,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "testId": "large-trades-controls",
+        "clientWidth": 904,
+        "clientHeight": 89,
+        "scrollWidth": 904,
+        "scrollHeight": 89,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 967,
+        "clientHeight": 774,
+        "scrollWidth": 967,
+        "scrollHeight": 774,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 1019,
+        "clientHeight": 818,
+        "scrollWidth": 1019,
+        "scrollHeight": 818,
+        "scrollTop": 0,
+        "scrollbarWidth": 1,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "1px",
+          "0px",
+          "0px"
+        ]
+      }
+    ],
+    "wheelSteps": [
+      {
+        "target": {
+          "x": 755.109375,
+          "y": 844.46875,
+          "width": 53.046875,
+          "height": 12,
+          "top": 844.46875,
+          "right": 808.15625,
+          "bottom": 856.46875,
+          "left": 755.109375
+        },
+        "visibleWidth": 53.046875,
+        "visibleHeight": 0,
+        "hits": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "port": {
+          "x": 420,
+          "y": 154,
+          "width": 588,
+          "height": 73,
+          "scrollTop": 0,
+          "scrollHeight": 715,
+          "outerWidth": 588,
+          "outerHeight": 73
+        },
+        "wheelDelta": 500
+      },
+      {
+        "target": {
+          "x": 755.109375,
+          "y": 344.46875,
+          "width": 53.046875,
+          "height": 12,
+          "top": 344.46875,
+          "right": 808.15625,
+          "bottom": 356.46875,
+          "left": 755.109375
+        },
+        "visibleWidth": 53.046875,
+        "visibleHeight": 0,
+        "hits": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "port": {
+          "x": 420,
+          "y": 154,
+          "width": 588,
+          "height": 73,
+          "scrollTop": 500,
+          "scrollHeight": 715,
+          "outerWidth": 588,
+          "outerHeight": 73
+        },
+        "wheelDelta": 159.96875
+      },
+      {
+        "target": {
+          "x": 755.109375,
+          "y": 202.46875,
+          "width": 53.046875,
+          "height": 12,
+          "top": 202.46875,
+          "right": 808.15625,
+          "bottom": 214.46875,
+          "left": 755.109375
+        },
+        "visibleWidth": 53.046875,
+        "visibleHeight": 12,
+        "hits": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "port": {
+          "x": 420,
+          "y": 154,
+          "width": 588,
+          "height": 73,
+          "scrollTop": 642,
+          "scrollHeight": 715,
+          "outerWidth": 588,
+          "outerHeight": 73
+        },
+        "wheelDelta": 17.96875
+      }
+    ]
+  },
+  "settingsProof": {
+    "rect": {
+      "x": 708,
+      "y": 168.5,
+      "width": 61.40625,
+      "height": 44,
+      "top": 168.5,
+      "right": 769.40625,
+      "bottom": 212.5,
+      "left": 708
+    },
+    "visibleWidth": 61.40625,
+    "visibleHeight": 44,
+    "hits": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "scrollports": [
+      {
+        "testId": "large-trades-dock",
+        "clientWidth": 312,
+        "clientHeight": 73,
+        "scrollWidth": 312,
+        "scrollHeight": 225,
+        "scrollTop": 115,
+        "scrollbarWidth": 0,
+        "padding": [
+          "10px",
+          "12px",
+          "10px",
+          "12px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "testId": "large-trades-controls",
+        "clientWidth": 904,
+        "clientHeight": 89,
+        "scrollWidth": 904,
+        "scrollHeight": 89,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 967,
+        "clientHeight": 774,
+        "scrollWidth": 967,
+        "scrollHeight": 774,
+        "scrollTop": 0,
+        "scrollbarWidth": 0,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      {
+        "clientWidth": 1019,
+        "clientHeight": 818,
+        "scrollWidth": 1019,
+        "scrollHeight": 818,
+        "scrollTop": 0,
+        "scrollbarWidth": 1,
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "border": [
+          "0px",
+          "1px",
+          "0px",
+          "0px"
+        ]
+      }
+    ],
+    "wheelSteps": [
+      {
+        "target": {
+          "x": 708,
+          "y": 219.5,
+          "width": 61.40625,
+          "height": 44,
+          "top": 219.5,
+          "right": 769.40625,
+          "bottom": 263.5,
+          "left": 708
+        },
+        "visibleWidth": 61.40625,
+        "visibleHeight": 7.5,
+        "hits": [
+          false,
+          true,
+          true,
+          false,
+          false
+        ],
+        "port": {
+          "x": 696,
+          "y": 154,
+          "width": 312,
+          "height": 73,
+          "scrollTop": 64,
+          "scrollHeight": 225,
+          "outerWidth": 312,
+          "outerHeight": 73
+        },
+        "wheelDelta": 51
+      },
+      {
+        "target": {
+          "x": 708,
+          "y": 168.5,
+          "width": 61.40625,
+          "height": 44,
+          "top": 168.5,
+          "right": 769.40625,
+          "bottom": 212.5,
+          "left": 708
+        },
+        "visibleWidth": 61.40625,
+        "visibleHeight": 44,
+        "hits": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "port": {
+          "x": 696,
+          "y": 154,
+          "width": 312,
+          "height": 73,
+          "scrollTop": 115,
+          "scrollHeight": 225,
+          "outerWidth": 312,
+          "outerHeight": 73
+        },
+        "wheelDelta": 4
+      }
+    ]
+  },
+  "outerGeometry": {
+    "clientWidth": 588,
+    "scrollWidth": 588,
+    "clientHeight": 73,
+    "scrollHeight": 715,
+    "horizontalScrollbar": 0,
+    "quantity": "1,000,000,000",
+    "quantityOverflowWrap": "anywhere"
+  }
+}

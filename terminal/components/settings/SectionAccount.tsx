@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { sendScopedAccountWrite } from "@/lib/accountPrefs";
+import { updateAuthPassword } from "@/lib/passwordAuth";
 import { Group, IconGoogle, IconSignOut, IconTwitterX, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
 import type { ExportFormat } from "@/lib/accountExport";
@@ -329,7 +330,7 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     if (pw1 !== pw2) { setMsg({ kind: "err", text: t("acsPwMismatch") }); return; }
     setBusy(true); setMsg(null);
     try {
-      const { error } = await createClient().auth.updateUser({ password: pw1, current_password: pwCur });
+      const { error } = await updateAuthPassword(pw1, pwCur);
       if (error) throw error;
       setMsg({ kind: "ok", text: t("acsPwOk") });
       setPw1(""); setPw2(""); setPwCur("");
@@ -355,18 +356,22 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     // and the button still confirms it — swallowing the rejection would leave
     // the user with a button that silently does nothing.
     const legacy = () => {
+      let ta: HTMLTextAreaElement | null = null;
       try {
-        const ta = document.createElement("textarea");
+        ta = document.createElement("textarea");
         ta.value = uid;
         ta.style.position = "fixed";
         ta.style.opacity = "0";
         document.body.appendChild(ta);
         ta.focus();
         ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
-        flip();
-      } catch { /* clipboard genuinely unavailable — no false confirmation */ }
+        if (document.execCommand("copy")) flip();
+        else setCopied(false);
+      } catch {
+        setCopied(false);
+      } finally {
+        ta?.remove();
+      }
     };
     if (navigator.clipboard?.writeText) navigator.clipboard.writeText(uid).then(flip).catch(legacy);
     else legacy();

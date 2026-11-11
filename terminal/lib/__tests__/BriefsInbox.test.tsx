@@ -91,6 +91,19 @@ describe("BriefsInbox rendering", () => {
     expect(text()).toContain(briefCopy("empty", "zh"));
   });
 
+  it("links only a real ready delivery to the source-authorized sharing review", async () => {
+    const id = "40000000-0000-4000-8000-000000000001";
+    deliveries = [{ deliveryId: id, state: "ready", body: validBody,
+      slotAsof: "2026-11-02", subscription: { cadence: "daily_after_us_close", state: "active" } },
+      { deliveryId: "40000000-0000-4000-8000-000000000002", state: "degraded", body: {},
+      slotAsof: "2026-11-02", subscription: { cadence: "daily_after_us_close", state: "active" } }];
+    await mountInbox("en");
+    const links = container!.querySelectorAll("a");
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toBe(`/briefs/${id}/sharing`);
+    expect(links[0].textContent).toBe("Review team sharing");
+  });
+
   it("renders a ready row and a degraded row, pinning the last good brief", async () => {
     deliveries = [
       {
@@ -157,6 +170,12 @@ describe("BriefSubscribeControls", () => {
 describe("unfinished recurring briefs stay out of primary Terminal chrome", () => {
   it("keeps BriefSubscribeControls out of TerminalShell until the producer is live", () => {
     const src = readFileSync(join(__dirname, "../../components/TerminalShell.tsx"), "utf8");
+    expect(src).not.toContain('from "@/components/briefs/BriefSubscribeControls"');
+    expect(src).not.toContain("<BriefSubscribeControls");
+  });
+
+  it("keeps BriefSubscribeControls out of ThesisWorkspace until the producer is live", () => {
+    const src = readFileSync(join(__dirname, "../../components/workspaces/ThesisWorkspace.tsx"), "utf8");
     expect(src).not.toContain('from "@/components/briefs/BriefSubscribeControls"');
     expect(src).not.toContain("<BriefSubscribeControls");
   });

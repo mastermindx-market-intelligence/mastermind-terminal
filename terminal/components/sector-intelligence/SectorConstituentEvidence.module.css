@@ -1,0 +1,60 @@
+/* Sector fund constituent → company evidence. It sits inside the Sector overview root, so it
+ * inherits that board's light/dark tokens, its 44px tap-target and focus-visible rules. It
+ * adds no palette, no font and no chart: the membership figures and the served source receipt
+ * read as one calm instrument surface, and the private company evidence below keeps the owner's
+ * own presentation. The border is neutral and even on every side: no colored edge marks this
+ * surface, and no accent stripe separates the membership block from the evidence block. */
+.section { min-width: 0; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); padding: 20px; }
+
+.heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.heading h2 { font-size: 17px; font-weight: 650; line-height: 1.35; letter-spacing: -.3px; }
+.eyebrow { color: var(--text-2); font-size: 10px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px; }
+.subject { color: var(--text); font-size: 13px; font-weight: 650; margin-top: 4px; }
+.basis { color: var(--text-2); font-size: 12px; margin-top: 10px; line-height: 1.55; }
+
+/* The membership block is the fund's own record. It is deliberately a quiet surface so the
+ * membership date, rank and weight are never read as the company's own dates. */
+.membership { margin-top: 14px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel-2); min-width: 0; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 20px; margin: 0; }
+.fields > div { min-width: 0; }
+.fields dt { color: var(--text-2); font-size: 11px; }
+.fields dd { margin: 3px 0 0; color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.fields dd code { font: 11px/1.5 var(--font-code); overflow-wrap: anywhere; }
+
+.coverage { margin-top: 12px; color: var(--text-2); font-size: 12px; line-height: 1.55; }
+.scopeNote { margin-top: 8px; color: var(--text-2); font-size: 11px; line-height: 1.55; }
+
+.picker { display: flex; flex-direction: column; gap: 5px; margin-top: 14px; min-width: 0; }
+.picker label { color: var(--text-2); font-size: 11px; }
+.picker select { min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font-size: 12px; min-width: 0; max-width: 420px; width: 100%; }
+
+.actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+.action { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; }
+.action:hover { background: var(--panel); }
+.action:disabled { opacity: .55; cursor: not-allowed; }
+.secondary { display: inline-flex; align-items: center; min-height: 44px; color: var(--link); font-size: 12px; font-weight: 600; text-decoration: none; }
+.signIn { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; color: var(--link); font-size: 12px; font-weight: 600; text-decoration: none; }
+
+/* The evidence region is the owner's private presentation, kept in its own block so the
+ * membership record above and the company disclosure record below never read as one table. */
+.evidence { margin-top: 16px; min-width: 0; }
+
+.status { margin-top: 14px; color: var(--text-2); font-size: 12px; line-height: 1.6; }
+.note { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); color: var(--text-2); font-size: 11px; line-height: 1.6; }
+
+.receipt { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 2px; }
+.receipt > summary { min-height: 44px; align-content: center; cursor: pointer; color: var(--text-2); font-size: 12px; font-weight: 600; }
+.receipt > summary::-webkit-details-marker { color: var(--text-2); }
+.receipt .fields { margin-top: 10px; }
+
+@media (max-width: 720px) {
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .picker select { max-width: none; }
+}
+
+/* Narrow screens read each field as a stacked label/value list rather than a clipped strip. */
+@media (max-width: 560px) {
+  .section { padding: 16px; }
+  .membership { padding: 12px; }
+  .actions { gap: 10px; }
+}

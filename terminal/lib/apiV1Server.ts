@@ -121,19 +121,24 @@ function sqlCursorOf(
 export async function authenticateApiKey(
   request: Request,
   deps?: ApiV1Deps,
+  retryAvailabilityErrors = false,
+  requiredScope?: "read",
 ): Promise<{ ok: true; auth: ApiKeyAuth } | { ok: false; response: NextResponse }> {
   const token = bearerToken(request.headers.get("authorization"));
   if (!token || !isWellFormedApiKey(token)) {
     return { ok: false, response: jsonError("unauthorized") };
   }
+  const unavailable = () => jsonError(retryAvailabilityErrors ? "unavailable" : "unauthorized",
+    retryAvailabilityErrors ? { retryAfter: 3 } : undefined);
   const service = deps?.service ?? createServiceClient();
   if (!service) {
-    return { ok: false, response: jsonError("unauthorized") };
+    return { ok: false, response: unavailable() };
   }
   const saltResult = await service.rpc(KEY_SALT_FN, { p_key_prefix: apiKeyPrefix(token) });
   const saltRow = asRecord(saltResult.data);
   const salt = typeof saltRow?.key_salt === "string" ? saltRow.key_salt : "";
-  if (saltResult.error || !salt || !/^[A-Za-z0-9+/]{22}==$/.test(salt)) {
+  if (saltResult.error) return { ok: false, response: unavailable() };
+  if (!salt || !/^[A-Za-z0-9+/]{22}==$/.test(salt)) {
     return { ok: false, response: jsonError("unauthorized") };
   }
   const digest = apiKeyDigest(token, salt);
@@ -141,7 +146,8 @@ export async function authenticateApiKey(
     p_key_prefix: apiKeyPrefix(token),
     p_key_digest: digest,
   });
-  if (result.error || result.data == null) {
+  if (result.error) return { ok: false, response: unavailable() };
+  if (result.data == null) {
     return { ok: false, response: jsonError("unauthorized") };
   }
   const row = asRecord(result.data);
@@ -165,7 +171,7 @@ export async function authenticateApiKey(
     userId,
     keyId,
     keyPrefix: token.slice(4, 12),
-    scopes: ["read"],
+    scopes: Array.isArray(row.scopes) ? row.scopes.filter((s): s is string => typeof s === "string") : ["read"],
     limit,
     remaining,
     retryAfter,
@@ -177,6 +183,11 @@ export async function authenticateApiKey(
       response: jsonError("rate_limited", { retryAfter, limit, remaining: 0 }),
     };
   }
+  // New read projections can require an explicit persisted scope; missing or
+  // malformed scope data must not inherit the legacy read default.
+  if (requiredScope && (!Array.isArray(row.scopes) || row.scopes.some((scope) => typeof scope !== "string") || !auth.scopes.includes(requiredScope))) {
+    return { ok: false, response: jsonError("forbidden", { limit: auth.limit, remaining: auth.remaining }) };
+  }
   return { ok: true, auth };
 }
 
@@ -185,6 +196,7 @@ export async function readAsUser(
   resource: string,
   args: Record<string, unknown>,
   deps?: ApiV1Deps,
+  strictRows = false,
 ): Promise<{ ok: true; rows: Record<string, unknown>[] } | { ok: false; code: ApiV1ErrorCode }> {
   const service = deps?.service ?? createServiceClient();
   if (!service) return { ok: false, code: "unauthorized" };
@@ -198,6 +210,12 @@ export async function readAsUser(
   if (rec?.ok === false) {
     const err = rec.error === "not_found" ? "not_found" : rec.error === "unauthorized" ? "unauthorized" : "invalid_request";
     return { ok: false, code: err };
+  }
+  // Complete-book projections must not turn malformed/missing rows into an empty book.
+  // Existing paginated consumers retain their established mapping behavior by default.
+  if (strictRows && (!rec || rec.ok !== true || !Array.isArray(rec.rows) ||
+    rec.rows.some((row) => !row || typeof row !== "object" || Array.isArray(row)))) {
+    return { ok: false, code: "invalid_request" };
   }
   return { ok: true, rows: asRows(result.data) };
 }
@@ -219,7 +237,7 @@ function text(value: unknown): string {
 }
 
 /** Throw if any forbidden field is present in the value (MAJOR-1+4 fix). */
-function assertNoForbiddenFields(value: unknown): void {
+export function assertNoForbiddenFields(value: unknown): void {
   const hit = firstForbiddenField(value);
   if (hit) {
     throw new Error(`forbidden field: ${hit}`);
@@ -467,7 +485,8 @@ async function handleV1GetInternal(
   }
 
   const body = envelope(schema, data, page, coverageOf(coverageRows, coverageFields));
-  const etag = await etagFor({ schema: body.schema, version: body.version, data: body.data, page: body.page, coverage: body.coverage });
+  const { asof: _asof, ...stableBody } = body;
+  const etag = await etagFor(stableBody);
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {
     return new NextResponse(null, {
       status: 304,
@@ -498,7 +517,8 @@ export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise
   if (!authResult.ok) return authResult.response;
   const { auth } = authResult;
   const data = {
-    ceiling: "read_only_projection",
+    ceiling: "read_projection_and_opt_in_watchlist_add",
+    writes: [{ method: "POST", path: "/api/v1/watchlists/{id}/symbols", scope: "watchlists:write", idempotency_required: true }],
     truth: { en: API_V1_TRUTH_EN, zh: API_V1_TRUTH_ZH },
     team_keys: { available: false, message: API_V1_TEAM_KEYS_NULL_EN, message_zh: API_V1_TEAM_KEYS_NULL_ZH },
     briefs: { available: false, message: API_V1_BRIEFS_NULL_EN, message_zh: API_V1_BRIEFS_NULL_ZH },
@@ -508,7 +528,8 @@ export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise
   };
   assertNoForbiddenFields(data);
   const body = envelope(schemaFor("index"), data, { next_cursor: null, limit: API_V1_DEFAULT_LIMIT }, { rows: 1, nulls: [] });
-  const etag = await etagFor({ schema: body.schema, version: body.version, data: body.data });
+  const { asof: _asof, ...stableBody } = body;
+  const etag = await etagFor(stableBody);
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {
     return new NextResponse(null, {
       status: 304,

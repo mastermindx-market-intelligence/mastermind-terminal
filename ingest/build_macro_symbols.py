@@ -27,7 +27,9 @@ claim; lib/intradaySources.ts marks these quotes DELAYED_15M at request time.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
+import math
 import os
 import sys
 import tempfile
@@ -40,6 +42,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from macro_catalog import (  # noqa: E402
     CATALOG, duplicates, manifest_rows, ohlc_symbols, retired_symbols, yahoo_symbols,
+)
+from cn_index_tushare import (  # noqa: E402
+    CN_INDEX_SYMBOLS, TU_SOURCE, fetch_cn_index_history, retain_prior_tushare_bars,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -54,6 +59,34 @@ SPARK_BATCH = 18
 # Minimum daily bars for a macro series to be worth publishing. Every instrument in the catalog
 # is decades old, so anything thinner is Yahoo failing to serve history, not a young symbol.
 MIN_OHLC_BARS = 30
+# Yahoo silently substitutes monthly candles for range=max&interval=1d. Index history
+# instead uses explicit daily period bounds; non-index macro instruments retain 5y.
+# The exceptions currently return a SINGLE Yahoo daily candle (verified 2026-11-04),
+# so publishing an ETF as a mislabeled index, or replacing a sound file with a stub,
+# is not permitted. They stay on the existing guarded leg until an authentic index
+# feed becomes available.
+INDEX_WITHOUT_DAILY_HISTORY = frozenset({"000300.SS", "000905.SS", "399006.SZ"})
+FULL_HISTORY_SYMBOLS = frozenset(
+    row.sym for row in CATALOG
+    if row.sec == "Indices" and row.sym not in INDEX_WITHOUT_DAILY_HISTORY
+)
+# Preserve Shanghai's existing epoch; its backfill starts in 1997.
+FULL_HISTORY_START_TS = int(dt.datetime(1990, 1, 1, tzinfo=dt.timezone.utc).timestamp())
+# Other index archives start much earlier (S&P 500 1927, Nikkei 1965, TSX 1979).
+INDEX_ARCHIVE_START_TS = int(dt.datetime(1900, 1, 1, tzinfo=dt.timezone.utc).timestamp())
+# A 353-point monthly series must never be published as decades of daily candles.
+MIN_DEEP_DAILY_BARS = 1000
+
+
+def ohlc_history_query(sym: str, now_ts: int | None = None) -> str:
+    """Yahoo chart query: explicit daily bounds avoid range=max auto-downsampling."""
+    if sym in FULL_HISTORY_SYMBOLS:
+        # period2 is exclusive. Include the current session even during UTC/CN date rollover.
+        end = (int(time.time()) if now_ts is None else now_ts) + 86400
+        start = FULL_HISTORY_START_TS if sym == "000001.SS" else INDEX_ARCHIVE_START_TS
+        return f"period1={start}&period2={end}&interval=1d"
+    return "range=5y&interval=1d"
+
 
 
 def _get(url: str, timeout: int = 20) -> dict:
@@ -105,17 +138,41 @@ def publish_decision(fetched: int, have: int) -> str:
     return "drop" if 0 < have < MIN_OHLC_BARS else "keep"
 
 
-def existing_bar_count(path: Path) -> int:
-    """Bars already published for this symbol — 0 when there is no readable file yet."""
+def _valid_deep_bar(row: object) -> bool:
+    """Qualify a stored or provider index candle before counting or retaining it."""
+    if not isinstance(row, list) or len(row) != 6 or not isinstance(row[0], str):
+        return False
     try:
-        return len(json.loads(path.read_text()).get("bars") or [])
+        if dt.date.fromisoformat(row[0]).isoformat() != row[0]:
+            return False
+    except ValueError:
+        return False
+    values = row[1:]
+    if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
+        return False
+    try:
+        if not all(math.isfinite(value) for value in values):
+            return False
+    except OverflowError:
+        return False
+    opening, high, low, close, volume = values
+    return 0 < low <= min(opening, close) <= max(opening, close) <= high and volume >= 0
+
+
+def existing_bar_count(path: Path, *, deep_history: bool = False) -> int:
+    """Published depth, counting only qualified unique dates for deep-history indices."""
+    try:
+        bars = json.loads(path.read_text()).get("bars") or []
+        if deep_history:
+            return len({row[0] for row in bars if _valid_deep_bar(row)}) if isinstance(bars, list) else 0
+        return len(bars)
     except (OSError, json.JSONDecodeError, AttributeError):
         return 0
 
 
 def fetch_ohlc(sym: str) -> list[list]:
     """Daily OHLC in the same shape chart.js already reads for equities."""
-    url = f"{CHART}/{urllib.parse.quote(sym)}?range=5y&interval=1d"
+    url = f"{CHART}/{urllib.parse.quote(sym)}?{ohlc_history_query(sym)}"
     try:
         j = _get(url)
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
@@ -123,6 +180,16 @@ def fetch_ohlc(sym: str) -> list[list]:
         return []
     res = ((j.get("chart") or {}).get("result") or [{}])[0]
     ts = res.get("timestamp") or []
+    deep_history = sym in FULL_HISTORY_SYMBOLS
+    if deep_history:
+        granularity = (res.get("meta") or {}).get("dataGranularity")
+        if granularity != "1d" or (ts and len(ts) < MIN_DEEP_DAILY_BARS):
+            print(
+                f"  ohlc {sym}: refusing non-daily/truncated history "
+                f"(granularity={granularity}, bars={len(ts)})",
+                file=sys.stderr,
+            )
+            return []
     q = ((res.get("indicators") or {}).get("quote") or [{}])[0]
     o, h, l, c, v = (q.get(k) or [] for k in ("open", "high", "low", "close", "volume"))
     # POSITIONAL rows [date, o, h, l, c, v] — the house OHLC contract (AAPL.json et al).
@@ -131,6 +198,24 @@ def fetch_ohlc(sym: str) -> list[list]:
     # no daily chart at all for macro symbols and KeyError'd the hydrate pass (found 2026-07-27).
     bars: list[list] = []
     for i, t in enumerate(ts):
+        if deep_history:
+            # Missing or malformed prices must not become synthetic real-OHLC candles.
+            if isinstance(t, bool) or not isinstance(t, (int, float)):
+                continue
+            try:
+                day = time.strftime("%Y-%m-%d", time.gmtime(t))
+            except (OSError, OverflowError, ValueError):
+                continue
+            row = [day] + [
+                values[i] if isinstance(values, list) and i < len(values) else None
+                for values in (o, h, l, c, v)
+            ]
+            if not _valid_deep_bar(row):
+                continue
+            row = [day, *(round(float(value), 6) for value in row[1:5]), int(row[5])]
+            if _valid_deep_bar(row):
+                bars.append(row)
+            continue
         # A null close means the session did not print — skip rather than forward-fill, so a
         # holiday never appears as a real flat bar.
         if i >= len(c) or c[i] is None:
@@ -145,7 +230,44 @@ def fetch_ohlc(sym: str) -> list[list]:
             cv,
             int(v[i]) if i < len(v) and v[i] is not None else 0,
         ])
+    if deep_history:
+        by_day = {row[0]: row for row in bars}
+        if len(by_day) < MIN_DEEP_DAILY_BARS:
+            print(
+                f"  ohlc {sym}: refusing non-daily/truncated history "
+                f"(valid_daily_bars={len(by_day)})",
+                file=sys.stderr,
+            )
+            return []
+        return [by_day[day] for day in sorted(by_day)]
     return bars
+
+
+def merge_deep_history(sym: str, path: Path, fetched: list[list]) -> list[list]:
+    """Keep older published bars when Yahoo's bounded daily response loses depth.
+
+    The nightly request can refresh/repair overlapping days, but must not erase
+    decades already backfilled. This is index-specific: other macro assets retain
+    the established rolling 5y replacement and publish-decision safeguards.
+    """
+    if sym not in FULL_HISTORY_SYMBOLS or len(fetched) < MIN_OHLC_BARS:
+        return fetched
+    try:
+        stored = json.loads(path.read_text()).get("bars")
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return fetched
+    if not isinstance(stored, list) or len(stored) < MIN_OHLC_BARS:
+        return fetched
+
+    by_day = {
+        row[0]: row for row in stored
+        if _valid_deep_bar(row)
+    }
+    if len(by_day) < MIN_OHLC_BARS:
+        return fetched
+    # Latest provider values win on overlap; earlier published dates stay available.
+    by_day.update((row[0], row) for row in fetched if _valid_deep_bar(row))
+    return [by_day[day] for day in sorted(by_day)]
 
 
 def write_atomic(path: Path, payload: dict) -> None:
@@ -237,14 +359,47 @@ def main() -> int:
         wrote, thin, dropped = 0, [], []
         targets = ohlc_symbols()
         for sym in targets:
-            bars = fetch_ohlc(sym)
+            china_index = sym in CN_INDEX_SYMBOLS
+            if china_index:
+                # The exact native index levels are available through the Macro-owned
+                # licensed TuShare client. Yahoo returns a one-candle stub for these codes.
+                # A missing/denied/invalid TuShare response must NEVER delete an old file.
+                bars = fetch_cn_index_history(sym)
+                if not bars:
+                    print(f"  ohlc {sym}: TuShare history unavailable; keeping prior file",
+                          file=sys.stderr)
+                    continue
+            else:
+                bars = fetch_ohlc(sym)
             path = out_dir / f"{sym}.json"
-            have = existing_bar_count(path)
+            have = existing_bar_count(
+                path, deep_history=sym in FULL_HISTORY_SYMBOLS or china_index,
+            )
+            bars = (
+                retain_prior_tushare_bars(path, bars, is_valid_bar=_valid_deep_bar)
+                if china_index else merge_deep_history(sym, path, bars)
+            )
             decision = publish_decision(len(bars), have)
             if decision == "write":
-                path.write_text(json.dumps(
-                    {"t": sym, "o": 1, "src": "yahoo", "bar_quality": "real_ohlc", "bars": bars},
-                    separators=(",", ":")))
+                payload = {
+                    "t": sym, "o": 1,
+                    "src": TU_SOURCE if china_index else "yahoo",
+                    "bar_quality": "real_ohlc", "bars": bars,
+                }
+                if china_index:
+                    # TuShare index_daily vol is index-constituent lots (100 shares),
+                    # not entire-exchange market volume. Preserve the basis on disk.
+                    payload.update({
+                        "source_endpoint": "index_daily",
+                        "volume_unit": "shares",
+                        "volume_scope": "index_constituents",
+                    })
+                if sym in FULL_HISTORY_SYMBOLS or china_index:
+                    # A multi-decade payload is never exposed half-written to the chart.
+                    write_atomic(path, payload)
+                    print(f"  ohlc {sym}: {len(bars)} bars ({bars[0][0]} to {bars[-1][0]})")
+                else:
+                    path.write_text(json.dumps(payload, separators=(",", ":")))
                 wrote += 1
             else:
                 if decision == "drop":

@@ -13,7 +13,9 @@ const CAPS = {
 
 // A helper to build a valid-ish envelope with overrides.
 function env(over: Partial<ChartCommandV2> & Record<string, unknown> = {}): unknown {
-  return { on: true, v: 2, batch_id: "b_1", seq: 1, op: "draw.hline", id: "ai_1", args: { p: 100 }, ...over };
+  return { on: true, v: 2, batch_id: "b_1", seq: 1, op: "draw.hline", id: "ai_1", args: { p: 100 },
+    target: { schema: "chart.command_target.v1", origin_id: "unit-origin", context_revision: 1,
+      pane_id: 0, symbol: "NVDA", tf: "D" }, ...over };
 }
 
 // Validate + translate + apply a command against a store; returns {store, ack, res}.

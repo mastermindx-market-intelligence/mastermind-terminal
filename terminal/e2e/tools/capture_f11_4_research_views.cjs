@@ -252,6 +252,9 @@ async function withStore(browser, width, lang, storeKey, run, extraCookies = [])
 async function captureEmpty(page, width, lang, outPath) {
   await openList(page, width, lang);
   await page.waitForSelector('[data-testid="rms-saved-views-empty"]', { timeout: 15_000 });
+  // Saved-view readiness can precede the thesis list and requested-language render.
+  const expected = lang === "zh" ? "暂无论点。从一个你可能判断错的观点开始。" : "No theses yet. Start with a view you could be wrong about.";
+  await page.waitForFunction((text) => document.querySelector('[data-testid="thesis-empty"]')?.textContent?.includes(text), expected);
   await shootPane(page, outPath);
 }
 
@@ -466,7 +469,7 @@ async function main() {
     "  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped",
     "  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real",
     "  against it; nothing in this capture stubs a network response.",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_f11_4_research_views.cjs",

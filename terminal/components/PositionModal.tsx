@@ -15,21 +15,34 @@
 // validators drifting apart is how a field starts being rejected for a reason the UI cannot explain.
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { useT } from "@/lib/i18n";
+import { useT, useLang } from "@/lib/i18n";
+import { moneyCopy } from "@/lib/portfolioMoney";
 import type { Position } from "@/lib/portfolio";
+import type { PositionFailureReason, PositionMutationResult } from "@/lib/portfolioMutation";
+import { portfolioCopy } from "@/lib/portfolioWorkspace";
+import styles from "./PortfolioWorkspace.module.css";
 
 export type PositionDraft = {
+  clientPositionId?: string;
   ticker: string;
   shares: string;
   entryPrice: string;
+  entryCurrency: string;
   entryDate: string;
   notes: string;
+};
+
+const FAILURE_FIELD: Partial<Record<PositionFailureReason, keyof PositionDraft>> = {
+  invalidPositionTicker: "ticker", invalidPositionShares: "shares",
+  invalidPositionPrice: "entryPrice", invalidPositionCurrency: "entryCurrency",
+  invalidPositionDate: "entryDate", invalidPositionNotes: "notes",
 };
 
 const draftFrom = (position: Position | null, initialTicker?: string): PositionDraft => ({
   ticker: position?.ticker ?? (initialTicker ? initialTicker.toUpperCase() : ""),
   shares: position?.shares == null ? "" : String(position.shares),
   entryPrice: position?.entryPrice == null ? "" : String(position.entryPrice),
+  entryCurrency: position?.entryCurrency ?? "",
   entryDate: position?.entryDate ?? "",
   notes: position?.notes ?? "",
 });
@@ -45,15 +58,44 @@ export default function PositionModal({
   position: Position | null;
   initialTicker?: string;
   onCancel: () => void;
-  onSubmit: (draft: PositionDraft) => Promise<boolean>;
+  onSubmit: (draft: PositionDraft) => Promise<PositionMutationResult>;
 }) {
   const t = useT();
+  const { lang } = useLang();
   const titleId = useId();
+  const copy = portfolioCopy(lang);
   const [draft, setDraft] = useState<PositionDraft>(() => draftFrom(position, initialTicker));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorField, setErrorField] = useState<keyof PositionDraft | null>(null);
+  const errorId = useId();
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [initialDraft] = useState(() => draftFrom(position, initialTicker));
+  const submittingRef = useRef(false);
+  const createIntentRef = useRef<string | null>(null);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const keepEditingRef = useRef<HTMLButtonElement>(null);
+  const dirty = (Object.keys(draft) as (keyof PositionDraft)[]).some(key => draft[key] !== initialDraft[key]);
+
+  const requestCancel = useCallback(() => {
+    if (submittingRef.current) return;
+    if (dirty) {
+      setConfirmDiscard(true);
+      requestAnimationFrame(() => keepEditingRef.current?.focus());
+    } else onCancel();
+  }, [dirty, onCancel]);
+
+  useEffect(() => {
+    const trigger = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    return () => {
+      dialog?.close();
+      if (trigger?.isConnected) trigger.focus();
+    };
+  }, []);
 
   // Focus the field the user is here to fill. When the ticker arrives pre-filled from the chart,
   // that is SHARES — retyping a symbol you just clicked is busywork.
@@ -66,50 +108,65 @@ export default function PositionModal({
   }, [initialTicker]);
 
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onCancel(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
+    if (errorField && !saving) cardRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+      "[name='" + errorField + "']",
+    )?.focus();
+  }, [errorField, saving]);
 
   const set = useCallback((key: keyof PositionDraft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
-  }, []);
+    if (key === errorField) { setError(null); setErrorField(null); }
+  }, [errorField]);
+  const fieldError = (field: keyof PositionDraft) => ({
+    "aria-invalid": errorField === field || undefined,
+    "aria-describedby": errorField === field ? errorId : undefined,
+  });
 
   const submit = useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
-    if (saving) return;
+    if (submittingRef.current) return;
     const ticker = draft.ticker.trim();
-    if (!ticker) { setError(t("tickerRequired")); firstFieldRef.current?.focus(); return; }
-    setError(null);
+    if (!ticker) { setError(t("tickerRequired")); setErrorField("ticker"); firstFieldRef.current?.focus(); return; }
+    setError(null); setErrorField(null);
+    submittingRef.current = true;
     setSaving(true);
-    const ok = await onSubmit({ ...draft, ticker });
-    setSaving(false);
-    // A failure keeps the form open with the user's typing intact; the page-level alert carries the
-    // reason the route gave.
-    if (!ok) setError(t("positionSaveFailed"));
-  }, [draft, onSubmit, saving, t]);
+    setConfirmDiscard(false);
+    try {
+      if (mode === "add" && !createIntentRef.current) createIntentRef.current = crypto.randomUUID();
+      const result = await onSubmit({ ...draft, ticker,
+        ...(mode === "add" && createIntentRef.current ? { clientPositionId: createIntentRef.current } : {}),
+      });
+      if (!result.ok) {
+        setError(portfolioCopy(lang)(result.reason ?? "saveUnconfirmed"));
+        setErrorField(result.reason ? FAILURE_FIELD[result.reason] ?? null : null);
+      }
+    } catch {
+      setError(portfolioCopy(lang)("saveUnconfirmed"));
+    } finally {
+      submittingRef.current = false;
+      setSaving(false);
+    }
+  }, [draft, mode, onSubmit, t, lang]);
 
   return (
-    <div
-      className="pf-modal-back"
-      role="presentation"
-      onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}
-    >
-      <div className="pf-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} ref={cardRef}>
+    <dialog ref={dialogRef} className={styles.editDialog} aria-modal="true" aria-labelledby={titleId}
+      onCancel={event => { event.preventDefault(); requestCancel(); }}
+      onMouseDown={event => { if (event.target === event.currentTarget) requestCancel(); }}>
+      <div className="pf-modal" ref={cardRef}>
         <form onSubmit={submit}>
           <div className="pf-modal-hd">
             <h3 id={titleId}>{mode === "edit" ? t("editPositionTitle") : t("addPositionTitle")}</h3>
-            <button type="button" className="pf-modal-x" onClick={onCancel} aria-label={t("cancel")}>
+            <button type="button" className="pf-modal-x" disabled={saving} onClick={requestCancel} aria-label={t("cancel")}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
 
-          <div className="pf-modal-body">
+          <fieldset className="pf-modal-body" disabled={saving} style={{ border: 0, minWidth: 0, margin: 0 }}>
             <label className="pf-field">
               <span>{t("ticker")}</span>
               <input
                 ref={firstFieldRef}
-                name="ticker"
+                name="ticker" {...fieldError("ticker")}
                 value={draft.ticker}
                 autoComplete="off"
                 spellCheck={false}
@@ -122,7 +179,7 @@ export default function PositionModal({
               <label className="pf-field">
                 <span>{t("shares")}</span>
                 <input
-                  name="shares"
+                  name="shares" {...fieldError("shares")}
                   value={draft.shares}
                   inputMode="decimal"
                   autoComplete="off"
@@ -133,7 +190,7 @@ export default function PositionModal({
               <label className="pf-field">
                 <span>{t("entryPrice")}</span>
                 <input
-                  name="entryPrice"
+                  name="entryPrice" {...fieldError("entryPrice")}
                   value={draft.entryPrice}
                   inputMode="decimal"
                   autoComplete="off"
@@ -144,9 +201,17 @@ export default function PositionModal({
             </div>
 
             <label className="pf-field">
+              <span>{moneyCopy.entryCurrency[lang]}</span>
+              <input name="entryCurrency" {...fieldError("entryCurrency")} value={draft.entryCurrency} autoComplete="off"
+                spellCheck={false} placeholder={copy("entryCurrencyExample")} maxLength={3}
+                onChange={(event) => set("entryCurrency", event.target.value)} />
+              <small>{moneyCopy.entryCurrencyHint[lang]}</small>
+            </label>
+
+            <label className="pf-field">
               <span>{t("entryDate")}</span>
               <input
-                name="entryDate"
+                name="entryDate" {...fieldError("entryDate")}
                 type="date"
                 value={draft.entryDate}
                 onChange={(event) => set("entryDate", event.target.value)}
@@ -156,7 +221,7 @@ export default function PositionModal({
             <label className="pf-field">
               <span>{t("positionNotes")}</span>
               <textarea
-                name="notes"
+                name="notes" {...fieldError("notes")}
                 value={draft.notes}
                 rows={3}
                 onChange={(event) => set("notes", event.target.value)}
@@ -165,17 +230,22 @@ export default function PositionModal({
             </label>
 
             <p className="pf-modal-hint">{t("unsizedHint")}</p>
-            {error && <p className="pf-modal-err" role="alert">{error}</p>}
-          </div>
+            {error && <p id={errorId} className="pf-modal-err" role="alert">{error}</p>}
+          </fieldset>
 
           <div className="pf-modal-ft">
-            <button type="button" className="pf-btn" onClick={onCancel}>{t("cancel")}</button>
+            <button type="button" className="pf-btn" disabled={saving} onClick={requestCancel}>{t("cancel")}</button>
             <button type="submit" className="pf-btn primary" disabled={saving}>
               {saving ? t("savingPosition") : t("savePosition")}
             </button>
           </div>
         </form>
+        {confirmDiscard && <section className={styles.discard} aria-labelledby={titleId + "-discard"} role="alert">
+          <h4 id={titleId + "-discard"}>{copy("discardTitle")}</h4><p>{copy("discardHint")}</p>
+          <div><button ref={keepEditingRef} type="button" className="pf-btn" onClick={() => { setConfirmDiscard(false); firstFieldRef.current?.focus(); }}>{copy("keepEditing")}</button>
+            <button type="button" className={`pf-btn ${styles.danger}`} onClick={onCancel}>{copy("discard")}</button></div>
+        </section>}
       </div>
-    </div>
+    </dialog>
   );
 }

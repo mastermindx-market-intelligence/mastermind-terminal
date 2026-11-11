@@ -1,0 +1,58 @@
+{
+  "point": {
+    "x": 137.76,
+    "y": 340.45000000000005,
+    "hit": "CANVAS",
+    "pane": {
+      "x": 0,
+      "y": 98,
+      "width": 328,
+      "height": 373,
+      "top": 98,
+      "right": 328,
+      "bottom": 471,
+      "left": 0
+    }
+  },
+  "witness": [
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "pointerType": "touch",
+      "at": 4715.699999928474,
+      "x": 137.75999450683594,
+      "y": 340.45001220703125,
+      "target": "CANVAS"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "pointerType": "touch",
+      "at": 4715.699999928474,
+      "x": 137.75999450683594,
+      "y": 340.45001220703125,
+      "target": "CANVAS"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "pointerType": "touch",
+      "at": 4715.799999952316,
+      "x": 137.75999450683594,
+      "y": 340.45001220703125,
+      "target": "CANVAS"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "pointerType": "touch",
+      "at": 4715.899999976158,
+      "x": 137.75999450683594,
+      "y": 340.45001220703125,
+      "target": "CANVAS"
+    }
+  ],
+  "suppliedTimestamps": false,
+  "dispatchStartedAt": "2026-10-11T12:24:44.155Z",
+  "dispatchElapsedMs": 30
+}

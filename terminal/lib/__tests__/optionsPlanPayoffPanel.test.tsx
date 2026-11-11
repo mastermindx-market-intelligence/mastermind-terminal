@@ -1,0 +1,243 @@
+// @vitest-environment jsdom
+import React, { act, Profiler } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OptionsPlanPayoffPanel } from "@/components/options/OptionsPlanPayoffPanel";
+import { draft, response } from "./fixtures/optionsPlanPayoff";
+import type { PlanExpiryRequest } from "../optionsPlanPayoff";
+
+let host: HTMLDivElement, root: Root;
+beforeEach(() => { vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true); host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
+afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
+async function submit() { await act(async () => { host.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); }); }
+async function changeEntry(value: string) {
+  const el = host.querySelector<HTMLInputElement>('input[id*="entry"]')!;
+  await act(async () => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value); el.dispatchEvent(new Event("input", { bubbles: true })); });
+}
+async function retirementHarness(onApply?: (candidate: ReturnType<typeof draft>) => void) {
+  let current = true;
+  const initialDraft = draft(), saved = vi.fn((candidate: ReturnType<typeof draft>) => onApply?.(candidate));
+  const edited = vi.fn(), closed = vi.fn(), commits = vi.fn();
+  const render = async () => { await act(async () => root.render(<Profiler id="retained-plan" onRender={commits}>
+    <OptionsPlanPayoffPanel scopeKey="same-account-lifetime/selection" draft={initialDraft} lang="en"
+      isScopeCurrent={() => current} onDraftChange={saved} onDraftInputChange={edited} onClose={closed} />
+  </Profiler>)); };
+  await render();
+  return { saved, edited, closed, commits, render, retire: () => { current = false; } };
+}
+describe("Plan editor to conditional curve", () => {
+  it("returns current edited inputs for a handoff, never the previous calculation or invalid text", async () => {
+    const applied = vi.fn(), current = vi.fn();
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)), { status: 200 })));
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="account/selection" draft={draft()} lang="en" onDraftChange={applied} onDraftInputChange={current} onClose={() => undefined} />));
+    await submit();
+    expect(applied.mock.calls[0][0].legs[0].assumptions.entry.premium_per_unit).toBe(2);
+    await changeEntry("6");
+    expect(current.mock.lastCall?.[0].legs[0].assumptions.entry.premium_per_unit).toBe(6);
+    expect(current.mock.lastCall?.[0].legs[0].snapshot).toEqual(draft().legs[0].snapshot);
+    expect(applied).toHaveBeenCalledOnce();
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+    await changeEntry("not a premium");
+    expect(current.mock.lastCall?.[0]).toBeNull();
+    expect(applied).toHaveBeenCalledOnce();
+  });
+  it.each(["en", "zh"] as const)("renders exact assumptions and bounded result in %s then clears on edit", async lang => {
+    const saved = vi.fn(), fetcher = vi.fn(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)), { status: 200 }));
+    vi.stubGlobal("fetch", fetcher);
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="fixture-account-selection" draft={draft()} lang={lang} onDraftChange={saved} onClose={() => undefined} />));
+    expect(host.textContent).not.toContain("no payoff or profit is calculated");
+    await submit();
+    expect(fetcher).toHaveBeenCalledOnce(); expect(saved).toHaveBeenCalledOnce();
+    expect(saved.mock.calls[0][0].legs[0].snapshot.row.mid).toBe(3);
+    expect(host.textContent).toContain(lang === "en" ? "Worst expiry outcome" : "最差到期结果");
+    expect(host.textContent).toContain("200.00");
+    expect(host.querySelector('[data-testid="plan-reference-coverage"]')?.textContent).toContain("20 SPY");
+    expect(host.textContent).toContain(lang === "en" ? "Unbounded gain" : "收益无上限");
+    expect(host.querySelector('svg[role="img"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="plan-reference-basis"]')?.closest("details")).toBeNull();
+    expect(host.querySelector('[data-testid="plan-reference-basis"]')?.textContent).toContain("2026-10-23");
+    expect(host.querySelector('[data-testid="plan-breakeven-marker"]')?.textContent).toContain("767.00");
+    await changeEntry("4");
+    expect(host.textContent).not.toContain(lang === "en" ? "Worst expiry outcome" : "最差到期结果");
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+  it("keeps assumptions and exposes plain unavailable after a source failure without retry", async () => {
+    const fetcher = vi.fn(async () => new Response("{}", { status: 503 })); vi.stubGlobal("fetch", fetcher);
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="fixture-account-selection" draft={draft()} lang="en" onDraftChange={() => undefined} onClose={() => undefined} />));
+    await submit();
+    expect(host.textContent).toContain("Contract terms unavailable");
+    expect(host.querySelector('input[id*="entry"]')).toHaveProperty("value", "2");
+    expect(host.querySelector('svg[role="img"]')).toBeNull(); expect(fetcher).toHaveBeenCalledOnce();
+  });
+  it("shows bounded dated coverage for an unmatched selection without a curve and clears it on edit", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ status: "UNAVAILABLE", coverage: {
+      root: "SPY", contract_count: 20, expirations: ["2026-10-23"], as_of: "2026-10-19", captured_at: "2026-10-20T08:43:25Z",
+    } }), { status: 422 })));
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="fixture-account-selection" draft={draft()} lang="en" onDraftChange={() => undefined} onClose={() => undefined} />));
+    await submit();
+    expect(host.querySelector('[data-testid="plan-reference-coverage"]')?.textContent).toContain("20 SPY");
+    expect(host.textContent).toContain("Choose a matching dated contract");
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+    await changeEntry("4");
+    expect(host.querySelector('[data-testid="plan-reference-coverage"]')).toBeNull();
+  });
+  it("never fetches with absent authored entry and never presents a late result for edited inputs", async () => {
+    let finish: (v: Response) => void = () => undefined;
+    let requested: PlanExpiryRequest;
+    const fetcher = vi.fn((_url, init) => { requested = JSON.parse(init.body); return new Promise<Response>(resolve => { finish = resolve; }); });
+    vi.stubGlobal("fetch", fetcher);
+    const d = draft(); d.legs[0].assumptions.entry = null;
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="fixture-account-selection" draft={d} lang="en" onDraftChange={() => undefined} onClose={() => undefined} />));
+    await submit(); expect(fetcher).not.toHaveBeenCalled();
+    await changeEntry("2");
+    const currency = host.querySelector<HTMLSelectElement>('select[id*="usd"]')!;
+    await act(async () => { Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value")!.set!.call(currency, "USD"); currency.dispatchEvent(new Event("change", { bubbles: true })); });
+    await submit(); expect(fetcher).toHaveBeenCalledOnce();
+    await changeEntry("8");
+    await act(async () => finish(new Response(JSON.stringify(response(requested!)), { status: 200 })));
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+  });
+  it.each([200, 422])("remounts result state and ignores the old account request when scope changes (HTTP %s)", async status => {
+    let finish: (v: Response) => void = () => undefined;
+    let requested: PlanExpiryRequest;
+    vi.stubGlobal("fetch", vi.fn((_url, init) => { requested = JSON.parse(init.body); return new Promise<Response>(resolve => { finish = resolve; }); }));
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="account-a/selection" draft={draft()} lang="en" onDraftChange={() => undefined} onClose={() => undefined} />));
+    await submit();
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="account-b/selection" draft={draft()} lang="en" onDraftChange={() => undefined} onClose={() => undefined} />));
+    await act(async () => finish(new Response(JSON.stringify(response(requested!)), { status })));
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+    expect(host.textContent).not.toContain("Worst expiry outcome");
+    expect(host.textContent).not.toContain("Contract terms unavailable");
+  });
+
+  it.each(["en", "zh"] as const)("pins a local baseline then compares exact API P/L in %s without saving", async lang => {
+    const fetcher = vi.fn(async (_url, init) => {
+      const req = JSON.parse(init.body) as PlanExpiryRequest;
+      const raw = response(req);
+      const premium = req.draft.legs[0].assumptions.entry!.premium_per_unit;
+      raw.curve.pnl = req.spots.map(s => Math.max(s - 765, 0) * 100 - premium * 100);
+      raw.curve.cost = premium * 100;
+      raw.curve.max_loss = -premium * 100;
+      raw.curve.breakevens = [765 + premium];
+      return new Response(JSON.stringify(raw), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetcher);
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="exact-user-and-pins"
+      draft={draft()} lang={lang} onDraftChange={() => undefined} onClose={() => undefined} />));
+    await submit();
+    expect(host.querySelector('[data-testid="plan-pin-baseline"]')).not.toBeNull();
+    await act(async () => { (host.querySelector('[data-testid="plan-pin-baseline"]') as HTMLButtonElement).click(); });
+    expect(host.querySelector('[data-testid="plan-baseline-pending"]')).not.toBeNull();
+    await changeEntry("4");
+    expect(host.querySelector('[data-testid="plan-baseline-pending"]')).not.toBeNull();
+    await submit();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="plan-assumption-diff"]')?.textContent).toContain("4");
+    // CSS modules rename the class; locate the exact figures table within its disclosure.
+    const exactTable = host.querySelector('[data-testid="plan-comparison-points"]') as HTMLTableElement;
+    expect(exactTable).not.toBeNull();
+    expect(exactTable.querySelectorAll("tbody tr").length).toBeGreaterThanOrEqual(101);
+    expect(exactTable.querySelector("tbody tr")?.children[3].textContent).toBe("-200");
+    expect(host.textContent).toContain(lang === "en" ? "Pinning does not save" : "已有研究记录保持不变");
+    await act(async () => { (host.querySelector('[data-testid="plan-clear-baseline"]') as HTMLButtonElement).click(); });
+    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).toBeNull();
+  });
+
+});
+
+describe("retired account lifetime with an unchanged scope key", () => {
+  it("withdraws the complete editor, result, reference coverage and pinned comparison", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)), { status: 200 })));
+    const panel = await retirementHarness();
+    await submit();
+    await act(async () => { (host.querySelector('[data-testid="plan-pin-baseline"]') as HTMLButtonElement).click(); });
+    await changeEntry("4");
+    await submit();
+    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="plan-expiry-chart"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="plan-reference-coverage"]')).not.toBeNull();
+    panel.retire();
+    await panel.render();
+    expect(host.childElementCount).toBe(0);
+    await panel.render();
+    expect(host.childElementCount).toBe(0);
+  });
+
+  it("refuses a retained submit before the owner has rerendered", async () => {
+    const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+    const panel = await retirementHarness();
+    panel.retire();
+    await submit();
+    expect(panel.saved).not.toHaveBeenCalled();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("refuses retained editor and close callbacks before the owner has rerendered", async () => {
+    const panel = await retirementHarness();
+    const close = Array.from(host.querySelectorAll<HTMLButtonElement>("button")).find(button => button.textContent === "Close draft")!;
+    panel.retire();
+    await changeEntry("9");
+    await act(async () => close.click());
+    expect(panel.edited).not.toHaveBeenCalled();
+    expect(panel.closed).not.toHaveBeenCalled();
+    expect(panel.saved).not.toHaveBeenCalled();
+  });
+
+  it("rechecks the lifetime after the owner's synchronous apply callback", async () => {
+    const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+    let retire: () => void = () => undefined;
+    const panel = await retirementHarness(() => retire());
+    retire = panel.retire;
+    await submit();
+    expect(panel.saved).toHaveBeenCalledOnce();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("does not consume response data after the lifetime retires while headers are pending", async () => {
+    let finish!: (value: Response) => void;
+    const json = vi.fn(async () => ({}));
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(resolve => { finish = resolve; })));
+    const panel = await retirementHarness();
+    await submit();
+    panel.retire(); await panel.render();
+    const commits = panel.commits.mock.calls.length;
+    await act(async () => finish(Object.assign(new Response(null, { status: 200 }), { json })));
+    expect(json).not.toHaveBeenCalled();
+    expect(panel.commits).toHaveBeenCalledTimes(commits);
+    expect(host.childElementCount).toBe(0);
+  });
+
+  it.each([200, 422])("does not publish a late HTTP %s response body into a retired lifetime", async status => {
+    let finish!: (value: unknown) => void;
+    let requested!: PlanExpiryRequest;
+    const json = vi.fn(() => new Promise<unknown>(resolve => { finish = resolve; }));
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => { requested = JSON.parse(init.body); return Object.assign(new Response(null, { status }), { json }); }));
+    const panel = await retirementHarness();
+    await submit();
+    expect(json).toHaveBeenCalledOnce();
+    panel.retire(); await panel.render();
+    const commits = panel.commits.mock.calls.length;
+    await act(async () => finish(status === 200 ? response(requested) : { coverage: {
+      root: "SPY", contract_count: 20, expirations: ["2026-10-23"], as_of: "2026-10-19", captured_at: "2026-10-20T08:43:25Z",
+    } }));
+    expect(panel.commits).toHaveBeenCalledTimes(commits);
+    expect(host.childElementCount).toBe(0);
+  });
+
+  it.each(["headers", "success body", "error body"])("does not publish unavailable after a retired request rejects at %s", async boundary => {
+    let reject!: (error: Error) => void;
+    const pending = new Promise<never>((_resolve, fail) => { reject = fail; });
+    vi.stubGlobal("fetch", vi.fn(() => boundary === "headers" ? pending : Promise.resolve(Object.assign(
+      new Response(null, { status: boundary === "success body" ? 200 : 422 }), { json: () => pending },
+    ))));
+    const panel = await retirementHarness();
+    await submit();
+    panel.retire(); await panel.render();
+    const commits = panel.commits.mock.calls.length;
+    await act(async () => reject(new Error("late request failure")));
+    expect(panel.commits).toHaveBeenCalledTimes(commits);
+    expect(host.childElementCount).toBe(0);
+  });
+});

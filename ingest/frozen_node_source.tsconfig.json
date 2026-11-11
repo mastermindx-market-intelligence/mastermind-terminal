@@ -1,0 +1,6 @@
+{
+  "extends": "../terminal/tsconfig.json",
+  "compilerOptions": { "noEmit": true, "incremental": false, "types": ["node"], "typeRoots": ["../terminal/node_modules/@types"] },
+  "include": ["frozen_node_source_cli.ts"],
+  "exclude": ["../terminal/node_modules"]
+}

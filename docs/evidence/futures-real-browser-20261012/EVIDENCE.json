@@ -1,0 +1,42 @@
+{
+  "schema": "futures.real_source_browser_evidence/v1",
+  "source_base": "f54702c6985ba0c38e8c6f5ae33fe3fba2108fc4",
+  "synthetic": false,
+  "live": false,
+  "raw_rows_or_price_images_committed": false,
+  "tests": {
+    "hub": 524,
+    "focused_terminal": 144,
+    "python_preceding_phase": 24,
+    "real_source_browser": 6,
+    "typecheck_exit": 0,
+    "lint_exit": 0
+  },
+  "files": {
+    "hub/lib/futuresMbo.js": "7266ebf59947f15abedb641ba9541a94d64c4898ae370e8c29443bf716c92a76",
+    "hub/tools/compare_futures_sample.js": "dc7c03a7eeffc9d25644a34cb17fd30760c75d47bba48cbc0852cc45bd56b5ab",
+    "hub/tools/build_futures_sample_view.js": "6173428b68b1cf15a978f4e56084a079a6b9b840131c695208067af414c9ded9",
+    "hub/tests/futuresDepthWindow.test.js": "7846d6044054f28f02f6c57393c2f6b18acf7732a157d8618f9b416fd358cc16",
+    "terminal/lib/futuresGexFrame.ts": "035417d8c43a340a85cabd11473e275360c417fa1aa6f5a4eb04726cc053bf03",
+    "terminal/lib/futuresSampleView.ts": "9f0a64524fce7f59bd1bda6f4119e817b8c35ed959b265319c7eab010fa9bbe0",
+    "terminal/lib/futuresSampleLoader.ts": "6cd630f0ab6f5d0246c9a255fb69cd3179c7a1708ab57c02be139d86f40f63a3",
+    "terminal/lib/__tests__/futuresSampleView.test.ts": "9c6eba808df1b1d1a683f07145dddb83655337dcf62d1677b6024ee26b5ebe7b",
+    "terminal/lib/__tests__/futuresSampleProduction.test.ts": "200a6732ed8b6c391945a759565057aa49be49429147f81b263ff3acfec44d23",
+    "terminal/components/futures/FuturesPublicSampleLab.tsx": "5525c660203163077c241d910526bd8487e2d6fcad0c8cb150417790cd7ee948",
+    "terminal/app/dev/futures-sample/page.tsx": "183dbc9984508260fde8efb1d623d203cd5c442772d41d8b54d9909508fa600c",
+    "terminal/playwright.futures-sample.config.ts": "8ecce128e2d5cc682581497c69633d290c83748d79490fe812d84d5d07f7cabb",
+    "terminal/e2e/futures-sample.local.spec.ts": "b10f47931eed3332965f2841d33ccbd352f19b6782766461cd07deb548f1c6ba",
+    "terminal/next.config.ts": "172e2c2938306fd8d0103cd7bb20eca0e931705b1183a9681afac64728d085cd"
+  },
+  "private_screenshots": {
+    "desktop-historical-depth-en.png": "446fd02984681727083eb44d3ddd7575b92ccd5cd3a406c3a002d9656c6877b9",
+    "desktop-historical-footprint-en.png": "47bba76802fae8aaf4a8a64d5810ee9bbc901fa349257a6edf8c0e09314f8420",
+    "desktop-historical-footprint-zh.png": "63dad1b66a6a5e1df99c4c268188928124a52c30d2073175491571ccd9584b42",
+    "mobile-historical-depth-en.png": "97ef856bdac943b2cd310b3d83c1b2b8f202e95b4bb1dbc3b278956321882928",
+    "mobile-historical-footprint-en.png": "e537cfe7d837299f0ea82cdef9bfed6eb72bc7fb6f972372a9ba79e6e92691fb",
+    "mobile-historical-footprint-zh.png": "c3358729d0f3fa4e90658a22c8ac03046865e0e3408d7a02175f522f31b3467c",
+    "tablet-historical-depth-en.png": "7d787927c7f1360c680643aaa315954f0603235f606d724123d0826eed08c417",
+    "tablet-historical-footprint-en.png": "8067295f2483ccca0db443b151694e844cabd5641aebea302892babe19d8e909",
+    "tablet-historical-footprint-zh.png": "64ab901f2477f9f5a847453ef41fa07d2a154cad64cb9efc66b866a179a976d5"
+  }
+}

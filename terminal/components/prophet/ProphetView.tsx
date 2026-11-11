@@ -29,11 +29,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { flowGet } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import { makeProphetT, phaseWhy } from "./prophetStrings";
+import { prophetSourceVintage } from "./prophetSourceVintage";
+import {
+  SelectionCohortCard,
+  SelectionCohortMastheadTile,
+  useSelectionCohort,
+} from "./SelectionCohortCard";
 import { SignalCard, phaseTone, planAsof, planConfidence, planOriginationNote, planPhase, planRecommendedAction } from "./SignalCard";
 import type { PlanSummary } from "./SignalCard";
 import { ConfidencePanel } from "./ConfidencePanel";
 import type { ConfidenceComponents } from "./ConfidencePanel";
 import { GeometryRail } from "./GeometryRail";
+import { BottomPivotEvidence } from "./BottomPivotEvidence";
 import { OptionCard } from "./OptionCard";
 import type { LiveMark } from "./OptionCard";
 
@@ -41,6 +48,11 @@ import type { LiveMark } from "./OptionCard";
 
 interface ProphetIndexPayload {
   asof?: string | null;
+  source_asof?: string | null;
+  source_board_asof?: string | null;
+  source_delayed?: boolean | null;
+  source_unknown?: boolean | null;
+  source_mixed_vintage?: boolean | null;
   cadence?: string;
   plans: PlanSummary[];
 }
@@ -163,7 +175,9 @@ function sortPlans(plans: PlanSummary[], mode: SortMode): PlanSummary[] {
 function fmtDate(iso: string | null | undefined, lang: "en" | "zh"): string | null {
   if (!iso) return null;
   try {
-    const date = new Date(iso);
+    // ISO date-only stamps represent a market session, not midnight UTC.
+    // Parse at noon UTC so formatting in America/New_York cannot shift the day.
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso + "T12:00:00Z" : iso);
     if (!Number.isFinite(date.getTime())) return iso.slice(0, 10) || null;
     return date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
       month: "short",
@@ -180,6 +194,8 @@ function fmtDate(iso: string | null | undefined, lang: "en" | "zh"): string | nu
 export function ProphetView() {
   const { lang } = useLang();
   const t = makeProphetT(lang);
+  const { view: cohortView } = useSelectionCohort();
+  const [cohortPopoverOpen, setCohortPopoverOpen] = useState(false);
 
   const [payload,     setPayload]     = useState<ProphetIndexPayload | null>(null);
   const [loading,     setLoading]     = useState(true);
@@ -244,6 +260,11 @@ export function ProphetView() {
   const activePlans = sortedPlans.filter((p) => planPhase(p) !== "invalidated").length;
   const marksFresh  = marksAreFresh(marks);
   const asofLabel   = fmtDate(payload?.asof, lang) ?? (lang === "zh" ? "等待更新" : "Awaiting close");
+  const sourceVintage = prophetSourceVintage(payload, lang);
+  const sourceWarnings = sourceVintage.warnings.map((status) => t(
+    status === "unknown" ? "mastheadSourceUnknown"
+      : status === "delayed" ? "mastheadSourceDelayed" : "mastheadSourceMixed",
+  ));
 
   // ── Full-pane states ───────────────────────────────────────────────────────
 
@@ -264,7 +285,9 @@ export function ProphetView() {
 
   return (
     <div className="obs obs-ambient obs-prophet">
-      <header className="obs-prophet-masthead">
+      <header
+        className={`obs-prophet-masthead${cohortPopoverOpen ? " cohortPopoverOpen" : ""}`}
+      >
         <div className="obs-prophet-orb" aria-hidden>
           <span>✦</span>
         </div>
@@ -288,6 +311,17 @@ export function ProphetView() {
             <span>{t("mastheadUpdated")}</span>
             <b>{asofLabel}</b>
           </div>
+          <div className="obs-prophet-stat" data-testid="prophet-source-vintage" style={{ gap: 2, flex: "0 0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+              <span>{t("mastheadSourceThrough")}</span>
+              <b>{sourceVintage.label ?? "—"}</b>
+            </div>
+            {sourceWarnings.length > 0 && (
+              <span role="status" style={{ color: "var(--muted, #999)", fontSize: 12, lineHeight: 1.3, whiteSpace: "nowrap", textTransform: "none", letterSpacing: 0 }}>
+                {sourceWarnings.join(" · ")}
+              </span>
+            )}
+          </div>
           {marksFresh && (
             <div className="obs-prophet-stat">
               <span>{t("mastheadMarks")}</span>
@@ -297,6 +331,11 @@ export function ProphetView() {
               </b>
             </div>
           )}
+          <SelectionCohortMastheadTile
+            lang={lang}
+            view={cohortView}
+            onOpenChange={setCohortPopoverOpen}
+          />
         </div>
       </header>
 
@@ -394,6 +433,8 @@ export function ProphetView() {
         )}
       </div>
       </div>
+      {/* ── Shared themes for the latest finalized U.S. picks — context only (gate #8) ── */}
+      <SelectionCohortCard lang={lang} view={cohortView} />
     </div>
   );
 }
@@ -684,6 +725,10 @@ export function AnalysisPanel({
           {origination.tip}
         </p>
       )}
+      {/* Daily per-name source context only; load on click, after plan content.
+          This lives inside the incumbent analysis scroll so no first-screen
+          geometry or action-guide space is consumed by another persistent card. */}
+      <BottomPivotEvidence key={plan.asset} symbol={plan.asset} lang={lang} />
     </div>
   );
 }

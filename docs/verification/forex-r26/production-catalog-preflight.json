@@ -1,0 +1,34 @@
+{
+  "scope": "Read-only catalog prerequisites; no DDL or user-data query; not application acceptance",
+  "repository_project_authority": "supabase/migrations/RESERVATIONS.json project_ref",
+  "receipt": [
+    {
+      "catalog_receipt": {
+        "alerts": {
+          "rls": true,
+          "owner": "postgres",
+          "force_rls": false,
+          "authenticated_delete": true,
+          "authenticated_insert": true,
+          "authenticated_select": true,
+          "authenticated_update": true
+        },
+        "policies": [
+          {
+            "cmd": "ALL",
+            "name": "alerts_owner",
+            "qual": "(user_id = auth.uid())",
+            "roles": [
+              "public"
+            ],
+            "with_check": "(user_id = auth.uid())"
+          }
+        ],
+        "observed_at": "2026-10-21T13:09:56.177473+00:00",
+        "alerts_triggers": [],
+        "forex_functions": [],
+        "default_transaction_isolation": "read committed"
+      }
+    }
+  ]
+}

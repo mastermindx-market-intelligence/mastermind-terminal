@@ -353,7 +353,9 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
             readout: the team's row when a team id is present, and the no-team sentence when
             the caller has none. The hard gate is server-side; the UI just renders the response,
             and the ceiling sentence is on every scored read so the reader sees it. */}
-        <TeamRollupBlock t={t} lang={lang} teamId={teamId} devRollup={devRollup ?? undefined} />
+        {/* A new team must never inherit the previous team's settled data or errors,
+            including the first render before the replacement request's effect runs. */}
+        <TeamRollupBlock key={teamId ?? "membership-pending"} t={t} lang={lang} teamId={teamId} devRollup={devRollup ?? undefined} />
       </div>
     </>
   );

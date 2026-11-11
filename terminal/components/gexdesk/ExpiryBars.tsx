@@ -9,6 +9,8 @@
  * HONESTY: the by_expiry array carries gamma & delta only (no vanna/charm), so the
  * VEX/CHEX lenses render an honest "not provided per-expiration" state rather than
  * faking zeros. Bar direction (dealer-sign) is an assumption; magnitude is the read.
+ * A row with no value for the active greek stays listed as "—" with no bar: switching the
+ * greek never changes which expirations are shown, and an unknown is never drawn as 0.
  */
 
 import React from "react";
@@ -51,11 +53,10 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
   }
 
   const rows = (byExpiry ?? [])
-    .filter((r) => expiryNet(r, greek) != null)
     .slice()
     .sort((a, b) => a.exp.localeCompare(b.exp)); // nearest expiration first (top)
 
-  if (rows.length < 1) {
+  if (!rows.some((r) => expiryNet(r, greek) != null)) {
     return <div style={EMPTY}>{t("expiryNoData")}</div>;
   }
 
@@ -68,7 +69,8 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
     <div style={SCROLL} className="obs-scroll">
       <div style={CENTER_LINE} />
       {rows.map((r) => {
-        const net = expiryNet(r, greek) ?? 0;
+        const value = expiryNet(r, greek);
+        const net = value ?? 0;
         const isPos = net >= 0;
         const pct = Math.abs(net) / maxAbs;
         const shaped = Math.pow(pct, 0.7);
@@ -81,15 +83,18 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
               <span style={DTE_LABEL}>{dteLabelFor(r.exp, asOf)}</span>
             </div>
             <div style={BAR_AREA}>
-              {!isPos && barW > 0 && (
+              {value != null && !isPos && barW > 0 && (
                 <div style={{ ...BAR_NEG, width: `${barW}%`, opacity: isBig ? 1 : 0.75 }} />
               )}
-              {isPos && barW > 0 && (
+              {value != null && isPos && barW > 0 && (
                 <div style={{ ...BAR_POS, width: `${barW}%`, opacity: isBig ? 1 : 0.75 }} />
               )}
             </div>
-            <span className="num" style={{ ...VAL, color: isPos ? "var(--up)" : "var(--down)" }}>
-              {fmtMn(net)}
+            <span
+              className="num"
+              style={{ ...VAL, color: value == null ? "var(--text-dim)" : isPos ? "var(--up)" : "var(--down)" }}
+            >
+              {fmtMn(value)}
             </span>
           </div>
         );

@@ -47,8 +47,12 @@ export interface ExpiryTermStructure {
   lens: ExpiryLens;
   available: boolean; // false when the lens isn't carried per-expiration (vanna/charm)
   splitAvailable: false; // by_expiry never carries a calls/puts split → always Net-only
-  nodes: ExpiryNode[]; // sorted nearest-expiration first; empty when no data
+  nodes: ExpiryNode[]; // KNOWN values only, sorted nearest-expiration first; empty when no data
   maxAbs: number; // max |net| across nodes (0 when empty)
+  /** Every by_expiry row, under every greek — the population never changes with the lens. */
+  rowCount: number;
+  /** Expiry keys (ascending) with no value for an available lens: unknown, never plotted as 0. */
+  unresolved: string[];
 }
 
 /** Net exposure for a row under the active lens. by_expiry carries gamma + delta only. */
@@ -62,8 +66,10 @@ export function expiryNetFor(r: ExpiryRow, lens: ExpiryLens): number | null {
 /**
  * Transform a payload's `by_expiry` into the drawer's plot nodes for one lens.
  *
- * - Rows whose lens value is null/non-finite are dropped (vanna/charm → every row drops →
- *   `available:false`, empty nodes — the drawer shows an honest "not per-expiration" state).
+ * - Rows whose lens value is null/non-finite get no plot node, but they stay in the
+ *   population: `rowCount` counts every row and `unresolved` names the missing ones, so the
+ *   drawer's count never changes with the greek (vanna/charm → `available:false`, empty nodes
+ *   — the drawer shows an honest "not per-expiration" state). A measured 0 is a node.
  * - `frac` normalizes each node's magnitude to the max |net| so bubbles/bars share one scale.
  * - Nodes are sorted nearest-expiration first (ascending exp) so the term structure reads
  *   left→right / top→bottom by tenor.
@@ -83,14 +89,17 @@ export function byExpiryToTermStructure(
     splitAvailable: false,
     nodes: [],
     maxAbs: 0,
+    rowCount: byExpiry?.length ?? 0,
+    unresolved: [],
   };
   if (!available || !byExpiry || byExpiry.length === 0) return base;
 
-  const kept = byExpiry
+  const valued = byExpiry
     .map((r) => ({ r, net: expiryNetFor(r, lens) }))
-    .filter((x): x is { r: ExpiryRow; net: number } => x.net != null)
     .sort((a, b) => a.r.exp.localeCompare(b.r.exp));
-  if (kept.length === 0) return base;
+  const unresolved = valued.filter((x) => x.net == null).map((x) => x.r.exp);
+  const kept = valued.filter((x): x is { r: ExpiryRow; net: number } => x.net != null);
+  if (kept.length === 0) return { ...base, unresolved };
 
   const maxAbs = kept.reduce((m, x) => Math.max(m, Math.abs(x.net)), 0);
   const denom = maxAbs > 0 ? maxAbs : 1;
@@ -107,5 +116,5 @@ export function byExpiryToTermStructure(
       frac: Math.abs(net) / denom,
     };
   });
-  return { lens, available, splitAvailable: false, nodes, maxAbs };
+  return { ...base, nodes, maxAbs, unresolved };
 }

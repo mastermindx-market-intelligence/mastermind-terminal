@@ -1,0 +1,65 @@
+{
+  "base_head": "a8192b80fb21dfc3a5e0ebe4894650aeb8ceaf41",
+  "capability_state": "BUILT_NOT_PROVEN",
+  "non_claims": [
+    "production deployment",
+    "live market freshness",
+    "observed dealer inventory",
+    "predictive edge",
+    "QuantedOptions parity"
+  ],
+  "repairs": [
+    {
+      "green": "root/date/stamp validator rejects mismatched frame",
+      "name": "frame_request_identity",
+      "red": "selected 09:31 accepted frame ending 09:32"
+    },
+    {
+      "green": "Greek sign labeled positive/negative modeled exposure with quote + prior-day OI provenance",
+      "name": "greek_semantic_identity",
+      "red": "Gamma rendered Observed only + inflow/outflow + OPRA per-strike flow"
+    }
+  ],
+  "schema": "mastermind.options_workbench.r0_review_hardening.v1",
+  "skillpack_sha": "320f586126b7c82c843ef17612f12d40d20a42e0",
+  "source_hashes": {
+    "terminal/components/surface/SurfacePane.tsx": "2e7f4a65c301927312924ff765d4f67a07cbd01bcf36b2ea0eff6f4a8aa3cfab",
+    "terminal/components/surface/SurfaceStylePopover.tsx": "c6bc25262f8f60c939ef6775cfb09e68292afc1f1527274692fbb6b7e413769e",
+    "terminal/components/surface/surfaceStrings.ts": "a97c1a7dc299d60323a58f17dd1a9c1ecd8cf8ee46ab97cc2acc43e5afebc3fc",
+    "terminal/e2e/options-surface-replay.spec.ts": "4fd29aa0c8c1d7fff9c5e195eb5cac395e97ec5d566d922e3eada0125da2fc40",
+    "terminal/lib/__tests__/surfaceReplayMounted.test.tsx": "c4fde0441409e69ed58c0a87ac5580ae30f5c2967b12757c28317edcbb1b5169",
+    "terminal/lib/surfaceContract.ts": "e7a746bf699db5923525cdf812ad56e9148c4b73c8e889c2c6ddcba54e9cfe86"
+  },
+  "verification": {
+    "browser_replay_alignment_geometry": {
+      "failed": 0,
+      "passed": 30,
+      "retries": 0,
+      "workers": 1
+    },
+    "full_vitest": {
+      "failed": 0,
+      "files_passed": 336,
+      "tests_passed": 5548,
+      "todo": 4
+    },
+    "greek_semantic_browser_matrix": {
+      "failed": 0,
+      "languages": [
+        "en",
+        "zh"
+      ],
+      "passed": 6,
+      "viewports": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ]
+    },
+    "surface_family": {
+      "failed": 0,
+      "passed": 214
+    },
+    "typescript_exit": 0
+  }
+}

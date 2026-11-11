@@ -1,0 +1,47 @@
+--- KILLED  M1 drop expectedOwnerId from the POST body
+    Tests  6 failed | 14 passed (20)
+    FAILING: × chart position entry — the owner that opened the form > sends the account that opened it, through the real form 41ms
+    FAILING: × chart position entry — the owner that opened the form > keeps a same-owner email change live — an address is not an identity 7ms
+    FAILING: × chart position entry — an observed account transition retires the opening > keeps a later opening under B independent of the retired A opening 8ms
+    FAILING: × chart position entry — an observed account transition retires the opening > issues no POST from a replaced opening's callback 6ms
+    FAILING: × chart position entry — a late completion cannot touch a newer opening > a StrictMode replacement still submits the captured owner 5ms
+    FAILING: × chart position entry — confirmation and refusal > reports a 409 owner refusal as an account change and keeps the draft and the create UUID 7ms
+--- KILLED  M2 drop the lifetime check before dispatch
+    Tests  4 failed | 16 passed (20)
+    FAILING: × chart position entry — the owner that opened the form > never names the owner at submit time instead of the owner at open time 13ms
+    FAILING: × chart position entry — the owner that opened the form > refuses an opening whose owner is not the account the shell observes 6ms
+    FAILING: × chart position entry — an observed account transition retires the opening > retires A's opening on A→B and never opens one for the new account 7ms
+    FAILING: × chart position entry — a late completion cannot touch a newer opening > a retry after a dispatched write never claims the change was not applied 5ms
+--- KILLED  M3 drop the generation bump on an owner transition
+    Tests  1 failed | 19 passed (20)
+    FAILING: × chart position entry — an observed account transition retires the opening > retires A's opening on A→B and never opens one for the new account 9ms
+--- SURVIVED  M4 drop the check before success/dismissal/rail refresh
+    Tests  20 passed (20)
+--- KILLED  M5 name the CURRENT owner instead of the captured owner
+    Tests  1 failed | 19 passed (20)
+    FAILING: × chart position entry — the owner that opened the form > refuses an opening whose owner is not the account the shell observes 10ms
+--- SURVIVED  M6 drop the replaced-intent guard
+    Tests  20 passed (20)
+--- KILLED  M8 drop the replaced-intent guard from EVERY post-dispatch checkpoint
+    Tests  1 failed | 19 passed (20)
+    FAILING: × chart position entry — a late completion cannot touch a newer opening > a replaced opening's in-flight completion cannot read back, close or refresh
+--- KILLED  M9 drop the LIFETIME check from EVERY post-dispatch checkpoint
+    Tests  2 failed | 18 passed (20)
+    FAILING: × chart position entry — a late completion cannot touch a newer opening > a POST held across an account transition cannot confirm, read back or refres
+    FAILING: × chart position entry — a late completion cannot touch a newer opening > a retry after a dispatched write never claims the change was not applied 4ms
+--- KILLED  M10 drop the LIFETIME check from the pre-dispatch fence only
+    Tests  4 failed | 16 passed (20)
+    FAILING: × chart position entry — the owner that opened the form > never names the owner at submit time instead of the owner at open time 13ms
+    FAILING: × chart position entry — the owner that opened the form > refuses an opening whose owner is not the account the shell observes 6ms
+    FAILING: × chart position entry — an observed account transition retires the opening > retires A's opening on A→B and never opens one for the new account 8ms
+    FAILING: × chart position entry — a late completion cannot touch a newer opening > a retry after a dispatched write never claims the change was not applied 6ms
+--- KILLED  M11 claim 'not applied' even after a dispatched write
+    Tests  1 failed | 19 passed (20)
+    FAILING: × chart position entry — a late completion cannot touch a newer opening > a retry after a dispatched write never claims the change was not applied 11m
+
+RESTORED (current file)
+Traceback (most recent call last):
+  File "/tmp/mutate.py", line 52, in <module>
+    assert old in orig, f"anchor missing: {name}"
+           ^^^^^^^^^^^
+AssertionError: anchor missing: M7 drop the account-changed reason on a retired scope

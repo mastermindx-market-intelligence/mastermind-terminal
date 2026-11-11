@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, SectionHead } from "./icons";
+import PinnedResearchSharing from "./PinnedResearchSharing";
 import type { SectionProps } from "./types";
 
 type SharedRow = {
@@ -36,7 +37,7 @@ function symbolsLabel(count: number, t: SectionProps["t"], lang: "en" | "zh"): s
   return t("shrSymbolsMany").replace("{n}", String(count));
 }
 
-export default function SectionSharing({ t, lang, onClose }: SectionProps) {
+export default function SectionSharing({ t, lang, identity, onClose }: SectionProps) {
   const [ownLists, setOwnLists] = useState<OwnList[]>([]);
   const [shared, setShared] = useState<SharedRow[]>([]);
   const [received, setReceived] = useState<ReceivedRow[]>([]);
@@ -376,6 +377,11 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
             </div>
           ))}
         </Group>
+
+        {/* Pinned research handoffs — a separate lane from watchlists. The block stays
+            collapsed until the owner opens it, so nothing is fetched by merely visiting
+            the Sharing section. */}
+        <PinnedResearchSharing t={t} lang={lang} identity={identity} />
       </div>
     </>
   );

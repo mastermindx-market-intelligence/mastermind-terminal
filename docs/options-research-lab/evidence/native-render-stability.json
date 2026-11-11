@@ -1,0 +1,143 @@
+{
+  "source_head": "6b8e0855b96f2aeff5d202d73170e45a382ba9a4",
+  "checkpoint": "51156577a8d823f3a00825008341fb7569e807c8",
+  "route": "/options?tab=gex&view=research",
+  "browser": "installed Google Chrome headed",
+  "data": "synthetic fixture",
+  "results": [
+    {
+      "count": 20000,
+      "graphics": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Ultra, Unspecified Version)",
+      "idleSeconds": 3,
+      "idleDraws": 0,
+      "idleTaskCpuPercent": 0.16813333333333333,
+      "activeMs": 4832.17175,
+      "sceneDraws": 180,
+      "sceneDrawRatePerSecond": 37.25033159262188,
+      "rafCadencePerSecond": 99.95645050911428,
+      "rafIntervalP95Ms": 11.200000000000728,
+      "pickingMaxMs": 2.9000000953674316,
+      "pickingSamples": 20,
+      "filterCycles": 360,
+      "resources": [
+        {
+          "cycle": 30,
+          "heapAfterGc": 22580616,
+          "draws": 215,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 60,
+          "heapAfterGc": 21880032,
+          "draws": 245,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 90,
+          "heapAfterGc": 22888944,
+          "draws": 275,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 120,
+          "heapAfterGc": 22164264,
+          "draws": 305,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 150,
+          "heapAfterGc": 22980700,
+          "draws": 335,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 180,
+          "heapAfterGc": 22220356,
+          "draws": 365,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 210,
+          "heapAfterGc": 23067452,
+          "draws": 395,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 240,
+          "heapAfterGc": 22441420,
+          "draws": 425,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 270,
+          "heapAfterGc": 23298704,
+          "draws": 455,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 300,
+          "heapAfterGc": 23322564,
+          "draws": 485,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 330,
+          "heapAfterGc": 22612268,
+          "draws": 515,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 360,
+          "heapAfterGc": 23409036,
+          "draws": 545,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        }
+      ],
+      "wholePageHeapAfterForcedGcBefore": 20205332,
+      "wholePageHeapAfterForcedGcAfter": 23409020,
+      "mounted": {
+        "draws": 545,
+        "buffers": 7,
+        "programs": 2,
+        "bufferBytes": 721248
+      },
+      "unmounted": {
+        "draws": 545,
+        "buffers": 0,
+        "programs": 0,
+        "bufferBytes": 0
+      },
+      "pageErrors": []
+    }
+  ],
+  "caveats": [
+    "RAF cadence and scene draw submission rate are not compositor presentation FPS.",
+    "Whole-page heap uses explicit garbage collection; not a long-session leak proof.",
+    "Tracked live WebGL buffers/programs are instrumented JavaScript calls, not a total native VRAM measurement.",
+    "Runs use a development server on the M2 Ultra, not production deployment."
+  ]
+}

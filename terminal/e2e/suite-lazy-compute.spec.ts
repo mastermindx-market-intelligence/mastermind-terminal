@@ -23,7 +23,9 @@ test.setTimeout(120_000);
 
 /** Implementation-only literals, one per suite. */
 const COMPUTE_MARKERS: Record<string, string[]> = {
-  trend: ["te_retest", "te_flip"],
+  // Event IDs also appear in public alert/guide metadata; they cannot identify computation.
+  // These complete retest labels occur only in the Trend Engine implementation.
+  trend: ["Band retest held · support", "Band retest held · resistance"],
   structure: ["ob_created", "Swing High"],
   pulse: ["pw-fill"],
   rsix: ["RSI entered overbought"],

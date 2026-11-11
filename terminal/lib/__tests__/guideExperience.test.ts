@@ -52,12 +52,20 @@ describe("indicator guide experience", () => {
   });
 
   it("loads complete English and Chinese documents with stable section ids", async () => {
-    for (const entry of MODULE_CATALOG) {
+    // Issue every catalog load at once (31 modules × en/zh). A sequential await per
+    // module can exceed the default 5s test timeout when the worker is busy.
+    const loaded = await Promise.all(
+      MODULE_CATALOG.map((entry) =>
+        Promise.all([
+          loadGuide(entry.suiteKey, entry.moduleKey, "en"),
+          loadGuide(entry.suiteKey, entry.moduleKey, "zh"),
+        ]),
+      ),
+    );
+
+    for (const [index, entry] of MODULE_CATALOG.entries()) {
       const id = `${entry.suiteKey}/${entry.moduleKey}`;
-      const [english, chinese] = await Promise.all([
-        loadGuide(entry.suiteKey, entry.moduleKey, "en"),
-        loadGuide(entry.suiteKey, entry.moduleKey, "zh"),
-      ]);
+      const [english, chinese] = loaded[index];
 
       expect(english, `${id} English guide`).not.toBeNull();
       expect(chinese, `${id} Chinese guide`).not.toBeNull();
@@ -90,7 +98,7 @@ describe("indicator guide experience", () => {
     }
 
     await expect(loadGuide("trend", "missing", "en")).resolves.toBeNull();
-  });
+  }, 30_000);
 
   it("keeps ids language-neutral, unique, and deterministic for repeated headings", () => {
     const english = parseGuideDocument(`# Example

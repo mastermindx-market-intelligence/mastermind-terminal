@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { normalizeTranscript } from "../fund";
-import { getTickerTranscriptIndex, normalizeTickerTranscriptIndex } from "../transcripts";
+import { ARCHIVE_REQUEST_TIMEOUT_MS, getTickerTranscriptIndex, normalizeTickerTranscriptIndex } from "../transcripts";
 
 const call = (id: string) => ({
   id,
@@ -18,7 +18,10 @@ const call = (id: string) => ({
   source: "DefeatBeta",
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 
 describe("ticker transcript index", () => {
   it("validates enriched metadata, sorts, and drops unsafe rows", () => {
@@ -88,6 +91,7 @@ describe("ticker transcript index", () => {
       expect(result.source).toBe("global");
       expect(result.index.calls.map((item) => item.id)).toEqual(["2026Q3", "2026Q2"]);
       expect(result.warning).toContain("rebuilding");
+      expect(result.warningCode).toBe("rebuilding");
     }
   });
 
@@ -99,6 +103,130 @@ describe("ticker transcript index", () => {
     const result = await getTickerTranscriptIndex("AAPL", { retryNonce: 7 });
     expect(result).toEqual({ status: "error", message: "Archive commit marker is missing" });
     expect(vi.mocked(fetch).mock.calls[0][0]).toContain("?retry=7");
+  });
+});
+
+describe("archive request deadline", () => {
+  const GENERATED = "2026-08-01T00:00:00Z";
+  const marker = () => new Response(JSON.stringify({
+    schema: "mastermind.tx-index/v1", generated_at: GENERATED, symbols: { AAPL: ["2026Q2", "2026Q3"] },
+  }), { status: 200 });
+  const symbolIndex = () => new Response(JSON.stringify({
+    schema: "mastermind.tx-symbol-index/v1", generated_at: GENERATED, ticker: "AAPL", calls: [call("2026Q2"), call("2026Q3")],
+  }), { status: 200 });
+  const never = () => new Promise<Response>(() => undefined);
+  const after = (ms: number, make: () => Response) => new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(make()), ms);
+  });
+  /** A response whose headers arrive but whose JSON body never finishes. */
+  const stalledBody = () => ({ status: 200, ok: true, json: never } as unknown as Response);
+
+  type Route = () => Promise<Response>;
+  function route(symbol: Route, global: Route) {
+    return vi.spyOn(globalThis, "fetch").mockImplementation((input) => (
+      String(input).startsWith("/data/tx/index.json") ? global() : symbol()
+    ));
+  }
+  const signalOf = (url: string) => {
+    const hit = vi.mocked(fetch).mock.calls.find(([input]) => String(input).startsWith(url));
+    return (hit?.[1] as RequestInit | undefined)?.signal ?? null;
+  };
+
+  /** Resolve the load under fake time, failing if it is still pending after `ms`. */
+  async function settleWithin<T>(promise: Promise<T>, ms: number): Promise<T> {
+    let settled = false;
+    const tracked = promise.finally(() => {
+      settled = true;
+    });
+    await vi.advanceTimersByTimeAsync(ms);
+    expect(settled).toBe(true);
+    return tracked;
+  }
+
+  it("falls back to the committed global index when ticker metadata headers stall", async () => {
+    vi.useFakeTimers();
+    route(never, async () => marker());
+    const result = await settleWithin(getTickerTranscriptIndex("AAPL"), ARCHIVE_REQUEST_TIMEOUT_MS);
+    expect(result).toMatchObject({ status: "ok", source: "global", warningCode: "timeout" });
+    if (result.status === "ok") {
+      expect(result.index.calls.map((item) => item.id)).toEqual(["2026Q3", "2026Q2"]);
+      expect(result.warning).toContain("timed out");
+    }
+    expect(signalOf("/data/tx/AAPL/index.json")?.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("bounds the JSON body, not only the headers", async () => {
+    vi.useFakeTimers();
+    route(async () => stalledBody(), async () => marker());
+    const result = await settleWithin(getTickerTranscriptIndex("AAPL"), ARCHIVE_REQUEST_TIMEOUT_MS);
+    expect(result).toMatchObject({ status: "ok", source: "global", warningCode: "timeout" });
+  });
+
+  it("does not settle a stall before the deadline", async () => {
+    vi.useFakeTimers();
+    route(never, async () => marker());
+    let settled = false;
+    const load = getTickerTranscriptIndex("AAPL").finally(() => {
+      settled = true;
+    });
+    await vi.advanceTimersByTimeAsync(ARCHIVE_REQUEST_TIMEOUT_MS - 1);
+    expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(load).resolves.toMatchObject({ warningCode: "timeout" });
+  });
+
+  it("reports a stalled commit marker as a timed-out archive error, never as ready ticker data", async () => {
+    vi.useFakeTimers();
+    route(async () => symbolIndex(), never);
+    const result = await settleWithin(getTickerTranscriptIndex("AAPL"), ARCHIVE_REQUEST_TIMEOUT_MS);
+    expect(result).toEqual({ status: "error", message: "Archive commit marker request timed out", timedOut: true });
+  });
+
+  it("keeps ticker metadata that arrives before the deadline", async () => {
+    vi.useFakeTimers();
+    route(() => after(ARCHIVE_REQUEST_TIMEOUT_MS - 100, symbolIndex), async () => marker());
+    const result = await settleWithin(getTickerTranscriptIndex("AAPL"), ARCHIVE_REQUEST_TIMEOUT_MS);
+    expect(result).toMatchObject({ status: "ok", source: "symbol" });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("ignores ticker metadata that arrives after the deadline", async () => {
+    vi.useFakeTimers();
+    route(() => after(ARCHIVE_REQUEST_TIMEOUT_MS + 1_000, symbolIndex), async () => marker());
+    const result = await settleWithin(getTickerTranscriptIndex("AAPL"), ARCHIVE_REQUEST_TIMEOUT_MS);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(result).toMatchObject({ status: "ok", source: "global", warningCode: "timeout" });
+  });
+
+  it("drops a stalled ticker request as soon as the commit marker fails", async () => {
+    vi.useFakeTimers();
+    route(never, async () => new Response("unavailable", { status: 503 }));
+    const result = await settleWithin(getTickerTranscriptIndex("AAPL"), 0);
+    expect(result).toEqual({ status: "error", message: "Archive request failed (503)" });
+    expect(signalOf("/data/tx/AAPL/index.json")?.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("cancels both requests when the caller aborts", async () => {
+    vi.useFakeTimers();
+    route(never, never);
+    const controller = new AbortController();
+    const load = getTickerTranscriptIndex("AAPL", { signal: controller.signal });
+    controller.abort();
+    const result = await settleWithin(load, 0);
+    expect(result.status).toBe("error");
+    expect(signalOf("/data/tx/AAPL/index.json")?.aborted).toBe(true);
+    expect(signalOf("/data/tx/index.json")?.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("names a ticker index that disagrees with the commit generation as invalid", async () => {
+    route(async () => new Response(JSON.stringify({
+      schema: "mastermind.tx-symbol-index/v1", generated_at: "2026-07-01T00:00:00Z", ticker: "AAPL", calls: [call("2026Q2"), call("2026Q3")],
+    }), { status: 200 }), async () => marker());
+    const result = await getTickerTranscriptIndex("AAPL");
+    expect(result).toMatchObject({ status: "ok", source: "global", warningCode: "invalid" });
   });
 });
 

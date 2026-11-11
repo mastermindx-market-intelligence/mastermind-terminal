@@ -1,0 +1,2738 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/search-dialog-ownership.spec.ts",
+      "e2e/search-accessibility.spec.ts",
+      "e2e/search-add-to-list.spec.ts",
+      "e2e/search-dialog-crops.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=1",
+      "--reporter=line,json"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3192",
+      "url": "http://127.0.0.1:3192/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "search-accessibility.spec.ts",
+      "file": "search-accessibility.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the search field is a combobox whose results are machine-readable options",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3739,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:11.313Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-53ad29811157d03cb565",
+          "file": "search-accessibility.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "ArrowDown moves the active option and Enter opens the one it names",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6410,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:15.276Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-aed2bf55685f03a8eb72",
+          "file": "search-accessibility.spec.ts",
+          "line": 61,
+          "column": 5
+        },
+        {
+          "title": "the Add control stays reachable beside the option, never inside it",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6665,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:21.695Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-e31722a228b6d3672d95",
+          "file": "search-accessibility.spec.ts",
+          "line": 88,
+          "column": 5
+        },
+        {
+          "title": "the placeholder promises only what search implements, and that promise resolves",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6653,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:28.371Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-8c824ba2247700a8086a",
+          "file": "search-accessibility.spec.ts",
+          "line": 102,
+          "column": 5
+        },
+        {
+          "title": "the search field is a combobox whose results are machine-readable options",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4232,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:14.771Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-46e007034c3964b2bffd",
+          "file": "search-accessibility.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "ArrowDown moves the active option and Enter opens the one it names",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Physical-keyboard navigation; the touch viewports select by tap.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-accessibility.spec.ts",
+                    "line": 62,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 297,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:19.253Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Physical-keyboard navigation; the touch viewports select by tap.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-accessibility.spec.ts",
+                        "line": 62,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-1001e497d656eab39a50",
+          "file": "search-accessibility.spec.ts",
+          "line": 61,
+          "column": 5
+        },
+        {
+          "title": "the Add control stays reachable beside the option, never inside it",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4047,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:19.561Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-c526c27088bf69e1b3ae",
+          "file": "search-accessibility.spec.ts",
+          "line": 88,
+          "column": 5
+        },
+        {
+          "title": "the placeholder promises only what search implements, and that promise resolves",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4764,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:23.616Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-e6ae863fea1b4d11a150",
+          "file": "search-accessibility.spec.ts",
+          "line": 102,
+          "column": 5
+        },
+        {
+          "title": "the search field is a combobox whose results are machine-readable options",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7761,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:21.606Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-b128ffde42b304cada62",
+          "file": "search-accessibility.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "ArrowDown moves the active option and Enter opens the one it names",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Physical-keyboard navigation; the touch viewports select by tap.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-accessibility.spec.ts",
+                    "line": 62,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 95,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:29.589Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Physical-keyboard navigation; the touch viewports select by tap.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-accessibility.spec.ts",
+                        "line": 62,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-5694fcec601fe8df160f",
+          "file": "search-accessibility.spec.ts",
+          "line": 61,
+          "column": 5
+        },
+        {
+          "title": "the Add control stays reachable beside the option, never inside it",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7597,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:29.695Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-58d937817854f3fa50bf",
+          "file": "search-accessibility.spec.ts",
+          "line": 88,
+          "column": 5
+        },
+        {
+          "title": "the placeholder promises only what search implements, and that promise resolves",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4239,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:37.299Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3fd3925c0cfdb638e3cd-c81bcd9551643e25238a",
+          "file": "search-accessibility.spec.ts",
+          "line": 102,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "search-add-to-list.spec.ts",
+      "file": "search-add-to-list.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the add-to-list picker is fully visible on a one-result search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5339,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:35.042Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-ed9b25641869b2c030f5",
+          "file": "search-add-to-list.spec.ts",
+          "line": 56,
+          "column": 5
+        },
+        {
+          "title": "the add-to-list picker stays above the search sheet on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Regression is the phone drawer stacking context.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 89,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 126,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:40.394Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Regression is the phone drawer stacking context.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 89,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-569d1388201b7ad25218",
+          "file": "search-add-to-list.spec.ts",
+          "line": 88,
+          "column": 5
+        },
+        {
+          "title": "scrolling the result list closes the picker instead of stranding it",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4696,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:40.531Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-a642da5fe46c74f33ef3",
+          "file": "search-add-to-list.spec.ts",
+          "line": 129,
+          "column": 5
+        },
+        {
+          "title": "a signed-in user with ONE list still gets the picker, because Portfolio is a destination",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6464,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:45.237Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-1723a24764725d845690",
+          "file": "search-add-to-list.spec.ts",
+          "line": 147,
+          "column": 5
+        },
+        {
+          "title": "with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4339,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:51.710Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-9f7298ee03a0d0edd770",
+          "file": "search-add-to-list.spec.ts",
+          "line": 223,
+          "column": 5
+        },
+        {
+          "title": "the add-to-list picker is fully visible on a one-result search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The picker is a pointer affordance; the phone sheet has its own layout.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 57,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 89,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:28.405Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The picker is a pointer affordance; the phone sheet has its own layout.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 57,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-57f89c6e21ea1b32f77b",
+          "file": "search-add-to-list.spec.ts",
+          "line": 56,
+          "column": 5
+        },
+        {
+          "title": "the add-to-list picker stays above the search sheet on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Regression is the phone drawer stacking context.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 89,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 94,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:28.503Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Regression is the phone drawer stacking context.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 89,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-61a89d6db30a933db280",
+          "file": "search-add-to-list.spec.ts",
+          "line": 88,
+          "column": 5
+        },
+        {
+          "title": "scrolling the result list closes the picker instead of stranding it",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer affordance; desktop is where the popover lives.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 130,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 66,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:28.606Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer affordance; desktop is where the popover lives.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 130,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-e483ba9a6ef93ae182ce",
+          "file": "search-add-to-list.spec.ts",
+          "line": 129,
+          "column": 5
+        },
+        {
+          "title": "a signed-in user with ONE list still gets the picker, because Portfolio is a destination",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer affordance; desktop is where the popover lives.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 148,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 75,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:28.678Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer affordance; desktop is where the popover lives.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 148,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-cb3a7cb6505b471a371d",
+          "file": "search-add-to-list.spec.ts",
+          "line": 147,
+          "column": 5
+        },
+        {
+          "title": "with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer affordance; desktop is where the rail lives.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 224,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 76,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:28.759Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer affordance; desktop is where the rail lives.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 224,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-fa74468cb341f678085f",
+          "file": "search-add-to-list.spec.ts",
+          "line": 223,
+          "column": 5
+        },
+        {
+          "title": "the add-to-list picker is fully visible on a one-result search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The picker is a pointer affordance; the phone sheet has its own layout.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 57,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 97,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:41.580Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The picker is a pointer affordance; the phone sheet has its own layout.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 57,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-2e5be1b2440bb0af028b",
+          "file": "search-add-to-list.spec.ts",
+          "line": 56,
+          "column": 5
+        },
+        {
+          "title": "the add-to-list picker stays above the search sheet on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5727,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:41.692Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-27ba29960e34f3d24dcd",
+          "file": "search-add-to-list.spec.ts",
+          "line": 88,
+          "column": 5
+        },
+        {
+          "title": "scrolling the result list closes the picker instead of stranding it",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer affordance; desktop is where the popover lives.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 130,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 69,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:47.428Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer affordance; desktop is where the popover lives.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 130,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-a86a9ccaa18f96d49e0e",
+          "file": "search-add-to-list.spec.ts",
+          "line": 129,
+          "column": 5
+        },
+        {
+          "title": "a signed-in user with ONE list still gets the picker, because Portfolio is a destination",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer affordance; desktop is where the popover lives.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 148,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 76,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:47.503Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer affordance; desktop is where the popover lives.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 148,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-264a6fab308f533710b1",
+          "file": "search-add-to-list.spec.ts",
+          "line": 147,
+          "column": 5
+        },
+        {
+          "title": "with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer affordance; desktop is where the rail lives.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                    "line": 224,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 79,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:47.587Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer affordance; desktop is where the rail lives.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-add-to-list.spec.ts",
+                        "line": 224,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ceb39aa6aa0329c981b2-87f23628252a751d62fa",
+          "file": "search-add-to-list.spec.ts",
+          "line": 223,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "search-dialog-crops.spec.ts",
+      "file": "search-dialog-crops.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "symbol tasks remain coherent with long results and reduced motion — en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9577,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:50:56.082Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3f80e2f2d1afc9f996ac-968d49fbf67adbb361da",
+          "file": "search-dialog-crops.spec.ts",
+          "line": 37,
+          "column": 7
+        },
+        {
+          "title": "symbol tasks remain coherent with long results and reduced motion — zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11248,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:51:05.668Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3f80e2f2d1afc9f996ac-f8931a05deed260d6dbe",
+          "file": "search-dialog-crops.spec.ts",
+          "line": 37,
+          "column": 7
+        },
+        {
+          "title": "symbol tasks remain coherent with long results and reduced motion — en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14251,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:28.848Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3f80e2f2d1afc9f996ac-7143fe03936c74a54074",
+          "file": "search-dialog-crops.spec.ts",
+          "line": 37,
+          "column": 7
+        },
+        {
+          "title": "symbol tasks remain coherent with long results and reduced motion — zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11724,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:43.109Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3f80e2f2d1afc9f996ac-92349b688be41aafedc0",
+          "file": "search-dialog-crops.spec.ts",
+          "line": 37,
+          "column": 7
+        },
+        {
+          "title": "symbol tasks remain coherent with long results and reduced motion — en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10653,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:47.677Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3f80e2f2d1afc9f996ac-858fde9eac1151b6bdae",
+          "file": "search-dialog-crops.spec.ts",
+          "line": 37,
+          "column": 7
+        },
+        {
+          "title": "symbol tasks remain coherent with long results and reduced motion — zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10463,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:58.338Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3f80e2f2d1afc9f996ac-6a1fb4e4306582f271a6",
+          "file": "search-dialog-crops.spec.ts",
+          "line": 37,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "search-dialog-ownership.spec.ts",
+      "file": "search-dialog-ownership.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Compare owns focus from every control and returns it to its opener",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6329,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:51:16.930Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-509131aab6c90c24293c",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "title": "Escape backs out of an inline list name, its picker, then search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8525,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:51:23.270Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-4249413a5192154fc4d0",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 76,
+          "column": 5
+        },
+        {
+          "title": "keyboard save creates a watchlist once and restores focus after inline confirmation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8404,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:51:31.810Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-c9970c349036715d509a",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "title": "Portfolio handoff transfers focus to the position form without changing the chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8894,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:51:40.224Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-54ce2a5901467f065bdb",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 119,
+          "column": 5
+        },
+        {
+          "title": "Add Symbol has an operable close control and the same focus boundary",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4941,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:51:49.129Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-5f5f00d96fb1af3ae292",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 132,
+          "column": 5
+        },
+        {
+          "title": "composing keys and chart shortcuts cannot escape a search task",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4057,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:51:54.078Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-6f96e30dd61295c280d6",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 159,
+          "column": 5
+        },
+        {
+          "title": "untyped opening matches the visible task and accessible symbol",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3972,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:51:58.143Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-f3f98ca9a13133cd0ee2",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 177,
+          "column": 5
+        },
+        {
+          "title": "a category that removes the focused picker recovers inside search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5970,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:02.126Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-922cd95a946a19f84b30",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 208,
+          "column": 5
+        },
+        {
+          "title": "Compare exposes only its current action and returns focus after adding or removing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5556,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:08.104Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-72ce4b079bbcefcdb9c3",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 222,
+          "column": 5
+        },
+        {
+          "title": "Compare owns focus from every control and returns it to its opener",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Tablet continuation geometry is covered by the crop matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 50,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 77,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:54.848Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Tablet continuation geometry is covered by the crop matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 50,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-e5dd0836db3302bdd5d7",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "title": "Escape backs out of an inline list name, its picker, then search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8961,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:52:54.932Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-0c26619d9c5f7d3b2f3b",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 76,
+          "column": 5
+        },
+        {
+          "title": "keyboard save creates a watchlist once and restores focus after inline confirmation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The existing add-to-list suite covers pointer persistence on desktop and phone.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 104,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 83,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:03.901Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The existing add-to-list suite covers pointer persistence on desktop and phone.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 104,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-d0f3e277dd4a7d4bc305",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "title": "Portfolio handoff transfers focus to the position form without changing the chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5421,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:03.992Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-51a52fec75b4ad172f2b",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 119,
+          "column": 5
+        },
+        {
+          "title": "Add Symbol has an operable close control and the same focus boundary",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The watchlist rail is a desktop entry; the modal itself is checked at touch widths in the crop matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 133,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 90,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:09.419Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The watchlist rail is a desktop entry; the modal itself is checked at touch widths in the crop matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 133,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-7000dd1902a3b3b2db66",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 132,
+          "column": 5
+        },
+        {
+          "title": "composing keys and chart shortcuts cannot escape a search task",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop keyboard isolation; the phone primary drawer retains its own keyboard contract.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 160,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 77,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:09.518Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop keyboard isolation; the phone primary drawer retains its own keyboard contract.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 160,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-690c4a9a83bb3b540ed1",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 159,
+          "column": 5
+        },
+        {
+          "title": "untyped opening matches the visible task and accessible symbol",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5551,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:09.603Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-c2a8db5675f61e10cac6",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 177,
+          "column": 5
+        },
+        {
+          "title": "a category that removes the focused picker recovers inside search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5902,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:15.163Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-2394e8a5e4c6aa8fc120",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 208,
+          "column": 5
+        },
+        {
+          "title": "Compare exposes only its current action and returns focus after adding or removing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Tablet continuation geometry is covered by the crop matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 223,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:53:21.073Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Tablet continuation geometry is covered by the crop matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 223,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-3d45fa87d60f94663036",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 222,
+          "column": 5
+        },
+        {
+          "title": "Compare owns focus from every control and returns it to its opener",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7999,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:08.815Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-e3e776c24f89211fc8c2",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "title": "Escape backs out of an inline list name, its picker, then search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Phone primary search retains the incumbent sheet focus owner.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 77,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 62,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:16.820Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Phone primary search retains the incumbent sheet focus owner.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 77,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-f30f7ea8090c130a9e82",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 76,
+          "column": 5
+        },
+        {
+          "title": "keyboard save creates a watchlist once and restores focus after inline confirmation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The existing add-to-list suite covers pointer persistence on desktop and phone.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 104,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 59,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:16.888Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The existing add-to-list suite covers pointer persistence on desktop and phone.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 104,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-a3ffa9b2388cf235ad45",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "title": "Portfolio handoff transfers focus to the position form without changing the chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6452,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:16.953Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-2a7738f5ce381507ddbd",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 119,
+          "column": 5
+        },
+        {
+          "title": "Add Symbol has an operable close control and the same focus boundary",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The watchlist rail is a desktop entry; the modal itself is checked at touch widths in the crop matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 133,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 74,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:23.410Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The watchlist rail is a desktop entry; the modal itself is checked at touch widths in the crop matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 133,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-03b8d82d3dfae9c240e2",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 132,
+          "column": 5
+        },
+        {
+          "title": "composing keys and chart shortcuts cannot escape a search task",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop keyboard isolation; the phone primary drawer retains its own keyboard contract.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 160,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 66,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:23.490Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop keyboard isolation; the phone primary drawer retains its own keyboard contract.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 160,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-2c56f526a58ee522c605",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 159,
+          "column": 5
+        },
+        {
+          "title": "untyped opening matches the visible task and accessible symbol",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:23.561Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-cfd9860d39883a3dfb6a",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 177,
+          "column": 5
+        },
+        {
+          "title": "a category that removes the focused picker recovers inside search",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Phone primary search retains its own sheet focus contract.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                    "line": 209,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 72,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:28.688Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Phone primary search retains its own sheet focus contract.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/search-dialog-ownership.spec.ts",
+                        "line": 209,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-fe83ed1793953d9cfc7c",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 208,
+          "column": 5
+        },
+        {
+          "title": "Compare exposes only its current action and returns focus after adding or removing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10446,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T19:54:28.765Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2baff547dfb68cf77734-d620efe1bff626cd7ceb",
+          "file": "search-dialog-ownership.spec.ts",
+          "line": 222,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-22T19:50:05.167Z",
+    "duration": 274203.853,
+    "expected": 38,
+    "skipped": 22,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

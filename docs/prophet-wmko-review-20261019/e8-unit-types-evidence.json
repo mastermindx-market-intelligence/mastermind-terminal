@@ -1,0 +1,85 @@
+{
+  "head": "aaeada599ec119df9ea5b69c7b090b12fcd34b44",
+  "tree": "edc4b1820875fa7eaf2ac8c79853d857eb5553a0",
+  "started_at": "2026-10-19T10:29:39.547947+00:00",
+  "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal",
+  "commands": [
+    [
+      "./node_modules/.bin/next",
+      "typegen"
+    ],
+    [
+      "./node_modules/.bin/tsc",
+      "--noEmit"
+    ],
+    [
+      "npm",
+      "test",
+      "--",
+      "--no-file-parallelism"
+    ]
+  ],
+  "capture_manifest_sha256": "7b99c738c0a1df169593d33b6b9d39ce216c74ba15da1b8c001b452c79c50209",
+  "capture_report_sha256": "5ff97bcda63b782b789bebdd9648344b688c50101f58e90746a9801907110f8d",
+  "node": "v26.5.0",
+  "npm": "11.17.0",
+  "results": [
+    {
+      "command": [
+        "./node_modules/.bin/next",
+        "typegen"
+      ],
+      "started_at": "2026-10-19T10:29:39.754405+00:00",
+      "ended_at": "2026-10-19T10:29:40.351034+00:00",
+      "exit": 0,
+      "duration_seconds": 0.597,
+      "output_lines": 2,
+      "result_lines": []
+    },
+    {
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit"
+      ],
+      "started_at": "2026-10-19T10:29:40.351425+00:00",
+      "ended_at": "2026-10-19T10:29:49.889145+00:00",
+      "exit": 0,
+      "duration_seconds": 9.538,
+      "output_lines": 0,
+      "result_lines": []
+    },
+    {
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "--no-file-parallelism"
+      ],
+      "started_at": "2026-10-19T10:29:49.889428+00:00",
+      "ended_at": "2026-10-19T10:34:50.450303+00:00",
+      "exit": 0,
+      "duration_seconds": 300.563,
+      "output_lines": 2052,
+      "result_lines": [
+        "stderr | lib/__tests__/teamsInvitationsRoute.test.ts > GET /api/teams/invitations > H2: a read error that is NOT absence -> 503 READ_FAILED, never the not-set-up sentence",
+        "stderr | lib/__tests__/teamsInvitationsRoute.test.ts > GET /api/teams/invitations > a caller-role read error is classified the same way: absence 503 UNAVAILABLE, anything else 503 READ_FAILED",
+        "stderr | lib/__tests__/teamsRoute.test.ts > /api/teams and /api/teams/[id]/members > fault: non-absence error -> 503 READ_FAILED, distinct from READ_UNAVAILABLE",
+        " Test Files  786 passed (786)",
+        "      Tests  13245 passed | 4 todo (13249)",
+        "   Duration  299.69s (transform 13.39s, setup 0ms, collect 39.98s, tests 109.25s, environment 35.52s, prepare 27.06s)"
+      ]
+    }
+  ],
+  "scope": "Full unfiltered unit suite, unchanged evidence guard, generated Next types and TypeScript; no authenticated production proof",
+  "ended_at": "2026-10-19T10:34:50.454060+00:00",
+  "tracked_bytes_preserved": true,
+  "raw_original_44_preserved": true,
+  "head_preserved": true,
+  "log_sha256": "c63c69a22f06d1725036c0289d6aa4642734fbedd693bbc90faac5bc79ad5105",
+  "tracked_status_after": [
+    " M terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+    " M terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json",
+    " M terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+    " M terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png"
+  ]
+}

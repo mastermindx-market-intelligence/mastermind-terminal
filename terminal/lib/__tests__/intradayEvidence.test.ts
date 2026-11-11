@@ -34,7 +34,7 @@ describe("buildIntradaySourceEvidence", () => {
     ]);
     const result = buildIntradaySourceEvidence(bars, trace, ctx());
     expect(result.source_counts).toEqual({
-      stored_5m: 2, stored_1h: 2, live_tail: 0, unattributed: 0,
+      stored_5m: 2, stored_1h: 2, live_tail: 0, tiingo_boats_rest: 0, unattributed: 0,
     });
   });
 
@@ -45,7 +45,7 @@ describe("buildIntradaySourceEvidence", () => {
     ]);
     const result = buildIntradaySourceEvidence(bars, trace, ctx());
     expect(result.source_counts).toEqual({
-      stored_5m: 2, stored_1h: 0, live_tail: 1, unattributed: 0,
+      stored_5m: 2, stored_1h: 0, live_tail: 1, tiingo_boats_rest: 0, unattributed: 0,
     });
   });
 
@@ -59,7 +59,7 @@ describe("buildIntradaySourceEvidence", () => {
   it("returns empty counts for empty bars", () => {
     const result = buildIntradaySourceEvidence([], null, ctx());
     expect(result.source_counts).toEqual({
-      stored_5m: 0, stored_1h: 0, live_tail: 0, unattributed: 0,
+      stored_5m: 0, stored_1h: 0, live_tail: 0, tiingo_boats_rest: 0, unattributed: 0,
     });
     expect(result.construction).toBe("empty");
   });

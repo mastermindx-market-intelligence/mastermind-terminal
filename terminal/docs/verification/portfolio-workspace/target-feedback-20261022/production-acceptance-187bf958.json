@@ -1,0 +1,71 @@
+{
+  "schema": "portfolio.production_acceptance.v1",
+  "observed_utc_window": {
+    "start": "2026-10-22T01:08:00Z",
+    "end": "2026-10-22T01:14:51Z",
+    "start_precision": "minute"
+  },
+  "application_sha": "187bf9582b3deba2de49b597e29ccce6356333d3",
+  "context": "Authenticated production UI acceptance using one disposable fictional position; the live user authorized continuation of the previously specified seven-write sequence.",
+  "account_identity": "Verified through Account Settings before the first write; account identifiers and record UUID intentionally omitted from this public receipt.",
+  "baseline": {
+    "open_positions": 0,
+    "closed_positions": 0,
+    "targets": 0
+  },
+  "synthetic_record": {
+    "ticker": "AAPL",
+    "shares": 1,
+    "entry_price": 100,
+    "currency": "USD",
+    "entry_date": "2026-10-01",
+    "notes": "Unique QA marker, then edited marker; private record ID captured for exact cleanup."
+  },
+  "successful_writes": [
+    {
+      "action": "create",
+      "readback": "Reload preserved the same record identity, date, quantity, entry price, currency and notes."
+    },
+    {
+      "action": "edit_notes",
+      "readback": "Reload preserved the same record identity and all other position fields."
+    },
+    {
+      "action": "set_target_100_percent",
+      "readback": "Reload showed target 100 and unchanged default band 5."
+    },
+    {
+      "action": "close",
+      "readback": "Reload showed the same closed record; the retained 100 / ±5 target appeared in Portfolio and Settings."
+    },
+    {
+      "action": "clear_orphan_target",
+      "readback": "Settings clear removed the target; reload verified absence in Portfolio and Settings while the closed record remained."
+    },
+    {
+      "action": "reopen",
+      "readback": "Reload showed the same open record with edited notes and no restored target."
+    },
+    {
+      "action": "delete",
+      "readback": "Explicit confirmation deleted only the QA record; reload returned both open and closed books to zero."
+    }
+  ],
+  "final": {
+    "open_positions": 0,
+    "closed_positions": 0,
+    "targets": 0,
+    "qa_record_present": false,
+    "overview_empty": true,
+    "application_sha": "187bf9582b3deba2de49b597e29ccce6356333d3",
+    "browser_error_log_entries": 0
+  },
+  "qualification": [
+    "Reloads intentionally checked persistence after successful writes; no reload was used to recover a failed write.",
+    "No real trade was executed. No account-security, billing, or other-user setting was changed.",
+    "A date-entry correction and a locator correction occurred before their respective submission; neither dispatched an extra mutation.",
+    "Quote source currency was missing, and the UI withheld market value and since-entry calculations with an explanation.",
+    "No positive Treasury-history financial metric, comprehensive assistive-technology acceptance, or completion of the entire project is claimed.",
+    "No account screenshot or raw browser snapshot is included in this public packet."
+  ]
+}

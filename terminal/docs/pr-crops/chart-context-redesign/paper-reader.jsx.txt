@@ -1,0 +1,195 @@
+(
+    <div id="6I6T-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSize: '12px', fontSynthesis: 'none', gap: '8px', lineHeight: '16px', MozOsxFontSmoothing: 'grayscale', overflowWrap: 'anywhere', paddingBlock: '14px', paddingInline: '16px', WebkitFontSmoothing: 'antialiased', width: '360px' }}>
+      <div id="6I9C-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', width: '328px' }}>
+        <div id="6I9D-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div id="6I9E-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '17px', fontWeight: 600, lineHeight: '22px' }}>
+            Chart context
+          </div>
+          <div id="6I9F-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            002326.SZ · 3D
+          </div>
+        </div>
+        <div id="6I9G-0" style={{ alignItems: 'center', borderColor: 'var(--market-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '32px', justifyContent: 'center', width: '32px' }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg" id="6I9H-0" style={{ display: 'inline-block', flexShrink: '0' }}>
+            <path d="M3 3l8 8M11 3l-8 8" fill="#000000" stroke="#8B93A1" strokeWidth="1.5" />
+          </svg>
+        </div>
+      </div>
+      <div id="6I9J-0" style={{ alignItems: 'center', backgroundColor: 'var(--market-raised)', borderColor: 'var(--market-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '52px', paddingBlock: '8px', paddingInline: '10px', width: '328px' }}>
+        <div id="6I9K-0" style={{ boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '3px' }}>
+          <div id="6I9L-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+            LATEST PLOTTED BAR
+          </div>
+          <div id="6I9M-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+            15 Oct 2026
+          </div>
+        </div>
+        <div id="6I9N-0" style={{ alignItems: 'center', borderColor: 'var(--market-line)', borderRadius: '6px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '30px', justifyContent: 'center', width: '28px' }}>
+          <div id="6I9O-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '16px', lineHeight: '20px' }}>
+            ‹
+          </div>
+        </div>
+        <div id="6I9P-0" style={{ alignItems: 'center', borderColor: 'var(--market-line)', borderRadius: '6px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '30px', justifyContent: 'center', width: '28px' }}>
+          <div id="6I9Q-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '16px', lineHeight: '20px' }}>
+            ›
+          </div>
+        </div>
+        <div id="6I9R-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-link)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+          Latest
+        </div>
+      </div>
+      <div id="6I9T-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '2px', paddingTop: '4px', width: '328px' }}>
+        <div id="6I9U-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '23px', fontWeight: 600, lineHeight: '125%', whiteSpace: 'pre-wrap' }}>
+          Up bar in a<br />downward trend
+        </div>
+        <div id="6I9V-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px' }}>
+          <div id="6I9W-0" style={{ backgroundColor: 'var(--mx-dark-muted)', borderRadius: '3px', boxSizing: 'border-box', flexShrink: '0', height: '6px', width: '6px' }} />
+          <div id="6I9X-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            Mixed momentum
+          </div>
+        </div>
+      </div>
+      <div id="6I9Y-0" style={{ alignItems: 'center', backgroundColor: 'var(--market-raised)', borderColor: 'var(--market-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', paddingBlock: '13px', paddingInline: '14px', width: '328px' }}>
+        <div id="6I9Z-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div id="6IA0-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+            Bar move
+          </div>
+          <div id="6IA1-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+            3D · open → close
+          </div>
+        </div>
+        <div id="6IA2-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-up)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '25px', fontWeight: 600, lineHeight: '30px' }}>
+          +3.05%
+        </div>
+      </div>
+      <div id="6IA4-0" style={{ backgroundColor: 'var(--market-raised)', borderColor: 'var(--market-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px', padding: '14px', width: '328px' }}>
+        <div id="6IA5-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+          <div id="6IA6-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+            Trend
+          </div>
+          <div id="6IA7-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px' }}>
+            <svg width="18" height="14" viewBox="0 0 18 14" xmlns="http://www.w3.org/2000/svg" id="6IA8-0" style={{ display: 'inline-block', flexShrink: '0' }}>
+              <path d="M2 3l5 5 4-3 5 6M11 11h5V6" fill="none" stroke="#E06464" strokeWidth="1.6" />
+            </svg>
+            <div id="6IAA-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-down)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+              Downward
+            </div>
+          </div>
+        </div>
+        <div id="6IAB-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+          Price is below both averages
+        </div>
+        <div id="6IAC-0" style={{ boxSizing: 'border-box', display: 'flex', gap: '8px' }}>
+          <div id="6IAD-0" style={{ borderTopColor: 'var(--mx-dark-text)', borderTopStyle: 'solid', borderTopWidth: '2px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '4px', paddingTop: '7px' }}>
+            <div id="6IAE-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              PRICE
+            </div>
+            <div id="6IAF-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontWeight: 600, lineHeight: '18px' }}>
+              16.54
+            </div>
+          </div>
+          <div id="6IAG-0" style={{ borderTopColor: 'var(--mx-dark-orange)', borderTopStyle: 'solid', borderTopWidth: '2px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '4px', paddingTop: '7px' }}>
+            <div id="6IAH-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              EMA 20
+            </div>
+            <div id="6IAI-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontWeight: 600, lineHeight: '18px' }}>
+              18.21
+            </div>
+          </div>
+          <div id="6IAJ-0" style={{ borderTopColor: 'var(--mx-dark-info)', borderTopStyle: 'solid', borderTopWidth: '2px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '4px', paddingTop: '7px' }}>
+            <div id="6IAK-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              EMA 50
+            </div>
+            <div id="6IAL-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontWeight: 600, lineHeight: '18px' }}>
+              19.88
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="6IAN-0" style={{ backgroundColor: 'var(--market-raised)', borderColor: 'var(--market-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '10px', padding: '14px', width: '328px' }}>
+        <div id="6IAO-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+          <div id="6IAP-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+            Momentum
+          </div>
+          <div id="6IAQ-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+            Mixed
+          </div>
+        </div>
+        <div id="6IAR-0" style={{ alignItems: 'baseline', boxSizing: 'border-box', display: 'flex', gap: '8px' }}>
+          <div id="6IAS-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '24px', fontWeight: 600, lineHeight: '30px' }}>
+            40.19
+          </div>
+          <div id="6IAT-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+            RSI 14
+          </div>
+        </div>
+        <div id="6IAU-0" style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '3px', height: '8px', position: 'relative', width: '300px' }}>
+          <div id="6IAV-0" style={{ backgroundColor: 'var(--mx-dark-down)', borderBottomLeftRadius: '4px', borderTopLeftRadius: '4px', boxSizing: 'border-box', height: '8px', opacity: '0.45', width: 'round(40%, 1px)' }} />
+          <div id="6IAW-0" style={{ backgroundColor: 'var(--mx-dark-muted)', boxSizing: 'border-box', height: '8px', opacity: '0.35', width: 'round(20%, 1px)' }} />
+          <div id="6IAX-0" style={{ backgroundColor: 'var(--mx-dark-up)', borderBottomRightRadius: '4px', borderTopRightRadius: '4px', boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', height: '8px', opacity: '0.45' }} />
+          <div id="6IAY-0" style={{ backgroundColor: 'var(--mx-dark-text)', borderRadius: '2px', boxSizing: 'border-box', height: '14px', left: '119px', position: 'absolute', top: '-3px', width: '3px' }} />
+        </div>
+        <div id="6IAZ-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+          <div id="6IB0-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+            0 · Down
+          </div>
+          <div id="6IB1-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+            40
+          </div>
+          <div id="6IB2-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+            60
+          </div>
+          <div id="6IB3-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+            Up · 100
+          </div>
+        </div>
+      </div>
+      <div id="6IB5-0" style={{ backgroundColor: 'var(--market-raised)', borderColor: 'var(--market-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '10px', padding: '14px', width: '328px' }}>
+        <div id="6IB6-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+          <div id="6IB7-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+            Volume rank
+          </div>
+          <div id="6IB8-0" style={{ alignItems: 'baseline', boxSizing: 'border-box', display: 'flex', gap: '5px' }}>
+            <div id="6IB9-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '23px', fontWeight: 600, lineHeight: '28px' }}>
+              5
+            </div>
+            <div id="6IBA-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+              / 100
+            </div>
+          </div>
+        </div>
+        <div id="6IBB-0" style={{ backgroundColor: 'var(--market-line)', borderRadius: '3px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '6px', width: '300px' }}>
+          <div id="6IBC-0" style={{ backgroundColor: 'var(--mx-dark-info)', borderRadius: '3px', boxSizing: 'border-box', flexShrink: '0', height: '6px', width: '15px' }} />
+        </div>
+        <div id="6IBD-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+          5th percentile · vs 100 earlier bars
+        </div>
+      </div>
+      <div id="6IBF-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', width: '328px' }}>
+        <div id="6IBG-0" style={{ alignItems: 'center', borderBottomColor: 'var(--market-line)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px', justifyContent: 'space-between' }}>
+          <div id="6IBH-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            Range & company events
+          </div>
+          <div id="6IBI-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            ›
+          </div>
+        </div>
+        <div id="6IBJ-0" style={{ alignItems: 'center', borderBottomColor: 'var(--market-line)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px', justifyContent: 'space-between' }}>
+          <div id="6IBK-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            Chart layers
+          </div>
+          <div id="6IBL-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            ›
+          </div>
+        </div>
+        <div id="6IBM-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px', justifyContent: 'space-between' }}>
+          <div id="6IBN-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            How to read this
+          </div>
+          <div id="6IBO-0" style={{ boxSizing: 'border-box', color: 'var(--mx-dark-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            ›
+          </div>
+        </div>
+      </div>
+    </div>
+  )

@@ -1,0 +1,18 @@
+{
+  "head": "ed2e633852564dcd604afc26eb03eeed54954dee",
+  "kind": "ACTUAL_APPSHELL_TODAY_LOCAL_FIXTURE",
+  "sources": {
+    "components/workspaces/TodayWorkspace.tsx": "e165bca808071ca4808741135efd584660763869b678cdfd015d00953212e03b",
+    "components/workspaces/TodayWorkspace.module.css": "abce865f290216450019ef47bb9e6714b70c94d0bd35adb8ee124965851b6d74",
+    "components/workspaces/TodaySinceLastVisit.tsx": "a133753904e026f268d36b31374dc38a9f4250438514b675fcead24719f5e668",
+    "components/workspaces/TodayResearchAttention.tsx": "fd40f2b65cec636ba3f26aaa9de8c8d1dfb73a3972ce9d475805fc6ef8b8dfb6",
+    "components/workspaces/TodayWatchAttention.tsx": "9ffcb64cc0aa89ee716f585e672f4934bcbfb794b09af2c836354f7c105b29af",
+    "components/workspaces/TodayBreadthReading.tsx": "984a3eea6d234eed421c144d4e9fb2201521cce8bf1114e63845e4905e7ba05a",
+    "lib/shared-shell/readingFreshness.ts": "0d5e9cf5b034ef618e81175dde09ce1946ccf0a26ec96fbf5e65583eabb919dc",
+    "lib/shared-shell/marketBreadth.ts": "0680c5fc8fb7e685b01c7e9c3805e73cd5c2047af89e3f8de5d1b2ceab198294",
+    "app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "app/observatory.css": "09e9db8ecbc3be7858d609342b1ba3d5797298adfa17a5f936b04b9c00c31414",
+    "components/chrome/AppShell.tsx": "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43",
+    "components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  }
+}

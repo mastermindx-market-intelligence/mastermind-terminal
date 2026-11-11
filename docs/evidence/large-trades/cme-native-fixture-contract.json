@@ -1,0 +1,213 @@
+{
+  "schema": "CME_SYNTHETIC_LEDGER_INPUT_CONTRACT_V1",
+  "implementation": "ingest/cme_native_fixture_ledger.py",
+  "sourceEligibility": {
+    "fixtureOnly": true,
+    "acceptedSourceKind": "SYNTHETIC",
+    "publicConsumerEligible": false,
+    "acceptedWireFormats": [],
+    "prohibitedClaims": [
+      "decoded actual CME SBE",
+      "DBN normalization",
+      "PCAP parsing",
+      "live or licensed historical feed",
+      "complete CME volume",
+      "distinct order count",
+      "atomic event completeness",
+      "clustering or absorption evidence"
+    ]
+  },
+  "entrypoint": {
+    "constructor": "FixtureLedger.from_bytes(payload: bytes, limits: Limits | None)",
+    "query": "snapshot(message_cutoff_ns: int, knowledge_cutoff_ns: int)",
+    "deterministicBytes": "snapshot_bytes(message_cutoff_ns: int, knowledge_cutoff_ns: int)",
+    "normalEvaluation": "Pure standard-library evaluation; no callback, file/network operation or automatic clock read."
+  },
+  "envelope": {
+    "exactRequiredKeys": [
+      "schema",
+      "fixture",
+      "sourceKind",
+      "fixtureId",
+      "quantityUnit",
+      "priceScale",
+      "namespace",
+      "records"
+    ],
+    "schemaValue": "CME_DECODED_TRADE_SUMMARY_FIXTURE_V1",
+    "fixture": true,
+    "sourceKind": "SYNTHETIC",
+    "quantityUnit": "contracts",
+    "fixtureId": "Opaque nonempty ASCII fixture label, at most 96 characters; does not attest to a real artifact.",
+    "priceScale": [
+      1,
+      10,
+      100,
+      1000,
+      10000,
+      100000,
+      1000000,
+      10000000,
+      100000000,
+      1000000000
+    ],
+    "namespace": {
+      "channelId": "integer 1..65535",
+      "sessionId": "Opaque stable session token, at most 96 ASCII characters; a date in a fixture label is not authenticated by the module.",
+      "instrumentId": "integer 1..4294967294",
+      "rawSymbol": "Explicit exact symbol token, at most 32 ASCII characters; no continuous-contract mapping, expiry guessing or real definition lookup."
+    }
+  },
+  "record": {
+    "exactRequiredKeys": [
+      "source",
+      "namespace",
+      "action",
+      "mdTradeEntryId",
+      "price",
+      "quantity",
+      "aggressorSide",
+      "eventTimeNs",
+      "messageTimeNs",
+      "availableTimeNs",
+      "sequence",
+      "rptSeq",
+      "eventComplete"
+    ],
+    "source": {
+      "artifactId": "Explicit synthetic artifact token; not inferred from a path, not read or authenticated.",
+      "ordinal": "integer 0..18446744073709551614",
+      "byteOffset": "integer 0..18446744073709551614"
+    },
+    "namespace": "Must exactly equal the fixture envelope namespace.",
+    "action": [
+      "NEW",
+      "CHANGE",
+      "DELETE"
+    ],
+    "mdTradeEntryId": "integer 1..4294967295; trade-group reference only, never unique source-report identity.",
+    "price": "signed integer -9223372036854775808..9223372036854775806, in 1/priceScale units; 9223372036854775807 refused. No floating-point price conversion.",
+    "quantity": "integer 1..4294967294 contracts; no bool, float, zero, negative, string or maximum-u32 sentinel.",
+    "aggressorSide": {
+      "0": "NO_AGGRESSOR",
+      "1": "BUY",
+      "2": "SELL",
+      "corrections": "CHANGE and DELETE require raw code 0. Original code and interpretation are preserved; correction code never overwrites them."
+    },
+    "eventTimeNs": "integer 0..18446744073709551614; original exchange-event clock for NEW, correction's own event clock for an update. May decrease across source-ordered messages.",
+    "messageTimeNs": "integer 0..18446744073709551614; explicitly supplied source-message clock; not auto-derived from event time or sequence.",
+    "availableTimeNs": "integer 0..18446744073709551614; explicitly supplied synthetic consumer-knowledge clock. Vendor receive time alone is not evidence of actual consumer knowledge.",
+    "sequence": "integer 0..4294967295, retained as data only; neither identity nor gap proof.",
+    "rptSeq": "integer 0..4294967295, retained as data only; never a prior-trade reference.",
+    "eventComplete": "Must be literal true as a fixture assertion. This is not native event-completion validation."
+  },
+  "identity": {
+    "sourceReportKey": [
+      "source.artifactId",
+      "source.ordinal",
+      "source.byteOffset"
+    ],
+    "sourceReportId": "fixture-report: + SHA-256 of canonical JSON of those three source fields",
+    "exactReplay": "Same physical tuple and identical canonical decoded record bytes; no extra history, quantity or diagnostics. JSON whitespace/key order is irrelevant; no binary-frame duplicate claim.",
+    "conflictingReplay": "Same physical tuple with different canonical decoded fields refuses reached-prefix qualification.",
+    "positionRules": "For each synthetic artifact, previously unseen physical ordinal and byte offset both strictly increase. A reused ordinal or byte offset with a different tuple refuses. Identities are retained, never evicted.",
+    "nativeId": "Separate from physical identity; repeated native trade-group IDs across distinct NEW rows remain separate active source observations."
+  },
+  "actions": {
+    "NEW": "Adds a separately identified source observation and original gross quantity. Repeated native trade-group ID is allowed.",
+    "CHANGE": "Exactly one active source observation with that native trade-group ID in the fixed namespace; quantity must equal original/current quantity; changes only integer price. Original source, event time, message/knowledge clocks and aggressor remain. Retains correction record and new price/message/knowledge basis.",
+    "DELETE": "Exactly one active target; current active price and quantity must both match. Removes once and transfers exact quantity into cancelled partition. Exact physical replay is idempotent; any distinct update after deletion must independently qualify and usually has no active target.",
+    "ambiguity": "Zero or multiple active targets refuses; never disambiguate by price, latest position, RptSeq, sequence or an inferred order identity.",
+    "refusal": "On any reached semantic error, all authoritative-looking totals become null and active/cancelled result arrays are empty. Full reached history and prefix issues remain; later reached records are not applied."
+  },
+  "clocks": {
+    "cutoffBoundary": "Both inclusive messageTimeNs <= message cutoff and availableTimeNs <= knowledge cutoff are required. Stop before first source-ordered row whose trustworthy message OR knowledge clock exceeds its corresponding cutoff.",
+    "sourcePrefixOnly": "Observed source-prefix arithmetic, not an event-time watermark, proof that no later source row carries an earlier time, or complete exchange-time reconstruction.",
+    "ordering": "Unique reached physical reports require nondecreasing message and knowledge clocks. Exact physical replay is handled before regression checks. Event times may decrease; source records are never resorted.",
+    "chain": "Every semantically valid record requires eventTimeNs <= messageTimeNs <= availableTimeNs.",
+    "untrustedClock": "A reached row missing a trustworthy message or knowledge clock refuses; it cannot be assumed future. A trustworthy other clock beyond its cutoff can stop before its bad body. A prior trustworthy boundary excludes even a later unclocked malformed tail.",
+    "futureInvariance": "With the same admitted fixture metadata and limits, appending out-of-prefix records cannot change earlier snapshot bytes or diagnostics. There is no whole-input hash/count or global late-error flag in a snapshot.",
+    "actualClocks": "No clock is synthesized, substituted with wall time, or inferred from source sequences. All clocks in this component are explicitly synthetic assertions."
+  },
+  "parsingAndResources": {
+    "transportAdmission": "Whole-input bytes type, JSON syntax/representability, exact synthetic envelope and byte/record caps are evaluated before constructing a ledger. Failure raises InputRefused; it is separate from prefix semantic qualification.",
+    "futureBodyHandling": "Actual parser-detected duplicate objects retain ONLY their original key/value pairs, with no selected-value alias. Parser-origin metadata permits reading unique original source/clock fields for identity/cutoff decisions only. Literal marker objects cannot claim that provenance. Actual duplicate clocks remain untrusted. Reached duplicate objects remain semantically invalid; future excluded body defects cannot alter earlier queries.",
+    "invalidNumberRepresentation": {
+      "__unadmitted_json_number__": "original lexeme"
+    },
+    "duplicateFieldRepresentation": {
+      "__duplicate_json_fields__": {
+        "keys": "Repeated field names",
+        "pairs": "All original key/value pairs, each original value stored once. No duplicate object's selected child values are also retained alongside these pairs."
+      }
+    },
+    "hardMaxInputBytes": 4194304,
+    "hardMaxRecords": 4096,
+    "hardMaxIdentities": 4096,
+    "maxTotalQuantity": "9223372036854775807; exact checked integer gross, active and cancelled quantities. Limits may only be lowered.",
+    "identityCapScope": "Reached-prefix semantic refusal, with no identity eviction.",
+    "recordCapScope": "Whole-input transport refusal, including duplicates and future records. An over-cap appended file is a different, unadmitted input; no historical snapshot is issued from it.",
+    "unparseableJson": "A syntactically broken JSON document cannot be safely partitioned into future records; construction refuses rather than emitting a partial ledger.",
+    "hardMaxSerializedBytes": 8388608,
+    "serializedStorageScope": "Whole-input total of immutable canonical metadata plus every stored row; Limits.max_serialized_bytes may lower the 8 MiB ceiling. A remaining budget is passed into each encoding operation, not checked only after materialization.",
+    "serializationAlgorithm": "Canonical writer checks remaining bytes before every append. Each escaped string/key chunk is limited to 256 input characters, so a large string is never encoded as one unbounded chunk. Nested duplicate evidence has a linear tree representation.",
+    "serializationRefusal": "SERIALIZED_BYTE_CAP is a resource-admission exception, separate from prefix semantic diagnostics; no partial ledger is returned.",
+    "canonicalOutputScope": "snapshot_bytes also uses the writer's fixed 8 MiB hard ceiling; an oversized serialization raises resource refusal rather than returning truncated JSON. Lowering max_serialized_bytes changes stored-input admission only. snapshot returns its fresh bounded-input-derived dictionary without serializing it.",
+    "parserOrigin": "Only the JSON object-pairs parser can create the private duplicate-object type. Construction captures that provenance in an immutable per-row boolean outside caller JSON. Later original-pair extraction requires this bit; the marker's spelling or shape alone never authenticates clocks or a physical source.",
+    "literalMarker": "A caller-supplied __duplicate_json_fields__ object is ordinary input. Only its real unique top-level message/availability/source fields can be considered. No such raw clocks means reached-prefix refusal. Genuine future top-level clocks may still exclude its malformed body."
+  },
+  "output": {
+    "scope": "SOURCE_SAMPLE_ARITHMETIC",
+    "qualifiedFixtureSample": "Only validation/accounting of the reached explicit synthetic sample, not provider or exchange qualification.",
+    "totals": [
+      "grossReportedQuantity (sum of NEW quantities only)",
+      "activeQuantity",
+      "cancelledQuantity",
+      "newObservationCount",
+      "activeObservationCount",
+      "cancelledObservationCount",
+      "grossByAggressor",
+      "activeByAggressor",
+      "cancelledByAggressor"
+    ],
+    "identityCaution": "Observation/report counts are not distinct orders. distinctNativeOrderCount is always null.",
+    "conservation": "grossReportedQuantity == activeQuantity + cancelledQuantity, also separately for BUY/SELL/NO_AGGRESSOR.",
+    "history": "Unique reached decoded physical records in preserved input order, including raw aggressor code, correction's own clocks, action outcome and refusal reason.",
+    "immutability": "Input stored as immutable canonical bytes; every snapshot builds fresh state. Mutating returned nested dictionaries/lists does not change any later query.",
+    "eligibility": "fixtureOnly true, publicConsumerEligible false, completeCmeVolume false, nativeDecoderProven false, atomicCmeEventProven false."
+  },
+  "primarySourceScope": [
+    {
+      "url": "https://cmegroupclientsite.atlassian.net/wiki/spaces/EPICSANDBOX/pages/457574586",
+      "title": "iLink - Trade Correction",
+      "use": "Official example motivates price-only same-quantity amendment followed by validated cancellation; raw correction aggressor 0. This is an indexed EPICSANDBOX example, not a pinned current futures SBE template."
+    },
+    {
+      "url": "https://cmegroupclientsite.atlassian.net/wiki/spaces/EPICSANDBOX/pages/457418925/MDP%2B3.0%2B-%2BTrade%2BSummary?src=breadcrumbs-parent",
+      "title": "MDP 3.0 - Trade Summary",
+      "use": "Examples allow a trade-group ID to occur across multiple price rows. Therefore ID alone is not a unique report key and an ambiguous correction refuses."
+    }
+  ],
+  "admissionStillHeld": [
+    "Current production futures SBE template/version and native ID scope proof",
+    "Actual licensed decoded sample and correction comparison",
+    "Native transport/session/event completeness",
+    "Actual consumer receipt provenance",
+    "Public API or Large Trades feed admission"
+  ],
+  "revision": 3,
+  "repairHistory": {
+    "v1": {
+      "issue": "Exponential duplicate-value storage",
+      "findingSha256": "6879058729ae30a0c615b71dd324898beab66ac2d78ed767a75cfbe2ed61830f"
+    },
+    "v2": {
+      "issue": "Caller-shaped duplicate marker could authenticate absent raw clocks",
+      "findingSha256": "775d02820526c0abbff231ba861237451f38b48828ad827a2f6a52b588889129"
+    },
+    "v3": "Single-copy duplicate tree, incremental bounded serialization, parser-only provenance and immutable per-row origin. Both original counterexamples pass the root replay checks.",
+    "rootCounterexampleAcceptanceSha256": "ad05a16ccb48db91871955dd05e18e131c204d63bf1a170ff49258fab7bf938c",
+    "priorFailedVersionsAndEvidencePreservedOutsideRepository": true
+  },
+  "candidateReviewStatus": "Private fixture implementation independently reviewed; repository integration and public admission have separate receipts."
+}

@@ -1,0 +1,179 @@
+[
+  {
+    "baseSha": "e54fc7f02481d7f66ae962bf8ddf03453382a5cf",
+    "project": "desktop",
+    "heldRequests": 31,
+    "originalNodeRetained": true,
+    "beforeReady": "single ArrowRight leaves Overview focused and Holdings unselected",
+    "afterReady": "single ArrowRight focuses and selects Holdings",
+    "events": [
+      {
+        "phase": "capture",
+        "time": 288.3000000715256,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "bubble",
+        "time": 288.3000000715256,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "window-bubble",
+        "time": 288.3000000715256,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "capture",
+        "time": 800.8000000715256,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "bubble",
+        "time": 801,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "window-bubble",
+        "time": 820.9000000953674,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-holdings",
+        "defaultPrevented": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "baseSha": "e54fc7f02481d7f66ae962bf8ddf03453382a5cf",
+    "project": "tablet",
+    "heldRequests": 31,
+    "originalNodeRetained": true,
+    "beforeReady": "single ArrowRight leaves Overview focused and Holdings unselected",
+    "afterReady": "single ArrowRight focuses and selects Holdings",
+    "events": [
+      {
+        "phase": "capture",
+        "time": 244.39999997615814,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "bubble",
+        "time": 244.39999997615814,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "window-bubble",
+        "time": 244.39999997615814,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "capture",
+        "time": 688.1999999284744,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "bubble",
+        "time": 688.2999999523163,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "window-bubble",
+        "time": 707.5999999046326,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-holdings",
+        "defaultPrevented": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "baseSha": "e54fc7f02481d7f66ae962bf8ddf03453382a5cf",
+    "project": "mobile",
+    "heldRequests": 31,
+    "originalNodeRetained": true,
+    "beforeReady": "single ArrowRight leaves Overview focused and Holdings unselected",
+    "afterReady": "single ArrowRight focuses and selects Holdings",
+    "events": [
+      {
+        "phase": "capture",
+        "time": 243,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "bubble",
+        "time": 243,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "window-bubble",
+        "time": 243,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "capture",
+        "time": 703.7999999523163,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "bubble",
+        "time": 703.8999999761581,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-overview",
+        "defaultPrevented": false
+      },
+      {
+        "phase": "window-bubble",
+        "time": 720,
+        "key": "ArrowRight",
+        "target": "portfolio-tab-overview",
+        "active": "portfolio-tab-holdings",
+        "defaultPrevented": true
+      }
+    ],
+    "errors": []
+  }
+]

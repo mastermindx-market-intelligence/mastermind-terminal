@@ -16,8 +16,13 @@ function deferred<T>() {
 }
 const response = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status });
 async function checkpoint() { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); }
-beforeEach(() => { disk.available = false; disk.get.mockReset(); invalidate(); fetcher.mockReset(); vi.stubGlobal("fetch", fetcher); vi.stubGlobal("window", {}); });
-afterEach(() => { invalidate(); vi.unstubAllGlobals(); });
+function expectStale(answer: CacheOutcome | null, data: unknown, source: "memory" | "disk" = "memory", ageMs = 0) {
+  expect(answer).toEqual({ status: "data", data, stale: { ageMs, source, revalidation: expect.any(Promise) } });
+  if (!answer || answer.status !== "data" || !answer.stale) throw new Error("expected a labelled stale answer");
+  return answer.stale;
+}
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-11-09T12:00:00Z")); disk.available = false; disk.get.mockReset(); invalidate(); fetcher.mockReset(); vi.stubGlobal("fetch", fetcher); vi.stubGlobal("window", {}); });
+afterEach(() => { invalidate(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 async function seed(url = URL, data: unknown = old) { fetcher.mockResolvedValueOnce(response(data)); await getJSONResult(url); }
 
 describe("warm cache refresh handoff", () => {
@@ -25,13 +30,14 @@ describe("warm cache refresh handoff", () => {
     await seed(); const network = deferred<Response>(); fetcher.mockReturnValueOnce(network.promise);
     const first = vi.fn(), second = vi.fn();
     if (owner === "prefetch") prefetch(URL, { ttl: 0 });
-    else expect(await getJSONResult(URL, { ttl: 0, onRevalidate: first })).toEqual({ status: "data", data: old });
+    else expectStale(await getJSONResult(URL, { ttl: 0, onRevalidate: first }), old);
     let delivered: CacheOutcome | null = null;
     const joined = getJSONResult(URL, { ttl: 0, onRevalidate: second }).then((v) => { delivered = v; return v; });
     await checkpoint(); const immediate = delivered;
     const blocking = getJSONResult(URL, { swr: false });
     network.resolve(response(fresh)); await blocking; await joined;
-    expect(immediate).toEqual({ status: "data", data: old });
+    const stale = expectStale(immediate, old);
+    await expect(stale.revalidation).resolves.toBe("ok");
     expect(second).toHaveBeenCalledTimes(1); expect(second).toHaveBeenCalledWith(fresh);
     expect(first).toHaveBeenCalledTimes(owner === "reader" ? 1 : 0);
     expect(fetcher).toHaveBeenCalledTimes(2); expect(peek(URL)).toEqual(fresh);
@@ -55,12 +61,13 @@ describe("warm cache refresh handoff", () => {
   it.each(["current", "invalidated", "failed"])("isolates correction callbacks for a %s request", async (mode) => {
     await seed(); const network = deferred<Response>(); fetcher.mockReturnValueOnce(network.promise);
     const first = vi.fn(() => { throw new Error("one consumer failed"); }), second = vi.fn();
-    await getJSONResult(URL, { ttl: 0, onRevalidate: first });
+    const stale = expectStale(await getJSONResult(URL, { ttl: 0, onRevalidate: first }), old);
     const joined = getJSONResult(URL, { ttl: 0, onRevalidate: second });
     const blocking = getJSONResult(URL, { swr: false });
     if (mode === "invalidated") invalidate(URL);
     network.resolve(response(mode === "failed" ? null : fresh, mode === "failed" ? 503 : 200));
     await blocking; await joined;
+    await expect(stale.revalidation).resolves.toBe(mode === "current" ? "ok" : mode === "failed" ? "failed" : "superseded");
     expect(first).toHaveBeenCalledTimes(mode === "current" ? 1 : 0);
     expect(second).toHaveBeenCalledTimes(mode === "current" ? 1 : 0);
   });
@@ -77,7 +84,8 @@ describe("warm cache refresh handoff", () => {
     prefetch(URL, { ttl: 0 }); let delivered: CacheOutcome | null = null;
     const joined = getJSONResult(URL, { onRevalidate: vi.fn() }).then((v) => { delivered = v; });
     await checkpoint(); const before = delivered; network.resolve(response(fresh)); await joined;
-    expect(before).toEqual({ status: "data", data: cached });
+    const stale = expectStale(before, cached);
+    await expect(stale.revalidation).resolves.toBe("ok");
   });
   it("preserves nonblocking correction for consumers racing through IndexedDB", async () => {
     disk.available = true;
@@ -89,13 +97,34 @@ describe("warm cache refresh handoff", () => {
     let delivered: CacheOutcome | null = null;
     const second = getJSONResult(URL, { onRevalidate: secondCorrection }).then((v) => { delivered = v; return v; });
     const persisted = { url: URL, data: old, ts: Date.now() - 90_000 };
-    diskA.resolve(persisted); expect(await first).toEqual({ status: "data", data: old });
+    diskA.resolve(persisted); expectStale(await first, old, "disk", 90_000);
     diskB.resolve(persisted); await checkpoint(); const immediate = delivered;
     const blocking = getJSONResult(URL, { swr: false });
     network.resolve(response(fresh)); await blocking; await second;
-    expect(immediate).toEqual({ status: "data", data: old });
+    const stale = expectStale(immediate, old, "disk", 90_000);
+    await expect(stale.revalidation).resolves.toBe("ok");
     expect(firstCorrection).toHaveBeenCalledTimes(1); expect(firstCorrection).toHaveBeenCalledWith(fresh);
     expect(secondCorrection).toHaveBeenCalledTimes(1); expect(secondCorrection).toHaveBeenCalledWith(fresh);
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
+});
+
+it("stops later correction subscribers when unrelated invalidations advance the bounded generation fence", async () => {
+  await seed();
+  const network = deferred<Response>();
+  fetcher.mockReturnValueOnce(network.promise);
+  const first = vi.fn(() => {
+    for (let index = 0; index <= 1_000; index++) invalidate("/data/unrelated-warm-fence-" + index + ".json");
+  });
+  const later = vi.fn();
+  const stale = expectStale(await getJSONResult(URL, { ttl: 0, onRevalidate: first }), old);
+  const joined = getJSONResult(URL, { ttl: 0, onRevalidate: later });
+  const blocking = getJSONResult(URL, { swr: false });
+  network.resolve(response(fresh));
+  await blocking;
+  await joined;
+  expect(first).toHaveBeenCalledTimes(1);
+  expect(later).not.toHaveBeenCalled();
+  expect(peek(URL)).toEqual(fresh);
+  await expect(stale.revalidation).resolves.toBe("ok");
 });

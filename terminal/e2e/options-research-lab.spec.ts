@@ -1,0 +1,342 @@
+import { expect, test } from "@playwright/test";
+
+// The current shell offers fixture identity only to deliberately opted-in
+// development tests. This cookie is ignored by the production shell.
+test.beforeEach(async ({ page }) => {
+  await page.context().addCookies([
+    { name: "mm_e2e_rs30", value: "1", domain: "127.0.0.1", path: "/" },
+  ]);
+});
+
+// Synthetic consumer qualification only. This is not production-data evidence.
+const matrix = { schema: "options_structure.matrix/v1", root: "SPY", asof: "2026-10-06T02:00:00Z", _build_meta: { asof_date: "2026-10-05" }, spot: 774.77,
+  cells: Array.from({ length: 15 }, (_,i) => ({ strike: 760+i*5, expiry: i < 8 ? "2026-10-09" : "2026-10-16", gex: -42000,
+    call_vol: i===5 ? 243000 : (i+1)*2500, put_vol: i===0 ? 0 : (16-i)*3200, call_oi: 110000, put_oi: null, delta_oi: {call:-10,put:25} })) };
+
+for (const lang of ["en","zh"] as const) {
+  test(`3D research lab exact selection and responsive fallback ${lang}`, async ({page}, info) => {
+    const errors: string[]=[]; page.on("pageerror",e=>errors.push(e.message));
+    await page.addInitScript(l=>localStorage.setItem("mm.lang",l),lang);
+    let matrixReads=0, volReads=0;
+    await page.route("**/api/flow?*",async route=> {
+      if(new URL(route.request().url()).searchParams.get("f")==="matrix:SPY") {matrixReads++;await route.fulfill({json:matrix});}
+      else if(new URL(route.request().url()).searchParams.get("f")==="vol:SPY") {volReads++;await route.fulfill({json:{
+        schema:"options_hub.vol/v1",root:"SPY",asof:"2026-10-05",
+        smile:[{exp:"2026-10-09",points:[{strike:785,call_iv:58.2,put_iv:0}]}],
+      }});}
+      else await route.fallback();
+    });
+    await page.goto("/options?tab=gex&view=research");
+    const lab=page.getByRole("region",{name:lang==="en"?"3D Research Lab":"3D 期权研究室",exact:true});
+    await expect(lab).toBeVisible({timeout:30000});
+    const row=lab.getByRole("button",{name:lang==="en"?"785 Call · 2026-10-09":"785 看涨 · 2026-10-09",exact:true});
+    await row.click();
+    const inspector=lab.getByTestId("research-inspector");
+    await expect(inspector).toContainText("243,000");
+    await expect(inspector).toContainText("110,000");
+    await expect(inspector).toContainText("2.21×");
+    await expect(inspector).toContainText("58.2%");
+    for(const label of lang==="en"?["Volatility terrain","Replay & change","Flow & packages","Scenario lab","Chain landscape"]:["波动率曲面","回放与变化","成交与组合","情景研究","期权链分布"]){
+      await lab.getByRole("button",{name:label,exact:true}).click();await expect(inspector).toContainText("243,000");
+    }
+    expect(matrixReads).toBe(1);
+    expect(volReads).toBe(1);
+    if(info.project.name === "mobile") await lab.getByRole("button",{name:"3D",exact:true}).click();
+    const canvas=lab.locator("canvas");
+    await expect(canvas).toBeVisible();
+    await lab.getByRole("heading",{level:2}).scrollIntoViewIfNeeded();
+    await page.screenshot({path:info.outputPath(`${info.project.name}-${lang}-chain.png`),fullPage:false});
+    await canvas.focus(); await page.keyboard.press("ArrowRight");
+    await expect(inspector).not.toContainText("243,000");
+    await row.click();
+    await canvas.dispatchEvent("webglcontextlost");
+    await expect(lab.getByRole("status")).toContainText(lang==="en"?"3D unavailable":"3D 不可用");
+    await expect(inspector).toContainText("243,000");
+    await expect(row).toHaveAttribute("aria-pressed","true");
+    await expect(lab.getByRole("button",{name:lang==="en"?"Save investigation":"保存研究",exact:true})).toBeDisabled();
+    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    expect(errors).toEqual([]);
+    await lab.getByRole("heading",{level:2}).scrollIntoViewIfNeeded();
+    await page.screenshot({path:info.outputPath(`${info.project.name}-${lang}-fallback.png`),fullPage:false});
+    await lab.getByRole("button", {name:lang==="en"?"Back to Exposure":"返回敞口",exact:true}).click();
+    await expect(page.getByRole("button", {
+      name:lang==="en"?"3D Research Lab":"3D 期权研究室",exact:true,
+    })).toBeVisible();
+  });
+}
+
+test("Lab light stylesheet survives isolated import and restores the shared host appearance", async ({page}, info) => {
+  test.skip(info.project.name !== "desktop");
+  await page.route("**/api/flow?*", route =>
+    new URL(route.request().url()).searchParams.get("f") === "matrix:SPY"
+      ? route.fulfill({json: matrix}) : route.fallback());
+  await page.goto("/options?tab=gex&view=research");
+  const lab = page.getByRole("region", {name: "3D Research Lab", exact: true});
+  await expect(lab).toBeVisible();
+  const palette = await page.evaluate(() => {
+    const root = document.documentElement;
+    const previousScope = root.getAttribute("data-research-appearance");
+    const previousTheme = root.getAttribute("data-theme");
+    const sample = () => ({
+      background: getComputedStyle(root).getPropertyValue("--bg").trim(),
+      panel: getComputedStyle(root).getPropertyValue("--panel").trim(),
+    });
+    try {
+      root.setAttribute("data-research-appearance", "lab");
+      root.setAttribute("data-theme", "light");
+      const light = sample();
+      root.setAttribute("data-theme", "dark");
+      return {light, dark: sample()};
+    } finally {
+      if (previousScope === null) root.removeAttribute("data-research-appearance");
+      else root.setAttribute("data-research-appearance", previousScope);
+      if (previousTheme === null) root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", previousTheme);
+    }
+  });
+  expect(palette.light).toEqual({background: "#f7f8fa", panel: "#fff"});
+  expect(palette.dark).toEqual({background: "#0a0b0e", panel: "#0d0f13"});
+  await lab.getByRole("button", {name: "Back to Exposure", exact: true}).click();
+  await expect(page.getByRole("button", {name: "3D Research Lab", exact: true})).toBeVisible();
+  await expect(page.locator("html")).not.toHaveAttribute("data-research-appearance", "lab");
+});
+
+test("research lab 320px and enlarged body text keeps controls reachable",async({page},info)=>{
+  test.skip(info.project.name!=="mobile");
+  await page.setViewportSize({width:320,height:844});
+  await page.emulateMedia({reducedMotion:"reduce"});
+  await page.route("**/api/flow?*",route=>new URL(route.request().url()).searchParams.get("f")==="matrix:SPY"?route.fulfill({json:matrix}):route.fallback());
+  await page.goto("/options?tab=gex&view=research");
+  const lab=page.getByRole("region",{name:"3D Research Lab",exact:true});
+  await expect(lab).toBeVisible();
+  await lab.evaluate(node=>{(node as HTMLElement).style.fontSize="26px";});
+  await expect(lab.getByRole("button",{name:"3D",exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth)).toBeLessThanOrEqual(1);
+  await expect(lab.getByRole("button",{name:"Back to Exposure",exact:true})).toBeVisible();
+  await lab.screenshot({path:info.outputPath("narrow-zoom.png")});
+});
+
+for (const lang of ["en", "zh"] as const) {
+  test(`320px Exposure map keeps the 3D entry accessible and restores Matrix axis: ${lang}`, async ({page},info) => {
+    test.skip(info.project.name !== "mobile");
+    await page.setViewportSize({width: 320, height: 844});
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    await page.goto("/options?tab=prism");
+    const map = page.getByTestId("gex-matrix-map");
+    await expect(map).toBeVisible({timeout: 30000});
+    const entry = page.getByRole("button", {
+      name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true,
+    });
+    await expect(entry).toBeVisible();
+    const rect = await entry.boundingBox();
+    expect(rect, "3D entry must have a measurable visible control").not.toBeNull();
+    expect(rect!.x, "3D entry must not be clipped at left").toBeGreaterThanOrEqual(0);
+    expect(rect!.x + rect!.width, "3D entry must clear 320px viewport").toBeLessThanOrEqual(321);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
+      "320px Exposure must have no document-level horizontal overflow").toBeLessThanOrEqual(1);
+    await entry.click();
+    const lab = page.getByRole("region", {
+      name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true,
+    });
+    await expect(lab).toBeVisible();
+    await lab.getByRole("button", {
+      name: lang === "en" ? "Back to Exposure" : "返回敞口", exact: true,
+    }).click();
+    await expect(map).toBeVisible();
+    await expect(entry).toBeFocused();
+    const axis = page.locator(".obs-gexdesk-view-chooser button").filter({hasText: lang === "en" ? /^Matrix$/ : /^矩阵$/});
+    await expect(axis).toHaveAttribute("aria-pressed", "true");
+  });
+}
+
+for (const lang of ["en", "zh"] as const) {
+  test(`Research distinguishes failed Matrix reads and recovers through the Exposure owner: ${lang}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    let reads = 0;
+    await page.route("**/api/flow?*", route => {
+      if (new URL(route.request().url()).searchParams.get("f") !== "matrix:SPY") return route.fallback();
+      reads += 1;
+      return reads === 1
+        ? route.fulfill({status: 503, body: "upstream temporarily unavailable"})
+        : route.fulfill({json: matrix});
+    });
+    await page.goto("/options?tab=gex&view=research");
+    const lab = page.getByRole("region", {name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true});
+    await expect(lab.getByRole("status")).toContainText(lang === "en" ? "Matrix read failed" : "矩阵读取失败");
+    await expect(lab).not.toContainText(lang === "en" ? "Matrix not published" : "矩阵未发布");
+    await lab.getByRole("button", {name: lang === "en" ? "Retry matrix" : "重试矩阵", exact: true}).click();
+    await expect(lab.getByRole("button", {
+      name: lang === "en" ? "785 Call · 2026-10-09" : "785 看涨 · 2026-10-09", exact: true,
+    })).toBeVisible();
+    expect(reads).toBe(2);
+  });
+
+  test(`Research only calls Matrix unpublished after an actual 404: ${lang}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    await page.route("**/api/flow?*", route =>
+      new URL(route.request().url()).searchParams.get("f") === "matrix:SPY"
+        ? route.fulfill({status: 404, body: "not found"})
+        : route.fallback());
+    await page.goto("/options?tab=gex&view=research");
+    const lab = page.getByRole("region", {name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true});
+    await expect(lab.getByRole("status")).toContainText(lang === "en" ? "Matrix not published" : "矩阵未发布");
+    await expect(lab.getByRole("button", {name: lang === "en" ? "Retry matrix" : "重试矩阵"})).toHaveCount(0);
+  });
+}
+
+for (const lang of ["en", "zh"] as const) {
+  const volDoc = {schema: "options_hub.vol/v1", root: "SPY", asof: "2026-10-05",
+    smile: [{exp: "2026-10-09", points: [{strike: 785, call_iv: 58.2, put_iv: 0}]}]};
+  test(`Research IV distinguishes HTTP 503 from coverage and retries the same shared source: ${lang}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    let reads = 0;
+    await page.route("**/api/flow?*", route => {
+      const f = new URL(route.request().url()).searchParams.get("f");
+      if (f === "matrix:SPY") return route.fulfill({json: matrix});
+      if (f === "vol:SPY") {
+        reads++;
+        return reads === 1
+          ? route.fulfill({status: 503, body: "IV source temporarily unavailable"})
+          : route.fulfill({json: volDoc});
+      }
+      return route.fallback();
+    });
+    await page.goto("/options?tab=gex&view=research");
+    const lab = page.getByRole("region", {name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true});
+    await lab.getByRole("button", {name: lang === "en" ? "Volatility terrain" : "波动率曲面", exact: true}).click();
+    const iv = lab.getByRole("region", {name: lang === "en" ? "Published IV observations" : "已发布隐含波动率观测"});
+    await expect(iv.getByRole("status")).toContainText(lang === "en" ? "IV read failed" : "隐含波动率读取失败");
+    await expect(iv).not.toContainText(lang === "en" ? "No admitted volatility observations" : "无有效波动率观测");
+    await iv.getByRole("button", {name: lang === "en" ? "Retry IV" : "重试隐含波动率", exact: true}).click();
+    await expect(iv).toContainText("58.2%");
+    expect(reads).toBe(2);
+  });
+  test(`Research IV only reports unpublished after HTTP 404: ${lang}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    await page.route("**/api/flow?*", route => {
+      const f = new URL(route.request().url()).searchParams.get("f");
+      if (f === "matrix:SPY") return route.fulfill({json: matrix});
+      if (f === "vol:SPY") return route.fulfill({status: 404, body: "not found"});
+      return route.fallback();
+    });
+    await page.goto("/options?tab=gex&view=research");
+    const lab = page.getByRole("region", {name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true});
+    await lab.getByRole("button", {name: lang === "en" ? "Volatility terrain" : "波动率曲面", exact: true}).click();
+    const iv = lab.getByRole("region", {name: lang === "en" ? "Published IV observations" : "已发布隐含波动率观测"});
+    await expect(iv.getByRole("status")).toContainText(lang === "en" ? "IV not published" : "隐含波动率未发布");
+    await expect(iv.getByRole("button", {name: lang === "en" ? "Retry IV" : "重试隐含波动率"})).toHaveCount(0);
+  });
+}
+
+test("research lab withdraws values when the existing account authority revokes access", async ({page},info) => {
+  test.skip(info.project.name !== "desktop");
+  let declined = false;
+  await page.route("**/api/me", route => route.fulfill({json:{tier:declined ? "free" : "unlimited",features:[],status:"active"}}));
+  await page.route("**/api/flow?*", route => new URL(route.request().url()).searchParams.get("f")==="matrix:SPY" ? route.fulfill({json:matrix}) : route.fallback());
+  await page.goto("/options?tab=gex&view=research");
+  const lab=page.getByRole("region",{name:"3D Research Lab",exact:true});
+  await expect(lab).toContainText("243,000", {timeout:30000});
+  // Start the entitlement-age clock after the asynchronous shell/scene has
+  // mounted; this test advances account freshness, not hydration scheduling.
+  await page.clock.install();
+  declined = true;
+  await page.clock.fastForward(61000);
+  await page.locator(".topbar").getByRole("button",{name:"Settings",exact:true}).click();
+  await expect(lab).toContainText("Research values and selections have been withdrawn.");
+  await expect(lab).not.toContainText("243,000");
+  await expect(lab.locator("canvas")).toHaveCount(0);
+});
+
+test("research lab keeps its renderer while filtering and restores focus and route", async ({page},info) => {
+  test.skip(info.project.name !== "desktop");
+  await page.route("**/api/flow?*", route => new URL(route.request().url()).searchParams.get("f")==="matrix:SPY" ? route.fulfill({json:matrix}) : route.fallback());
+  await page.goto("/options?tab=gex&view=research&context=retained");
+  const lab=page.getByRole("region",{name:"3D Research Lab",exact:true});
+  const canvas=lab.locator("canvas");
+  await expect(canvas).toBeVisible({timeout:30000});
+  const original=await canvas.elementHandle();
+  await canvas.focus(); await page.keyboard.press("ArrowRight");
+  await lab.getByRole("button",{name:"Dismiss selection",exact:true}).click();
+  await expect(canvas).toBeFocused();
+  for (const side of ["call","put","all"]) {
+    await lab.getByRole("combobox").first().selectOption(side);
+    expect(await original!.evaluate(node=>node.isConnected)).toBe(true);
+    await canvas.focus(); await page.keyboard.press("ArrowRight");
+    await expect(lab.getByTestId("research-inspector")).toContainText("Source coordinate");
+  }
+  await lab.getByRole("button",{name:"Open interest",exact:true}).click();
+  expect(await original!.evaluate(node=>node.isConnected)).toBe(true);
+  await expect(lab.locator("thead th:not([scope=col])")).toHaveCount(0);
+  await expect(lab.locator("tbody th:not([scope=row])")).toHaveCount(0);
+  await lab.getByRole("button",{name:"Back to Exposure",exact:true}).click();
+  await expect(page).not.toHaveURL(/view=research/);
+  expect(new URL(page.url()).searchParams.get("context")).toBe("retained");
+  expect(new URL(page.url()).searchParams.get("tab")).toBe("gex");
+  await expect(page.getByRole("button",{name:"3D Research Lab",exact:true})).toBeFocused();
+  await page.reload();
+  await expect(lab).toHaveCount(0);
+  await page.getByRole("button",{name:"3D Research Lab",exact:true}).click();
+  await expect(page).toHaveURL(/research=1/);
+  await expect(lab).toBeVisible();
+});
+
+for (const entry of ["tab=gex&view=matrix", "tab=prism", "tab=gex&view=expiry"]) {
+  test(`research lab preserves Exposure view across reload: ${entry}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.route("**/api/flow?*", route => new URL(route.request().url()).searchParams.get("f")==="matrix:SPY" ? route.fulfill({json:matrix}) : route.fallback());
+    await page.goto(`/options?${entry}&context=retained#exposure`);
+    const viewLabel = entry.includes("expiry") ? "By Expiration" : "Matrix";
+    // State survives route/reload even when the map-first controls reside in
+    // a closed disclosure. Query the unique DOM button without the accessible-
+    // visibility filter; the existing Exposure suite owns the chooser hit test.
+    const verifyAxis = async () => {
+      const exactLabel = new RegExp("^\\s*" + viewLabel + "\\s*$");
+      const axis = page.locator("button").filter({ hasText: exactLabel });
+      await expect(axis).toHaveCount(1);
+      await expect(axis).toHaveAttribute("aria-pressed", "true");
+    };
+    await verifyAxis();
+    await page.getByRole("button", {name:"3D Research Lab", exact:true}).click();
+    const lab = page.getByRole("region", {name:"3D Research Lab", exact:true});
+    await expect(lab).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("research")).toBe("1");
+    await page.reload();
+    await expect(lab).toBeVisible();
+    await lab.getByRole("button", {name:"Back to Exposure", exact:true}).click();
+    await verifyAxis();
+    expect(new URL(page.url()).searchParams.get("research")).toBeNull();
+    expect(new URL(page.url()).searchParams.get("context")).toBe("retained");
+    expect(new URL(page.url()).hash).toBe("#exposure");
+    await page.reload();
+    await expect(lab).toHaveCount(0);
+    await verifyAxis();
+  });
+}
+
+for (const count of [1000,5000,20000]) test(`research lab ${count} marks picking`,async({page},info)=>{
+  test.skip(info.project.name!=="desktop");
+  const payload={...matrix,cells:Array.from({length:count/2},(_,i)=>({strike:100+i/100,expiry:"2026-10-09",gex:null,call_vol:i+1,put_vol:i+1,call_oi:null,put_oi:null}))};
+  await page.route("**/api/flow?*",route=>new URL(route.request().url()).searchParams.get("f")==="matrix:SPY"?route.fulfill({json:payload}):route.fallback());
+  await page.goto("/options?tab=gex&view=research");
+  const canvas=page.getByTestId("research-scene").locator("canvas");
+  await expect(canvas).toBeVisible({timeout:30000});
+  const original=await canvas.elementHandle(), measurements:number[]=[];
+  for(let i=0;i<(count===20000?20:1);i++) {
+    if(count===20000) await page.getByRole("region",{name:"3D Research Lab",exact:true}).getByRole("combobox").first().selectOption(i%2?"call":"all");
+    expect(await original!.evaluate(node=>node.isConnected)).toBe(true);
+    await canvas.click({position:{x:100+i*3,y:120}});
+    const pickMs=await canvas.getAttribute("data-pick-ms");
+    expect(pickMs).not.toBeNull();
+    expect(Number.isFinite(Number(pickMs))).toBe(true);
+    expect(Number(pickMs)).toBeLessThan(100);
+    measurements.push(Number(pickMs));
+  }
+  const measurement={count,pickMs:Math.max(...measurements),samples:measurements.length,fixture:true,browser:"Playwright Chromium",activeFps:"unmeasured",idleCpu:"unmeasured"};
+  console.log("RESEARCH_PERFORMANCE " + JSON.stringify(measurement));
+  await info.attach("picking-performance",{body:JSON.stringify(measurement),contentType:"application/json"});
+});

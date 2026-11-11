@@ -174,9 +174,14 @@ test("two panes with different listing dates hold the same calendar window throu
   await dragPane(page, 0, 260);                       // drag right → travel back in time
   const panes = await settledCalendar(page);
 
-  // The dates agree; the BAR NUMBERS do not. That difference is the defect made visible: mirroring
-  // `logical` would have forced the bar numbers to be equal and the calendars apart.
-  expect(Math.abs(panes[0].logical!.from - panes[1].logical!.from)).toBeGreaterThan(5);
+  // Equal calendar windows use different logical ranges for these weekday/daily histories.
+  // Their left indices can coincide around a particular date, so compare both endpoints.
+  // Mirroring `logical` would copy both endpoints exactly and still fail this assertion.
+  const logicalDifference = Math.max(
+    Math.abs(panes[0].logical!.from - panes[1].logical!.from),
+    Math.abs(panes[0].logical!.to - panes[1].logical!.to),
+  );
+  expect(logicalDifference, describePanes(panes)).toBeGreaterThan(5);
 
   testInfo.annotations.push({ type: "calendar", description: describePanes(panes) });
   if (testInfo.project.name === "desktop") {

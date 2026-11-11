@@ -1,5 +1,6 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { holdings } from "./portfolioWorkspaceHelpers";
 
 /**
  * B4 — an unreadable positions store must never render as "you hold nothing".
@@ -73,7 +74,7 @@ test("three seeded positions survive an unreadable store — no empty book, no z
 
   await expect(book(page)).toHaveAttribute("data-portfolio-state", "unreadable");
   await expect(unreadable(page)).toBeVisible();
-  await expect(unreadable(page).locator("b"))
+  await expect(unreadable(page).locator("h2"))
     .toHaveText(zh ? "无法读取你的投资组合" : "Could not read your portfolio");
 
   // NOTHING that asserts a holding may render off a read that did not land.
@@ -92,6 +93,7 @@ test("three seeded positions survive an unreadable store — no empty book, no z
   // ── the store comes back: the retry re-reads in place, no reload ──
   await setFault(page, false, baseURL);
   await unreadable(page).locator("button").click();
+  await holdings(page);
   await expect(rows(page)).toHaveCount(3);
   await expect(unreadable(page)).toHaveCount(0);
   await expect(book(page)).toHaveAttribute("data-portfolio-state", "book");
@@ -112,7 +114,7 @@ test("a genuinely empty book is still the empty state, not a failure", async ({ 
   await page.goto("/portfolio");
   await expect(book(page)).toHaveAttribute("data-portfolio-state", "empty");
   await expect(unreadable(page)).toHaveCount(0);
-  await expect(page.locator(".pf-empty b")).toHaveText("Nothing in your portfolio yet");
+  await expect(page.getByTestId("portfolio-empty").locator("h2")).toHaveText("Start with a holding.");
   await expect(book(page)).toHaveAttribute("data-position-count", "0");   // a VERIFIED zero
 });
 
@@ -124,10 +126,8 @@ test("a client re-read that fails does not blank a book already on screen", asyn
 
   // Break the store, then force the client's own re-read through /api/portfolio.
   await setFault(page, true, baseURL);
-  const failed = await page.evaluate(async () => {
-    const r = await fetch("/api/portfolio", { headers: { Accept: "application/json" } });
-    return r.status;
-  });
-  expect(failed).toBe(503);
+  await page.getByRole("button", { name: "Refresh holdings", exact: true }).click();
+  await expect(page.locator("[data-portfolio] [role=status]").first()).toContainText("last");
+  await holdings(page);
   await expect(rows(page)).toHaveCount(1);      // the rows the server already proved are still there
 });

@@ -1,0 +1,63 @@
+{
+  "purpose": "LOCAL_TEST_ONLY_NOT_ACCEPTED_OR_RELEASED",
+  "commit": "7fa9126511da7c0f3be3f1058c6f4380454b7eed",
+  "tree": "298d5d0b33280ab29e91d18d7ce3b90659264922",
+  "parents": [
+    "02aebe793115f00e0b1690434c5c7133ef39ef0c",
+    "0023bffa7c6c0370f15ec1e3a16398d82fe2cf33"
+  ],
+  "no_source_branch_move": true,
+  "dependency_pr": 697,
+  "dependency_source_accepted": false,
+  "native_source_branch_changed_by_dependency": false,
+  "browser": {
+    "process": 97385,
+    "exit": 0,
+    "passed": 31,
+    "skipped": 23,
+    "failed": 0,
+    "scope": "Existing #697 mobile suite plus investor-shell-preview suite; not the complete responsive suite"
+  },
+  "unit": {
+    "process": 97754,
+    "exit": 0,
+    "files": 479,
+    "passed": 7861,
+    "todo": 4
+  },
+  "typecheck": {
+    "process": 14195,
+    "exit": 0
+  },
+  "limits": [
+    "Local fixture qualification, not production data/authentication or physical-device certification",
+    "No Stripe operation verified; fixture routes logged Stripe.js loading failures",
+    "No #697/#688 protected merge, review reuse or release gate is cleared by these tests"
+  ],
+  "source_blobs": {
+    "terminal/components/MobileNav.module.css": "28ffafa0f98d164995676ea728a7186f15deefd1",
+    "terminal/components/MobileNav.tsx": "ad7fc55fe3877e0f9f584c837ac15d318b15cc8a",
+    "terminal/components/MobileNavModal.tsx": "d4eac667677470e4b8d37a5b84d57a2dcefed919",
+    "terminal/e2e/mobile-nav-upgrade.spec.ts": "84e2ebd4b9032c7b3c89478ab8747f5d41155dd2"
+  },
+  "images": [
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/mobile-dependency/analysis-mobile.png",
+      "sha256": "14ab6d561393cd855f37b98782b982008c31ec9a1b1d05c1c2333fb568c43ede"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/mobile-dependency/analysis-tablet.png",
+      "sha256": "a588a936e64c6ac0a852968b0ed178ba219f2e51cc41edf90f62623bc7a91274"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/mobile-dependency/discover-mobile.png",
+      "sha256": "2de1ab8da3adffe7682b26b993f6cc99a221b376ea3bd821ac34b2c5b6a4aecf"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/mobile-dependency/discover-tablet.png",
+      "sha256": "666ccf1d44e4eb26bf739c6967e7041f10663855497d4a5fe4f57a6623f1af5c"
+    }
+  ],
+  "browser_source_provenance": "SUPERSEDED_PENDING_FRESH_SERVER_PROOF",
+  "provenance_note": "A later listener inspection found port3197 owned by a different rotation-risk-confluence worktree. Previous reuse-enabled browser results are historical observations only, not exact-source acceptance. Unit/source tests remain separately valid. Fresh CI=1/reuse-disabled replacement is required."
+}

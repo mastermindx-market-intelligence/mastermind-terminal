@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   createEndpoint,
+  jsonEndpoint,
   listEndpoints,
   WEBHOOK_ROUTE_MESSAGES,
   type WebhookRouteCode,
@@ -45,15 +46,7 @@ export async function GET(req: Request) {
       { status: 503 },
     );
   }
-  const endpoints = result.endpoints.map((e) => ({
-    id: e.id,
-    teamId: e.teamId,
-    url: e.url,
-    enabled: e.enabled,
-    eventFilter: e.eventFilter,
-    createdBy: e.createdBy,
-    createdAt: e.createdAt,
-  }));
+  const endpoints = result.endpoints.map(jsonEndpoint);
   return NextResponse.json({ endpoints, callerRole: result.callerRole, truncated: result.truncated });
 }
 
@@ -72,15 +65,7 @@ export async function POST(req: Request) {
   }
   return NextResponse.json(
     {
-      endpoint: {
-        id: result.endpoint.id,
-        teamId: result.endpoint.teamId,
-        url: result.endpoint.url,
-        enabled: result.endpoint.enabled,
-        eventFilter: result.endpoint.eventFilter,
-        createdBy: result.endpoint.createdBy,
-        createdAt: result.endpoint.createdAt,
-      },
+      endpoint: jsonEndpoint(result.endpoint),
       secret: result.secret,
     },
     { status: 201 },

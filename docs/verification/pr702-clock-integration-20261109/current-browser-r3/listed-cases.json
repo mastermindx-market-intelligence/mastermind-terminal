@@ -1,0 +1,580 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/chart-clock-isolation.spec.ts",
+      "e2e/marker-tooltip.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--grep",
+      "(?:chart\\ clock\\ keeps\\ ticking\\ without\\ interrupting\\ navigation\\ or\\ an\\ open\\ settings\\ menu|tapping\\ a\\ marker\\ opens\\ its\\ tooltip,\\ and\\ tapping\\ away\\ dismisses\\ it|a\\ pane\\ relayout\\ after\\ a\\ tap\\ re\\-anchors\\ the\\ tooltip\\ instead\\ of\\ dismissing\\ it|a\\ tap\\ keeps\\ the\\ marker\\ it\\ started\\ on\\ when\\ geometry\\ moves\\ before\\ pointerup|a\\ tap\\ still\\ opens\\ the\\ tooltip\\ when\\ the\\ thread\\ stalls\\ between\\ down\\ and\\ up|a\\ touch\\ press\\ that\\ travels\\ is\\ a\\ pan,\\ not\\ a\\ tooltip\\ tap)$",
+      "--list",
+      "--reporter=json"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/playwright.config.ts",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "id": "desktop",
+        "metadata": {},
+        "name": "desktop",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "tablet",
+        "metadata": {},
+        "name": "tablet",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "mobile",
+        "metadata": {},
+        "name": "mobile",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "company-intelligence-desktop",
+        "metadata": {},
+        "name": "company-intelligence-desktop",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "company-intelligence-tablet",
+        "metadata": {},
+        "name": "company-intelligence-tablet",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "company-intelligence-mobile",
+        "metadata": {},
+        "name": "company-intelligence-mobile",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "terminal-chrome-intermediate",
+        "metadata": {},
+        "name": "terminal-chrome-intermediate",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "w2a-workspaces",
+        "metadata": {},
+        "name": "w2a-workspaces",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/e2e",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3906",
+      "env": {
+        "ADMIN_DEV": "1",
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "FLOW_FIXTURE": "1",
+        "HUB_REALTIME_QUOTES": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "RATE_LIMIT_MAX": "100000",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TICKER_NEWS_RAIL": "1"
+      },
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "url": "http://127.0.0.1:3906/terminal?symbol=NVDA"
+    },
+    "workers": 1
+  },
+  "errors": [],
+  "stats": {
+    "duration": 70.39300000000003,
+    "expected": 0,
+    "flaky": 0,
+    "skipped": 18,
+    "startTime": "2026-11-09T19:10:41.100Z",
+    "unexpected": 0
+  },
+  "suites": [
+    {
+      "column": 0,
+      "file": "chart-clock-isolation.spec.ts",
+      "line": 0,
+      "specs": [
+        {
+          "column": 5,
+          "file": "chart-clock-isolation.spec.ts",
+          "id": "eb44f7f67653d2345d2b-80f4b2d9b0e524d9e697",
+          "line": 4,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart clock keeps ticking without interrupting navigation or an open settings menu"
+        },
+        {
+          "column": 5,
+          "file": "chart-clock-isolation.spec.ts",
+          "id": "eb44f7f67653d2345d2b-64a0b0bcbc423d820853",
+          "line": 4,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart clock keeps ticking without interrupting navigation or an open settings menu"
+        },
+        {
+          "column": 5,
+          "file": "chart-clock-isolation.spec.ts",
+          "id": "eb44f7f67653d2345d2b-2c09d754e59d5dc93391",
+          "line": 4,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart clock keeps ticking without interrupting navigation or an open settings menu"
+        }
+      ],
+      "title": "chart-clock-isolation.spec.ts"
+    },
+    {
+      "column": 0,
+      "file": "marker-tooltip.spec.ts",
+      "line": 0,
+      "specs": [
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-d7dd2f52db319ad8d621",
+          "line": 563,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "tapping a marker opens its tooltip, and tapping away dismisses it"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-e0a52adde0cb936e0b73",
+          "line": 581,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a pane relayout after a tap re-anchors the tooltip instead of dismissing it"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-e3b5b37683d8d3f0d287",
+          "line": 615,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a tap keeps the marker it started on when geometry moves before pointerup"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-e5f24a5bc6d9cb904ac6",
+          "line": 661,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a tap still opens the tooltip when the thread stalls between down and up"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-9597cdbb072c0fa7d559",
+          "line": 728,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a touch press that travels is a pan, not a tooltip tap"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-a68eae4772bc76632b12",
+          "line": 563,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "tapping a marker opens its tooltip, and tapping away dismisses it"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-ca38a884297ac3e45519",
+          "line": 581,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a pane relayout after a tap re-anchors the tooltip instead of dismissing it"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-6dc80810439dd4165711",
+          "line": 615,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a tap keeps the marker it started on when geometry moves before pointerup"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-86ea9c207bf188dafb83",
+          "line": 661,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a tap still opens the tooltip when the thread stalls between down and up"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-106a94edbb2532012ce5",
+          "line": 728,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a touch press that travels is a pan, not a tooltip tap"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-88989f92e85d78d830af",
+          "line": 563,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "tapping a marker opens its tooltip, and tapping away dismisses it"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-c4f46ace75589da90bee",
+          "line": 581,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a pane relayout after a tap re-anchors the tooltip instead of dismissing it"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-6aa41cf7fcf3bd5bec10",
+          "line": 615,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a tap keeps the marker it started on when geometry moves before pointerup"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-4c7b8dfe80e21042ad99",
+          "line": 661,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a tap still opens the tooltip when the thread stalls between down and up"
+        },
+        {
+          "column": 5,
+          "file": "marker-tooltip.spec.ts",
+          "id": "ab9290156438a4724521-09594ebc4ad339e5be26",
+          "line": 728,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a touch press that travels is a pan, not a tooltip tap"
+        }
+      ],
+      "title": "marker-tooltip.spec.ts"
+    }
+  ]
+}

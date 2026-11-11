@@ -1,0 +1,117 @@
+/* E18 alert management panel. Tokens only — no colour literals. Sits below the existing
+   alerts list on /alerts with the same elevated-module material as alerts.module.css .module. */
+
+.panel {
+  margin-top: 12px; padding: 14px 16px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
+  min-width: 0;
+}
+.head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.title { margin: 0; font: 650 14px/1.3 var(--font-ui); color: var(--text); }
+.headActions { display: flex; gap: 8px; flex-wrap: wrap; }
+.intro { margin: 0; font: 500 13px/1.5 var(--font-ui); color: var(--muted); max-width: 68ch; }
+.body { display: flex; flex-direction: column; gap: 12px; min-width: 0; margin-top: 8px; }
+.note { margin: 0; font: 500 12.5px/1.5 var(--font-ui); color: var(--muted); max-width: 68ch; }
+.subhead { margin: 0 0 6px; font: 650 13px/1.3 var(--font-ui); color: var(--text); }
+.groupHead { margin: 0 0 4px; font: 600 12.5px/1.4 var(--font-ui); color: var(--text-2, var(--text)); }
+.count {
+  font-family: var(--font-num); font-variant-numeric: tabular-nums; color: var(--muted);
+  margin-left: 4px;
+}
+
+.filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1 1 140px; max-width: 220px; }
+.fieldLabel { font: 600 var(--fs-label, 11px)/1 var(--font-ui); color: var(--muted); }
+.input {
+  height: 38px; padding: 0 10px; min-width: 0; width: 100%;
+  background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line-2); border-radius: var(--r-md);
+  font: 500 13px/1 var(--font-ui);
+}
+.input:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+
+.selbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.selCount { font: 650 13px/1.2 var(--font-ui); color: var(--text); font-variant-numeric: tabular-nums; }
+.selHidden { font: 500 12.5px/1.2 var(--font-ui); color: var(--warn); }
+.selShown { font: 500 12.5px/1.2 var(--font-ui); color: var(--muted); font-variant-numeric: tabular-nums; }
+.selActions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.list > li { border-top: 1px solid var(--line-2); }
+.list > li:first-child { border-top: none; }
+.row {
+  display: grid; grid-template-columns: auto minmax(52px, max-content) minmax(0, 1fr) auto;
+  align-items: center; gap: 10px; min-height: 44px; padding: 6px 2px; cursor: pointer;
+}
+.row:has(.check:disabled) { cursor: default; }
+.check { width: 18px; height: 18px; margin: 0; accent-color: var(--brand); }
+.sym { font: 650 13px/1.2 var(--font-num); font-variant-numeric: tabular-nums; color: var(--text); }
+.cond { font: 500 12.5px/1.4 var(--font-ui); color: var(--text-2, var(--text)); min-width: 0; overflow-wrap: anywhere; }
+.resultRow {
+  display: grid; grid-template-columns: minmax(52px, max-content) minmax(0, 1fr) auto;
+  align-items: center; gap: 10px; min-height: 40px; padding: 6px 2px;
+}
+
+.chip {
+  display: inline-flex; align-items: center; justify-self: end; text-align: right;
+  border-radius: var(--r-pill); padding: 3px 9px; max-width: 100%;
+  font: 650 var(--fs-label, 11px)/1.3 var(--font-ui);
+  background: color-mix(in srgb, var(--hue) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hue) 34%, transparent);
+  color: var(--hue);
+}
+/* Armed matches the alerts list above it (--up, which follows the viewer's red/green convention).
+   A confirmed write uses the brand hue instead: --up turns red under the East-Asian convention and
+   would then read exactly like a refusal (--danger). */
+.toneUp { --hue: var(--up); }
+.toneDone { --hue: var(--brand-2); }
+.toneDanger { --hue: var(--danger); }
+.toneWarn { --hue: var(--warn); }
+.toneSignal { --hue: var(--signal); }
+.toneMuted { --hue: var(--muted); }
+
+.review, .results {
+  padding: 12px; border-radius: var(--r-md);
+  background: var(--panel-2); border: 1px solid var(--line-3);
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
+.reviewGroup { min-width: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.summary { margin: 0; font: 650 13px/1.4 var(--font-ui); color: var(--text); font-variant-numeric: tabular-nums; }
+.unknownNote { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+
+.alertBox, .notice {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  padding: 10px 12px; border-radius: var(--r-md);
+  font: 500 12.5px/1.5 var(--font-ui); color: var(--text);
+}
+.alertBox { border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); background: color-mix(in srgb, var(--warn) 8%, transparent); }
+.alertBox p { margin: 0; flex: 1 1 220px; }
+.notice { border: 1px solid var(--line-3); background: var(--panel-2); flex-direction: column; align-items: flex-start; }
+.noticeList { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+
+@media (max-width: 560px) {
+  .panel { padding: 12px; }
+  .field { max-width: none; flex-basis: 100%; }
+  .selActions { margin-left: 0; width: 100%; }
+  .selActions :global(.btn) { flex: 1 1 calc(50% - 4px); padding: 0 10px; }
+  /* The symbol keeps its width; a long outcome chip wraps inside the remaining column instead. */
+  .row { grid-template-columns: auto max-content minmax(0, 1fr); grid-template-areas: "check sym chip" "check cond cond"; row-gap: 2px; }
+  .row .check { grid-area: check; }
+  .row .sym { grid-area: sym; }
+  .row .cond { grid-area: cond; }
+  .row .chip { grid-area: chip; }
+  .resultRow { grid-template-columns: max-content minmax(0, 1fr); grid-template-areas: "sym chip" "cond cond"; row-gap: 2px; }
+  .resultRow .sym { grid-area: sym; }
+  .resultRow .cond { grid-area: cond; }
+  .resultRow .chip { grid-area: chip; }
+}
+/* Closed: one compact row — declared after the 560px block so it wins at every width. */
+.panel.panelClosed { margin-top: 8px; padding: 6px 16px; }
+@media (pointer: coarse) {
+  .panel :global(.btn) { min-height: 44px; }
+  .input { height: 44px; }
+}

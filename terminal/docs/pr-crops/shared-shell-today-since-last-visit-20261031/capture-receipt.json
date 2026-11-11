@@ -1,0 +1,49 @@
+{
+  "sourceHead": "f26a81c0631b7029c3c07d9a6f60d3bc8f8a238d",
+  "recordedAt": "2026-10-31T06:51:23.998204+00:00",
+  "kind": "ISOLATED_ACTUAL_COMPONENT_FIXTURE",
+  "qualification": "Actual production Today components and source CSS; the Supabase SDK, next/link and onboarding boundaries and all /api data are deterministic fixtures served from a loopback server (change lines, disclosures and the cursor note use the producer's verbatim sentence forms); non-loopback requests are blocked. These captures do not prove live authentication, data freshness, the deployed beta, or desk acceptance of the portfolio_changes.v1 producer.",
+  "commands": {
+    "today": "CAPTURE_SOURCE_HEAD=f26a81c0631b7029c3c07d9a6f60d3bc8f8a238d CAPTURE_FONTS_CSS=<a built .next Inter font-face chunk, optional> CAPTURE_FONTS_DIR=<its media dir, optional> node docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/capture.mjs (Node v26.5.0, @playwright/test chromium headless)"
+  },
+  "sourceHashes": {
+    "terminal/components/workspaces/TodaySinceLastVisit.tsx": "a133753904e026f268d36b31374dc38a9f4250438514b675fcead24719f5e668",
+    "terminal/components/workspaces/TodayWorkspace.tsx": "5d55900f7b7cdb143b9488759c50c67dee5031abcb2896a44a7ecdba9cb326e1",
+    "terminal/components/workspaces/TodayWorkspace.module.css": "44bae21ba102abbf6a486754188e9834b020641ecd2a8e1cc1aaf87047fb7070",
+    "terminal/app/api/portfolio-changes/route.ts": "f8456fae9097cb2fafc9325768e9a1c28175f47330ed90e99a7a44746befb223",
+    "terminal/lib/ownerStorage.ts": "6b1eb941ef6a4f11960d4d20c9bc488ebab6022559f0963bbbd980461a68cb6e",
+    "terminal/lib/accountIdentity.ts": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+    "terminal/lib/shared-shell/useReadingScope.ts": "37bc0cc517172ba243a7578cf82940b6ac6c212cb1c8787bcbf789be8aa43f20",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  },
+  "harness": {
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/capture.mjs": "42503465b8ec0f5b75c5d573552c83f1049faf7351a6f4ba278bc3b21337003c"
+  },
+  "report": {
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/report.json": "c5ec03402fb13016e53c8489ca82d31222a095d4f514033ae01a6690098d4ad2"
+  },
+  "captures": {
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-first.png": "f905838b3f0500da527df9ec130eecc4b9fc5ee568b7dea16c09be3a2134aed9",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-overflow-collapsed.png": "1df114119498c1ab4057fc8f6ac1fda9a0b55e0f10843b3c095c87e222de0c55",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-overflow.png": "a895eda813f44b8a0df7a45ea35b979e94ef01281afbb5fcac4baa4acee777cd",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-quiet.png": "248f3a5868b29c38569521293692983095f00b794430848c3726acdfdf9ad578",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-ready.png": "bd63c29ebe2a850ae37fdd3854d0854aff293887079e1790b3163f5fe4831d5a",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-teaser.png": "4949e6a07db014237961f80c085487b8246f4ecf7419c208925dc9aa0ef1c170",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-unavailable.png": "b7e06ea446331c614171ed05083ef9cdf9c8de1e88e5d18fa099a732676a584b",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-zh-ready.png": "599bc925a70f28eb4cc09d706e906aec099cf5f00460b91b2efdaa0860a0ee9a",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-light-en-ready.png": "6bbe6cd86e5ad3101a20423a1ffbb58a7e5871f7b70a3b8bf104b5863758eee5",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-light-zh-ready.png": "b82c6120fc8a8b26e618dc7ea188648bdc767d936789ce6eb0496e0184000343",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/320-light-zh-ready.png": "4a6fb88393e348b0deffa47b79806e3d62b6f9fb38d056be3ba096cb03b62988",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-dark-en-ready.png": "c744ea2934ddfd22d383e3a85a5c4d3c9bcf41813a674614126ab31c4b460558",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-dark-zh-ready.png": "ef51ced78eaa79989e1d2bff34b61c1d056d78b97cbed022c4aedf4619cf9103",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-en-ready.png": "a3a6a713e1c168100a6f53cd17407c35dc6ebc040fb6c056ce032eb38589f1d3",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-first.png": "a021ccf390b51842d50fe989d78a8d03aa25237e9d8d45ea6296e7ca9bc64e63",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-overflow-collapsed.png": "dd5dca1caf82c158292ec8e7abaafb932cb694880767eb1fbab5b7a8693b28c0",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-overflow.png": "c029c5cd8692ff7740f00738fde35ccc5c3bb165834843bed51567bb8f33d780",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-quiet.png": "ac0aae34f3d177c461a336a61eb2d1630be9e98f29aa93de836d5578f34df0ca",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-ready.png": "1d817fb883ea6626202274e665b62063029bffed5d11b8b68b64e799f4590c06",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-teaser.png": "f7e2d4164f2ec1b62c341a8cb2a59c47216053e93135d6ca8417619e82eeae2d",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-unavailable.png": "dff883fd07820182cf4c2fca8ec07ea64a644e58a435ee7fb4e52db0deb28b5c"
+  }
+}

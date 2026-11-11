@@ -1,0 +1,107 @@
+{
+  "width": 1440,
+  "theme": "dark",
+  "lang": "en",
+  "href": "/research?doc_id=report-one&source_pdf_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&extracted_text_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&extractor_version=extractor-1&segmenter_version=segmenter-1&segment_start=6",
+  "selected": {
+    "docId": "report-one",
+    "sourcePdfSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "extractedTextSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "extractorVersion": "extractor-1",
+    "segmenterVersion": "segmenter-1"
+  },
+  "segmentStart": 6,
+  "initialCalls": [
+    {
+      "url": "/api/shared-shell/today",
+      "method": "GET"
+    },
+    {
+      "url": "/api/watchlist",
+      "method": "GET"
+    },
+    {
+      "url": "/api/portfolio-brief",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/catalog",
+      "method": "GET"
+    },
+    {
+      "url": "/api/market-breadth",
+      "method": "GET"
+    }
+  ],
+  "reads": [
+    {
+      "url": "/api/shared-shell/research/read/report-one?source_pdf_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&extracted_text_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&segment_start=6&max_segments=2",
+      "method": "GET"
+    }
+  ],
+  "allCalls": [
+    {
+      "url": "/api/shared-shell/today",
+      "method": "GET"
+    },
+    {
+      "url": "/api/watchlist",
+      "method": "GET"
+    },
+    {
+      "url": "/api/portfolio-brief",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/catalog",
+      "method": "GET"
+    },
+    {
+      "url": "/api/market-breadth",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/catalog",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/read/report-one?source_pdf_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&extracted_text_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&segment_start=6&max_segments=2",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/today",
+      "method": "GET"
+    },
+    {
+      "url": "/api/watchlist",
+      "method": "GET"
+    },
+    {
+      "url": "/api/portfolio-brief",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/catalog",
+      "method": "GET"
+    },
+    {
+      "url": "/api/market-breadth",
+      "method": "GET"
+    }
+  ],
+  "after": {
+    "pointer": {
+      "selection": {
+        "docId": "report-one",
+        "sourcePdfSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extractedTextSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "extractorVersion": "extractor-1",
+        "segmenterVersion": "segmenter-1"
+      }
+    },
+    "progress": {
+      "segmentStart": 6
+    }
+  },
+  "errors": []
+}

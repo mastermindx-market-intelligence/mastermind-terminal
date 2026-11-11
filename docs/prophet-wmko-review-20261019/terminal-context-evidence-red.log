@@ -1,0 +1,35 @@
+SOURCE_HEAD 6b91c3dba40d36be2bb32fd3cf27078e49d5d2c0
+COMMAND ["./node_modules/.bin/vitest", "run", "lib/__tests__/visualIntelligenceEvidence.test.ts"]
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal
+
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts (3 tests | 1 failed) 186ms
+   × Terminal Visual Intelligence browser evidence > locks the source files that determine the captured chart-context surface 97ms
+     → terminal/components/TerminalShell.tsx changed without a recapture: expected '839fdb0d1fa22bd9f6292eec99d5531058ef3…' to be '2cfc6918daf402a1ee836247df9e574a4ab53…' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > locks the source files that determine the captured chart-context surface
+AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected '839fdb0d1fa22bd9f6292eec99d5531058ef3…' to be '2cfc6918daf402a1ee836247df9e574a4ab53…' // Object.is equality
+
+Expected: "2cfc6918daf402a1ee836247df9e574a4ab53529e731ece41f49afd8e26f8a1a"
+Received: "839fdb0d1fa22bd9f6292eec99d5531058ef3025f05d475462a6c188a9c0ed4a"
+
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:43:75
+     41|       const absolute = join(REPO, relative);
+     42|       expect(existsSync(absolute), relative).toBe(true);
+     43|       expect(sha256(absolute), `${relative} changed without a recaptur…
+       |                                                                           ^
+     44|     }
+     45|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  21:50:27
+   Duration  3.83s (transform 260ms, setup 0ms, collect 241ms, tests 186ms, environment 0ms, prepare 802ms)
+
+
+TEST_EXIT 1

@@ -1,0 +1,200 @@
+[
+  {
+    "errorCount": 6,
+    "fatalErrorCount": 0,
+    "filePath": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/components/ChartFrameBar.tsx",
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "messages": [
+      {
+        "column": 55,
+        "endColumn": 58,
+        "endLine": 191,
+        "line": 191,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 2,
+        "suggestions": [
+          {
+            "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": {
+              "range": [
+                7631,
+                7634
+              ],
+              "text": "unknown"
+            },
+            "messageId": "suggestUnknown"
+          },
+          {
+            "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": {
+              "range": [
+                7631,
+                7634
+              ],
+              "text": "never"
+            },
+            "messageId": "suggestNever"
+          }
+        ]
+      },
+      {
+        "column": 80,
+        "endColumn": 83,
+        "endLine": 191,
+        "line": 191,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 2,
+        "suggestions": [
+          {
+            "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": {
+              "range": [
+                7656,
+                7659
+              ],
+              "text": "unknown"
+            },
+            "messageId": "suggestUnknown"
+          },
+          {
+            "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": {
+              "range": [
+                7656,
+                7659
+              ],
+              "text": "never"
+            },
+            "messageId": "suggestNever"
+          }
+        ]
+      },
+      {
+        "column": 5,
+        "endColumn": 15,
+        "endLine": 273,
+        "line": 273,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/components/ChartFrameBar.tsx:273:5\n  271 |   // leaking in.\n  272 |   useEffect(() => {\n> 273 |     setMounted(true);\n      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  274 |     setShellMode(document.documentElement.getAttribute(\"data-shell\") === \"app\");\n  275 |   }, []);\n  276 |   // The once-a-second tick writes the clock text straight into its spans instead of React state.",
+        "nodeType": null,
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2
+      },
+      {
+        "column": 53,
+        "endColumn": 56,
+        "endLine": 444,
+        "line": 444,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 2,
+        "suggestions": [
+          {
+            "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": {
+              "range": [
+                17958,
+                17961
+              ],
+              "text": "unknown"
+            },
+            "messageId": "suggestUnknown"
+          },
+          {
+            "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": {
+              "range": [
+                17958,
+                17961
+              ],
+              "text": "never"
+            },
+            "messageId": "suggestNever"
+          }
+        ]
+      },
+      {
+        "column": 44,
+        "endColumn": 47,
+        "endLine": 452,
+        "line": 452,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 2,
+        "suggestions": [
+          {
+            "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": {
+              "range": [
+                18391,
+                18394
+              ],
+              "text": "unknown"
+            },
+            "messageId": "suggestUnknown"
+          },
+          {
+            "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": {
+              "range": [
+                18391,
+                18394
+              ],
+              "text": "never"
+            },
+            "messageId": "suggestNever"
+          }
+        ]
+      },
+      {
+        "column": 59,
+        "endColumn": 62,
+        "endLine": 452,
+        "line": 452,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 2,
+        "suggestions": [
+          {
+            "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": {
+              "range": [
+                18406,
+                18409
+              ],
+              "text": "unknown"
+            },
+            "messageId": "suggestUnknown"
+          },
+          {
+            "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": {
+              "range": [
+                18406,
+                18409
+              ],
+              "text": "never"
+            },
+            "messageId": "suggestNever"
+          }
+        ]
+      }
+    ],
+    "source": "\"use client\";\nimport { useEffect, useId, useLayoutEffect, useRef, useState } from \"react\";\nimport type { ChartEngine } from \"@/lib/chart-engine/api\";\nimport { EnginePriceScaleMode } from \"@/lib/chart-engine\";\nimport { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from \"@/lib/chart-engine/viewReset\";\nimport { isOvernightTimeframe } from \"@/lib/liveCandle\";\nimport { isIntradayTf } from \"@/lib/intradaySources\";\nimport { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from \"@/lib/visualIntelligence\";\nimport { useLang, useT } from \"@/lib/i18n\";\nimport { boatsChartCopy } from \"@/lib/extQuoteCopy\";\nimport { pick } from \"@/lib/finFormat\";\nimport overnightStyles from \"./ChartOvernight.module.css\";\nimport quickSettingsStyles from \"./ChartQuickSettings.module.css\";\nimport DataOriginChip from \"@/components/DataOriginChip\";\nimport type { DataOrigin } from \"@/lib/dataOrigin\";\n\n// Chart scale/display settings persisted alongside user prefs (key: mm.chartSettings).\nexport type ChartSettings = {\n  // Scales and lines\n  mode: EnginePriceScaleMode;        // Normal=0, Log=1, Percent=2, IndexedTo100=3\n  invertScale: boolean;\n  scaleLeft: boolean;          // move price scale to left\n  autoScale: boolean;\n  priceLineVisible: boolean;\n  lastValueVisible: boolean;\n  gridHVisible: boolean;       // horizontal grid lines\n  gridVVisible: boolean;       // vertical grid lines\n  crosshairMode: number;       // 0=Normal, 1=Magnet (reserved for crosshair API)\n  scaleMarginsTop: number;\n  scaleMarginsBottom: number;\n  rightOffsetBars: number;\n  scaleTextColor: string;\n  scaleFontSize: number;\n  scaleLineColor: string;\n  countdownVisible: boolean;\n  hourFormat: \"12\" | \"24\";\n  // Symbol (candle body/wick/border colors)\n  candleBodyVisible: boolean;\n  candleBordersVisible: boolean;\n  candleWicksVisible: boolean;\n  colorBarsPrevClose: boolean;\n  candleUpColor: string;\n  candleDownColor: string;\n  candleUpBorder: string;\n  candleDownBorder: string;\n  candleUpWick: string;\n  candleDownWick: string;\n  precision: \"auto\" | \"2\" | \"3\" | \"4\";\n  // Status line\n  showLogo: boolean;\n  showOHLC: boolean;           // status line bar change display\n  showBarChange: boolean;      // show % change on status line\n  showSymbolName: boolean;     // show symbol name on status line\n  titleMode: \"ticker\" | \"name\" | \"both\";\n  showVolume: boolean;\n  showLastDayChange: boolean;\n  showIndicatorTitles: boolean;\n  indicatorBackgroundOpacity: number;\n  // Canvas\n  showWatermark: boolean;\n  backgroundType: \"solid\" | \"gradient\";\n  backgroundTop: string;\n  backgroundBottom: string;\n  gridHColor: string;\n  gridVColor: string;\n  paneSeparatorColor: string;\n  crosshairColor: string;\n  watermarkColor: string;\n  paneButtons: \"always\" | \"hover\" | \"never\";\n  // Extended hours (intraday only)\n  extHours: boolean;\n  overnightHours: boolean;\n  extendedLineVisible: boolean;\n  preMarketColor: string;\n  postMarketColor: string;\n  overnightColor: string;\n} & VisualIntelligenceSettings;\nexport const DEFAULT_CHART_SETTINGS: ChartSettings = {\n  ...VISUAL_INTELLIGENCE_DEFAULTS,\n  mode: EnginePriceScaleMode.Normal,\n  invertScale: false,\n  scaleLeft: false,\n  autoScale: true,\n  priceLineVisible: true,\n  lastValueVisible: true,\n  gridHVisible: true,\n  gridVVisible: true,\n  crosshairMode: 0,\n  scaleMarginsTop: 10,\n  scaleMarginsBottom: 8,\n  rightOffsetBars: DEFAULT_CHART_RIGHT_OFFSET,\n  scaleTextColor: \"\",\n  scaleFontSize: 12,\n  scaleLineColor: \"\",\n  countdownVisible: true,\n  hourFormat: \"24\",\n  // Empty strings = \"use CSS theme tokens (--up/--down)\". Non-empty = user-overridden hex.\n  // Effect 7 only applies candle colors when truthy, so the up/down flip in Effect 5 is never\n  // clobbered by a settings-load on mount.\n  candleBodyVisible: true,\n  candleBordersVisible: true,\n  candleWicksVisible: true,\n  colorBarsPrevClose: false,\n  candleUpColor: \"\",\n  candleDownColor: \"\",\n  candleUpBorder: \"\",\n  candleDownBorder: \"\",\n  candleUpWick: \"\",\n  candleDownWick: \"\",\n  precision: \"auto\",\n  showLogo: true,\n  showOHLC: true,\n  showBarChange: true,\n  showSymbolName: true,\n  titleMode: \"name\",\n  showVolume: false,\n  showLastDayChange: false,\n  showIndicatorTitles: true,\n  indicatorBackgroundOpacity: 70,\n  showWatermark: true,\n  backgroundType: \"solid\",\n  backgroundTop: \"\",\n  backgroundBottom: \"\",\n  gridHColor: \"\",\n  gridVColor: \"\",\n  paneSeparatorColor: \"\",\n  crosshairColor: \"\",\n  watermarkColor: \"\",\n  paneButtons: \"hover\",\n  extHours: false,\n  overnightHours: false,\n  extendedLineVisible: true,\n  preMarketColor: \"#ff9800\",\n  postMarketColor: \"#2962ff\",\n  overnightColor: \"#9c27b0\",\n};\n\n// Range presets \u2014 the button click scrolls the chart time axis to show this window.\nexport type RangeKey = \"1D\" | \"5D\" | \"1M\" | \"3M\" | \"6M\" | \"YTD\" | \"1Y\" | \"5Y\" | \"All\";\nconst RANGE_KEYS: RangeKey[] = [\"1D\", \"5D\", \"1M\", \"3M\", \"6M\", \"YTD\", \"1Y\", \"5Y\", \"All\"];\n\n// Date arithmetic helpers \u2014 ISO yyyy-mm-dd string manipulation.\nfunction isoDate(d: Date): string { return d.toISOString().slice(0, 10); }\nfunction addDays(base: Date, n: number): Date { const d = new Date(base); d.setDate(d.getDate() + n); return d; }\nfunction addMonths(base: Date, n: number): Date { const d = new Date(base); d.setMonth(d.getMonth() + n); return d; }\nfunction addYears(base: Date, n: number): Date { const d = new Date(base); d.setFullYear(d.getFullYear() + n); return d; }\n\n// Navigate the chart to a given range key using the lightweight-charts time scale API.\n// Every preset keeps the future gutter: setVisibleRange/setVisibleLogicalRange are\n// EXPLICIT bounds and ignore timeScale.rightOffset, so a preset that ended at the\n// newest candle pinned it to the right edge with nothing to draw into.\nfunction applyRange(\n  key: RangeKey,\n  chartApi: ChartEngine,\n  isIntraday: boolean,\n  rightOffsetBars = DEFAULT_CHART_RIGHT_OFFSET,\n): void {\n  const ts = chartApi.timeScale();\n  const gutter = Number.isFinite(rightOffsetBars) ? Math.max(0, rightOffsetBars) : DEFAULT_CHART_RIGHT_OFFSET;\n  try {\n    // \"All\" fits every time point, which now includes the future gutter \u2014 that\n    // blank tail is bounded against the loaded history, so it stays a gutter.\n    if (key === \"All\") { ts.fitContent(); return; }\n    const now = new Date();\n    // For intraday charts: use logical range (bar counts approximate; intraday has hundreds of bars/day).\n    // For daily charts: use the \"from/to\" date-string setVisibleRange API.\n    if (isIntraday) {\n      // approximate bar counts for intraday: 390 bars/day for 1m US equity\n      const barsPerDay = 390;\n      // Re-anchor at the newest bar even when the user had panned away, then let\n      // the configured rightOffset supply the future-time gutter.\n      ts.applyOptions({ rightOffset: gutter });\n      ts.scrollToRealtime();\n      const logRange = ts.getVisibleLogicalRange();\n      const to = (logRange?.to ?? 0) as number;\n      const barCount = key === \"1D\" ? barsPerDay : key === \"5D\" ? barsPerDay * 5 : barsPerDay * 20;\n      ts.setVisibleLogicalRange({ from: to - barCount, to });\n    } else {\n      let fromDate: Date;\n      switch (key) {\n        case \"1D\": fromDate = addDays(now, -1); break;\n        case \"5D\": fromDate = addDays(now, -5); break;\n        case \"1M\": fromDate = addMonths(now, -1); break;\n        case \"3M\": fromDate = addMonths(now, -3); break;\n        case \"6M\": fromDate = addMonths(now, -6); break;\n        case \"YTD\": fromDate = new Date(now.getFullYear(), 0, 1); break;\n        case \"1Y\": fromDate = addYears(now, -1); break;\n        case \"5Y\": fromDate = addYears(now, -5); break;\n        default: return;\n      }\n      ts.setVisibleRange({ from: isoDate(fromDate) as any, to: isoDate(now) as any });\n      const range = withChartFutureOffset(ts.getVisibleLogicalRange(), gutter);\n      if (range) ts.setVisibleLogicalRange(range);\n    }\n  } catch {}\n}\n\n// Derive the UTC timezone offset label, e.g. \"UTC+5:30\" or \"UTC-8\".\nfunction utcOffsetLabel(now: Date): string {\n  const off = -now.getTimezoneOffset(); // minutes\n  const sign = off >= 0 ? \"+\" : \"-\";\n  const abs = Math.abs(off);\n  const h = Math.floor(abs / 60);\n  const m = abs % 60;\n  return `UTC${sign}${h}${m ? \":\" + String(m).padStart(2, \"0\") : \"\"}`;\n}\n\nfunction fmtHHMMSS(d: Date): string {\n  return (\n    String(d.getHours()).padStart(2, \"0\") + \":\" +\n    String(d.getMinutes()).padStart(2, \"0\") + \":\" +\n    String(d.getSeconds()).padStart(2, \"0\")\n  );\n}\n\ntype SubMenu = \"labels\" | \"lines\" | null;\n\nexport default function ChartFrameBar({\n  timeframe,\n  chartApi,\n  settings,\n  onSettings,\n  onOpenSettingsModal,\n  extendedEligible = false,\n  openGotoRequest = 0,\n  symbol,\n  dataOrigin,\n  tradingCurrency,\n}: {\n  timeframe: string;\n  chartApi: ChartEngine | null;\n  settings: ChartSettings;\n  onSettings: (patch: Partial<ChartSettings>) => void;\n  onOpenSettingsModal?: (tab?: string) => void;\n  extendedEligible?: boolean;\n  /** Bumped by the chart pane when the command palette asks for this chart's go-to-date box:\n   *  each new value opens the same popover the calendar button opens. */\n  openGotoRequest?: number;\n  /** Data OS U02: the mounted chart's symbol + its derived origin readout (drives the origin chip). */\n  symbol?: string;\n  dataOrigin?: DataOrigin | null;\n  /** B1: this listing's trading currency from the fund document (exact ticker + explicit\n   *  3-letter quote_currency), or null while unknown \u2014 the chip then says so explicitly\n   *  instead of guessing from the ticker suffix or the statement currency. */\n  tradingCurrency?: string | null;\n}) {\n  const t = useT();\n  const { lang } = useLang();\n  // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.\n  // The server renders at server-local time; the client's timezone may differ completely.\n  const [mounted, setMounted] = useState(false);\n  const clockRef = useRef<HTMLSpanElement>(null);\n  const tzRef = useRef<HTMLSpanElement>(null);\n  const [gearOpen, setGearOpen] = useState(false);\n  const [subMenu, setSubMenu] = useState<SubMenu>(null);\n  const [gotoOpen, setGotoOpen] = useState(false);\n  const [gotoDate, setGotoDate] = useState(\"\");\n  const gearRef = useRef<HTMLDivElement>(null);\n  const gearButtonRef = useRef<HTMLButtonElement>(null);\n  const gearMenuRef = useRef<HTMLDivElement>(null);\n  const quickSettingsId = useId();\n  const gotoRef = useRef<HTMLInputElement>(null);\n  // C8/CHART-08b \u2014 the native shell swaps the settings glyph for TV's hexagon nut. Read after mount\n  // (the marker is stamped pre-paint on <html>, but this component is SSR'd) so the server output \u2014\n  // and therefore the whole browser web render \u2014 stays byte-identical under L2.\n  const [shellMode, setShellMode] = useState(false);\n\n  const isIntraday = isIntradayTf(timeframe);\n\n  // Client-only mount gate: nothing is rendered until mounted=true, preventing SSR time from\n  // leaking in.\n  useEffect(() => {\n    setMounted(true);\n    setShellMode(document.documentElement.getAttribute(\"data-shell\") === \"app\");\n  }, []);\n  // The once-a-second tick writes the clock text straight into its spans instead of React state.\n  // A 1 Hz setState re-renders at Default priority, and in an English boot the /terminal route\n  // boundary hydrates at Offscreen priority, so its mount effects queue Idle-lane updates that a\n  // ~1 s TerminalShell render must finish to clear. Every tick interrupted that render and React\n  // restarted it, which kept the main thread busy with one long task per second indefinitely.\n  // Layout effect: the first paint after mount already shows the time.\n  useLayoutEffect(() => {\n    if (!mounted) return;\n    const paint = () => {\n      const now = new Date();\n      if (clockRef.current) clockRef.current.textContent = fmtHHMMSS(now);\n      if (tzRef.current) tzRef.current.textContent = utcOffsetLabel(now);\n    };\n    let interval: ReturnType<typeof setInterval> | undefined;\n    const stop = () => {\n      if (interval !== undefined) clearInterval(interval);\n      interval = undefined;\n    };\n    const syncVisibility = () => {\n      stop();\n      if (document.hidden) return;\n      paint();\n      interval = setInterval(paint, 1000);\n    };\n    document.addEventListener(\"visibilitychange\", syncVisibility);\n    syncVisibility();\n    return () => {\n      stop();\n      document.removeEventListener(\"visibilitychange\", syncVisibility);\n    };\n  }, [mounted]);\n\n  // Close gear popup when clicking outside\n  useEffect(() => {\n    if (!gearOpen) return;\n    const h = (e: MouseEvent) => {\n      if (gearRef.current && !gearRef.current.contains(e.target as Node)) {\n        setGearOpen(false);\n        setSubMenu(null);\n      }\n    };\n    window.addEventListener(\"mousedown\", h);\n    return () => window.removeEventListener(\"mousedown\", h);\n  }, [gearOpen]);\n\n  useEffect(() => {\n    if (gearOpen) gearMenuRef.current?.querySelector<HTMLButtonElement>(\"button:not(:disabled)\")?.focus();\n  }, [gearOpen]);\n\n  // Keyboard shortcuts:\n  //   \u2325I invert, \u2325P percent, \u2325L log (existing, unchanged),\n  //   \u2190/\u2192 pan (Shift = larger step), +/- zoom (TradingView-standard chart nav).\n  // All guarded against typing contexts.\n  useEffect(() => {\n    // Pan/zoom the visible logical range. `frac` is signed for pan (fraction of visible\n    // width to shift; +right/-left), and a magnitude for zoom around the range center.\n    const panBy = (frac: number) => {\n      if (!chartApi) return;\n      try {\n        const ts = chartApi.timeScale();\n        const r = ts.getVisibleLogicalRange();\n        if (!r) return;                         // null range \u2192 no-op (no data / not laid out)\n        const w = r.to - r.from;\n        const d = w * frac;\n        ts.setVisibleLogicalRange({ from: r.from + d, to: r.to + d });\n      } catch {}\n    };\n    const zoomBy = (factor: number) => {        // <1 zooms in, >1 zooms out; anchored on center\n      if (!chartApi) return;\n      try {\n        const ts = chartApi.timeScale();\n        const r = ts.getVisibleLogicalRange();\n        if (!r) return;\n        const mid = (r.from + r.to) / 2;\n        const half = ((r.to - r.from) / 2) * factor;\n        ts.setVisibleLogicalRange({ from: mid - half, to: mid + half });\n      } catch {}\n    };\n\n    const h = (e: KeyboardEvent) => {\n      const tgt = e.target as HTMLElement | null;\n      const tag = tgt?.tagName;\n      if (tag === \"INPUT\" || tag === \"TEXTAREA\") return;\n      if (e.isComposing) return;\n      if (tgt?.isContentEditable) return;\n\n      // Existing \u2325-bindings (invert / percent / log) \u2014 unchanged.\n      if (e.altKey) {\n        if (e.key === \"i\" || e.key === \"I\") {\n          e.preventDefault();\n          onSettings({ invertScale: !settings.invertScale });\n        } else if (e.key === \"p\" || e.key === \"P\") {\n          e.preventDefault();\n          onSettings({ mode: settings.mode === EnginePriceScaleMode.Percentage ? EnginePriceScaleMode.Normal : EnginePriceScaleMode.Percentage });\n        } else if (e.key === \"l\" || e.key === \"L\") {\n          e.preventDefault();\n          onSettings({ mode: settings.mode === EnginePriceScaleMode.Logarithmic ? EnginePriceScaleMode.Normal : EnginePriceScaleMode.Logarithmic });\n        }\n        return;\n      }\n\n      // Chart-nav keys: reject ctrl/meta/alt combos so \u2325-bindings + browser shortcuts stay\n      // untouched (Shift is the only permitted modifier, and only for the arrows).\n      if (e.ctrlKey || e.metaKey) return;\n\n      // Yield to focused controls / open modals so this window-level (bubble) listener does\n      // not double-fire with element-scoped arrow handlers. WorkspaceTabs' roving-tab arrows\n      // (its focused <button> is document.activeElement) and the tutorial coach dialog\n      // (aria-modal) are the two real bubble collisions; both are covered here.\n      const active = document.activeElement as HTMLElement | null;\n      if (active && active !== document.body) {\n        const atag = active.tagName;\n        if (\n          atag === \"INPUT\" || atag === \"TEXTAREA\" || atag === \"SELECT\" ||\n          atag === \"BUTTON\" || atag === \"A\" ||\n          active.isContentEditable ||\n          active.closest('[aria-modal=\"true\"], [role=\"tab\"], [role=\"dialog\"]')\n        ) return;\n      }\n\n      switch (e.key) {\n        case \"ArrowLeft\":\n          e.preventDefault();\n          panBy(e.shiftKey ? -0.5 : -0.1);   // toward the past\n          break;\n        case \"ArrowRight\":\n          e.preventDefault();\n          panBy(e.shiftKey ? 0.5 : 0.1);     // toward the future\n          break;\n        // Zoom: match on the produced character. On a US layout \"+\" is itself Shift+\"=\" and\n        // \"_\" is Shift+\"-\", so Shift is intrinsic to these keys and must NOT be rejected here\n        // (ctrl/meta/alt were already filtered above). \"=\" and \"-\" cover the unshifted keys.\n        case \"+\":\n        case \"=\":\n          e.preventDefault();\n          zoomBy(0.8);                       // shrink by 20% \u2192 zoom in\n          break;\n        case \"-\":\n        case \"_\":\n          e.preventDefault();\n          zoomBy(1.25);                      // expand by 25% \u2192 zoom out\n          break;\n      }\n    };\n    window.addEventListener(\"keydown\", h);\n    return () => window.removeEventListener(\"keydown\", h);\n  }, [settings, onSettings, chartApi]);\n\n  // Only a NEW request opens the box: the value present at mount (a remount after an earlier\n  // request) is not one.\n  const handledGotoRequest = useRef(openGotoRequest);\n  useEffect(() => {\n    if (openGotoRequest === handledGotoRequest.current) return;\n    handledGotoRequest.current = openGotoRequest;\n    setGotoOpen(true);\n  }, [openGotoRequest]);\n\n  // Go-to-date: focus the input when it opens\n  useEffect(() => {\n    if (gotoOpen) setTimeout(() => gotoRef.current?.focus(), 50);\n  }, [gotoOpen]);\n\n  function applyGotoDate() {\n    if (!chartApi || !gotoDate) return;\n    try {\n      const ts = chartApi.timeScale();\n      const logRange = ts.getVisibleLogicalRange();\n      const width = logRange ? logRange.to - logRange.from : 120;\n      const coord = ts.timeToCoordinate(gotoDate as any);\n      if (coord != null) {\n        const bar = ts.coordinateToLogical(coord);\n        if (bar != null) ts.setVisibleLogicalRange({ from: bar - width / 2, to: bar + width / 2 });\n      } else {\n        // date not visible \u2014 use setVisibleRange to scroll there\n        const from = isoDate(addDays(new Date(gotoDate), -30));\n        const to = isoDate(addDays(new Date(gotoDate), 30));\n        ts.setVisibleRange({ from: from as any, to: to as any });\n      }\n    } catch {}\n    setGotoOpen(false);\n  }\n\n  const s = settings;\n\n  return (\n    <div className={`chart-frame-bar ${overnightStyles.frameBar}`}>\n      {/* LEFT: range buttons + go-to-date */}\n      <div className=\"cfb-left\">\n        {RANGE_KEYS.map((rk) => (\n          <button\n            key={rk}\n            className=\"cfb-range\"\n            onClick={() => chartApi && applyRange(rk, chartApi, isIntraday, s.rightOffsetBars)}\n          >{rk}</button>\n        ))}\n        <div style={{ position: \"relative\" }}>\n          <button className=\"cfb-cal\" title={t(\"gotoDate\")} onClick={(e) => { e.stopPropagation(); setGotoOpen((o) => !o); }}>\n            <svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" strokeWidth=\"1.4\">\n              <rect x=\"1.5\" y=\"2.5\" width=\"13\" height=\"12\" rx=\"1.5\" />\n              <path d=\"M1.5 6h13M5 1.5v2M11 1.5v2\" />\n            </svg>\n          </button>\n          {gotoOpen && (\n            <div className=\"cfb-goto-pop\" onClick={(e) => e.stopPropagation()}>\n              <input\n                ref={gotoRef}\n                type=\"date\"\n                className=\"cfb-date-input\"\n                value={gotoDate}\n                onChange={(e) => setGotoDate(e.target.value)}\n                onKeyDown={(e) => { if (e.key === \"Enter\") applyGotoDate(); if (e.key === \"Escape\") setGotoOpen(false); }}\n              />\n              <button className=\"cfb-goto-go\" onClick={applyGotoDate}>{t(\"go\")}</button>\n            </div>\n          )}\n        </div>\n      </div>\n\n      {/* RIGHT: clock + ETH + ADJ + gear */}\n      <div className=\"cfb-right\">\n        {mounted && (\n          <span className=\"cfb-clock num\">\n            <span ref={clockRef} /> <span ref={tzRef} className=\"cfb-tz\" />\n          </span>\n        )}\n        {/* ETH chip \u2014 active when on; muted+non-interactive on daily TFs (no tooltip per spec) */}\n        <button\n          className={`cfb-chip${s.extHours && extendedEligible && isIntraday ? \" on\" : \"\"}${!isIntraday || !extendedEligible ? \" dis\" : \"\"}`}\n          disabled={!isIntraday || !extendedEligible}\n          onClick={() => isIntraday && extendedEligible && onSettings({ extHours: !s.extHours, overnightHours: false })}\n          title={isIntraday && extendedEligible ? (s.extHours ? t(\"ethOff\") : t(\"ethOn\")) : undefined}\n          aria-label={t(\"cfbExtendedHours\")}\n          aria-pressed={!!(s.extHours && extendedEligible && isIntraday)}\n        >ETH</button>\n        {extendedEligible && isOvernightTimeframe(timeframe) && <button className={`cfb-chip${s.overnightHours ? \" on\" : \"\"}`}\n          onClick={() => onSettings({ overnightHours: !s.overnightHours, ...(!s.overnightHours ? { extHours: true } : {}) })}\n          aria-label={boatsChartCopy(lang).label} aria-pressed={!!s.overnightHours} title={boatsChartCopy(lang).coverage}>24H</button>}\n        {/* Data OS U02 \u2014 the origin chip replaces the static ADJ span: label and explanation are\n            derived from the OHLC file's view contract, never a hardcoded claim. */}\n        <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />\n        {/* B1 \u2014 the trading-currency chip sits beside origin: the fund document's quote_currency\n            for THIS exact listing, or an explicit \"CCY?\" while unknown. A neutral cfb-chip span\n            reuses the frame bar's existing styling \u2014 no new CSS, colors or design system. */}\n        <span\n          className=\"cfb-chip\"\n          data-testid=\"cfb-currency\"\n          aria-label={tradingCurrency\n            ? pick(lang === \"zh\", `Trading currency: ${tradingCurrency}`, `\u4ea4\u6613\u5e01\u79cd\uff1a${tradingCurrency}`)\n            : pick(lang === \"zh\", \"Trading currency unavailable\", \"\u4ea4\u6613\u5e01\u79cd\u4e0d\u53ef\u7528\")}\n        >{tradingCurrency ?? pick(lang === \"zh\", \"CCY?\", \"\u5e01\u79cd?\")}</span>\n        {/* Gear: quick settings */}\n        <div className=\"cfb-gear-host\" ref={gearRef}\n          onBlur={(event) => {\n            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {\n              setGearOpen(false);\n              setSubMenu(null);\n            }\n          }}\n          onKeyDown={(event) => {\n            if (event.key !== \"Escape\" || !gearOpen) return;\n            event.preventDefault();\n            event.stopPropagation();\n            setGearOpen(false);\n            setSubMenu(null);\n            gearButtonRef.current?.focus();\n          }}>\n          <button\n            ref={gearButtonRef}\n            type=\"button\"\n            className={`cfb-gear${gearOpen ? \" on\" : \"\"}`}\n            title={t(\"quickSettings\")}\n            aria-label={t(\"quickSettings\")}\n            aria-haspopup=\"dialog\"\n            aria-expanded={gearOpen}\n            aria-controls={gearOpen ? quickSettingsId : undefined}\n            onClick={(e) => { e.stopPropagation(); setGearOpen((o) => !o); if (gearOpen) setSubMenu(null); }}\n          >\n            {/* C8b \u2014 at the shell's 26\u00d726 / 15px svg the eight straight radial strokes read as a\n                brightness/sun icon, not settings. TV draws a hexagon nut. House-neutral, but gated\n                on shellMode anyway so the web render stays byte-identical (L2). */}\n            {shellMode ? (\n              <svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" strokeWidth=\"1.3\">\n                <path d=\"M8 1.7 13.4 4.85v6.3L8 14.3 2.6 11.15v-6.3z\" strokeLinejoin=\"round\" />\n                <circle cx=\"8\" cy=\"8\" r=\"2.1\" />\n              </svg>\n            ) : (\n              <svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" strokeWidth=\"1.3\">\n                <circle cx=\"8\" cy=\"8\" r=\"2.2\" />\n                <path d=\"M8 1.5v1.3M8 13.2v1.3M1.5 8h1.3M13.2 8h1.3M3.2 3.2l.9.9M11.9 11.9l.9.9M3.2 12.8l.9-.9M11.9 4.1l.9-.9\" strokeLinecap=\"round\" />\n              </svg>\n            )}\n          </button>\n\n          {gearOpen && (\n            <div ref={gearMenuRef} id={quickSettingsId} role=\"dialog\" aria-label={t(\"quickSettings\")}\n              className={`qsg-menu ${quickSettingsStyles.menu}`} onClick={(e) => e.stopPropagation()}>\n              {/* Auto-scale: fits price data to the visible bar range.\n                  lightweight-charts only exposes a boolean toggle \u2014 no ratio-lock API exists.\n                  We expose a single honest \"Auto-scale\" checkbox; when unchecked the axis\n                  keeps its last manual zoom (the only alternative the library supports). */}\n              <button type=\"button\" aria-pressed={s.autoScale} className={`qsg-item${s.autoScale ? \" checked\" : \"\"}`} onClick={() => {\n                const next = !s.autoScale;\n                onSettings({ autoScale: next });\n                try { if (chartApi) chartApi.priceScale(s.scaleLeft ? \"left\" : \"right\").setAutoScale(next); } catch {}\n              }}>\n                <span className=\"qsg-check\" aria-hidden=\"true\">{s.autoScale ? \"\u2713\" : \"\"}</span>\n                <span className=\"qsg-lbl\">{t(\"qsgAuto\")}</span>\n              </button>\n\n              <button type=\"button\" disabled className=\"qsg-item qsg-disabled\">\n                <span className=\"qsg-check\" aria-hidden=\"true\" />\n                <span className=\"qsg-lbl\">{t(\"qsgScaleChartOnly\")}</span>\n              </button>\n\n              {/* Invert scale \u2325I */}\n              <button type=\"button\" aria-pressed={s.invertScale} aria-keyshortcuts=\"Alt+I\" className={`qsg-item${s.invertScale ? \" checked\" : \"\"}`} onClick={() => onSettings({ invertScale: !s.invertScale })}>\n                <span className=\"qsg-check\" aria-hidden=\"true\">{s.invertScale ? \"\u2713\" : \"\"}</span>\n                <span className=\"qsg-lbl\">{t(\"qsgInvert\")}</span>\n                <kbd className=\"qsg-kbd\" aria-hidden=\"true\">\u2325I</kbd>\n              </button>\n\n              <div className=\"qsg-sep\" />\n\n              {/* Scale mode radio group */}\n              {([\n                [EnginePriceScaleMode.Normal, t(\"qsgRegular\"), \"\"],\n                [EnginePriceScaleMode.Percentage, t(\"qsgPercent\"), \"\u2325P\"],\n                [EnginePriceScaleMode.IndexedTo100, t(\"qsgIndexed\"), \"\"],\n                [EnginePriceScaleMode.Logarithmic, t(\"qsgLog\"), \"\u2325L\"],\n              ] as [EnginePriceScaleMode, string, string][]).map(([m, label, kbd]) => (\n                <button key={m} type=\"button\" aria-pressed={s.mode === m} className={`qsg-item qsg-radio${s.mode === m ? \" checked\" : \"\"}`} onClick={() => onSettings({ mode: m })}>\n                  <span className=\"qsg-radio-dot\" aria-hidden=\"true\">{s.mode === m ? \"\u25cf\" : \"\u25cb\"}</span>\n                  <span className=\"qsg-lbl\">{label}</span>\n                  {kbd && <kbd className=\"qsg-kbd\" aria-hidden=\"true\">{kbd}</kbd>}\n                </button>\n              ))}\n\n              <div className=\"qsg-sep\" />\n\n              {/* Move scale to left */}\n              <button type=\"button\" aria-pressed={s.scaleLeft} className={`qsg-item${s.scaleLeft ? \" checked\" : \"\"}`} onClick={() => onSettings({ scaleLeft: !s.scaleLeft })}>\n                <span className=\"qsg-check\" aria-hidden=\"true\">{s.scaleLeft ? \"\u2713\" : \"\"}</span>\n                <span className=\"qsg-lbl\">{t(\"qsgScaleLeft\")}</span>\n              </button>\n\n              <div className=\"qsg-sep\" />\n\n              {/* Labels submenu */}\n              <div>\n                <button type=\"button\" className=\"qsg-item\" aria-expanded={subMenu === \"labels\"}\n                  aria-controls={subMenu === \"labels\" ? `${quickSettingsId}-labels` : undefined}\n                  onClick={() => setSubMenu(subMenu === \"labels\" ? null : \"labels\")}>\n                  <span className=\"qsg-check\" aria-hidden=\"true\" />\n                  <span className=\"qsg-sub-trigger\"><span className=\"qsg-lbl\">{t(\"qsgLabels\")}</span><svg aria-hidden=\"true\" viewBox=\"0 0 10 10\" fill=\"none\" stroke=\"currentColor\" strokeWidth=\"1.4\"><path d=\"M3 2l4 3-4 3\" /></svg></span>\n                </button>\n                {subMenu === \"labels\" && (\n                  <div id={`${quickSettingsId}-labels`} className={`qsg-submenu ${quickSettingsStyles.submenu}`}>\n                    <button type=\"button\" aria-pressed={s.lastValueVisible} className={`qsg-item${s.lastValueVisible ? \" checked\" : \"\"}`} onClick={() => onSettings({ lastValueVisible: !s.lastValueVisible })}>\n                      <span className=\"qsg-check\" aria-hidden=\"true\">{s.lastValueVisible ? \"\u2713\" : \"\"}</span>\n                      <span className=\"qsg-lbl\">{t(\"qsgLastValueLabel\")}</span>\n                    </button>\n                  </div>\n                )}\n              </div>\n\n              {/* Lines submenu */}\n              <div>\n                <button type=\"button\" className=\"qsg-item\" aria-expanded={subMenu === \"lines\"}\n                  aria-controls={subMenu === \"lines\" ? `${quickSettingsId}-lines` : undefined}\n                  onClick={() => setSubMenu(subMenu === \"lines\" ? null : \"lines\")}>\n                  <span className=\"qsg-check\" aria-hidden=\"true\" />\n                  <span className=\"qsg-sub-trigger\"><span className=\"qsg-lbl\">{t(\"qsgLines\")}</span><svg aria-hidden=\"true\" viewBox=\"0 0 10 10\" fill=\"none\" stroke=\"currentColor\" strokeWidth=\"1.4\"><path d=\"M3 2l4 3-4 3\" /></svg></span>\n                </button>\n                {subMenu === \"lines\" && (\n                  <div id={`${quickSettingsId}-lines`} className={`qsg-submenu ${quickSettingsStyles.submenu}`}>\n                    <button type=\"button\" aria-pressed={s.priceLineVisible} className={`qsg-item${s.priceLineVisible ? \" checked\" : \"\"}`} onClick={() => onSettings({ priceLineVisible: !s.priceLineVisible })}>\n                      <span className=\"qsg-check\" aria-hidden=\"true\">{s.priceLineVisible ? \"\u2713\" : \"\"}</span>\n                      <span className=\"qsg-lbl\">{t(\"qsgPriceLine\")}</span>\n                    </button>\n                  </div>\n                )}\n              </div>\n\n              <div className=\"qsg-sep\" />\n\n              {/* More settings \u2014 opens the full settings modal on the Scales and lines tab */}\n              <button type=\"button\" className=\"qsg-item\" disabled={!onOpenSettingsModal} onClick={() => {\n                gearButtonRef.current?.focus();\n                setGearOpen(false);\n                setSubMenu(null);\n                onOpenSettingsModal?.(\"scales\");\n              }}>\n                <span className=\"qsg-check\" aria-hidden=\"true\" />\n                <span className=\"qsg-lbl\">{t(\"qsgMoreSettings\")}</span>\n              </button>\n            </div>\n          )}\n        </div>\n      </div>\n    </div>\n  );\n}\n",
+    "suppressedMessages": [],
+    "usedDeprecatedRules": [],
+    "warningCount": 0
+  }
+]

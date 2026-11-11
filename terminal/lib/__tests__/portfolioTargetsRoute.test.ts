@@ -4,6 +4,7 @@ import type { DbResult, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 const H = vi.hoisted(() => ({
   user: { id: "e2e-user-pftargets" } as { id: string } | null,
   failReadTable: null as string | null,
+  missingRoleColumn: false,
   // R6 (i): a driver that THROWS, not one that returns an error row — the GET path wraps its
   // select in try/catch and the POST path's maybeSingle must do the same.
   throwOnMaybeSingle: false,
@@ -24,17 +25,17 @@ vi.mock("@/lib/supabase/server", async () => {
     createClient: vi.fn(async () => {
       const db: WatchlistDb = createFixtureDb("pftargets");
       const failing: DbResult = { data: null, error: { message: "database unavailable" } };
-      const failedQuery = (): WatchlistQuery => {
-        const query = Object.assign(Promise.resolve(failing), {
-          select: () => failedQuery(),
-          eq: () => failedQuery(),
-          in: () => failedQuery(),
-          order: () => failedQuery(),
-          limit: () => failedQuery(),
-          insert: () => failedQuery(),
-          update: () => failedQuery(),
-          delete: () => failedQuery(),
-          maybeSingle: async () => failing,
+      const failedQuery = (result = failing): WatchlistQuery => {
+        const query = Object.assign(Promise.resolve(result), {
+          select: () => failedQuery(result),
+          eq: () => failedQuery(result),
+          in: () => failedQuery(result),
+          order: () => failedQuery(result),
+          limit: () => failedQuery(result),
+          insert: () => failedQuery(result),
+          update: () => failedQuery(result),
+          delete: () => failedQuery(result),
+          maybeSingle: async () => result,
         });
         return query as unknown as WatchlistQuery;
       };
@@ -73,6 +74,11 @@ vi.mock("@/lib/supabase/server", async () => {
           if (H.failReadTable === table) return failedQuery();
           const spied = new Proxy(db.from(table), {
             get(target, prop, receiver) {
+              if (prop === "select" && table === "portfolio_targets" && H.missingRoleColumn) {
+                return (fields: string) => fields.includes("role_label")
+                  ? failedQuery({ data: null, error: { message: "column role_label does not exist", code: "42703" } } as DbResult)
+                  : target.select(fields);
+              }
               if (prop === "insert" || prop === "update" || prop === "delete") {
                 return (value?: unknown) => {
                   H.positionWrites.push({ table, op: String(prop) });
@@ -112,7 +118,7 @@ const postBook = (body: Record<string, unknown>) => PORTFOLIO_POST(new Request("
 const owner = fixtureUserId("pftargets");
 
 async function seedHolding(ticker: string, shares = 10, entryPrice = 100) {
-  const response = await postBook({ action: "create", ticker, shares, entryPrice });
+  const response = await postBook({ action: "create", ticker, shares, entryPrice, entryCurrency: "USD" });
   expect(response.status).toBe(200);
   return (await response.json()).position as { id: string; ticker: string };
 }
@@ -121,6 +127,7 @@ beforeEach(() => {
   resetFixtureStores();
   H.user = { id: owner };
   H.failReadTable = null;
+  H.missingRoleColumn = false;
   H.throwOnMaybeSingle = false;
   H.throwOnUpdate = false;
   H.throwOnInsert = false;
@@ -294,7 +301,7 @@ describe("cross-route consistency", () => {
     expect(got.status).toBe(200);
     const { summary } = await got.json() as { summary: PortfolioTargetsSummary };
     expect(summary.drifts.some((d) => d.ticker === "AAA")).toBe(false);
-    expect(summary.orphaned).toEqual([{ ticker: "AAA", targetWeightPct: 40, bandPct: 8 }]);
+    expect(summary.orphaned).toEqual([{ ticker: "AAA", targetWeightPct: 40, bandPct: 8, roleLabel: null }]);
   });
 
   it("never issues a write against portfolio_positions from this route or from portfolioTargets.ts", async () => {
@@ -376,4 +383,131 @@ describe("POST /api/portfolio/targets — error ordering and driver faults (R6 i
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "targets unavailable" });
   });
+});
+
+// ── Optional `expectedOwnerId` refusal precondition (Sol ruling, PR1044, 2026-10-20) ────────────
+// Comparison-only, never auth: the session still owns identity on every path. A stub B session
+// owns a valid holding AND a saved target; an A session naming B as `expectedOwnerId` must be
+// refused 409 before the store is touched at all, a B session naming B proceeds normally, and
+// omission is legacy behavior.
+describe("POST /api/portfolio/targets — optional expectedOwnerId refusal precondition", () => {
+  const userB = fixtureUserId("pftargets-b");
+
+  it("409s set and clear carrying a mismatched expectedOwnerId, with zero store mutation calls", async () => {
+    // Session stub B owns a valid holding and a saved target (set under its own matching id).
+    H.user = { id: userB };
+    await seedHolding("NVDA", 100, 200);
+    const seeded = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 40, expectedOwnerId: userB });
+    expect(seeded.status).toBe(200);
+
+    // A session, precondition naming B. Pre-fix these answered 400 "not a current holding" /
+    // 404 "target not found" — the discriminator this block exists to pin.
+    H.user = { id: owner };
+    H.positionWrites = [];
+    const readsBefore = H.reads.length;
+    for (const body of [
+      { action: "set", ticker: "NVDA", targetWeightPct: 90, expectedOwnerId: userB },
+      { action: "clear", ticker: "NVDA", expectedOwnerId: userB },
+    ]) {
+      const response = await postTargets(body);
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: "owner mismatch" });
+    }
+    expect(H.positionWrites).toEqual([]);
+    expect(H.reads.length).toBe(readsBefore); // refused before the store is reached at all
+    // B's target row survives untouched, still rendered as B's drift.
+    H.user = { id: userB };
+    const got = await GET();
+    const { summary } = await got.json() as { summary: PortfolioTargetsSummary };
+    expect(summary.drifts[0]).toMatchObject({ ticker: "NVDA", targetWeightPct: 40 });
+  });
+
+  it("proceeds normally when expectedOwnerId matches the session, and stays legacy when omitted", async () => {
+    await seedHolding("AAA", 10, 100);
+    const matching = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 30, expectedOwnerId: owner });
+    expect(matching.status).toBe(200);
+    expect((await matching.json()).target).toMatchObject({ ticker: "AAA", targetWeightPct: 30 });
+    const omitted = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 55 });
+    expect(omitted.status).toBe(200);
+    expect((await omitted.json()).target).toMatchObject({ targetWeightPct: 55 });
+    const cleared = await postTargets({ action: "clear", ticker: "AAA" });
+    expect(cleared.status).toBe(200);
+    expect(await cleared.json()).toEqual({ ok: true, clearedTicker: "AAA" });
+  });
+
+  it("409s null, nonstring and malformed expectedOwnerId values before any store call", async () => {
+    await seedHolding("AAA");
+    H.positionWrites = []; // the seed's own insert is not part of this assertion
+    H.reads = [];
+    for (const bad of [null, 123, true, { id: owner }, ["x"], ""]) {
+      const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 10, expectedOwnerId: bad });
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: "owner mismatch" });
+    }
+    expect(H.positionWrites).toEqual([]);
+    expect(H.reads).toEqual([]);
+  });
+
+  it("keeps the signed-out 401 ahead of the precondition", async () => {
+    H.user = null;
+    const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 10, expectedOwnerId: owner });
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "unauthenticated" });
+    expect(H.positionWrites).toEqual([]);
+  });
+});
+
+
+describe("role-only edits retain target and owner semantics", () => {
+  it("sets, reads and clears a label without touching weights; legacy set preserves it", async () => {
+    await seedHolding("AAA");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40, bandPct: 7 });
+    const response = await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "  观察仓位  ", expectedOwnerId: owner });
+    expect(response.status).toBe(200);
+    expect((await response.json()).target).toMatchObject({ roleLabel: "观察仓位", targetWeightPct: 40, bandPct: 7 });
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 55 });
+    const saved = (await (await GET()).json()).summary;
+    expect(saved.roleLabelsAvailable).toBe(true);
+    expect(saved.drifts[0]).toMatchObject({ roleLabel: "观察仓位", targetWeightPct: 55, bandPct: 7 });
+    expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: null })).status).toBe(200);
+    expect((await (await GET()).json()).summary.drifts[0].roleLabel).toBeNull();
+  });
+  it("does not create a target or overwrite another account's label", async () => {
+    expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research" })).status).toBe(404);
+    await seedHolding("AAA");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+    H.reads = []; H.positionWrites = [];
+    expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research", expectedOwnerId: "other" })).status).toBe(409);
+    expect(H.reads).toEqual([]);
+    expect(H.positionWrites).toEqual([]);
+    H.user = { id: "different-user" };
+    expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research" })).status).toBe(404);
+  });
+  it("rejects absent/invalid role intent before any store call and preserves unknown writes", async () => {
+    for (const roleLabel of [undefined, 1, "x".repeat(49), "a\nb"]) {
+      expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel })).status).toBe(400);
+    }
+    expect(H.reads).toEqual([]);
+    await seedHolding("AAA");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+    H.throwOnUpdate = true;
+    const failed = await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research" });
+    expect(failed.status).toBe(503);
+    expect(await failed.json()).toEqual({ error: "role change unconfirmed" });
+  });
+});
+
+
+it("keeps legacy target reads usable before migration but refuses role writes before mutation", async () => {
+  await seedHolding("AAA");
+  await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+  H.missingRoleColumn = true;
+  const read = await GET();
+  expect(read.status).toBe(200);
+  const summary = (await read.json()).summary;
+  expect(summary.roleLabelsAvailable).toBe(false);
+  expect(summary.drifts[0].targetWeightPct).toBe(40);
+  H.positionWrites = [];
+  expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research" })).status).toBe(503);
+  expect(H.positionWrites).toEqual([]);
 });

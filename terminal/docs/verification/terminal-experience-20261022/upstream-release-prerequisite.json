@@ -1,0 +1,58 @@
+{
+  "schema": "terminal.upstream-release-prerequisite.v1",
+  "recorded_at": "2026-10-22T10:12:25.251467+00:00",
+  "upstream_pr": 1104,
+  "upstream_merge_sha": "0aecf8e95dd7888b3453834d75f3e072e464bb6e",
+  "upstream_merged_at": "2026-10-22T09:48:37Z",
+  "integrated_design_source": "e13c4d8a5d69fa74c99011080026a7632c617b70",
+  "ci_finding": {
+    "run_id": 39759943790,
+    "job_id": 119761702287,
+    "code": "OPEN_PR_STATE_STALE",
+    "prefix": "0040",
+    "failed": 1,
+    "passed": 2491,
+    "skipped": 112,
+    "subtests_passed": 286
+  },
+  "correction": "Record #1104's actual merged state and SHA. Preserve applied_in_production=false and applied_date=null; leave every SQL byte unchanged.",
+  "sql_file": "supabase/migrations/0040_investigation_review.sql",
+  "sql_sha256": "9353ef58cf500b91b1f9b029f0249b09151975bc697e267f7182cd8147146287",
+  "applier_dry_run": {
+    "exit_code": 0,
+    "statements": 1,
+    "guards": "re-runnable, down block and readback block OK",
+    "network_calls": 0
+  },
+  "production_catalog_read_only": {
+    "function": "public.valid_investigation_manifest_v2(jsonb)",
+    "volatility": "immutable",
+    "security_definer": false,
+    "search_path": [
+      "pg_catalog",
+      "public"
+    ],
+    "execute_roles": [
+      "postgres",
+      "service_role"
+    ],
+    "existing_manifest_accepted": true,
+    "valid_review_accepted": false,
+    "invalid_assessment_accepted": false,
+    "malformed_fire_event_id_accepted": false,
+    "meaning": "The live validator still has the 0039 body and rejects the 0040 review block."
+  },
+  "production_effects": "None. SELECT catalog/validation probes only; no migration or database write performed.",
+  "deployment_prerequisite": "Reconcile the owning Options release's 0040 application receipt and catalog before serving its review-saving UI.",
+  "application_authority": "Existing DEC-SUPABASE-MIGRATION-NAMESPACE-TERMINAL-LEDGER-2026-09-06; application remains an owning operator/Meta-CEO act through the reviewed applier.",
+  "namespace_qualification": {
+    "passed": 97,
+    "warning": "Existing synthetic-duplicate guard disclosure",
+    "command": "GITHUB_EVENT_NAME=pull_request PR_NUMBER=1125 python3 -m pytest tests/test_supabase_migration_namespace.py -q",
+    "log": "migration-namespace.log.gz"
+  },
+  "metadata_sha256": {
+    "supabase/migrations/README.md": "92b1d73a0162cd285d2a0479f506a1e6083cefecd78551cf1ca00d1ad512f283",
+    "supabase/migrations/RESERVATIONS.json": "5e2f22cfb5fa219281b27b5b33ed7e2247e7b4f50c534721ee528876c6a179e2"
+  }
+}

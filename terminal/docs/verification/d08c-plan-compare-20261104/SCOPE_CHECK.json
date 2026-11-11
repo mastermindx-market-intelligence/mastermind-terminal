@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "operation": "d08c-plan-compare-20261104-c3",
+  "code_test_config_files": [
+    "terminal/components/options/OptionsPlanComparePanel.tsx",
+    "terminal/components/options/OptionsPlanPayoffPanel.module.css",
+    "terminal/components/options/OptionsPlanPayoffPanel.tsx",
+    "terminal/e2e/options-plan-compare-mounted.spec.ts",
+    "terminal/e2e/options-plan-scenario-comparison.spec.ts",
+    "terminal/lib/__tests__/optionsPlanComparePanel.test.tsx",
+    "terminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx",
+    "terminal/lib/__tests__/optionsPlanScenarioCompare.test.ts",
+    "terminal/lib/optionsPlanScenarioCompare.ts",
+    "terminal/playwright.d08c.config.ts"
+  ],
+  "other_paths": "Only this operation's D08C verification and incumbent immutable-capture prefixes",
+  "unexpected_paths": [],
+  "observed_path_count_before_this_receipt": 376
+}

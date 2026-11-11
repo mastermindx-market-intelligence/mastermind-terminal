@@ -1,0 +1,28 @@
+{
+  "sourceHead": "38565c73bcdb31fcf2920fc91b90ed775d495c93",
+  "stats": {
+    "startTime": "2026-10-24T12:44:47.381Z",
+    "duration": 21821.841,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "screenshots": {
+    "docs/verification/options-plan-consumer-20261024/composed-mounted-plan-zh-desktop.png": "b74d2f03c080c0439c8472e9f4bcaa7caf91e752bb62dab78ccc94063a862957",
+    "docs/verification/options-plan-consumer-20261024/composed-mounted-plan-en-tablet.png": "4a46592ca8481ab35a5866e6e4b0c56a268943c899e1547b5877cac658fd5d9b",
+    "docs/verification/options-plan-consumer-20261024/composed-mounted-plan-zh-tablet.png": "03176adfe48fd21b823ca8d6387a9d3a1dddb1d53f9ba3aad173eee4515e9216",
+    "docs/verification/options-plan-consumer-20261024/composed-mounted-plan-en-mobile.png": "b7b33638f7710047d63fdf39f61c44e79d84679c1165ce6d45d562e3222aec28",
+    "docs/verification/options-plan-consumer-20261024/composed-mounted-plan-en-desktop.png": "3e87c43a0b3fbc8e358e74e3859317fadceae50c25475d68b30438f087f444b0",
+    "docs/verification/options-plan-consumer-20261024/composed-mounted-plan-zh-mobile.png": "ee6fb943bd65b43a5a04356033fa0e47c6735de72d4340717cf26a61a160cdc1"
+  },
+  "reportSha256": "b2df1d31205b37048ea77c05c5ad8fd69664aea3f6892d9728a74f302191739a",
+  "scope": "Local fixture-only authored plan, curve, invalidated/unavailable and scope-reset acceptance. No production terms, live payoff API, account Save or executable quote claim.",
+  "retention_reason": "First54case report valid; its default test-results crops were removed by the subsequent independentVIrun. Scoped6case capture rerun used unique retained output and root inspected all6 actualscreens; full54notrerun.",
+  "sourceFiles": {
+    "terminal/components/OptionsHubView.tsx": "476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb",
+    "terminal/components/options/OptionsPlanPayoffPanel.tsx": "1cb4409d09416328cbf6c5d4566df28914a104267657a296306c89b16d7e9266",
+    "terminal/components/options/OptionsShortlistPlan.tsx": "0cf976ca594219f7fc29c907f84a82dfabb618a7ea9ac0a6cda09025ba595cdd",
+    "terminal/lib/optionsContractShortlistLex.ts": "e1d28e03c44c8042d651b658ef842333fbd6ad51a13a496bff1b8e0b620ca662"
+  }
+}

@@ -1,0 +1,102 @@
+# Independent source-review disposition
+
+## Design review r1 and legend composition repair — 2026-10-09
+
+The original `options3d-01a118f3-design-review-r1` completed through the admitted
+Grok/ubuntu0 route after the installed support repair and a genuine capacity
+change. Actual START, complete 9,060-byte output and zero-residual cleanup are
+verified; lease `c6a4e8bb2caf` is released. The useful report was accepted through
+the canonical adapter and `accepted_by=reviewer` was read back. Output SHA256:
+`27d32442b9293929d915c2175f161d28337427995e66a786005cf83f33061f40`.
+Its verdict remains `NEEDS_REPAIR`; acceptance of the report is not acceptance of
+every suggested fix or the full design gate.
+
+The reviewer reports viewing all ten original appearance captures at frozen d035,
+with their hashes and actual pixel/crop mechanism. Dark and light material
+treatments, bilingual semantics and unavailable Replay honesty passed within that
+image scope. The report cannot prove interaction, native performance or production.
+
+The two desktop findings were adjudicated against current6369 source and actual
+local browser behavior before editing:
+
+- Inspector actions were below the original viewport crop, not permanently
+  clipped. Four before-repair cases (dark/light × EN/ZH, CSS1440×1100) scrolled the
+  existing Lab container, hit-tested all targets, executed Compare and Dismiss,
+  and reached disabled Save plus its explanation. Nested inspector scrolling and
+  a pinned action footer were therefore not adopted.
+- The legend was also reachable; its panel's client and scroll heights were both
+  631px. Its position after the scene nevertheless hid the encoding on initial
+  desktop entry. The accepted composition repair moves the existing two legend
+  paragraphs before `ResearchScene`, without changing copy, colors, geometry,
+  data admission, inspector layout or Save.
+
+The old narrow English crop did not establish an unreachable-value defect. The
+affected layout is covered by the new 16-case fixture matrix, including narrow
+English and Chinese. The initial harness mistakes (keyed fixture envelope,
+desktop-only Settings selector, hydration and closing-overlay timing) are retained
+in the external raw proofs as harness errors, not source failures. Seven existing
+view tests, typecheck, changed-file lint and production build pass. Independent
+delta review and exact-head hosted CI remain separate gates.
+
+Parent adjudication SHA256:
+`f22beb4eab8ce6e4c83c99d55acd2381b1a12fd284c38b892879fd801c65cb5b`.
+External evidence base: `/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/`.
+Saved recovery, rights, independent performance and authenticated release remain
+separate; PR846 remains draft and Save disabled.
+
+## Original source review r1
+
+Retained Fabric run: `options3d-01a118f3-source-review-r1`, original root `01a118f3-fc4e-7941-b432-03703dccd19b`. Reviewed head `1f7eed536be8f4593b99b188094ec1984afe410e`, base `d660d98b1ebc0bdf0d1b16d66202b1760f6cc94a`. The report returned rc=0 with 8,616 bytes, was consumed through the same adapter, and was accepted as a useful review report after parent adjudication. No browser or production run was performed by that reviewer. This is not independent approval of later source.
+
+| Finding | Parent disposition and evidence |
+| --- | --- |
+| Medium: every filter change recreates WebGL renderer and resets camera | Confirmed. New browser regression failed because the original canvas became disconnected. `6b8e0855` keeps renderer, controls, camera and grid mounted, updates point buffers and frees old GPU attributes before changing count. The repaired test and 20K filter/pick stress pass. |
+| Medium: canvas/deep-link selection dismissal loses focus | Already repaired in later source. Canvas/IV selections record origin; disconnected origin falls back to Back to Exposure. Browser regression selects by keyboard, dismisses and observes canvas focus. |
+| Low: exact table headers have no scope | Confirmed. Added column/row scope in Chain and IV tables. Browser asserts every Chain header has the correct scope. |
+| Low: linear picking could exceed the 100ms target under repeated clicks | Risk was plausible, not an observed violation. Retained the bounded 20K projection loop. Twenty clicks with alternating 20K/10K filters measured max 2.4ms on current source. Spatial indexing is deferred until a measured violation justifies added complexity. Native-device qualification remains separate. |
+| Low: closing the lab leaves `view=research` in URL | Confirmed. Open/close updates only the `view` search parameter and preserves other query fields, fragment and existing history state. The review's suggestion to replace the whole URL with pathname was rejected because it drops `tab=gex` and unrelated context. Browser proves close/reload stays in Exposure, focus returns, and reopening writes the deep link. |
+
+The reviewer confirmed the initial adapter's null/zero/source-session/duplicate rules, sign separation, cleanup, no additional network owner and withdrawal of missing matrix values. Its initial scope explicitly excluded the unavailable lenses and persistence gap. Later raw-IV acquisition, entitlement wrapper, development fixture identity and renderer repairs need their own exact-source delta review. Full-project acceptance, native graphics proof and authenticated production-data parity remain open.
+
+
+## Exact-source delta review r2 — consumed and adjudicated
+
+Fabric child `options3d-01a118f3-source-review-r2`, original root unchanged, returned rc=0 and 5,837 bytes from the admitted Grok/Ubuntu2 route. It reviewed immutable `51156577a8d823f3a00825008341fb7569e807c8` (implementation `6b8e0855`); the subsequent `bb48c8fe` changed evidence/docs only. The reviewer confirmed raw-IV normalization/null/zero/duplicates, account admission, one acquisition owner, archive withdrawal, stable renderer disposal, focus, header scopes and production-negative fixture identity. It did not run production or browser proof.
+
+- **Claimed high: timestamp-shaped IV asof never joins in production. Rejected as a production finding.** Parent verified Macro `1385697ab8353e849f376ad5b2d29994076652ee`: `engine/options_hub.py:127-145,209-227` defines and emits the greeks reference session as YYYY-MM-DD; `scripts/build_options_hub_nightly.py:1203-1211,1248` supplies the explicit/latest greeks date. Terminal `volTypes.ts` also distinguishes live dates from fixture timestamps. A fixture stamp does not establish a qualified trading session, build time or availability time. Prefix truncation could falsely join different clocks. Strict session admission remains; four timestamp/invalid-date counterexamples now preserve readable IV rows with unknown session and availability. All ten adapter tests pass. Reconsider only with a changed, pinned producer contract establishing timestamp session semantics.
+- **Low: opening research overwrites Matrix view in the URL. Confirmed and repaired.** New opens carry `research=1` plus the current Exposure axis in `view`. Existing `view=research` deep links remain supported and are cleared on close. Matrix, Expiration and PRISM journeys open, reload inside the lab, close and reload while retaining the Exposure axis, unrelated query context and hash. Explicit view now takes precedence over the legacy PRISM default. The focused browser suite passes 15 applicable cases (18 viewport-inapplicable skips), including the existing selection, withdrawal and stable-canvas checks.
+
+Raw reports/tests: external evidence directory `source-review-r2.txt`, `r2-unit.log`, `r2-red.log`, `r2-browser-green.log`. Acceptance records consumption of the review and parent disposition, not independent approval of the new navigation source or full mission completion.
+
+## Immutable evidence census r1 — consumed and adjudicated
+
+`options3d-01a118f3-evidence-owner-r1` returned rc=0 and 8,334 bytes from admitted Minimax/mini2 against exact Terminal base `d660d98b1ebc0bdf0d1b16d66202b1760f6cc94a`. Accepted the bounded finding: no retained options matrix/volatility resolver was found in its searched Terminal source. This is not a claim about every external object store. The current source owners expose matrix/volatility head values, which cannot recover saved historical evidence by substituting today's values.
+
+Parent verified the retained earnings resolver and admission boundaries. Corrections to the report: `Validator.evidence()` rejects unsupported owner/kind; SQL migration 0028 independently restricts earnings workspace evidence. Extending the TypeScript constant alone is insufficient. The validator does not forbid selection on follow_head solely because it is selection (the report overstated this); version/fingerprint rules and actual resolver semantics still matter. No options row or new store was invented; migration 0028 remains untouched.
+
+Exact dependency: the existing options producer must supply a retained immutable matrix/volatility reference with verifiable object identity, source clocks and current rights resolution. The existing investigations owner must then admit that reference in both application and additive SQL validation and qualify missing-history, changed-rights and operation-recovery behavior. Save remains disabled until that capability exists. Full report: external `evidence-owner-r1.txt`.
+
+
+r2/evidence-owner acceptance was read back in the existing Fabric ledger (`accepted_by=reviewer`, timestamp1791425630). The exact navigation follow-up `options3d-01a118f3-source-review-r3` targeting e13ef243 returned a pre-start admission refusal (`active_lane_limit_reached`, rc75); no review occurred. Independent approval of that delta remains open. Parent production build on e13ef243 passes.
+
+## Parent counterexamples — magnification and ordered comparisons
+
+The Options route's rendered viewport disabled user magnification; a failing HTTP check reproduced the inherited chart policy. The route now clears the maximum scale and allows scaling; server and actual Chrome direct/client-navigation checks pass. This does not claim a physical mobile gesture test.
+
+Two new component tests also reproduced comparison cards sorting into source order and dismissal focusing an unrelated older table row. The consumer now preserves the existing ordered key array and the true comparison-button origin. Twenty view/adapter tests and native Chrome EN/ZH order/focus checks pass, including remove/re-add and source-withdrawal unit cases. TypeScript, scoped ESLint and production build pass. This is parent repair/validation, not an independent review return. The required independent delta review includes these changes and the still-unreviewed navigation/framing repairs; no terminal review ID was reopened or replaced to bypass admission.
+
+## Parent qualification — scoped root appearance
+
+Five new admission/appearance tests reproduced the missing actual-root preference behavior. The hook reuses the existing account owner, scopes the root to the mounted Lab, matches Dashboard Auto hours, handles owner mismatch, restores prior root attributes and cleans up across StrictMode replay. All31 focused admission/view/projection tests pass, as do typecheck, changed executable-file lint and production build. The Settings file's comment-only edit has the same five react-hooks/refs findings as parent HEAD.
+
+Native visual inspection found missing shader output conversion and content-dependent flex shrinkage; both were repaired before final capture. The parent inspected all eight dark/light × EN/ZH × desktop/mobile screenshots plus two unavailable-state screenshots, including exact selection values and root restoration. See `APPEARANCE.md` and `evidence/appearance-qualification.json` for source hashes, treatment, matrix and limits. This is parent qualification only; independent review must still cover the new appearance lifecycle, CSS scope, shader conversion and width repair alongside navigation/framing/comparison changes. No rejected or terminal child was retried to manufacture that approval.
+
+## Parent counterexamples — matrix source-session admission
+
+Exact Macro c63e9e2 publishes top-level `session` and `_build_meta.asof_date` from the same selected date. The live Lab ignored the former. Nineteen new consumer cases reproduce14 failures: top-level-only session/IV join was unavailable, while malformed or conflicting clocks left the matrix admitted. Integration reuses the pure Investigation-owned reader and its tests byte-for-byte from #804 a44e0238, rather than implementing a second clock rule. Both absent/null clocks keep undated rows; malformed/contradictory clocks withhold rows and remove their selections/comparisons, while independent IV observations remain readable without a join.
+
+All124 focused matrix/view/admission/IV/shared-reader tests pass, with typecheck, scopedlint and production build. Exact identities and external red/green evidence are in `evidence/matrix-session-qualification.json`. This is parent deterministic acceptance of the consumer repair, not independent review or runtime Saved Research admission. The parser's pure version-ref support is not wired to Save or a resolver. No retained membership, rights, availability or production claim is added. The current writer/holds for #804 and Macro #7861 remain with their active owners.
+
+## Parent CI repair — appearance containment
+
+Exact b19d8751 CI unit-job113594183109 confirms11 shared-file screenshot hash failures, reproduced locally. Restore qualified `settings.css`/`i18n.tsx` bytes while preserving the Lab light rules in the existing root appearance CSS and the same bilingual note in Preferences. No old evidence hashes or tests change. The four native dark/light × EN/ZH before/after comparisons preserve material styles and copy; full local units now7916pass/4todo, typecheck/build pass. Five inherited Settings ref-lint findings remain unchanged. Receipt: `evidence/appearance-containment-qualification.json`. This is a scoped parent repair; required independent review includes this relocation and the prior navigation/framing/comparison/appearance/session deltas. No review refusal was bypassed or terminal child resubmitted.

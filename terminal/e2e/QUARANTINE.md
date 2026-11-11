@@ -21,50 +21,19 @@ Rules (Meta-CEO ruling 2026-09-05, under issue #485):
 
 | Spec:line | Test title | Project | Evidence runs | Owner | Re-enable condition |
 | --- | --- | --- | --- | --- | --- |
-| terminal/e2e/drawing-system.spec.ts:992 | flagship geometry, editing, and path limits survive adversarial interaction | desktop (tablet/mobile already width-skipped) | 33942726252 — failed initial attempt + Retry #1 + Retry #2, all three at spec line 1140 (single-run deterministic reproduction, rule 1) | issue #485 (R1 reliability program); no repair PR owns this journey yet | Delete this row and the `test.fixme` at the top of the test body in the same PR that makes the Path tool commit on double-click, with one green desktop run of this spec on the repair head |
 
-## Coverage given up
-
-`test.fixme` at drawing-system.spec.ts:998 aborts the entire monolithic test body (lines
-992-1183; the next `test(` is at line 1184), not only the Path-commit assertion at :1140. On
-unmodified master, everything before :1140 was passing and is now unasserted too. Surrendered
-contracts, by rough source line:
-
-- vertical-SVG line count (~28)
-- text editor opens on the correct tool (`.text-edit`, ~45)
-- inspector binding + `data-drawing-id` wiring (~53-54)
-- fib `stroke-dasharray` / `stroke-width` / `fill-opacity` (~58, 59, 66)
-- inspector draft survives a live language/quote rerender (~80-82)
-- drag span/midpoint invariants (~111-112)
-- brush polyline contract (~121-124)
-- coarse-pointer tap-to-finish 16px tolerance, `toHaveCount(2)` (~170)
-- triangle preview cleanup/abort (~183, 189, 190)
-
-None of these are known-broken; they are simply unasserted while this row is quarantined. The
-re-enable condition above restores all of them, not only the Path-commit contract.
-
-## Defect under quarantine
-
-`drawing-system.spec.ts:1140` asserts that after three Path-tool clicks and a finishing
-double-click one committed `g[data-drawing-kind="path"]:not([data-id="_p"])` element is visible.
-On run 33942726252 the element was never found on any of three attempts. `_p` is the in-progress
-preview id (`terminal/components/ChartPanel.tsx:7063`), so "no non-`_p` path" means the
-double-click finish committed nothing.
-
-Leading hypothesis, unproven — no local reproduction was run: the segmented-tool pointerdown
-handler refuses a new anchor while a pointer id is still held
-(`terminal/components/ChartPanel.tsx:6997`, `if (pending.pointerId != null) return;`, immediately
-after `svg.setPointerCapture`). A pointerup lost under runner contention would leave
-`pending.pointerId` set, silently swallow every later click, and leave `pending.points` below
-`spec.creation.minPoints`, so the `dblclick` finisher at `ChartPanel.tsx:7005-7020` commits
-nothing and the preview `_p` is all that ever exists. That is a product-correctness question
-inside a ~7,000-line component that also collides with open PR #501 (`ChartPanel.tsx`), which is
-why this is quarantined rather than patched.
-
-Falsifier for this quarantine: if
-`npx playwright test e2e/drawing-system.spec.ts --project=desktop -g "flagship geometry"`
-passes repeatedly on unmodified master, the failure is contention rather than a Path-tool defect,
-and this row must be replaced by a harness fix.
+No journey is quarantined. The last row — `drawing-system.spec.ts:992` ("flagship geometry,
+editing, and path limits survive adversarial interaction", desktop, evidence run 33942726252) —
+was closed under rule 2 on 2026-10-18: the Path tool's double-click finisher was repaired in
+`terminal/components/ChartPanel.tsx` (40 changed lines) and the whole test body, including the
+nine contracts that the `test.fixme` had been aborting, asserts again. The defect was real and
+position-dependent, not a harness race: the `pointerup` finish check compared the RAW pointer
+against the already bar-SNAPPED previous anchor, so a double-click more than 3px from its bar
+centre appended a fifth anchor instead of finishing, and the repaint that followed detached the
+element the mousedown was recorded on, which makes Blink drop the native `click`/`dblclick` pair
+outright. `e2e/drawing-system.spec.ts` ends with a regression test that places the finishing
+double-click deliberately off-centre on a coarse monthly grid; it fails on the unrepaired
+component.
 
 ## Observed but NOT quarantined (watch list — no coverage given up)
 

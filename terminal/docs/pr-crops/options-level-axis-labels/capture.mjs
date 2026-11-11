@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { installBrainAccountIsolation } from "./captureRoutes.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const terminalRoot = resolve(here, "../../..");
@@ -66,6 +67,12 @@ async function installRoutes(page) {
     "**/data/NVDA.fund.json",
     "**/api/brain/chart/state",
   ]) await page.route(path, async (route) => route.fulfill({ json: {} }));
+  // The Brain ACCOUNT companion is optional here too, and out of scope for this packet: the
+  // production Brain widget asks it who the visitor is, and the Terminal's own gateway proxy
+  // answers 502 whenever the Brain gateway is unreachable — a console error and an HTTP error
+  // on a page whose option-level proof is otherwise perfect. Isolate it here, in the browser,
+  // with an honest guest lane. See captureRoutes.mjs.
+  await installBrainAccountIsolation(page, baseURL);
   await page.route("**/api/quote?**", async (route) => {
     const url = new URL(route.request().url());
     const syms = (url.searchParams.get("syms") || "NVDA").split(",").filter(Boolean);
@@ -127,6 +134,25 @@ async function readProof(page) {
   }, expectedLinePrices);
 }
 
+// The phone chart height comes from the sub-pane count the chart last reported (`--subpanes`
+// on .chart-body), and that report can land after the option tags are already on screen. A
+// screenshot taken in that gap shows the shorter box before the chart has redrawn into it, so
+// the time axis is cut off (the 463px vs 345px mobile frame). Shoot only once the reported count
+// matches the panes the chart actually draws and the drawn rows reach the bottom of the box.
+async function waitForSettledChart(page) {
+  await page.waitForFunction(() => {
+    const body = document.querySelector(".chart-body");
+    const wrap = document.querySelector(".chart-wrap");
+    const rows = [...(wrap?.querySelectorAll("table tr") ?? [])].map((row) => row.getBoundingClientRect());
+    if (!body || !wrap || rows.length < 2) return false;
+    const drawnSubPanes = rows.filter((box) => box.height > 1).length - 2;
+    const reportedSubPanes = Number(getComputedStyle(body).getPropertyValue("--subpanes") || 0);
+    return reportedSubPanes === drawnSubPanes
+      && Math.abs(rows[rows.length - 1].bottom - wrap.getBoundingClientRect().bottom) <= 1;
+  }, null, { timeout: 45_000 });
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+}
+
 async function capture(browser, config) {
   const context = await browser.newContext({ viewport: { width: config.width, height: config.height } });
   const page = await context.newPage();
@@ -146,6 +172,7 @@ async function capture(browser, config) {
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:set-eth", { detail: { on: true } })));
   await page.locator(".mm-optlevel-tag").first().waitFor({ state: "visible", timeout: 45_000 });
   await page.waitForFunction(() => [...document.querySelectorAll(".mm-optlevel-tag")].filter((element) => getComputedStyle(element).display !== "none").length === 6, null, { timeout: 45_000 });
+  await waitForSettledChart(page);
   const proof = await readProof(page);
   if (!proof.exactLines || !proof.nativeAxisLabelsSuppressed || proof.visibleOptionTagCount !== 6 || proof.overlaps.length) {
     throw new Error(`${config.name} proof failed: ${JSON.stringify(proof)}`);
@@ -187,3 +214,10 @@ const manifest = {
 };
 writeFileSync(resolve(here, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(JSON.stringify({ sourceHead, captures: captures.length, allPass: captures.every((capture) => capture.proof.exactLines && !capture.proof.overlaps.length) }, null, 2));
+
+if (process.env.TERMINAL_CI_OPTIONS_CAPTURE_ID) console.log(JSON.stringify({ optionsEvidence: {
+  captureId: process.env.TERMINAL_CI_OPTIONS_CAPTURE_ID,
+  capturedAtHead: sourceHead,
+  manifestSha256: sha256(resolve(here, "manifest.json")),
+  files: captures.map(capture => ({ file: capture.screenshot, sha256: capture.sha256 })),
+} }));

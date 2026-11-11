@@ -1,0 +1,89 @@
+{
+  "scope": "R4 display-control sharing; no snapshot, entitlement, alert, producer or candidate authority",
+  "tested_product_source": "663fabdb54972aa74c6982a60d5b1e8170267b68",
+  "source_sha256": {
+    "terminal/components/OptionsHubView.tsx": "093a473bfd84c6bb5ffd77c40625a9ce3e2b02a237501a6f8121b5ebf69186f1",
+    "terminal/components/options/OptionsTapeViewLink.tsx": "9345820caa21d04e658fd5792a7f67b5a9d3ddfe369d437d14c57151fab6eae2",
+    "terminal/components/options/OptionsTapeViewLink.module.css": "dc0994de5c829510934d6a28ac224c80ac46108e3116edaf2ca21c4b39f47c1d",
+    "terminal/components/options/optionsTapeViewStrings.ts": "26ca0e272cb8977edf1b59116a40dacb157d4d84412bc38c26d7b9c27d835228",
+    "terminal/lib/optionsTapeView.ts": "f3ffea34cf02822c563333df4fc8070ef6193858b05c9e8659843c2d1d75c4fd"
+  },
+  "unit": {
+    "numPassedTests": 34,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "browser": {
+    "startTime": "2026-10-19T06:00:03.646Z",
+    "duration": 190838.647,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browser_cases": "EN/ZH exact filters+order, clipboard refusal/success, invalid-link recovery, history navigation/unrelated-query edits, existing Tape/Screener CSV;1440x900,820x1180,390x844",
+  "retained_reds": {
+    "codec": {
+      "passed": 18,
+      "failed": 4
+    },
+    "history": {
+      "passed": 0,
+      "failed": 3,
+      "failure": "SPY URL retained QQQ display"
+    }
+  },
+  "lint": {
+    "new_files_errors": 0,
+    "new_files_warnings": 0,
+    "hub_baseline_errors": 17,
+    "hub_baseline_warnings": 12,
+    "hub_current_errors": 17,
+    "hub_current_warnings": 12
+  },
+  "existing_lock_capture": {
+    "source": "663fabdb54972aa74c6982a60d5b1e8170267b68",
+    "helper": "CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=42174 node e2e/tools/capture_pl6_batch1.cjs",
+    "refreshed": 4,
+    "new_crops_byte_identical_to_prior": true,
+    "guard_tests_passed": 4
+  },
+  "screenshots": {
+    "desktop-en-dark-share.png": "1657bf5dd8fe6a3208b230cacd9096a5709619e6865b60b62d9224639e4d8da9",
+    "desktop-zh-dark-share.png": "34ed3ec9e3c55c228d7fd2979ae77d40c4ceafd61d0e83c866f5d91fe61d3664",
+    "mobile-en-dark-share.png": "480a0ef9f54b89ca176d17b0d8e6ccc3795f2e8f2e2372c5b0b9e5babfa0df78",
+    "mobile-zh-dark-share.png": "c7874d8faca7504d906fd71f50983d2c0d90773612fe9b8f5e9c5e4777dc59f1",
+    "tablet-en-dark-share.png": "efe2dfaf3ff22f5da680a662879c07822af0490e3ef80055d79af3fe33ea71f7",
+    "tablet-zh-dark-share.png": "6395c00a621c415783c4f1b18f669029ca97c7e81a0cab847f50c64d18bb0939"
+  },
+  "fabric": {
+    "run_id": "options-product-workflow-census-01a152a0-20261018",
+    "root": "01a10340-ddc1-7e41-9b42-9c8543c28c3d",
+    "parent": "01a152a0-25ce-7a60-9a76-9d728458fb10",
+    "provider": "GLM5.3Flash",
+    "host": "ubuntu1",
+    "stdout_sha256": "c73d20bfd3443532d317e4336b25c443b32ccf4af1f14e18d999c6b79dbaec1b",
+    "original_real_vitest": "18pass0fail; producer used stub, parent ran actual repository Vitest",
+    "parent_repairs": [
+      "default newest-first",
+      "actual premium whitelist",
+      "trim/uppercase substring search",
+      "preserve dormant group/applied search under drill",
+      "reject unknown encode fields",
+      "TypeScript negative-case cast"
+    ],
+    "acceptance": "reviewer after parent integration; not first-pass product acceptance"
+  },
+  "limits": [
+    "Fixture browser/source qualification only; no production or full-suite claim",
+    "Dark-only Terminal; unsupported light emulation omitted",
+    "Final post-run test edit changes capture output only; all behavioral assertions retained",
+    "Protected CI, original-root pixel/release adjudication, deployment and authenticated live proof remain"
+  ],
+  "typescript": {
+    "command": "npx tsc --noEmit --pretty false",
+    "exit_code": 0,
+    "diagnostics": 0,
+    "qualification": "run after capture dev server stopped; earlier generated-route read race excluded"
+  }
+}

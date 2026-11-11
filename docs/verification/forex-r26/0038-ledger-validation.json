@@ -1,0 +1,34 @@
+{
+  "schema": "forex_r26.production_ledger_validation.v1",
+  "observed_at": "2026-10-21T17:48:49.926541+00:00",
+  "source_parent": "813b36c869fa649c1b0e17693da73b0882181e8b",
+  "scope": "Only production receipt, ledger and continuation documentation; no executable source change",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "pytest",
+    "tests/test_migration_ledger.py",
+    "tests/test_supabase_migration_namespace.py",
+    "-q"
+  ],
+  "env": {
+    "PR_NUMBER": "1100"
+  },
+  "returncode": 0,
+  "seconds": 0.93,
+  "output": "........................................................................ [ 70%]\n..............................                                           [100%]\n=============================== warnings summary ===============================\ntests/test_supabase_migration_namespace.py::test_duplicate_prefix_is_detected\n  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/python.py:167: UserWarning: migration-namespace guard proof \u2014 synthetic duplicate 0099 fixture raised:\n  1 finding(s):\n    [DUPLICATE_PREFIX] 0099: two or more files share prefix 0099: ['0099_a.sql', '0099_b.sql']\n  \n  disclosures (nulls printed in plain words, never hidden):\n    result = testfunction(**testargs)\n\n../../../../../../Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95\n  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /private/tmp/pytest-of-chriswong/garbage-75eea189-fd73-49d2-ad5e-077e332cea17/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions\n  <class 'OSError'>: [Errno 66] Directory not empty: '/private/tmp/pytest-of-chriswong/garbage-75eea189-fd73-49d2-ad5e-077e332cea17/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions'\n    warnings.warn(\n\n../../../../../../Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95\n  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /private/tmp/pytest-of-chriswong/garbage-75eea189-fd73-49d2-ad5e-077e332cea17/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework\n  <class 'OSError'>: [Errno 66] Directory not empty: '/private/tmp/pytest-of-chriswong/garbage-75eea189-fd73-49d2-ad5e-077e332cea17/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework'\n    warnings.warn(\n\n../../../../../../Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95\n  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /private/tmp/pytest-of-chriswong/garbage-63a4c4c7-1278-48d4-952e-8f81ba8af0b8/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions\n  <class 'OSError'>: [Errno 66] Directory not empty: '/private/tmp/pytest-of-chriswong/garbage-63a4c4c7-1278-48d4-952e-8f81ba8af0b8/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions'\n    warnings.warn(\n\n../../../../../../Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95\n  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /private/tmp/pytest-of-chriswong/garbage-63a4c4c7-1278-48d4-952e-8f81ba8af0b8/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework\n  <class 'OSError'>: [Errno 66] Directory not empty: '/private/tmp/pytest-of-chriswong/garbage-63a4c4c7-1278-48d4-952e-8f81ba8af0b8/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework'\n    warnings.warn(\n\n../../../../../../Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95\n  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /private/tmp/pytest-of-chriswong/garbage-69cce3e8-0777-43a9-bdfd-ba7c5f2006a0/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions\n  <class 'OSError'>: [Errno 66] Directory not empty: '/private/tmp/pytest-of-chriswong/garbage-69cce3e8-0777-43a9-bdfd-ba7c5f2006a0/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions'\n    warnings.warn(\n\n../../../../../../Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95\n  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /private/tmp/pytest-of-chriswong/garbage-69cce3e8-0777-43a9-bdfd-ba7c5f2006a0/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework\n  <class 'OSError'>: [Errno 66] Directory not empty: '/private/tmp/pytest-of-chriswong/garbage-69cce3e8-0777-43a9-bdfd-ba7c5f2006a0/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework'\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n102 passed, 7 warnings in 0.65s\n",
+  "unchanged_other_reservations": true,
+  "sql_sha256": "f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee",
+  "diff_check_returncode": 0,
+  "prior_application_ci": {
+    "run": 39637491057,
+    "head": "813b36c869fa649c1b0e17693da73b0882181e8b",
+    "conclusion": "success",
+    "completed_at": "2026-10-21T17:31:34Z",
+    "jobs": 16
+  },
+  "receipt_posted_and_exactly_read_back_before_ledger_change": {
+    "pr": 1100,
+    "at": "2026-10-21T17:41:57Z"
+  }
+}

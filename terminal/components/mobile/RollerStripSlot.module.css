@@ -1,0 +1,21 @@
+/* The roller strip's seat before it mounts. The phone breakpoint is a client query (false on the
+   server) and the strip a lazy chunk, so this inert box holds the strip's height from first paint.
+   Same box as `.mrs` in globals.css, shown by the same 640px line as `useIsPhone`. */
+.slot {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .slot {
+    display: block;
+    flex: none;
+    box-sizing: border-box;
+    height: var(--mrs-h);
+    background: #000;
+    border-top: 1px solid #4a4a4a;
+  }
+
+  :global(.app.fs) .slot {
+    height: calc(var(--mrs-h) + env(safe-area-inset-bottom, 0px));
+  }
+}

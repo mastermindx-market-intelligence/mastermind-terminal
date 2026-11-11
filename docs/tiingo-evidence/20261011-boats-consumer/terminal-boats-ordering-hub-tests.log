@@ -1,0 +1,238 @@
+2026-10-11T21:47:40.362Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.362Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.364Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.364Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.365Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.365Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.365Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.365Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.365Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.366Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.366Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.367Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.367Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.367Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.367Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.367Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.365Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.366Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.366Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.368Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.368Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.368Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.368Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.370Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.370Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.371Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.371Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.371Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.371Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.371Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.371Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.371Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.371Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.372Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-11T21:47:40.372Z [INFO] ext feed init mode=yahoo_fallback
+✔ BOATS preserves venue and clocks without changing regular quote authority (2.423792ms)
+✔ full replacement removes absent symbols and terminal/gap snapshots (0.482375ms)
+✔ old trades expire even on relay failure or fresh publication clock (0.4935ms)
+✔ licensed candidates compare event time before unofficial legs (0.320791ms)
+✔ invalid BOATS future is absent (0.211ms)
+✔ invalid BOATS clockMismatch is absent (0.54875ms)
+✔ invalid BOATS unknownKind is absent (0.228667ms)
+✔ invalid BOATS guessedVenue is absent (0.166708ms)
+✔ invalid BOATS wrongCoverage is absent (0.159917ms)
+✔ invalid BOATS badPrice is absent (0.150041ms)
+✔ invalid BOATS missingExpiry is absent (0.123792ms)
+✔ invalid BOATS absentProvenance is absent (0.110458ms)
+✔ submillisecond receive clock survives ISO parsing (0.15925ms)
+✔ source eligibility cannot hide BOATS behind a newer uncleared provider (0.137292ms)
+✔ HTTP source eligibility is closed and removes poisoned legacy ext fields (2.781084ms)
+✔ relay uses receipt clock for a snapshot published during a deferred fetch (0.147458ms)
+✔ a deferred fetch reclassifies the overnight boundary at receipt (0.126916ms)
+✔ newer empty snapshots and generations cannot be undone by older relay responses (0.23175ms)
+✔ capture transitions require terminal invalidation or expiry and retire known UUIDs (0.24625ms)
+✔ a response completing after stop cannot restore the relay cache (0.082291ms)
+2026-10-11T21:47:40.366Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [INFO] yahoo ext subscription LRU-evicted AAPL
+2026-10-11T21:47:40.367Z [INFO] webull subscription LRU-evicted AAPL
+2026-10-11T21:47:40.367Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.367Z [INFO] yahoo ext subscription LRU-evicted X0
+2026-10-11T21:47:40.367Z [INFO] webull subscription LRU-evicted X0
+2026-10-11T21:47:40.367Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.368Z [INFO] yahoo ext subscription LRU-evicted QCOM
+2026-10-11T21:47:40.368Z [INFO] webull subscription LRU-evicted QCOM
+2026-10-11T21:47:40.368Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.369Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-11T21:47:40.369Z [WARN] EXT_FEED_DISABLE=1 — extended-hours feed off
+2026-10-11T21:47:40.370Z [INFO] ext feed init mode=alpaca
+2026-10-11T21:47:40.370Z [INFO] ext feed init mode=alpaca
+▶ classifySession
+  ✔ 04:00 ET → pre (0.5315ms)
+  ✔ 06:00 ET → pre (0.076459ms)
+  ✔ 09:29 ET → pre (0.070375ms)
+  ✔ 09:30 ET → rth (0.067875ms)
+  ✔ 12:00 ET → rth (0.064042ms)
+  ✔ 15:59 ET → rth (0.092041ms)
+  ✔ 16:00 ET → post (0.050208ms)
+  ✔ 18:00 ET → post (0.071417ms)
+  ✔ 19:59 ET → post (0.083875ms)
+  ✔ 20:00 ET → overnight (0.10175ms)
+  ✔ 23:00 ET → overnight (0.057875ms)
+  ✔ 03:00 ET → overnight (0.29675ms)
+  ✔ 03:59 ET → overnight (0.10025ms)
+✔ classifySession (2.630625ms)
+▶ ExtFeed LRU subscription management
+  ✔ starts with empty yahoo subs map (0.121083ms)
+  ✔ demand adds a symbol to yahoo subs (0.1265ms)
+  ✔ demand for same symbol is idempotent (no growth) (0.0455ms)
+  ✔ evicts LRU symbol when cap (30) is exceeded (0.137958ms)
+  ✔ re-demanding an existing symbol promotes it to MRU (not evicted next) (0.131542ms)
+  ✔ eviction stops refresh but keeps a still-valid last-good Yahoo print servable (0.963375ms)
+  ✔ re-touching an existing entry updates lastReq (idle-sweep regression) (0.148375ms)
+✔ ExtFeed LRU subscription management (2.856041ms)
+▶ yahooFetchExtPrice shape contract (stub)
+  ✔ returns null during RTH (classifySession=rth) (0.15225ms)
+  ✔ returns null during overnight (classifySession=overnight) (0.055708ms)
+✔ yahooFetchExtPrice shape contract (stub) (0.253084ms)
+▶ ExtFeed.getExt — field shape and session gating
+  ✔ returns null during RTH even if a cached ext entry exists (0.101417ms)
+  ✔ returns ext fields during pre-market with officialClose=null (closeRef=null) → extChg=null (0.072ms)
+  ✔ computes extChg when officialClose is absent but prevClose is passed (pre-market normal path) (0.067ms)
+  ✔ computes extChg correctly when officialClose is provided (0.064625ms)
+  ✔ returns null for unknown symbol even in ext window (0.038542ms)
+  ✔ returns null when ext print is older than 90 minutes (0.052458ms)
+✔ ExtFeed.getExt — field shape and session gating (0.733833ms)
+▶ ExtFeed disabled (EXT_FEED_DISABLE=1)
+  ✔ getExt returns null when feed is disabled (0.262291ms)
+✔ ExtFeed disabled (EXT_FEED_DISABLE=1) (0.346667ms)
+▶ ExtFeed Alpaca authFailed degrades to Yahoo fallback
+  ✔ serves Yahoo cache when alpaca.authFailed=true (0.145458ms)
+  ✔ serves Alpaca _extMap when authFailed=false (primary path) (0.080958ms)
+✔ ExtFeed Alpaca authFailed degrades to Yahoo fallback (0.274834ms)
+▶ Store.getQuotes ext field merge
+  ✔ merges ext fields when extFeed returns a result (0.430292ms)
+  ✔ strips stale ext fields when extFeed returns null (0.083ms)
+  ✔ does NOT emit ext fields for non-US market (crypto) (0.077ms)
+  ✔ passes through when extFeed argument is absent (no ext fields) (0.053625ms)
+  ✔ store passes prevClose as closeRef to getExt when today's close is absent (pre-market regression) (0.103875ms)
+✔ Store.getQuotes ext field merge (0.856708ms)
+▶ yahooFetchExtPrice live probe (AAPL)
+  ✔ returns null or a correctly-shaped object depending on current ET session (0.063625ms)
+✔ yahooFetchExtPrice live probe (AAPL) (0.089167ms)
+2026-10-11T21:47:40.364Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.366Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.366Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.367Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.367Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.367Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.367Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.368Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.368Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.368Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.368Z [WARN] MACRO_FEED_DISABLE=1 — macro feed off
+2026-10-11T21:47:40.370Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.370Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-11T21:47:40.371Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+▶ classify — taxonomy is unchanged by the macro work
+  ✔ keeps the existing market buckets (0.51475ms)
+  ✔ still falls macro symbols through to 'us' — routing MUST check isMacroSymbol first (0.067958ms)
+✔ classify — taxonomy is unchanged by the macro work (1.124667ms)
+▶ buildQuotesResponse — response contract
+  ✔ returns a FLAT { SYM: quote } object for a mixed macro/us/crypto request (1.960083ms)
+  ✔ survives a JSON round-trip unchanged (this is what the HTTP layer sends) (0.34025ms)
+  ✔ carries the macro quote through with its own source/basis labels (0.119542ms)
+  ✔ omits symbols nothing has a quote for (present entries only) (0.135625ms)
+  ✔ never serves cn / hk / ca symbols (0.126667ms)
+  ✔ returns {} for an empty or missing symbol list (0.108875ms)
+✔ buildQuotesResponse — response contract (3.065083ms)
+▶ buildQuotesResponse — routing isolation
+  ✔ macro symbols are NEVER passed to the Store (0.429875ms)
+  ✔ non-macro symbols are NEVER passed to the MacroFeed (0.173791ms)
+  ✔ forwards nowMs and the extFeed to store.getQuotes unchanged (0.131709ms)
+  ✔ skips the Store call entirely when only macro symbols are requested (0.088208ms)
+  ✔ degrades cleanly when the macroFeed is absent (kill-switch / boot order) (0.071042ms)
+  ✔ degrades cleanly when the store is absent (0.0785ms)
+  ✔ a disabled macroFeed simply yields no macro entries (0.838417ms)
+✔ buildQuotesResponse — routing isolation (1.983541ms)
+▶ isDailyOnlySymbol
+  ✔ claims exactly the four FRED series (0.088375ms)
+  ✔ claims nothing else — equities, crypto and macro are unaffected (0.046458ms)
+  ✔ rejects empty / non-string input (0.035375ms)
+  ✔ classify() still falls them through to 'us' — the routers MUST check this first (0.035625ms)
+✔ isDailyOnlySymbol (0.279625ms)
+▶ applyDemand — a daily-only symbol reaches NO feed
+  ✔ burns no Polygon slot, no ext slot, and no macro subscription for DFII10 (0.188209ms)
+  ✔ still demands every leg for an ordinary US symbol (0.087542ms)
+  ✔ keeps the independent ext leg alive when Polygon is temporarily unhealthy (0.050708ms)
+  ✔ touches extended subscriptions in reverse request order so the first symbol stays MRU (0.057292ms)
+  ✔ keeps the active first symbol resident when one request exceeds the 30-slot ext budget (0.177583ms)
+  ✔ still routes a macro symbol to the MacroFeed alone (0.04625ms)
+  ✔ sorts a mixed request without cross-contamination (0.042375ms)
+  ✔ honours HUB_DISABLE_US and an unhealthy Polygon (0.054ms)
+  ✔ does not throw when a feed is missing entirely (boot order / kill-switch) (0.030166ms)
+✔ applyDemand — a daily-only symbol reaches NO feed (0.85225ms)
+▶ buildQuotesResponse — a daily-only symbol is absent, never placeholdered
+  ✔ omits DFII10 even when the Store holds a placeholder row for it (0.166791ms)
+  ✔ never passes a daily-only symbol to the Store at all (0.058875ms)
+  ✔ never passes a daily-only symbol to the MacroFeed either (0.047084ms)
+  ✔ skips the Store entirely when the request is daily-only (0.049584ms)
+✔ buildQuotesResponse — a daily-only symbol is absent, never placeholdered (0.381ms)
+▶ lib/quotes re-exports isMacroSymbol
+  ✔ is the same predicate the macro feed uses (0.061875ms)
+✔ lib/quotes re-exports isMacroSymbol (0.089542ms)
+▶ parseQuoteView — closed endpoint vocabulary
+  ✔ defaults only an absent value to full (0.068625ms)
+  ✔ accepts exactly one full or regular value (0.038375ms)
+  ✔ rejects unknown, blank and repeated values (0.08925ms)
+✔ parseQuoteView — closed endpoint vocabulary (0.244542ms)
+▶ applyDemand — view=regular spends zero ext slots
+  ✔ regular view preserves regular demand and spends zero ext slots (0.116125ms)
+  ✔ default/full view keeps existing ext demand (0.071625ms)
+✔ applyDemand — view=regular spends zero ext slots (0.238584ms)
+▶ buildQuotesResponse — view=regular is closed at the response boundary
+  ✔ regular response passes no ext feed into Store and strips legacy ext keys (0.100792ms)
+  ✔ default full view remains unchanged (0.091209ms)
+✔ buildQuotesResponse — view=regular is closed at the response boundary (0.231792ms)
+▶ handleQuotesRequest — endpoint-level view=full|regular dispatch
+  ✔ ?view=regular produces zero extFeed.demand calls (2.158791ms)
+  ✔ ?view=full produces priority-preserving extFeed.demand calls (0.23725ms)
+  ✔ a missing view still produces priority-preserving ext demand (missing view is exactly full) (0.147833ms)
+  ✔ an unknown view returns 400 and demands nothing (0.298083ms)
+  ✔ ?syms=&view=bogus is 400, not an empty 200 — view is validated before the empty-syms return (0.219959ms)
+  ✔ repeated/conflicting view values are 400 (0.122333ms)
+  ✔ an empty syms list with a valid view is an empty 200 (0.519334ms)
+  ✔ truncates to maxSyms, matching hub.js's MAX_SYMS_PER_REQUEST behavior (0.401792ms)
+✔ handleQuotesRequest — endpoint-level view=full|regular dispatch (5.037709ms)
+▶ close-leak regression — two-session boundary
+  ✔ setQuote: q.close is set when anchor.close is present (day N post-close) (0.537375ms)
+  ✔ setQuote: q.close is DELETED when anchor.close is absent (day N+1 RTH) (0.094583ms)
+  ✔ setQuote: afterHours is DELETED when anchor.close is absent (day N+1 RTH) (0.079375ms)
+  ✔ getQuotes: fresh.close is DELETED when anchor.close is absent (day N+1 RTH) (0.416958ms)
+  ✔ getQuotes: stale close is evicted even when no other field changes (flat close, non-daily anchor) (0.085375ms)
+  ✔ getQuotes: fresh.close is set correctly when anchor.close is present (day N AH) (0.094375ms)
+  ✔ getQuotes: regular values stay stable while ext fields use the separate namespace (0.113208ms)
+  ✔ getQuotes: post-market ext change references today's RTH close before the daily file rolls (0.180125ms)
+✔ close-leak regression — two-session boundary (2.275208ms)
+▶ setQuote basic merge
+  ✔ merges partial onto existing quote preserving source/basis (0.108ms)
+  ✔ stamps ts on first write when absent (0.083ms)
+✔ setQuote basic merge (0.2945ms)
+▶ getQuotes non-US bypass
+  ✔ returns raw quote for non-US symbol even when anchor stub is present (0.078583ms)
+✔ getQuotes non-US bypass (0.119458ms)
+ℹ tests 116
+ℹ suites 22
+ℹ pass 116
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 106.374166

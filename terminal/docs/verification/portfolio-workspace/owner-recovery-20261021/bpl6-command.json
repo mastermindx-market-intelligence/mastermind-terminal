@@ -1,0 +1,13 @@
+{
+  "source_head": "da02d533f17e209abd63f8c23bcc8b68952d49ae",
+  "cwd": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal",
+  "command": [
+    "node",
+    "e2e/tools/capture_pl6_batch1.cjs"
+  ],
+  "port": 34379,
+  "environment": {
+    "TERMINAL_CROP_PORT": "34379",
+    "TERMINAL_CAPTURE_FAILURE_DIR": "/tmp/portfolio-terminal-owner-recovery-20261021/bpl6-failures"
+  }
+}

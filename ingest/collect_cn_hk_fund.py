@@ -4,7 +4,13 @@ needs for CN A-shares and HK names — BUILD-SPEC §2 D2.
 CN (Tushare, all endpoints entitled/$0):
     income_vip / balancesheet_vip / cashflow_vip whole-market per quarter-end period (28 periods back
     → ~84 whole-market calls, ≤2/s). Each statement cached as one parquet keyed (ts_code, end_date),
-    resumable by period (a period already in the cache is skipped). income_vip carries the 营业成本
+    with a per-period RECEIPT LEDGER (stmt_<kind>.periods.json) recording whether each period's
+    whole-market pull actually completed. A period is closed only on a receipt, never on the mere
+    presence of some cached row for that end_date; the newest --stmt-refresh-periods are re-pulled
+    every run to catch restatements. Rows carry ann_date/f_ann_date/report_type/update_flag so
+    competing revisions resolve by the vendor's own filing facts (see ingest/cn_statement_rules.py).
+    A thin or failed pull keeps every cached row and is retried; the parquet is not rewritten at all
+    when a run accepts no rows, so a failed night cannot look fresh. income_vip carries the 营业成本
     (oper_cost) row the judge's gross-margin ruling depends on.
     pro.dividend per-ticker over the CN universe → dividends.parquet (resumable per-ticker).
 
@@ -31,7 +37,8 @@ Universe:
          stalled fund.json coverage at 470/2798, 2026-07-13 census.)
 
 Writes into  <Macro Dashboard>/data/ :
-    tushare/stmt_income.parquet    (ts_code, end_date, <income fields>)      resumable by period
+    tushare/stmt_income.parquet    (ts_code, end_date, <income fields>)      receipt-tracked by period
+    tushare/stmt_income.periods.json  (per-period completeness receipts)
     tushare/stmt_balance.parquet   (ts_code, end_date, <balance fields>)
     tushare/stmt_cashflow.parquet  (ts_code, end_date, <cashflow fields>)
     tushare/dividends.parquet      (ts_code, events_json)                    resumable per-ticker
@@ -46,7 +53,7 @@ Writes into  <Macro Dashboard>/data/ :
 Run with the macro venv (pandas + TUSHARE_TOKEN in <Macro Dashboard>/.env):
     "<Macro Dashboard>/.venv/bin/python" ingest/collect_cn_hk_fund.py \
         [--market cn|hk|all] [--only 600519.SH,0700.HK] [--limit N] \
-        [--periods 28] [--stale-days 7] [--skip-stmt] [--skip-div] [--force]
+        [--periods 28] [--stmt-refresh-periods 6] [--stale-days 7] [--skip-stmt] [--skip-div] [--force]
         [--skip-consensus] [--skip-reports] [--skip-company] [--skip-holders]
         [--skip-disclosure] [--shard i/N] [--statements-only]
 
@@ -71,6 +78,12 @@ import pandas as pd
 CA_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CA_ROOT))
 from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
+from ingest.cn_statement_rules import (  # noqa: E402
+    COMPLETE, EMPTY, FAILED, TRUNCATED, OBSERVED, RECEIPT_SCHEMA,
+    clean_value, retainable_row, rows_digest,
+    is_consolidated, normalize_period, periods_to_pull, pick_revision, period_receipts,
+    revision_key, save_period_receipts, truncated_period,
+)
 
 MACRO = Path(os.environ.get("MACRO_REPO") or "/Users/chriswong/Documents/Cluade/Macro Dashboard")
 OUT = MACRO / "data" / "tushare"
@@ -81,6 +94,12 @@ HK_DEEP = OUT / "hk_deep.parquet"
 
 
 # ─────────────────────────────── Tushare REST ───────────────────────────────
+from ingest.collect_cn_deep import (  # shared typed provider outcome contract
+    UpstreamError, MissingTokenError, UpstreamAuthError, UpstreamPermissionError,
+    UpstreamTransportError, _classify,
+)
+import re
+
 TOKEN: str | None = None
 
 
@@ -96,32 +115,43 @@ def _token() -> str:
                 if line.startswith("TUSHARE_TOKEN="):
                     t = line.split("=", 1)[1].strip().strip('"').strip("'")
     if not t:
-        sys.exit("no TUSHARE_TOKEN (env or Macro Dashboard/.env)")
+        raise MissingTokenError("TUSHARE_TOKEN is not configured")
     TOKEN = t
     return t
 
 
-def ts_call(api: str, params: dict, fields: str = "", retries: int = 4):
-    """Tushare REST → (fields, items). Retries on rate-limit (频率超限). Returns ([],[]) on hard error."""
-    body = json.dumps({"api_name": api, "token": _token(), "params": params, "fields": fields}).encode()
+def ts_call_detail(api: str, params: dict, fields: str = "", retries: int = 4):
+    """Return a successful response, or raise a typed, redacted provider failure."""
+    token = _token()
+    body = json.dumps({"api_name": api, "token": token, "params": params, "fields": fields}).encode()
+    last = UpstreamError(f"{api}: request failed")
     for attempt in range(retries):
         try:
-            req = urllib.request.Request("http://api.tushare.pro", data=body,
-                                         headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=90) as resp:
-                r = json.loads(resp.read())
-        except Exception:
-            time.sleep(1.2 * (attempt + 1))
+            request = urllib.request.Request("http://api.tushare.pro", data=body,
+                                            headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(request, timeout=60) as response:
+                result = json.loads(response.read())
+        except Exception as exc:
+            last = UpstreamTransportError(f"{api}: {type(exc).__name__}")
+            if attempt + 1 < retries:
+                time.sleep(1.2 * (attempt + 1))
             continue
-        if r.get("code") == 0:
-            d = r.get("data") or {}
-            return d.get("fields") or [], d.get("items") or []
-        msg = str(r.get("msg") or "")
-        if "频率" in msg or "超限" in msg:
+        if result.get("code") == 0:
+            data = result.get("data") or {}
+            items = data.get("items") or []
+            return data.get("fields") or [], items, None if items else ""
+        error_type = _classify(str(result.get("msg") or ""))
+        last = error_type(f"{api}: {error_type.__name__}")
+        if error_type in (UpstreamAuthError, UpstreamPermissionError):
+            raise last
+        if attempt + 1 < retries:
             time.sleep(2.0 * (attempt + 1))
-            continue
-        return [], []
-    return [], []
+    raise last
+
+
+def ts_call(api: str, params: dict, fields: str = "", retries: int = 4):
+    fields_out, items, _ = ts_call_detail(api, params, fields, retries)
+    return fields_out, items
 
 
 def _f(v):
@@ -205,9 +235,13 @@ def hk_universe() -> list[str]:
 
 
 # ─────────────────────────────── CN statement periods ───────────────────────────────
-def quarter_periods(n: int) -> list[str]:
-    """The last n fiscal quarter-ends (YYYYMMDD), newest→oldest, as of today."""
-    today = dt.date.today()
+def quarter_periods(n: int, today: dt.date | None = None) -> list[str]:
+    """The last n fiscal quarter-ends (YYYYMMDD), newest→oldest, as of `today`.
+
+    `today` is injectable so tests can pin the clock; the default is the real current date, so
+    the horizon stays rolling and is never a hard-coded year.
+    """
+    today = today or dt.date.today()
     ends = [(3, 31), (6, 30), (9, 30), (12, 31)]
     out = []
     y = today.year
@@ -223,60 +257,188 @@ def quarter_periods(n: int) -> list[str]:
     return out
 
 
-INCOME_FIELDS = ("ts_code,end_date,total_revenue,revenue,oper_cost,total_cogs,operate_profit,"
+# Vendor statement endpoints publish an identity block alongside the figures. Without
+# ann_date/f_ann_date there is no way to know WHICH filing a row came from; without
+# report_type there is no way to tell a consolidated statement from a parent-only one; and
+# without update_flag a revision is indistinguishable from the original. The old field list
+# dropped all four, so the cache deduplicated on (ts_code, end_date) with keep="last" — i.e. by
+# arrival order, which silently published whatever the API happened to return last.
+# All four are documented outputs of the income/balancesheet/cashflow tables, which the _vip
+# forms share. See ingest/cn_statement_rules.py for the endpoint semantics.
+_STMT_IDENTITY = "ts_code,end_date,ann_date,f_ann_date,report_type,update_flag,comp_type"
+
+INCOME_FIELDS = (_STMT_IDENTITY + ",total_revenue,revenue,oper_cost,total_cogs,operate_profit,"
                  "total_profit,income_tax,n_income,n_income_attr_p,basic_eps,diluted_eps,ebit,ebitda,"
                  "sell_exp,admin_exp,fin_exp")
-BALANCE_FIELDS = ("ts_code,end_date,total_assets,total_cur_assets,total_nca,total_liab,total_cur_liab,"
+BALANCE_FIELDS = (_STMT_IDENTITY + ",total_assets,total_cur_assets,total_nca,total_liab,total_cur_liab,"
                   "total_ncl,total_hldr_eqy_inc_min_int,money_cap,st_borr,lt_borr,bond_payable")
-CASHFLOW_FIELDS = ("ts_code,end_date,n_cashflow_act,n_cashflow_inv_act,n_cash_flows_fnc_act,"
+CASHFLOW_FIELDS = (_STMT_IDENTITY + ",n_cashflow_act,n_cashflow_inv_act,n_cash_flows_fnc_act,"
                    "c_pay_acq_const_fiolta,free_cashflow")
 
+#: Statement kind → (vendor endpoint, requested field list). The cache path is derived from the
+#: kind by `_stmt_path`, so there is exactly one place that names where a statement is stored.
 _STMT = {
-    "income":   ("income_vip",       INCOME_FIELDS,   OUT / "stmt_income.parquet"),
-    "balance":  ("balancesheet_vip", BALANCE_FIELDS,  OUT / "stmt_balance.parquet"),
-    "cashflow": ("cashflow_vip",     CASHFLOW_FIELDS, OUT / "stmt_cashflow.parquet"),
+    "income":   ("income_vip",       INCOME_FIELDS),
+    "balance":  ("balancesheet_vip", BALANCE_FIELDS),
+    "cashflow": ("cashflow_vip",     CASHFLOW_FIELDS),
 }
 
+#: report_type 1 = 合并报表 (consolidated). Requested explicitly rather than left to the default
+#: so the scope we store is the scope we asked for; a parent-only (6) response is filtered out.
+CONSOLIDATED_PARAMS = {"report_type": "1"}
 
-def collect_cn_statements(periods: list[str], force: bool) -> None:
-    """Whole-market _vip statement pulls, one parquet per statement, resumable by period.
-    Each parquet holds one row per (ts_code, end_date); a period already present is skipped."""
-    OUT.mkdir(parents=True, exist_ok=True)
-    for kind, (api, fields, path) in _STMT.items():
-        have: set[str] = set()
-        existing = None
-        if path.exists() and not force:
-            try:
-                existing = pd.read_parquet(path)
-                have = set(str(x) for x in existing["end_date"].unique())
-            except Exception:
-                existing = None
-        want = [p for p in periods if p not in have]
-        if not want:
-            print(f"  {kind}: all {len(periods)} periods cached — skip", flush=True)
+
+def _stmt_path(kind: str, out_dir=None) -> Path:
+    return (Path(out_dir) if out_dir else OUT) / f"stmt_{kind}.parquet"
+
+
+def _receipt_path(kind: str, out_dir=None) -> Path:
+    return (Path(out_dir) if out_dir else OUT) / f"stmt_{kind}.periods.json"
+
+
+def _rows_from_items(f, items) -> list[dict]:
+    """Tushare (fields, items) → row dicts. Identifiers stay strings; figures are coerced."""
+    idx = {n: i for i, n in enumerate(f)}
+    text_ids = {"ts_code", "end_date", "ann_date", "f_ann_date", "report_type", "update_flag",
+                "comp_type"}
+    rows = []
+    for it in items:
+        row = {}
+        for col in f:
+            value = it[idx[col]]
+            row[col] = value if col in text_ids or value is None else _f(value)
+        rows.append(row)
+    return rows
+
+
+def merge_statement_rows(existing, incoming) -> list[dict]:
+    """Preserve unknown legacy scope; reject ambiguous revision ties."""
+    grouped, prior = {}, {}
+    for row in existing or []:
+        row = clean_value(row)
+        key = revision_key(row)
+        if key[0] and key[1] and retainable_row(row):
+            if not is_consolidated(row):
+                row["_statement_scope"] = "legacy_unknown"
+            grouped.setdefault(key, []).append(row)
+            prior[key] = row
+    for row in incoming or []:
+        row = clean_value(row)
+        key = revision_key(row)
+        if key[0] and key[1] and is_consolidated(row):
+            grouped.setdefault(key, []).append(row)
+    merged = []
+    for key in sorted(grouped):
+        winner = pick_revision(grouped[key])
+        if winner is None and key in prior:
+            winner = dict(prior[key])
+            winner["_revision_conflict"] = True
+        if winner is not None:
+            merged.append(winner)
+    return merged
+
+
+def collect_cn_statements(periods: list[str], force: bool, *, refresh_periods: int = 6,
+                          out_dir=None, now: str | None = None, client=None, kinds=None) -> None:
+    """Observe type-1 period cross-sections without inferring complete market coverage."""
+    call = client or ts_call_detail
+    clock = dt.datetime.fromisoformat(now.replace("Z", "+00:00")) if now else dt.datetime.now(dt.timezone.utc)
+    if clock.tzinfo is None:
+        clock = clock.replace(tzinfo=dt.timezone.utc)
+    stamp = clock.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    base = Path(out_dir) if out_dir else OUT
+    base.mkdir(parents=True, exist_ok=True)
+    failed = False
+    for kind, (api, fields) in _STMT.items():
+        if kinds and kind not in kinds:
             continue
-        frames = [existing] if existing is not None else []
-        for p in want:
-            f, items = ts_call(api, {"period": p}, fields)
-            if not items:
-                print(f"  {kind} {p}: 0 rows (skip)", flush=True)
-                time.sleep(0.55)
-                continue
-            idx = {n: i for i, n in enumerate(f)}
-            rows = []
-            for it in items:
-                row = {c: (_f(it[idx[c]]) if c not in ("ts_code", "end_date") else it[idx[c]])
-                       for c in f}
-                rows.append(row)
-            frames.append(pd.DataFrame(rows))
-            print(f"  {kind} {p}: {len(rows)} rows", flush=True)
-            time.sleep(0.55)   # ≤2/s
-        df = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
-        if not df.empty:
-            df = df.drop_duplicates(subset=["ts_code", "end_date"], keep="last")
-            df.to_parquet(path, index=False)
-        print(f"{path.name}: {len(df)} rows ({df['ts_code'].nunique() if not df.empty else 0} tickers)",
-              flush=True)
+        path, receipt_file = _stmt_path(kind, out_dir), _receipt_path(kind, out_dir)
+        cached = []
+        if path.exists():
+            cached = [clean_value(row) for row in pd.read_parquet(path).to_dict("records")]
+        receipts = period_receipts(receipt_file)
+        query_identity = {"api": api, "fields": fields, "report_type": "1"}
+        for period, receipt in receipts.items():
+            retained = [row for row in cached if normalize_period(row.get("end_date")) == period]
+            receipt["binding_valid"] = bool(
+                retained and receipt.get("schema") == RECEIPT_SCHEMA
+                and receipt.get("query") == query_identity
+                and receipt.get("retained_rows_sha256") == rows_digest(retained))
+        want = periods_to_pull(periods, receipts, force=force, refresh_periods=refresh_periods, now=clock)
+        incoming, pulled = [], []
+        for period in want:
+            try:
+                columns, items, message = call(api, {"period": period, **CONSOLIDATED_PARAMS}, fields)
+                if message:
+                    error_type = _classify(str(message))
+                    raise error_type(f"{api}: {error_type.__name__}")
+                identity_fields = {"ts_code", "end_date", "report_type"}
+                numeric_fields = set(fields.split(",")) - {
+                    "ts_code", "end_date", "ann_date", "f_ann_date", "report_type", "update_flag", "comp_type"}
+                valid, rejected = [], 0
+                for values in items:
+                    if not identity_fields.issubset(columns) or len(values) != len(columns):
+                        rejected += 1
+                        continue
+                    row = dict(zip(columns, values))
+                    if (not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", str(row.get("ts_code") or ""))
+                            or normalize_period(row.get("end_date")) != period
+                            or not is_consolidated(row)
+                            or not any(_f(row.get(field)) is not None for field in numeric_fields)):
+                        rejected += 1
+                        continue
+                    row = _rows_from_items(columns, [values])[0]
+                    row["end_date"] = period
+                    row["report_type"] = "1"
+                    row["_statement_scope"] = "consolidated_type1"
+                    row["_acquired_at"] = stamp
+                    valid.append(clean_value(row))
+                if items and not valid:
+                    raise UpstreamError(f"{api}: response has no eligible rows for {period}")
+                incoming.extend(valid)
+                pulled.append((period, valid, rejected))
+            except UpstreamError as exc:
+                receipts[period] = {
+                    "schema": RECEIPT_SCHEMA, "query": query_identity, "status": FAILED,
+                    "tickers": 0, "rows": 0, "attempted_at": stamp,
+                    "error": type(exc).__name__,
+                }
+                save_period_receipts(receipt_file, receipts)
+                if isinstance(exc, (UpstreamAuthError, UpstreamPermissionError, MissingTokenError)):
+                    raise
+                failed = True
+                print(f"{kind} {period}: {type(exc).__name__}; prior rows retained", flush=True)
+            time.sleep(.55)
+        merged = merge_statement_rows(cached, incoming)
+        if incoming and merged:
+            temporary = path.with_name(f".{path.stem}.{os.getpid()}.tmp.parquet")
+            try:
+                pd.DataFrame(merged).to_parquet(temporary, index=False)
+                with temporary.open("rb") as stream:
+                    os.fsync(stream.fileno())
+                os.replace(temporary, path)
+            finally:
+                temporary.unlink(missing_ok=True)
+        else:
+            merged = cached
+        widths = [len({row["ts_code"] for row in rows}) for _, rows, _ in pulled]
+        for period, rows, rejected in pulled:
+            count = len({row["ts_code"] for row in rows})
+            status = EMPTY if not rows else (
+                TRUNCATED if truncated_period(period, count, receipts, max(widths, default=0)) else OBSERVED)
+            retained = [row for row in merged if normalize_period(row.get("end_date")) == period]
+            receipts[period] = {
+                "schema": RECEIPT_SCHEMA, "query": query_identity, "status": status,
+                "tickers": count, "rows": len(rows), "rejected_rows": rejected,
+                "attempted_at": stamp, "acquired_at": stamp if rows else None,
+                "retained_rows_sha256": rows_digest(retained),
+            }
+            print(f"{kind} {period}: {count} issuers; {status}; {rejected} rejected", flush=True)
+        save_period_receipts(receipt_file, receipts)
+        if want and not incoming and not cached:
+            failed = True
+    if failed:
+        raise UpstreamError("one or more CN statement requests failed; publication must be held")
 
 
 def collect_daily_basic() -> None:
@@ -547,7 +709,7 @@ def collect_hk_fund(
     syms: list[str], force: bool, stale_days: int = 7, *, statements_only: bool = False,
 ) -> None:
     HK_OUT.mkdir(parents=True, exist_ok=True)
-    done = ok = healed = preserved_blocks = 0
+    done = ok = healed = preserved_blocks = attempted = 0
     try:
         for sym in syms:
             cache = HK_OUT / f"{sym}.json"
@@ -591,6 +753,7 @@ def collect_hk_fund(
                 except Exception:
                     preserved_yf = {}
                     preserved_financials = {}
+            attempted += 1
             rec = _fetch_hk(sym, fetch_yf=not statements_only)
             done += 1
             if rec:
@@ -620,11 +783,14 @@ def collect_hk_fund(
                 )
     except KeyboardInterrupt:
         print("  interrupted — per-ticker caches already on disk (resumable)", flush=True)
+        raise SystemExit(130)
     print(
         f"hk_fund: {ok} names newly cached, {healed} yf-healed, "
         f"{preserved_blocks} statement blocks preserved into {HK_OUT}",
         flush=True,
     )
+    if attempted and ok == 0:
+        raise UpstreamError("HK collection produced no valid responses; prior caches retained")
 
 
 # ─────────────────────────────── EastMoney consensus (cn_consensus.parquet) ───────────────────────────────
@@ -917,6 +1083,9 @@ def main(argv: list[str]) -> None:
     only = _arg(argv, "--only")
     limit = int(_arg(argv, "--limit", 0) or 0)
     periods_n = int(_arg(argv, "--periods", 28) or 28)
+    # Rolling overlap: how many of the newest periods are re-pulled every run so restatements and
+    # late corrections to recent filings are picked up without a full --force rebuild.
+    stmt_refresh = int(_arg(argv, "--stmt-refresh-periods", 6) or 6)
     stale_days = int(_arg(argv, "--stale-days", 7) or 7)
     skip_stmt = "--skip-stmt" in argv
     skip_div = "--skip-div" in argv
@@ -931,45 +1100,54 @@ def main(argv: list[str]) -> None:
     only_set = set(s.strip() for s in only.split(",")) if only else None
     t0 = time.time()
 
+    failed = False
     if market in ("cn", "all"):
-        cn = cn_universe()
-        # accept both terminal (.SS) and tushare (.SH) in --only
-        if only_set:
-            def _match(code):
-                return code in only_set or (code[:-3] + ".SS") in only_set
-            cn = [c for c in cn if _match(c)]
-        if limit:
-            cn = cn[:limit]
-        print(f"=== CN ({len(cn)} names) ===", flush=True)
-        if not skip_stmt and not only_set:
-            # whole-market statement pulls are period-scoped, not name-scoped; only on a full run
-            periods = quarter_periods(periods_n)
-            print(f"CN statements: {len(periods)} periods {periods[-1]}..{periods[0]}", flush=True)
-            collect_cn_statements(periods, force)
-            collect_daily_basic()
-        elif not skip_stmt:
-            print("  --only set: statements are whole-market — skipping the period pulls "
-                  "(run without --only to refresh stmt parquets)", flush=True)
-        if not skip_div:
-            collect_cn_dividends(cn, force, stale_days)
+        try:
+            if os.environ.get("MM_CN_SOURCE_DISABLED") == "1":
+                raise UpstreamAuthError("CN source disabled pending credential repair")
+            cn = cn_universe()
+            # accept both terminal (.SS) and tushare (.SH) in --only
+            if only_set:
+                def _match(code):
+                    return code in only_set or (code[:-3] + ".SS") in only_set
+                cn = [c for c in cn if _match(c)]
+            if limit:
+                cn = cn[:limit]
+            print(f"=== CN ({len(cn)} names) ===", flush=True)
+            if not skip_stmt and not only_set:
+                # whole-market statement pulls are period-scoped, not name-scoped; only on a full run
+                periods = quarter_periods(periods_n)
+                print(f"CN statements: {len(periods)} periods {periods[-1]}..{periods[0]} "
+                      f"(rolling refresh {stmt_refresh})", flush=True)
+                collect_cn_statements(periods, force, refresh_periods=stmt_refresh)
+                collect_daily_basic()
+            elif not skip_stmt:
+                print("  --only set: statements are whole-market — skipping the period pulls "
+                      "(run without --only to refresh stmt parquets)", flush=True)
+            if not skip_div:
+                collect_cn_dividends(cn, force, stale_days)
 
-        # Bulk singles: company/holders/disclosure are whole-market one-shots (not name-scoped)
-        if not only_set:
-            if not skip_consensus:
-                collect_cn_consensus(force)
-            if not skip_company:
-                collect_cn_company(force)
-            if not skip_holders:
-                collect_cn_holdernum(force)
-            if not skip_disclosure:
-                collect_cn_disclosure(force)
-        else:
-            print("  --only set: skipping whole-market consensus/company/holders/disclosure "
-                  "(run without --only to refresh them)", flush=True)
+            # Bulk singles: company/holders/disclosure are whole-market one-shots (not name-scoped)
+            if not only_set:
+                if not skip_consensus:
+                    collect_cn_consensus(force)
+                if not skip_company:
+                    collect_cn_company(force)
+                if not skip_holders:
+                    collect_cn_holdernum(force)
+                if not skip_disclosure:
+                    collect_cn_disclosure(force)
+            else:
+                print("  --only set: skipping whole-market consensus/company/holders/disclosure "
+                      "(run without --only to refresh them)", flush=True)
 
-        # Per-ticker reports: run for requested universe (resumable)
-        if not skip_reports:
-            collect_cn_reports(cn, force, stale_days)
+            # Per-ticker reports: run for requested universe (resumable)
+            if not skip_reports:
+                collect_cn_reports(cn, force, stale_days)
+
+        except UpstreamError as exc:
+            failed = True
+            print(f"CN collection stopped: {type(exc).__name__}", flush=True)
 
     if market in ("hk", "all"):
         hk = hk_universe()
@@ -987,6 +1165,8 @@ def main(argv: list[str]) -> None:
         collect_hk_fund(hk, force, stale_days, statements_only=statements_only)
 
     print(f"done in {time.time() - t0:.0f}s", flush=True)
+    if failed:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,11 @@
+{"source_head": "9ba8e5cf452c6651393d2c5f9db3c1e87ad3d216", "diagnostic_only_diff": "diff --git a/tests/test_terminal_beta_bootstrap.py b/tests/test_terminal_beta_bootstrap.py\nindex e879d1891..67aa9aaa4 100644\n--- a/tests/test_terminal_beta_bootstrap.py\n+++ b/tests/test_terminal_beta_bootstrap.py\n@@ -807,7 +807,7 @@ class Owner:\n \n     def clone(self, source: Path, destination: Path) -> None:\n         subprocess.run([\"git\", \"clone\", \"-q\", \"--no-hardlinks\", str(source), str(destination)],\n-                       check=True, capture_output=True, text=True)\n+                       check=True, text=True)\n \n     def write_realistic_beta_policy(self) -> Path:\n         # Exercise the delivered policy, translating only deployment locations\n", "python": "3.14.7", "pytest_command": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "-m", "pytest", "tests/test_terminal_beta_bootstrap.py::test_unit_prerequisite_refusals_do_not_provision_anything", "-q"], "git": "git version 2.46.1", "bash": "/opt/homebrew/bin/bash", "before_raw_count": 41, "fixture_sha256": "2bcf6b3e1b2e0679cf45683ae29aedc78f33a33c5560d45a6bb74a419e72c1ba"}
+.                                                                        [100%]
+=============================== warnings summary ===============================
+../../../../../../Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:102
+  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/pathlib.py:102: PytestWarning: (rm_rf) unknown function <built-in function scandir> when removing /private/tmp/pytest-of-chriswong/garbage-eed956b4-3220-4ebb-979f-7ad7143949e0/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions:
+  <class 'PermissionError'>: [Errno 13] Permission denied: '/private/tmp/pytest-of-chriswong/garbage-eed956b4-3220-4ebb-979f-7ad7143949e0/test_runtime_manifest_seals_ex0/worker-browser-b1/runtime/browsers/chromium-1237/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions'
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 1 warning in 4.73s
+{"pytest_exit": 0, "duration_seconds": 5.049}

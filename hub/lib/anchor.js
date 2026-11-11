@@ -1,4 +1,5 @@
 "use strict";
+const { completedSessionDate } = require("./snapshot");
 // lib/anchor.js — session prevClose anchor resolution for US equities.
 //
 // Root cause: the nightly pipeline rebuilds manifest.json over ~4 hours and ATOMICALLY
@@ -250,6 +251,20 @@ class AnchorCache {
     if (!prevClose || !Number.isFinite(prevClose)) return null;
 
     const anchor = { prevClose, anchor_source: "daily_file" };
+    // Preserve actual bar identity separately from the rolled regular anchor.
+    // Today's row can be incomplete before the calendar close; it is never the
+    // completed reference merely because its date equals today's ET date.
+    const completedDate = completedSessionDate(nowMs);
+    const ordered = parsedBars.every((bar, i) =>
+      typeof bar.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(bar.date) &&
+      bar.date <= sessionDate && (!i || parsedBars[i - 1].date < bar.date));
+    const completed = ordered && parsedBars.find(bar => bar.date === completedDate);
+    if (completed && Number.isFinite(completed.close) && completed.close > 0) {
+      anchor.completedRegularClose = completed.close;
+      anchor.completedRegularSessionDate = completed.date;
+      // Existing daily-file reference contract; this is not vendor attribution.
+      anchor.completedRegularSource = "daily_file";
+    }
     if (todayClose != null) { anchor.close = todayClose; }
     if (afterHours != null) { anchor.afterHours = afterHours; }
     if (prevSessionChg != null && Number.isFinite(prevSessionChg)) {

@@ -45,10 +45,12 @@ async function openSearchWithTwoLists(page: Page, query: string, testInfo: TestI
   // at 26 minutes' runtime). The persist effect re-writes `mm.wls` from the restored state, so two
   // keys there is the precondition itself, observed rather than assumed.
   await expect.poll(async () => Object.keys(await savedLists(page)).length, { timeout: 30_000 }).toBeGreaterThan(1);
-  await page.locator(".pair").first().click();
-  await page.locator(".sh input").click();
+  const phone = testInfo.project.name === "mobile";
+  await (phone ? page.locator(".m-symbar") : page.locator(".pair").first()).click();
+  const searchSurface = phone ? page.locator(".msheet-search") : page.locator(".smodal-hub");
+  await searchSurface.locator(".sh input").click();
   await page.keyboard.type(query);
-  await expect(page.locator(".sres .r").first()).toBeVisible({ timeout: 20_000 });
+  await expect(searchSurface.locator(".sres .r").first()).toBeVisible({ timeout: 20_000 });
 }
 
 test("the add-to-list picker is fully visible on a one-result search", async ({ page, baseURL }, testInfo) => {
@@ -81,6 +83,47 @@ test("the add-to-list picker is fully visible on a one-result search", async ({ 
   await page.locator(".s-pick-row", { hasText: "China" }).click();
   await expect.poll(async () => (await savedLists(page)).China?.map((r: { symbol: string }) => r.symbol) ?? [],
     { timeout: 10_000 }).toContain("AMD");
+});
+
+test("the add-to-list picker stays above the search sheet on mobile", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Regression is the phone drawer stacking context.");
+
+  await openSearchWithTwoLists(page, "AMD", testInfo, baseURL);
+  expect(await page.locator(".sres .r").count()).toBe(1);
+
+  await page.locator(".sres .r .add").first().click();
+  const pick = page.locator(".s-pick");
+  await expect(pick).toBeVisible();
+
+  // The menu is portalled beside MobileSheet in <body>. Visibility alone is insufficient: the
+  // reported bug rendered it underneath the drawer, where the sheet won hit-testing. Pin both
+  // the layer ordering and the real pointer surface at the picker's centre.
+  const state = await page.evaluate(() => {
+    const picker = document.querySelector<HTMLElement>(".s-pick")!;
+    const sheet = document.querySelector<HTMLElement>(".msheet-search")!;
+    const r = picker.getBoundingClientRect();
+    const centre = document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2);
+    return {
+      onScreen: r.top >= 0 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth,
+      hitsPicker: !!centre?.closest(".s-pick"),
+      pickerZ: Number.parseInt(getComputedStyle(picker).zIndex, 10),
+      sheetZ: Number.parseInt(getComputedStyle(sheet).zIndex, 10),
+    };
+  });
+  expect(state.onScreen).toBe(true);
+  expect(state.hitsPicker).toBe(true);
+  expect(state.pickerZ).toBeGreaterThan(state.sheetZ);
+
+  // Prove the user's actual job, not just geometry: choosing a watchlist mutates that list.
+  await page.locator(".s-pick-row", { hasText: "China" }).click();
+  await expect.poll(async () => (await savedLists(page)).China?.map((r: { symbol: string }) => r.symbol) ?? [],
+    { timeout: 10_000 }).toContain("AMD");
+  await expect(pick).toBeHidden();
+  // Exactly one membership change, in exactly the chosen list: a tap that also reached the sheet
+  // underneath would add twice or land in the active list instead.
+  const after = await savedLists(page);
+  expect(after.China.filter((r: { symbol: string }) => r.symbol === "AMD")).toHaveLength(1);
+  expect(after.Default.map((r: { symbol: string }) => r.symbol)).not.toContain("AMD");
 });
 
 test("scrolling the result list closes the picker instead of stranding it", async ({ page, baseURL }, testInfo) => {
@@ -133,6 +176,48 @@ test("a signed-in user with ONE list still gets the picker, because Portfolio is
   await expect(pick.locator(".s-pick-row", { hasText: "Default" })).toHaveCount(1);
   // AMD reached neither destination just by opening the menu.
   await expect.poll(async () => (await savedLists(page)).Default?.map((r: { symbol: string }) => r.symbol) ?? []).not.toContain("AMD");
+
+  // The chart entry point uses the same canonical save receipt as /portfolio.
+  // Commit once but contradict its HTTP receipt: the form must stay open, and
+  // retry must reconcile that same UUID without duplicating or touching a list.
+  const intentIds: string[] = [];
+  await page.route("**/api/portfolio", async route => {
+    if (route.request().method() !== "POST" || route.request().postDataJSON()?.action !== "create") return route.continue();
+    intentIds.push(route.request().postDataJSON().clientPositionId);
+    if (intentIds.length === 2) return route.fulfill({ status: 409, json: { error: "position intent conflict" } });
+    const response = await route.fetch();
+    const body = await response.json();
+    if (intentIds.length === 3) body.position.shares = 999;
+    return route.fulfill({ response, json: body });
+  });
+  await pick.getByTestId("add-to-portfolio").click();
+  const modal = page.getByRole("dialog").filter({ has: page.locator("input[name='ticker']") });
+  await expect(modal.locator("input[name='ticker']")).toHaveValue("AMD");
+  await expect(modal.locator("input[name='shares']")).toBeFocused();
+  await modal.locator("input[name='shares']").fill("3O");
+  await modal.locator("input[name='entryPrice']").fill("100");
+  await modal.locator("input[name='entryCurrency']").fill("USD");
+  await modal.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(modal.getByRole("alert")).toContainText("Enter a valid share count");
+  await expect(modal.locator("input[name='shares']")).toBeFocused();
+  await expect(modal.locator("input[name='shares']")).toHaveAttribute("aria-invalid", "true");
+  await modal.locator("input[name='shares']").fill("10");
+  await modal.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(modal.getByRole("alert")).toContainText("review the existing record");
+  await expect(modal.locator("input[name='shares']")).toHaveValue("10");
+  // Known server refusals and the following uncertain receipt all preserve this intent.
+  await modal.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(modal.getByRole("alert")).toContainText("couldn't confirm");
+  await expect(modal.locator("input[name='shares']")).toHaveValue("10");
+  await modal.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(modal).not.toBeVisible();
+  expect(intentIds).toHaveLength(4); expect(new Set(intentIds).size).toBe(1);
+  const saved = await page.request.get("/api/portfolio?view=positions");
+  expect(saved.ok()).toBe(true);
+  const positions = (await saved.json()).positions;
+  expect(positions).toHaveLength(1);
+  expect(positions[0]).toMatchObject({ id: intentIds[0], ticker: "AMD", shares: 10, entryPrice: 100, entryCurrency: "USD" });
+  expect((await savedLists(page)).Default.map((r: { symbol: string }) => r.symbol)).not.toContain("AMD");
 });
 
 test("with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog", async ({ page, baseURL }, testInfo) => {

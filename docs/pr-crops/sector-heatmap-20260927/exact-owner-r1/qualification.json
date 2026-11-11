@@ -1,0 +1,13 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "themeRightsAdmitted": false,
+  "checks": [],
+  "screenshots": [],
+  "errors": [],
+  "passed": false,
+  "error": "Error: expect(locator).toHaveCount(expected) failed\n\nLocator:  getByTestId('sector-company-heatmap').locator('[data-company-heatmap-tile]')\nExpected: 79\nReceived: 78\nTimeout:  15000ms\n\nCall log:\n  - Expect \"to.have.count\" with timeout 15000ms\n  - waiting for getByTestId('sector-company-heatmap').locator('[data-company-heatmap-tile]')\n    34 × locator resolved to 78 elements\n       - unexpected value \"78\"\n\n    at captureRawStack (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright-core/lib/coreBundle.js:3172:17)\n    at callMatcherAsStep (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12877:57)\n    at Object.toHaveCount (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12867:23)\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_heatmap.cjs:69:64"
+}

@@ -1,0 +1,54 @@
+{
+  "shell": {
+    "href": "https://beta.mastermind-x.com/sector_central.html#overview",
+    "title": "Sector Intelligence \u00b7 Mastermind",
+    "host": {
+      "attrs": {
+        "sharedShellPhase": "ready",
+        "sharedShellFailure": "none",
+        "sharedShellLoad": "not-seen",
+        "sharedShellChildError": "none"
+      },
+      "rect": {
+        "x": 224,
+        "y": 64,
+        "width": 1216,
+        "height": 836,
+        "top": 64,
+        "right": 1440,
+        "bottom": 900,
+        "left": 224
+      },
+      "display": "block",
+      "visibility": "visible"
+    },
+    "iframe": {
+      "rect": {
+        "x": 224,
+        "y": 64,
+        "width": 1216,
+        "height": 836,
+        "top": 64,
+        "right": 1440,
+        "bottom": 900,
+        "left": 224
+      },
+      "visibility": "visible"
+    },
+    "body": "Skip to content\nMASTERMIND\nBETA\nSearch companies and tools\nAll tools\n\u2318 K\nDark\nEN\nOpen current chart\n\u2197\nU\nToday\nDiscover\nAnalysis\nMonitor\nResearch\nPortfolio\nMARKETS\nUS\nUnited States\nCN\nChina\nHK\nHong Kong\nCA\nCanada\nINTL\nInternational\nAll tools\nMastermind AI\nUS Sector Intelligence \u2014 sectors, themes & rotation \u2014 Mastermind"
+  },
+  "children": [
+    {
+      "url": "https://www.mastermind-x.com/sector_central.html?mmx_shell=1&mmx_generation=72b4e9c5-b9db-4fe4-af3b-d40dbb76b06c#overview",
+      "title": "US Sector Intelligence \u2014 sectors, themes & rotation \u2014 Mastermind",
+      "more": []
+    }
+  ],
+  "errors": [],
+  "network": [
+    {
+      "status": 200,
+      "url": "https://beta.mastermind-x.com/api/shared-shell/status"
+    }
+  ]
+}

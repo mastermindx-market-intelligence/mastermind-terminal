@@ -1,0 +1,31 @@
+[warmup] /terminal?symbol=NVDA → 200 in 77ms
+[warmup] /options → 200 in 171ms
+[warmup] /portfolio → 200 in 81ms
+[warmup] /alerts → 200 in 82ms
+[warmup] /analysis → 200 in 138ms
+[warmup] /discover → 200 in 86ms
+[warmup] /admin → 200 in 61ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 55ms
+[warmup] /login → 200 in 62ms
+[warmup] /api/me → 200 in 80ms
+[warmup] /api/watchlist → 200 in 25ms
+[warmup] /api/layouts → 200 in 34ms
+[warmup] 12 routes compiled in 1s
+
+Running 12 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (1.2s)
+  ✓   2 [desktop] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (1.1s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   3 [desktop] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (2.5s)
+  ✓   4 [desktop] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (3.3s)
+  ✓   5 [tablet] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (1.1s)
+  ✓   6 [tablet] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (1.1s)
+  ✓   7 [tablet] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (2.2s)
+  ✓   8 [tablet] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (2.9s)
+  ✓   9 [mobile] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (974ms)
+  ✓  10 [mobile] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (975ms)
+  ✓  11 [mobile] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (2.1s)
+  ✓  12 [mobile] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (2.8s)
+
+  12 passed (28.8s)

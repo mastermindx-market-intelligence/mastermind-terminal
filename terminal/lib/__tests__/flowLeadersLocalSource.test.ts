@@ -3,11 +3,37 @@ import { mkdtemp, rm, writeFile } from "fs/promises";
 import os from "os";
 import path from "path";
 
-import { localFlowArtifactPath, tryFetchUpstream } from "@/lib/flowSource";
+import {
+  isQualifiedLeadersArtifact, localFlowArtifactPath, sanitizeLeadersArtifact,
+  tryFetchUpstream, upstreamSourceOrder,
+} from "@/lib/flowSource";
 
 let dir = "";
 let realFetch: typeof globalThis.fetch;
 let priorLocalPath: string | undefined;
+
+const today = () => new Date().toISOString().slice(0, 10);
+const candidate = (session: string, extra: Record<string, unknown> = {}) => ({
+  schema: "flow_leaders.v1",
+  as_of: new Date().toISOString(),
+  session_date: session,
+  stale: true,
+  board_a: [{ ticker: "AAPL", fire_a: false, fire_b: false }],
+  board_b: [],
+  coverage: { n_universe: 1, n_flow_sessions: 3, tape_names: [], n_etfs: 0 },
+  ...extra,
+});
+const qualified = (session = today()) => candidate(session, {
+  stale: false,
+  source_family: "thetadata_t2a_tape",
+  signal_policy: "research_only",
+  coverage: { n_universe: 371, n_flow_sessions: 3, tape_names: [], n_etfs: 0,
+    n_expected_roots: 375, n_current_roots: 340 },
+});
+const jsonResponse = (data: Record<string, unknown>) =>
+  new Response(JSON.stringify(data), {
+    status: 200, headers: { "content-type": "application/json" },
+  });
 
 beforeEach(async () => {
   dir = await mkdtemp(path.join(os.tmpdir(), "flow-leaders-local-"));
@@ -23,57 +49,181 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-describe("Flow Leaders co-located artifact source", () => {
-  it("reads the canonical local artifact before touching backend or R2", async () => {
+describe("Flow Leaders current-source admission and fallback", () => {
+  it("preserves a qualified local Theta artifact when the R2 comparison is unavailable", async () => {
     const file = path.join(dir, "leaders.json");
-    await writeFile(file, JSON.stringify({
-      schema: "flow_leaders.v1",
-      session_date: "2026-08-12",
-      stale: true,
-      board_a: [{ ticker: "AAPL" }],
-      board_b: [],
-    }));
+    await writeFile(file, JSON.stringify(qualified()));
     process.env.FLOW_LEADERS_LOCAL_PATH = file;
-    globalThis.fetch = vi.fn(async () => {
-      throw new Error("network must not be reached when local artifact is valid");
-    }) as unknown as typeof globalThis.fetch;
+    globalThis.fetch = vi.fn(async () => { throw new Error("unnecessary network"); }) as unknown as typeof globalThis.fetch;
 
     const result = await tryFetchUpstream("leaders");
-
-    expect(result?.schema).toBe("flow_leaders.v1");
-    expect(result?.session_date).toBe("2026-08-12");
-    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(result?.source_family).toBe("thetadata_t2a_tape");
+    expect(result?.stale).toBe(false);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it("falls through when the local artifact is absent or malformed", async () => {
+  it("does not let an August historical local snapshot shadow a current R2 feed", async () => {
     const file = path.join(dir, "leaders.json");
-    await writeFile(file, '{"schema":"flow_leaders.v1","bad":NaN}');
+    await writeFile(file, JSON.stringify(candidate("2026-08-12")));
     process.env.FLOW_LEADERS_LOCAL_PATH = file;
-
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.startsWith("http://127.0.0.1:8000")) {
-        return new Response("not found", { status: 404 });
-      }
-      return new Response(JSON.stringify({
-        schema: "flow_leaders.v1",
-        session_date: "2026-08-12",
-        stale: true,
-        source: "r2",
-      }), { status: 200, headers: { "content-type": "application/json" } });
-    });
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => jsonResponse(qualified()));
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
 
     const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe(today());
+    expect(result?.stale).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("r2.dev");
+  });
 
+  it("prefers a newer qualified R2 session over an older qualified local session", async () => {
+    const file = path.join(dir, "leaders.json");
+    const older = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    await writeFile(file, JSON.stringify(qualified(older)));
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => jsonResponse(qualified()));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe(today());
+    expect(result?.stale).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("r2.dev");
+  });
+
+  it("keeps a qualified local session when R2 is newer but unqualified", async () => {
+    const file = path.join(dir, "leaders.json");
+    const older = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    await writeFile(file, JSON.stringify(qualified(older)));
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const newerButUnqualified = candidate(today(), {
+      stale: false,
+      source_family: "legacy_options_flow_archive",
+    });
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => jsonResponse(newerButUnqualified));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+    const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe(older);
+    expect(result?.stale).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves an explicitly stale snapshot when R2 and backend are down", async () => {
+    const file = path.join(dir, "leaders.json");
+    await writeFile(file, JSON.stringify(candidate("2026-08-12")));
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const fetchMock = vi.fn(async () => { throw new Error("upstreams unavailable"); });
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe("2026-08-12");
+    expect(result?.stale).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("chooses the newer historical source session rather than a newer build clock", async () => {
+    const file = path.join(dir, "leaders.json");
+    await writeFile(file, JSON.stringify(candidate("2026-08-12", {
+      as_of: new Date().toISOString(),
+    })));
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).includes("r2.dev")) {
+        return jsonResponse(candidate("2026-09-01", { as_of: "2026-09-02T00:00:00Z" }));
+      }
+      throw new Error("backend down");
+    });
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+    const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe("2026-09-01");
+    expect(result?.stale).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects a false-fresh legacy object even when its build date advanced", () => {
+    expect(isQualifiedLeadersArtifact(candidate(today(), { stale: false }))).toBe(false);
+    expect(isQualifiedLeadersArtifact(candidate("2026-08-12", {
+      stale: false, source_family: "thetadata_t2a_tape",
+      coverage: { n_expected_roots: 375, n_current_roots: 340 },
+    }))).toBe(false);
+    expect(isQualifiedLeadersArtifact(candidate(today(), {
+      stale: false, source_family: "thetadata_t2a_tape",
+      coverage: { n_universe: 371, n_expected_roots: 375, n_current_roots: 20 },
+    }))).toBe(false);
+    expect(isQualifiedLeadersArtifact(qualified())).toBe(true);
+  });
+
+  it("forces a false-fresh retired source into an explicit unavailable state", async () => {
+    const file = path.join(dir, "leaders.json");
+    await writeFile(file, JSON.stringify(candidate("2026-08-12")));
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const falseFresh = candidate(today(), {
+      stale: false, source_family: "legacy_options_flow_archive",
+      as_of: new Date().toISOString(),
+    });
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => jsonResponse(falseFresh));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+    const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe(today());
+    expect(result?.stale).toBe(true);
+    expect(result?.stale_reason).toBe("unqualified_source_or_session");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("refuses a recent but undercovered Theta board marked fresh", () => {
+    const falselyFresh = candidate(today(), {
+      stale: false,
+      source_family: "thetadata_t2a_tape",
+      coverage: { n_universe: 371, n_expected_roots: 375, n_current_roots: 18 },
+    });
+    expect(isQualifiedLeadersArtifact(falselyFresh)).toBe(false);
+    expect(sanitizeLeadersArtifact(falselyFresh)).toMatchObject({
+      session_date: today(),
+      stale: true,
+      stale_reason: "unqualified_source_or_session",
+    });
+  });
+
+  it("refuses a source that tries to promote unqualified Theta observations", () => {
+    const ready = qualified();
+    expect(isQualifiedLeadersArtifact(ready)).toBe(true);
+    expect(isQualifiedLeadersArtifact({ ...ready, signal_policy: "live_trade" })).toBe(false);
+    expect(isQualifiedLeadersArtifact({ ...ready, board_a: [
+      { ticker: "AAPL", fire_a: true, fire_b: false },
+    ] })).toBe(false);
+    const unqualified = sanitizeLeadersArtifact({ ...ready, board_a: [
+      { ticker: "AAPL", fire_a: true, fire_b: true },
+    ] });
+    expect(unqualified?.stale).toBe(true);
+    expect(unqualified?.board_a).toEqual([
+      { ticker: "AAPL", fire_a: false, fire_b: false },
+    ]);
+    expect(sanitizeLeadersArtifact({ ...ready, coverage: undefined })).toBeNull();
+    expect(sanitizeLeadersArtifact({ ...ready, board_a: [null] })).toBeNull();
+  });
+
+  it("falls through when the local file is malformed", async () => {
+    const file = path.join(dir, "leaders.json");
+    await writeFile(file, '{"schema":"flow_leaders.v1","bad":NaN}');
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).includes("r2.dev")) {
+        return jsonResponse(candidate("2026-08-12", { source: "r2" }));
+      }
+      throw new Error("backend unavailable");
+    });
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+    const result = await tryFetchUpstream("leaders");
     expect(result?.source).toBe("r2");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("does not invent local paths for unrelated flow families", () => {
+  it("keeps Leaders-specific route behavior out of unrelated flow families", () => {
     delete process.env.FLOW_LEADERS_LOCAL_PATH;
     expect(localFlowArtifactPath("leaders")).toBe("/opt/macro/site/flowleaders/leaders.json");
     expect(localFlowArtifactPath("radar")).toBeNull();
     expect(localFlowArtifactPath("feed")).toBeNull();
+    expect(upstreamSourceOrder("leaders")).toEqual(["r2", "backend"]);
+    expect(upstreamSourceOrder("feed")).toEqual(["backend", "r2"]);
   });
 });

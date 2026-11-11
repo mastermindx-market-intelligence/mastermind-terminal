@@ -1,0 +1,38 @@
+{
+  "sourceHead": "08bca3d53b52f245f081fed26cfd7ac352c52488",
+  "capturedAt": "2026-10-24T07:25:47.261927+00:00",
+  "environment": "isolated M2 SSD; canonical local deterministic Next fixtures; not Chrome Person1/authenticated/public",
+  "profile": "ordinary Terminal; MMX_SHARED_SHELL and MMX_INVESTOR_SHELL_PREVIEW unset; Next bakes MMX_SHARED_SHELL=0",
+  "scope": [
+    "desktop-context.png",
+    "desktop-context-zh.png",
+    "tablet-context.png",
+    "tablet-context-zh.png",
+    "mobile-context.png",
+    "mobile-context-zh.png"
+  ],
+  "cropHashes": {
+    "desktop-context.png": "a80cd2688aa95a63118e0eaa13e6aa13ce09cd109e9099bfecb36e2c39410526",
+    "desktop-context-zh.png": "f91e23ffee50348427ecc9b869d2345db0d1f79cc8838c342a78bda3aa003a0a",
+    "tablet-context.png": "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234",
+    "tablet-context-zh.png": "60a4aea2a2b13d527c6ffc0eec5d034d819477b4aafa83334231dc716ae73519",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  },
+  "onlyChangedLayoutInput": {
+    "terminal/next.config.ts": "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
+  },
+  "qualification": "Actual affected-only screenshot-producing cases. Other crops and historical reports retained under true original identities.",
+  "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=37167 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/production-shell-capture-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1 --grep 'default context explains|Chinese context uses' --reporter=list,json",
+  "freshCaptureReport": {
+    "path": "production-shell-capture-report.json",
+    "sha256": "8584ee28f6f069aca5cac100499ef77d2eac4805da8d7c85a2715a589a6335ce",
+    "cases": 6,
+    "retries": 0
+  },
+  "retainedCompleteReport": {
+    "path": "browser-report.json",
+    "sha256": "a04c11f78ec3f2233c9ace7d078b035669447cde191db6aee0fa71463a454ecc",
+    "qualification": "Existing complete30 functional report retained unchanged; not relabeled as current source run. Only changed Nextconfig buildflag literal is inactive for this ordinary-profile UI."
+  }
+}

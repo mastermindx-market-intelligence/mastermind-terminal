@@ -1,0 +1,25 @@
+{
+  "schema": "futures.real_sample_evidence/v1",
+  "live": false,
+  "raw_data_committed": false,
+  "results": {
+    "hub": 515,
+    "python": 24,
+    "reference_groups": 4471,
+    "matched_groups": 4471,
+    "mismatch": 0,
+    "unmatched": 0,
+    "trade_count": 377,
+    "trade_contracts": 839
+  },
+  "files": {
+    "hub/tools/futures_csv.py": "1bbb4ac69226d90cbcbbc4c839b27bf88af21df12e2fc5820c374ad49d9f82b2",
+    "hub/tools/acquire_futures_sample.py": "da427cdb9505d2a606dfe4e82ddecab5fb9a92627c03ae384936965f71c44ca7",
+    "hub/tools/compare_futures_sample.js": "a2ec21955cedbd4d99802cbf57518cf8577f68ef38b47b927dab9d23686826cd",
+    "hub/tests/test_futures_csv.py": "c92a9942629682c4f3744f229c1bf9a587480f9f18496d8bf35d504cb60ebc68",
+    "hub/tests/futuresSample.test.js": "bda0be3739c11e9e2aa3bdd7e88b73df459bb0ce93977e3b2f9b7676d81bbbc6",
+    ".github/workflows/ci.yml": "485cc130e4ed4385e12ae55988442b628f906bc30c0dea0343b13b7b1a998ead"
+  },
+  "local_sample_home": ".local-futures/",
+  "limitation": "Five-minute historical public sample, vendor-schema BBO only, not a full-book independent oracle or licensed subscriber distribution."
+}

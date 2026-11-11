@@ -1,0 +1,298 @@
+{
+  "status": "PASS_SCOPED_SOURCE_FIXTURE",
+  "base": "ac3762717ad150fd4f18614afd78072115a7c80a",
+  "sourceFiles": {
+    "app/error.tsx": "1c3c258dabe697e413358caf6f3012656420b74b2c0c4a9455724a0131285e4f",
+    "app/error-return.module.css": "4be47178b7b1e5776773a93d6470865c647d8555befe9c2b797761279efb91c0",
+    "lib/__tests__/errorReturnRecovery.test.tsx": "45446992743a4636ed1f677612ba31c571bb057b45a672221b38595f90e547b6"
+  },
+  "fixture": "Actual Next AppShell/PortfolioWorkspace/root ErrorPage; Terminal route deliberately throws before chart/auth/provider work; SDK/onboarding/closed SettingsPanel seams only",
+  "configuredOriginPreferenceCells": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "keyboard Enter",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "keyboard Enter",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "keyboard Enter",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "keyboard Enter",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "touch tap",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "touch tap",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "touch tap",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "touch tap",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "touch tap",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "touch tap",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "touch tap",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "href": "/terminal?from=macro&ret=http%3A%2F%2F127.0.0.1%3A3100%2Fportfolio%3Fjourney%3Dnative-unavailable%26book%3Downed%23owned-position&symbol=AAPL",
+      "backHeight": 44,
+      "animation": "none",
+      "backFocused": true,
+      "activation": "touch tap",
+      "returned": "http://127.0.0.1:3100/portfolio?journey=native-unavailable&book=owned#owned-position",
+      "holding": "AAPL",
+      "quantity": "5",
+      "returnFocus": {
+        "tag": "BODY",
+        "role": null,
+        "label": null
+      },
+      "holdingWrites": 0,
+      "expectedControlledRouteErrors": []
+    }
+  ],
+  "nativeErrorTheme": "Incumbent /terminal is dark-only; SharedShellPresentation cleanup resets theme to dark. Origin light preferences are not light-error art-direction proof.",
+  "measuredThemeTransition": {
+    "error": {
+      "width": 390,
+      "scroll": 390,
+      "effectiveTheme": "dark",
+      "background": "rgb(10, 11, 14)"
+    },
+    "return": {
+      "tag": "BODY",
+      "role": null,
+      "label": null,
+      "effectiveTheme": "light",
+      "background": "rgb(10, 11, 14)"
+    }
+  },
+  "checks": {
+    "vitest": 11,
+    "tsc": "pass",
+    "binding": "No originNav, Portfolio, provider, route or shared Back component edits"
+  },
+  "limits": [
+    "Local isolated route-error proof, not full-host503 or deployed/authenticated behavior",
+    "No account/holding/provider writes; all outgoing network outsideownedloopback blocked",
+    "Prior holding focus/selection is not claimed; Back control focus and exact safe return are qualified",
+    "Body focus after incumbent hard navigation; prior holding selection/focus not restored",
+    "Configured light origin preference yields incumbent dark native error UI",
+    "ESLint reports one identical pre-existing bare /terminal anchor rule on baseline77/current111; no suppression or anchor behavior change"
+  ],
+  "captures": {
+    "mobile-zh-native-dark-error.png": "6e4358201de5e11a3c0ce44190bafeee1dd3d8fbb845fd04df912705c1d40c02",
+    "mobile-light-zh-returned.png": "18f4ce91d5390740f27517d9b356f815a54d507b8dde253cba27fc500f20cbcc",
+    "desktop-dark-en-error.png": "28225e26e9bbeb5de81c74530dd6b9b5eb13523bc9eae1775dda99b4c63e16ce"
+  }
+}

@@ -36,14 +36,16 @@ for jf in sorted(OUT.glob("*.json")):
         # Phase the 3D grid (and the 2-week confirm pairing) to the symbol's IPO so they match
         # a full-history TradingView chart (the feed is truncated to ~6yr; defaults would anchor
         # at the feed start = wrong phase).
+        bar_anchor = confluence.ipo_bar_anchor(close, sym)
         sig = confluence.compute_signals(
-            close, bar_anchor=confluence.ipo_bar_anchor(close, sym),
+            close, bar_anchor=bar_anchor,
             week_parity=confluence.ipo_week_parity(close, sym))
         if sig.empty:
             n_skip += 1
             continue
         ind = contracts.indicator_contract(
-            sym, "3D", sig, bar_quality="real_ohlc", src_text=d.get("src", ""), honest_read=HONEST)
+            sym, "3D", sig, bar_quality="real_ohlc", src_text=d.get("src", ""), honest_read=HONEST,
+            bar_closed=contracts.three_day_bar_closed(close, bar_anchor))
         existing = json.loads(slice_f.read_text())
         existing["indicator"] = ind  # full signal history (was model_slice → capped to 12)
         slice_f.write_text(json.dumps(existing, indent=2))

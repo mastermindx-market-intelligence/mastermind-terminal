@@ -1,0 +1,89 @@
+{
+  "schema": "shared-shell.scoped-source-witness.v1",
+  "candidate_source_head": "04c9269d64da34f2b4229e0574622e65fc2e2ddc",
+  "control_source_head": "e0ae63e43965ec1d1c93405ee903fd92b63e3470",
+  "qualified_source_paths": {
+    "terminal/components/SearchModal.tsx": "36880f1100bbcfa051a0c46131dd84c48a7278f0adb5678ee969a8db190774e9",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2"
+  },
+  "source_snapshot_difference": [
+    "terminal/components/SearchModal.tsx",
+    "terminal/components/chrome/shared-shell/shared-shell.css"
+  ],
+  "operations": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ss1228-pl6-20261102-c1--operation.json",
+      "sha256": "ff896f4616899a4f9fc9653b511c1c31d97baa9f684599cd61e823edbe210f70",
+      "id": "ss1228-pl6-20261102-c1",
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      },
+      "case_count": 8
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ss1228-vi-context-20261102-c1--operation.json",
+      "sha256": "8c6d2b5570234abb5c480fbf160f180e52409b6a36a829f0bc8ec9bd5f1cee31",
+      "id": "ss1228-vi-context-20261102-c1",
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      },
+      "case_count": 3
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ss1228-vi-context-repeat-20261102-c2--operation.json",
+      "sha256": "1c7d3cda2aacffedc057d2dbc3eeca142d2ad6e43519e8ca2c24f15ebd141a71",
+      "id": "ss1228-vi-context-repeat-20261102-c2",
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      },
+      "case_count": 3
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ss1228-pl6-control-20261102-b2--operation.json",
+      "sha256": "7451c8b4bdddce3177741993480bf7da0b941c75923d6804d04e4689f1bd5db4",
+      "id": "ss1228-pl6-control-20261102-b2",
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      },
+      "case_count": 8
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ss1228-vi-control-20261102-b2--operation.json",
+      "sha256": "a5b7cf3dd1e00e3e3482e077797496c023b2bc90cea15e8081f069d2d3cf8d06",
+      "id": "ss1228-vi-control-20261102-b2",
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      },
+      "case_count": 3
+    }
+  ],
+  "actual_new_cases": "8 PL6 SearchModal/ChartChrome EN/ZH desktop/mobile; 3 VI Chinese-context cases at desktop/tablet/mobile, plus a same-source repeat of those 3 for attribution. No whole 20/30 matrix recapture is claimed.",
+  "base_controls": "8 PL6 and 3 VI at the matching baseline source/profile. All 8 PL6 pairs are byte-identical; VI tablet pair is byte-identical.",
+  "pixel_observations": {
+    "desktop": "Candidate/control differ only y854-891 in the changing footer clock/ticker band (10763 pixels). Same candidate source repeat differs in the same band (10798 pixels), proving full-frame byte variability at unchanged source. Content/chart/context above that band is byte-identical.",
+    "mobile": "Candidate C1 and same-source C2 byte-identical. Candidate vs control differs at 45 rounded button-edge pixels, maximum channel delta2/255, mean max-channel delta1.0222; no visible content, geometry or control-state change. Different bytes remain explicitly retained."
+  },
+  "historical_artifacts": "Every predecessor PNG, cropFiles hash and browser-report file/hash remains unchanged. Existing complete functional reports keep their original source identity. New source witnesses are scoped to the actual captures and controls above.",
+  "profile_boundary": "Both source changes are inactive for the ordinary sharedShell=0 evidence profile, except company-specific title branches that the ordinary symbol search does not select. Accepted beta-enabled company/title/44px behavior has its own separate current-source captures.",
+  "production_proof": false
+}

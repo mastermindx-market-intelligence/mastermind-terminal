@@ -10,10 +10,9 @@ import {
 } from "@/lib/watchlistsFixtureDb";
 import type { DbResult, DbRow, WatchlistDb } from "@/lib/watchlists";
 import { isUuid } from "@/lib/theses";
-import { mapOutboxToConditionStates, type OutboxRow } from "@/lib/rmsViews";
+import { mapOutboxToConditionStates, THESIS_FIRE_OUTBOX_STATUSES, type OutboxRow } from "@/lib/rmsViews";
 
 const MAX_IDS = 50;
-const FIRE_STATUSES = ["pending", "deferred", "sent"] as const;
 const isE2eFixture = () => process.env.TERMINAL_E2E_FIXTURE === "1";
 
 async function resolveDb(): Promise<{ db: WatchlistDb; userId: string } | null> {
@@ -48,7 +47,7 @@ export async function GET(request: Request) {
   const result = await session.db.from("alert_outbox")
     .select("payload,status,created_at")
     .eq("user_id", session.userId)
-    .in("status", FIRE_STATUSES)
+    .in("status", THESIS_FIRE_OUTBOX_STATUSES)
     .in("payload->>thesis_id", ids);
   if (result.error) {
     console.error("thesis-fire-status GET failed:", result.error);

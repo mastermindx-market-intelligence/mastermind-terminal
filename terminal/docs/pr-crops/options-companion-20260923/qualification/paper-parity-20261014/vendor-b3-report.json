@@ -1,0 +1,98 @@
+{
+  "observedAt": "2026-10-14T04:19:44.178Z",
+  "classification": "OWNED_LOCAL_REAL_VENDOR_BROWSER_PUBLIC_API_ADAPTER_REGRESSION_NOT_PRODUCTION",
+  "packageVersion": "5.2.0",
+  "vendorSha256": "904e52b60271c0f6f2dee452b6554c084d9db5e8514e2e6c47339956565a860e",
+  "bundleSha256": "099657b80b808e63affac8507611fc2f514aee3de94321fb7001c9476b99eb47",
+  "inputHashes": {},
+  "vendorFacts": {
+    "nativeLines": 2,
+    "freshWrapper": true,
+    "samePublicOptions": true,
+    "distinctIdenticalScalarLines": true,
+    "applyOptionsStable": true,
+    "callerIdsPreserved": true,
+    "removeEnumerated": true,
+    "removeOriginal": true
+  },
+  "results": [
+    {
+      "name": "real renderer two lines",
+      "pass": true,
+      "detail": {
+        "alive": true,
+        "panes": 1,
+        "series": 1,
+        "seriesByPane": [
+          1
+        ],
+        "priceLines": 2,
+        "watermarks": 0
+      }
+    },
+    {
+      "name": "registered handle census two lines",
+      "pass": true,
+      "detail": {
+        "registered": 2,
+        "tracked": 2,
+        "orphan": 0
+      }
+    },
+    {
+      "name": "distinct identical-price handles are recovered",
+      "pass": true,
+      "detail": {
+        "listed": 2
+      }
+    },
+    {
+      "name": "applyOptions retains original handle identity",
+      "pass": true,
+      "detail": {
+        "listed": 2
+      }
+    },
+    {
+      "name": "caller public IDs unchanged",
+      "pass": true,
+      "detail": {
+        "a": "caller-id",
+        "b": "caller-id"
+      }
+    },
+    {
+      "name": "unregistered identical-scalar raw line is not claimed",
+      "pass": true,
+      "detail": {
+        "registered": 2,
+        "live": 3
+      }
+    },
+    {
+      "name": "remove via original handle",
+      "pass": true,
+      "detail": {
+        "registered": 1,
+        "live": 1
+      }
+    },
+    {
+      "name": "remove via enumerated handle",
+      "pass": true,
+      "detail": {
+        "exercised": true,
+        "registered": 0,
+        "live": 0
+      }
+    },
+    {
+      "name": "disposed series enumerates no lines",
+      "pass": true,
+      "detail": {
+        "registered": 0
+      }
+    }
+  ],
+  "allPass": true
+}

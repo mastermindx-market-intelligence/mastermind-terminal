@@ -10,6 +10,7 @@
 // formula. Holdings fold by `tickerKey` exactly as F08 law requires.
 
 import { computePortfolioRisk, tickerKey, type Bilingual, type Lang, type RiskInputPosition } from "@/lib/portfolioRisk";
+import { positiveCostCohort, priceCurrency, finite, type CostGap } from "@/lib/portfolioMoney";
 
 export type { Lang, Bilingual, RiskInputPosition as HistoryInputPosition };
 
@@ -46,7 +47,7 @@ export type HistoryMetricReason =
   | "benchmark missing"
   | "zero volatility"
   | "zero downside deviation"
-  | "zero benchmark variance";
+  | "zero benchmark variance" | CostGap;
 
 /** Parsed closes, a typed unreadable body, or an absent/404 artifact (`null`/`undefined`). */
 export type OhlcBookValue = CloseSeries | "unreadable" | null | undefined;
@@ -75,6 +76,7 @@ export interface ExcludedHolding {
 export interface PortfolioRiskHistory {
   schema: typeof SCHEMA;
   weightBasis: "cost";
+  costCurrency?: string | null;
   coverageSource: "credentialed" | "anonymous";
   coverageStatus: CoverageStatus;
   basis: "cost-weighted, positive open holdings";
@@ -380,6 +382,24 @@ export function computePortfolioRiskHistory(
   const rfAbsentSource: RiskFreeSource = rfStatus === "unreadable" ? "unreadable" : "unpublished";
   const concentration = computePortfolioRisk(positions, {}, credentialed).concentration;
   const folded = foldHoldings(positions);
+  // History's existing population excludes shorts. Qualify every positive lot
+  // BEFORE any history exclusion, so a missing unit can never be normalized away.
+  const cohort = positiveCostCohort(positions.filter(p => p.shares == null || p.shares >= 0));
+  if (cohort.reason) {
+    return {
+      schema: SCHEMA, weightBasis: "cost", costCurrency: null,
+      coverageSource: credentialed ? "credentialed" : "anonymous", coverageStatus: "unavailable",
+      basis: "cost-weighted, positive open holdings",
+      counts: { total: positions.length, open: folded.open, foldedTickers: folded.costByTicker.size, included: 0, excluded: folded.excluded.length },
+      cost: { included: null, excluded: null, known: null },
+      sources: { ohlcAsOf: null, spyAsOf: lastDate(spy ?? null), riskFreeAsOf: lastDate(rf?.points ?? null), riskFreeSource: rf?.source ?? rfAbsentSource, benchmark: "SPY" },
+      window: { firstSession: null, lastSession: null, n: 0, requested: trailAligned, minimum: minAligned },
+      included: [], excluded: folded.excluded,
+      gaps: [...folded.excluded.map(e => ({ ticker: e.ticker, reason: e.reason })), ...cohort.parts.map(({ position }) => ({ ticker: tickerKey(position.ticker), reason: cohort.reason! }))],
+      sharpe: null, sortino: null, beta: null,
+      sharpeReason: cohort.reason, sortinoReason: cohort.reason, betaReason: cohort.reason, concentration: null,
+    };
+  }
 
   const included: IncludedHolding[] = [];
   const excluded = [...folded.excluded];
@@ -424,6 +444,10 @@ export function computePortfolioRiskHistory(
   const includedCost = returnMaps.reduce((a, r) => a + r.cost, 0);
   const excludedCost = folded.excludedCost + extraExcludedCost;
   const known = includedCost + excludedCost;
+  const excludedUnitsKnown = positions.every(p => p.status !== "open" || !finite(p.shares) || p.shares >= 0
+    || !finite(p.entryPrice) || Math.abs(p.shares * p.entryPrice) === 0
+    || finite(p.shares * p.entryPrice) && priceCurrency(p.entryCurrency) === cohort.money?.currency);
+  const canTotalExcluded = excludedUnitsKnown && finite(excludedCost) && finite(known);
 
   for (const row of returnMaps) {
     included.push({
@@ -442,6 +466,7 @@ export function computePortfolioRiskHistory(
   const base = {
     schema: SCHEMA,
     weightBasis: "cost" as const,
+    costCurrency: cohort.money?.currency ?? null,
     coverageSource: (credentialed ? "credentialed" : "anonymous") as "credentialed" | "anonymous",
     basis: "cost-weighted, positive open holdings" as const,
     counts: {
@@ -453,8 +478,8 @@ export function computePortfolioRiskHistory(
     },
     cost: {
       included: included.length ? includedCost : null,
-      excluded: excludedCost > 0 ? excludedCost : null,
-      known: known > 0 ? known : null,
+      excluded: canTotalExcluded && excludedCost > 0 ? excludedCost : null,
+      known: canTotalExcluded && known > 0 ? known : null,
     },
     sources: {
       ohlcAsOf,
@@ -681,6 +706,9 @@ const EXCLUDE_COPY: Record<HistoryExcludeReason, Bilingual> = {
 };
 
 const METRIC_COPY: Record<HistoryMetricReason, Bilingual> = {
+  currency_unknown: { en: "Entry currency is not recorded; historical cost weights are unavailable.", zh: "未记录入场币种，历史成本权重不可用。" },
+  currency_mismatch: { en: "Entry currencies differ; historical cost weights are unavailable.", zh: "入场币种不同，历史成本权重不可用。" },
+  amount_overflow: { en: "Cost exceeds the supported numeric range.", zh: "成本超出支持的数值范围。" },
   [RF_UNPUBLISHED_REASON]: {
     en: "The three-month Treasury yield series has not been published yet, so this figure cannot be computed. Beta still uses SPY.",
     zh: "三个月期国债收益率序列尚未发布，因此无法计算该数字。贝塔仍按 SPY 计算。",

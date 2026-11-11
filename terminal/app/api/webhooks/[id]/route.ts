@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { patchEndpoint, WEBHOOK_ROUTE_MESSAGES, type WebhookRouteCode } from "@/lib/webhooks";
+import { jsonEndpoint, patchEndpoint, WEBHOOK_ROUTE_MESSAGES, type WebhookRouteCode } from "@/lib/webhooks";
 import type { TenancyDb } from "@/lib/teams";
 
 export const runtime = "nodejs";
@@ -30,14 +30,6 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json(errorBody(result.code.toUpperCase(), result.code), { status: result.status });
   }
   return NextResponse.json({
-    endpoint: {
-      id: result.endpoint.id,
-      teamId: result.endpoint.teamId,
-      url: result.endpoint.url,
-      enabled: result.endpoint.enabled,
-      eventFilter: result.endpoint.eventFilter,
-      createdBy: result.endpoint.createdBy,
-      createdAt: result.endpoint.createdAt,
-    },
+    endpoint: jsonEndpoint(result.endpoint),
   });
 }

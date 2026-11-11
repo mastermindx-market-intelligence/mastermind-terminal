@@ -139,6 +139,8 @@ async function assertNoNextIndicator(page, file) {
 
 async function openAccuracy(page, lang, viewport, acc) {
   await page.setViewportSize(viewport);
+  // The product aurora is intentionally continuous; evidence crops freeze ambient motion.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
@@ -155,8 +157,7 @@ async function openAccuracy(page, lang, viewport, acc) {
   const title = lang === "zh" ? "你的判断，逐条核对。" : "Your calls, checked.";
   await page.getByRole("heading", { name: title, exact: true }).waitFor({ state: "visible", timeout: 15_000 });
   await stripDevOverlay(page);
-  // Laser sweep is 0.9s; wait it out so crops are not a mid-animation smear.
-  await page.waitForTimeout(1100);
+  // Reduced motion makes the ambient aurora deterministic for evidence capture.
   await stripDevOverlay(page);
 }
 
@@ -167,12 +168,24 @@ async function openDetail(page, lang) {
   await page.locator("[data-acc='detail']").waitFor({ state: "visible", timeout: 10_000 });
 }
 
+// The team rollup block fetches after the card paints: it renders nothing until the
+// team lookup returns, then "loading" ("Reading your record."), then a settled state.
+// A crop taken before it settles records a transient frame, so every shot waits for a
+// rendered, non-loading team state (in the dev fixture that is load-err).
+async function waitForTeamSettled(page) {
+  await page
+    .locator("[data-acc-team-state]:not([data-acc-team-state='loading'])")
+    .first()
+    .waitFor({ state: "attached", timeout: 20_000 });
+}
+
 async function shoot(page, file) {
+  await waitForTeamSettled(page);
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(200);
   const overlay = page.locator(".acs-overlay.open");
-  await overlay.screenshot({ path: join(OUT, file) });
+  await overlay.screenshot({ path: join(OUT, file), animations: "disabled" });
 }
 
 async function main() {
@@ -181,7 +194,7 @@ async function main() {
   const files = [];
   try {
     await waitForServer(180_000);
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: true, args: ["--disable-partial-raster"] });
     try {
       for (const shot of SHOTS) {
         process.stdout.write(`capture ${shot.file} … `);
@@ -241,7 +254,7 @@ async function main() {
     "harness:",
     ...SHOTS.map((s) => `  ${s.file}: { url: "/dev/settings?s=accuracy&lang=${s.lang}&acc=${s.acc}", fixture: ${s.acc} }`),
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_b_f13_5_accuracy.cjs",

@@ -1,0 +1,62 @@
+{
+  "schema": "prophet.terminal_fixture_crops/v1",
+  "mode": "local native-source fixture replay; not authenticated production evidence",
+  "source_commit": "e19053d7e5c7cca07646ef9b3328ad029e2619fa",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "language": [
+    "en",
+    "zh"
+  ],
+  "theme": "existing Terminal dark treatment",
+  "files": [
+    {
+      "file": "desktop-ko-source-evidence-en.png",
+      "sha256": "1cb857339f3ff5c4b1486dd40d115fb3ac9601e4d4a18b8bfe15624e3d0c451a"
+    },
+    {
+      "file": "desktop-ko-source-evidence-zh.png",
+      "sha256": "9b1ae7ec789abf867a7a5370d7d2caa49d9e3fc35db60f58f195fc9da059887a"
+    },
+    {
+      "file": "desktop-wm-source-coverage-zh.png",
+      "sha256": "f2f8448da490e96470237e3ef086688f22cc02fa6fa07df288bc15491f175886"
+    },
+    {
+      "file": "tablet-ko-source-evidence-en.png",
+      "sha256": "76a4272c65490ac73729414113ff87cb66efb70e3eecd8cd0440d4607426f7c6"
+    },
+    {
+      "file": "tablet-ko-source-evidence-zh.png",
+      "sha256": "d05a930eba9d9353bb9cd1e593dcffb75393981a362c0fd466bb0e0c3bf31557"
+    },
+    {
+      "file": "tablet-wm-source-coverage-zh.png",
+      "sha256": "506e389bca2cf204e8e3c8567b65bb98987b14560523debf7e400f2dcec098ec"
+    },
+    {
+      "file": "mobile-ko-source-evidence-en.png",
+      "sha256": "e398be5c5f8b7fb91950792706ea626000c9e6a049f58395c2d06e7604fabe31"
+    },
+    {
+      "file": "mobile-ko-source-evidence-zh.png",
+      "sha256": "f1b37a875bcdf6c4f7d9712135f68f1bda97faae3e09f7ac549af1077ffd025f"
+    },
+    {
+      "file": "mobile-wm-source-coverage-zh.png",
+      "sha256": "c7c22d905c7fe3018aec463c0339d9427f69d4b393dfaf9576443f9f6a7f692d"
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "schema": "terminal.futures_research_evidence/v1",
+  "observed_at": "2026-10-12T04:31:21.489045+00:00",
+  "base_commit": "e0c405a09b6897df3b5e4a2f22344f3560b800a4",
+  "previous_checkpoint": "a67b530a9e626687678c8f7050b88cbf7297ff13",
+  "data": "SYNTHETIC",
+  "source_sha256": {
+    "terminal/lib/futuresGexProjection.ts": "d8133b5767aefc49ba71f72b21ab157e8e1d244fff96b7321bfb30118b6f9511",
+    "terminal/lib/futuresGexFrame.ts": "0b0b91c19b57254439f92aa96671c2bc2484a33b81955541630d6545e7ad973c",
+    "terminal/lib/__tests__/futuresGexProjection.test.ts": "b8bedc69036ff05f609a4f63b9d4c22f5fcf7d7235d419b8a189949fca1e5b43",
+    "terminal/lib/__tests__/futuresLabProduction.test.ts": "006973d8fc58ed8d623a126c0a2b9b335f89d38aa8dd6272c0ce2105fb0f78bb",
+    "hub/lib/futuresMbo.js": "89fd5ecd58847e2b551b2d2ad3ce683db0a9a2a287cf0391c0ade495535c029a",
+    "hub/tests/futuresMbo.test.js": "1f7c960ef2d7f283d12330c09f1455668e58f7d44e7e3a9d05f0826c89aa49f8",
+    "hub/tools/build_futures_lab_fixture.js": "1579a6f8e9e0dc046659e962beeead8a91ed5f76681973849a136a26ff777615",
+    "hub/tools/bench_futures_mbo.js": "e0307ebae8ea7a0c41d8b97ce368003be0fee81a3b2ca04cb38fe645852b0da0",
+    "terminal/components/futures/FuturesResearchLab.tsx": "1c0bf9031e36d218eccb67b69e42a3cf00737459668b687bbd0b57f08c4f123e",
+    "terminal/components/futures/futuresLab.module.css": "52b862f0e4d177443efb6af2a7383be85586bb06e6cfbbd7378c7715db0be36a",
+    "terminal/app/dev/futures/page.tsx": "b1fe44cc1cb4d4a27ac0c793eabd99b288573fdf16755d036f0a760ae8b4a6bc",
+    "terminal/e2e/futures-lab.spec.ts": "fb8b4a5e37604f78416719f3d4e3516a9e9298a44f5c64b0ea969ec55f7870d7",
+    "terminal/playwright.futures.config.ts": "217c8ce4804e2217a46e43099b189e396a635890e5a4b078d5c6dc290733d9e2",
+    "terminal/fixtures/futures-microstructure.json": "31e5b7d2135a786a2c87e62755bfe73a9969560603495aa2c8c7ed3b9c9bcfff"
+  },
+  "verification": {
+    "terminal_focused_vitest": {
+      "passed": 57,
+      "failed": 0
+    },
+    "new_hub_tests": {
+      "passed": 64,
+      "failed": 0
+    },
+    "full_hub_tests": {
+      "passed": 452,
+      "failed": 0,
+      "includes_new_tests": true
+    },
+    "full_terminal_typecheck": {
+      "exit_code": 0
+    },
+    "scoped_eslint": {
+      "exit_code": 0
+    },
+    "browser": {
+      "passed": 9,
+      "failed": 0,
+      "viewports": [
+        [
+          1440,
+          900
+        ],
+        [
+          820,
+          1180
+        ],
+        [
+          390,
+          844
+        ]
+      ],
+      "languages": [
+        "en",
+        "zh"
+      ],
+      "route": "/dev/futures",
+      "console_and_page_errors": 0,
+      "horizontal_document_overflow": false
+    }
+  },
+  "screenshots": [
+    {
+      "file": "desktop-depth-en.png",
+      "width": 1440,
+      "height": 1353,
+      "sha256": "5e470c3a0e396d1f7d6ba1257dce291284cdd2caada1788416af28f3125fe822"
+    },
+    {
+      "file": "desktop-depth-gap-en.png",
+      "width": 1440,
+      "height": 1353,
+      "sha256": "6c8a82de5c70c846a6f1503207cda9dc53dd849114b9b170be77ff64e03cf2f2"
+    },
+    {
+      "file": "desktop-depth-zh.png",
+      "width": 1440,
+      "height": 1353,
+      "sha256": "7738e2e32b0b36d5ec71e669f80e842d14626aed46a55f3e61b76d3e873c023e"
+    },
+    {
+      "file": "desktop-footprint-en.png",
+      "width": 1440,
+      "height": 1353,
+      "sha256": "6e276b9c5513231f02c15fbdbc68129b2cbe46694079bac559d114a381069e8d"
+    },
+    {
+      "file": "desktop-footprint-zh.png",
+      "width": 1440,
+      "height": 1353,
+      "sha256": "861d9e2a37b4ea43421b662f176db12177ce09847a7f4fe99f6fbf2d942d4ea6"
+    },
+    {
+      "file": "desktop-stale-gamma-en.png",
+      "width": 1440,
+      "height": 1191,
+      "sha256": "77e8315030157469107c0e69d51e9ded806aa8c4b186f855504feabc3b6a193c"
+    },
+    {
+      "file": "mobile-depth-en.png",
+      "width": 390,
+      "height": 1390,
+      "sha256": "2da19ef97695ee6bc7718f33071c58fab6d957174389fa151804565948c394ab"
+    },
+    {
+      "file": "mobile-depth-gap-en.png",
+      "width": 390,
+      "height": 1390,
+      "sha256": "a2e4d160434d8d1e49f4af1d86415ed8fffdd3844a2996956c3062614ef39306"
+    },
+    {
+      "file": "mobile-depth-zh.png",
+      "width": 390,
+      "height": 1356,
+      "sha256": "e335fb76a24c9f8f4969cdaf51a26320ebaf7d7a29533f25aa8ecc2ccfe3f56d"
+    },
+    {
+      "file": "mobile-footprint-en.png",
+      "width": 390,
+      "height": 1390,
+      "sha256": "5633d5aa771836d73298ac713b2dbbf348c347e4a8662c1c7c97278b9a59d775"
+    },
+    {
+      "file": "mobile-footprint-zh.png",
+      "width": 390,
+      "height": 1356,
+      "sha256": "2a3b928da93986a2028db6e9ddd0a68d8157c9f6430b71b4c790fd0eba28dd0c"
+    },
+    {
+      "file": "mobile-stale-gamma-en.png",
+      "width": 390,
+      "height": 1217,
+      "sha256": "9f38bbd79f0aeecf7b2af070cb7bd878aef0645b36d7054b135fed562a74e089"
+    },
+    {
+      "file": "tablet-depth-en.png",
+      "width": 820,
+      "height": 1374,
+      "sha256": "2dc855bceeec672bef1ae85004f38db8e93ab0828bb757b4af79aabb9e967aa9"
+    },
+    {
+      "file": "tablet-depth-gap-en.png",
+      "width": 820,
+      "height": 1374,
+      "sha256": "8f1db9b3d6a00ece71ebe8812b669a92c222b11b31f0426e9346ea723f278b34"
+    },
+    {
+      "file": "tablet-depth-zh.png",
+      "width": 820,
+      "height": 1374,
+      "sha256": "bd9715927bf0125970ac6c336c535e07a555dd7b9a2a45d6d6145946147493e6"
+    },
+    {
+      "file": "tablet-footprint-en.png",
+      "width": 820,
+      "height": 1374,
+      "sha256": "ea8a6d2858c7e1253e5b00a87ab4ed151f193e60813ed6b3cdf0c29541f3918b"
+    },
+    {
+      "file": "tablet-footprint-zh.png",
+      "width": 820,
+      "height": 1374,
+      "sha256": "aee2ed700ea2e350b82d038eb53e8a2c2441b8d8ff6c7097bc299e26b6761d83"
+    },
+    {
+      "file": "tablet-stale-gamma-en.png",
+      "width": 820,
+      "height": 1211,
+      "sha256": "4bacbaec8fcb26c589f81ec9ad1e622c51a61aea56f2c043f3bb3308131f3b66"
+    }
+  ],
+  "limitations": [
+    "No licensed CME stream was connected",
+    "No real-market historical book comparison",
+    "No actual live options/quote receipt connection",
+    "No production chart-shell integration",
+    "No independent code review",
+    "No production deployment or browser acceptance",
+    "ES browser fixture only; NQ math tests only",
+    "All-expiry GEX only; no 0DTE consumer"
+  ]
+}

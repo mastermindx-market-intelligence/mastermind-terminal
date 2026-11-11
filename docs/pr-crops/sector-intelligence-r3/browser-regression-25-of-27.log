@@ -1,0 +1,110 @@
+[warmup] /terminal?symbol=NVDA → 200 in 69ms
+[warmup] /options → 200 in 117ms
+[warmup] /portfolio → 200 in 64ms
+[warmup] /alerts → 200 in 66ms
+[warmup] /analysis → 200 in 111ms
+[warmup] /discover → 200 in 73ms
+[warmup] /admin → 200 in 46ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 41ms
+[warmup] /login → 200 in 61ms
+[warmup] /reset-password → 200 in 66ms
+[warmup] /api/me → 200 in 55ms
+[warmup] /api/watchlist → 200 in 26ms
+[warmup] /api/layouts → 200 in 40ms
+[warmup] 13 routes compiled in 1s
+
+Running 27 tests using 2 workers
+
+  ✓   1 [desktop] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research (2.0s)
+  ✓   2 [desktop] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context (2.0s)
+  ✓   4 [desktop] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data (926ms)
+  ✓   3 [desktop] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized (983ms)
+  ✘   5 [desktop] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape (1.0s)
+  ✓   6 [desktop] › e2e/sector-group-discovery.spec.ts:37:5 › choosing another group resets only company context and browser Back restores the prior research (1.2s)
+  ✓   7 [desktop] › e2e/sector-group-discovery.spec.ts:69:5 › Chinese group discovery and unavailable access remain explicit (1.8s)
+  ✓   8 [desktop] › e2e/sector-group-discovery.spec.ts:58:5 › same-group selection preserves context and no-match is a recoverable search state (1.8s)
+  ✓   9 [desktop] › e2e/sector-group-discovery.spec.ts:77:5 › denied group feed never presents stale group choices (1.1s)
+  ✓  10 [tablet] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research (1.7s)
+  ✓  11 [tablet] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context (1.1s)
+  ✓  12 [tablet] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized (892ms)
+  ✓  13 [tablet] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data (855ms)
+  ✓  14 [tablet] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape (1.0s)
+  ✓  15 [tablet] › e2e/sector-group-discovery.spec.ts:37:5 › choosing another group resets only company context and browser Back restores the prior research (1.2s)
+  ✓  16 [tablet] › e2e/sector-group-discovery.spec.ts:58:5 › same-group selection preserves context and no-match is a recoverable search state (1.1s)
+  ✓  17 [tablet] › e2e/sector-group-discovery.spec.ts:69:5 › Chinese group discovery and unavailable access remain explicit (1.2s)
+  ✓  18 [tablet] › e2e/sector-group-discovery.spec.ts:77:5 › denied group feed never presents stale group choices (1.1s)
+  ✓  19 [mobile] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research (1.0s)
+  ✓  20 [mobile] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context (1.1s)
+  ✓  21 [mobile] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized (931ms)
+  ✓  22 [mobile] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data (855ms)
+  ✘  23 [mobile] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape (984ms)
+  ✓  24 [mobile] › e2e/sector-group-discovery.spec.ts:37:5 › choosing another group resets only company context and browser Back restores the prior research (1.2s)
+  ✓  25 [mobile] › e2e/sector-group-discovery.spec.ts:58:5 › same-group selection preserves context and no-match is a recoverable search state (1.2s)
+  ✓  26 [mobile] › e2e/sector-group-discovery.spec.ts:69:5 › Chinese group discovery and unavailable access remain explicit (1.1s)
+  ✓  27 [mobile] › e2e/sector-group-discovery.spec.ts:77:5 › denied group feed never presents stale group choices (1.1s)
+
+
+  1) [desktop] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape
+
+    Error: expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 901
+    Received:    925.91064453125
+
+      30 |   for (let i = 0; i < 8; i++) { await page.keyboard.press("Tab"); expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true); }
+      31 |   const size = await dialog.evaluate(el => ({ width: el.clientWidth, scroll: el.scrollWidth, bottom: el.getBoundingClientRect().bottom, height: window.innerHeight }));
+    > 32 |   expect(size.scroll).toBeLessThanOrEqual(size.width + 1); expect(size.bottom).toBeLessThanOrEqual(size.height + 1);
+         |                                                                                ^
+      33 |   await page.keyboard.press("Escape"); await expect(dialog).not.toBeVisible(); await expect(trigger).toBeFocused();
+      34 |   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+      35 | });
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/sector-group-discovery.spec.ts:32:80
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sector-group-discovery-gro-57be8-and-returns-focus-on-Escape-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/sector-group-discovery-gro-57be8-and-returns-focus-on-Escape-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/sector-group-discovery-gro-57be8-and-returns-focus-on-Escape-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/sector-group-discovery-gro-57be8-and-returns-focus-on-Escape-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [mobile] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape
+
+    Error: expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 845
+    Received:    863.4176635742188
+
+      30 |   for (let i = 0; i < 8; i++) { await page.keyboard.press("Tab"); expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true); }
+      31 |   const size = await dialog.evaluate(el => ({ width: el.clientWidth, scroll: el.scrollWidth, bottom: el.getBoundingClientRect().bottom, height: window.innerHeight }));
+    > 32 |   expect(size.scroll).toBeLessThanOrEqual(size.width + 1); expect(size.bottom).toBeLessThanOrEqual(size.height + 1);
+         |                                                                                ^
+      33 |   await page.keyboard.press("Escape"); await expect(dialog).not.toBeVisible(); await expect(trigger).toBeFocused();
+      34 |   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+      35 | });
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/sector-group-discovery.spec.ts:32:80
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sector-group-discovery-gro-57be8-and-returns-focus-on-Escape-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/sector-group-discovery-gro-57be8-and-returns-focus-on-Escape-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/sector-group-discovery-gro-57be8-and-returns-focus-on-Escape-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/sector-group-discovery-gro-57be8-and-returns-focus-on-Escape-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape
+    [mobile] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape
+  25 passed (20.7s)

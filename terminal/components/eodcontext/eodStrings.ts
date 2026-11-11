@@ -46,11 +46,30 @@ const EOD_LEX = {
   cellPutWall:    ["Put wall", "看跌墙"],
   cellFlip:       ["Gamma flip", "伽马翻转"],
   cellExpMove:    ["Expected move", "预期波动"],
+  // W3S: the published band's own statement — the producer's numbers verbatim, and the
+  // method line that says the source names no method. Never framed as a stated level.
+  cellExpMoveMethodBand:     ["band ×{m}", "区间 ×{m}"],
+  cellExpMoveMethodHorizon:  ["{n}d horizon", "{n}日"],
+  cellExpMoveMethodUnstated: ["method not stated by source", "来源未说明方法"],
   cellMaxPain:    ["Max pain", "最大痛苦点"],
   cellIvPct:      ["IV percentile", "IV 百分位"],
   cellOiConf:     ["OI confirmed", "持仓确认"],
   cellAbsent:     ["—", "—"],
   cellAbsentNote: ["not published", "未发布"],
+  // A read that did not land, or has not landed yet, is not an unpublished value.
+  cellLoadFailedNote: ["could not load", "无法加载"],
+  cellReadingNote:    ["reading…", "读取中…"],
+  beltLoading:    ["Reading the settled structure…", "正在读取已结算的结构…"],
+  beltLoadError:  ["Could not load the settled structure", "无法加载已结算的结构"],
+  beltLoadErrorWhy: [
+    "The read did not reach the store, so this says nothing about whether {root} is published.",
+    "读取未能到达数据源，因此无法判断 {root} 是否已发布。",
+  ],
+  beltPartialError: [
+    "Some values could not load. They are not missing from the store — retry to read them again.",
+    "部分数值无法加载。它们并非数据源中缺失——可重试再次读取。",
+  ],
+  retry:          ["Retry", "重试"],
 
   // Per-cell hovers (Tier-2). Numbers and their meaning live here; the belt stays glanceable.
   tipCallWall: [
@@ -148,6 +167,12 @@ const EOD_LEX = {
   dpUnavailableWhy: [
     "The settled dark-pool artifact hasn't published yet. Nothing is being estimated in its place.",
     "已结算的暗池数据尚未发布。此处不会以任何估算值替代。",
+  ],
+  // The third fact: the read itself did not land. Says nothing about publication.
+  dpLoadError:    ["Could not load the off-exchange panel", "无法加载场外成交面板"],
+  dpLoadErrorWhy: [
+    "The read did not reach the store. Nothing is being estimated in its place.",
+    "读取未能到达数据源。此处不会以任何估算值替代。",
   ],
 
   // ── Vol regime chip ────────────────────────────────────────────────────────

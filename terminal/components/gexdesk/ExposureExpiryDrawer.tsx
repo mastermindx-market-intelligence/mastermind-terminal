@@ -54,7 +54,10 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
     [byExpiry, greek, asOf],
   );
 
-  const count = ts.nodes.length;
+  // The header counts the whole expiration population, so switching greeks never changes it;
+  // rows with no value for this greek are disclosed in the body instead of being dropped.
+  const count = ts.rowCount;
+  const known = ts.nodes.length;
 
   return (
     /* --inline: the drawer now sits inside the desk's LEFT column (see GexDeskView
@@ -108,7 +111,7 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
           {/* Body */}
           {!ts.available ? (
             <div className="obs-xdrawer-empty">{t("xdrawerNA")}</div>
-          ) : count === 0 ? (
+          ) : known === 0 ? (
             <div className="obs-xdrawer-empty">{t("xdrawerEmpty")}</div>
           ) : view === "bubbles" ? (
             <BubbleField ts={ts} t={t} />
@@ -116,6 +119,14 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
             // Bars view reuses the existing ExpiryBars component unchanged.
             <div style={{ display: "flex", flexDirection: "column", maxHeight: 168, overflowY: "auto" }}>
               <ExpiryBars byExpiry={byExpiry} greek={greek} asOf={asOf} lang={lang} />
+            </div>
+          )}
+
+          {ts.available && known > 0 && ts.unresolved.length > 0 && (
+            <div className="obs-note obs-xdrawer-note" data-testid="xdrawer-unresolved" role="note">
+              {t("xdrawerUnresolved")
+                .replace("{n}", String(ts.unresolved.length))
+                .replace("{m}", String(ts.rowCount))}
             </div>
           )}
 

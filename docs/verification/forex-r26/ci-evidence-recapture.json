@@ -1,0 +1,123 @@
+{
+  "source_head": "5969bf5408c16626487831496d0083ce2fe31deb",
+  "purpose": "Repair two actual hosted evidence-lock failures using existing complete controlled capture workflows",
+  "runs": [
+    {
+      "name": "e18",
+      "started_at_utc": "2026-10-21T13:49:43.640788+00:00",
+      "command": [
+        "node",
+        "e2e/tools/capture_e18_alert_management.cjs"
+      ],
+      "port": 47283,
+      "exit_code": 0,
+      "seconds": 42.42,
+      "log": "docs/verification/forex-r26/e18-evidence-recapture.log"
+    },
+    {
+      "name": "recurring-briefs",
+      "started_at_utc": "2026-10-21T13:50:26.060031+00:00",
+      "command": [
+        "node",
+        "e2e/tools/capture_b_f11_7_recurring_briefs.cjs"
+      ],
+      "port": 47284,
+      "exit_code": 1,
+      "seconds": 63.79,
+      "log": "docs/verification/forex-r26/recurring-briefs-evidence-recapture.log"
+    }
+  ],
+  "visual_inspection": {
+    "by": "parent",
+    "images": [
+      "e18-alert-management/review-desktop-en.png",
+      "e18-alert-management/results-mobile-zh.png",
+      "b-f11-7-recurring-briefs/list-1440.png",
+      "b-f11-7-recurring-briefs/empty-390-zh.png"
+    ],
+    "result": "Readable expected review/results and list/empty states; no material clipping in the inspected crops",
+    "scope": "Representative inspection, not all-crop visual acceptance"
+  },
+  "evidence_lock_tests": {
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "lib/__tests__/e18AlertManagementEvidence.test.ts",
+      "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
+    ],
+    "exit_code": 0,
+    "seconds": 2.17,
+    "log": "docs/verification/forex-r26/ci-evidence-lock-tests.log",
+    "log_sha256": "b35c3427f350703bb48222376cc070320bf228c84eb93955282016e059d6c338",
+    "tests_passed": 10,
+    "files_passed": 2,
+    "vitest_seconds": 1.16
+  },
+  "production_or_real_account": false,
+  "adjudication": {
+    "e18": {
+      "captured": 12,
+      "scope": "review/results x EN/ZH x desktop/tablet/mobile",
+      "status": "COMPLETE"
+    },
+    "recurring_briefs": {
+      "captured": 8,
+      "scope": "list/empty x EN/ZH x desktop/mobile",
+      "status": "AFFECTED_SURFACES_CAPTURED",
+      "full_command_exit_code": 1,
+      "unrelated_subscription_capture": "TIMED_OUT_AFTER_8_SUCCESSFUL_ALERTS_CAPTURES",
+      "existing_precedent": "EVIDENCE.yml 2026-10-19 F08 same subscription navigation timeout",
+      "retained_source_hashes": {
+        "terminal/components/briefs/BriefsInbox.tsx": "7ab9a0c9ffcad73e430593e7fd7eec72de56cab22d65344c0346875b4b66cde5",
+        "terminal/components/briefs/BriefSubscribeControls.tsx": "ae6cd7b26f6ce48b2bc56e98ec7eedf72d163b1e04ae95d9b951d7c1b8ab9a56",
+        "terminal/components/briefs/briefs.module.css": "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573",
+        "terminal/lib/briefs.ts": "45e085b000b79481d5a7ad0b73ab9f76300d21efde8e64bc0d9ef36f0a9159cb"
+      },
+      "retained_subscription_crop_hashes": {
+        "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440-zh.png": "7bdd861c7a33a75a01380ac489734eee8021d4606d43fc0d5dd25b12677df8c9",
+        "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440.png": "9d97100b8fc874a7f514775f5f597bfdb483a21d1780120ea26ce2beda173c91",
+        "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390-zh.png": "dfb115f56f4a67839308376049547a809c1a77653024ced719c2d85546ce7e77",
+        "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390.png": "b42fee240a9f6b0aedbd90942247c07a151374b56918074eb7a27e19e061cbb6"
+      },
+      "only_advanced_layout_binding": "terminal/components/alerts/AlertsCockpit.tsx"
+    }
+  },
+  "crop_sha256": {
+    "terminal/docs/pr-crops/e18-alert-management/results-desktop-en.png": "aefc0da9a006b7732a59ead49fc3e97c22a2fba83b38f3e114dcc34ba28c0a32",
+    "terminal/docs/pr-crops/e18-alert-management/results-desktop-zh.png": "c47fb7baa752e86112f83ee04a1f1ab56cb113cdff9eca1f229767b4aa952e27",
+    "terminal/docs/pr-crops/e18-alert-management/results-mobile-en.png": "14205e697b54178021ff7c7435cf6ccd7dcb9c2640eb1168e0512dad6de3919d",
+    "terminal/docs/pr-crops/e18-alert-management/results-mobile-zh.png": "79d55b46861f31eb42f2c09a0a844d07a8c6f051b80b121fda9a8a601393118e",
+    "terminal/docs/pr-crops/e18-alert-management/results-tablet-en.png": "7421b91002fa4a067fff352139a271c8693cff4fe194d3d2d569856a87f3b0a0",
+    "terminal/docs/pr-crops/e18-alert-management/results-tablet-zh.png": "79f00a4086fc0ef774e5734733942a5fab73eecbebcd533e6c683f37ea4568a3",
+    "terminal/docs/pr-crops/e18-alert-management/review-desktop-en.png": "4dc13f9dfca69fae2413b696a0064bc256c9f7c198ecadb210eba14654f1a98a",
+    "terminal/docs/pr-crops/e18-alert-management/review-desktop-zh.png": "8b3f6ac788a4e6c6ea58453e65990b343855cd305788dc9bed78e36c749de09e",
+    "terminal/docs/pr-crops/e18-alert-management/review-mobile-en.png": "c52ea5d4e4b0a54ac666ad53d4e6f50376f1787e8739632e1e1eb4f7006e2c7f",
+    "terminal/docs/pr-crops/e18-alert-management/review-mobile-zh.png": "79d88a26d67ffa8e6c5c192d3fcff8292d5a2ac321e4a658a96b35d8ef313f3d",
+    "terminal/docs/pr-crops/e18-alert-management/review-tablet-en.png": "c1b248274b9aa3711752ad186911a00abacd9397af62bda7b75f59671252490d",
+    "terminal/docs/pr-crops/e18-alert-management/review-tablet-zh.png": "09e7ea381e270b83565427d49e91d3b15997760e3e8f95c83922fff6e61abc93",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440-zh.png": "220f25aa891404929143d152977f72ac6667daca389c187c8349cc9c0df1a1e2",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440.png": "6bdfe384d60d8a3758db42339d7a913ac19ca8eef5423d63f826b5204c8510b1",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390-zh.png": "9a5edb98ae3c812b85a4340d0eb8dd8b87d6ae9fbbfa9149ba3f1dd11f00ec50",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390.png": "9c9a93438e065b83f61e75315ddfff4337b3f27431ec9e973b7727873c34f7ea",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440-zh.png": "9260dd3af487dec101a614df59e9848b8821feb586031b63ef94e1db823adea2",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440.png": "514fa9b7c5e716b14c71a217b098c51d690f35f2f36de3673abe0df9d2a96047",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390-zh.png": "756926f46593d74285e0f85037f6b8ac9844bbae7eed5e4ec9c4a0e533254e13",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390.png": "c87b218cf7ddf9897a148119b423f94f2c821d7af04e47b35d4addc267cade2a",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440-zh.png": "7bdd861c7a33a75a01380ac489734eee8021d4606d43fc0d5dd25b12677df8c9",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440.png": "9d97100b8fc874a7f514775f5f597bfdb483a21d1780120ea26ce2beda173c91",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390-zh.png": "dfb115f56f4a67839308376049547a809c1a77653024ced719c2d85546ce7e77",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390.png": "b42fee240a9f6b0aedbd90942247c07a151374b56918074eb7a27e19e061cbb6"
+  },
+  "manifest_sha256": {
+    "terminal/docs/pr-crops/e18-alert-management/EVIDENCE.yml": "ba5fcdbe744d2d9d8a65915598a4e077ab28cefcfc74ccb33492d63964a8dba4",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/EVIDENCE.yml": "8d7869448ab81deb5dcf8b1ede601dba35acf77102a6d3d1c8f735a10a84391d"
+  },
+  "recorded_at_utc": "2026-10-21T13:55:40.075218+00:00",
+  "unchanged_reviewed_implementation": {
+    "head": "5969bf5408c16626487831496d0083ce2fe31deb",
+    "source_hashes_verified": 22,
+    "all_match": true,
+    "tracked_changes_documentation_and_crops_only": true
+  }
+}

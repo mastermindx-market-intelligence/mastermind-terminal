@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
 import { isPaidTier } from "@/lib/entitlement";
 import { PROPRIETARY_SCRIPT } from "@/lib/pine";
@@ -17,7 +18,7 @@ import SignupGate from "@/components/gates/SignupGate";
 // PineEditor the full list: the locked proprietary flagship (viewable, never editable)
 // prepended to the user's saved_scripts. auth reads cookies → auto-dynamic.
 
-export const metadata: Metadata = { title: "Scripts · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Scripts");
 
 type Script = { id: string; name: string; source: string; lang: string; params: Record<string, any>; updated_at: string; locked?: boolean };
 

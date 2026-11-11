@@ -55,7 +55,8 @@ export type DrawingSidebarProps = {
   canUndo: boolean;
   canRedo: boolean;
   drawStyle: DrawingStyle;
-  onTool: (id: DrawKind | null) => void;
+  /** Requests a tool. Return `false` when the parent refuses it (e.g. drawings not loaded). */
+  onTool: (id: DrawKind | null) => boolean | void;
   onMagnet: (mode: DrawingMagnetMode) => void;
   onSticky: (sticky: boolean) => void;
   onPinned: (tool: DrawKind | null) => void;
@@ -205,6 +206,12 @@ export default function DrawingSidebar({
   const [favoritesDragging, setFavoritesDragging] = useState(false);
   const [favoritePositions, setFavoritePositions] = useState<FavoritePositions>(DEFAULT_FAVORITE_POSITIONS);
   const selectedTool = getDrawingTool(tool);
+  // Each group remembers the last tool the parent actually armed — from this dock or any
+  // other surface — never a request the parent refused. Adjusted during render so the
+  // memory never lags the `tool` prop.
+  if (selectedTool && lastUsed[selectedTool.groupId] !== selectedTool.id) {
+    setLastUsed({ ...lastUsed, [selectedTool.groupId]: selectedTool.id });
+  }
   const creationDisabled = creationDisabledReason !== null;
   const favoriteMode = isMobile ? "compact" : "desktop";
   const favoritePosition = favoritePositions[favoriteMode];
@@ -635,12 +642,9 @@ export default function DrawingSidebar({
     if (creationDisabled) return;
     const registered = getDrawingTool(nextTool.id);
     if (!registered) return;
-    setLastUsed((current) => (
-      current[registered.groupId] === registered.id
-        ? current
-        : { ...current, [registered.groupId]: registered.id }
-    ));
-    onTool(registered.id);
+    // lastUsed follows the `tool` prop (see `selectedTool` above), so a refused or
+    // ignored request never repaints its group button. A refusal must not pin either.
+    if (onTool(registered.id) === false) return;
     if (pin === true) onPinned(registered.id);
     else if (pin === false) onPinned(null);
   }

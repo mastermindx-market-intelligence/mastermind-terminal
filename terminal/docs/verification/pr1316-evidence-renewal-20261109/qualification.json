@@ -1,0 +1,30 @@
+{
+  "sourceHead": "a89cb179c0012d0b08b5e8a654de1706f14ba6fe",
+  "sourceTree": "b9a6282e627f6b33b07d1912479a95df11175b8b",
+  "protectedParent": "ceb4a7cd9daa8ae8e0483268faa53af30d7876d1",
+  "bF11Captures": {
+    "mobile-zh.png": "4991bb763188bfb6000714e5fc5e9dc4844bf89c6936c7ad6e3f0a8e2e24a4e9",
+    "desktop-zh.png": "e94258e0d27c9d03bef9b5c1cf1d167f4279936f06ed0bffc229b4abfe465383",
+    "desktop-en.png": "38ae5e7bc7a911e80c45554d3b13aaceb6c6c74c45bb676e3d35a75652178449",
+    "mobile-en.png": "c398287d82b9a90da63dc852c29a0af10f243e9c365e4db7d92097ba6e80707c",
+    "tablet-zh.png": "174817e14b86335c65e441f4436e3d6905828d361642bc086bfdb15bd7da8171",
+    "tablet-en.png": "4a5fb94b7497e8e8770c028bd198e027bdc776c2b1bfcc4f06f070768420ee0a"
+  },
+  "b4Captures": {
+    "1440x900-en-dark-theme-empty.png": "6418425f0dd1bbcaadc9a9e00c54e6f9dc2503ae371f9545dbbe84e995264005",
+    "390x844-zh-dark-theme-empty.png": "b1c0d0dd691683dd0f4343b428e4194e4412088489c112bf13e5b9d407af3463",
+    "390x844-en-light-theme-empty.png": "947b797321141bd15c347d3203637171a0f2c41ea007b73bcb8a815c01da1694",
+    "1440x900-en-light-theme-empty.png": "6418425f0dd1bbcaadc9a9e00c54e6f9dc2503ae371f9545dbbe84e995264005",
+    "1440x900-zh-dark-theme-empty.png": "b51647c4f8350398f8ab0522552a760b30573d3089e2cbce6081a5a3f36ee599",
+    "390x844-en-dark-theme-empty.png": "947b797321141bd15c347d3203637171a0f2c41ea007b73bcb8a815c01da1694",
+    "1440x900-zh-light-theme-empty.png": "b51647c4f8350398f8ab0522552a760b30573d3089e2cbce6081a5a3f36ee599",
+    "390x844-zh-light-theme-empty.png": "b1c0d0dd691683dd0f4343b428e4194e4412088489c112bf13e5b9d407af3463"
+  },
+  "evidenceUnitPassed": 11,
+  "responsiveBrowserPassed": 10,
+  "responsiveBrowserSkipped": 2,
+  "typecheckExit": 0,
+  "sourceUnchangedThroughValidation": true,
+  "ports3197And3567Closed": true,
+  "productionProof": false
+}

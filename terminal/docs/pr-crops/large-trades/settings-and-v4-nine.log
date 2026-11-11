@@ -1,0 +1,27 @@
+[warmup] /terminal?symbol=NVDA → 200 in 52ms
+[warmup] /options → 200 in 171ms
+[warmup] /portfolio → 200 in 88ms
+[warmup] /alerts → 200 in 92ms
+[warmup] /analysis → 200 in 311ms
+[warmup] /discover → 200 in 121ms
+[warmup] /admin → 200 in 71ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 87ms
+[warmup] /login → 200 in 149ms
+[warmup] /reset-password → 200 in 152ms
+[warmup] /api/me → 200 in 63ms
+[warmup] /api/watchlist → 200 in 61ms
+[warmup] /api/layouts → 200 in 128ms
+[warmup] 13 routes compiled in 2s
+
+Running 9 tests using 1 worker
+
+[1/9] [desktop] › e2e/large-trades-historical.spec.ts:10:5 › decoded IEX archive retains historical provenance and inspectable executed shares
+[2/9] [desktop] › e2e/large-trades.spec.ts:110:5 › settings cap quantity markers and expose adaptive warmup
+[3/9] [desktop] › e2e/large-trades.spec.ts:227:5 › settings normalize stored bounds and persist the exact applied criteria
+[4/9] [tablet] › e2e/large-trades-historical.spec.ts:10:5 › decoded IEX archive retains historical provenance and inspectable executed shares
+[5/9] [tablet] › e2e/large-trades.spec.ts:110:5 › settings cap quantity markers and expose adaptive warmup
+[6/9] [tablet] › e2e/large-trades.spec.ts:227:5 › settings normalize stored bounds and persist the exact applied criteria
+[7/9] [mobile] › e2e/large-trades-historical.spec.ts:10:5 › decoded IEX archive retains historical provenance and inspectable executed shares
+[8/9] [mobile] › e2e/large-trades.spec.ts:110:5 › settings cap quantity markers and expose adaptive warmup
+[9/9] [mobile] › e2e/large-trades.spec.ts:227:5 › settings normalize stored bounds and persist the exact applied criteria
+  9 passed (2.6m)

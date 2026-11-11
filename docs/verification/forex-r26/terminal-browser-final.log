@@ -1,0 +1,39 @@
+[warmup] /terminal?symbol=NVDA → 200 in 93ms
+[warmup] /options → 200 in 2127ms
+[warmup] /portfolio → 200 in 526ms
+[warmup] /alerts → 200 in 730ms
+[warmup] /analysis → 200 in 1114ms
+[warmup] /discover → 200 in 1151ms
+[warmup] /admin → 200 in 761ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 507ms
+[warmup] /login → 200 in 86ms
+[warmup] /reset-password → 200 in 402ms
+[warmup] /api/me → 200 in 387ms
+[warmup] /api/watchlist → 200 in 199ms
+[warmup] /api/layouts → 200 in 163ms
+[warmup] /api/watchlist/annotations → 409 in 146ms
+[warmup] 14 routes compiled in 8s
+
+Running 18 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — en (1.2s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   2 [desktop] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — en (1.6s)
+  ✓   3 [desktop] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — en (1.0s)
+  ✓   4 [desktop] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — zh (1.4s)
+  ✓   5 [desktop] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — zh (1.5s)
+  ✓   6 [desktop] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — zh (1.3s)
+  ✓   7 [tablet] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — en (1.1s)
+  ✓   8 [tablet] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — en (1.4s)
+  ✓   9 [tablet] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — en (1.1s)
+  ✓  10 [tablet] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — zh (1.5s)
+  ✓  11 [tablet] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — zh (1.7s)
+  ✓  12 [tablet] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — zh (1.3s)
+  ✓  13 [mobile] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — en (1.2s)
+  ✓  14 [mobile] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — en (1.3s)
+  ✓  15 [mobile] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — en (1.2s)
+  ✓  16 [mobile] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — zh (1.4s)
+  ✓  17 [mobile] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — zh (1.8s)
+  ✓  18 [mobile] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — zh (1.4s)
+
+  18 passed (47.3s)
