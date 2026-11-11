@@ -482,4 +482,34 @@ describe("perPlanFigure — a mark never rounds to zero beside 'larger than chan
     expect(text).toContain("behind SPY by 0.04% after 21 sessions");
     expect(text).not.toContain("0.0%");
   });
+
+  it.each([
+    [-0.00003, true, "en", "behind by less than 0.01%"],
+    [0.00003, true, "en", "ahead by less than 0.01%"],
+    [-0.00003, false, "en", "less than 0.01%"],
+    [0, true, "en", "less than 0.01%"], // an exactly-zero mean claims no direction
+    [-0.00003, true, "zh", "落后不到 0.01%"],
+    [0.00003, true, "zh", "领先不到 0.01%"],
+    [-0.00003, false, "zh", "不到 0.01%"],
+  ])("%p signed=%p (%p) renders %p — never a signed zero (review)", (value, signed, lang, expected) => {
+    expect(perPlanFigure(value, signed, lang as "en" | "zh")).toBe(expected);
+  });
+
+  it("a mean under 0.005% inside a sentence reads the bound with its direction word, EN and ZH", () => {
+    const en = buildPerPlanVerdictText({
+      marks: [
+        { horizon: "21", n: 100, mean: 0.00003, direction: "ahead", legMean: null },
+        { horizon: "42", n: 90, mean: -0.066, direction: "behind", legMean: null },
+      ],
+      lang: "en", benchmarkName: "SPY",
+    })!;
+    expect(en).toContain("ahead by less than 0.01% after 21 sessions");
+    expect(en).not.toMatch(/[+-]0\.0+%/);
+    const zh = buildPerPlanVerdictText({
+      marks: [{ horizon: "21", n: 100, mean: -0.00003, direction: "behind", legMean: null }],
+      lang: "zh", benchmarkName: "SPY",
+    })!;
+    expect(zh).toContain("落后不到 0.01%");
+    expect(zh).not.toMatch(/[+-]0\.0+%/);
+  });
 });

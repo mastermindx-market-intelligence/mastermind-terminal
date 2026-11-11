@@ -774,13 +774,24 @@ export function deviationKindLabel(lang: Lang, kind: string): string {
 /** A per-plan mark figure never rounds to zero beside a "larger than chance"
  * clause: when one decimal would read 0.0%, the figure gains a second decimal
  * (-0.0004 → "-0.04%"), so a qualifying horizon can never print as "by 0.0%".
- * Signed figures keep their sign at two decimals; the unsigned form is a
- * magnitude (for the uniform sentence, whose direction word carries the sign). */
-export function perPlanFigure(value: number, signed: boolean): string {
+ * A mean under 0.005% would STILL print a signed zero at two decimals
+ * ("+0.00%") — never: the honest figure is the bound with its direction word
+ * ("ahead by less than 0.01%"; unsigned, "less than 0.01%" — the uniform
+ * sentence's direction word carries the sign). An exactly-zero mean claims no
+ * direction. Signed figures keep their sign at two decimals otherwise; the
+ * unsigned form is a magnitude. */
+export function perPlanFigure(value: number, signed: boolean, lang: Lang = "en"): string {
   const oneDp = signed ? fmtSignedPercent(value) : fmtPercent(Math.abs(value));
   if (oneDp !== "0.0%" && oneDp !== "+0.0%" && oneDp !== "-0.0%") return oneDp;
   const magnitude = Math.abs(value) * 100;
-  return signed ? `${value < 0 ? "-" : "+"}${magnitude.toFixed(2)}%` : `${magnitude.toFixed(2)}%`;
+  const twoDp = magnitude.toFixed(2);
+  if (twoDp === "0.00") {
+    if (!signed || value === 0) return lang === "zh" ? "不到 0.01%" : "less than 0.01%";
+    return lang === "zh"
+      ? (value < 0 ? "落后不到 0.01%" : "领先不到 0.01%")
+      : (value < 0 ? "behind by less than 0.01%" : "ahead by less than 0.01%");
+  }
+  return signed ? `${value < 0 ? "-" : "+"}${twoDp}%` : `${twoDp}%`;
 }
 
 export type PerPlanVerdictInput = {
@@ -803,8 +814,8 @@ export function buildPerPlanVerdictText({ marks, lang, benchmarkName }: PerPlanV
     : parts.length === 2 ? `${parts[0]} and ${parts[1]}`
       : parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
   const markTexts = marks.map(m => fillTemplate(t("perPlanMark"), {
-    mag: uniform ? perPlanFigure(m.mean, false) : perPlanFigure(m.mean, true),
-    size: perPlanFigure(m.mean, true),
+    mag: uniform ? perPlanFigure(m.mean, false, lang) : perPlanFigure(m.mean, true, lang),
+    size: perPlanFigure(m.mean, true, lang),
     h: m.horizon, n: fmtCount(m.n),
   }));
   const gapClause = t(marks.length === 1 ? "perPlanGapOne" : marks.length === 2 ? "perPlanGapBoth" : "perPlanGapAll");
@@ -821,7 +832,7 @@ export function buildPerPlanVerdictText({ marks, lang, benchmarkName }: PerPlanV
   if (legMarks.length === 0) return sentence;
   return sentence + fillTemplate(t("verdictPerPlanLegSentence"), {
     legMarks: legMarks.map(m => fillTemplate(t("perPlanLegMark"), {
-      size: perPlanFigure(m.legMean!, true), h: m.horizon,
+      size: perPlanFigure(m.legMean!, true, lang), h: m.horizon,
     })).join(lang === "zh" ? "；" : "; "),
   });
 }

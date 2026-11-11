@@ -76,6 +76,20 @@ describe("prophetPopulationHref — surgical write, foreign keys untouched", () 
   it("a default address stays clean — no empty keys minted", () => {
     expect(prophetPopulationHref("/discover", params(""), { group: null, q: null })).toBe("/discover");
   });
+
+  it("a repeated foreign parameter survives verbatim and in order (review: set collapsed it to the last value)", () => {
+    expect(prophetPopulationHref("/discover", params("tab=sectors&x=1&x=2"), { group: "us_sector_industrials", q: null }))
+      .toBe("/discover?tab=sectors&x=1&x=2&prophetPopulationGroup=us_sector_industrials");
+  });
+
+  it("repeated values of OUR OWN keys all fall away — one canonical value, never a stale survivor", () => {
+    const href = prophetPopulationHref("/discover", params(
+      `tab=sectors&${PROPHET_POPULATION_GROUP_KEY}=a&${PROPHET_POPULATION_GROUP_KEY}=b`,
+    ), { group: "housing", q: null });
+    const url = new URL(`https://terminal.test${href}`);
+    expect(url.searchParams.getAll(PROPHET_POPULATION_GROUP_KEY)).toEqual(["housing"]);
+    expect(url.searchParams.get("tab")).toBe("sectors");
+  });
 });
 
 describe("our keys survive the sector workspace's own URL rewrites", () => {

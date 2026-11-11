@@ -20,6 +20,12 @@
  *     return carrier and state-free wording are all law below. A row whose
  *     eligibility is not produced reads "—"; no member's Prophet STATE ever
  *     renders on this surface (entitlement ruling).
+ *   - M3 address law (2026-11-11): the picker's group and applied search ARE
+ *     the page address (two prophet-prefixed keys, lib/prophetPopulationFilters.ts),
+ *     written by router.push and re-derived from the address every render — so
+ *     choosing a basket or submitting a search is pinned through the PUSHED
+ *     HREF plus the re-render the component's own setPhase triggers, exactly as
+ *     a real client navigation re-renders the same instance.
  */
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -29,14 +35,31 @@ import { join } from "node:path";
 
 import SectorPopulationMembers from "@/components/sector-intelligence/SectorPopulationMembers";
 import { LangProvider } from "@/lib/i18n";
+import { readProphetPopulationFilters } from "@/lib/prophetPopulationFilters";
 
 // The row link's return carrier is the page's own address; the jsdom mount has
 // no Next router, so the hooks read from this mutable holder, pinned by default
-// to the sector surface's real origin shape (/discover, sectors tab selected).
-const navState = { pathname: "/discover", search: "tab=sectors&sectorWorkspace=detail&sectorJob=research&sectorView=companies&group=us_sector_industrials" };
+// to the sector surface's real origin shape (/discover, sectors tab selected)
+// and reset before every test.
+const NAV_HOME = { pathname: "/discover", search: "tab=sectors&sectorWorkspace=detail&sectorJob=research&sectorView=companies&group=us_sector_industrials" };
+const navState = { ...NAV_HOME };
+// Every address write the component makes, in order: { href, scroll }.
+const pushes: { href: string; scroll?: boolean }[] = [];
 vi.mock("next/navigation", () => ({
   usePathname: () => navState.pathname,
   useSearchParams: () => new URLSearchParams(navState.search),
+  // M3: the picker writes filters through the address. The mock's push plays
+  // the router's part — it records the href AND applies it to the holder, so
+  // the component's next render (its own setPhase in the same handler) reads
+  // the new address exactly as a real client navigation would.
+  useRouter: () => ({
+    push: (href: string, opts?: { scroll?: boolean }) => {
+      pushes.push({ href, scroll: opts?.scroll });
+      const url = new URL(href, "https://terminal.test");
+      navState.pathname = url.pathname;
+      navState.search = url.search ? url.search.slice(1) : "";
+    },
+  }),
 }));
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -68,6 +91,8 @@ let pageMutate: ((page: Record<string, unknown>) => void) | null = null;
 
 beforeEach(() => {
   urls.length = 0;
+  pushes.length = 0;
+  Object.assign(navState, NAV_HOME);
   cursorResponse = null;
   pageMutate = null;
   vi.stubGlobal("fetch", vi.fn(async (input: unknown, init?: RequestInit) => {
@@ -122,6 +147,10 @@ describe("SectorPopulationMembers — review gates", () => {
 
     const basket = before[1];
     await chooseGroup(container, basket);
+    // M3: the choice travelled through the address — the pushed href carries
+    // the group key and every foreign parameter verbatim (pinned exactly in
+    // the address-law describe below).
+    expect(new URL(pushes[pushes.length - 1].href, "https://terminal.test").searchParams.get("prophetPopulationGroup")).toBe(basket);
     // The filtered page carries NO group_index — the picker must stay alive on
     // the capture's captured list, not the current page's.
     expect((container.querySelector("select") as HTMLSelectElement).disabled).toBe(false);
@@ -165,6 +194,10 @@ describe("SectorPopulationMembers — review gates", () => {
     expect(table(container)).not.toBeNull();
     const afterFirst = urls.length;
     expect(afterFirst).toBe(fetchesBefore + 1);
+    // The applied search travelled through the address, and the field now
+    // mirrors it.
+    expect(new URL(pushes[pushes.length - 1].href, "https://terminal.test").searchParams.get("prophetPopulationQ")).toBe("AAPL");
+    expect((container.querySelector("#sector-population-q") as HTMLInputElement).value).toBe("AAPL");
 
     await act(async () => {
       form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
@@ -173,6 +206,7 @@ describe("SectorPopulationMembers — review gates", () => {
     expect(loading(container)).toBe(false);
     expect(table(container)).not.toBeNull();
     expect(urls.length).toBe(afterFirst);
+    expect(pushes.length).toBe(1); // an unchanged query pushes no new address
     act(() => root.unmount());
   });
 
@@ -183,6 +217,7 @@ describe("SectorPopulationMembers — review gates", () => {
     const before = urls.length;
     await chooseGroup(container, basket); // same value again
     expect(urls.length).toBe(before);
+    expect(pushes.length).toBe(1); // and no new address either
     expect(loading(container)).toBe(false);
     expect(table(container)).not.toBeNull();
     act(() => root.unmount());
@@ -217,6 +252,91 @@ describe("SectorPopulationMembers — review gates", () => {
     expect(rowsAfterFirst().length).toBe((fixture.page as { rows: unknown[] }).rows.length * 2);
     const lastUrl = new URL(urls[urls.length - 1], "http://x");
     expect(lastUrl.searchParams.get("cursor")).not.toBeNull();
+    act(() => root.unmount());
+  });
+});
+
+describe("SectorPopulationMembers — M3: the picker's filters travel through the address", () => {
+  const pushedUrl = (): URL => new URL(pushes[pushes.length - 1].href, "https://terminal.test");
+  const typeSearch = async (c: HTMLElement, value: string): Promise<void> => {
+    const input = c.querySelector("#sector-population-q") as HTMLInputElement;
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+      setter.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  };
+  const submitSearch = async (c: HTMLElement): Promise<void> => {
+    const form = c.querySelector("form") as HTMLFormElement;
+    await act(async () => {
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    await flush();
+  };
+
+  it("choosing a basket pushes the page's address with ONLY the group key added", async () => {
+    const { container, root } = await mount();
+    const basket = groupOptions(container)[1];
+    await chooseGroup(container, basket);
+    expect(pushes).toHaveLength(1);
+    expect(pushes[0].href.startsWith("/discover?")).toBe(true);
+    const url = pushedUrl();
+    // Every foreign parameter — the workspace's own bare `group` key included —
+    // rides verbatim; nothing else is touched or minted.
+    for (const [key, value] of new URLSearchParams(NAV_HOME.search)) {
+      expect(url.searchParams.get(key)).toBe(value);
+    }
+    expect(url.searchParams.get("prophetPopulationGroup")).toBe(basket);
+    expect(url.searchParams.has("prophetPopulationQ")).toBe(false);
+    expect(pushes[0].scroll).toBe(false); // a filter commit never scrolls the reader
+    act(() => root.unmount());
+  });
+
+  it("the pushed address is exactly what the shared codec restores on a later visit", async () => {
+    const { container, root } = await mount();
+    const basket = groupOptions(container)[1];
+    await chooseGroup(container, basket);
+    expect(readProphetPopulationFilters(pushedUrl().searchParams)).toEqual({ group: basket, q: null });
+    // A fresh mount on that address (a shared link, a Prophet-lane return)
+    // re-applies the filter: the wire request itself carries the group, and the
+    // picker stays usable (a filtered first page carries no captured list, so
+    // the DOM select shows no option for it — the wire request is the proof).
+    act(() => root.unmount());
+    const url = pushedUrl();
+    navState.search = url.search.slice(1);
+    const second = await mount();
+    expect(new URL(urls[urls.length - 1], "http://x").searchParams.get("group")).toBe(basket);
+    expect((second.container.querySelector("#sector-population-group") as HTMLSelectElement).disabled).toBe(false);
+    act(() => second.root.unmount());
+  });
+
+  it("applying a search pushes the q key; clearing it removes the key, never the page's own state", async () => {
+    const { container, root } = await mount();
+    await typeSearch(container, "AAPL");
+    await submitSearch(container);
+    expect(readProphetPopulationFilters(pushedUrl().searchParams)).toEqual({ group: null, q: "AAPL" });
+    expect(pushes).toHaveLength(1);
+
+    const clear = container.querySelector("button[type=button]") as HTMLButtonElement | null;
+    expect(clear).not.toBeNull(); // the clear affordance exists beside an applied search
+    await act(async () => { clear!.click(); });
+    await flush();
+    expect(readProphetPopulationFilters(pushedUrl().searchParams)).toEqual({ group: null, q: null });
+    for (const [key, value] of new URLSearchParams(NAV_HOME.search)) {
+      expect(pushedUrl().searchParams.get(key)).toBe(value); // page state intact
+    }
+    expect((container.querySelector("#sector-population-q") as HTMLInputElement).value).toBe("");
+    act(() => root.unmount());
+  });
+
+  it("returning to All groups removes the key and lands on the same page address", async () => {
+    const { container, root } = await mount();
+    const basket = groupOptions(container)[1];
+    await chooseGroup(container, basket);
+    await chooseGroup(container, "");
+    expect(readProphetPopulationFilters(pushedUrl().searchParams)).toEqual({ group: null, q: null });
+    expect(pushedUrl().searchParams.get("tab")).toBe("sectors");
+    expect(pushedUrl().searchParams.get("group")).toBe("us_sector_industrials");
     act(() => root.unmount());
   });
 });
@@ -629,6 +749,12 @@ describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time 
   it("the selected group's stored snapshot states date, count and roster comparison", async () => {
     for (const [equals, expected] of [[true, "matches the current roster"],
       [false, "differs from the current roster"], [null, "current-roster comparison unavailable"]] as const) {
+      // M3: choosing the group WRITES the address, so the pushed key would leak
+      // into the next iteration's mount (it would start filtered, without the
+      // captured picker list, and the helper's change event could only read as
+      // "All"). Each iteration starts from the home address again.
+      Object.assign(navState, NAV_HOME);
+      pushes.length = 0;
       pageMutate = page => { identityOf(page).membership_snapshot = snapshotFact(equals); };
       const { container, root } = await mount();
       await chooseGroup(container, "housing");
@@ -644,10 +770,16 @@ describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time 
     await chooseGroup(container, "housing");
     expect(snapshotLine(container)).toContain("Point-in-time membership snapshot unavailable");
     act(() => root.unmount());
+    // M3: reset the address between the two mounts — the first mount's push
+    // would otherwise leave the group key applied, and the second mount's
+    // chooseGroup could only read as "All" (no captured list on a filtered
+    // page), making the null below pass for the wrong reason.
+    Object.assign(navState, NAV_HOME);
+    pushes.length = 0;
     pageMutate = null; // today's wire carries no snapshot fact at all
     const second = await mount();
     await chooseGroup(second.container, "housing");
-    expect(snapshotLine(second.container)).toBeNull();
+    expect(snapshotLine(second.container)).toBeNull(); // housing selected, no snapshot fact on the wire
     act(() => second.root.unmount());
   });
 

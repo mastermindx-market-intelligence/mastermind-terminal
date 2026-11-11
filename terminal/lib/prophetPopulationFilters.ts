@@ -40,9 +40,11 @@ export function readProphetPopulationFilters(params: URLSearchParams): ProphetPo
 
 /** The page address with ONLY our two keys set to the given filters (null
  * removes the key): every other parameter — the sector workspace's own state,
- * `tab`, anything foreign — is preserved with its value untouched. The
- * surrounding workspace's URL writes cannot be relied on to carry a key it
- * does not know, so our write must be surgical in both directions. */
+ * `tab`, anything foreign — is preserved verbatim, in order, repeats included
+ * (`x=1&x=2` stays two parameters; `set` here would silently collapse them to
+ * the last value). The surrounding workspace's URL writes cannot be relied on
+ * to carry a key it does not know, so our write must be surgical in both
+ * directions. */
 export function prophetPopulationHref(
   pathname: string,
   params: URLSearchParams,
@@ -51,7 +53,7 @@ export function prophetPopulationHref(
   const url = new URL(pathname, "https://population.local");
   params.forEach((value, key) => {
     if (key !== PROPHET_POPULATION_GROUP_KEY && key !== PROPHET_POPULATION_Q_KEY) {
-      url.searchParams.set(key, value);
+      url.searchParams.append(key, value);
     }
   });
   if (filters.group !== null) url.searchParams.set(PROPHET_POPULATION_GROUP_KEY, filters.group);
