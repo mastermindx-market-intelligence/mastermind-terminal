@@ -1,0 +1,53 @@
+{
+  "originalHead": "3d0c7af43c4a65aa264c9cb5cd779ea6194b2ff6",
+  "protected": "b418e924c734ad5f457aab1b783cacb75dd5a109",
+  "protectedPR": 1469,
+  "previewTree": "7669d960f17b90c2d80c7754ffc820c5742090d1",
+  "conflicts": [
+    ".github/workflows/ci.yml"
+  ],
+  "finalCISource": "Clean Git merge-file union of2818 CI, common b6 and accepted b418 CI",
+  "protectedExactPostimages": [
+    ".github/workflows/e2e-prodbuild-canary.yml",
+    "tests/test_ci_browser_setup.py"
+  ],
+  "trialFilesRemoved": [
+    ".github/scripts/terminal_hosted_apt.py",
+    ".github/scripts/terminal_hosted_apt.test.cjs",
+    "tests/test_ci_hosted_apt.py"
+  ],
+  "python": {
+    "command": "python -m pytest tests/test_ci_browser_setup.py tests/test_ci_e2e_selfhosted_lane.py tests/test_ci_e2e_shards.py -q",
+    "passed": 239,
+    "failed": 0,
+    "skipped": 0,
+    "exit": 0
+  },
+  "sourceCheckExit": 0,
+  "trialObservation": {
+    "run": 43056968175,
+    "job": 130649669352,
+    "prepareHostedSources": "success",
+    "actualResult": "Both archive.ubuntu.com and security.ubuntu.com fail DNS resolution; apt exits100; job fails before browser tests",
+    "scope": "Configuration mutation works; transport hypothesis disproved for this hosted run"
+  },
+  "localBrowserLaunched": false,
+  "currentBrowserAcceptance": "PENDING natural successor run and fresh ticker packet",
+  "sourceBindings": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "a2fc722c2ff361d9c0f1f44474e43b14900ef16c9f1ba20388f4828f5ff075b2",
+      "git_blob": "a57aaf0f0b432e1e36e8f34691e9aaff3d53d388"
+    },
+    {
+      "path": ".github/workflows/e2e-prodbuild-canary.yml",
+      "sha256": "ccda39f5be7f199607e8c45bc80d695167981161c610065cdc0e8da3bc083c78",
+      "git_blob": "8671c2a2f15108b25d9ac7b485be68d1cb8d1f1f"
+    },
+    {
+      "path": "tests/test_ci_browser_setup.py",
+      "sha256": "07c37e5349280fe58abbbe89cc9a16aa480e67c982dff2f742220c4cf7988c8d",
+      "git_blob": "bef672f46379ee9e8283a4b5624d05f571e331e0"
+    }
+  ]
+}
