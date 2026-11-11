@@ -442,13 +442,16 @@ jobs:
         timeout-minutes: 8
         run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
       # Fresh-evidence validation through the immutable unit readers. Capture
-      # above exported TERMINAL_EVIDENCE_* to GITHUB_ENV, and exactly these two
-      # suites call selectedComposition(), so they re-validate the composition
-      # this run just captured in records mode. Every other unit suite moved to
-      # the parallel terminal-unit-shards matrix (none of them reads those
-      # variables; there they behave exactly like a local `npm test`).
+      # above exported TERMINAL_EVIDENCE_* to GITHUB_ENV and refreshed this
+      # checkout's evidence locks, so every suite that reads them (listed by
+      # scripts/ci/evidence-lock-suites.sh) runs here, after capture, exactly
+      # where `npm test` ran them before the unit split. The parallel
+      # terminal-unit-shards matrix excludes the same list.
       - name: Validate fresh evidence through the unit readers
-        run: npx vitest run lib/__tests__/b_pl_6Batch1Evidence.test.ts lib/__tests__/visualIntelligenceEvidence.test.ts
+        run: |
+          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh)
+          [ "${#suites[@]}" -gt 0 ] || { echo "::error::no evidence suites found"; exit 1; }
+          npx vitest run "${suites[@]}"
         timeout-minutes: 10
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
@@ -660,12 +663,16 @@ jobs:
           cache-dependency-path: terminal/package-lock.json
       - run: npm ci
       # vitest's native --shard deterministically splits the matched test-file
-      # set (sha1-ordered contiguous slices). The two evidence-composition
-      # suites are excluded here: they validate this run's fresh capture in
-      # records mode in the terminal-unit evidence lane (the only mode they
-      # ran in CI before this split), and their incumbent-mode source lock is
-      # not a CI gate.
-      - run: npx vitest run --shard=${{ matrix.shard }}/3 --exclude lib/__tests__/b_pl_6Batch1Evidence.test.ts --exclude lib/__tests__/visualIntelligenceEvidence.test.ts
+      # set (sha1-ordered contiguous slices). Suites that read capture-produced
+      # evidence are excluded here and run in the terminal-unit evidence lane
+      # after capture (scripts/ci/evidence-lock-suites.sh is the one list).
+      - name: Run unit tests (shard)
+        run: |
+          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh)
+          [ "${#suites[@]}" -gt 0 ] || { echo "::error::no evidence suites found"; exit 1; }
+          excludes=()
+          for suite in "${suites[@]}"; do excludes+=(--exclude "$suite"); done
+          npx vitest run --shard=${{ matrix.shard }}/3 "${excludes[@]}"
         timeout-minutes: 20
 
   terminal-e2e:

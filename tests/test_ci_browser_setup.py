@@ -61,16 +61,14 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
     assert f11["timeout-minutes"] == 8
     assert not f11.get("continue-on-error", False)
-    # The evidence lane validates this run's fresh capture through exactly the
-    # two unit suites that read TERMINAL_EVIDENCE_*; the full vitest suite and
-    # typecheck live in the parallel terminal-unit-shards / terminal-typecheck
-    # jobs so they never serialize behind capture on the merge queue.
+    # The evidence lane validates this run's fresh capture through every unit
+    # suite that reads capture-produced evidence (one shared list script); the
+    # rest of vitest and typecheck live in the parallel terminal-unit-shards /
+    # terminal-typecheck jobs so they never serialize behind capture.
     records = steps[unit_index]
     assert "if" not in records
-    assert records["run"] == (
-        "npx vitest run lib/__tests__/b_pl_6Batch1Evidence.test.ts "
-        "lib/__tests__/visualIntelligenceEvidence.test.ts"
-    )
+    assert "bash scripts/ci/evidence-lock-suites.sh" in records["run"]
+    assert 'npx vitest run "${suites[@]}"' in records["run"]
     assert not records.get("continue-on-error", False)
 
 

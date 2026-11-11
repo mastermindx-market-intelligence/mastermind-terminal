@@ -152,7 +152,9 @@ describe("plain-language guard — CI wiring", () => {
   it("A3. both guard steps run LAST — after npm test and after the quarantine disclosure — inside the job that feeds the required check", () => {
     const text = readFileSync(workflowPath, "utf8");
     const unit = jobBlock(text, "terminal-unit");
-    const testStep = unit.indexOf("- run: npm test");
+    // Since the unit split, the last vitest step inside terminal-unit is the
+    // post-capture evidence validation; the other suites run in parallel shards.
+    const testStep = unit.indexOf("- name: Validate fresh evidence through the unit readers");
     const disclose = unit.indexOf(`- name: ${DISCLOSE_STEP}`);
     const selfCheck = unit.indexOf(`- name: ${SELF_CHECK_STEP}`);
     const enforce = unit.indexOf(`- name: ${ENFORCE_STEP}`);

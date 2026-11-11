@@ -99,7 +99,7 @@ def test_pl6_vi_capture_is_selective_while_f11_keeps_its_browser_prerequisite() 
         assert name in synthetic
     for step in steps:
         command = str(step.get("run", ""))
-        if "npx vitest run lib/__tests__" in command:
+        if "evidence-lock-suites.sh" in command:
             assert "if" not in step, "records-mode evidence validation must follow every capture"
     assert "if" not in by_name["Plain-language guard self-check"]
     assert "if" not in by_name["Plain-language guard (forward-only, added lines block)"]
@@ -119,7 +119,7 @@ def test_split_typecheck_and_unit_shards_run_on_every_qualified_event() -> None:
     shard_steps = jobs()["terminal-unit-shards"]["steps"]
     vitest = next(
         step for step in shard_steps
-        if str(step.get("run", "")).startswith("npx vitest run --shard=")
+        if "npx vitest run --shard=" in str(step.get("run", ""))
     )
     assert "${{ matrix.shard }}/3" in vitest["run"]
     assert "if" not in vitest, "unit shards must run on native merge_group"
@@ -131,27 +131,40 @@ def test_split_typecheck_and_unit_shards_run_on_every_qualified_event() -> None:
 
 
 def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
-    """The evidence suites run only in records mode after capture. Every suite
-    that calls selectedComposition() must be in the evidence-lane command and
-    excluded from the shards, and nothing else may be excluded."""
+    """Suites that read capture-produced evidence (records-mode readers and
+    sha256 evidence locks) run only in the evidence lane after capture. One
+    list script feeds both the evidence step and the shard excludes, and it
+    must select every such suite and nothing else."""
     import re
     root = Path(__file__).resolve().parents[1]
-    suites = sorted(
+    tests_dir = root / "terminal" / "lib" / "__tests__"
+    marker = re.compile(r"selectedComposition\(|without (a )?recaptur")
+    expected = sorted(
         "lib/__tests__/" + path.name
-        for path in (root / "terminal" / "lib" / "__tests__").glob("*.test.ts")
-        if "selectedComposition(" in path.read_text(encoding="utf-8")
+        for pattern in ("*.test.ts", "*.test.tsx")
+        for path in tests_dir.glob(pattern)
+        if marker.search(path.read_text(encoding="utf-8"))
     )
-    assert suites
+    assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
+    assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
+    listed = subprocess.run(
+        ["bash", "scripts/ci/evidence-lock-suites.sh"],
+        cwd=root / "terminal", check=True, capture_output=True, text=True,
+        env={**os.environ, "LC_ALL": "C"},
+    ).stdout.split()
+    assert sorted(listed) == expected
     lane = next(
         str(step["run"]) for step in jobs()["terminal-unit"]["steps"]
-        if "npx vitest run lib/__tests__" in str(step.get("run", ""))
+        if step.get("name") == "Validate fresh evidence through the unit readers"
     )
-    assert sorted(re.findall(r"lib/__tests__/\S+\.test\.ts", lane)) == suites
     shard = next(
         str(step["run"]) for step in jobs()["terminal-unit-shards"]["steps"]
-        if str(step.get("run", "")).startswith("npx vitest run --shard=")
+        if "npx vitest run --shard=" in str(step.get("run", ""))
     )
-    assert sorted(re.findall(r"--exclude (\S+)", shard)) == suites
+    for command in (lane, shard):
+        assert "bash scripts/ci/evidence-lock-suites.sh" in command
+        assert 'exit 1' in command, "an empty list must fail, not run everything"
+    assert '--exclude "$suite"' in shard
 
 
 def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
