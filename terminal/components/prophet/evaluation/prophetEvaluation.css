@@ -162,6 +162,27 @@
 .pev-wf-neg { fill: var(--down); fill-opacity: .82; }
 .pev-wf-total { fill: var(--text-2); fill-opacity: .9; }
 .pev-wf-val { font: 500 10.5px/1 var(--font-ui); fill: var(--text-2); font-variant-numeric: tabular-nums; }
+/* Placebo range rows: the band is a distribution (neutral fill), the mark is
+   the plain text colour — outside-vs-inside is the artifact's statement, so
+   no win/loss colour appears on either element. */
+.pev-range-band { fill: var(--text-2); fill-opacity: .14; stroke: var(--text-2); stroke-opacity: .4; stroke-width: 1; }
+.pev-range-mark { fill: var(--bg); stroke: var(--text); stroke-width: 1.8; }
+
+/* ── Diagnosis panel (D7/D8) ─────────────────────────────────────────────── */
+.pev-horizon {
+  border-top: 1px solid var(--hairline);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pev-horizon h3 { margin: 0; }
+.pev-horizon p { margin: 0; font: 400 13px/1.65 var(--font-ui); color: var(--text-2); }
+
+/* The D6 correction statement inside the what-changed disclosure: body copy
+   only — the label line above stays dim so the correction is never a
+   headline. */
+.pev-correction { display: flex; flex-direction: column; gap: 8px; }
 
 /* ── Caveats ─────────────────────────────────────────────────────────────── */
 .pev-caveats { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }

@@ -446,6 +446,111 @@ const PROPHET_EVALUATION_LEX = {
   sensHitRate: ["{beat} of {n} above {benchmark}", "{n} 中 {beat} 个高于 {benchmark}"],
   sensHitRateCol: ["Above benchmark", "高于基准"],
   colTotalShort: ["Total diff", "总差值"],
+  sensUndatedTitle: ["Sensitivity: undated conversions removed", "敏感性：剔除无日期转换"],
+  sensMarksTitle: ["Sensitivity: missing marks charged as a total loss", "敏感性：缺失价格按全部损失计"],
+  gappedPositionsLabel: ["Positions charged this way", "按此计价的持仓"],
+
+  // ── Why the picks trailed (D7 member yardstick, D8 off-index) ─────────────
+  diagnosisTitle: ["Why the stock picks trailed their sectors", "为什么个股选股落后于其行业"],
+  diagnosisKicker: [
+    "At each horizon the verdict cites: the sector's equal-weight member basket against the cap-weighted fund, the picks against that member basket, and where random same-sector members landed.",
+    "在结论所引用的每个持有期：行业等权成分股篮子相对市值加权基金、选股相对该成分股篮子、以及随机同行业成分股的落点范围。",
+  ],
+  diagnosisSessionsLabel: ["{h} sessions later ({n} plans)", "{h} 个交易日后（{n} 个计划）"],
+  diagnosisYardstickRow: [
+    "The yardstick itself — an equal-weight basket of the sector's own members versus the cap-weighted sector fund: {value} (interval {ci}).",
+    "标尺本身——行业等权成分股篮子相对市值加权行业基金：{value}（区间 {ci}）。",
+  ],
+  diagnosisPicksRow: [
+    "The picks against that member basket: {value} (interval {ci}).",
+    "选股相对该成分股篮子：{value}（区间 {ci}）。",
+  ],
+  diagnosisPlaceboRow: [
+    "Together they are the picks versus the sector ETF: {frozen}. Across {draws} random-member draws, 95% landed between {lo} and {hi}; the picks fell {relation}.",
+    "两者相加即选股相对行业 ETF：{frozen}。{draws} 次随机成分股抽样中，95% 落在 {lo} 至 {hi} 之间；选股{relation}。",
+  ],
+  placeboBelow: ["below that range", "低于该范围"],
+  placeboAbove: ["above that range", "高于该范围"],
+  placeboWithin: ["inside that range", "处于该范围内"],
+  diagnosisLegend: [
+    "Band: middle 95% of the random-member draws · line: zero · mark: the picks versus the sector ETF.",
+    "色带：随机成分股抽样中段的 95% · 竖线：零 · 标记：选股相对行业 ETF。",
+  ],
+  engineReadingLabel: ["The engine's own words:", "引擎原文："],
+  afterTheFactChip: ["after-the-fact — not part of the frozen protocol", "事后分析——不属于冻结协议"],
+  offIndexTitle: ["Sensitivity: picks outside the S&P 1500", "敏感性：标普 1500 之外的选股"],
+  offIndexCounts: [
+    "{off} of {total} published plans name a stock that was not a point-in-time S&P 1500 member at its signal session; {entered} of them entered the book.",
+    "已发布计划中有 {off} 个（共 {total} 个）指向在信号日不属于时点标普 1500 的个股；其中 {entered} 个进入了组合。",
+  ],
+  offIndexAllRow: ["all plans", "全部计划"],
+  offIndexOffRow: ["off-index picks", "指数外选股"],
+  offIndexMemberRow: ["S&P 1500 member picks", "标普 1500 成分股选股"],
+  offIndexContribution: [
+    "Removing them moves the {h}-session mean from {all} to {member} — a shift of {shift}.",
+    "剔除后，{h} 个交易日的均值从 {all} 变为 {member}——移动 {shift}。",
+  ],
+  offIndexLimitsLabel: ["Membership-file limits (engine text)", "成员表限制（引擎原文）"],
+  colMeanGap: ["Mean vs sector ETF", "相对行业 ETF 均值"],
+  auditTitle: ["The independent audit", "独立审计"],
+  auditRunsTitle: ["Runs", "复核运行"],
+  auditAgreedTitle: ["What the runs agreed on", "各次复核一致的结论"],
+  auditChangedTitle: ["What the audit changed", "审计所作更正"],
+  auditAddedTitle: ["Sensitivities and diagnostics added", "新增敏感性与诊断"],
+  auditAdjudicationLabel: ["Adjudication record", "裁定记录"],
+
+  // ── The 2026-11-11 correction (D6) ────────────────────────────────────────
+  correctionShortLine: [
+    "Figures corrected on {date} after an independent audit — {old} → {new} versus {benchmark}.",
+    "数字已于 {date} 经独立审计更正——相对 {benchmark} 由 {old} 更正为 {new}。",
+  ],
+  correctionPairLine: [
+    "Superseded → corrected: total {oldTotal} → {newTotal}; versus {benchmark} {old} → {new}; costs {oldCosts} → {newCosts}.",
+    "已作废 → 更正后：总收益 {oldTotal} → {newTotal}；相对 {benchmark} {old} → {new}；成本 {oldCosts} → {newCosts}。",
+  ],
+  correctionReasonLabel: ["Why the superseded figures differ (engine text)", "已作废数字为何不同（引擎原文）"],
+  correctionVerdictUnchanged: ["The verdict is unchanged: {reason}", "结论不变：{reason}"],
+  correctionSupersedesLabel: ["Supersedes", "所替代版本"],
+  top3ExBody: [
+    "Without the three largest contributors ({assets}) the book is {diff} versus {benchmark} (interval {ci}).",
+    "剔除三大贡献名称（{assets}）后，组合相对 {benchmark} 为 {diff}（区间 {ci}）。",
+  ],
+
+  // ── Held-path coverage, census, undated conversions, data-pin clocks ──────
+  heldPathTitle: ["Held-path coverage", "持有路径覆盖"],
+  heldPathLine: [
+    "{complete} of {total} evaluated positions have a close at every session they were held; {gaps} do not.",
+    "{total} 个已评估持仓中，{complete} 个在持有的每个交易日都有收盘价；{gaps} 个不然。",
+  ],
+  heldPathPositionsLabel: ["The positions with a gap", "存在缺口的持仓"],
+  gappedPositionLine: [
+    "{asset} ({planId}) — entered {entry}, close series stops after {last}, {n} sessions missing.",
+    "{asset}（{planId}）——{entry} 入场，收盘价自 {last} 后中断，缺 {n} 个交易日。",
+  ],
+  pricedBasisLabel: ["What the priced share counts (engine text)", "定价率的口径（引擎原文）"],
+  resolvedSplitLine: [
+    "{total} plans resolved at or before a follower could fill: {finalClose} entered at the final close, {beforeFollower} resolved before the follower fill.",
+    "{total} 个计划在跟随者可成交之时或之前即已了结：{finalClose} 个在最终收盘入场，{beforeFollower} 个在跟随者成交前了结。",
+  ],
+  censusLine: [
+    "Census across every era: {overall} outage-backfilled plans were minted in total — {replays} replays, {synthetic} synthetic reconstructions; {outside} fall outside the selection era.",
+    "跨所有时期普查：共铸出 {overall} 个停机回填计划——{replays} 个重放、{synthetic} 个合成重建；{outside} 个落在选样周期之外。",
+  ],
+  censusBasisLabel: ["Census basis (engine text)", "普查口径（引擎原文）"],
+  populationCensusTitle: ["Population census and undated conversions", "人口普查与无日期转换"],
+  undatedTitle: ["Plans converted without a dated fill", "无带日期成交的转换计划"],
+  undatedSummary: [
+    "{n} incumbent-era plans show a converted entry with no dated fill; each is entered at its publication session under the header's literal rule.",
+    "{n} 个主导周期计划显示已转换入场但无带日期的成交记录；每个都按协议头的字面规则以发布日入场。",
+  ],
+  undatedBasisLabel: ["How they are identified (engine text)", "如何识别（引擎原文）"],
+  undatedTreatmentLabel: ["How they are counted (engine text)", "如何计入（引擎原文）"],
+  undatedSensitivityLabel: ["The sensitivity that removes them (engine text)", "剔除它们的敏感性（引擎原文）"],
+  mrnaAuthLabel: ["MRNA price authentication (post-publication audit evidence)", "MRNA 价格核证（发布后审计证据）"],
+  pinVerifiedLabel: ["Price pin verified", "价格数据钉已核验"],
+  pinReadFromLabel: ["Read from", "读取自"],
+  pinInputsLine: ["{n} inputs carry pinned SHA-256 digests in the artifact.", "工件中有 {n} 个输入带有钉定的 SHA-256 摘要。"],
+  wordTrue: ["true", "true"],
 
   // ── Fixed-horizon marks (event study, Coverage panel) ────────────────────
   horizonsTitle: ["Fixed-horizon marks, every live-published plan", "固定持有期标记，全部实时发布计划"],
@@ -534,6 +639,25 @@ const IDENTIFIER_LEXICON: Readonly<Record<string, readonly [string, string]>> = 
     "Eight pre-declared comparisons, corrected for multiple testing (Holm, 5%), each testing whether A beat B",
     "八项预先声明的比较，经多重检验校正（Holm，5%），每项检验 A 是否优于 B",
   ],
+  // Cross-reference tokens the 2026-11-11 correction prose names inside
+  // deviations, limitations, coverage and audit text. Dotted paths
+  // (event_study.member_benchmark, sensitivity.off_index_picks) stay verbatim
+  // by the path-safe rule; these labels apply where the token stands alone.
+  event_study: ["the fixed-horizon event study", "固定持有期事件研究"],
+  member_benchmark: ["the equal-weight member benchmark", "等权成分股基准"],
+  excluding_undated_conversions: [
+    "the undated-conversions-removed sensitivity",
+    "剔除无日期转换的敏感性",
+  ],
+  missing_marks_total_loss_stress: [
+    "the missing-marks-charged-as-total-loss stress",
+    "缺失价格按全部损失计的压力测试",
+  ],
+  off_index_picks: ["the off-index picks sensitivity", "指数外选股敏感性"],
+  held_path_gaps: ["held-path gaps", "持有路径缺口"],
+  held_path_gap_positions: ["the held-path gap positions", "存在持有路径缺口的持仓"],
+  membership_file_limits: ["membership-file limits", "成员表限制"],
+  simulate_book: ["the simulate_book engine module", "simulate_book 引擎模块"],
   // Comparator ids — full wire forms first (longest-match wins), then the
   // short forms that appear inside engine prose.
   C1_passive_market: ["the passive market", "被动市场"],
@@ -608,10 +732,14 @@ const IDENTIFIER_LEXICON: Readonly<Record<string, readonly [string, string]>> = 
   L1_accepted_historical: ["the accepted-historical level", "认可的历史证据层级"],
   L2_prospective_shadow: ["the prospective-shadow level", "前瞻影子层级"],
   L3_approved_product_prediction: ["the approved-prediction level", "批准的预测层级"],
-  L0: ["level 0 (descriptive)", "层级 0（描述性）"],
-  L1: ["level 1 (accepted historical)", "层级 1（认可的历史证据）"],
-  L2: ["level 2 (prospective shadow)", "层级 2（前瞻影子）"],
-  L3: ["level 3 (approved prediction)", "层级 3（批准的预测）"],
+  // Short ids expand BARE: engine prose always carries the level's meaning in
+  // the surrounding words ("L0 descriptive stands", "descriptive only (L0)"),
+  // so a parenthetical gloss would double it — "level 0 (descriptive)
+  // descriptive". The release ladder renders the full level names itself.
+  L0: ["level 0", "层级 0"],
+  L1: ["level 1", "层级 1"],
+  L2: ["level 2", "层级 2"],
+  L3: ["level 3", "层级 3"],
 };
 
 /**

@@ -1,11 +1,11 @@
 "use client";
 /**
- * evaluationCharts.tsx — the two inline-SVG charts of the Strategy Evaluation
+ * evaluationCharts.tsx — the inline-SVG charts of the Strategy Evaluation
  * surface, built on the shared svgChart primitives (chart law: 1:1 measured
  * viewBox, niceTicks, thinLabels-legal pixel spacing, never
  * preserveAspectRatio="none").
  *
- * Both charts are descriptive only. The forest plot draws intervals exactly as
+ * All charts are descriptive only. The forest plot draws intervals exactly as
  * published — point estimates stay small (a 3px hollow circle), the zero line
  * is the visual anchor, and a row whose interval spans zero gets the NEUTRAL
  * colour, never a win-implying one. Numbers live in the adjacent tables; each
@@ -137,6 +137,74 @@ export function WaterfallChart({ bars, ariaLabel }: { bars: WaterfallBar[]; aria
             </g>
           );
         })}
+      </svg>
+    </div>
+  );
+}
+
+export interface PlaceboRangeRow {
+  key: string;
+  label: string;
+  /** Middle 95% of the random-member draws (fraction on the wire). */
+  bandLo: number;
+  bandHi: number;
+  /** The picks' observed leg versus the sector ETF (fraction). */
+  point: number;
+}
+
+/** One row per horizon on a shared pp axis: where random same-sector members
+ * landed (band), zero (the anchor line), and the picks (mark). Descriptive
+ * only — the numbers live in the adjacent text rows; aria-label points there.
+ * The band is NEUTRAL by law (it is a distribution, not a result); the mark is
+ * the plain text colour, never a win/loss colour, because outside-vs-inside
+ * the band is the artifact's statement, not ours. */
+export function PlaceboRangeChart({ rows, ariaLabel }: { rows: PlaceboRangeRow[]; ariaLabel: string }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const w = useChartWidth(wrapRef);
+  if (rows.length === 0) return <div ref={wrapRef} className="pev-chart-wrap" />;
+  const labelW = w >= 620 ? 200 : w >= 430 ? 156 : 124;
+  const rowH = 34;
+  const bandH = 16;
+  const padTop = 8;
+  const axisH = 26;
+  const h = Math.max(MIN_CHART_H.axis, rows.length * rowH + padTop + axisH);
+  const plotL = labelW + 8;
+  const plotR = w - 12;
+  // The domain unions every row's band AND mark, plus zero — a mark outside its
+  // band must stay inside the plot (that outside-ness is the whole finding).
+  const lo = Math.min(0, ...rows.map(r => Math.min(r.bandLo, r.point)));
+  const hi = Math.max(0, ...rows.map(r => Math.max(r.bandHi, r.point)));
+  const span = hi - lo || 1;
+  const x = (v: number) => plotL + ((v - lo) / span) * (plotR - plotL);
+  const { values: ticks, step } = niceTicks(lo - span * 0.04, hi + span * 0.04,
+    Math.max(3, Math.min(6, Math.floor((plotR - plotL) / 90))));
+  const zeroX = x(0);
+  return (
+    <div ref={wrapRef} className="pev-chart-wrap">
+      <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} role="img" aria-label={ariaLabel} className="pev-range">
+        {/* Zero line — the anchor of the whole chart. */}
+        <line x1={zeroX} y1={padTop} x2={zeroX} y2={h - axisH} className="pev-forest-zero" />
+        {rows.map((row, i) => {
+          const cy = padTop + i * rowH + rowH / 2;
+          return (
+            <g key={row.key}>
+              <text x={labelW} y={cy} textAnchor="end" className="pev-forest-lbl">{row.label}</text>
+              <rect
+                x={x(row.bandLo)} y={cy - bandH / 2}
+                width={Math.max(x(row.bandHi) - x(row.bandLo), 2)} height={bandH} rx={3}
+                className="pev-range-band"
+              />
+              <circle cx={x(row.point)} cy={cy} r={4} className="pev-range-mark" />
+            </g>
+          );
+        })}
+        <line x1={plotL} y1={h - axisH} x2={plotR} y2={h - axisH} className="pev-forest-axis" />
+        {ticks.map(t => (
+          <g key={t}>
+            <line x1={x(t)} y1={h - axisH} x2={x(t)} y2={h - axisH + 4} className="pev-forest-axis" />
+            <text x={x(t)} y={h - 8} textAnchor="middle" className="pev-forest-tick">{fmtTickPp(t, step)}</text>
+          </g>
+        ))}
       </svg>
     </div>
   );

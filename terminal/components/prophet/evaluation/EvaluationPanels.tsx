@@ -204,6 +204,35 @@ export function DetailsPanel({ data, lang }: { data: BetaEvaluation; lang: Lang 
         <Field label={t("clockResolution")} value={`${fmtDate(dataClocks.resolutionLog.maxAsof)} · ${fmtCount(dataClocks.resolutionLog.rows)} rows`} />
         <Field label={t("clockPit")} value={`${fmtDate(dataClocks.pitMembership.lastRecordedChange)} · ${dataClocks.pitMembership.sha256.slice(0, 12)}…`} />
         <Field label={t("clockPrices")} value={`${dataClocks.prices.source} · ${fmtDate(dataClocks.prices.lastCloseUsed)}`} />
+        {/* D6-era pin verification: what the price inputs were read from, that
+            every pinned blob was byte-compared, and the pinned-input count.
+            Absent on the v1 artifact — nothing renders then. */}
+        {dataClocks.prices.pinVerified !== null && (
+          <Field label={t("pinVerifiedLabel")} value={t(dataClocks.prices.pinVerified ? "wordTrue" : "wordFalse")} />
+        )}
+        {(dataClocks.plansIndex.readFrom || dataClocks.pitMembership.readFrom) && (
+          <Field
+            label={t("pinReadFromLabel")}
+            value={(
+              <span className="pev-mono">
+                {[
+                  dataClocks.plansIndex.readFrom ? `plans ← ${dataClocks.plansIndex.readFrom}` : null,
+                  dataClocks.pitMembership.readFrom ? `membership ← ${dataClocks.pitMembership.readFrom}` : null,
+                ].filter(Boolean).join(" · ")}
+              </span>
+            )}
+          />
+        )}
+        {dataClocks.prices.pinnedInputSha256 && (
+          <p className="pev-dim">
+            {fillTemplate(t("pinInputsLine"), { n: fmtCount(dataClocks.prices.pinnedInputSha256.length) })}
+          </p>
+        )}
+        {dataClocks.prices.pinVerification && (
+          <Verbatim lang={lang}>
+            <p className="pev-dim">{humanizeEngineText(dataClocks.prices.pinVerification)}</p>
+          </Verbatim>
+        )}
       </Section>
       <Section title={t("sourcesTitle")}>
         <p className="pev-dim">{t("sourcesNote")}</p>
@@ -376,6 +405,41 @@ export function CoveragePanel({ data, lang }: { data: BetaEvaluation; lang: Lang
           {t("crit_era_plans_classified_share")}: {fmtPercent(coverage.classifiedShare)} · {t("crit_entered_positions_priced_share")}: {fmtPercent(coverage.pricedShare)}
         </p>
       </Section>
+      {/* D6-era held-path coverage: the priced share counts entry marks only,
+          so the held path is stated in its own terms — complete vs gapped,
+          with the gapped positions itemised. Absent on the v1 artifact. */}
+      {(coverage.heldPathCompletePositions !== null || coverage.heldPathGaps !== null) && (
+        <Section title={t("heldPathTitle")}>
+          <p>
+            {fillTemplate(t("heldPathLine"), {
+              complete: fmtCount(coverage.heldPathCompletePositions ?? 0),
+              total: fmtCount(coverage.evaluatedPositions),
+              gaps: fmtCount(coverage.heldPathGaps ?? 0),
+            })}
+          </p>
+          {coverage.pricedShareBasis && (
+            <p className="pev-dim">
+              <b>{t("pricedBasisLabel")}</b> {humanizeEngineText(coverage.pricedShareBasis)}
+            </p>
+          )}
+          {coverage.heldPathGapPositions && coverage.heldPathGapPositions.length > 0 && (
+            <details className="pev-cohort-detail">
+              <summary>{t("heldPathPositionsLabel")}</summary>
+              <ul className="pev-defs">
+                {coverage.heldPathGapPositions.map(gp => (
+                  <li key={gp.planId}>
+                    {fillTemplate(t("gappedPositionLine"), {
+                      asset: gp.asset, planId: gp.planId,
+                      entry: fmtDate(gp.entry), last: fmtDate(gp.firstMissingClose),
+                      n: fmtCount(gp.missingSessions),
+                    })}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </Section>
+      )}
       <Section title={t("coverageExcludedTitle")}>
         <div className="pev-table-scroll">
           <table className="pev-table">
@@ -451,6 +515,15 @@ export function CoveragePanel({ data, lang }: { data: BetaEvaluation; lang: Lang
           <li><b>{fmtCount(coverage.exitBasis.mechanicalPublishedLevels)}</b> {t("exitMechanical")}</li>
           <li><b>{fmtCount(coverage.exitBasis.censoredOpenAtWindowEnd)}</b> {t("exitCensored")}</li>
         </ul>
+        {coverage.resolvedAtOrBeforeSplit && (
+          <p className="pev-dim">
+            {fillTemplate(t("resolvedSplitLine"), {
+              total: fmtCount(coverage.resolvedAtOrBeforeSplit.total),
+              finalClose: fmtCount(coverage.resolvedAtOrBeforeSplit.enteredAtFinalClose),
+              beforeFollower: fmtCount(coverage.resolvedAtOrBeforeSplit.resolvedBeforeFollowerFill),
+            })}
+          </p>
+        )}
       </Section>
       <Section title={t("coverageMembershipTitle")}>
         <p>{fillTemplate(t("caveatRosterBody"), {
@@ -489,6 +562,57 @@ export function CoveragePanel({ data, lang }: { data: BetaEvaluation; lang: Lang
         <p className="pev-dim">{t("splitTitle")}: {t("splitOutside")} {fmtCount(coverage.c7C6aSplit.outsideLeading)} · {t("splitInside")} {fmtCount(coverage.c7C6aSplit.insideLeading)} · {t("splitUnmapped")} {fmtCount(coverage.c7C6aSplit.unmapped)}</p>
         <p className="pev-dim">{t("sectorWeightsTitle")}: {coverage.c4SectorWeights.map(sw => `${sw.sector} ${fmtPercent(sw.weight)}`).join(" · ")}</p>
       </Section>
+      {/* Census + undated conversions + MRNA authentication (D6-era population
+          fields). Each piece renders only when the artifact carries it. */}
+      {(cohort?.censusBasis !== null && cohort?.censusBasis !== undefined
+        || data.population?.undatedConversions
+        || data.population?.mrna?.priceAuthentication) && (
+        <Section title={t("populationCensusTitle")}>
+          {cohort && cohort.censusBasis !== null
+            && cohort.overallMintedOutageBackfill !== null
+            && cohort.overallOfWhichReplayedReceiptedBake !== null
+            && cohort.overallOfWhichSyntheticBoardReconstructions !== null
+            && cohort.outsideSelectionEra !== null && (
+            <p>
+              {fillTemplate(t("censusLine"), {
+                overall: fmtCount(cohort.overallMintedOutageBackfill),
+                replays: fmtCount(cohort.overallOfWhichReplayedReceiptedBake),
+                synthetic: fmtCount(cohort.overallOfWhichSyntheticBoardReconstructions),
+                outside: fmtCount(cohort.outsideSelectionEra.length),
+              })}
+            </p>
+          )}
+          {cohort?.censusBasis && (
+            <p className="pev-dim">
+              <b>{t("censusBasisLabel")}</b> {humanizeEngineText(cohort.censusBasis)}
+            </p>
+          )}
+          {data.population?.undatedConversions && (
+            <details className="pev-cohort-detail" data-testid="pev-undated">
+              <summary>{t("undatedTitle")}</summary>
+              <p>
+                {fillTemplate(t("undatedSummary"), {
+                  n: fmtCount(data.population.undatedConversions.count),
+                })}
+              </p>
+              <p className="pev-dim">
+                <b>{t("undatedBasisLabel")}</b> {humanizeEngineText(data.population.undatedConversions.basis)}
+              </p>
+              <p className="pev-dim">
+                <b>{t("undatedTreatmentLabel")}</b> {humanizeEngineText(data.population.undatedConversions.primaryTreatment)}
+              </p>
+              <p className="pev-dim">
+                <b>{t("undatedSensitivityLabel")}</b> {humanizeEngineText(data.population.undatedConversions.sensitivity)}
+              </p>
+            </details>
+          )}
+          {data.population?.mrna?.priceAuthentication && (
+            <p className="pev-dim">
+              <b>{t("mrnaAuthLabel")}</b> {humanizeEngineText(data.population.mrna.priceAuthentication)}
+            </p>
+          )}
+        </Section>
+      )}
       <Section title={t("coverageNotEvaluableTitle")}>
         <ul className="pev-defs">
           <li>{t("coverageSleeves")}</li>

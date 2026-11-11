@@ -9,10 +9,14 @@ import { decodeBetaEvaluation } from "./prophetBetaEvaluation";
 export const PROPHET_BETA_EVALUATION_MAX_BYTES = 160 * 1024;
 export const PROPHET_BETA_EVALUATION_DEADLINE_MS = 10_000;
 /** Committed real-artifact copy served in dev/Playwright fixture mode.
- * Byte-identical (sha256 b3aca79d…) to Macro PR #11022's public
- * `site/prophet/beta_evaluation.json` (branch
- * `fable/prophet-beta-evaluation-20261110`, engine code.commit
- * f1314c9a4966192f651d8a2c392f562367ba01d9) — not synthetic data. */
+ * Byte-identical (sha256 7fa9b800…) to the corrected Macro
+ * `site/prophet/beta_evaluation.json` at commit eebd40b295 (branch
+ * `fable/prophet-beta-evaluation-audit-20261111`, captured 2026-11-11; the
+ * dated CORRECTION artifact — engine code.commit
+ * 19960ba0d560c1aa629c9ff4af95dec8e35c5027) — not synthetic data. Supersedes
+ * the v1 capture (sha256 b3aca79d…, Macro PR #11022) whose figures the
+ * artifact's own `correction` block republishes beside their corrected
+ * successors. */
 export const PROPHET_BETA_EVALUATION_FIXTURE_FILE = "public/data/prophet_beta_evaluation_fixture.json";
 const HEADERS = { "Cache-Control": "private, no-store", Vary: "Authorization, Cookie", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, noarchive" };
 

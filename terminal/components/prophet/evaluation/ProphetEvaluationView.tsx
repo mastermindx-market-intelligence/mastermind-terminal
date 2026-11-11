@@ -34,6 +34,7 @@ import {
 import "./prophetEvaluation.css";
 import { ForestPlot, type ForestRow } from "./evaluationCharts";
 import { EVALUATION_PANELS, panelBody, type PanelKey } from "./EvaluationPanels";
+import { DiagnosisSection } from "./DiagnosisSection";
 
 type LoadStatus = "loading" | "ready" | "unavailable" | "unauthenticated" | "forbidden";
 
@@ -221,7 +222,18 @@ export default function ProphetEvaluationView() {
   const oldC6Row = data.sensitivity?.supersededAsRun?.rows
     .find(entry => entry.comparatorId === INCUMBENT_COMPARATOR_ID)?.row ?? null;
   const oldExcess = oldC6Row && oldC6Row.excessTotalVsSpy !== null ? oldC6Row.excessTotalVsSpy : null;
-  const showWhatChanged = Boolean(data.sensitivity) && (populationDeviation !== null || oldExcess !== null);
+  // D6 correction statement (2026-11-11): the artifact's own correction block —
+  // what changed, the superseded figures beside their corrected successors,
+  // the publisher's verdict-unchanged ruling. Absent on the pre-correction
+  // artifact; every use below degrades to the D5-only presentation.
+  const correction = data.correction;
+  const correctionRow = correction?.figuresSuperseded?.rows
+    .find(entry => entry.comparatorId === INCUMBENT_COMPARATOR_ID)?.row ?? null;
+  // The figure the one-line-under-the-verdict carries as "old": the
+  // correction's own just-superseded excess when it exists, else the D5
+  // as-run superseded excess.
+  const lineOldExcess = (correctionRow && correctionRow.excessTotalVsSpy) ?? oldExcess;
+  const showWhatChanged = populationDeviation !== null || oldExcess !== null || correction !== null;
 
   return (
     <div className="main2 pev">
@@ -299,17 +311,77 @@ export default function ProphetEvaluationView() {
         })()}
         {/* The correction rides WITH the verdict: a cold reader at phone width
             sees both the honest interval and the fact of the correction in the
-            first screen, without opening anything. */}
+            first screen, without opening anything. When the artifact carries
+            the D6 correction block, the visible line IS the contract's short
+            line — "figures corrected on <date> after an independent audit —
+            old → new" — and the "why" is one click deeper, never a headline. */}
         {showWhatChanged && (
           <div className="pev-what" data-testid="pev-what-changed">
             <details>
               <summary data-testid="pev-what-changed-summary">
-                {t("whatChangedTitle")}
-                {correctionDate && <> · {fmtDate(correctionDate)}</>}
-                {oldExcess !== null && verdictDiff && (
-                  <> · {fmtSignedPp(oldExcess)} → {fmtSignedPp(verdictDiff.diff)}</>
-                )}
+                {correction
+                  ? fillTemplate(t("correctionShortLine"), {
+                    date: fmtDate(correction.date),
+                    old: lineOldExcess !== null ? fmtSignedPp(lineOldExcess) : "—",
+                    new: verdictDiff ? fmtSignedPp(verdictDiff.diff) : "—",
+                    benchmark: benchmarkName,
+                  })
+                  : (
+                    <>
+                      {t("whatChangedTitle")}
+                      {correctionDate && <> · {fmtDate(correctionDate)}</>}
+                      {oldExcess !== null && verdictDiff && (
+                        <> · {fmtSignedPp(oldExcess)} → {fmtSignedPp(verdictDiff.diff)}</>
+                      )}
+                    </>
+                  )}
               </summary>
+              {/* D6: the correction's own statement first — superseded figures
+                  beside corrected figures, the engine's reason, the publisher's
+                  verdict-unchanged ruling, what it supersedes. */}
+              {correction && (
+                <div className="pev-correction" data-testid="pev-correction">
+                  <p className="pev-dim">{humanizeEngineText(correction.label)}</p>
+                  <p className="pev-sentence">{humanizeEngineText(correction.whatChanged)}</p>
+                  {correctionRow && verdictDiff && (
+                    <p className="pev-sentence">
+                      {fillTemplate(t("correctionPairLine"), {
+                        oldTotal: fmtSignedPercent(correctionRow.totalNetReturn),
+                        newTotal: verdictDiff && c6?.status === "evaluated" && c6.totalNetReturn !== null
+                          ? fmtSignedPercent(c6.totalNetReturn) : "—",
+                        benchmark: benchmarkName,
+                        old: fmtSignedPp(correctionRow.excessTotalVsSpy),
+                        new: fmtSignedPp(verdictDiff.diff),
+                        // The superseded row stores costs as a negative drag,
+                        // the current comparator as a positive magnitude — the
+                        // same quantity under two wire conventions. Render both
+                        // as magnitudes so the pair reads as the drag it is
+                        // (1.2% → 1.3%), never as a sign flip.
+                        oldCosts: fmtPercent(Math.abs(correctionRow.costsPaidTotal)),
+                        newCosts: c6?.status === "evaluated" && c6.costsPaidTotal !== null
+                          ? fmtPercent(Math.abs(c6.costsPaidTotal)) : "—",
+                      })}
+                    </p>
+                  )}
+                  {correction.figuresSuperseded && (
+                    <>
+                      <p className="pev-dim">
+                        <b>{t("correctionReasonLabel")}</b> {humanizeEngineText(correction.figuresSuperseded.reasonEach)}
+                      </p>
+                      {correction.figuresSuperseded.verdictUnchanged && (
+                        <p className="pev-sentence">
+                          {fillTemplate(t("correctionVerdictUnchanged"), {
+                            reason: humanizeEngineText(correction.figuresSuperseded.verdictReason),
+                          })}
+                        </p>
+                      )}
+                    </>
+                  )}
+                  <p className="pev-dim">
+                    <b>{t("correctionSupersedesLabel")}</b> <span className="pev-mono">{correction.supersedes}</span>
+                  </p>
+                </div>
+              )}
               {oldExcess !== null && verdictDiff && data.population?.excludedCohort && (
                 <p className="pev-sentence">
                   {fillTemplate(t("whatChangedSummary"), {
@@ -342,6 +414,8 @@ export default function ProphetEvaluationView() {
                 const sensitivity = data.sensitivity;
                 const variantRow = sensitivity.backfillReplaysAdmittedAfterAvailability;
                 const supersededBlock = sensitivity.supersededAsRun;
+                const undatedVariant = sensitivity.excludingUndatedConversions;
+                const marksStress = sensitivity.missingMarksTotalLossStress;
                 return (
                   <div className="pev-sens-group">
                     {variantRow && (
@@ -431,6 +505,72 @@ export default function ProphetEvaluationView() {
                         )}
                       </details>
                     )}
+                    {/* D6-era protocol sensitivities: the undated-conversion
+                        plans removed wholesale, and the delisted assets charged
+                        to a total loss. Same columns, same dim law — each
+                        carries the engine's own definition verbatim. */}
+                    {undatedVariant && (
+                      <details className="pev-sens" data-testid="pev-sensitivity-undated">
+                        <summary>{t("sensUndatedTitle")}</summary>
+                        <p className="pev-dim">{t("sensitivityLabelNote")} {sensitivity.label}</p>
+                        <p className="pev-dim">{humanizeEngineText(undatedVariant.definition)}</p>
+                        <p className="pev-dim">
+                          {t("sensExcludedNote")} {undatedVariant.excludedFromThisVariant
+                            .map(entry => `${exclusionReasonLabel(lang, entry.reason)} ${fmtCount(entry.count)}`)
+                            .join(" · ")}
+                        </p>
+                        <div className="pev-table-scroll">
+                          <table className="pev-table">
+                            {sensitivityRowHeader(t, benchmarkName)}
+                            <tbody>
+                              <tr>
+                                {sensitivityRowCells(
+                                  lang, benchmarkName,
+                                  <>{comparatorShortName(lang, INCUMBENT_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID)}</>,
+                                  undatedVariant,
+                                )}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </details>
+                    )}
+                    {marksStress && (
+                      <details className="pev-sens" data-testid="pev-sensitivity-marks">
+                        <summary>{t("sensMarksTitle")}</summary>
+                        <p className="pev-dim">{humanizeEngineText(marksStress.definition)}</p>
+                        <div className="pev-table-scroll">
+                          <table className="pev-table">
+                            {sensitivityRowHeader(t, benchmarkName)}
+                            <tbody>
+                              <tr>
+                                {sensitivityRowCells(
+                                  lang, benchmarkName,
+                                  <>{comparatorShortName(lang, INCUMBENT_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID)}</>,
+                                  marksStress,
+                                )}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        {marksStress.gappedPositions.length > 0 && (
+                          <>
+                            <h3>{t("gappedPositionsLabel")}</h3>
+                            <ul className="pev-defs">
+                              {marksStress.gappedPositions.map(gp => (
+                                <li key={gp.planId}>
+                                  {fillTemplate(t("gappedPositionLine"), {
+                                    asset: gp.asset, planId: gp.planId,
+                                    entry: fmtDate(gp.entry), last: fmtDate(gp.firstMissingClose),
+                                    n: fmtCount(gp.missingSessions),
+                                  })}
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                      </details>
+                    )}
                   </div>
                 );
               })()}
@@ -456,6 +596,12 @@ export default function ProphetEvaluationView() {
           {!release.globalMinimumMet && <p className="pev-dim">{t("capNote")}</p>}
         </div>
       </section>
+
+      {/* ── 1b. Why the picks trailed their sectors (D7/D8) — directly after
+          the verdict, before the evidence panels. Renders nothing when the
+          artifact carries no qualifying member-benchmark horizon and no
+          after-the-fact material. */}
+      <DiagnosisSection data={data} lang={lang} />
 
       {/* ── 2. Market participation (beta first) ───────────────────────────── */}
       <section className="pev-card" data-testid="pev-participation">
@@ -602,6 +748,18 @@ export default function ProphetEvaluationView() {
                 {post && (
                   <p className="pev-dim">{fillTemplate(t("top5Share"), {
                     share: fmtPercent(post.book.top5ShareOfPositiveContribution),
+                  })}</p>
+                )}
+                {post?.book.withoutTop3Contributors && (
+                  <p className="pev-dim">{fillTemplate(t("top3ExBody"), {
+                    assets: post.book.withoutTop3Contributors.droppedAssets.join(", "),
+                    diff: fmtSignedPp(post.book.withoutTop3Contributors.excessTotalVsSpy),
+                    benchmark: benchmarkName,
+                    ci: fmtCi95(
+                      post.book.withoutTop3Contributors.excessTotalCi95[0],
+                      post.book.withoutTop3Contributors.excessTotalCi95[1],
+                      "pp",
+                    ),
                   })}</p>
                 )}
               </>
