@@ -283,6 +283,8 @@ export interface PriceScaleHandle {
 }
 
 export interface TimeScaleHandle {
+  // Public logical ranges include both endpoints, matching LWC. A window of
+  // ten bars is { from: 0, to: 9 }; its slot count is to - from + 1.
   getVisibleLogicalRange(): EngineLogicalRange | null;
   setVisibleLogicalRange(range: EngineLogicalRange): void;
   subscribeVisibleLogicalRangeChange(handler: EngineLogicalRangeHandler): void;

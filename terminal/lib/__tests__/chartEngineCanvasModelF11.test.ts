@@ -17,12 +17,13 @@ function mounted(n = 10, width = 200): { m: ChartModel; ts: ReturnType<ChartMode
   return { m, ts: m.timeScaleHandleFor() };
 }
 
+// Public ranges include both endpoints; slot count is to - from + 1.
 describe("F-11 timeScale behaviour options", () => {
   it("rightOffset shifts the visible window", () => {
     const { ts } = mounted(10, 200);
     ts.applyOptions({ rightOffset: 3 });
     expect(ts.options().rightOffset).toBe(3);
-    expect(ts.getVisibleLogicalRange()).toEqual({ from: 3, to: 13 });
+    expect(ts.getVisibleLogicalRange()).toEqual({ from: 3, to: 12 });
   });
 
   it("barSpacing sets the logical span from width", () => {
@@ -30,7 +31,7 @@ describe("F-11 timeScale behaviour options", () => {
     ts.applyOptions({ barSpacing: 20 });
     expect(ts.options().barSpacing).toBe(20);
     const lr = ts.getVisibleLogicalRange()!;
-    expect(lr.to - lr.from).toBeCloseTo(10, 6);
+    expect(lr.to - lr.from + 1).toBeCloseTo(10, 6);
   });
 
   it("minBarSpacing clamps a too-small barSpacing", () => {
@@ -38,7 +39,7 @@ describe("F-11 timeScale behaviour options", () => {
     ts.applyOptions({ minBarSpacing: 25, barSpacing: 5 });
     expect(ts.options().barSpacing).toBe(25);
     const lr = ts.getVisibleLogicalRange()!;
-    expect(lr.to - lr.from).toBeCloseTo(200 / 25, 6);
+    expect(lr.to - lr.from + 1).toBeCloseTo(200 / 25, 6);
   });
 
   it("maxBarSpacing clamps a too-large barSpacing", () => {
@@ -46,7 +47,7 @@ describe("F-11 timeScale behaviour options", () => {
     ts.applyOptions({ maxBarSpacing: 10, barSpacing: 50 });
     expect(ts.options().barSpacing).toBe(10);
     const lr = ts.getVisibleLogicalRange()!;
-    expect(lr.to - lr.from).toBeCloseTo(20, 6);
+    expect(lr.to - lr.from + 1).toBeCloseTo(20, 6);
   });
 
   it("fixLeftEdge clamps scroll so the first bar stays reachable", () => {
@@ -55,22 +56,22 @@ describe("F-11 timeScale behaviour options", () => {
     ts.scrollToPosition(-40);
     const lr = ts.getVisibleLogicalRange()!;
     expect(lr.from).toBeCloseTo(0, 5);
-    expect(lr.to - lr.from).toBeCloseTo(5, 5);
-    expect(m.time.rightOffset).toBeCloseTo(lr.to - 10, 5);
+    expect(lr.to - lr.from + 1).toBeCloseTo(5, 5);
+    expect(m.time.rightOffset).toBeCloseTo(lr.to + 1 - 10, 5);
   });
 
   it("fixRightEdge clamps rightOffset to 0", () => {
     const { ts } = mounted(10, 200);
     ts.applyOptions({ fixRightEdge: true, rightOffset: 8 });
     expect(ts.options().rightOffset).toBe(0);
-    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 10 });
+    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 9 });
   });
 
   it("lockVisibleTimeRangeOnResize keeps the logical window when width changes", () => {
     const { m, ts } = mounted(10, 200);
-    ts.setVisibleLogicalRange({ from: 0, to: 10 });
+    ts.setVisibleLogicalRange({ from: 0, to: 9 });
     m.applyOptions({ width: 100, timeScale: { lockVisibleTimeRangeOnResize: true } });
-    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 10 });
+    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 9 });
     expect(ts.options().barSpacing).toBeCloseTo(10, 6);
   });
 
@@ -81,38 +82,38 @@ describe("F-11 timeScale behaviour options", () => {
     m.applyOptions({ width: 100 });
     expect(ts.options().barSpacing).toBeCloseTo(spacing, 6);
     const lr = ts.getVisibleLogicalRange()!;
-    expect(lr.to - lr.from).toBeCloseTo(100 / spacing, 6);
+    expect(lr.to - lr.from + 1).toBeCloseTo(100 / spacing, 6);
   });
 
   it("rightBarStaysOnScroll keeps the right edge when barSpacing changes", () => {
     const { ts } = mounted(10, 200);
-    ts.setVisibleLogicalRange({ from: 0, to: 10 });
+    ts.setVisibleLogicalRange({ from: 0, to: 9 });
     ts.applyOptions({ rightBarStaysOnScroll: true, barSpacing: 40 });
     const lr = ts.getVisibleLogicalRange()!;
-    expect(lr.to).toBeCloseTo(10, 6);
+    expect(lr.to).toBeCloseTo(9, 6);
     expect(lr.from).toBeCloseTo(5, 6);
   });
 
   it("shiftVisibleRangeOnNewBar true shifts the window by one bar at realtime", () => {
     const { m, ts } = mounted(10, 200);
     ts.applyOptions({ shiftVisibleRangeOnNewBar: true });
-    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 10 });
+    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 9 });
     m.seriesHandle(m.primarySeries()!.id)!.update({ time: 11000, value: 99 });
-    expect(ts.getVisibleLogicalRange()).toEqual({ from: 1, to: 11 });
+    expect(ts.getVisibleLogicalRange()).toEqual({ from: 1, to: 10 });
   });
 
   it("shiftVisibleRangeOnNewBar false keeps the window when a bar is appended", () => {
     const { m, ts } = mounted(10, 200);
     ts.applyOptions({ shiftVisibleRangeOnNewBar: false });
     m.seriesHandle(m.primarySeries()!.id)!.update({ time: 11000, value: 99 });
-    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 10 });
+    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 9 });
   });
 
   it("engine applyOptions(timeScale) forwards rightOffset the same way", () => {
     const { m, ts } = mounted(10, 200);
     m.applyOptions({ timeScale: { rightOffset: 2 } });
     expect(ts.options().rightOffset).toBe(2);
-    expect(ts.getVisibleLogicalRange()).toEqual({ from: 2, to: 12 });
+    expect(ts.getVisibleLogicalRange()).toEqual({ from: 2, to: 11 });
   });
 
   it("display-only timeScale options are stored and echoed", () => {
@@ -131,6 +132,6 @@ describe("F-11 timeScale behaviour options", () => {
       borderVisible: false,
       borderColor: "#abcabc",
     });
-    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 10 });
+    expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 9 });
   });
 });

@@ -51,7 +51,7 @@ const SPECS: PaneSpec[] = [
   { width: 600, height: 300, priceAtTop: 200, priceAtBottom: -100 },
   { width: 600, height: 300, priceAtTop: 300, priceAtBottom: 0 },
 ];
-// Ten daily bars; range {-1, 11} → barSpacing 600/12 = 50, bar i centred at (i + 1.5) * 50.
+// Ten daily bars; inclusive range {-1, 10} → 12 slots, bar i centred at (i + 1.5) * 50.
 const TIMES = Array.from({ length: 10 }, (_, i) =>
   new Date(Date.UTC(2026, 8, i + 1)).toISOString().slice(0, 10));
 
@@ -72,9 +72,9 @@ function makeBridgeHarness() {
     },
   }));
 
-  let range: EngineLogicalRange = { from: -1, to: 11 };
+  let range: EngineLogicalRange = { from: -1, to: 10 };
   const rangeHandlers = new Set<EngineLogicalRangeHandler>();
-  const barSpacing = () => 600 / (range.to - range.from);
+  const barSpacing = () => 600 / (range.to - range.from + 1);
 
   const timeScale: TimeScaleHandle = {
     getVisibleLogicalRange: () => ({ ...range }),
@@ -85,6 +85,7 @@ function makeBridgeHarness() {
       const i = TIMES.findIndex((known) => String(known) === String(time));
       return i < 0 ? null : (i - range.from + 0.5) * barSpacing();
     },
+    logicalToCoordinate: (logical: number) => (logical - range.from + 0.5) * barSpacing(),
     coordinateToTime: (x: number): EngineTime | null => {
       const i = Math.round(x / barSpacing() + range.from - 0.5);
       return i >= 0 && i < TIMES.length ? TIMES[i] : null;

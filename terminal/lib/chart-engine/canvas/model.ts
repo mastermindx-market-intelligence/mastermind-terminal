@@ -2260,11 +2260,40 @@ class ModelPriceScaleHandle implements PriceScaleHandle {
 }
 
 class ModelTimeScaleHandle implements TimeScaleHandle {
+  private readonly rangeWrappers = new WeakMap<EngineLogicalRangeHandler, EngineLogicalRangeHandler>();
+  private requestedRange: { internal: EngineLogicalRange; external: EngineLogicalRange } | null = null;
   constructor(private readonly m: ChartModel) {}
-  getVisibleLogicalRange(): EngineLogicalRange | null { return this.m.getVisibleLogicalRange(); }
-  setVisibleLogicalRange(range: EngineLogicalRange): void { this.m.setVisibleLogicalRange(range); }
-  subscribeVisibleLogicalRangeChange(handler: EngineLogicalRangeHandler): void { this.m.subscribeRange(handler); }
-  unsubscribeVisibleLogicalRangeChange(handler: EngineLogicalRangeHandler): void { this.m.unsubscribeRange(handler); }
+  private publicRange(range: EngineLogicalRange | null): EngineLogicalRange | null {
+    if (!range) return null;
+    const requested = this.requestedRange;
+    // Adding/removing one can lose fractional bits. Preserve the exact caller
+    // endpoints only while the model still holds that accepted internal pair.
+    if (requested && range.from === requested.internal.from && range.to === requested.internal.to)
+      return { ...requested.external };
+    return { from: range.from, to: range.to - 1 };
+  }
+  getVisibleLogicalRange(): EngineLogicalRange | null { return this.publicRange(this.m.getVisibleLogicalRange()); }
+  setVisibleLogicalRange(range: EngineLogicalRange): void {
+    if (!this.m.alive || !Number.isFinite(range.from) || !Number.isFinite(range.to) || range.from > range.to) return;
+    // The public adapter, like LWC, has inclusive endpoints. Only the model's
+    // private slot window is half-open; input, clamp and paint math stay there.
+    const internal = { from: range.from, to: range.to + 1 };
+    this.requestedRange = { internal, external: { ...range } };
+    this.m.setVisibleLogicalRange(internal);
+  }
+  subscribeVisibleLogicalRangeChange(handler: EngineLogicalRangeHandler): void {
+    if (!this.m.alive) return;
+    let wrapped = this.rangeWrappers.get(handler);
+    if (!wrapped) {
+      wrapped = range => handler(this.publicRange(range));
+      this.rangeWrappers.set(handler, wrapped);
+    }
+    this.m.subscribeRange(wrapped);
+  }
+  unsubscribeVisibleLogicalRangeChange(handler: EngineLogicalRangeHandler): void {
+    const wrapped = this.rangeWrappers.get(handler);
+    if (wrapped) this.m.unsubscribeRange(wrapped);
+  }
   timeToCoordinate(time: EngineTime): number | null { return this.m.timeToCoordinate(time); }
   coordinateToTime(x: number): EngineTime | null { return this.m.coordinateToTime(x); }
   scrollToRealtime(): void { this.m.scrollToRealtime(); }

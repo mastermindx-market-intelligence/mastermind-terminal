@@ -51,7 +51,7 @@ const SPECS: PaneSpec[] = [
   { width: 600, height: 300, priceAtTop: 200, priceAtBottom: -100 },
   { width: 600, height: 300, priceAtTop: 300, priceAtBottom: 0 },
 ];
-// Ten daily bars; range {-1, 11} → barSpacing 600/12 = 50, bar i centred at (i + 1.5) * 50.
+// Ten daily bars; inclusive range {-1, 10} → 12 slots, bar i centred at (i + 1.5) * 50.
 const TIMES = Array.from({ length: 10 }, (_, i) => new Date(Date.UTC(2026, 8, i + 1)).toISOString().slice(0, 10));
 
 type HarnessOptions = {
@@ -82,9 +82,10 @@ function make(options: HarnessOptions = {}) {
     },
   }));
 
-  let range: EngineLogicalRange = { from: -1, to: 11 };
+  let range: EngineLogicalRange = { from: -1, to: 10 };
+  let timeMeasured = true;
   const rangeHandlers = new Set<EngineLogicalRangeHandler>();
-  const barSpacing = () => specs[0].width / (range.to - range.from);
+  const barSpacing = () => specs[0].width / (range.to - range.from + 1);
 
   const timeScale: TimeScaleHandle = {
     getVisibleLogicalRange: () => ({ ...range }),
@@ -96,9 +97,11 @@ function make(options: HarnessOptions = {}) {
       rangeHandlers.delete(handler);
     },
     timeToCoordinate: (time: EngineTime): number | null => {
+      if (!timeMeasured) return null;
       const index = scaleTimes.findIndex((known) => String(known) === String(time));
       return index < 0 ? null : (index - range.from + 0.5) * barSpacing();
     },
+    logicalToCoordinate: (logical: number) => timeMeasured ? (logical - range.from + 0.5) * barSpacing() : null,
     coordinateToTime: (x: number): EngineTime | null => {
       const index = Math.round(x / barSpacing() + range.from - 0.5);
       return index >= 0 && index < scaleTimes.length ? scaleTimes[index] : null;
@@ -136,6 +139,7 @@ function make(options: HarnessOptions = {}) {
     pendingTasks: () => tasks.length,
     totalScheduled: () => scheduled,
     engineSubscribed: () => rangeHandlers.size === 1,
+    setTimeMeasured: (measured: boolean) => { timeMeasured = measured; },
     setRange: (from: number, to: number) => {
       range = { from, to };
       [...rangeHandlers].forEach((handler) => handler({ ...range }));
@@ -460,7 +464,7 @@ describe("drawing bridge: Y-only projection (priceToY)", () => {
 
   it("keeps answering while the time axis is unmeasured, where the full anchor projection is null", () => {
     const h = make();
-    h.setRange(5, 5); // collapsed visible logical range: no x geometry at all
+    h.setTimeMeasured(false); // real range exists, but the engine cannot project it yet
     expect(h.bridge.anchorToPixel(anchor({ paneIndex: 0 }))).toBeNull();
     expect(h.bridge.priceToY(0, 50)).toBe(h.series[0].priceToCoordinate(50));
     // An anchor whose x cannot resolve (unknown time, no logical) is null too; y is not.

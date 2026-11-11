@@ -12,7 +12,7 @@
 // `setPaneSync` remains the legacy all-or-nothing switch (every registered pane in one group).
 import type { ChartEngine, EngineTime, SeriesHandle } from "@/lib/chart-engine/api";
 import {
-  clampLogicalRange, sameLogicalRange, sampleStep, timeToMs, toLogicalRange, toTimeWindow,
+  clampLogicalRange, MIN_LOGICAL_SPAN, sameLogicalRange, sampleStep, timeToMs, toLogicalRange, toTimeWindow,
   type AxisClock, type LogicalRange, type TimeWindow,
 } from "./timeWindow";
 
@@ -452,7 +452,7 @@ function placeFocus(peer: Peer, index: number, value: number, time: EngineTime) 
   const ts = peer.chart.timeScale();
   const current = ts.getVisibleLogicalRange();
   const width = current ? current.to - current.from : NaN;
-  const span = Number.isFinite(width) && width >= 2 ? width : DEFAULT_FOCUS_SPAN;
+  const span = Number.isFinite(width) && width >= MIN_LOGICAL_SPAN ? width : DEFAULT_FOCUS_SPAN;
   const wanted: LogicalRange = { from: index - span / 2, to: index + span / 2 };
   const clock = clockFor(peer);
   const target = (clock && clampLogicalRange(clock, wanted)) || wanted;

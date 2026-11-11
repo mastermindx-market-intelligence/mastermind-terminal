@@ -318,7 +318,7 @@ describe("canvas engine skeleton", () => {
       { time: 2, value: 20 },
       { time: 3, value: 30 },
     ]);
-    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 10 });
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 9 });
     const model = engine.unwrap<ChartModel>();
     expect(model.time.barSpacing).toBeCloseTo(20, 9);
     for (const i of [0, 0.5, 3, 9.25]) {
