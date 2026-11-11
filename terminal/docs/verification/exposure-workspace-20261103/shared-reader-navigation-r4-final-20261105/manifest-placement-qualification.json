@@ -1,0 +1,137 @@
+{
+  "schema": "options_evidence_placement_and_harness_compatibility.v1",
+  "phase": "APPLIED",
+  "recorded_at": "2026-11-05T08:34:08.473920+00:00",
+  "protected_base": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "options_local_source_head": "d00295f149d24914c78fae06140e6a8d4df30ab1",
+  "merge_file_checks": [
+    {
+      "kind": "gex",
+      "exit": 0,
+      "merged_equals_candidate": true
+    },
+    {
+      "kind": "eod",
+      "exit": 0,
+      "merged_equals_candidate": true
+    },
+    {
+      "kind": "vi",
+      "exit": 0,
+      "merged_equals_candidate": true
+    },
+    {
+      "kind": "pl6",
+      "exit": 0,
+      "merged_equals_candidate": true
+    }
+  ],
+  "captured_playwright_sha256": "bb09d98f2bf2647a1975dac07a0e85ab673473986145a1db0d30f22d38e5c076",
+  "protected_playwright_sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+  "configuration_difference": "Only webServer.env default INVESTIGATION_API_ADMISSION=open plus its three-line comment.",
+  "capture_equivalence": "VI supplied this exact environment to its already owned server; PL6 inherited it from the pinned visual driver. GEX/EOD launch Next and Chromium directly and do not consume Playwright webServer configuration.",
+  "capture_contracts_receipts_and_images_unchanged": true,
+  "runtime_source_changed": false,
+  "live_config_changed": false,
+  "mutations": [
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/lib/__tests__/helpers/optionsExposureEvidence.ts",
+      "before_sha256": "f78863fb9d4d65a1ca4c6bf6d0b604e8ff20148d3319614163f8377ed2c4a836",
+      "after_sha256": "c91030f941806aeccbfb33f050c489a97e7cdf5a7898b9157adc887e610ea4e7",
+      "retained_before": "before/0-optionsExposureEvidence.ts.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/lib/__tests__/optionsExposureEvidence.test.ts",
+      "before_sha256": "e19839f7b79a30d16f7be83082ede4f5130a3403832566859952571f325c41ce",
+      "after_sha256": "6c66a800db83e0cfa4de46b1fbb8e692d8062b178010b2c03cd15e64df14b934",
+      "retained_before": "before/1-optionsExposureEvidence.test.ts.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/lib/__tests__/helpers/optionsExposureEvidence.ts",
+      "before_sha256": "f78863fb9d4d65a1ca4c6bf6d0b604e8ff20148d3319614163f8377ed2c4a836",
+      "after_sha256": "c91030f941806aeccbfb33f050c489a97e7cdf5a7898b9157adc887e610ea4e7",
+      "retained_before": "before/2-optionsExposureEvidence.ts.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/lib/__tests__/optionsExposureEvidence.test.ts",
+      "before_sha256": "e19839f7b79a30d16f7be83082ede4f5130a3403832566859952571f325c41ce",
+      "after_sha256": "6c66a800db83e0cfa4de46b1fbb8e692d8062b178010b2c03cd15e64df14b934",
+      "retained_before": "before/3-optionsExposureEvidence.test.ts.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/lib/__tests__/helpers/optionsExposureEvidence.ts",
+      "before_sha256": "f78863fb9d4d65a1ca4c6bf6d0b604e8ff20148d3319614163f8377ed2c4a836",
+      "after_sha256": "c91030f941806aeccbfb33f050c489a97e7cdf5a7898b9157adc887e610ea4e7",
+      "retained_before": "before/4-optionsExposureEvidence.ts.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/lib/__tests__/optionsExposureEvidence.test.ts",
+      "before_sha256": "e19839f7b79a30d16f7be83082ede4f5130a3403832566859952571f325c41ce",
+      "after_sha256": "6c66a800db83e0cfa4de46b1fbb8e692d8062b178010b2c03cd15e64df14b934",
+      "retained_before": "before/5-optionsExposureEvidence.test.ts.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/lib/__tests__/helpers/optionsVisualEvidence.ts",
+      "before_sha256": "b2248fe06eca6cfb0e6ffd67a6cd12c02f0e0da4c8cd318b4ab71cb3a9e680f5",
+      "after_sha256": "a7dfa8ba1399c73f4efe22f6658f89ece61797045c22e076e5714fb7af5e42df",
+      "retained_before": "before/6-optionsVisualEvidence.ts.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/lib/__tests__/helpers/optionsVisualEvidence.ts",
+      "before_sha256": "b2248fe06eca6cfb0e6ffd67a6cd12c02f0e0da4c8cd318b4ab71cb3a9e680f5",
+      "after_sha256": "a7dfa8ba1399c73f4efe22f6658f89ece61797045c22e076e5714fb7af5e42df",
+      "retained_before": "before/7-optionsVisualEvidence.ts.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+      "before_sha256": "3a1660b0e11205ea3842dc898931ba79640aa7a62985f8b92bad5e88625f5d4a",
+      "after_sha256": "be8cbe0d2326eee92b3c1f90ddd45a592ed50cc37f81e348d203b8854e0ce713",
+      "retained_before": "before/8-EVIDENCE.yml.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+      "before_sha256": "a14001a2e89d2a1e41db35550a6e999f7dbefce38de4e5e499a82ef84a81fefb",
+      "after_sha256": "920aac260a6d9a1eeb737de055d2cda7def52e94b6116ff3d1b6369f6464e2a2",
+      "retained_before": "before/9-EVIDENCE.yml.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+      "before_sha256": "2589a642a026f056eed4475b0959821c679d01a2459f53df6708de16bd383ef0",
+      "after_sha256": "2fbd72468ad8d62c06c12964b0d51b7867750e578900a1291e890b0761b52323",
+      "retained_before": "before/10-EVIDENCE.yml.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+      "before_sha256": "4e2ac98cf63bbd1688a9052eb3e8f811d7eb59f2ed88d20d38f23c6138162f71",
+      "after_sha256": "8f40409e568a2c3e613cfbdb25cbf51eb54fb80ce49289bf4b5e04502d8d2897",
+      "retained_before": "before/11-EVIDENCE.yml.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+      "before_sha256": "530a0b69728e077afd4fc09177c22db7a8a3bca4e94ec7bbbd08e4782dfc54b6",
+      "after_sha256": "2e15da325bf4da8feb3b53c6601261c31a443281ed5cbfbaa037d623e0decd22",
+      "retained_before": "before/12-EVIDENCE.yml.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+      "before_sha256": "530a0b69728e077afd4fc09177c22db7a8a3bca4e94ec7bbbd08e4782dfc54b6",
+      "after_sha256": "2e15da325bf4da8feb3b53c6601261c31a443281ed5cbfbaa037d623e0decd22",
+      "retained_before": "before/13-EVIDENCE.yml.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+      "before_sha256": "ecb1a43863b154f4b5b2586b060c23632b07c519b30b54255965688bf9f84adb",
+      "after_sha256": "95486803443de43348cc043a66dddbdaf9b2942d7285c6f6803a1ee8344e1ad0",
+      "retained_before": "before/14-EVIDENCE.yml.gz"
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+      "before_sha256": "ecb1a43863b154f4b5b2586b060c23632b07c519b30b54255965688bf9f84adb",
+      "after_sha256": "95486803443de43348cc043a66dddbdaf9b2942d7285c6f6803a1ee8344e1ad0",
+      "retained_before": "before/15-EVIDENCE.yml.gz"
+    }
+  ],
+  "native_reader_sha256": "c91030f941806aeccbfb33f050c489a97e7cdf5a7898b9157adc887e610ea4e7",
+  "visual_reader_sha256": "a7dfa8ba1399c73f4efe22f6658f89ece61797045c22e076e5714fb7af5e42df",
+  "selector_tests_sha256": "6c66a800db83e0cfa4de46b1fbb8e692d8062b178010b2c03cd15e64df14b934"
+}

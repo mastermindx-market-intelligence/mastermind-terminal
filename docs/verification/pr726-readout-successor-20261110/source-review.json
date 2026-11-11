@@ -1,0 +1,69 @@
+{
+  "actualBrowserAndServerClosed": true,
+  "browserSourceHashes": {
+    "docs/verification/pr726-readout-successor-20261110/browser-proof.cjs": "3e2510d5ede61df5ccb315e5eb2daec2072b556761e5360777dd636ef3084fca",
+    "docs/verification/pr726-readout-successor-20261110/build-browser.cjs": "b61e452349626a6ecafbd1099bdcdc060177479c1c1b8b66315b76acd295f4d1",
+    "docs/verification/pr726-readout-successor-20261110/fixture.tsx": "3079d827c5ef681cf201e587a9dfd085a71d45cc310de6d54ae06f0b82948e01",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/app/layout.tsx": "15e971bf7e568c1e0d2e7f6aac0a43e49c385123a532dbd0f1e9f13a9ed588f3",
+    "terminal/components/PrecisionEntryStrip.module.css": "16667427c6db9383339e782136811ccbe07d105784ccd2e460d989087b801c36",
+    "terminal/components/PrecisionEntryStrip.tsx": "5bb04af3112e4033ca9737ccbc52c2981389b03ad6e68657cb5b01cc076f3218",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "2b3417366f58b0d25588b6d6bf6a2346f47ad84403885066946c5a2f18b1c116",
+    "terminal/lib/precisionEntry.ts": "d717931d6f2cc3e8fc23b5ebc4c35f4a6289b263572feb97959ca6a98ee92333",
+    "terminal/lib/precisionEntryReadout.ts": "dcce0df7f5c6e77ac031036be83900813105af863b694bfeb5433e8187ed68e5",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf"
+  },
+  "cssBlobUnchanged": "4bc889bff529b3848b050afd37f1bcf8b6647871",
+  "fixedProtectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "greenCounts": {
+    "numFailedTests": 0,
+    "numPassedTests": 41,
+    "numPendingTests": 0,
+    "numTotalTests": 41
+  },
+  "originalHead": "a7250e960cd9031375663bc67a2c45805dee6da7",
+  "originalResidualPaths": [
+    "terminal/lib/precisionEntryReadout.ts",
+    "terminal/components/PrecisionEntryStrip.tsx",
+    "terminal/components/PrecisionEntryStrip.module.css",
+    "terminal/lib/__tests__/precisionEntryReadout.test.ts",
+    "terminal/lib/__tests__/precisionEntryStrip.test.tsx"
+  ],
+  "publicationAttempted": false,
+  "realComponentMatrices": 12,
+  "redCounts": {
+    "numFailedTests": 19,
+    "numPassedTests": 22,
+    "numPendingTests": 0,
+    "numTotalTests": 41
+  },
+  "repairedPaths": [
+    "terminal/lib/precisionEntryReadout.ts",
+    "terminal/components/PrecisionEntryStrip.tsx",
+    "terminal/lib/__tests__/precisionEntryReadout.test.ts",
+    "terminal/lib/__tests__/precisionEntryStrip.test.tsx"
+  ],
+  "schema": "terminal_pr726_source_self_check.v1",
+  "scope": "Selected canonical language and validated per-section availability; existing numeric semantics, CSS, global i18n, TerminalShell and unmounted scope preserved.",
+  "sourceChecksPassed": true,
+  "sourceHashes": {
+    "terminal/components/PrecisionEntryStrip.module.css": "16667427c6db9383339e782136811ccbe07d105784ccd2e460d989087b801c36",
+    "terminal/components/PrecisionEntryStrip.tsx": "5bb04af3112e4033ca9737ccbc52c2981389b03ad6e68657cb5b01cc076f3218",
+    "terminal/lib/__tests__/precisionEntryReadout.test.ts": "ae18e2c4513a558cb2f7309bc6e4c4a33fccdd315bc8739d7dd88c231a18f121",
+    "terminal/lib/__tests__/precisionEntryStrip.test.tsx": "c7ec2450a1dd99303c1df5619e946af75e74a75785efc9e56deb6024a3618380",
+    "terminal/lib/precisionEntryReadout.ts": "dcce0df7f5c6e77ac031036be83900813105af863b694bfeb5433e8187ed68e5",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/vitest.config.ts": "053949bb45e222617aa7018ded4e66a94e660790d252c3c051639f9c24bdea64"
+  },
+  "state": "OWNED_DIFF_AND_PROOF_SELF_CHECKED",
+  "visualImagesInspected": [
+    "browser/desktop-en-light-initial.png",
+    "browser/desktop-zh-dark-initial.png",
+    "browser/tablet-zh-light-initial.png",
+    "browser/tablet-en-dark-scrolled.png",
+    "browser/mobile-zh-light-scrolled.png",
+    "browser/mobile-en-dark-scrolled.png"
+  ]
+}

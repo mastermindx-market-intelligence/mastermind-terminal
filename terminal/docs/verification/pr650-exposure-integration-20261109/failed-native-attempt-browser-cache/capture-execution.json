@@ -1,0 +1,37 @@
+{
+  "branchHead": "282ea2c40d839fecbe5ae5dc53de9c29a02850f6",
+  "command": [
+    "node",
+    "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  ],
+  "completedAt": "2026-11-09T14:07:13.206499+00:00",
+  "exit": 1,
+  "expected": 126,
+  "frames": [],
+  "images": {},
+  "indexTreeAtStart": "023024c6d0b345e3434993cc8a1250cf6782639e",
+  "integratedDependency": "663983edd16fc64e86003b420e97d557982b1bf2",
+  "kind": "eod",
+  "logSha256": "6af9ff15fdd29206e82cdc41f4ba591c64e947688c0e284d06793eafeea09008",
+  "manifestSha256": null,
+  "nextLockAbsent": true,
+  "node": "v26.5.0",
+  "operation": "exposure-source-compatibility-20261105",
+  "packet": "eod-heatmap-flowdesk-load-failure",
+  "port": 3801,
+  "portClosed": true,
+  "producerPins": {
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "8c8cd2448ce05a336f40fd020f9d172534c72df834f2b3a6ff2d33d82b6bfc5e",
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": "d1a4781a4a8147ccaef7360126dfedb038e8bc14e565853363e562074677888e"
+  },
+  "protectedMaster": "b387616013f38cce9e467cc7da7b87fd2672718c",
+  "revision": "ui-copy-integration-20261109",
+  "schema": "exposure_master_integration_capture.v1",
+  "seconds": 21.35,
+  "sourceAfterSha256": "a10dd5b47537fc5e6886bf4ea57b349ec0531b5f76ba8e43eb3d0d6028021ab6",
+  "sourceBeforeSha256": "a10dd5b47537fc5e6886bf4ea57b349ec0531b5f76ba8e43eb3d0d6028021ab6",
+  "sourceStable": true,
+  "startedAt": "2026-11-09T14:06:51.854621+00:00",
+  "successfulFiles": 0,
+  "webpack": false
+}

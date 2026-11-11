@@ -106,15 +106,8 @@ async function waitForServer(timeoutMs) {
   throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -209,7 +202,6 @@ async function openSharing(page, lang, viewport, populated, emptyReceived) {
     const emptyMine = lang === "zh" ? "你还没有向任何人共享清单。" : "You have not shared a list with anyone yet.";
     await page.getByText(emptyMine, { exact: true }).waitFor({ state: "visible", timeout: 10_000 });
   }
-  await stripDevOverlay(page);
 }
 
 async function measureLayout(page) {

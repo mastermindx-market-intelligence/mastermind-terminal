@@ -34,7 +34,7 @@
  * never the wall clock — an EOD snapshot's "0DTE" is a property of the snapshot's
  * session, exactly as GexDeskView's expiry lens already states.
  *
- * DEFAULTS reproduce Positioning's card byte for byte (metrics hedge/oi/vol/doi,
+ * DEFAULTS retain Positioning's card configuration (metrics hedge/oi/vol/doi,
  * ±8% window, 41 rows, 14 cols, global normalisation, no Σ column, no badges).
  * Everything PRISM did better is opt-in.
  */
@@ -709,8 +709,8 @@ export interface StrikeExpiryMatrixProps {
   grid: MatrixGridModel;
   metric: MatrixDisplayMetric;
   /**
-   * "card" — Positioning's dense hover-reveal grid (the DEFAULT; byte-identical to
-   * MatrixHeatCard's original markup). "desk" — the Exposure matrix view: taller rows,
+   * "card" — Positioning's dense hover-reveal grid (the DEFAULT, retaining
+   * MatrixHeatCard's layout). "desk" — the Exposure matrix view: taller rows,
    * always-visible values, a level-badge column and the Σ column.
    */
   variant?: "card" | "desk" | "rail";
@@ -750,8 +750,8 @@ export function StrikeExpiryMatrix({
   const scaleFor = (exp: string): MatrixScale => grid.perCol?.get(exp) ?? globalScale;
 
   if (variant === "card") {
-    // ── Positioning's card. This markup is the pre-§5.3 MatrixHeatCard body verbatim;
-    //    it must stay byte-identical, so nothing opt-in may leak into this branch.
+    // ── Positioning's card retains the original layout; the empty corner is a data
+    //    cell, not an unnamed header. Nothing opt-in may leak into this branch.
     //    (`scaleFor` is shared with the desk branch and DOES honour perCol — the card
     //    simply never asks for it: MatrixHeatCard leaves `normalization` at its "global"
     //    default, so grid.perCol is null and scaleFor always returns the global scale.)
@@ -760,7 +760,7 @@ export function StrikeExpiryMatrix({
         <table className={classes?.table}>
           <thead>
             <tr>
-              <th />
+              <td />
               {grid.exps.map((e) => (
                 <th key={e} scope="col">
                   {e.slice(5)}
@@ -1280,3 +1280,4 @@ function RailMatrix({ grid, metric, interaction }: {
     </table>
   </div>;
 }
+

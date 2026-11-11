@@ -1,59 +1,66 @@
-capturedAtHead: c8b7b5847afc585aa7e931e6b448b28d4c70a1fb
+# Full current ticker-news spec:14passes,7authored project skips,0failures/flakes/retries.
+# Frozen committed capture source and its protected parent are identified in the execution receipt.
+# Source composition tree: 0af51d3051bb9be1052b156f95b33fcaa3cb1957
+# Effective protected parent: 3ba8e1a663a752c7de42c717c3826e722dda416d
+# Proof: docs/verification/pr1426-ticker-news-integration-20261110/browser-current/execution.json
+# Source snapshot SHA256: 1e2406fa135784b992f804631ebe73fa9b7344fbda8efff8d50596ce6908ce3e
+# Panel crops: viewport labels describe the browser viewport, not PNG dimensions.
+capturedAtHead: 139ec0574b57ecbb59d237dc315c8276dd307794
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
-    sha256: e176e7e3f1a4f1875ce80b779e25defee1b270ef5044262806e67c8696b9d753
+    sha256: d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2
   - path: terminal/components/news/TickerNewsPanel.module.css
-    sha256: 57464a037b904a52c01c16cbcb0484fde288de0354d98b59901738c1a2f3bbac
+    sha256: 46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358
   - path: terminal/components/TerminalShell.tsx
-    sha256: dfc2815ae56d61cb090d905bcb77d8900a415071478c7185ace7b0ac95b2ffc7
+    sha256: 9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900
     lang: en
     state: live-feed
-    sha256: db8c91c90b39e402bdc7cd13864d049934a298e4f0ed4fa72a13573ea298cec0
+    sha256: 1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04
   - file: desktop-zh-dark.png
     viewport: 1440x900
     lang: zh
     state: live-feed
-    sha256: 018a4ff726db666b57355e8aeac131f215c876dcb977da64522415b04ae96c4d
+    sha256: bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d
   - file: tablet-en-dark.png
     viewport: 820x1180
     lang: en
     state: live-feed
-    sha256: 88209e72c78ebfa549aa44924a25c47da2da0bea7cbc886b5cb7ba74ec18a73f
+    sha256: 97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69
   - file: tablet-zh-dark.png
     viewport: 820x1180
     lang: zh
     state: live-feed
-    sha256: 0eae66a899732bd63988f26eca5b9998a62ae29431c71360398cb8331064cd68
+    sha256: 17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5
   - file: mobile-en-dark.png
     viewport: 390x844
     lang: en
     state: live-feed
-    sha256: d2736dc755e6001a6266262dfe720bbebee217874a08b6639a8c10b72ff0a32f
+    sha256: e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28
   - file: mobile-zh-dark.png
     viewport: 390x844
     lang: zh
     state: live-feed
-    sha256: a85085be4ade1c91c8dafdfa1ec959746a0acd15d6b06703eea5e655256b369a
+    sha256: 38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585
   - file: unavailable-desktop-en-dark.png
     viewport: 1440x900
     lang: en
     state: unavailable
-    sha256: 334ebbd7d0403aad63cb322821699468c95a1e41bf19ac9963fad2da2f863078
+    sha256: d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048
   - file: unavailable-desktop-zh-dark.png
     viewport: 1440x900
     lang: zh
     state: unavailable
-    sha256: 99fe376e3f6276e09eecabcbc39e03a9742c37c2d1031a893f1c04cdfa478c18
+    sha256: b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8
   - file: unavailable-mobile-en-dark.png
     viewport: 390x844
     lang: en
     state: unavailable
-    sha256: d88768b9a19a54b7d60b4999dea90dea2c6e6fd0cc5b76d4fccaffdad8b1dfb3
+    sha256: 85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61
   - file: unavailable-mobile-zh-dark.png
     viewport: 390x844
     lang: zh
     state: unavailable
-    sha256: dbc52d2ecb74ddcd7c7974f4819b3bf53e2c0f8eac0995ce344ef4c5f5a2983f
+    sha256: 92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792

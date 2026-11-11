@@ -1,0 +1,13 @@
+{
+  "schema": "terminal.pr1275.exact-tree-adoption.v1",
+  "previousHead": "3609a9710a09c7ccc8c9fc80c3cc29fedaa3a432",
+  "publishedSource": "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+  "parents": [
+    "3609a9710a09c7ccc8c9fc80c3cc29fedaa3a432",
+    "839bace1e89dd6def9311d3a410786c73a6332aa"
+  ],
+  "preparedAndPublishedTree": "f6b2202bea775cebbd867deccc05bb9c69034412",
+  "rootSourceWrites": 0,
+  "preflightRequestId": "2412:76380:3D61852:57E8F18:6AF304A5",
+  "scope": "Existing independent GitHub web-flow merge exactly equals all prepared integration bytes. Root continues only source-bound F11 proof and publication of that proof."
+}

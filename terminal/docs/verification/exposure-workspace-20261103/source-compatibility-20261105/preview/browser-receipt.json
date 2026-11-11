@@ -1,0 +1,26 @@
+{
+  "mode": "preview",
+  "protectedBase": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/options-lab-source-state.spec.ts",
+    "e2e/exposure-workspace.spec.ts",
+    "e2e/sector-exposure-depth-return.spec.ts",
+    "--grep",
+    "Research Lab|Exposure opens on usable strikes|stepping and Back preserve",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=.next/source-availability-preview-20261105"
+  ],
+  "source_stable": true,
+  "source_count": 3113,
+  "source_map_sha256": "2935ba8c1b093aaf503dd5f1b3509093cb7bcc6df86c85248284693b4667da4c",
+  "log_sha256": "80c3f756349d1c4063501da57bc38a387b286f9804336eba2518ade5da940df3",
+  "retries": 0
+}

@@ -1,0 +1,191 @@
+{
+  "default_lint_errors": 22,
+  "default_lint_warnings": 4,
+  "unchanged_diagnostic_lines": 26,
+  "pacing_spec_findings": 0,
+  "rule_disabled": false,
+  "findings": [
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 4,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 5,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 6,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 7,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 84,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 493,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 519,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 696,
+      "severity": "warning",
+      "rule": "@typescript-eslint/no-unused-vars",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 788,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 971,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 1007,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "line": 1038,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 2,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 3,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 4,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 5,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 6,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 7,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 8,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 9,
+      "severity": "warning",
+      "rule": "@typescript-eslint/no-unused-vars",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 9,
+      "severity": "warning",
+      "rule": "@typescript-eslint/no-unused-vars",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 9,
+      "severity": "warning",
+      "rule": "@typescript-eslint/no-unused-vars",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 9,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 11,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 589,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "line": 1323,
+      "severity": "error",
+      "rule": "@typescript-eslint/no-require-imports",
+      "source_line_in_existing_parent": true
+    }
+  ]
+}

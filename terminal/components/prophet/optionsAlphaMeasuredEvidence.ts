@@ -91,7 +91,7 @@ function nullable<T>(value: unknown, parser: (raw: unknown) => T | null): T | nu
 interface MeasuredInstant { secondMs: number; fraction: string }
 
 /** Validate the wire clock without letting Date normalize a calendar error or erase sub-ms precision. */
-function measuredInstant(value: string): MeasuredInstant | null {
+export function measuredInstant(value: string): MeasuredInstant | null {
   const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
   if (!match || !dateText(match[1])) return null;
   const [, day, hour, minute, second, fraction = "", zone] = match;

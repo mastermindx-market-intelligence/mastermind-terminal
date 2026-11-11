@@ -1,0 +1,75 @@
+[
+  {
+    "check": "unit",
+    "exit": 0,
+    "seconds": 11.381,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+      "lib/__tests__/exposureMapPrimitive.test.ts",
+      "lib/__tests__/exposureMap.test.ts",
+      "lib/__tests__/exposureWorkspace.test.ts",
+      "lib/__tests__/sharedShellLoginDefault.test.tsx",
+      "lib/__tests__/frozenNodeEntryView.test.tsx",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "lib/__tests__/marketRiskMarketScope.test.tsx",
+      "lib/__tests__/marketRisk.test.ts",
+      "lib/__tests__/earningsExpectationBoundary.test.tsx",
+      "lib/__tests__/eventWorkspace.test.ts",
+      "--maxWorkers=4",
+      "--minWorkers=2",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/current-master-final-gates-r4-v2/unit-report.json"
+    ],
+    "raw_log_sha256": "78a24aa09956e4d15682baf41be5e58e21e023cb1dc8a56fbf70d3b56a644c1f",
+    "compressed_log_sha256": "f70815665e4ff4a1211c496c1145567cff9fdcb46903e92cd15474ff6ca3daf2",
+    "summary": {
+      "numTotalTests": 276,
+      "numPassedTests": 276,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    }
+  },
+  {
+    "check": "typecheck",
+    "exit": 0,
+    "seconds": 74.707,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed_log_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+  },
+  {
+    "check": "python",
+    "exit": 0,
+    "seconds": 8.462,
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "tests/test_market_risk_envelope_market.py",
+      "tests/test_market_risk_bridge.py",
+      "-q",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "raw_log_sha256": "54214b395a249f3773a547b110aa45c95ee0d13abb41475b7bc14ee170878f9a",
+    "compressed_log_sha256": "b4f92d6313be86167c596e27fbaa158801d74eac78d1eb39b8f4424802be0886",
+    "summary": "...........................................................              [100%]\n59 passed in 7.62s"
+  }
+]

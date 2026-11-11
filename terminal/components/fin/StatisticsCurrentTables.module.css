@@ -1,0 +1,7 @@
+.currentTable.currentTable {
+  min-width: 0;
+}
+.currentTable th {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

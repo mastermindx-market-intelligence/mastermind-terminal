@@ -1,0 +1,17 @@
+{
+  "newGestureUsesPhysicalPointerAndPassiveObservation": true,
+  "paneScopedDeduplicationPreserved": true,
+  "preparedAt": "2026-11-09T18:36:52.364015+00:00",
+  "protectedSnappedPlacementPreserved": true,
+  "schema": "terminal_pr632_gesture_guard_repair.v1",
+  "source": {
+    "after": "0a7481db3340fe956ffee4bfbf97e0a95af0a25a1b060b143e0b1be9f019b2f7",
+    "before": "655095c14c7b1ee5739f4826ceafd3aa41a039faff98be113b631bfcbc6aa13f"
+  },
+  "state": "GUARD_AND_REAL_FRESH_GESTURE_DISCRIMINATOR_PREPARED",
+  "test": {
+    "after": "0b6f75ed26a0536db22a81da66846fc38a12de207eeaf7d8e8e6990f0d4b9aa0",
+    "before": "047a14c0e001fc9875d48b479b305a7cc99942e5fab01cb3ecf73160c0fcd0c8"
+  },
+  "unconditionalRepaintPreserved": true
+}

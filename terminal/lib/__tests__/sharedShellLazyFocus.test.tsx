@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { act, useState } from "react";
+import { act, useEffect, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import NotFoundActions from "@/app/not-found-actions";
 import ShellSearch from "@/components/chrome/shared-shell/ShellSearch";
 import { LangProvider } from "@/lib/i18n";
 vi.mock("next/navigation",()=>({useRouter:()=>({push:vi.fn()})}));
@@ -17,9 +18,28 @@ vi.mock("@/lib/searchTrack",()=>({trackSearch:vi.fn()}));
 vi.mock("next/dynamic",async()=>{const {default:SearchModal}=await import("@/components/SearchModal");return {default:()=>SearchModal};});
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root,host:HTMLDivElement;
-function Harness(){const [open,setOpen]=useState(false);return <LangProvider><button data-external="" onClick={()=>setOpen(true)}>Open companies</button><ShellSearch open={open} onOpenChange={setOpen}/></LangProvider>;}
-beforeEach(async()=>{host=document.createElement("div");document.body.append(host);root=createRoot(host);await act(async()=>root.render(<Harness/>));});
-afterEach(async()=>{await act(async()=>root.unmount());host.remove();});
+function Harness() {
+ const [open,setOpen]=useState(false);
+ useEffect(()=>{
+  const openCompanies=()=>setOpen(true);
+  window.addEventListener("mmx:shell-company-search",openCompanies);
+  return ()=>window.removeEventListener("mmx:shell-company-search",openCompanies);
+ },[]);
+ return <LangProvider><div className="shared-shell">
+  <button data-external="" onClick={()=>setOpen(true)}>Open companies</button>
+  <ShellSearch open={open} onOpenChange={setOpen}/>
+  <main><NotFoundActions/></main>
+ </div></LangProvider>;
+}
+beforeEach(async()=>{
+ // Model visible geometry for the external opener and the live trigger created by lazy loading.
+ vi.spyOn(HTMLElement.prototype,"getClientRects").mockImplementation(function(this:HTMLElement){
+  const hidden=!this.isConnected||this.closest("[hidden], [inert], [aria-hidden='true']")||getComputedStyle(this).display==="none";
+  return (hidden?[]:[new DOMRect(0,0,100,40)]) as unknown as DOMRectList;
+ });
+ host=document.createElement("div");document.body.append(host);root=createRoot(host);await act(async()=>root.render(<Harness/>));
+});
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();document.documentElement.removeAttribute("data-lang");document.documentElement.lang="en";localStorage.removeItem("mm.lang");vi.restoreAllMocks();});
 async function escape(){const dialog=document.body.querySelector<HTMLElement>('[role="dialog"]')!;await act(async()=>dialog.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true,cancelable:true})));}
 it.each(["Escape", "close button"])("restores a live search trigger after cold keyboard activation and %s",async(closeMode)=>{
  const placeholder=host.querySelector<HTMLButtonElement>(".shared-shell-company-search")!;placeholder.focus();
@@ -34,6 +54,27 @@ it.each(["Escape", "close button"])("restores a live search trigger after cold k
 it("restores a real external opener after programmatic cold open",async()=>{
  const opener=host.querySelector<HTMLButtonElement>("[data-external]")!;opener.focus();await act(async()=>opener.click());
  expect(document.body.querySelector('[role="dialog"]')).not.toBeNull();await escape();expect(document.activeElement).toBe(opener);
+});
+
+it.each([
+ ["en", "Search companies", "Search companies and tools"],
+ ["zh", "搜索公司", "搜索公司和工具"],
+] as const)("opens the real company picker from the 404 card and restores its opener in %s",async(lang,label,title)=>{
+ const {applyLang}=await import("@/lib/i18n");
+ await act(async()=>applyLang(lang));
+ const recovery=host.querySelector("main")!;
+ expect([...recovery.querySelectorAll("nav a")].map(link=>link.getAttribute("href"))).toEqual(["/today","/discover","/terminal"]);
+ const opener=recovery.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;
+ expect(opener).not.toBeNull();
+ expect(opener.textContent).toContain(label);
+ expect(opener.type).toBe("button");
+ await act(async()=>opener.click());
+ const dialog=document.body.querySelector('[role="dialog"]')!;
+ expect(dialog).not.toBeNull();
+ expect(document.getElementById(dialog.getAttribute("aria-labelledby")!)?.textContent).toBe(title);
+ await escape();
+ expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+ expect(document.activeElement).toBe(opener);
 });
 
 // Exercise the real native-title aliases deterministically, independently of

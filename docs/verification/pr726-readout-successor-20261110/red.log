@@ -1,0 +1,256 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-726-readout-successor/terminal[39m
+
+ [31m❯[39m lib/__tests__/precisionEntryReadout.test.ts [2m([22m[2m20 tests[22m[2m | [22m[31m9 failed[39m[2m)[22m[90m 21[2mms[22m[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mkeeps missing and malformed fields unknown rather than coercing them to zero or false[90m 9[2mms[22m[31m[39m
+[31m     → expected 'partial' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mkeeps empty containers unavailable despite current freshness[90m 1[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mkeeps metadata-only containers unavailable despite current freshness[90m 1[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mkeeps malformed containers unavailable despite current freshness[90m 0[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mreports partial coverage when only one populated section has validated facts[90m 1[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'partial' // Object.is equality[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mcounts the entry next-trigger fact only in its own source section[90m 0[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'partial' // Object.is equality[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mdoes not let derived unknown geometry qualify an empty entry section[90m 0[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'partial' // Object.is equality[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mkeeps non-positive price fields unavailable instead of treating zero as price evidence[90m 0[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m Precision Entry intel readout[2m > [22mcounts a valid source band without inventing a spot or derived location[90m 2[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'partial' // Object.is equality[39m
+ [31m❯[39m lib/__tests__/precisionEntryStrip.test.tsx [2m([22m[2m21 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[90m 203[2mms[22m[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22momits absent en posture without falling back to the opposite headline[90m 17[2mms[22m[31m[39m
+[31m     → expected <div class="cell" …(1)>…(2)</div> to be null[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22mupdates en posture through omission, restoration and a language change[90m 14[2mms[22m[31m[39m
+[31m     → expected <div class="cell" …(1)>…(2)</div> to be null[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22mshows localized unavailability for empty containers in en[90m 7[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22mshows localized unavailability for metadata-only containers in en[90m 2[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22mshows localized unavailability for malformed containers in en[90m 2[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22momits absent zh posture without falling back to the opposite headline[90m 7[2mms[22m[31m[39m
+[31m     → expected <div class="cell" …(1)>…(2)</div> to be null[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22mupdates zh posture through omission, restoration and a language change[90m 6[2mms[22m[31m[39m
+[31m     → expected <div class="cell" …(1)>…(2)</div> to be null[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22mshows localized unavailability for empty containers in zh[90m 1[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22mshows localized unavailability for metadata-only containers in zh[90m 3[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+[31m   [31m×[31m PrecisionEntryStrip[2m > [22mshows localized unavailability for malformed containers in zh[90m 2[2mms[22m[31m[39m
+[31m     → expected 'ready' to be 'unavailable' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 19 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mkeeps missing and malformed fields unknown rather than coercing them to zero or false
+[31m[1mAssertionError[22m: expected 'partial' to be 'unavailable' // Object.is equality[39m
+
+Expected: [32m"unavailable"[39m
+Received: [31m"partial"[39m
+
+[36m [2m❯[22m lib/__tests__/precisionEntryReadout.test.ts:[2m107:34[22m[39m
+    [90m105| [39m    })[33m;[39m
+    [90m106| [39m
+    [90m107| [39m    [34mexpect[39m(readout[33m.[39mavailability)[33m.[39m[34mtoBe[39m([32m"unavailable"[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m108| [39m    [34mexpect[39m(readout[33m.[39mfreshness)[33m.[39m[34mtoBe[39m([32m"unknown"[39m)[33m;[39m
+    [90m109| [39m    [34mexpect[39m(readout[33m.[39mposture[33m.[39mstatus)[33m.[39m[34mtoBeNull[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mkeeps empty containers unavailable despite current freshness
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mkeeps metadata-only containers unavailable despite current freshness
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mkeeps malformed containers unavailable despite current freshness
+[31m[1mAssertionError[22m: expected 'ready' to be 'unavailable' // Object.is equality[39m
+
+Expected: [32m"unavailable"[39m
+Received: [31m"ready"[39m
+
+[36m [2m❯[22m lib/__tests__/precisionEntryReadout.test.ts:[2m265:34[22m[39m
+    [90m263| [39m      schema[33m:[39m [32m"intel/v1"[39m[33m,[39m asof[33m:[39m [32m"2026-11-10"[39m[33m,[39m tape[33m:[39m { stale[33m:[39m [35mfalse[39m }[33m,[39m …
+    [90m264| [39m    })[33m;[39m
+    [90m265| [39m    [34mexpect[39m(readout[33m.[39mavailability)[33m.[39m[34mtoBe[39m([32m"unavailable"[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m266| [39m    [34mexpect[39m(readout[33m.[39mfreshness)[33m.[39m[34mtoBe[39m([32m"current"[39m)[33m;[39m
+    [90m267| [39m    [34mexpect[39m(readout[33m.[39masof[33m.[39mintel)[33m.[39m[34mtoBe[39m([32m"2026-11-10"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mreports partial coverage when only one populated section has validated facts
+[31m[1mAssertionError[22m: expected 'ready' to be 'partial' // Object.is equality[39m
+
+Expected: [32m"partial"[39m
+Received: [31m"ready"[39m
+
+[36m [2m❯[22m lib/__tests__/precisionEntryReadout.test.ts:[2m276:34[22m[39m
+    [90m274| [39m      analysis[33m:[39m { entry[33m:[39m { headline[33m:[39m [32m"Wait for confluence"[39m }[33m,[39m confluen…
+    [90m275| [39m    })[33m;[39m
+    [90m276| [39m    [34mexpect[39m(readout[33m.[39mavailability)[33m.[39m[34mtoBe[39m([32m"partial"[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m277| [39m    [34mexpect[39m(readout[33m.[39mposture[33m.[39mheadline)[33m.[39m[34mtoBe[39m([32m"Wait for confluence"[39m)[33m;[39m
+    [90m278| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mcounts the entry next-trigger fact only in its own source section
+[31m[1mAssertionError[22m: expected 'ready' to be 'partial' // Object.is equality[39m
+
+Expected: [32m"partial"[39m
+Received: [31m"ready"[39m
+
+[36m [2m❯[22m lib/__tests__/precisionEntryReadout.test.ts:[2m284:34[22m[39m
+    [90m282| [39m      analysis[33m:[39m { entry[33m:[39m { next_trigger[33m:[39m [32m"2D MACD"[39m }[33m,[39m confluence[33m:[39m {}[33m,[39m …
+    [90m283| [39m    })[33m;[39m
+    [90m284| [39m    [34mexpect[39m(readout[33m.[39mavailability)[33m.[39m[34mtoBe[39m([32m"partial"[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m285| [39m    [34mexpect[39m(readout[33m.[39mtrigger[33m.[39mnext)[33m.[39m[34mtoBe[39m([32m"2D MACD"[39m)[33m;[39m
+    [90m286| [39m    [34mexpect[39m(readout[33m.[39mstructure[33m.[39mcoiled)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mdoes not let derived unknown geometry qualify an empty entry section
+[31m[1mAssertionError[22m: expected 'ready' to be 'partial' // Object.is equality[39m
+
+Expected: [32m"partial"[39m
+Received: [31m"ready"[39m
+
+[36m [2m❯[22m lib/__tests__/precisionEntryReadout.test.ts:[2m293:34[22m[39m
+    [90m291| [39m      analysis[33m:[39m { entry[33m:[39m {}[33m,[39m confluence[33m:[39m { htf_s1[33m:[39m [35mfalse[39m }[33m,[39m sniper[33m:[39m { …
+    [90m292| [39m    })[33m;[39m
+    [90m293| [39m    [34mexpect[39m(readout[33m.[39mavailability)[33m.[39m[34mtoBe[39m([32m"partial"[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m294| [39m    [34mexpect[39m(readout[33m.[39mgeometry[33m.[39mlocation)[33m.[39m[34mtoBe[39m([32m"unknown"[39m)[33m;[39m
+    [90m295| [39m    [34mexpect[39m(readout[33m.[39mtrigger[33m.[39mhtfS1)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mkeeps non-positive price fields unavailable instead of treating zero as price evidence
+[31m[1mAssertionError[22m: expected 'ready' to be 'unavailable' // Object.is equality[39m
+
+Expected: [32m"unavailable"[39m
+Received: [31m"ready"[39m
+
+[36m [2m❯[22m lib/__tests__/precisionEntryReadout.test.ts:[2m323:34[22m[39m
+    [90m321| [39m      }[33m,[39m
+    [90m322| [39m    })[33m;[39m
+    [90m323| [39m    [34mexpect[39m(readout[33m.[39mavailability)[33m.[39m[34mtoBe[39m([32m"unavailable"[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m324| [39m    [34mexpect[39m(readout[33m.[39mgeometry)[33m.[39m[34mtoEqual[39m({
+    [90m325| [39m      spot[33m:[39m [35mnull[39m[33m,[39m buyZone[33m:[39m [35mnull[39m[33m,[39m chaseAbove[33m:[39m [35mnull[39m[33m,[39m stop[33m:[39m [35mnull[39m[33m,[39m locatio…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryReadout.test.ts[2m > [22mPrecision Entry intel readout[2m > [22mcounts a valid source band without inventing a spot or derived location
+[31m[1mAssertionError[22m: expected 'ready' to be 'partial' // Object.is equality[39m
+
+Expected: [32m"partial"[39m
+Received: [31m"ready"[39m
+
+[36m [2m❯[22m lib/__tests__/precisionEntryReadout.test.ts:[2m347:34[22m[39m
+    [90m345| [39m      analysis[33m:[39m { entry[33m:[39m { buy_zone[33m:[39m [[34m90[39m[33m,[39m [34m100[39m] }[33m,[39m confluence[33m:[39m {}[33m,[39m snip…
+    [90m346| [39m    })[33m;[39m
+    [90m347| [39m    [34mexpect[39m(readout[33m.[39mavailability)[33m.[39m[34mtoBe[39m([32m"partial"[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m348| [39m    [34mexpect[39m(readout[33m.[39mgeometry[33m.[39mbuyZone)[33m.[39m[34mtoEqual[39m({ low[33m:[39m [34m90[39m[33m,[39m high[33m:[39m [34m100[39m })[33m;[39m
+    [90m349| [39m    [34mexpect[39m(readout[33m.[39mgeometry[33m.[39mspot)[33m.[39m[34mtoBeNull[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22momits absent en posture without falling back to the opposite headline
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22momits absent zh posture without falling back to the opposite headline
+[31m[1mAssertionError[22m: expected <div class="cell" …(1)>…(2)</div> to be null[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+<div
+  class="cell"
+  data-testid="precision-posture"
+>
+  <span
+    class="label"
+  >
+    Posture
+  </span>
+  <span
+    class="value"
+  >
+    等待共振
+  </span>
+</div>
+
+[36m [2m❯[22m lib/__tests__/precisionEntryStrip.test.tsx:[2m253:69[22m[39m
+    [90m251| [39m    [34mit[39m([32m"omits absent "[39m [33m+[39m lang [33m+[39m [32m" posture without falling back to the [39m…
+    [90m252| [39m      [35mconst[39m el [33m=[39m [34mmount[39m(withoutSelectedHeadline[33m,[39m { lang })[33m;[39m
+    [90m253| [39m      [34mexpect[39m(el[33m.[39m[34mquerySelector[39m([32m"[data-testid='precision-posture']"[39m))[33m.[39m[34mto[39m…
+    [90m   | [39m                                                                    [31m^[39m
+    [90m254| [39m      [34mexpect[39m(el[33m.[39mtextContent)[33m.[39mnot[33m.[39m[34mtoContain[39m(opposite)[33m;[39m
+    [90m255| [39m      [34mexpect[39m(el[33m.[39m[34mquerySelector[39m([32m"[data-testid='precision-entry-strip']"[39m)…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22mupdates en posture through omission, restoration and a language change
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22mupdates zh posture through omission, restoration and a language change
+[31m[1mAssertionError[22m: expected <div class="cell" …(1)>…(2)</div> to be null[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+<div
+  class="cell"
+  data-testid="precision-posture"
+>
+  <span
+    class="label"
+  >
+    Posture
+  </span>
+  <span
+    class="value"
+  >
+    等待共振
+  </span>
+</div>
+
+[36m [2m❯[22m lib/__tests__/precisionEntryStrip.test.tsx:[2m264:69[22m[39m
+    [90m262| [39m        [33m<[39m[33mPrecisionEntryStrip[39m [33mreadout[39m[33m=[39m[33m{[39m[34mbuildPrecisionEntryReadout[39m(witho…
+    [90m263| [39m      ))[33m;[39m
+    [90m264| [39m      [34mexpect[39m(el[33m.[39m[34mquerySelector[39m([32m"[data-testid='precision-posture']"[39m))[33m.[39m[34mto[39m…
+    [90m   | [39m                                                                    [31m^[39m
+    [90m265| [39m      [34mexpect[39m(el[33m.[39mtextContent)[33m.[39mnot[33m.[39m[34mtoContain[39m(opposite)[33m;[39m
+    [90m266| [39m      [34mact[39m(() [33m=>[39m root[33m![39m[33m.[39m[34mrender[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22mshows localized unavailability for empty containers in en
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22mshows localized unavailability for metadata-only containers in en
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22mshows localized unavailability for malformed containers in en
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22mshows localized unavailability for empty containers in zh
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22mshows localized unavailability for metadata-only containers in zh
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/precisionEntryStrip.test.tsx[2m > [22mPrecisionEntryStrip[2m > [22mshows localized unavailability for malformed containers in zh
+[31m[1mAssertionError[22m: expected 'ready' to be 'unavailable' // Object.is equality[39m
+
+Expected: [32m"unavailable"[39m
+Received: [31m"ready"[39m
+
+[36m [2m❯[22m lib/__tests__/precisionEntryStrip.test.tsx:[2m284:120[22m[39m
+    [90m282| [39m      [34mit[39m([32m"shows localized unavailability for "[39m [33m+[39m name [33m+[39m [32m" containers i[39m…
+    [90m283| [39m        [35mconst[39m el [33m=[39m [34mmount[39m({ tape[33m:[39m { stale[33m:[39m [35mfalse[39m }[33m,[39m analysis }[33m,[39m { lang …
+    [90m284| [39m        [34mexpect[39m(el[33m.[39m[34mquerySelector[39m([32m"[data-testid='precision-entry-strip'][39m…
+    [90m   | [39m                                                                                                                       [31m^[39m
+    [90m285| [39m        [35mconst[39m badge [33m=[39m el[33m.[39m[34mquerySelector[39m([32m"[data-testid='precision-data-s[39m…
+    [90m286| [39m        [34mexpect[39m(badge[33m?.[39m[34mgetAttribute[39m([32m"data-precision-data"[39m))[33m.[39m[34mtoBe[39m([32m"unava[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/19]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m19 failed[39m[22m[2m | [22m[1m[32m22 passed[39m[22m[90m (41)[39m
+[2m   Start at [22m 09:13:50
+[2m   Duration [22m 3.53s[2m (transform 193ms, setup 0ms, collect 299ms, tests 224ms, environment 1.12s, prepare 2.15s)[22m
+
+JSON report written to /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-726-readout-successor/docs/verification/pr726-readout-successor-20261110/red-report.json

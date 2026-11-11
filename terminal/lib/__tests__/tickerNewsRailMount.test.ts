@@ -6,6 +6,7 @@ const root = join(process.cwd());
 const shell = () => readFileSync(join(root, "components/TerminalShell.tsx"), "utf8");
 const page = () => readFileSync(join(root, "app/terminal/page.tsx"), "utf8");
 const css = () => readFileSync(join(root, "components/news/TickerNewsPanel.module.css"), "utf8");
+const panel = () => readFileSync(join(root, "components/news/TickerNewsPanel.tsx"), "utf8");
 
 describe("Terminal ticker-news rail integration", () => {
   it("offers News as a third authenticated rail source when the operator flag is on", () => {
@@ -47,5 +48,37 @@ describe("Terminal ticker-news rail integration", () => {
     expect(source).not.toContain('data-theme="light"');
     expect(source).toContain("@media (max-width:860px)");
     expect(source).toContain(".board{height:auto");
+  });
+
+  it("gives the panel the full column height on desktop and natural scrolling on a phone", () => {
+    const source = css();
+    expect(source).toContain(".board{height:auto;flex:1;min-height:0;");
+    // The phone keeps its own overrides: intrinsic height, no inner scroll cap.
+    expect(source).toContain(".board{height:auto;max-height:none;flex:none;");
+    expect(source).toContain(".scroll{max-height:none;overflow:visible}");
+  });
+
+  it("mounts no flow strip in the panel", () => {
+    expect(panel()).not.toContain("NewsFlowStrip");
+    expect(panel()).not.toContain("showFlow");
+  });
+
+  it("gives the News rail the column: the company card is hidden, never unmounted, while News is active", () => {
+    expect(shell()).toContain(
+      'className={`board detail-board${loggedIn && newsRailEnabled && railTab === "news" ? " rail-hidden" : ""}`}',
+    );
+  });
+
+  it("leaves News before the phone's symbol-details scroll, so the dossier is the visible target", () => {
+    const source = shell();
+    const symbolDetails = source.slice(source.indexOf('action === "symbolDetails"'));
+    expect(symbolDetails).toContain(
+      'if (loggedIn && newsRailEnabled && railTab === "news") setRailTab("watchlists");',
+    );
+    expect(symbolDetails).toContain("setFullChart(false);");
+    expect(symbolDetails).toContain('document.querySelector(".detail-board")?.scrollIntoView');
+    // The leave is scheduled before the scroll, so the dossier is revealed first.
+    expect(symbolDetails.indexOf('setRailTab("watchlists")'))
+      .toBeLessThan(symbolDetails.indexOf("scrollIntoView"));
   });
 });

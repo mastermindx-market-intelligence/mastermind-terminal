@@ -1,0 +1,57 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/flowProjectionControls.test.tsx",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/selection-red-report.json",
+    "--testNamePattern",
+    "collapses an expanded|does not revive|clears missing bucket"
+  ],
+  "counts": {
+    "numFailedTests": 3,
+    "numPassedTests": 0,
+    "numPendingTests": 3,
+    "numTotalTests": 6
+  },
+  "exitCode": 1,
+  "failedTests": [
+    {
+      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/lib/__tests__/flowProjectionControls.test.tsx",
+      "messages": [
+        "AssertionError: expected <div \u2026(5)>\u2026(5)</div> to have a length of +0 but got 1\n    at Proxy.<anonymous> (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/expect/dist/index.js:1339:22)\n    at Proxy.<anonymous> (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/expect/dist/index.js:972:17)\n    at Proxy.methodWrapper (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/chai/index.js:1686:25)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/lib/__tests__/flowProjectionControls.test.tsx:100:57\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)"
+      ],
+      "name": "real FeedPane selection preserves coverage and expansion ownership collapses an expanded card when the interval changes by keyboard activation",
+      "status": "failed"
+    },
+    {
+      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/lib/__tests__/flowProjectionControls.test.tsx",
+      "messages": [
+        "AssertionError: expected <div \u2026(5)>\u2026(5)</div> to have a length of +0 but got 1\n    at Proxy.<anonymous> (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/expect/dist/index.js:1339:22)\n    at Proxy.<anonymous> (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/expect/dist/index.js:972:17)\n    at Proxy.methodWrapper (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/chai/index.js:1686:25)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/lib/__tests__/flowProjectionControls.test.tsx:109:57\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)"
+      ],
+      "name": "real FeedPane selection preserves coverage and expansion ownership does not revive a hidden expansion after selecting and clearing a different bucket",
+      "status": "failed"
+    },
+    {
+      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/lib/__tests__/flowProjectionControls.test.tsx",
+      "messages": [
+        "AssertionError: expected <div \u2026(5)>\u2026(5)</div> to have a length of +0 but got 1\n    at Proxy.<anonymous> (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/expect/dist/index.js:1339:22)\n    at Proxy.<anonymous> (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/expect/dist/index.js:972:17)\n    at Proxy.methodWrapper (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/chai/index.js:1686:25)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/lib/__tests__/flowProjectionControls.test.tsx:119:57\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///Volumes/Mastermind%202/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)"
+      ],
+      "name": "real FeedPane selection preserves coverage and expansion ownership clears missing bucket state and expansion when a new feed removes that bucket",
+      "status": "failed"
+    }
+  ],
+  "finishedAt": "2026-11-10T17:15:00.375013+00:00",
+  "logSha256": "334abcd270abcf9839b4211607efc11e53d3db574d54d24c52283226937013b5",
+  "mode": "selection-red",
+  "pid": 73737,
+  "reportSha256": "6f63672ea93f2e8b4268aeaf244415a2181f4cd142053185f29793daa8254879",
+  "schema": "terminal_pr687_focused_tests.v1",
+  "seconds": 2.096,
+  "sourceFiles": 2771,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T17:14:58.278034+00:00",
+  "state": "RED_COUNTEREXAMPLES_OBSERVED_REVIEW_REQUIRED"
+}

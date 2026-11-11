@@ -1,0 +1,22 @@
+{
+  "cacheDeleted": false,
+  "cells": 6,
+  "command": [
+    "node",
+    "e2e/tools/qualify_shared_shell_intelligence.cjs"
+  ],
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T11:41:33.795404+00:00",
+  "logSha256": "4aa256e59530107863a15632b0cab27a086797831f16fa6d235b333ea59a9360",
+  "nextLockAbsent": true,
+  "observedInputs": 3532,
+  "port": 34228,
+  "portClosed": true,
+  "qualificationPassed": true,
+  "repair": "current-protected-sector-generation-and-Next-runtime-composition",
+  "seconds": 35.628,
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "sourceStable": true,
+  "startedAt": "2026-11-10T11:40:58.166669+00:00",
+  "variant": "pr1422-next-r5"
+}

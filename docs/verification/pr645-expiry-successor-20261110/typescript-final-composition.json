@@ -1,0 +1,15 @@
+{
+  "schema": "terminal_pr645_final_composition_typecheck.v1",
+  "completedAt": "2026-11-10T06:42:20.069138+00:00",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "tsc",
+    "--noEmit"
+  ],
+  "exitCode": 0,
+  "seconds": 16.1,
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "integrationDeltaSha256": "b4b244d8511ed0fb091953bdcef449cf6e4d227dd5489459f0f1021378acf51a"
+}
