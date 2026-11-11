@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { isolateLayoutStore, useLang as pinLanguage } from "./layoutStore";
+import { readFile } from "node:fs/promises";
+import { isolateLayoutStore, seedUnreadableWorkspace, useLang as pinLanguage } from "./layoutStore";
 import { openLayoutMenu } from "./terminalToolbar";
 
 for (const lang of ["en", "zh"] as const) {
@@ -112,4 +113,53 @@ test("late rename success never replays while a newer draft is being typed", asy
     await input.press("Escape"); await expect(input).toBeHidden();
     await expect(menu.locator('[data-ws-more="Submitted"]')).toBeFocused();
   } finally { release(); await page.unroute("**/api/layouts"); }
+});
+
+test("unreadable workspace actions stay keyboard accessible without opening the workspace", async ({ page, baseURL }, info) => {
+  test.setTimeout(90_000);
+  await isolateLayoutStore(page, info, baseURL); await pinLanguage(page, "en");
+  await page.goto("/terminal?symbol=NVDA"); await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  const name = "Research archive — saved by a newer workspace format";
+  await seedUnreadableWorkspace(page, name);
+  await page.reload(); await expect(page.locator(".mm-ptag")).toBeVisible();
+  const stored = await (await page.request.get("/api/layouts")).json() as { layouts: { name: string; config: unknown }[] };
+  const expectedRaw = stored.layouts.find(layout => layout.name === name)?.config;
+  expect(expectedRaw).toBeDefined();
+  const menu = await openLayoutMenu(page);
+  const row = menu.locator(`[data-layout-row="${name}"]`);
+  const open = row.locator("[data-ws-open]");
+  const more = row.locator("[data-ws-more]");
+  await expect(open).toBeDisabled(); await expect(more).toBeEnabled();
+  expect(await more.evaluate(element => element.tagName)).toBe("BUTTON");
+  expect(await more.evaluate(element => element.parentElement?.closest("button") === null)).toBe(true);
+
+  for (const key of ["Enter", "Space"]) {
+    await more.focus(); await more.press(key);
+    const exportAction = row.locator('[data-ws-act="export"]');
+    await expect(more).toHaveAttribute("aria-expanded", "true");
+    await expect(exportAction).toBeFocused();
+    await exportAction.press("Escape");
+    await expect(more).toBeFocused(); await expect(more).toHaveAttribute("aria-expanded", "false");
+    await expect(menu).toBeVisible();
+  }
+  await more.press("Enter");
+  const download = page.waitForEvent("download");
+  await row.locator('[data-ws-act="export"]').press("Enter");
+  const exported = await download;
+  expect(exported.suggestedFilename()).toMatch(/\.json$/);
+  const exportedPath = info.outputPath("unreadable-workspace.json");
+  await exported.saveAs(exportedPath);
+  expect(JSON.parse(await readFile(exportedPath, "utf8"))).toEqual(expectedRaw);
+  // A programmatic download can dismiss the surrounding desktop popover. Reopen through
+  // its existing owner and confirm the unreadable workspace was preserved, not loaded.
+  const reopened = await openLayoutMenu(page);
+  await expect(reopened.locator("[data-ws-open]")).toBeDisabled();
+  const actions = reopened.locator("[data-ws-more]");
+  if (await actions.getAttribute("aria-expanded") !== "true") await actions.click();
+  expect(await reopened.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+  await reopened.screenshot({ path: info.outputPath(`workspace-actions-${info.project.name}.png`) });
+  const darkSurface = await reopened.evaluate(element => getComputedStyle(element).backgroundColor);
+  await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+  await expect.poll(() => reopened.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe(darkSurface);
+  await reopened.screenshot({ path: info.outputPath(`workspace-actions-${info.project.name}-light.png`) });
 });

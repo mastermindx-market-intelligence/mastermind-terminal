@@ -12,6 +12,7 @@ const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 // The sources e2e/tools/capture_f12_b5_2_team_workspaces.cjs stamps (its LAYOUT_FILES).
 const LAYOUT_FILES = [
   "terminal/components/LayoutMenu.tsx",
+  "terminal/components/LayoutMenu.module.css",
   "terminal/lib/teamSharedWorkflow.ts",
   "terminal/lib/i18n.tsx",
   "terminal/app/dev/workspaces/page.tsx",
