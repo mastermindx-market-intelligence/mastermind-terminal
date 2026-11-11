@@ -1,0 +1,24 @@
+{
+  "extends": "/workspace/scratch/c334c7e44c00/terminal-pr668-perf-statistics/terminal/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "incremental": false,
+    "baseUrl": "/workspace/scratch/c334c7e44c00/terminal-pr668-perf-statistics/terminal",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "typeRoots": [
+      "/workspace/scratch/c334c7e44c00/terminal-pr668-perf-statistics/terminal/node_modules/@types"
+    ],
+    "plugins": []
+  },
+  "files": [
+    "/workspace/scratch/c334c7e44c00/terminal-pr668-perf-statistics/terminal/components/prophet/prophetPerfTypes.ts",
+    "/workspace/scratch/c334c7e44c00/terminal-pr668-perf-statistics/terminal/lib/__tests__/prophetPerf.test.ts"
+  ],
+  "include": [],
+  "exclude": []
+}

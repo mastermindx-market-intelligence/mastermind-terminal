@@ -407,3 +407,110 @@ describe("Prophet PERF v1 producer authority", () => {
     expect(value).toEqual(before);
   });
 });
+
+describe("Prophet PERF necessary raw-statistic invariants", () => {
+  const rawSummary = (value: Record<string, unknown>) =>
+    (value.summary as Record<string, unknown>).raw_stock_return as Record<string, unknown>;
+
+  async function withReturns(
+    returns: readonly (number | null)[],
+    stats: { mean_pct: number; median_pct: number; min_pct: number; max_pct: number },
+  ) {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    const rows = (value.plans as Array<Record<string, unknown>>)
+      .filter((row) => row.outcome !== "NO_ENTRY");
+    expect(rows).toHaveLength(returns.length);
+    rows.forEach((row, index) => {
+      row.stock_result_pct = returns[index];
+      row.stock_result_pct_unavailable_reason = returns[index] === null ? "canonical_ledger_null" : null;
+    });
+    const available = returns.filter((value): value is number => value !== null);
+    Object.assign(rawSummary(value), {
+      ...stats,
+      available_count: available.length,
+      unavailable_count: returns.length - available.length,
+      positive_count: available.filter((value) => value > 0).length,
+      negative_count: available.filter((value) => value < 0).length,
+      zero_count: available.filter((value) => value === 0).length,
+      unavailable_reason: null,
+    });
+    return value;
+  }
+
+  it.each([
+    { median_pct: 999 },
+    { median_pct: -999 },
+    { min_pct: 10, median_pct: 5, max_pct: 1 },
+  ])("rejects impossible ordering of supplied rounded statistics: %j", async (stats) => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    Object.assign(rawSummary(value), stats);
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it.each([
+    { mean_pct: 1, median_pct: 0, min_pct: 0, max_pct: 0 },
+    { mean_pct: 0, median_pct: 0, min_pct: -1, max_pct: 0 },
+    { mean_pct: 0, median_pct: 0, min_pct: 0, max_pct: 1 },
+    { mean_pct: 1, median_pct: 1, min_pct: 1, max_pct: 1 },
+  ])("rejects invented performance for an all-zero available population: %j", async (stats) => {
+    // Every supplied tuple remains ordered, isolating the all-zero contract.
+    const value = await withReturns([0, -0, 0], stats);
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it.each([
+    {
+      label: "signed zero",
+      returns: [-0, 0, -0],
+      stats: { mean_pct: 0, median_pct: 0, min_pct: -0, max_pct: -0 },
+    },
+    {
+      label: "zero returns with partial coverage",
+      returns: [-0, null, 0],
+      stats: { mean_pct: 0, median_pct: 0, min_pct: -0, max_pct: -0 },
+    },
+    {
+      label: "nonzero subnormal returns rounded to zero",
+      returns: [Number.MIN_VALUE, Number.MIN_VALUE, null],
+      stats: { mean_pct: 0, median_pct: 0, min_pct: 0, max_pct: 0 },
+    },
+    {
+      label: "even midpoint underflow",
+      returns: [0, Number.MIN_VALUE, null],
+      stats: { mean_pct: 0, median_pct: 0, min_pct: 0, max_pct: 0 },
+    },
+    {
+      label: "equal rounded extrema from distinct nonzero rows",
+      returns: [0.00001, 0.00002, 0.00003],
+      stats: { mean_pct: 0, median_pct: 0, min_pct: 0, max_pct: 0 },
+    },
+    {
+      label: "finite opposite-sign extreme midpoint",
+      returns: [-Number.MAX_VALUE, Number.MAX_VALUE, null],
+      stats: { mean_pct: 0, median_pct: 0, min_pct: -Number.MAX_VALUE, max_pct: Number.MAX_VALUE },
+    },
+    {
+      label: "valid native mean above identical large row values",
+      returns: [15000000000000004, 15000000000000004, 15000000000000004],
+      stats: { mean_pct: 15000000000000006, median_pct: 15000000000000004, min_pct: 15000000000000004, max_pct: 15000000000000004 },
+    },
+    {
+      label: "valid native mean below identical negative row values",
+      returns: [-15000000000000004, -15000000000000004, -15000000000000004],
+      stats: { mean_pct: -15000000000000006, median_pct: -15000000000000004, min_pct: -15000000000000004, max_pct: -15000000000000004 },
+    },
+  ])("preserves $label without rewriting source, rows, statistics or signed zero", async ({ returns, stats }) => {
+    const value = await withReturns(returns, stats);
+    // structuredClone preserves signed zero; a JSON clone would erase it.
+    const before = structuredClone(value);
+    const admitted = normalizeProphetPerfPayload(value);
+    expect(admitted).not.toBeNull();
+    expect(admitted!.source).toEqual(value.source);
+    expect(admitted!.plans).toEqual(value.plans);
+    expect(admitted!.summary).toEqual(value.summary);
+    expect(value).toEqual(before);
+    for (const field of ["mean_pct", "median_pct", "min_pct", "max_pct"] as const) {
+      expect(Object.is(admitted!.summary.raw_stock_return[field], stats[field])).toBe(true);
+    }
+  });
+});

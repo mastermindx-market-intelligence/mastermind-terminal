@@ -376,6 +376,15 @@ export function normalizeProphetPerfPayload(value: unknown): ProphetPerfPayload 
   ) return null;
   if (values.length === 0 && [rawMean, rawMedian, rawMin, rawMax].some((value) => value !== null)) return null;
 
+  // The producer rounds these three statistics monotonically. Its separately
+  // rounded sum/division can put the mean outside the rounded extrema.
+  if (hasRawStats && (rawMin > rawMedian || rawMedian > rawMax)) return null;
+  if (
+    values.length > 0 &&
+    values.every((value) => value === 0) &&
+    [rawMean, rawMedian, rawMin, rawMax].some((value) => value !== 0)
+  ) return null;
+
   return {
     schema: PROPHET_PERF_SCHEMA,
     stale,

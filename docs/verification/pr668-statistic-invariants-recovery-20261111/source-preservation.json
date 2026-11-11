@@ -1,0 +1,20 @@
+{
+  "base": "12aa2f1ec40ac906c17958d9587aa77c073fa3ff",
+  "changedExistingPaths": [
+    "terminal/components/prophet/prophetPerfTypes.ts",
+    "terminal/lib/__tests__/prophetPerf.test.ts"
+  ],
+  "baseEntries": 2836,
+  "allOtherBaseEntriesPreserved": 2834,
+  "originalTestFileIsExactPrefix": true,
+  "sourceBindings": {
+    "terminal/components/prophet/prophetPerfTypes.ts": {
+      "beforeGitBlob": "ffca1b11d28b23db3107be446dbbb69773afef1e",
+      "afterSha256": "6fadbdd2ac570daebb2cf179bc890f4b4350fcc0a8739aff275523bdada0b603"
+    },
+    "terminal/lib/__tests__/prophetPerf.test.ts": {
+      "beforeGitBlob": "41eebb58d09cfdc95bee9b69b9a7761c3aec7182",
+      "afterSha256": "7730b95c7ac1296d0af8ba14428695263fe7510e5f8e3350ccc9db3aa29d0bb3"
+    }
+  }
+}
