@@ -1,0 +1,384 @@
+{
+ "schema": "prophet.sector_members/v1",
+ "mode": "group",
+ "captured_at": "2026-11-07T06:02:11Z",
+ "sector_ref": {
+  "owner": "sector_generation",
+  "generation_id": "sgen-2026-11-06-a3f2",
+  "content_id": "1e2d6edf94bcf7b69c1df348fd4694c5146aea1e87497331ab1ee174a32a7b4e",
+  "source_session": "2026-11-06",
+  "published_at": "2026-11-07T05:12:00Z",
+  "member_sha256": "ec0597adc20e9d9093ae64305b3e76bde58581be7cd046641727a7308652b944",
+  "qualification": "accepted"
+ },
+ "prophet_ref": {
+  "owner": "prophet_index",
+  "schema": "prophet.index/v1",
+  "asof": "2026-11-06",
+  "generated_at": "2026-11-06T21:40:00Z",
+  "index_sha256": "91f65d13e7d5ab7ca6db0b1760d7252a5bcda8f4f00f32c9ba52197a2880883e",
+  "plan_count": 893,
+  "open_plan_count": 364
+ },
+ "compatibility": {
+  "status": "compatible",
+  "sector_session": "2026-11-06",
+  "prophet_asof": "2026-11-06",
+  "session_gap": 0,
+  "reason": null
+ },
+ "disclosure": {
+  "membership_basis": "current_roster_not_point_in_time",
+  "taxonomy_basis": "gics_current_labels",
+  "join_key": "us_listing_ticker",
+  "descriptive_only": true
+ },
+ "group": {
+  "id": "housing",
+  "kind": "basket",
+  "name": "Housing",
+  "name_zh": "住宅建造",
+  "benchmark": "SPY",
+  "context": {
+   "window_sessions": 21,
+   "group_return_pct": null,
+   "market_return_pct": 3.2,
+   "relative_pp": null,
+   "breadth": null,
+   "state_label": null,
+   "reasons": {
+    "group_return_pct": "not_produced",
+    "relative_pp": "not_produced",
+    "breadth": "not_observed_at_effective_as_of"
+   }
+  }
+ },
+ "counts": {
+  "configured": 18,
+  "served": 18,
+  "accounted_unserved": 0,
+  "unaccounted": 0,
+  "open_plan": 0,
+  "resolved_plan": 0,
+  "early_observation": 0,
+  "none": 18,
+  "unavailable": 0
+ },
+ "members": [
+  {
+   "symbol": "BECN",
+   "name": "Beacon Roofing Supply",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Building Products",
+   "member_since": "2020-06-01",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BLDR",
+   "name": "Builders FirstSource",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Building Products",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CCS",
+   "name": "Century Communities",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DHI",
+   "name": "D.R. Horton",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2020-06-01",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FND",
+   "name": "Floor & Decor Holdings",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homefurnishing Retail",
+   "member_since": "2021-02-10",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GRBK",
+   "name": "Green Brick Partners",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2021-02-10",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "IBP",
+   "name": "Installed Building Products",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Building Products",
+   "member_since": "2020-06-01",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "KBH",
+   "name": "KB Home",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LEN",
+   "name": "Lennar",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2021-02-10",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LGIH",
+   "name": "LGI Homes",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2020-06-01",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MHK",
+   "name": "Mohawk Industries",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Building Products",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MTH",
+   "name": "M/I Homes",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2021-02-10",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "NVR",
+   "name": "NVR",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2020-06-01",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PHM",
+   "name": "PulteGroup",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TMHC",
+   "name": "Taylor Morrison Home",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2020-06-01",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TOL",
+   "name": "Toll Brothers",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Homebuilding",
+   "member_since": "2021-02-10",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TT",
+   "name": "Trane Technologies",
+   "industry": "Capital Goods",
+   "sub_industry": "Building Products",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "WSO",
+   "name": "Watsco",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Building Products",
+   "member_since": "2021-02-10",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  }
+ ],
+ "unserved": [],
+ "page": {
+  "offset": 0,
+  "limit": 100,
+  "total_matching": 18,
+  "next_offset": null,
+  "q": null,
+  "state": null
+ }
+}

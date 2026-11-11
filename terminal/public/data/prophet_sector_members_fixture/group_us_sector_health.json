@@ -1,0 +1,799 @@
+{
+ "schema": "prophet.sector_members/v1",
+ "mode": "group",
+ "captured_at": "2026-11-07T06:02:11Z",
+ "sector_ref": {
+  "owner": "sector_generation",
+  "generation_id": "sgen-2026-11-06-a3f2",
+  "content_id": "1e2d6edf94bcf7b69c1df348fd4694c5146aea1e87497331ab1ee174a32a7b4e",
+  "source_session": "2026-11-06",
+  "published_at": "2026-11-07T05:12:00Z",
+  "member_sha256": "ec0597adc20e9d9093ae64305b3e76bde58581be7cd046641727a7308652b944",
+  "qualification": "accepted"
+ },
+ "prophet_ref": {
+  "owner": "prophet_index",
+  "schema": "prophet.index/v1",
+  "asof": "2026-11-06",
+  "generated_at": "2026-11-06T21:40:00Z",
+  "index_sha256": "91f65d13e7d5ab7ca6db0b1760d7252a5bcda8f4f00f32c9ba52197a2880883e",
+  "plan_count": 893,
+  "open_plan_count": 364
+ },
+ "compatibility": {
+  "status": "compatible",
+  "sector_session": "2026-11-06",
+  "prophet_asof": "2026-11-06",
+  "session_gap": 0,
+  "reason": null
+ },
+ "disclosure": {
+  "membership_basis": "current_roster_not_point_in_time",
+  "taxonomy_basis": "gics_current_labels",
+  "join_key": "us_listing_ticker",
+  "descriptive_only": true
+ },
+ "group": {
+  "id": "us_sector_health",
+  "kind": "basket",
+  "name": "Healthcare",
+  "name_zh": "医疗保健",
+  "benchmark": "SPY",
+  "context": {
+   "window_sessions": 21,
+   "group_return_pct": 7.6,
+   "market_return_pct": 3.2,
+   "relative_pp": 4.4,
+   "breadth": {
+    "above_trend": 42,
+    "measured": 60
+   },
+   "state_label": "Broad advance led by services and equipment",
+   "reasons": {}
+  }
+ },
+ "counts": {
+  "configured": 60,
+  "served": 59,
+  "accounted_unserved": 1,
+  "unaccounted": 0,
+  "open_plan": 0,
+  "resolved_plan": 0,
+  "early_observation": 1,
+  "none": 58,
+  "unavailable": 0
+ },
+ "members": [
+  {
+   "symbol": "ISRG",
+   "name": "Intuitive Surgical",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2020-06-01",
+   "first_known": "2020-06-01",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "early_leadership",
+     "asof": "2026-11-05"
+    }
+   }
+  },
+  {
+   "symbol": "ABBV",
+   "name": "AbbVie",
+   "industry": "Pharmaceuticals",
+   "sub_industry": "Pharmaceuticals",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ABT",
+   "name": "Abbott Laboratories",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ALGN",
+   "name": "Align Technology",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ALNY",
+   "name": "Alnylam Pharmaceuticals",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2020-06-01",
+   "first_known": "2020-06-01",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "AMGN",
+   "name": "Amgen",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BDX",
+   "name": "Becton Dickinson",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Supplies",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BIIB",
+   "name": "Biogen",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BNTX",
+   "name": "BioNTech",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2021-02-10",
+   "first_known": "2021-02-10",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BSX",
+   "name": "Boston Scientific",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CI",
+   "name": "The Cigna Group",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Managed Health Care",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CNC",
+   "name": "Centene",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Managed Health Care",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CVS",
+   "name": "CVS Health",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Drug Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DGX",
+   "name": "Quest Diagnostics",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Health Care Services",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ELV",
+   "name": "Elevance Health",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Managed Health Care",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "EXAS",
+   "name": "Exact Sciences",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2020-06-01",
+   "first_known": "2020-06-01",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GILD",
+   "name": "Gilead Sciences",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "HCA",
+   "name": "HCA Healthcare",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Health Care Facilities",
+   "member_since": "2019-03-15",
+   "first_known": "2019-03-15",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "HOLX",
+   "name": "Hologic",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "HUM",
+   "name": "Humana",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Managed Health Care",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "INCY",
+   "name": "Incyte",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2021-02-10",
+   "first_known": "2021-02-10",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "JNJ",
+   "name": "Johnson & Johnson",
+   "industry": "Pharmaceuticals",
+   "sub_industry": "Pharmaceuticals",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LH",
+   "name": "Labcorp Holdings",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Health Care Services",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LLY",
+   "name": "Eli Lilly and Company",
+   "industry": "Pharmaceuticals",
+   "sub_industry": "Pharmaceuticals",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MDT",
+   "name": "Medtronic",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MOH",
+   "name": "Molina Healthcare",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Managed Health Care",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MRK",
+   "name": "Merck & Co.",
+   "industry": "Pharmaceuticals",
+   "sub_industry": "Pharmaceuticals",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MRNA",
+   "name": "Moderna",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2021-02-10",
+   "first_known": "2021-02-10",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MTD",
+   "name": "Mettler-Toledo International",
+   "industry": "Life Sciences Tools & Services",
+   "sub_industry": "Laboratory Instruments",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "NTRA",
+   "name": "Natera",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2021-02-10",
+   "first_known": "2021-02-10",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PFE",
+   "name": "Pfizer",
+   "industry": "Pharmaceuticals",
+   "sub_industry": "Pharmaceuticals",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PODD",
+   "name": "Insulet",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "REGN",
+   "name": "Regeneron Pharmaceuticals",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "RMD",
+   "name": "ResMed",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "SYK",
+   "name": "Stryker",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TFX",
+   "name": "Teleflex",
+   "industry": "Health Care Equipment & Services",
+   "sub_industry": "Health Care Equipment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TMDX",
+   "name": "TransMedics Group",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Health Care Services",
+   "member_since": "2022-05-20",
+   "first_known": "2022-05-20",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TMO",
+   "name": "Thermo Fisher Scientific",
+   "industry": "Life Sciences Tools & Services",
+   "sub_industry": "Life Sciences Tools & Instruments",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "UNH",
+   "name": "UnitedHealth Group",
+   "industry": "Health Care Providers & Services",
+   "sub_industry": "Managed Health Care",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "VRTX",
+   "name": "Vertex Pharmaceuticals",
+   "industry": "Biotechnology",
+   "sub_industry": "Biotechnology",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "WAT",
+   "name": "Waters",
+   "industry": "Life Sciences Tools & Services",
+   "sub_industry": "Laboratory Instruments",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ZTS",
+   "name": "Zoetis",
+   "industry": "Pharmaceuticals",
+   "sub_industry": "Pharmaceuticals",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  }
+ ],
+ "unserved": [
+  {
+   "symbol": "FLGT",
+   "reason": "absent_from_price_panel"
+  }
+ ],
+ "page": {
+  "offset": 0,
+  "limit": 100,
+  "total_matching": 42,
+  "next_offset": null,
+  "q": null,
+  "state": null
+ }
+}

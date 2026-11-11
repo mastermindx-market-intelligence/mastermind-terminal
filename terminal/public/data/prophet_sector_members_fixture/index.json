@@ -1,0 +1,142 @@
+{
+ "schema": "prophet.sector_members/v1",
+ "mode": "index",
+ "captured_at": "2026-11-07T06:02:11Z",
+ "sector_ref": {
+  "owner": "sector_generation",
+  "generation_id": "sgen-2026-11-06-a3f2",
+  "content_id": "1e2d6edf94bcf7b69c1df348fd4694c5146aea1e87497331ab1ee174a32a7b4e",
+  "source_session": "2026-11-06",
+  "published_at": "2026-11-07T05:12:00Z",
+  "member_sha256": "ec0597adc20e9d9093ae64305b3e76bde58581be7cd046641727a7308652b944",
+  "qualification": "accepted"
+ },
+ "prophet_ref": {
+  "owner": "prophet_index",
+  "schema": "prophet.index/v1",
+  "asof": "2026-11-06",
+  "generated_at": "2026-11-06T21:40:00Z",
+  "index_sha256": "91f65d13e7d5ab7ca6db0b1760d7252a5bcda8f4f00f32c9ba52197a2880883e",
+  "plan_count": 893,
+  "open_plan_count": 364
+ },
+ "compatibility": {
+  "status": "compatible",
+  "sector_session": "2026-11-06",
+  "prophet_asof": "2026-11-06",
+  "session_gap": 0,
+  "reason": null
+ },
+ "disclosure": {
+  "membership_basis": "current_roster_not_point_in_time",
+  "taxonomy_basis": "gics_current_labels",
+  "join_key": "us_listing_ticker",
+  "descriptive_only": true
+ },
+ "groups": [
+  {
+   "id": "us_sector_health",
+   "kind": "basket",
+   "name": "Healthcare",
+   "name_zh": "医疗保健",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 21,
+    "group_return_pct": 7.6,
+    "market_return_pct": 3.2,
+    "relative_pp": 4.4,
+    "breadth": {
+     "above_trend": 42,
+     "measured": 60
+    },
+    "state_label": "Broad advance led by services and equipment",
+    "reasons": {}
+   },
+   "counts": {
+    "configured": 60,
+    "served": 59,
+    "accounted_unserved": 1,
+    "unaccounted": 0,
+    "open_plan": 0,
+    "resolved_plan": 0,
+    "early_observation": 1,
+    "none": 58,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "us_sector_discretionary",
+   "kind": "basket",
+   "name": "Consumer Discretionary",
+   "name_zh": "非必需消费",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 21,
+    "group_return_pct": 2.1,
+    "market_return_pct": 3.2,
+    "relative_pp": -1.1,
+    "breadth": {
+     "above_trend": 17,
+     "measured": 47
+    },
+    "state_label": null,
+    "reasons": {
+     "state_label": "not_produced"
+    }
+   },
+   "counts": {
+    "configured": 47,
+    "served": 47,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 2,
+    "resolved_plan": 1,
+    "early_observation": 1,
+    "none": 43,
+    "unavailable": 0
+   }
+  },
+  {
+   "id": "housing",
+   "kind": "basket",
+   "name": "Housing",
+   "name_zh": "住宅建造",
+   "benchmark": "SPY",
+   "context": {
+    "window_sessions": 21,
+    "group_return_pct": null,
+    "market_return_pct": 3.2,
+    "relative_pp": null,
+    "breadth": null,
+    "state_label": null,
+    "reasons": {
+     "group_return_pct": "not_produced",
+     "relative_pp": "not_produced",
+     "breadth": "not_observed_at_effective_as_of"
+    }
+   },
+   "counts": {
+    "configured": 18,
+    "served": 18,
+    "accounted_unserved": 0,
+    "unaccounted": 0,
+    "open_plan": 0,
+    "resolved_plan": 0,
+    "early_observation": 0,
+    "none": 18,
+    "unavailable": 0
+   }
+  }
+ ],
+ "totals": {
+  "configured": 125,
+  "served": 124,
+  "accounted_unserved": 1,
+  "unaccounted": 0,
+  "open_plan": 2,
+  "resolved_plan": 1,
+  "early_observation": 2,
+  "none": 119,
+  "unavailable": 0
+ }
+}

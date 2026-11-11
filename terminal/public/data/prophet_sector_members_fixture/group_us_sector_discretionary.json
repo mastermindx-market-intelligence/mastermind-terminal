@@ -1,0 +1,813 @@
+{
+ "schema": "prophet.sector_members/v1",
+ "mode": "group",
+ "captured_at": "2026-11-07T06:02:11Z",
+ "sector_ref": {
+  "owner": "sector_generation",
+  "generation_id": "sgen-2026-11-06-a3f2",
+  "content_id": "1e2d6edf94bcf7b69c1df348fd4694c5146aea1e87497331ab1ee174a32a7b4e",
+  "source_session": "2026-11-06",
+  "published_at": "2026-11-07T05:12:00Z",
+  "member_sha256": "ec0597adc20e9d9093ae64305b3e76bde58581be7cd046641727a7308652b944",
+  "qualification": "accepted"
+ },
+ "prophet_ref": {
+  "owner": "prophet_index",
+  "schema": "prophet.index/v1",
+  "asof": "2026-11-06",
+  "generated_at": "2026-11-06T21:40:00Z",
+  "index_sha256": "91f65d13e7d5ab7ca6db0b1760d7252a5bcda8f4f00f32c9ba52197a2880883e",
+  "plan_count": 893,
+  "open_plan_count": 364
+ },
+ "compatibility": {
+  "status": "compatible",
+  "sector_session": "2026-11-06",
+  "prophet_asof": "2026-11-06",
+  "session_gap": 0,
+  "reason": null
+ },
+ "disclosure": {
+  "membership_basis": "current_roster_not_point_in_time",
+  "taxonomy_basis": "gics_current_labels",
+  "join_key": "us_listing_ticker",
+  "descriptive_only": true
+ },
+ "group": {
+  "id": "us_sector_discretionary",
+  "kind": "basket",
+  "name": "Consumer Discretionary",
+  "name_zh": "非必需消费",
+  "benchmark": "SPY",
+  "context": {
+   "window_sessions": 21,
+   "group_return_pct": 2.1,
+   "market_return_pct": 3.2,
+   "relative_pp": -1.1,
+   "breadth": {
+    "above_trend": 17,
+    "measured": 47
+   },
+   "state_label": null,
+   "reasons": {
+    "state_label": "not_produced"
+   }
+  }
+ },
+ "counts": {
+  "configured": 47,
+  "served": 47,
+  "accounted_unserved": 0,
+  "unaccounted": 0,
+  "open_plan": 2,
+  "resolved_plan": 1,
+  "early_observation": 1,
+  "none": 43,
+  "unavailable": 0
+ },
+ "members": [
+  {
+   "symbol": "SBUX",
+   "name": "Starbucks",
+   "industry": "Consumer Services",
+   "sub_industry": "Restaurants",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "SBUX-BULL-20260702",
+     "direction": "long",
+     "strategy": "b4_us_equity",
+     "phase": "pre_trigger",
+     "opened_on": "2026-07-02",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "UBER",
+   "name": "Uber Technologies",
+   "industry": "Consumer Services",
+   "sub_industry": "Ground Transportation",
+   "member_since": "2020-06-01",
+   "first_known": "2020-06-01",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "UBER-BULL-20260623",
+     "direction": "long",
+     "strategy": "b4_us_equity",
+     "phase": "pre_trigger",
+     "opened_on": "2026-06-23",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DPZ",
+   "name": "Domino's Pizza",
+   "industry": "Consumer Services",
+   "sub_industry": "Restaurants",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "early_rotation",
+     "asof": "2026-11-04"
+    }
+   }
+  },
+  {
+   "symbol": "COIN",
+   "name": "Coinbase Global",
+   "industry": "Financials",
+   "sub_industry": "Capital Markets",
+   "member_since": "2021-04-14",
+   "first_known": "2021-04-14",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "COIN-BULL-20260702",
+     "direction": "long",
+     "strategy": "b4_us_equity",
+     "phase": "invalidated",
+     "opened_on": "2026-07-02",
+     "resolved_on": "2026-09-14",
+     "outcome": "invalidated"
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "AAP",
+   "name": "Advance Auto Parts",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Automotive Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ANF",
+   "name": "Abercrombie & Fitch",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Apparel Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "AZO",
+   "name": "AutoZone",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Automotive Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BBY",
+   "name": "Best Buy",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Computer & Electronics Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "BKNG",
+   "name": "Booking Holdings",
+   "industry": "Consumer Services",
+   "sub_industry": "Travel Services",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CCL",
+   "name": "Carnival",
+   "industry": "Consumer Services",
+   "sub_industry": "Cruise Lines",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [
+    "travel"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CHWY",
+   "name": "Chewy",
+   "industry": "Broadline Retail",
+   "sub_industry": "Specialty Retail",
+   "member_since": "2020-06-01",
+   "first_known": "2020-06-01",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CMG",
+   "name": "Chipotle Mexican Grill",
+   "industry": "Consumer Services",
+   "sub_industry": "Restaurants",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DKNG",
+   "name": "DraftKings",
+   "industry": "Consumer Services",
+   "sub_industry": "Casinos & Gaming",
+   "member_since": "2020-06-01",
+   "first_known": "2020-06-01",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DKS",
+   "name": "Dick's Sporting Goods",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Other Specialty Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "DRI",
+   "name": "Darden Restaurants",
+   "industry": "Consumer Services",
+   "sub_industry": "Restaurants",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "EBAY",
+   "name": "eBay",
+   "industry": "Broadline Retail",
+   "sub_industry": "Broadline Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ETSY",
+   "name": "Etsy",
+   "industry": "Broadline Retail",
+   "sub_industry": "Broadline Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FIVE",
+   "name": "Five Below",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Other Specialty Retail",
+   "member_since": "2021-02-10",
+   "first_known": "2021-02-10",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "FL",
+   "name": "Foot Locker",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Apparel Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GME",
+   "name": "GameStop",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Computer & Electronics Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GPS",
+   "name": "Gap",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Apparel Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "HLT",
+   "name": "Hilton Worldwide",
+   "industry": "Consumer Services",
+   "sub_industry": "Hotels & Resorts",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "JWN",
+   "name": "Nordstrom",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Department Stores",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "KSS",
+   "name": "Kohl's",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Department Stores",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LVS",
+   "name": "Las Vegas Sands",
+   "industry": "Consumer Services",
+   "sub_industry": "Casinos & Gaming",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [
+    "travel"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "LYV",
+   "name": "Live Nation Entertainment",
+   "industry": "Communication Services",
+   "sub_industry": "Entertainment",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "M",
+   "name": "Macy's",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Department Stores",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MAR",
+   "name": "Marriott International",
+   "industry": "Consumer Services",
+   "sub_industry": "Hotels & Resorts",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MCD",
+   "name": "McDonald's",
+   "industry": "Consumer Services",
+   "sub_industry": "Restaurants",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "NCLH",
+   "name": "Norwegian Cruise Line Holdings",
+   "industry": "Consumer Services",
+   "sub_industry": "Cruise Lines",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [
+    "travel"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "NKE",
+   "name": "Nike",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Footwear",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ORLY",
+   "name": "O'Reilly Automotive",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Automotive Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "RCL",
+   "name": "Royal Caribbean Cruises",
+   "industry": "Consumer Services",
+   "sub_industry": "Cruise Lines",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [
+    "travel"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "RH",
+   "name": "RH",
+   "industry": "Consumer Durables & Apparel",
+   "sub_industry": "Home Furnishings",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TGT",
+   "name": "Target",
+   "industry": "Consumer Staples Distribution & Retail",
+   "sub_industry": "Consumer Staples Merchandise Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TSCO",
+   "name": "Tractor Supply",
+   "industry": "Consumer Staples Distribution & Retail",
+   "sub_industry": "Specialty Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "TXRH",
+   "name": "Texas Roadhouse",
+   "industry": "Consumer Services",
+   "sub_industry": "Restaurants",
+   "member_since": "2020-06-01",
+   "first_known": "2020-06-01",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "ULTA",
+   "name": "Ulta Beauty",
+   "industry": "Consumer Discretionary Distribution & Retail",
+   "sub_industry": "Other Specialty Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "W",
+   "name": "Wayfair",
+   "industry": "Broadline Retail",
+   "sub_industry": "Homefurnishing Retail",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "WYNN",
+   "name": "Wynn Resorts",
+   "industry": "Consumer Services",
+   "sub_industry": "Casinos & Gaming",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [
+    "travel"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "YUM",
+   "name": "Yum! Brands",
+   "industry": "Consumer Services",
+   "sub_industry": "Restaurants",
+   "member_since": "2019-03-15",
+   "first_known": "2018-11-30",
+   "also_in_groups": [],
+   "prophet": {
+    "state": "none",
+    "reason": "not_in_prophet_universe",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  }
+ ],
+ "unserved": [],
+ "page": {
+  "offset": 0,
+  "limit": 100,
+  "total_matching": 41,
+  "next_offset": null,
+  "q": null,
+  "state": null
+ }
+}
