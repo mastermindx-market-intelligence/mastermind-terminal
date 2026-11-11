@@ -1,0 +1,376 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+      "--project=desktop",
+      "--grep=answers 5xx|nothing published",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=json",
+      "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 62566",
+      "url": "http://127.0.0.1:62566/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-flowdesk-chainheat-load-failure.spec.ts",
+      "file": "options-flowdesk-chainheat-load-failure.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a chain-heat read that answers 5xx is a load error with Retry, never \"loading\"",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 47391,
+                  "error": {
+                    "message": "Error: The chainheat 503 reply must actually be served\n\nThe chainheat 503 reply must actually be served\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 45000ms exceeded while waiting on the predicate",
+                    "stack": "Error: The chainheat 503 reply must actually be served\n\nThe chainheat 503 reply must actually be served\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 45000ms exceeded while waiting on the predicate\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts:73:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+                      "column": 7,
+                      "line": 73
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 71 |\u001b[39m       () \u001b[33m=>\u001b[39m served\u001b[33m.\u001b[39mfilter((entry) \u001b[33m=>\u001b[39m entry\u001b[33m.\u001b[39mfeed \u001b[33m===\u001b[39m \u001b[32m\"chainheat\"\u001b[39m \u001b[33m&&\u001b[39m entry\u001b[33m.\u001b[39mreply \u001b[33m===\u001b[39m failure)\u001b[33m.\u001b[39mlength\u001b[33m,\u001b[39m\n \u001b[90m 72 |\u001b[39m       { message\u001b[33m:\u001b[39m \u001b[32m`The chainheat ${failure} reply must actually be served`\u001b[39m\u001b[33m,\u001b[39m timeout\u001b[33m:\u001b[39m \u001b[35m45\u001b[39m_000 }\u001b[33m,\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 73 |\u001b[39m     )\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 74 |\u001b[39m     \u001b[36mconst\u001b[39m rail \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-tut=\"chain-heat\"]'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 75 |\u001b[39m     \u001b[36mconst\u001b[39m loadError \u001b[33m=\u001b[39m rail\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"chainheat-load-error\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 76 |\u001b[39m     \u001b[36mawait\u001b[39m expect(loadError)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m45\u001b[39m_000 })\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+                        "column": 7,
+                        "line": 73
+                      },
+                      "message": "Error: The chainheat 503 reply must actually be served\n\nThe chainheat 503 reply must actually be served\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 45000ms exceeded while waiting on the predicate\n\n  71 |       () => served.filter((entry) => entry.feed === \"chainheat\" && entry.reply === failure).length,\n  72 |       { message: `The chainheat ${failure} reply must actually be served`, timeout: 45_000 },\n> 73 |     ).toBeGreaterThan(0);\n     |       ^\n  74 |     const rail = page.locator('[data-tut=\"chain-heat\"]');\n  75 |     const loadError = rail.getByTestId(\"chainheat-load-error\");\n  76 |     await expect(loadError).toBeVisible({ timeout: 45_000 });\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts:73:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T07:10:45.219Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+                    "column": 7,
+                    "line": 73
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "890f5dc75ebf0e0e1655-0eaf254717e2b3c66681",
+          "file": "options-flowdesk-chainheat-load-failure.spec.ts",
+          "line": 62,
+          "column": 7
+        },
+        {
+          "title": "nothing published for the session is shown only on a 404, with nothing to retry",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 47203,
+                  "error": {
+                    "message": "Error: The chainheat 404 reply must actually be served\n\nThe chainheat 404 reply must actually be served\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 45000ms exceeded while waiting on the predicate",
+                    "stack": "Error: The chainheat 404 reply must actually be served\n\nThe chainheat 404 reply must actually be served\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 45000ms exceeded while waiting on the predicate\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts:104:5",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+                      "column": 5,
+                      "line": 104
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 102 |\u001b[39m     () \u001b[33m=>\u001b[39m served\u001b[33m.\u001b[39mfilter((entry) \u001b[33m=>\u001b[39m entry\u001b[33m.\u001b[39mfeed \u001b[33m===\u001b[39m \u001b[32m\"chainheat\"\u001b[39m \u001b[33m&&\u001b[39m entry\u001b[33m.\u001b[39mreply \u001b[33m===\u001b[39m \u001b[32m\"404\"\u001b[39m)\u001b[33m.\u001b[39mlength\u001b[33m,\u001b[39m\n \u001b[90m 103 |\u001b[39m     { message\u001b[33m:\u001b[39m \u001b[32m\"The chainheat 404 reply must actually be served\"\u001b[39m\u001b[33m,\u001b[39m timeout\u001b[33m:\u001b[39m \u001b[35m45\u001b[39m_000 }\u001b[33m,\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 104 |\u001b[39m   )\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 105 |\u001b[39m   \u001b[36mconst\u001b[39m rail \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-tut=\"chain-heat\"]'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 106 |\u001b[39m   \u001b[36mawait\u001b[39m expect(rail\u001b[33m.\u001b[39mgetByText(t(\u001b[32m\"chainHeatAbsent\"\u001b[39m)))\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m45\u001b[39m_000 })\u001b[33m;\u001b[39m\n \u001b[90m 107 |\u001b[39m   \u001b[36mawait\u001b[39m expect(rail)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(t(\u001b[32m\"chainHeatLoading\"\u001b[39m))\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+                        "column": 5,
+                        "line": 104
+                      },
+                      "message": "Error: The chainheat 404 reply must actually be served\n\nThe chainheat 404 reply must actually be served\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 45000ms exceeded while waiting on the predicate\n\n  102 |     () => served.filter((entry) => entry.feed === \"chainheat\" && entry.reply === \"404\").length,\n  103 |     { message: \"The chainheat 404 reply must actually be served\", timeout: 45_000 },\n> 104 |   ).toBeGreaterThan(0);\n      |     ^\n  105 |   const rail = page.locator('[data-tut=\"chain-heat\"]');\n  106 |   await expect(rail.getByText(t(\"chainHeatAbsent\"))).toBeVisible({ timeout: 45_000 });\n  107 |   await expect(rail).not.toContainText(t(\"chainHeatLoading\"));\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts:104:5"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T07:11:35.040Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+                    "column": 5,
+                    "line": 104
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "890f5dc75ebf0e0e1655-a05c8832b4b8c63c36af",
+          "file": "options-flowdesk-chainheat-load-failure.spec.ts",
+          "line": 94,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-11T07:09:18.117Z",
+    "duration": 185420.30299999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

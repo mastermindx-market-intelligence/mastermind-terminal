@@ -1,0 +1,64 @@
+schema: mastermind.terminal.ui_evidence.v1
+title: Research Workspace Financials vNext
+paper:
+  file_id: 01M2WGNCX9475G79JRKJTCM08P
+  page_id: p-4-1
+  artboard_id: MIB-0
+  artboard_title: Research Workspace · Financials vNext · Dark · 1440
+surface:
+  route: /analysis?symbol=NVDA&page=statements
+  theme: dark
+  light_mode: not_supported_by_terminal
+  note: Terminal is dark-only in current source; no light state was fabricated.
+captures:
+  - desktop-en.png
+  - tablet-en.png
+  - mobile-en.png
+  - mobile-zh.png
+verification:
+  visual_review: PASS
+  horizontal_overflow_px: 0
+  responsive_contract:
+    desktop: 1440x900
+    tablet: 820x1180
+    mobile: 390x844
+  browser_suite:
+    desktop: "4 passed, 1 intentional mobile-only skip"
+    tablet: "4 passed, 1 intentional mobile-only skip"
+    mobile: "5 passed"
+  static:
+    typescript: PASS
+    eslint: PASS
+    plain_language: PASS
+    diff_check: PASS
+boundaries:
+  - Uses the incumbent normalized IncomeView and comparablePeriodChanges owners.
+  - Balance-sheet snapshots are not differenced.
+  - The page consumes the free-cash-flow field in the financials record and does not recompute a missing value; upstream producer derivation remains outside this page.
+  - Full history and transcript controls remain below the compact first-frame snapshot.
+
+period_alignment_repair:
+  observed_on: "2026-09-26"
+  predecessor_head: 26ffea04c778016f72b01db5ab7a39ea0b001d38
+  source_scope: StatementsPage snapshot projection only
+  before: Short metric arrays were tail-aligned independently of the period headers; empty arrays rendered no cells.
+  after: All snapshot values use their original statement-period index; unavailable cells render as dashes.
+  red_proof:
+    test_file: lib/__tests__/financialsSnapshotAlignment.test.tsx
+    failing_tests: 2
+    passing_control_tests: 1
+  green_proof:
+    targeted_unit_tests: "3 passed"
+    full_unit_suite: "386 files passed; 6151 tests passed; 4 todo; 0 failed"
+    research_workspace_browser: "16 passed; 2 intentional mobile-only skips; 0 failed"
+    viewports: "1440x900; 820x1180; 390x844"
+    typescript: PASS
+    focused_eslint: PASS
+    diff_check: PASS
+  browser_discriminator: Financials snapshot preserves period columns when a metric is incomplete
+  preserved:
+    - Existing free-cash-flow provenance correction and refreshed captures.
+    - Canonical normalized income, balance-sheet, and cash-flow source ownership.
+    - Existing routes, styling, full-history table, and transcript controls.
+  capture_boundary: Existing captures show the aligned full-data fixture; no new visual design or production proof is claimed by this repair.
+  release_boundary: New exact-head hosted CI, review, protected merge, and production acceptance remain separate gates.

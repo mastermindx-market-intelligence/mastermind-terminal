@@ -1,10 +1,12 @@
-"""The native merge queue runs integrated fast checks, not duplicate browser matrices.
+"""The native merge queue runs fast checks plus hosted production-browser proof.
 
 The full responsive and screenshot suites still run on ordinary source PRs.
-Native merge_group and independently qualified docs-only PRs may skip the browser
-matrix; the browser selector remains mandatory in both cases.
-The branch-protected Terminal aggregate must stay red if ANY of the checks
-required for that event fail or are unexpectedly skipped.
+A native merge_group skips the full dev matrix, but its production build and
+four browser shards are mandatory and feed the existing required aggregate.
+Independently qualified docs-only PRs may skip browser work; the selector
+remains mandatory in both cases. The Terminal aggregate must stay red if ANY
+check required for that event fails, is unexpectedly skipped, or selects no
+production qualification for an integrated candidate.
 """
 from __future__ import annotations
 
@@ -142,10 +144,8 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
 
 
 def prod_lane_results(event: str) -> dict[str, str]:
-    """What the production-build lane reports when it did what the event asks:
-    a native merge group selects no prod shards, every other event runs four."""
-    if event == "merge_group":
-        return {"BUILD": "skipped", "PRODBUILD": "skipped", "PRODBUILD_COUNT": "0"}
+    """Four successful production shards are required on every full run,
+    including the native merge group's production-only browser qualification."""
     return {"BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4"}
 
 
@@ -180,6 +180,33 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
     assert (result.returncode == 0) is should_pass, (
         event, unit, e2e, result.stdout, result.stderr
     )
+
+
+@pytest.mark.parametrize(("build", "prod", "count"), [
+    *((build, prod, "4") for build, prod in (
+        ("skipped", "skipped"), ("failure", "skipped"),
+        ("cancelled", "skipped"), ("", ""),
+        ("timed_out", "skipped"), ("success", "skipped"),
+        ("success", "cancelled"), ("success", "failure"),
+        ("success", ""),
+    )),
+    *((status, status, count) for status in ("success", "skipped")
+      for count in ("", "0", "3", "4.0", "four", "5", "-1")),
+    ("success", "skipped", "unknown"),
+    ("failure", "skipped", "0"),
+])
+def test_merge_group_never_accepts_missing_empty_or_unsuccessful_production(
+    build: str, prod: str, count: str,
+) -> None:
+    result = subprocess.run(
+        ["bash", "-e", "-c", aggregate_assertion_step()["run"]],
+        env={**os.environ, "EVENT": "merge_group", "SCOPE": "success",
+             "PR_SCOPE": "success", "PR_MODE": "full", "UNIT": "success",
+             "E2E": "skipped", "BUILD": build, "PRODBUILD": prod,
+             "PRODBUILD_COUNT": count},
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode != 0, (build, prod, count, result.stdout)
 
 
 @pytest.mark.parametrize("scope_result", ["skipped", "failure", "cancelled", ""])

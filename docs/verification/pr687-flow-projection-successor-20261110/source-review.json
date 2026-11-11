@@ -1,0 +1,98 @@
+{
+  "acceptance": "Draft until eligible natural CI is green for the successor; actual local responsive consumer condition now proven. No new root auto enrollment under retained enforcement coverage gap.",
+  "browser": {
+    "executionSha256": "3d0722cd8a1f1d5b7864c367c76c927b0fb63678a77a6d41800a826207f8dcc5",
+    "ownedPortClosed": true,
+    "protectedOwnerCount": 13,
+    "protectedOwnersUnchanged": true,
+    "seconds": 33.682,
+    "sourceInputs": 3432,
+    "sourceStable": true,
+    "stats": {
+      "duration": 33117.176,
+      "expected": 12,
+      "flaky": 0,
+      "skipped": 0,
+      "startTime": "2026-11-10T17:28:31.183Z",
+      "unexpected": 0
+    },
+    "uniquePngs": 24
+  },
+  "effectiveSourcePaths": [
+    "terminal/components/flowdesk/FeedPane.tsx",
+    "terminal/components/flowdesk/FlowProjectionStrip.tsx",
+    "terminal/components/prophet/optionsAlphaMeasuredEvidence.ts",
+    "terminal/lib/flowProjection.ts",
+    "terminal/lib/__tests__/flowProjection.test.ts",
+    "terminal/lib/__tests__/flowProjectionControls.test.tsx",
+    "terminal/e2e/flow-projection.spec.ts"
+  ],
+  "finalUnitCounts": {
+    "numFailedTests": 0,
+    "numPassedTests": 190,
+    "numPendingTests": 0,
+    "numTotalTests": 190
+  },
+  "fixedProtectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "fullSourceChecksSha256": "8e7c17d7622471f592c4953daf59eb584270989fc06cced5c9425d5b92fdca34",
+  "lintDisposition": {
+    "identifier": "DEFAULT_FILTERS",
+    "lintCounts": {
+      "errorCount": 0,
+      "warningCount": 1
+    },
+    "path": "terminal/components/flowdesk/FeedPane.tsx",
+    "protectedBlob": "5284f6155744e133d2569c5947ddc46e3cf14c23",
+    "protectedSource": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+    "recordedAt": "2026-11-10T17:28:21.003007+00:00",
+    "repairScope": "Projection admission and membership; no unrelated import cleanup required.",
+    "rule": "@typescript-eslint/no-unused-vars",
+    "sameSoleOccurrence": "import { FiltersPanel, DEFAULT_FILTERS } from \"./FiltersPanel\";",
+    "state": "ONE_INHERITED_WARNING_NO_NEW_LINT_ERRORS"
+  },
+  "originalHead": "34ffd6b5e93162e63b812869ecce011f6357782d",
+  "parserChange": "One-word export only; implementation and current callers unchanged",
+  "protectedOwnerBlobsUnchanged": {
+    "terminal/app/globals.css": "10f2df3f3e04f291f028c345b50a1967ba158cb2",
+    "terminal/app/observatory.css": "0c7ff826df0655c5016fcb6be838971bc4f4531a",
+    "terminal/components/flowdesk/FiltersPanel.tsx": "e2d9ab999a7891856f54b6f4f1577db28789609c",
+    "terminal/components/flowdesk/FlowCard.tsx": "64fe6363c7d931149a6367b90dc6adeb72dd1618",
+    "terminal/components/flowdesk/FlowDeskView.tsx": "a69993fb5d31055aeea58b0e5bb00558d8214253",
+    "terminal/components/flowdesk/InspectorPane.tsx": "ca8d2cb60ef970e6bc3576f71c8251387c812bdd",
+    "terminal/components/flowdesk/PrintInspector.tsx": "1e674b234f6234c072895dd91f355e76fe3c42cb",
+    "terminal/e2e/fixtures/options-r1-w3a-flow.json": "b3f691ca28f58207fbb43ba13613e6c96f64329c",
+    "terminal/lib/__tests__/optionsFlowBoards.test.ts": "c09990cd83de65167b68d37c65d6343a16d4ad05",
+    "terminal/lib/flowFreshness.ts": "d250dd7796d8349b5f14ef27e0c1592c23414696",
+    "terminal/lib/flowPrintInspector.ts": "a1bdb09b99df08f503540aa32d7e8feb724382a0",
+    "terminal/lib/flowStream.ts": "63244fdda98b7307c81d5335f5960c2ccb0a2e20",
+    "terminal/lib/flowdeskStrings.ts": "23800be852d2a76e928a1a89c870b358c67774f9",
+    "terminal/package-lock.json": "43172affa9516ddcbd6e8f7a59bb54888baa7e3b",
+    "terminal/package.json": "df2e635a0abab248c90e33e3f89bd1f2581f6376",
+    "terminal/playwright.config.ts": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6"
+  },
+  "publicationAttempted": false,
+  "recordedAt": "2026-11-10T17:36:08.338110+00:00",
+  "redReconciliationSha256": "c3a36c2978c4f7b4bb76d4bc07218967a0a3d9a349ac5686b8cbfa61a2732d39",
+  "schema": "terminal_pr687_source_self_check.v1",
+  "scope": "Original display-only time projection downstream of filtered Tape; canonical transport/filter/sort/coverage/inspector owners retained.",
+  "sourceGitBlobs": {
+    "terminal/components/flowdesk/FeedPane.tsx": "9de0d92c5fef3dc0ea97b7d528204ce65c11d8a2",
+    "terminal/components/flowdesk/FlowProjectionStrip.tsx": "c0542f2264d85d9800d8d25957e48ea1a5facd2e",
+    "terminal/components/prophet/optionsAlphaMeasuredEvidence.ts": "3a7dc6d6ba9b9376d191f025f893c78c2d3b18db",
+    "terminal/e2e/flow-projection.spec.ts": "09092084ffa0d517feaac783ece23257881b66e7",
+    "terminal/lib/__tests__/flowProjection.test.ts": "a52da0afed1e02d173b6500fdd1779c5f8afbe1a",
+    "terminal/lib/__tests__/flowProjectionControls.test.tsx": "d8c2f0e5b4fc86cccef11efbbf02bbb80230bf1c",
+    "terminal/lib/flowProjection.ts": "ef7a62e4f090fdb6ce4db11763fb1c0885475c0f"
+  },
+  "sourceSha256": {
+    "terminal/components/flowdesk/FeedPane.tsx": "f674933b4217ed12c9b05abd33086f5f89b924d10ffb7516d5e06bce44104ad9",
+    "terminal/components/flowdesk/FlowProjectionStrip.tsx": "0438ddc9f8e89a085447c87248c11cbf9ec3a155b241c518d33484d17ac74651",
+    "terminal/components/prophet/optionsAlphaMeasuredEvidence.ts": "411fe769b2e03ad381da0b727102b79ca0e87b98f2382f6c9816b35a189c48ea",
+    "terminal/e2e/flow-projection.spec.ts": "03e2244c2a6805e2bd31cefe94214ad2c8261105b4764567eabd1742a8a9e0eb",
+    "terminal/lib/__tests__/flowProjection.test.ts": "480ccea33836c708d3b408b49b4f71747226fa94154fb0ffce5feac34a698f9b",
+    "terminal/lib/__tests__/flowProjectionControls.test.tsx": "8c91d19ef9616f71073ca5ceffde10d3e2b866c583c2fca035e3d486e2957ab5",
+    "terminal/lib/flowProjection.ts": "f1fb153466bbf7da5ca84f11e844497c2baf97aa0aa817cb4bae02d6168d3249"
+  },
+  "state": "OWNED_DIFF_AND_PROOF_SELF_CHECKED",
+  "visualReviewSha256": "49da004ee41f914fb070224d0970cd18d311682647d26a59661c7f0fee8a6185"
+}

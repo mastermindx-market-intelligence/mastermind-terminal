@@ -1994,6 +1994,8 @@ html[data-mmx-shared-shell="1"][data-theme="light"] .obs-options-alpha-candidate
 /* Empty state */
 .obs-insp-empty {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
   align-items: center;
   justify-content: center;
   padding: 32px 16px;

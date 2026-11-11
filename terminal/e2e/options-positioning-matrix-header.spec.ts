@@ -20,9 +20,19 @@ test("Positioning heat matrix has no unnamed table headers", async ({ page }, te
     expect(unnamed).toEqual([]);
   }
 
+  const screenshotPath = testInfo.outputPath("positioning-matrix-header.png");
+  await card.screenshot({ path: screenshotPath });
   await testInfo.attach("positioning-matrix-header", {
-    body: await card.screenshot(),
+    path: screenshotPath,
     contentType: "image/png",
   });
+  console.log("POSITIONING_MATRIX_HEADER_PROOF", JSON.stringify({
+    project: testInfo.project.name,
+    retry: testInfo.retry,
+    viewport: page.viewportSize(),
+    metrics: ["Net hedge", "OI", "Volume", "ΔOI"],
+    unnamedHeaders: [],
+    screenshot: "positioning-matrix-header.png",
+  }));
 });
 
