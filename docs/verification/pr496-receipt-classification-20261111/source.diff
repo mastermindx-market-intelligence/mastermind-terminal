@@ -1,0 +1,139 @@
+diff --git a/terminal/e2e/terminalToolbar.ts b/terminal/e2e/terminalToolbar.ts
+index f7668594d..d5752ddf9 100644
+--- a/terminal/e2e/terminalToolbar.ts
++++ b/terminal/e2e/terminalToolbar.ts
+@@ -476,12 +476,7 @@ async function executeRouteOnlyStage(
+       (timeout) => clickLocalToolbarControl(target, timeout),
+     );
+   } catch {
+-    return failToolbar(
+-      page,
+-      opts,
+-      intent.deadline,
+-      classifyToolbarActionFailure(page.isClosed(), budgetRemaining(intent.deadline)),
+-    );
++    return failToolbarActionUnlessDone(page, opts, intent.deadline);
+   }
+   if (!execution.ok) {
+     return failToolbar(page, opts, intent.deadline, "TOOLBAR_BUDGET_EXHAUSTED");
+diff --git a/terminal/lib/__tests__/terminalToolbarDeadline.test.ts b/terminal/lib/__tests__/terminalToolbarDeadline.test.ts
+index 81c9e9d15..446b540f1 100644
+--- a/terminal/lib/__tests__/terminalToolbarDeadline.test.ts
++++ b/terminal/lib/__tests__/terminalToolbarDeadline.test.ts
+@@ -11,6 +11,7 @@ import {
+   executeToolbarStage,
+   formatToolbarFailure,
+   openLayoutMenu,
++  runToolbarDetector,
+   toggleToolbarReplay,
+   toggleToolbarSync,
+   waitForSettledToolbar,
+@@ -1031,3 +1032,108 @@ describe("toolbar invocation deadline ownership", () => {
+     });
+   });
+ });
++
++
++describe("route-only failures use the completed diagnostic receipt", () => {
++  it.each([
++    { name: "deadline expiry during capture", captureMs: 1, closes: false,
++      code: "TOOLBAR_BUDGET_EXHAUSTED", remainingMs: 0 },
++    { name: "page closure during capture", captureMs: 1, closes: true,
++      code: "TOOLBAR_PAGE_CLOSED", remainingMs: 0 },
++    { name: "open page with remaining budget", captureMs: 0, closes: false,
++      code: "TOOLBAR_ACTION_FAILED", remainingMs: 1 },
++  ])("classifies $name through the actual detector route", async scenario => {
++    let nowMs = 1_000;
++    let closed = false;
++    let menuOpen = false;
++    let finalRejected = false;
++    let disposed = 0;
++    const waits: number[] = [];
++    const captures: number[] = [];
++    const actions: Array<{ target: string; timeout: number; noWaitAfter: boolean }> = [];
++    const snapshot = { mode: "full", revision: 5, settled: true,
++      overflowOpen: false, backVisible: false };
++    const opening = {
++      click: async (options: { timeout: number; noWaitAfter: boolean }) => {
++        actions.push({ target: "open detector", ...options });
++        nowMs += options.timeout;
++        menuOpen = true;
++      },
++    };
++    const final = {
++      click: async (options: { timeout: number; noWaitAfter: boolean }) => {
++        actions.push({ target: "Auto Fibonacci", ...options });
++        nowMs += options.timeout - 1;
++        finalRejected = true;
++        throw new Error("final locator rejected with one millisecond remaining");
++      },
++    };
++    const direct = {
++      isVisible: async () => {
++        if (closed) throw new Error("page closed during diagnostics");
++        return true;
++      },
++      locator: (selector: string) => {
++        expect(selector).toBe(":scope > button");
++        return opening;
++      },
++    };
++    const more = { isVisible: async () => false, isEnabled: async () => false };
++    const page = {
++      isClosed: () => closed,
++      waitForFunction: async (_fn: unknown, _arg: unknown, options: { timeout: number }) => {
++        waits.push(options.timeout);
++        return { jsonValue: async () => snapshot, dispose: async () => { disposed += 1; } };
++      },
++      locator: (selector: string) => {
++        if (selector === '[data-toolbar-action="detect"]') return direct;
++        if (selector === ".pop.show .menu-row") return {
++          filter: (options: { hasText: string }) => {
++            expect(menuOpen).toBe(true);
++            expect(options.hasText).toBe("Auto Fibonacci");
++            return final;
++          },
++        };
++        if (selector === ".chart-tabs") return {
++          first: () => ({ evaluate: async () => {
++            expect(finalRejected).toBe(true);
++            captures.push(nowMs);
++            nowMs += scenario.captureMs;
++            closed = scenario.closes;
++            return snapshot;
++          } }),
++        };
++        throw new Error(`unexpected locator: ${selector}`);
++      },
++      getByTestId: (id: string) => {
++        expect(id).toBe("toolbar-more");
++        return more;
++      },
++    } as unknown as Page;
++    const intent = { deadline: 10_000 };
++    const clock = vi.spyOn(Date, "now").mockImplementation(() => nowMs);
++    try {
++      const failure = await runToolbarDetector(page, "Auto Fibonacci", intent)
++        .then(() => null, (error: unknown) => error);
++      expect(failure).toBeInstanceOf(Error);
++      if (!(failure instanceof Error)) throw new Error("the rejected final action must not succeed");
++      const separator = failure.message.indexOf(" ");
++      const receipt = JSON.parse(failure.message.slice(separator + 1)) as ToolbarFailureReceipt;
++      expect(actions).toEqual([
++        { target: "open detector", timeout: 7_999, noWaitAfter: true },
++        { target: "Auto Fibonacci", timeout: 1_001, noWaitAfter: true },
++      ]);
++      expect(waits).toEqual([4_000]);
++      expect(disposed).toBe(1);
++      expect(captures).toEqual([9_999]);
++      expect(intent).toEqual({ deadline: 10_000 });
++      expect(receipt).toEqual({
++        what: "the Auto Fibonacci detector", mode: "full", revision: 5, settled: true,
++        direct_visible: !scenario.closes, more_visible: false, more_enabled: false,
++        overflow_open: false, overflow_back_visible: false, done: false,
++        budget_remaining_ms: scenario.remainingMs, page_closed: scenario.closes,
++      });
++      expect(failure.message.slice(0, separator)).toBe(scenario.code);
++    } finally { clock.mockRestore(); }
++  });
++});

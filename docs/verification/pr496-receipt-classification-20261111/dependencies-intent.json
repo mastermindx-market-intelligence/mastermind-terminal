@@ -1,0 +1,12 @@
+{
+  "startedAt": "2026-11-11T20:14:13.347648+00:00",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "package_sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+  "lock_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "head": "cc9be85b2d4ece4503d5cf57a6005140875fb4c9"
+}

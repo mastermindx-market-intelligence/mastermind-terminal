@@ -476,12 +476,7 @@ async function executeRouteOnlyStage(
       (timeout) => clickLocalToolbarControl(target, timeout),
     );
   } catch {
-    return failToolbar(
-      page,
-      opts,
-      intent.deadline,
-      classifyToolbarActionFailure(page.isClosed(), budgetRemaining(intent.deadline)),
-    );
+    return failToolbarActionUnlessDone(page, opts, intent.deadline);
   }
   if (!execution.ok) {
     return failToolbar(page, opts, intent.deadline, "TOOLBAR_BUDGET_EXHAUSTED");

@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-11T20:17:25.037731+00:00",
+  "expected_baseline": "Two new race discriminators fail; positive-budget control and all existing cases pass.",
+  "head": "cc9be85b2d4ece4503d5cf57a6005140875fb4c9",
+  "helper_before_sha256": "ac2e3631775e3b2871825dd5743138ce1e46c054868e8310779a338ef3cefa1e",
+  "source_fix_applied": false,
+  "test_added_sha256": "c8a88c220f2b8b7fa451e847cdc1f33bd095c11b262a09158a9b64d34a52523e",
+  "test_before_sha256": "4bfe5c501978a5c64e8b5a56bdca00668d04b094715fb379583f84da05224c6f"
+}

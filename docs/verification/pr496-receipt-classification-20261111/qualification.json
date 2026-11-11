@@ -1,0 +1,145 @@
+{
+  "at": "2026-11-11T20:23:30.546151+00:00",
+  "base_head": "cc9be85b2d4ece4503d5cf57a6005140875fb4c9",
+  "baseline": {
+    "failed": 2,
+    "helper_blob": "f7668594d06aaf095eb1d23149f3eea577184af7",
+    "passed": 38
+  },
+  "files": [
+    {
+      "bytes": 3297,
+      "file": "README.md",
+      "sha256": "a4792b49083bb0688fd84d56d3109f60fa57d366c28e67f2411c2cd3e74efc63"
+    },
+    {
+      "bytes": 798,
+      "file": "acquisition-readback.json",
+      "sha256": "dfeccc8c72c66de4ff442308239576a46c9b62febb65d0a3915ee82630fafcb0"
+    },
+    {
+      "bytes": 5475,
+      "file": "checks.json",
+      "sha256": "c108e4f1f172459f07ea279b3dc2baa3872b7a3ceacf1f4d73e343d164ec25f2"
+    },
+    {
+      "bytes": 512,
+      "file": "dependencies-intent.json",
+      "sha256": "8542058c1c36aeacdbf8a7eb5a20fe0d5cc86860ba2717cf8bd93856eff387e1"
+    },
+    {
+      "bytes": 364,
+      "file": "dependencies-result.json",
+      "sha256": "875761a82baa7b08cd2e6b65da8f14831be8355143cbea20eb8eed61ef1baee3"
+    },
+    {
+      "bytes": 148,
+      "file": "dependencies.log",
+      "sha256": "30c66f4822f1f039d091e305be30a2648b94019fe17b95d0d1497114e796fa31"
+    },
+    {
+      "bytes": 2325,
+      "file": "focused.json",
+      "sha256": "e9d1e95e8bacfabff95276a22246d80b20cc23e2d5d0aa513b7af41aaccbe4cd"
+    },
+    {
+      "bytes": 1686,
+      "file": "focused.log",
+      "sha256": "9bbf142db1287acf8e11d6e3076582a6fd7adb06b5127d2e1c916020e22f877e"
+    },
+    {
+      "bytes": 1201,
+      "file": "lint.json",
+      "sha256": "b2fbbde9c4b6c3ae751ac8cd1d4ec709942cf11e87a78699439aff6075882d2d"
+    },
+    {
+      "bytes": 624,
+      "file": "lint.log",
+      "sha256": "de6907d30b350d34d6a9bd7eea4b96da54e1a0eab51a8c69db85e73adeab2416"
+    },
+    {
+      "bytes": 1126,
+      "file": "preservation.json",
+      "sha256": "bfc1bb3d335bacdcf40472c06f5e129bfc4644293fc098d89679c4381c042dc6"
+    },
+    {
+      "bytes": 4769,
+      "file": "regression-before.json",
+      "sha256": "1ecb1e16b52ab6acc46a1e4565ebf7fafe28d1cb38f14f32cc9b7ed6b0ae1aaf"
+    },
+    {
+      "bytes": 3880,
+      "file": "regression-before.log",
+      "sha256": "415b5faa54dd51e5e62edbd21f90a279424f780b44f4209eb8448aada234364c"
+    },
+    {
+      "bytes": 522,
+      "file": "regression-intent.json",
+      "sha256": "6bdfe95acd3d02d69d60374b2a97f498c64c13b5c38bc1d7a0f9c313c70cbb66"
+    },
+    {
+      "bytes": 419,
+      "file": "repair-intent.json",
+      "sha256": "d244e5f4ae2aad0140bf1880f5aa260256f13a0ab6dc36d60acc2131ec3ef529"
+    },
+    {
+      "bytes": 178,
+      "file": "repair-result.json",
+      "sha256": "8cad0b6bd29370ac7eaf08826f30da7b0841b1b444ae7809fd7b3599729a8eef"
+    },
+    {
+      "bytes": 5811,
+      "file": "source.diff",
+      "sha256": "bab8b483c56679d776498be6d8f004f6b0fa47db805c49fe706eebedd0072f0a"
+    },
+    {
+      "bytes": 533,
+      "file": "typecheck.json",
+      "sha256": "3e37c6a4dd77a38cb94ea0e2ebc91b22dd5b57868e4938f59ba7d8e4fd0cf224"
+    },
+    {
+      "bytes": 0,
+      "file": "typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "operation": "terminal-pr496-receipt-classification-20261111-c3",
+  "repaired": {
+    "failed": 0,
+    "lint_errors": 0,
+    "passed": 40,
+    "retained_lint_warnings": 4,
+    "typecheck_rc": 0
+  },
+  "source_preservation": {
+    "all_other_tracked_paths_unchanged": true,
+    "auto_merge": "off",
+    "base_head": "cc9be85b2d4ece4503d5cf57a6005140875fb4c9",
+    "formal_review_hold": [
+      5108504922,
+      5108886118
+    ],
+    "label": "merge-blocked",
+    "observedAt": "2026-11-11T20:23:30.534173+00:00",
+    "owned_source_paths": [
+      "terminal/e2e/terminalToolbar.ts",
+      "terminal/lib/__tests__/terminalToolbarDeadline.test.ts"
+    ],
+    "prior_proof_directories_unchanged": [
+      "docs/verification/pr496-toolbar-integration-20261111",
+      "docs/verification/pr496-compare-bound-20261111",
+      "docs/verification/pr496-drawing-bound-20261111"
+    ],
+    "production_hook_and_original_test_blobs": [
+      {
+        "blob": "a32f999a61b14033ac3ea29af1dc807d609a21b3",
+        "path": "terminal/lib/useAdaptiveToolbar.ts"
+      },
+      {
+        "blob": "418f187d758045865d026436af06472a84cff6dd",
+        "path": "terminal/lib/__tests__/useAdaptiveToolbar.test.ts"
+      }
+    ],
+    "scope": "Only the route-only rejection catch and three public-detector-path regressions change. No success predicate, allocation, retry, timeout, browser assertion or application source changes."
+  }
+}

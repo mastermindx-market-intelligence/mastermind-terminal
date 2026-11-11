@@ -1,0 +1,6 @@
+{
+  "state": "APPLIED",
+  "after_sha256": "2a91ccc2355c7e3da7afc823c30d01b54a94647d962f4ae49cd195954b06ce18",
+  "reverse_preimage_exact": true,
+  "test_bodies_preserved": true
+}

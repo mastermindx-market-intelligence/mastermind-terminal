@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-11T20:20:16.215793+00:00",
+  "before_sha256": "ac2e3631775e3b2871825dd5743138ce1e46c054868e8310779a338ef3cefa1e",
+  "change": "Classify the route-only action failure from the single completed diagnostic receipt via the existing helper.",
+  "negative_log_sha256": "415b5faa54dd51e5e62edbd21f90a279424f780b44f4209eb8448aada234364c",
+  "path": "terminal/e2e/terminalToolbar.ts",
+  "state": "PREPARED"
+}

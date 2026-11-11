@@ -1,0 +1,31 @@
+{
+  "all_other_tracked_paths_unchanged": true,
+  "auto_merge": "off",
+  "base_head": "cc9be85b2d4ece4503d5cf57a6005140875fb4c9",
+  "formal_review_hold": [
+    5108504922,
+    5108886118
+  ],
+  "label": "merge-blocked",
+  "observedAt": "2026-11-11T20:23:30.534173+00:00",
+  "owned_source_paths": [
+    "terminal/e2e/terminalToolbar.ts",
+    "terminal/lib/__tests__/terminalToolbarDeadline.test.ts"
+  ],
+  "prior_proof_directories_unchanged": [
+    "docs/verification/pr496-toolbar-integration-20261111",
+    "docs/verification/pr496-compare-bound-20261111",
+    "docs/verification/pr496-drawing-bound-20261111"
+  ],
+  "production_hook_and_original_test_blobs": [
+    {
+      "blob": "a32f999a61b14033ac3ea29af1dc807d609a21b3",
+      "path": "terminal/lib/useAdaptiveToolbar.ts"
+    },
+    {
+      "blob": "418f187d758045865d026436af06472a84cff6dd",
+      "path": "terminal/lib/__tests__/useAdaptiveToolbar.test.ts"
+    }
+  ],
+  "scope": "Only the route-only rejection catch and three public-detector-path regressions change. No success predicate, allocation, retry, timeout, browser assertion or application source changes."
+}
