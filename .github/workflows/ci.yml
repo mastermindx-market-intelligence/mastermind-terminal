@@ -426,8 +426,10 @@ jobs:
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
       - name: Prepare Chromium for original mock captures
-        # F11 always qualifies this admitted checkout and needs Chromium even
-        # when the PL6/VI planner can reuse both current-source evidence locks.
+        # Only the capture below drives a browser in this job. F11 moved to the
+        # parallel terminal-f11-evidence job, so a merge group whose planner
+        # reuses both current-source evidence locks no longer installs it here.
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 10
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
@@ -436,20 +438,20 @@ jobs:
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 85
         run: node e2e/tools/capture_ci_evidence.cjs
-      # F11 is a separate real-component contract, not an extra case in PL6/VI50.
-      # Business inputs are intercepted as unavailable before reaching API/provider code.
-      - name: Capture provider-closed F11 theses entry on this checkout
-        timeout-minutes: 8
-        run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
+      # F11 (provider-closed theses entry) runs in the parallel
+      # terminal-f11-evidence job: it is a separate real-component contract
+      # with its own port, output packet and sanitized server environment, and
+      # it reads nothing this capture writes. Its lock suites run there too.
       # Fresh-evidence validation through the immutable unit readers. Capture
       # above exported TERMINAL_EVIDENCE_* to GITHUB_ENV and refreshed this
       # checkout's evidence locks, so every suite that reads them (listed by
-      # scripts/ci/evidence-lock-suites.sh) runs here, after capture, exactly
-      # where `npm test` ran them before the unit split. The parallel
-      # terminal-unit-shards matrix excludes the same list.
+      # scripts/ci/evidence-lock-suites.sh evidence) runs here, after capture,
+      # exactly where `npm test` ran them before the unit split. The F11 group
+      # runs in terminal-f11-evidence after its own capture; the parallel
+      # terminal-unit-shards matrix excludes both groups (the full list).
       - name: Validate fresh evidence through the unit readers
         run: |
-          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh)
+          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh evidence)
           [ "${#suites[@]}" -gt 0 ] || { echo "::error::no evidence suites found"; exit 1; }
           npx vitest run "${suites[@]}"
         timeout-minutes: 10
@@ -590,7 +592,6 @@ jobs:
           path: |
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
-            terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
@@ -605,6 +606,61 @@ jobs:
             terminal/docs/pr-crops/b-pl-6-batch-2/
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
             terminal/docs/pr-crops/options-level-axis-labels/*.png
+          if-no-files-found: warn
+
+  terminal-f11-evidence:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-f11-evidence
+      cancel-in-progress: true
+    # F11 is a separate real-component contract, not an extra case in PL6/VI50.
+    # It used to run serially after the PL6/VI capture in terminal-unit, but it
+    # shares nothing with that capture: its own dev server port, its own output
+    # packet, a server environment built from an allow-list (no TERMINAL_EVIDENCE_*),
+    # and its only checkout input is `git rev-parse HEAD` of this same commit.
+    # Same qualification gate as terminal-unit: the independent browser selector
+    # must succeed, only a trusted docs-only PR may skip, and it runs on native
+    # merge groups (no merge_group skip): F11 always qualifies the admitted checkout.
+    needs: [pr_scope, e2e-scope]
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    name: Terminal F11 evidence (shard)
+    runs-on: ubuntu-latest
+    # Setup ~2 min + Chromium <=10 + capture <=8 + F11 lock suites <=10.
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      - name: Prepare Chromium for the F11 capture
+        timeout-minutes: 10
+        run: |
+          timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+            || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      # Business inputs are intercepted as unavailable before reaching API/provider code.
+      - name: Capture provider-closed F11 theses entry on this checkout
+        timeout-minutes: 8
+        run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
+      # The evidence-lock suites that read the F11 packet validate the bytes
+      # this job just captured (the F11 group of the one list script). The
+      # unit shards exclude them, so this is where they run on every event.
+      - name: Validate fresh F11 evidence through the unit readers
+        run: |
+          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh f11)
+          [ "${#suites[@]}" -gt 0 ] || { echo "::error::no F11 evidence suites found"; exit 1; }
+          npx vitest run "${suites[@]}"
+        timeout-minutes: 10
+      - name: Retain F11 evidence and failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f11-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
           if-no-files-found: warn
 
   terminal-typecheck:
@@ -668,7 +724,7 @@ jobs:
       # after capture (scripts/ci/evidence-lock-suites.sh is the one list).
       - name: Run unit tests (shard)
         run: |
-          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh)
+          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh all)
           [ "${#suites[@]}" -gt 0 ] || { echo "::error::no evidence suites found"; exit 1; }
           excludes=()
           for suite in "${suites[@]}"; do excludes+=(--exclude "$suite"); done
@@ -1031,7 +1087,7 @@ jobs:
     name: Terminal typecheck + tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [pr_scope, e2e-scope, terminal-unit, terminal-typecheck, terminal-unit-shards, terminal-e2e, terminal-e2e-build, terminal-e2e-prodbuild]
+    needs: [pr_scope, e2e-scope, terminal-unit, terminal-f11-evidence, terminal-typecheck, terminal-unit-shards, terminal-e2e, terminal-e2e-build, terminal-e2e-prodbuild]
     if: always()
     steps:
       - name: Refuse cancelled qualification
@@ -1046,6 +1102,7 @@ jobs:
           PR_SCOPE: ${{ needs.pr_scope.result }}
           PR_MODE: ${{ needs.pr_scope.outputs.mode }}
           UNIT: ${{ needs.terminal-unit.result }}
+          F11: ${{ needs.terminal-f11-evidence.result }}
           TYPECHECK: ${{ needs.terminal-typecheck.result }}
           UNITS: ${{ needs.terminal-unit-shards.result }}
           E2E: ${{ needs.terminal-e2e.result }}
@@ -1054,7 +1111,7 @@ jobs:
           PRODBUILD_COUNT: ${{ needs.e2e-scope.outputs.prodbuild_count }}
           EVENT: ${{ github.event_name }}
         run: |
-          echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-typecheck:$TYPECHECK terminal-unit-shards:$UNITS terminal-e2e:$E2E terminal-e2e-build:$BUILD terminal-e2e-prodbuild:$PRODBUILD (count=$PRODBUILD_COUNT)"
+          echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-f11-evidence:$F11 terminal-typecheck:$TYPECHECK terminal-unit-shards:$UNITS terminal-e2e:$E2E terminal-e2e-build:$BUILD terminal-e2e-prodbuild:$PRODBUILD (count=$PRODBUILD_COUNT)"
           docs_only=0
           if [ "$EVENT" = "pull_request" ] && [ "$PR_SCOPE" = "success" ] && [ "$PR_MODE" = "docs" ]; then
             docs_only=1
@@ -1082,6 +1139,14 @@ jobs:
           # The split typecheck and unit-shard lanes follow the same rule as the
           # evidence lane: success, or a skip only a trusted docs-only PR earned.
           # A skipped or failed matrix result can never qualify a candidate.
+          if [ "$F11" = "success" ]; then
+            :
+          elif [ "$docs_only" -eq 1 ] && [ "$F11" = "skipped" ]; then
+            echo "terminal-f11-evidence skipped: trusted docs-only pull request"
+          else
+            echo "::error title=terminal-ci::terminal-f11-evidence concluded '$F11' (expected 'success')"
+            fail=1
+          fi
           if [ "$TYPECHECK" = "success" ]; then
             :
           elif [ "$docs_only" -eq 1 ] && [ "$TYPECHECK" = "skipped" ]; then

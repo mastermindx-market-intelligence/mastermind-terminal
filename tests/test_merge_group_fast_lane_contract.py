@@ -63,7 +63,7 @@ def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     )
     # The split typecheck and unit-shard lanes share the evidence lane's gate:
     # mandatory browser selector, docs-only skip only, and no merge_group skip.
-    for job in ("terminal-typecheck", "terminal-unit-shards"):
+    for job in ("terminal-typecheck", "terminal-unit-shards", "terminal-f11-evidence"):
         assert all_jobs[job]["if"] == (
             "${{ !cancelled() && needs.e2e-scope.result == 'success' && !(" + docs + ") }}"
         )
@@ -77,9 +77,22 @@ def test_pl6_vi_capture_is_selective_while_f11_keeps_its_browser_prerequisite() 
     steps = jobs()["terminal-unit"]["steps"]
     by_name = {s["name"]: s for s in steps if "name" in s}
     condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
-    assert "if" not in by_name["Prepare Chromium for original mock captures"]
+    # Chromium follows the selective capture; F11 keeps its browser in its own job.
+    assert by_name["Prepare Chromium for original mock captures"]["if"] == condition
     assert not by_name["Prepare Chromium for original mock captures"].get("continue-on-error", False)
-    f11 = by_name["Capture provider-closed F11 theses entry on this checkout"]
+    assert "Capture provider-closed F11 theses entry on this checkout" not in by_name
+    f11_steps = jobs()["terminal-f11-evidence"]["steps"]
+    f11_by_name = {s["name"]: s for s in f11_steps if "name" in s}
+    assert "if" not in f11_by_name["Prepare Chromium for the F11 capture"]
+    assert not f11_by_name["Prepare Chromium for the F11 capture"].get("continue-on-error", False)
+    for step in f11_steps:
+        assert "if" not in step or step.get("uses", "").startswith("actions/upload-artifact"), (
+            "F11 must qualify every admitted checkout, including native merge groups")
+        assert "TERMINAL_EVIDENCE" not in str(step.get("run", ""))
+    names = [s.get("name") for s in f11_steps]
+    assert names.index("Prepare Chromium for the F11 capture") < names.index(
+        "Capture provider-closed F11 theses entry on this checkout")
+    f11 = f11_by_name["Capture provider-closed F11 theses entry on this checkout"]
     assert "if" not in f11
     assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
     assert f11["timeout-minutes"] == 8
@@ -150,24 +163,53 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
     assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
     assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
     assert "lib/__tests__/lexEvidenceProjection.test.ts" in expected
-    listed = subprocess.run(
-        ["bash", "scripts/ci/evidence-lock-suites.sh"],
-        cwd=root / "terminal", check=True, capture_output=True, text=True,
-        env={**os.environ, "LC_ALL": "C"},
-    ).stdout.split()
-    assert sorted(listed) == expected
+    def listed(*group: str) -> list[str]:
+        return subprocess.run(
+            ["bash", "scripts/ci/evidence-lock-suites.sh", *group],
+            cwd=root / "terminal", check=True, capture_output=True, text=True,
+            env={**os.environ, "LC_ALL": "C"},
+        ).stdout.split()
+    assert sorted(listed()) == expected
+    assert listed("all") == listed()
+    # The F11 group is exactly the suites that read the F11 packet, which only
+    # terminal-f11-evidence captures; the evidence group is the remainder.
+    f11_expected = sorted(
+        suite for suite in expected
+        if "b-f11-10-analysis-theses-entry" in (root / "terminal" / suite).read_text(encoding="utf-8")
+    )
+    assert "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts" in f11_expected
+    assert sorted(listed("f11")) == f11_expected
+    assert sorted(listed("evidence")) == sorted(set(expected) - set(f11_expected))
+    assert not set(listed("evidence")) & set(listed("f11"))
+    refused = subprocess.run(
+        ["bash", "scripts/ci/evidence-lock-suites.sh", "bogus"],
+        cwd=root / "terminal", capture_output=True, text=True,
+    )
+    assert refused.returncode != 0 and not refused.stdout
     lane = next(
         str(step["run"]) for step in jobs()["terminal-unit"]["steps"]
         if step.get("name") == "Validate fresh evidence through the unit readers"
     )
+    f11_steps = jobs()["terminal-f11-evidence"]["steps"]
+    f11_names = [step.get("name") for step in f11_steps]
+    f11_lane = next(
+        str(step["run"]) for step in f11_steps
+        if step.get("name") == "Validate fresh F11 evidence through the unit readers"
+    )
+    assert f11_names.index("Capture provider-closed F11 theses entry on this checkout") < f11_names.index(
+        "Validate fresh F11 evidence through the unit readers"
+    ), "F11 lock suites must run after the F11 capture"
     shard = next(
         str(step["run"]) for step in jobs()["terminal-unit-shards"]["steps"]
         if "npx vitest run --shard=" in str(step.get("run", ""))
     )
-    for command in (lane, shard):
-        assert "bash scripts/ci/evidence-lock-suites.sh" in command
+    for command, group in ((lane, "evidence"), (f11_lane, "f11"), (shard, "all")):
+        assert f"bash scripts/ci/evidence-lock-suites.sh {group})" in command
         assert 'exit 1' in command, "an empty list must fail, not run everything"
     assert '--exclude "$suite"' in shard
+    for step in f11_steps:
+        if step.get("name") == "Validate fresh F11 evidence through the unit readers":
+            assert "if" not in step and not step.get("continue-on-error", False)
 
 
 def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
@@ -198,8 +240,8 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
     assert set(aggregate["needs"]) == {
-        "pr_scope", "e2e-scope", "terminal-unit", "terminal-typecheck",
-        "terminal-unit-shards", "terminal-e2e",
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-f11-evidence",
+        "terminal-typecheck", "terminal-unit-shards", "terminal-e2e",
         "terminal-e2e-build", "terminal-e2e-prodbuild",
     }
     step = aggregate_assertion_step()
@@ -209,6 +251,7 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
         "PR_SCOPE": "${{ needs.pr_scope.result }}",
         "PR_MODE": "${{ needs.pr_scope.outputs.mode }}",
         "UNIT": "${{ needs.terminal-unit.result }}",
+        "F11": "${{ needs.terminal-f11-evidence.result }}",
         "TYPECHECK": "${{ needs.terminal-typecheck.result }}",
         "UNITS": "${{ needs.terminal-unit-shards.result }}",
         "E2E": "${{ needs.terminal-e2e.result }}",
@@ -250,7 +293,7 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": "success",
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": unit, "TYPECHECK": "success", "UNITS": "success",
+             "UNIT": unit, "F11": "success", "TYPECHECK": "success", "UNITS": "success",
              "E2E": e2e, **prod_lane_results(event)},
         capture_output=True,
         text=True,
@@ -261,7 +304,7 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
     )
 
 
-@pytest.mark.parametrize("lane", ["TYPECHECK", "UNITS"])
+@pytest.mark.parametrize("lane", ["F11", "TYPECHECK", "UNITS"])
 @pytest.mark.parametrize("event", ["pull_request", "merge_group"])
 @pytest.mark.parametrize("status", ["skipped", "failure", "cancelled", ""])
 def test_required_aggregate_refuses_an_incomplete_split_lane(
@@ -274,7 +317,7 @@ def test_required_aggregate_refuses_an_incomplete_split_lane(
         ["bash", "-e", "-c", aggregate_assertion_step()["run"]],
         env={**os.environ, "EVENT": event, "SCOPE": "success",
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": "success", "TYPECHECK": "success", "UNITS": "success",
+             "UNIT": "success", "F11": "success", "TYPECHECK": "success", "UNITS": "success",
              "E2E": "success" if event == "pull_request" else "skipped",
              lane: status, **prod_lane_results(event)},
         capture_output=True, text=True, check=False,
@@ -302,7 +345,7 @@ def test_merge_group_never_accepts_missing_empty_or_unsuccessful_production(
         ["bash", "-e", "-c", aggregate_assertion_step()["run"]],
         env={**os.environ, "EVENT": "merge_group", "SCOPE": "success",
              "PR_SCOPE": "success", "PR_MODE": "full", "UNIT": "success",
-             "TYPECHECK": "success", "UNITS": "success",
+             "F11": "success", "TYPECHECK": "success", "UNITS": "success",
              "E2E": "skipped", "BUILD": build, "PRODBUILD": prod,
              "PRODBUILD_COUNT": count},
         capture_output=True, text=True, check=False,
@@ -322,7 +365,7 @@ def test_unqualified_scope_can_never_pass_event_aggregate(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": scope_result,
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": "success", "TYPECHECK": "success", "UNITS": "success",
+             "UNIT": "success", "F11": "success", "TYPECHECK": "success", "UNITS": "success",
              "E2E": e2e, **prod_lane_results(event)},
         capture_output=True, text=True, check=False,
     )

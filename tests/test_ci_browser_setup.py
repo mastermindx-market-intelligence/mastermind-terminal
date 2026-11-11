@@ -17,9 +17,12 @@ PREPARE = "Prepare Chromium for original mock captures"
 CAPTURE = "Capture and validate evidence on this checkout"
 
 
+def _workflow():
+    return yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+
+
 def _steps():
-    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
-    return workflow["jobs"]["terminal-unit"]["steps"]
+    return _workflow()["jobs"]["terminal-unit"]["steps"]
 
 
 def _prepare():
@@ -47,16 +50,25 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     assert steps[capture_index]["timeout-minutes"] == 85
     assert not steps[prepare_index].get("continue-on-error", False)
     assert not steps[capture_index].get("continue-on-error", False)
-    assert "if" not in steps[prepare_index]
-    assert steps[capture_index]["if"] == (
-        "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
-    )
-    f11_index = next(i for i, step in enumerate(steps)
-                     if step.get("name") == "Capture provider-closed F11 theses entry on this checkout")
+    condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+    # The browser now serves only this capture, so it follows the same plan.
+    assert steps[prepare_index]["if"] == condition
+    assert steps[capture_index]["if"] == condition
     unit_index = next(i for i, step in enumerate(steps)
                      if step.get("name") == "Validate fresh evidence through the unit readers")
-    assert prepare_index < capture_index < f11_index < unit_index
-    f11 = steps[f11_index]
+    assert prepare_index < capture_index < unit_index
+    # F11 runs in its own parallel job, after its own browser install.
+    assert not any(step.get("name") == "Capture provider-closed F11 theses entry on this checkout"
+                   for step in steps)
+    f11_steps = _workflow()["jobs"]["terminal-f11-evidence"]["steps"]
+    f11_prepare = next(i for i, step in enumerate(f11_steps)
+                       if step.get("name") == "Prepare Chromium for the F11 capture")
+    f11_index = next(i for i, step in enumerate(f11_steps)
+                     if step.get("name") == "Capture provider-closed F11 theses entry on this checkout")
+    assert f11_prepare < f11_index
+    assert f11_steps[f11_prepare]["run"] == _prepare()["run"]
+    assert f11_steps[f11_prepare]["timeout-minutes"] == 10
+    f11 = f11_steps[f11_index]
     assert "if" not in f11
     assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
     assert f11["timeout-minutes"] == 8
@@ -67,7 +79,7 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     # terminal-typecheck jobs so they never serialize behind capture.
     records = steps[unit_index]
     assert "if" not in records
-    assert "bash scripts/ci/evidence-lock-suites.sh" in records["run"]
+    assert "bash scripts/ci/evidence-lock-suites.sh evidence" in records["run"]
     assert 'npx vitest run "${suites[@]}"' in records["run"]
     assert not records.get("continue-on-error", False)
 
