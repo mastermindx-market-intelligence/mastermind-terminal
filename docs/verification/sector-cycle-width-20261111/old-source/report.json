@@ -1,0 +1,307 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/sector-cycle-lens.spec.ts",
+      "--workers=1",
+      "--retries=0",
+      "--trace=on",
+      "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+      "--grep",
+      "cycles chart measurement survives table transitions en dark",
+      "--project=desktop",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 57735",
+      "url": "http://127.0.0.1:57735/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "sector-cycle-lens.spec.ts",
+      "file": "sector-cycle-lens.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "cycles chart measurement survives table transitions en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7313,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m340\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m340\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:148:24",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 83 |\u001b[39m       \u001b[33mMath\u001b[39m\u001b[33m.\u001b[39mabs(value\u001b[33m.\u001b[39mrendered \u001b[33m-\u001b[39m value\u001b[33m.\u001b[39mcontainer)\u001b[33m,\u001b[39m\n \u001b[90m 84 |\u001b[39m     )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m   }\u001b[33m,\u001b[39m { message\u001b[33m:\u001b[39m \u001b[32m\"SVG coordinates must follow the current measured content width\"\u001b[39m })\u001b[33m.\u001b[39mtoBeLessThanOrEqual(\u001b[35m1\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m   \u001b[36mreturn\u001b[39m geometry()\u001b[33m;\u001b[39m\n \u001b[90m 87 |\u001b[39m }\n \u001b[90m 88 |\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m340\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:148:24"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:34:56.983Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-abd0ca989b42a6476d17",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-11T13:33:59.750Z",
+    "duration": 65953.51,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

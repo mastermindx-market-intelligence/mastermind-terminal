@@ -1,0 +1,68 @@
+from pathlib import Path
+import os,sys,json,hashlib,subprocess,socket,resource,tarfile,io,time,xml.etree.ElementTree as ET
+assert socket.gethostname()=='mastermind-pc'
+resource.setrlimit(resource.RLIMIT_CORE,(0,0))
+cache=Path('/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64');exe=cache/'bin/python'
+assert hashlib.sha256(exe.read_bytes()).hexdigest()=='a9daa2903823e8bc0ce562bcf07be5a9ae27cf5d9d6dccf492438f0a310c0982'
+root=Path('/tmp/terminal-python-loader-support-20261111-c3');assert not root.exists()
+payload=sys.stdin.buffer.read();archive=tarfile.open(fileobj=io.BytesIO(payload),mode='r:gz')
+members=archive.getmembers()
+allowed={'bundle-manifest.json','candidate/tests/test_trusted_migration_ownership.py'}
+manifest_member=next(x for x in members if x.name=='bundle-manifest.json')
+manifest=json.loads(archive.extractfile(manifest_member).read())
+allowed.update('source/'+name for name in manifest['sourceFiles'])
+assert len(members)==len(allowed) and {x.name for x in members}==allowed
+assert all(x.isfile() and not x.name.startswith('/') and '..' not in Path(x.name).parts for x in members)
+root.mkdir();(root/'home').mkdir();evidence=root/'evidence';evidence.mkdir()
+for member in members:
+ target=root/member.name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(archive.extractfile(member).read())
+for name,item in manifest['sourceFiles'].items():
+ assert hashlib.sha256((root/'source'/name).read_bytes()).hexdigest()==item['sha256'],name
+candidate=root/'candidate/tests/test_trusted_migration_ownership.py'
+assert hashlib.sha256(candidate.read_bytes()).hexdigest()==manifest['candidateSha256']
+environment={'PATH':os.defpath,'HOME':str(root/'home'),'LD_LIBRARY_PATH':str(cache/'lib'),'PYTHONDONTWRITEBYTECODE':'1','PYTEST_DISABLE_PLUGIN_AUTOLOAD':'1','PIP_DISABLE_PIP_VERSION_CHECK':'1','PIP_NO_INPUT':'1'}
+record={'schema':'terminal_python_loader_consumer.v1','host':socket.gethostname(),'root':str(root),'sourceBase':manifest['sourceBase'],'sourceTree':manifest['sourceTree'],'bundleSha256':hashlib.sha256(payload).hexdigest(),'originalInterpreter':str(exe),'originalInterpreterSha256':hashlib.sha256(exe.read_bytes()).hexdigest(),'loaderPath':environment['LD_LIBRARY_PATH'],'originalCiVenvReused':False,'coreDumpsDisabled':True,'results':[]}
+def save():(evidence/'execution.json').write_text(json.dumps(record,indent=2,sort_keys=True)+'\n')
+def run(name,command,cwd,env,timeout=180):
+ record['state']='RUNNING_'+name.upper();save();start=time.monotonic()
+ with (evidence/(name+'.log')).open('w') as out:result=subprocess.run(command,cwd=cwd,env=env,stdout=out,stderr=subprocess.STDOUT,timeout=timeout)
+ row={'name':name,'command':command,'exit':result.returncode,'seconds':round(time.monotonic()-start,3),'logSha256':hashlib.sha256((evidence/(name+'.log')).read_bytes()).hexdigest()}
+ record['results'].append(row);save();return result.returncode
+venv=root/'venv';assert run('venv',[str(exe),'-m','venv',str(venv)],root,environment)==0
+python=venv/'bin/python'
+assert run('dependencies',[str(python),'-m','pip','install','--no-cache-dir','pytest==9.2.0','PyYAML==6.0.3'],root,environment)==0
+identity='import sys,pytest,yaml,importlib.metadata,json;from pathlib import Path;print(json.dumps({"python":sys.version,"executable":sys.executable,"pytest":pytest.__version__,"pytestFile":pytest.__file__,"yaml":yaml.__version__,"yamlFile":yaml.__file__,"packages":sorted((d.metadata["Name"],d.version) for d in importlib.metadata.distributions()),"libraries":sorted(set(line.rsplit(" ",1)[-1] for line in Path("/proc/self/maps").read_text().splitlines() if "libpython" in line))}))'
+p=subprocess.run([str(python),'-c',identity],cwd=root,env=environment,capture_output=True,text=True,timeout=20);assert p.returncode==0,p.stderr
+record['runtime']=json.loads(p.stdout);save()
+site=Path(record['runtime']['pytestFile']).parent.parent
+probe='import sys,json;from pathlib import Path;print(json.dumps({"version":sys.version,"libraries":sorted(set(line.rsplit(" ",1)[-1] for line in Path("/proc/self/maps").read_text().splitlines() if "libpython" in line))}))'
+child_env={'PATH':os.defpath,'HOME':str(root/'home'),'PYTHONPATH':str(site),'PYTEST_DISABLE_PLUGIN_AUTOLOAD':'1','PYTHONDONTWRITEBYTECODE':'1'}
+record['childRuntime']={}
+for name,extra in [('stripped',{}),('retained',{'LD_LIBRARY_PATH':environment['LD_LIBRARY_PATH']})]:
+ p=subprocess.run([str(python),'-c',probe],cwd=root,env={**child_env,**extra},capture_output=True,text=True,timeout=20)
+ record['childRuntime'][name]={'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr}
+save()
+selected='tests/test_trusted_migration_ownership.py::test_actual_generated_companion_controller_suite_is_closed_and_green'
+target=root/'source/tests/test_trusted_migration_ownership.py'
+original=target.read_bytes();assert hashlib.sha256(original).hexdigest()==manifest['sourceFiles']['tests/test_trusted_migration_ownership.py']['sha256']
+old_env={**environment,'S17_PHASE2_GENERATED_EVIDENCE':str(evidence/'old-generated-controller.xml')}
+old=run('old-source',[str(python),'-m','pytest',selected,'-q','--tb=short','--basetemp='+str(root/'old-fixtures'),'--junitxml='+str(evidence/'old-parent.xml')],root/'source',old_env)
+target.write_bytes(candidate.read_bytes())
+new_env={**environment,'S17_PHASE2_GENERATED_EVIDENCE':str(evidence/'fixed-generated-controller.xml')}
+fixed=run('fixed-source',[str(python),'-m','pytest',selected,'-q','--tb=short','--basetemp='+str(root/'fixed-fixtures'),'--junitxml='+str(evidence/'fixed-parent.xml')],root/'source',new_env)
+assert target.read_bytes()==candidate.read_bytes()
+record['controlledOldFailure']=old!=0
+record['controlledOldSegfault']='Fatal Python error: Segmentation fault' in (evidence/'old-source.log').read_text()
+def counts(path):
+ cases=list(ET.parse(path).iter('testcase'))
+ return {'cases':len(cases),**{k:sum(c.find(k) is not None for c in cases) for k in ['failure','error','skipped']}}
+record['parent']=counts(evidence/'fixed-parent.xml')
+record['generated']=counts(evidence/'fixed-generated-controller.xml') if (evidence/'fixed-generated-controller.xml').exists() else None
+record['state']='FIXED_ACTUAL_GENERATED_CONSUMER_PASSED' if fixed==0 and record['generated'] and record['generated']['cases']>0 and all(record['generated'][k]==0 for k in ['failure','error','skipped']) else 'CONSUMER_FAILED'
+save()
+proof=root/'linux-proof.tar.gz'
+with tarfile.open(proof,'w:gz') as tar:
+ for file in sorted(evidence.iterdir()):tar.add(file,arcname='evidence/'+file.name)
+ tar.add(root/'bundle-manifest.json',arcname='bundle-manifest.json')
+print(json.dumps({'state':record['state'],'root':str(root),'proof':str(proof),'proofBytes':proof.stat().st_size,'proofSha256':hashlib.sha256(proof.read_bytes()).hexdigest(),'execution':record}),flush=True)
+raise SystemExit(0 if record['state']=='FIXED_ACTUAL_GENERATED_CONSUMER_PASSED' else 1)

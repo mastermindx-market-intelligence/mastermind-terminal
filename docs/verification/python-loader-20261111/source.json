@@ -1,0 +1,9 @@
+{
+  "state": "HARNESS_LOADER_REPAIR_APPLIED",
+  "base": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "path": "tests/test_trusted_migration_ownership.py",
+  "beforeBlob": "4f846e3b37310f830b919576d8fa0206ac49bc5f",
+  "afterBlob": "f05ff0062e7629d67e9864e30ceb3db50b3b748a",
+  "afterSha256": "71744f2cff6e041d93dff90a9ded8a670525acf1b83b22c6c2360614b8dcd869",
+  "scope": "Preserve only explicitly configured LD_LIBRARY_PATH in the existing sanitized generated-suite child"
+}

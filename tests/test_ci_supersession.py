@@ -14,9 +14,10 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-LANES = ("hub", "terminal-unit", "terminal-e2e", "terminal-e2e-build",
-         "terminal-e2e-prodbuild", "python", "investigation-postgres")
-MATRIX_LANES = ("terminal-e2e", "terminal-e2e-prodbuild")
+LANES = ("hub", "terminal-unit", "terminal-typecheck", "terminal-unit-shards",
+         "terminal-e2e", "terminal-e2e-build", "terminal-e2e-prodbuild", "python",
+         "investigation-postgres")
+MATRIX_LANES = ("terminal-unit-shards", "terminal-e2e", "terminal-e2e-prodbuild")
 PREFIX = "terminal-ci-${{ github.event.pull_request.number || github.ref }}-"
 RESULTS = ("success", "failure", "cancelled", "skipped", "timed_out", "unknown", "")
 
@@ -45,7 +46,8 @@ def _errors(workflow):
         errors.append("verdict-may-skip")
     if gate.get("name") != "Terminal typecheck + tests":
         errors.append("required-name")
-    if not {"terminal-unit", "terminal-e2e", "terminal-e2e-build",
+    if not {"terminal-unit", "terminal-typecheck", "terminal-unit-shards",
+            "terminal-e2e", "terminal-e2e-build",
             "terminal-e2e-prodbuild"} <= set(gate.get("needs", [])):
         errors.append("required-inputs")
     return errors
@@ -126,7 +128,8 @@ def test_real_required_gate_rejects_every_incomplete_pr_result(unit, e2e):
     env = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
-        "UNIT": unit, "E2E": e2e, "EVENT": "pull_request",
+        "UNIT": unit, "TYPECHECK": "success", "UNITS": "success",
+        "E2E": e2e, "EVENT": "pull_request",
         "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
     }
     assert set(step["env"]) == set(env) - {"PATH"}
@@ -136,6 +139,23 @@ def test_real_required_gate_rejects_every_incomplete_pr_result(unit, e2e):
     assert (result.returncode == 0) is (unit == e2e == "success"), result.stdout + result.stderr
 
 
+@pytest.mark.parametrize(("typecheck", "units"), list(product(RESULTS, repeat=2)))
+def test_real_required_gate_rejects_every_incomplete_split_lane_result(typecheck, units):
+    gate = _workflow()["jobs"]["terminal"]
+    step = next(step for step in gate["steps"] if step.get("name") == "Assert all event-required Terminal checks passed")
+    env = {
+        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+        "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
+        "UNIT": "success", "TYPECHECK": typecheck, "UNITS": units,
+        "E2E": "success", "EVENT": "pull_request",
+        "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
+    }
+    result = subprocess.run(
+        ["bash", "-e", "-c", step["run"]], env=env, capture_output=True, text=True, timeout=5
+    )
+    assert (result.returncode == 0) is (typecheck == units == "success"), result.stdout + result.stderr
+
+
 @pytest.mark.parametrize(("build", "prod"), list(product(RESULTS, repeat=2)))
 def test_real_required_gate_rejects_every_incomplete_prod_lane_result(build, prod):
     gate = _workflow()["jobs"]["terminal"]
@@ -143,7 +163,8 @@ def test_real_required_gate_rejects_every_incomplete_prod_lane_result(build, pro
     env = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
-        "UNIT": "success", "E2E": "success", "EVENT": "pull_request",
+        "UNIT": "success", "TYPECHECK": "success", "UNITS": "success",
+        "E2E": "success", "EVENT": "pull_request",
         "BUILD": build, "PRODBUILD": prod, "PRODBUILD_COUNT": "4",
     }
     result = subprocess.run(

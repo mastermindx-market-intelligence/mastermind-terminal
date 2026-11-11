@@ -1,0 +1,233 @@
+{
+  "method": "Canonical natural-run metadata and full canonical job list; original upload log independently binds artifact ID.",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "run": {
+    "id": 43073040314,
+    "head_sha": "55d087c30f9b011d5dfd6cbcfe5596be306dab74",
+    "head_branch": "sol/web-chart-ai-drawing-workspace-20261018-c4-001",
+    "event": "pull_request",
+    "run_attempt": 1,
+    "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43073040314",
+    "statusAtRead": "in_progress"
+  },
+  "job": {
+    "id": 130706212136,
+    "run_id": 43073040314,
+    "workflow_name": "CI",
+    "head_branch": "sol/web-chart-ai-drawing-workspace-20261018-c4-001",
+    "run_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43073040314",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTOzwKM8AAAAebrKFKA",
+    "head_sha": "55d087c30f9b011d5dfd6cbcfe5596be306dab74",
+    "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/jobs/130706212136",
+    "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43073040314/job/130706212136",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-11T17:58:03Z",
+    "started_at": "2026-11-11T17:58:05Z",
+    "completed_at": "2026-11-11T18:17:08Z",
+    "name": "Terminal e2e serial (shard)",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-11T17:58:06Z",
+        "completed_at": "2026-11-11T17:58:07Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-11T17:58:07Z",
+        "completed_at": "2026-11-11T17:59:02Z"
+      },
+      {
+        "name": "Bind lane workers and ports",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-11T17:59:02Z",
+        "completed_at": "2026-11-11T17:59:02Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-11T17:59:02Z",
+        "completed_at": "2026-11-11T17:59:11Z"
+      },
+      {
+        "name": "Run npm ci",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-11T17:59:11Z",
+        "completed_at": "2026-11-11T17:59:54Z"
+      },
+      {
+        "name": "Run npx next typegen",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-11T17:59:54Z",
+        "completed_at": "2026-11-11T17:59:54Z"
+      },
+      {
+        "name": "Resolve Playwright version",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-11T17:59:54Z",
+        "completed_at": "2026-11-11T17:59:54Z"
+      },
+      {
+        "name": "Cache Playwright browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-11T17:59:54Z",
+        "completed_at": "2026-11-11T17:59:58Z"
+      },
+      {
+        "name": "Install Playwright browsers (apt bounded, browser-only fallback)",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 9,
+        "started_at": "2026-11-11T17:59:58Z",
+        "completed_at": "2026-11-11T17:59:58Z"
+      },
+      {
+        "name": "Ensure browser present on cache hit",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-11T17:59:58Z",
+        "completed_at": "2026-11-11T18:00:11Z"
+      },
+      {
+        "name": "Prepare pinned CJK font for browser proof",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-11T18:00:11Z",
+        "completed_at": "2026-11-11T18:00:14Z"
+      },
+      {
+        "name": "Run npm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile  --workers=\"$TERMINAL_E2E_WORKERS\"",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-11T18:00:14Z",
+        "completed_at": "2026-11-11T18:03:24Z"
+      },
+      {
+        "name": "Capture current ticker News evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-11-11T18:03:24Z",
+        "completed_at": "2026-11-11T18:13:43Z"
+      },
+      {
+        "name": "Qualify investor shell opt-in",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-11-11T18:13:43Z",
+        "completed_at": "2026-11-11T18:14:45Z"
+      },
+      {
+        "name": "Qualify Shared Shell beta presentation",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-11-11T18:14:45Z",
+        "completed_at": "2026-11-11T18:16:37Z"
+      },
+      {
+        "name": "Validate bounded Shared Shell outcome",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-11-11T18:16:37Z",
+        "completed_at": "2026-11-11T18:16:37Z"
+      },
+      {
+        "name": "Retain bounded Shared Shell outcome",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-11-11T18:16:37Z",
+        "completed_at": "2026-11-11T18:16:39Z"
+      },
+      {
+        "name": "Qualify Intelligence native beta routes (fixture browser)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-11-11T18:16:39Z",
+        "completed_at": "2026-11-11T18:17:02Z"
+      },
+      {
+        "name": "Upload Intelligence fixture-browser evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-11-11T18:17:02Z",
+        "completed_at": "2026-11-11T18:17:03Z"
+      },
+      {
+        "name": "Upload responsive QA screenshots",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 20,
+        "started_at": "2026-11-11T18:17:03Z",
+        "completed_at": "2026-11-11T18:17:05Z"
+      },
+      {
+        "name": "Post Cache Playwright browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 38,
+        "started_at": "2026-11-11T18:17:05Z",
+        "completed_at": "2026-11-11T18:17:05Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 39,
+        "started_at": "2026-11-11T18:17:05Z",
+        "completed_at": "2026-11-11T18:17:05Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 40,
+        "started_at": "2026-11-11T18:17:05Z",
+        "completed_at": "2026-11-11T18:17:05Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 41,
+        "started_at": "2026-11-11T18:17:05Z",
+        "completed_at": "2026-11-11T18:17:05Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/check-runs/130706212136",
+    "labels": [
+      "ubuntu-24.04"
+    ],
+    "runner_id": 1000584048,
+    "runner_name": "GitHub Actions 1000584048",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  }
+}

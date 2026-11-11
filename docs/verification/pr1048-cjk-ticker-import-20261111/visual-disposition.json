@@ -1,0 +1,112 @@
+{
+  "schema": "ticker-news.visual-disposition.v1",
+  "artifactId": 13880393951,
+  "sourceHead": "55d087c30f9b011d5dfd6cbcfe5596be306dab74",
+  "captureCheckout": "6e68720fd643316e44e1d6be04e67058a467874a",
+  "inspectedAt": "2026-11-11T18:23:45.217202+00:00",
+  "principalInspected": [
+    "desktop-zh-dark.png",
+    "tablet-zh-dark.png",
+    "mobile-zh-dark.png",
+    "unavailable-desktop-zh-dark.png",
+    "unavailable-mobile-zh-dark.png",
+    "unavailable-desktop-en-dark.png"
+  ],
+  "previouslyAcceptedExactBytes": [
+    "desktop-en-dark.png",
+    "tablet-en-dark.png",
+    "mobile-en-dark.png",
+    "unavailable-mobile-en-dark.png"
+  ],
+  "result": "ACCEPTED_FOR_SCOPED_FIXTURE_PACKET",
+  "observations": [
+    "All five Chinese captures show readable Chinese text and punctuation; no missing-glyph boxes observed.",
+    "Desktop, tablet, and mobile live-feed layouts retain visible article text, source attribution, filters, and read controls without observed clipping.",
+    "Both Chinese unavailable views show the complete localized unavailable status and retry control.",
+    "Changed English unavailable-desktop image was separately inspected; its pixel delta from the preceding capture is limited to y=5..7 at the top border.",
+    "Four remaining English images exactly match the previously accepted capture bytes."
+  ],
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9",
+      "dimensions": [
+        344,
+        707
+      ]
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "sha256": "1addb27523a1116f2f0c77839281a0328907a7815ca638f51d60e5ff49157244",
+      "dimensions": [
+        344,
+        707
+      ]
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602",
+      "dimensions": [
+        390,
+        669
+      ]
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "sha256": "88db088cf47915913b90a4274a0a4e2a7551bbaf131408ecf73ba19039925717",
+      "dimensions": [
+        390,
+        655
+      ]
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f",
+      "dimensions": [
+        820,
+        565
+      ]
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "sha256": "e6ce02e89fbfae555482624667213f76728dcaf932175bae6c923331ced189e3",
+      "dimensions": [
+        820,
+        565
+      ]
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "sha256": "414e6a50b8d4738d11f6d193e3b57446069ff266a8ad77f0b058cae7fbc8beb9",
+      "dimensions": [
+        344,
+        707
+      ]
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "sha256": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e",
+      "dimensions": [
+        344,
+        707
+      ]
+    },
+    {
+      "file": "unavailable-mobile-en-dark.png",
+      "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a",
+      "dimensions": [
+        390,
+        180
+      ]
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "sha256": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9",
+      "dimensions": [
+        390,
+        180
+      ]
+    }
+  ],
+  "scope": "Authored ticker fixture and unavailable states only; no production, authenticated, producer, or trading acceptance."
+}
