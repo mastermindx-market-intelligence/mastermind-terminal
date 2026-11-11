@@ -1,0 +1,11 @@
+# PR1403 protected-source conflict recovery
+
+This composition imports protected master `bb3bfaae0f5b3cfe3c736e240b79879312f27cc3` into original head `3d1599516656c7727f11e6db732457adb10a5471`.
+
+The complete61-file PR delta and136-file protected delta from common ancestor `74c007125129090cc762f2bc4b1b152123326444` intersect only in `terminal/e2e/shared-shell-refinement.spec.ts`. The PR's already-qualified blob `013aace241b1ca27edc5aaed43d317b5c59d2661` is retained. It records the generation immediately before retry, allows the child to be temporarily absent, requires a nonempty replacement generation, reacquires the replacement frame, checks initialization and sends READY through that frame. The later protected hunk addresses the same stale-generation race but lacks those stronger guards. Keeping both generation declarations would be incorrect.
+
+All61 original PR postimages are retained byte-for-byte. All135 nonoverlapping protected changes are supplied by the protected base tree. The18 recorded ticker-capture inputs have no intersection with that protected delta, so the accepted ten-image packet remains immutable and applicable under its existing source contract. This is source-composition verification, not a new capture or new test run.
+
+The [prior owner's affirmative source-completion return](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1403#issuecomment-6793210991) and [same-carrier publication reconciliation](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1403#issuecomment-6788615752) establish the completed original source lane. The estate session recorded a [bounded takeover](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1403#issuecomment-6794843656) for this newly observed conflict. No host worktree or dead-chat handback is required for this original GitHub-native composition.
+
+The predecessor's29/29 green CI remains attributed to its exact head. Natural CI must qualify this new containing head. The existing auto-merge enrollment, merge-on-green opt-in and merge-blocked label remain as observed; no review or direct merge is submitted. The historical bot label came from red required CI and will be adjudicated only against current results. Separate #1210/#1223 holds are unchanged. Production acceptance is not claimed.

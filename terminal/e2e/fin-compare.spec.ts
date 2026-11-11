@@ -236,7 +236,7 @@ test("opening a cell lands on the exact company, period and row in the Statement
   await expect(focusCell.locator(".fin-cell-v")).toHaveText(compared!);
   await expectPanelNotShifted(page);
   // The embedded Statements view opened on the source statement and basis, not its defaults' guess.
-  await expect(panel.locator(".fin-toggle button.on", { hasText: "Income statement" })).toHaveCount(1);
+  await expect(panel.locator(".fin-toggle button.on", { hasText: /^Income$/ })).toHaveCount(1);
   await expect(panel.locator(".fin-toggle button.on", { hasText: /^Annual$/ })).toHaveCount(1);
 
   // Close returns focus to the comparison cell that opened it.

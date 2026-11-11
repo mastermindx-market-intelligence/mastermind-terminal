@@ -112,8 +112,9 @@ export interface RevenuePoint {
  *
  * Year-over-year comparison follows the producer's fiscal identity: the same period kind and
  * period number in the prior fiscal year. That works for quarter, half-year and mixed-cadence
- * issuers without inventing a four-column lag. Legacy artifacts with no identity metadata retain
- * the old annual/quarterly fallback. Null periods keep their slot and yield a null comparison.
+ * issuers without inventing a four-column lag. Legacy artifacts with no identity metadata use
+ * conservative fiscal-label matching; gaps never change the comparison's fiscal identity.
+ * Null values keep their slot and yield a null comparison.
  *
  * NORMALIZATION: revenue comes from `finStatementMath.incomeView`, the same call the
  * Statements tab makes, NOT from `set.income.revenue` raw. Reading it raw was a live
