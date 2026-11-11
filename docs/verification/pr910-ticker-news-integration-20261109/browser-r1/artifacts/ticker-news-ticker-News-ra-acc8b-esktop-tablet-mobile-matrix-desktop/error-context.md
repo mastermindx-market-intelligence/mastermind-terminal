@@ -1,0 +1,455 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: ticker-news.spec.ts >> ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+- Location: e2e/ticker-news.spec.ts:367:5
+
+# Error details
+
+```
+Error: locator.isVisible: Error: strict mode violation: locator('header.topbar') resolved to 2 elements:
+    1) <header class="topbar">…</header> aka getByText('MASTERMINDTERMINALChart')
+    2) <header class="topbar">…</header> aka getByText('MASTERMINDTERMINALN$')
+
+Call log:
+    - checking visibility of locator('header.topbar')
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - generic [ref=e9]:
+          - generic [ref=e10]: MASTERMIND
+          - generic [ref=e11]: TERMINAL
+      - button "Symbol search — NVDA" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: "N"
+          - generic [ref=e16]: $
+        - generic [ref=e17]: NVDA
+        - img [ref=e18]
+      - button "Compare" [ref=e20] [cursor=pointer]:
+        - img [ref=e21]
+        - generic [ref=e23]: Compare
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]: Last Price
+          - generic [ref=e27]: —
+        - generic [ref=e28]:
+          - generic [ref=e29]: 24h Change
+          - generic [ref=e30]: —
+        - generic [ref=e31]:
+          - generic [ref=e32]: Volume
+          - generic [ref=e33]: —
+        - generic "Day Range" [ref=e34]:
+          - generic [ref=e36]: Day Range
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - emphasis [ref=e41]: L
+              - generic [ref=e42]: —
+            - generic [ref=e43]:
+              - generic [ref=e44]: —
+              - emphasis [ref=e45]: H
+      - generic "Market closed — last session" [ref=e46]: Historical
+      - button "Chart actions" [ref=e48] [cursor=pointer]:
+        - img [ref=e49]
+        - generic [ref=e51]:
+          - text: Actions
+          - generic [ref=e52]: ">"
+      - button "Mastermind AI" [ref=e53] [cursor=pointer]:
+        - img [ref=e54]
+        - text: Mastermind AI
+      - button "Settings" [ref=e56] [cursor=pointer]: R
+    - navigation "Primary" [ref=e57]:
+      - link "Chart" [ref=e58] [cursor=pointer]:
+        - /url: /terminal
+        - img [ref=e59]
+      - link "Analysis" [ref=e61] [cursor=pointer]:
+        - /url: /analysis
+        - img [ref=e62]
+      - link "Discover" [ref=e64] [cursor=pointer]:
+        - /url: /discover
+        - img [ref=e65]
+      - link "Dislocations" [ref=e70] [cursor=pointer]:
+        - /url: /dislocations
+        - img [ref=e71]
+      - link "Options" [ref=e72] [cursor=pointer]:
+        - /url: /options
+        - img [ref=e73]
+      - link "Scripts" [ref=e76] [cursor=pointer]:
+        - /url: /scripts
+        - img [ref=e77]
+      - link "Portfolio" [ref=e81] [cursor=pointer]:
+        - /url: /portfolio
+        - img [ref=e82]
+      - link "Alerts" [ref=e84] [cursor=pointer]:
+        - /url: /alerts
+        - img [ref=e85]
+      - button "Mastermind AI" [ref=e88] [cursor=pointer]:
+        - img [ref=e89]
+    - generic [ref=e91]:
+      - generic [ref=e92]:
+        - generic [ref=e93] [cursor=pointer]: Price chart
+        - generic [ref=e94]:
+          - button "Chart context" [ref=e95] [cursor=pointer]:
+            - img [ref=e96]
+            - text: Context
+          - generic [ref=e100]:
+            - button "D" [ref=e101] [cursor=pointer]
+            - button "3D" [ref=e102] [cursor=pointer]
+            - button "W" [ref=e103] [cursor=pointer]
+            - button "1M" [ref=e104] [cursor=pointer]
+            - button "Customize timeframes" [ref=e105] [cursor=pointer]:
+              - img [ref=e106]
+          - button "Candles ▾" [ref=e109] [cursor=pointer]:
+            - img [ref=e110]
+            - text: Candles
+            - generic [ref=e112]: ▾
+          - button "Indicators" [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+            - text: Indicators
+          - generic "Split layout" [ref=e116]:
+            - button "1" [ref=e117] [cursor=pointer]
+            - button "2" [ref=e118] [cursor=pointer]
+            - button "4" [ref=e119] [cursor=pointer]
+          - button "MTF" [ref=e120] [cursor=pointer]:
+            - img [ref=e121]
+            - text: MTF
+          - button "Day" [ref=e123] [cursor=pointer]:
+            - img [ref=e124]
+            - text: Day
+          - button "Replay" [disabled] [ref=e126] [cursor=pointer]:
+            - img [ref=e127]
+            - text: Replay
+          - button "Detect ▾" [ref=e130] [cursor=pointer]:
+            - img [ref=e131]
+            - text: Detect
+            - generic [ref=e133]: ▾
+          - button "Workspaces ▾" [ref=e135] [cursor=pointer]:
+            - img [ref=e136]
+            - text: Workspaces
+            - generic [ref=e138]: ▾
+          - button "Snapshot" [ref=e140] [cursor=pointer]:
+            - img [ref=e141]
+          - button "Fullscreen chart" [ref=e144] [cursor=pointer]:
+            - img [ref=e145]
+      - generic [ref=e147]:
+        - toolbar "Drawing tools" [ref=e148]:
+          - button "Cursor" [pressed] [ref=e149] [cursor=pointer]:
+            - img [ref=e150]
+          - generic [ref=e153]:
+            - button "Trend line, Alt+T" [ref=e154] [cursor=pointer]:
+              - img [ref=e155]
+            - button "Open Lines, channels & pitchforks tools" [ref=e157] [cursor=pointer]:
+              - img [ref=e158]
+          - generic [ref=e160]:
+            - button "Fibonacci retracement, Alt+F" [ref=e161] [cursor=pointer]:
+              - img [ref=e162]
+            - button "Open Fibonacci & Gann tools" [ref=e164] [cursor=pointer]:
+              - img [ref=e165]
+          - generic [ref=e167]:
+            - button "XABCD pattern" [ref=e168] [cursor=pointer]:
+              - img [ref=e169]
+            - button "Open Patterns, Elliott waves & cycles tools" [ref=e171] [cursor=pointer]:
+              - img [ref=e172]
+          - generic [ref=e174]:
+            - button "Long position" [ref=e175] [cursor=pointer]:
+              - img [ref=e176]
+            - button "Open Forecasting, volume & ranges tools" [ref=e178] [cursor=pointer]:
+              - img [ref=e179]
+          - generic [ref=e181]:
+            - button "Brush" [ref=e182] [cursor=pointer]:
+              - img [ref=e183]
+            - button "Open Freehand tools" [ref=e185] [cursor=pointer]:
+              - img [ref=e186]
+          - generic [ref=e188]:
+            - button "Rectangle, Alt+Shift+R" [ref=e189] [cursor=pointer]:
+              - img [ref=e190]
+            - button "Open Shapes & curves tools" [ref=e192] [cursor=pointer]:
+              - img [ref=e193]
+          - generic [ref=e195]:
+            - button "Arrow marker" [ref=e196] [cursor=pointer]:
+              - img [ref=e197]
+            - button "Open Arrows tools" [ref=e199] [cursor=pointer]:
+              - img [ref=e200]
+          - generic [ref=e202]:
+            - button "Text, Alt+X" [ref=e203] [cursor=pointer]:
+              - img [ref=e204]
+            - button "Open Text, notes & labels tools" [ref=e206] [cursor=pointer]:
+              - img [ref=e207]
+          - generic [ref=e209]:
+            - button "Emoji" [ref=e210] [cursor=pointer]:
+              - img [ref=e211]
+            - button "Open Emoji & icons tools" [ref=e213] [cursor=pointer]:
+              - img [ref=e214]
+          - button "Keep drawing active" [ref=e216] [cursor=pointer]:
+            - img [ref=e217]
+          - generic [ref=e219]:
+            - 'button "Magnet mode: Off" [ref=e220] [cursor=pointer]':
+              - img [ref=e221]
+            - button "Open magnet modes" [ref=e223] [cursor=pointer]:
+              - img [ref=e224]
+          - group "Drawing history" [ref=e226]:
+            - button "Undo drawing change" [disabled] [ref=e227]:
+              - img [ref=e228]
+            - button "Redo drawing change" [disabled] [ref=e230]:
+              - img [ref=e231]
+          - button "Lock 0 drawings" [disabled] [ref=e233]:
+            - img [ref=e234]
+          - button "Hide 0 drawings" [ref=e236] [cursor=pointer]:
+            - img [ref=e237]
+          - button "Remove drawings, 0 drawings" [ref=e240] [cursor=pointer]:
+            - img [ref=e241]
+            - generic [ref=e243]: "0"
+          - button "Hide favorites (0)" [disabled] [ref=e245] [cursor=pointer]:
+            - img [ref=e246]
+        - generic [ref=e252]:
+          - generic [ref=e253]:
+            - button "1D" [ref=e254] [cursor=pointer]
+            - button "5D" [ref=e255] [cursor=pointer]
+            - button "1M" [ref=e256] [cursor=pointer]
+            - button "3M" [ref=e257] [cursor=pointer]
+            - button "6M" [ref=e258] [cursor=pointer]
+            - button "YTD" [ref=e259] [cursor=pointer]
+            - button "1Y" [ref=e260] [cursor=pointer]
+            - button "5Y" [ref=e261] [cursor=pointer]
+            - button "All" [ref=e262] [cursor=pointer]
+            - button "Go to date" [ref=e264] [cursor=pointer]:
+              - img [ref=e265]
+          - generic [ref=e268]:
+            - button "Extended trading hours" [disabled]: ETH
+            - button "Data origin for this chart" [ref=e270] [cursor=pointer]: —
+            - generic "Trading currency unavailable" [ref=e271] [cursor=pointer]: CCY?
+            - button "Quick settings" [ref=e273] [cursor=pointer]:
+              - img [ref=e274]
+    - separator "Resize sidebar" [ref=e277]
+    - complementary [ref=e279]:
+      - group "Options perspective" [ref=e280]:
+        - button "Overview" [pressed] [ref=e281] [cursor=pointer]
+        - button "Context" [ref=e282] [cursor=pointer]
+        - button "Options heatmap" [ref=e283] [cursor=pointer]:
+          - img [ref=e284]
+          - text: Options
+      - generic [ref=e287]:
+        - tablist "Rail source" [ref=e288]:
+          - tab "Portfolio" [ref=e289] [cursor=pointer]
+          - tab "Watchlists" [selected] [ref=e290] [cursor=pointer]
+          - tab "News" [ref=e291] [cursor=pointer]
+        - tabpanel "Watchlists" [ref=e292]:
+          - generic [ref=e293]:
+            - button "Default" [ref=e294] [cursor=pointer]:
+              - text: Default
+              - img [ref=e295]
+            - generic [ref=e297]:
+              - button "Add symbol" [ref=e298] [cursor=pointer]:
+                - img [ref=e299]
+              - button "Upcoming events for this list" [ref=e301] [cursor=pointer]:
+                - img [ref=e302]
+              - button "Settings" [ref=e305] [cursor=pointer]:
+                - img [ref=e306]
+          - generic [ref=e310]:
+            - generic [ref=e311]:
+              - generic [ref=e312]:
+                - text: Symbol
+                - generic "Drag to resize column" [ref=e313]
+              - generic [ref=e314]:
+                - generic [ref=e315]: Last
+                - generic "Drag to resize column" [ref=e316]
+              - generic [ref=e317]:
+                - generic [ref=e318]: Chg%
+                - generic "Drag to resize column" [ref=e319]
+              - generic [ref=e320]:
+                - generic [ref=e321]: Ext
+                - generic "Drag to resize column" [ref=e322]
+              - generic [ref=e323]:
+                - generic [ref=e324]: Ext %
+                - generic "Drag to resize column" [ref=e325]
+            - listbox "Watchlists" [ref=e326]:
+              - generic: Drop above all sections
+              - generic [ref=e327]:
+                - generic [ref=e328]:
+                  - button "Crypto 2" [expanded] [ref=e329] [cursor=pointer]:
+                    - img [ref=e330]
+                    - generic [ref=e332]: Crypto
+                    - generic [ref=e333]: "2"
+                  - button "Drag section Crypto" [ref=e334]:
+                    - img [ref=e335]
+                  - generic [ref=e342]:
+                    - button "Rename section" [ref=e343] [cursor=pointer]:
+                      - img [ref=e344]
+                    - button "Remove section" [ref=e346] [cursor=pointer]:
+                      - img [ref=e347]
+                - option "Drag BTC-USD Flag this symbol BTC-USD — — — —" [ref=e349]:
+                  - button "Drag BTC-USD" [ref=e350]:
+                    - img [ref=e351]
+                  - generic "Flag this symbol" [ref=e358] [cursor=pointer]
+                  - generic [ref=e359]:
+                    - generic [ref=e361]: B
+                    - generic [ref=e363]: BTC-USD
+                  - generic [ref=e364]: —
+                  - generic [ref=e365]: —
+                  - generic [ref=e366]: —
+                  - generic [ref=e367]: —
+                  - generic "Remove" [ref=e368]:
+                    - img [ref=e369]
+                - option "Drag ETH-USD Flag this symbol ETH-USD — — — —" [ref=e371]:
+                  - button "Drag ETH-USD" [ref=e372]:
+                    - img [ref=e373]
+                  - generic "Flag this symbol" [ref=e380] [cursor=pointer]
+                  - generic [ref=e381]:
+                    - generic [ref=e383]: E
+                    - generic [ref=e385]: ETH-USD
+                  - generic [ref=e386]: —
+                  - generic [ref=e387]: —
+                  - generic [ref=e388]: —
+                  - generic [ref=e389]: —
+                  - generic "Remove" [ref=e390]:
+                    - img [ref=e391]
+              - generic [ref=e393]:
+                - generic [ref=e394]:
+                  - button "Equities 4" [expanded] [ref=e395] [cursor=pointer]:
+                    - img [ref=e396]
+                    - generic [ref=e398]: Equities
+                    - generic [ref=e399]: "4"
+                  - button "Drag section Equities" [ref=e400]:
+                    - img [ref=e401]
+                  - generic [ref=e408]:
+                    - button "Rename section" [ref=e409] [cursor=pointer]:
+                      - img [ref=e410]
+                    - button "Remove section" [ref=e412] [cursor=pointer]:
+                      - img [ref=e413]
+                - option "Drag NVDA Flag this symbol NVDA — — — —" [ref=e415]:
+                  - button "Drag NVDA" [ref=e416]:
+                    - img [ref=e417]
+                  - generic "Flag this symbol" [ref=e424] [cursor=pointer]
+                  - generic [ref=e425]:
+                    - generic [ref=e427]: "N"
+                    - generic [ref=e429]: NVDA
+                  - generic [ref=e430]: —
+                  - generic [ref=e431]: —
+                  - generic [ref=e432]: —
+                  - generic [ref=e433]: —
+                  - generic "Remove" [ref=e434]:
+                    - img [ref=e435]
+                - option "Drag AAPL Flag this symbol AAPL — — — —" [ref=e437]:
+                  - button "Drag AAPL" [ref=e438]:
+                    - img [ref=e439]
+                  - generic "Flag this symbol" [ref=e446] [cursor=pointer]
+                  - generic [ref=e447]:
+                    - generic [ref=e449]: A
+                    - generic [ref=e451]: AAPL
+                  - generic [ref=e452]: —
+                  - generic [ref=e453]: —
+                  - generic [ref=e454]: —
+                  - generic [ref=e455]: —
+                  - generic "Remove" [ref=e456]:
+                    - img [ref=e457]
+                - option "Drag MSFT Flag this symbol MSFT — — — —" [ref=e459]:
+                  - button "Drag MSFT" [ref=e460]:
+                    - img [ref=e461]
+                  - generic "Flag this symbol" [ref=e468] [cursor=pointer]
+                  - generic [ref=e469]:
+                    - generic [ref=e471]: M
+                    - generic [ref=e473]: MSFT
+                  - generic [ref=e474]: —
+                  - generic [ref=e475]: —
+                  - generic [ref=e476]: —
+                  - generic [ref=e477]: —
+                  - generic "Remove" [ref=e478]:
+                    - img [ref=e479]
+                - option "Drag QQQ Flag this symbol QQQ — — — —" [ref=e481]:
+                  - button "Drag QQQ" [ref=e482]:
+                    - img [ref=e483]
+                  - generic "Flag this symbol" [ref=e490] [cursor=pointer]
+                  - generic [ref=e491]:
+                    - generic [ref=e493]: Q
+                    - generic [ref=e495]: QQQ
+                  - generic [ref=e496]: —
+                  - generic [ref=e497]: —
+                  - generic [ref=e498]: —
+                  - generic [ref=e499]: —
+                  - generic "Remove" [ref=e500]:
+                    - img [ref=e501]
+        - generic [ref=e503]:
+          - generic [ref=e504]:
+            - generic [ref=e506]: "N"
+            - generic [ref=e507]:
+              - generic [ref=e508]: NVDA
+              - generic [ref=e509]: NVDA
+            - button "Open full analysis" [ref=e510] [cursor=pointer]:
+              - img [ref=e511]
+            - generic [ref=e513]:
+              - generic [ref=e514]: —
+              - generic [ref=e515]: —
+          - generic [ref=e516]:
+            - button "Open Intelligence workspace" [ref=e518] [cursor=pointer]:
+              - generic [ref=e519]:
+                - generic [ref=e520]:
+                  - img [ref=e521]
+                  - text: Intelligence
+                - img [ref=e524]
+              - generic [ref=e526]:
+                - generic [ref=e527]:
+                  - generic [ref=e528]: Oracle
+                  - generic [ref=e529]: —
+                  - generic [ref=e530]: View details
+                - generic [ref=e531]:
+                  - generic [ref=e532]: Research
+                  - generic [ref=e533]: No current reading
+                  - generic [ref=e534]: View details
+              - generic [ref=e535]:
+                - generic [ref=e536]: Prophet
+                - generic [ref=e537]: Checking early evidence…
+              - generic [ref=e539]: Oracle entry unverified · No current data
+            - generic [ref=e540]:
+              - generic [ref=e541]:
+                - img [ref=e542]
+                - generic [ref=e544]: Deep analysis coming online
+                - generic [ref=e545]: This name isn't in the research desk yet — the chart, levels and oracle verdict above are live.
+              - region "Seasonality view context" [ref=e547]:
+                - group "Linking for this view" [ref=e548]:
+                  - button "Follow chart" [disabled] [ref=e549]
+                  - button "Pin this view" [disabled] [ref=e550]
+                  - button "Unlink" [disabled] [ref=e551]
+                - status [ref=e552]: Context is unavailable.
+                - paragraph [ref=e553]: Linking applies to this session only.
+            - generic [ref=e554]:
+              - button "Open full analysis" [ref=e555] [cursor=pointer]
+              - button "Ask Mastermind AI about NVDA →" [ref=e556] [cursor=pointer]
+    - generic [ref=e558]: Movers
+  - alert [ref=e560]
+```
+
+# Test source
+
+```ts
+  1  | import { expect, type Page } from "@playwright/test";
+  2  | 
+  3  | // Use the same visible preference action as the reader. A direct root attribute
+  4  | // write races the canonical account presentation owner and is not theme intent.
+  5  | export async function selectAppearance(page: Page, lang: "en" | "zh", theme: "light" | "dark") {
+  6  |   const topbar = page.locator("header.topbar");
+> 7  |   const host = await topbar.isVisible() ? topbar : page.locator(".mobilebar");
+     |                             ^ Error: locator.isVisible: Error: strict mode violation: locator('header.topbar') resolved to 2 elements:
+  8  |   await host.getByRole("button", { name: lang === "en" ? "Settings" : "设置", exact: true }).click();
+  9  |   await page.getByRole("tab", { name: lang === "en" ? "Preferences" : "偏好", exact: true }).click();
+  10 |   const choice = page.getByRole("group", { name: lang === "en" ? "Appearance" : "外观", exact: true })
+  11 |     .getByRole("button", { name: theme === "light" ? (lang === "en" ? "Light" : "浅色") : (lang === "en" ? "Dark" : "深色"), exact: true });
+  12 |   await choice.click();
+  13 |   await expect(choice).toHaveAttribute("aria-pressed", "true");
+  14 |   await page.getByRole("button", { name: lang === "en" ? "Close" : "关闭", exact: true }).first().click();
+  15 |   await expect(page.locator(".acs-overlay")).toBeHidden();
+  16 |   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+  17 | }
+  18 | 
+```

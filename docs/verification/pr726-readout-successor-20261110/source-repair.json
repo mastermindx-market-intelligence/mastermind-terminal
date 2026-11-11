@@ -1,0 +1,13 @@
+{
+  "after": {
+    "terminal/components/PrecisionEntryStrip.tsx": "5bb04af3112e4033ca9737ccbc52c2981389b03ad6e68657cb5b01cc076f3218",
+    "terminal/lib/precisionEntryReadout.ts": "dcce0df7f5c6e77ac031036be83900813105af863b694bfeb5433e8187ed68e5"
+  },
+  "before": {
+    "terminal/components/PrecisionEntryStrip.tsx": "8d7f2a3a790afa0bc9c6a38f740aad5d7e544b8d9aa13ac4da59d772adb6e928",
+    "terminal/lib/precisionEntryReadout.ts": "86e700b920faae8a5afab4bd42d1514543375db41297ec00d620fefcd4318bb0"
+  },
+  "cssBlobPreserved": "4bc889bff529b3848b050afd37f1bcf8b6647871",
+  "scope": "Validated per-section fact coverage; canonical selected-language headline only; no shell mount or CSS change.",
+  "state": "BOUNDED_SOURCE_REPAIR_APPLIED"
+}

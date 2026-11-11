@@ -1,0 +1,194 @@
+/* Bottoming Watch — a display-only strip, visually separate from the calls
+   board (panel-2 ground vs the board's panel). Semantic tokens only; no
+   coloured left-edge/accent stripe on any container (design law). */
+
+.root {
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+
+/* ── strip heading ─────────────────────────────────────────────────────────── */
+
+.head {
+  margin: 0;
+}
+
+.headRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+/* Header count rides the title (R5 C01: "Bottoming watch · 4"). */
+.count {
+  color: var(--text-2);
+  font: 650 13px var(--font-num);
+}
+
+.badge {
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel);
+  color: var(--text-2);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sub {
+  margin: 6px 0 0;
+  max-width: 84ch;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.disclosure {
+  margin: 6px 0 0;
+  max-width: 84ch;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── entries ───────────────────────────────────────────────────────────────── */
+
+.entries {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.entry {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel);
+}
+
+.entryTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.entryName {
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.pos {
+  flex-shrink: 0;
+  color: var(--text-2);
+  font: 650 11.5px var(--font-num);
+  white-space: nowrap;
+}
+
+.chips {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  color: var(--text-2);
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.chipRecovering {
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  color: var(--warning, var(--text-2));
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+/* ── measured empty + recovering disclosure ────────────────────────────────── */
+
+.empty {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-ctl);
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.recoveringNote {
+  margin: 10px 0 0;
+  max-width: 84ch;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Full-population continuation control (v1.1): the pre-expansion slice is a
+   display budget, not a cap. Touch-target sized; token colors only. */
+.more {
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--link);
+  font: 600 11.5px var(--font-ui);
+  cursor: pointer;
+}
+
+/* ── responsive: entries re-flow; nothing scrolls horizontally at 200% zoom ── */
+
+@media (max-width: 760px) {
+  .root {
+    padding: 14px 15px;
+  }
+
+  .entries {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-726-readout-successor/terminal[39m
+
+ [32m✓[39m lib/__tests__/precisionEntryReadout.test.ts [2m([22m[2m20 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m lib/__tests__/precisionEntryStrip.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[90m 149[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m41 passed[39m[22m[90m (41)[39m
+[2m   Start at [22m 09:15:47
+[2m   Duration [22m 2.56s[2m (transform 623ms, setup 0ms, collect 340ms, tests 163ms, environment 980ms, prepare 792ms)[22m
+
+JSON report written to /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-726-readout-successor/docs/verification/pr726-readout-successor-20261110/green-report.json

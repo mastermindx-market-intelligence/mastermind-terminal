@@ -1,0 +1,57 @@
+{
+  "actualGitMergeHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "branchHead": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f",
+  "captureOwnerBlob": "51956187614f10d745c5a65f62621845d96cac25",
+  "capturedChildren": [
+    "pl6",
+    "vi",
+    "batch3"
+  ],
+  "command": [
+    "node",
+    "e2e/tools/capture_ci_evidence.cjs"
+  ],
+  "completedAt": "2026-11-10T09:27:04.134547+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "04174f0c329f74ca3315cd2bf501f206d5ac4d8a8750d08affbb28b18e8a7b0a"
+  },
+  "executionEnvironment": "Owned local validation; not a GitHub Actions run.",
+  "exit": 0,
+  "indexTreeAtStart": "8797596ba7dca3ba74c757501327f6813379400b",
+  "integratedDependency": "f6ff4bb4bbde8a162557cd4e15115cb085e7f77d",
+  "localDiagnosticAttempt": "1",
+  "localDiagnosticRunId": "20261110091213632",
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nextLockAbsent": true,
+  "optionsAxisCaptureRequired": true,
+  "ownedPorts": [
+    3536,
+    3537,
+    3538,
+    3571,
+    3572,
+    3564,
+    3566
+  ],
+  "ownedPortsClosed": true,
+  "ownerReceipt": "docs/verification/pr632-protected-successor-20261110/ci-owner-current/runner-temp/terminal-ci-evidence/ci-20261110091213632-1.json",
+  "ownerReceiptSha256": "5483743a45f45d0ed536e2c071feb6686cd679ec4b77272df8f3a9c0dfa2830c",
+  "ownerSharedDeadlineMinutes": 84,
+  "ownerState": "SELECTED",
+  "priorBrowserExecutionSha256": "fa813545fba5cb2eb007302b48f78658c29e00a082a66eac82ec19e2b53a89af",
+  "priorFocusedValidationSha256": "c13b1a5f9150fa9ede2d44eb453cc84810fa086a9beb2508f3c4b3b338dd4641",
+  "protectedMaster": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "schema": "terminal_pr632_complete_ci_owner_validation.v2",
+  "seconds": 889.39,
+  "sourceAfterSha256": "a267f9bc32a2e5f8e93fbdff43c3d86b99d1b1fb557b7e9e8fc1dcc8c288efe9",
+  "sourceBeforeSha256": "a267f9bc32a2e5f8e93fbdff43c3d86b99d1b1fb557b7e9e8fc1dcc8c288efe9",
+  "sourceCompositionReceiptSha256": "d8febd5debcb6e5250cc40dd4040db31aa9def887606569ba9578c765ca54697",
+  "sourceEntries": 2006,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T09:12:14.765114+00:00",
+  "state": "FULL_OWNER_PATH_QUALIFIED_WITHIN_EXISTING_WORKFLOW_BUDGET",
+  "workflowBlob": "05d88e88524d3235f0f916e6aec19b17460fdaac",
+  "workflowCaptureMinutes": 85
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
+import { isSharedShellDevOpen, SHARED_SHELL_DEV_EMAIL } from "@/lib/shared-shell/devOpen";
 import AlertsCockpitMount from "@/components/alerts/AlertsCockpitMount";
 import AlertsViewMount from "@/components/mounts/AlertsViewMount";
 import AlertBulkManagerMount from "@/components/mounts/AlertBulkManagerMount";
@@ -42,6 +43,9 @@ export default async function AlertsPage() {
   if (process.env.TERMINAL_E2E_FIXTURE === "1") {
     return <AlertsSurfaces email={process.env.TERMINAL_E2E_EMAIL || "responsive@example.com"} />;
   }
+  // Beta development mode (lib/shared-shell/devOpen.ts): the synthetic dev
+  // identity stands in for the member email, before any auth read.
+  if (isSharedShellDevOpen()) return <AlertsSurfaces email={SHARED_SHELL_DEV_EMAIL} />;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return <SignupGate surface="alerts" />;

@@ -1,0 +1,29 @@
+{
+  "files": {
+    "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/browser.log": {
+      "bytes": 7046,
+      "sha256": "5f8e42f0d58c9d0ab784b9cc34a2bb92d7a82cf2a4f8ecc0dd785b7e810cf1c8"
+    },
+    "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/invalid-selector.log": {
+      "bytes": 840,
+      "sha256": "33626673cb8f5d6311721e4b54363a27d119f4980a3dfd11a73f5861c77b7936"
+    },
+    "docs/verification/pr910-ticker-news-integration-20261109/browser-r2/browser.log": {
+      "bytes": 3689,
+      "sha256": "8dfa86fdf92883a6e8a339eb273e958a27fc8583e0bad4b47f9153f52701629f"
+    },
+    "docs/verification/pr910-ticker-news-integration-20261109/source-consumers-r1/lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr910-ticker-news-integration-20261109/source-consumers-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr910-ticker-news-integration-20261109/source-consumers-r1/units.log": {
+      "bytes": 367,
+      "sha256": "1475be120d44434dd2527fc9235620f2f89549af89ad2c4345eab738512ebe11"
+    }
+  },
+  "schema": "terminal_pr910_excluded_raw_diagnostics.v1"
+}

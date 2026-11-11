@@ -239,6 +239,8 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
       !scope.token.revoked &&
       scope.token === lifetimeRef.current &&
       scope.sequence === sequenceRef.current;
+    // A setup retired before admission must not start a request or change busy state.
+    if (!current()) return;
     const publish = (next: EventImpactRead) => {
       if (!current()) return;
       setPublished({ identity: scope.identity, epoch: scope.epoch, read: next });
@@ -317,7 +319,8 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
       sequence: ++sequenceRef.current,
       token,
     };
-    void load(scope, holdingsUnreadable);
+    // Development setup-cleanup-setup retires the first token before this admission.
+    queueMicrotask(() => { void load(scope, holdingsUnreadable); });
     return () => { token.revoked = true; };
   }, [identity, committed.epoch, holdingsUnreadable, load]);
 

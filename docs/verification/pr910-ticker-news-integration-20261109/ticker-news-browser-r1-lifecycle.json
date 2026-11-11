@@ -1,0 +1,175 @@
+{
+  "after": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3896",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T17:30:23.113954+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "observedAt": "2026-11-09T17:30:23.121008+00:00",
+      "state": "fileAbsent"
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T17:30:24.163471+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "86298",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T17:30:23.120901+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "before": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3896",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T17:30:18.762081+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T17:30:19.891768+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T17:30:20.875508+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "86298",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T17:30:18.767080+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-09T17:30:24.164757+00:00",
+  "immediatelyBeforeUnlink": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3896",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T17:30:20.998615+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T17:30:21.983998+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T17:30:22.986028+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "86298",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T17:30:21.003230+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "initialLock": {
+    "content": {
+      "appUrl": "http://localhost:3896",
+      "hostname": "localhost",
+      "pid": 86298,
+      "port": 3896,
+      "startedAt": 1794245072432
+    },
+    "dev": 16777247,
+    "ino": 67945028,
+    "mtimeNs": 1794245072432597127,
+    "sha256": "503d77115085308b0c8ae332e852183094baf4397899ae607a26777d34648e07",
+    "size": 107
+  },
+  "initialLockPresent": true,
+  "label": "ticker-news-browser-r1",
+  "schema": "terminal_pr910_browser_lifecycle_reconciliation.v1",
+  "startedAt": "2026-11-09T17:30:18.639028+00:00",
+  "state": "STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED"
+}

@@ -52,6 +52,7 @@ import type { CmpAnchorSrc, CmpCfg, CmpMode } from "./compare";
 import { parseComposite } from "./composite";
 import { isDailyOnlySymbol, isMacroSymbol, macroKind } from "./macroSymbols";
 import { marketOf } from "./markets";
+import { calendarBarKey, isCalendarSessionDate } from "./sessionBars";
 
 export interface CmpBar { time: string; c: number }
 
@@ -153,13 +154,10 @@ export const ROLL_FORWARD_MAX_DAYS: Record<string, number> = { D: 7, "2D": 10, "
 export const CMP_GAP_COLOR = "rgba(0, 0, 0, 0)";
 
 const CALENDAR_TF = new Set(["W", "2W", "1M", "3M"]);
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** A real calendar date in canonical YYYY-MM-DD form. */
 export function isAnchorDate(v: unknown): v is string {
-  if (typeof v !== "string" || !DATE_RE.test(v)) return false;
-  const d = new Date(v + "T00:00:00Z");
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+  return isCalendarSessionDate(v);
 }
 
 /** The anchor policy a stored leg config asks for. Anything malformed is the disclosed default. */
@@ -194,23 +192,12 @@ export function visibleStartDate(t: unknown): string | null {
 
 const dayNum = (d: string) => Math.round(Date.parse(d + "T00:00:00Z") / 86_400_000);
 
-function isoWeek(d: string): string {
-  const dt = new Date(d + "T00:00:00Z");
-  const day = (dt.getUTCDay() + 6) % 7;
-  dt.setUTCDate(dt.getUTCDate() - day);
-  return dt.toISOString().slice(0, 10);
-}
-
 /** Join key: the session itself on daily timeframes, the calendar bucket on W/2W/1M/3M (the same
  *  bucketing the chart's resampler uses), so a leg whose week ends on a different weekday than the
  *  host's (a market holiday) still joins its own week instead of leaving a false gap. */
-export function joinKey(tf: string, time: string): string {
+export function joinKey(tf: string, time: string): string | null {
   if (!CALENDAR_TF.has(tf)) return time;
-  if (tf === "W") return isoWeek(time);
-  if (tf === "2W") return "b" + Math.floor(dayNum(isoWeek(time)) / 14);
-  if (tf === "1M") return time.slice(0, 7);
-  const m = +time.slice(5, 7) - 1;
-  return `${time.slice(0, 4)}-Q${Math.floor(m / 3)}`;
+  return calendarBarKey(tf, time);
 }
 
 /** Return basis of one series, from the writer that produced it and the symbol's shape. */
@@ -337,8 +324,10 @@ function indexLeg(rows: CmpBar[], timeframe: string): LegIndex {
   const clean: CmpBar[] = [];
   for (const r of rows) {
     if (!r || typeof r.time !== "string" || !goodClose(r.c)) continue;
+    const key = joinKey(timeframe, r.time);
+    if (key === null) continue;
     clean.push(r);
-    byKey.set(joinKey(timeframe, r.time), r);
+    byKey.set(key, r);
   }
   return { byKey, rows: clean };
 }
@@ -347,7 +336,8 @@ function indexLeg(rows: CmpBar[], timeframe: string): LegIndex {
 function legObservation(leg: LegIndex, timeframe: string, at: string):
   | { ok: true; bar: CmpBar; rule: "exact" | "prior_session" }
   | { ok: false; reason: WithheldReason } {
-  const exact = leg.byKey.get(joinKey(timeframe, at));
+  const key = joinKey(timeframe, at);
+  const exact = key === null ? undefined : leg.byKey.get(key);
   if (exact) return { ok: true, bar: exact, rule: "exact" };
   if (!leg.rows.length || leg.rows[0].time > at) return { ok: false, reason: "anchor_before_leg_history" };
   if (!CALENDAR_TF.has(timeframe)) {
@@ -363,7 +353,8 @@ const fmt = (v: number, prec: number) => +v.toFixed(prec);
 /** Build every compare leg against the host rows. Leg order in the output = input order. */
 export function buildCompareStudy(input: CompareStudyInput): CompareStudyBuild {
   const { timeframe, prec } = input;
-  const hostRows = input.host.rows.filter((r) => r && typeof r.time === "string" && goodClose(r.c));
+  const hostRows = input.host.rows.filter((r) => r && typeof r.time === "string" && goodClose(r.c)
+    && (!CALENDAR_TF.has(timeframe) || isCalendarSessionDate(r.time)));
   const hostSrc = input.host.src ?? null;
   const host = {
     symbol: input.host.symbol,
@@ -393,7 +384,10 @@ export function buildCompareStudy(input: CompareStudyInput): CompareStudyBuild {
     base.bars = leg.rows.length;
 
     // Host rows that carry this leg's own observation — the only places it is ever plotted.
-    const matched: (CmpBar | null)[] = hostRows.map((r) => leg.byKey.get(joinKey(timeframe, r.time)) ?? null);
+    const matched: (CmpBar | null)[] = hostRows.map((r) => {
+      const key = joinKey(timeframe, r.time);
+      return key === null ? null : leg.byKey.get(key) ?? null;
+    });
     const firstMatch = matched.findIndex((m) => m != null);
     if (firstMatch < 0) { legs.push({ ...base, reason: "no_overlap" }); continue; }
 

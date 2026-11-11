@@ -1,0 +1,13 @@
+{
+  "fullCheck": {
+    "exitCode": 2,
+    "output": "terminal/docs/pr-crops/research-market-vnext-20261110/mounted-vitest.log:18: new blank line at EOF.\n"
+  },
+  "schema": "terminal.pr1275.diff-check.v1",
+  "scopeCheck": {
+    "excludedBlob": "ba9336d6b22e8b429c174d696e328352277cdd6b",
+    "excludedExactPath": "terminal/docs/pr-crops/research-market-vnext-20261110/mounted-vitest.log",
+    "exitCode": 0,
+    "reason": "Exact already-protected raw test transcript ends with a blank line. Retained unchanged; no source/test policy was relaxed and no raw log was rewritten."
+  }
+}

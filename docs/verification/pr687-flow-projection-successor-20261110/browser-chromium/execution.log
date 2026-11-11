@@ -1,0 +1,33 @@
+[warmup] /terminal?symbol=NVDA → 200 in 73ms
+[warmup] /options → 200 in 1144ms
+[warmup] /portfolio → 200 in 532ms
+[warmup] /alerts → 200 in 463ms
+[warmup] /analysis → 200 in 804ms
+[warmup] /discover → 200 in 816ms
+[warmup] /admin → 200 in 257ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 192ms
+[warmup] /login → 200 in 84ms
+[warmup] /reset-password → 200 in 223ms
+[warmup] /api/me → 200 in 290ms
+[warmup] /api/watchlist → 200 in 120ms
+[warmup] /api/layouts → 200 in 128ms
+[warmup] /api/watchlist/annotations → 409 in 99ms
+[warmup] 14 routes compiled in 5s
+[fixture-ready] prophet_idx fixture 200 in 307ms
+
+Running 12 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/flow-projection.spec.ts:71:7 › [en] time buckets preserve canonical cards, filters, coverage and inspector (2.3s)
+  ✓   2 [desktop] › e2e/flow-projection.spec.ts:160:7 › [en] a held feed keeps its reason and projection over the last read (1.5s)
+  ✓   3 [desktop] › e2e/flow-projection.spec.ts:71:7 › [zh] time buckets preserve canonical cards, filters, coverage and inspector (1.8s)
+  ✓   4 [desktop] › e2e/flow-projection.spec.ts:160:7 › [zh] a held feed keeps its reason and projection over the last read (1.1s)
+  ✓   5 [tablet] › e2e/flow-projection.spec.ts:71:7 › [en] time buckets preserve canonical cards, filters, coverage and inspector (1.8s)
+  ✓   6 [tablet] › e2e/flow-projection.spec.ts:160:7 › [en] a held feed keeps its reason and projection over the last read (994ms)
+  ✓   7 [tablet] › e2e/flow-projection.spec.ts:71:7 › [zh] time buckets preserve canonical cards, filters, coverage and inspector (1.8s)
+  ✓   8 [tablet] › e2e/flow-projection.spec.ts:160:7 › [zh] a held feed keeps its reason and projection over the last read (1.1s)
+  ✓   9 [mobile] › e2e/flow-projection.spec.ts:71:7 › [en] time buckets preserve canonical cards, filters, coverage and inspector (2.0s)
+  ✓  10 [mobile] › e2e/flow-projection.spec.ts:160:7 › [en] a held feed keeps its reason and projection over the last read (954ms)
+  ✓  11 [mobile] › e2e/flow-projection.spec.ts:71:7 › [zh] time buckets preserve canonical cards, filters, coverage and inspector (2.0s)
+  ✓  12 [mobile] › e2e/flow-projection.spec.ts:160:7 › [zh] a held feed keeps its reason and projection over the last read (969ms)
+
+  12 passed (33.1s)

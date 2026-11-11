@@ -1,0 +1,30 @@
+{
+  "after": {
+    "terminal/components/flowdesk/FeedPane.tsx": "f674933b4217ed12c9b05abd33086f5f89b924d10ffb7516d5e06bce44104ad9",
+    "terminal/components/flowdesk/FlowProjectionStrip.tsx": "0438ddc9f8e89a085447c87248c11cbf9ec3a155b241c518d33484d17ac74651",
+    "terminal/components/prophet/optionsAlphaMeasuredEvidence.ts": "411fe769b2e03ad381da0b727102b79ca0e87b98f2382f6c9816b35a189c48ea",
+    "terminal/lib/flowProjection.ts": "f1fb153466bbf7da5ca84f11e844497c2baf97aa0aa817cb4bae02d6168d3249"
+  },
+  "before": {
+    "terminal/components/flowdesk/FeedPane.tsx": "a1ac83419d2c36b79e65a3ce43a79d6db58ae4ccb8819abd8111f2008c28f0b8",
+    "terminal/components/flowdesk/FlowProjectionStrip.tsx": "dfc7918c7779472784a3a51f1ec63b49fb26518173352caaa1fd384a3bb4f521",
+    "terminal/components/prophet/optionsAlphaMeasuredEvidence.ts": "111e596f2823b57c3cf4c34840ff02e42a226d9aec8080a0dfbd58f4a9fc942c",
+    "terminal/lib/flowProjection.ts": "015bfb662daf9abeaea5df94d21a82757dc61c13aedf0a847abe0847c28591e6"
+  },
+  "changed": [
+    "terminal/lib/flowProjection.ts",
+    "terminal/components/flowdesk/FlowProjectionStrip.tsx",
+    "terminal/components/flowdesk/FeedPane.tsx",
+    "terminal/components/prophet/optionsAlphaMeasuredEvidence.ts"
+  ],
+  "classificationOrder": [
+    "identity",
+    "timestamp",
+    "magnitude"
+  ],
+  "createdAt": "2026-11-10T17:16:44.778099+00:00",
+  "identityPolicy": "All repeated normalized IDs omitted within already-filtered projection population; no Tape deduplication or manufactured identities",
+  "parserOwnerChange": "Export-only measuredInstant; existing implementation/callers unchanged",
+  "selection": "Same admission plus half-open actual bucket bounds, retaining input object/order; null selection preserves all input",
+  "state": "SOURCE_REPAIR_APPLIED"
+}

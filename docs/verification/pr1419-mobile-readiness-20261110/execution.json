@@ -1,0 +1,31 @@
+{
+  "base": "ceab6184a492911b1dd224430b1c6a0e66f9b0a2",
+  "startedAt": "2026-11-10T14:54:26.241410+00:00",
+  "phase": "QUALIFIED",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/sector-retained-depth.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--grep",
+    "calls contract board: keyboard show-more and trace disclosure|navigation out flows through the onNavigate callback with the exact href|emergence mark: owner-carried flag renders the R6-09 chip, copy and evidence link",
+    "--reporter=json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1419-mobile-readiness-web4/docs/verification/pr1419-mobile-readiness-20261110/browser-artifacts"
+  ],
+  "port": 47279,
+  "sourceCount": 6142,
+  "sourceSpecSha256": "12a3c16bcc7c2959b4502b8e978e98c04af2adee31712755cc3a62b872176f51",
+  "configuration": "Unchanged committed playwright.config.ts and globalSetup.ts",
+  "newRetries": 0,
+  "pid": 61182,
+  "pgid": 61182,
+  "browserExit": 0,
+  "durationSeconds": 54.946,
+  "browserCompletedAt": "2026-11-10T14:55:21.190626+00:00",
+  "observerCompletedAt": "2026-11-10T14:55:28.407096+00:00"
+}

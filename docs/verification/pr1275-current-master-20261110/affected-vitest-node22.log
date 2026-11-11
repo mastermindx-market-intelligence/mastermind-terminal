@@ -1,0 +1,24 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/terminal[39m
+
+[90mstderr[2m | lib/__tests__/analysisWorkspaceNavigation.test.tsx[2m > [22m[2mreused Company route identity[2m > [22m[2mclears malformed selection when navigation removes the symbol
+[22m[39mReceived `false` for a non-boolean attribute `prefetch`.
+
+If you want to write it to the DOM, pass a string instead: prefetch="false" or prefetch={value.toString()}.
+
+If you used to conditionally omit it with prefetch={condition && value}, pass prefetch={condition ? value : undefined} instead.
+
+ [32m✓[39m lib/__tests__/analysisWorkspaceNavigation.test.tsx [2m([22m[2m16 tests[22m[2m)[22m[33m 489[2mms[22m[39m
+ [32m✓[39m lib/__tests__/productionTypeProject.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 3192[2mms[22m[39m
+   [33m[2m✓[22m[39m strict production TypeScript project[2m > [22minherits every full-project compiler option unchanged [33m865[2mms[22m[39m
+   [33m[2m✓[22m[39m strict production TypeScript project[2m > [22momits only test/e2e/tool roots while retaining every application and generated root [33m532[2mms[22m[39m
+   [33m[2m✓[22m[39m strict production TypeScript project[2m > [22mstill rejects an ordinary application error [33m543[2mms[22m[39m
+   [33m[2m✓[22m[39m strict production TypeScript project[2m > [22mkeeps a test-only error in the full gate and checks it if imported by production [33m787[2mms[22m[39m
+ [32m✓[39m lib/__tests__/readingWorkspaces.test.tsx [2m([22m[2m59 tests[22m[2m)[22m[33m 2060[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[32m98 passed[39m[22m[90m (98)[39m
+[2m   Start at [22m 01:56:26
+[2m   Duration [22m 5.18s[2m (transform 1.07s, setup 0ms, collect 2.18s, tests 5.74s, environment 2.35s, prepare 470ms)[22m
+

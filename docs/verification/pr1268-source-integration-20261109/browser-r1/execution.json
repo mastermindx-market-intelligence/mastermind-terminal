@@ -1,0 +1,1282 @@
+{
+  "artifacts": {
+    ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "boats-display-BOATS-single-64388--and-independent-expiry-zh--desktop/boats-desktop-zh.png": "532321a2c84fb6c217253cc07d7b1451124e2a1f9979e37b63afb104e956b781",
+    "boats-display-BOATS-single-64388--and-independent-expiry-zh--mobile/boats-mobile-zh.png": "5725b0b19a128c5764826e3c4fd242cd4ff14f24ba600945404c3b144c2286cd",
+    "boats-display-BOATS-single-64388--and-independent-expiry-zh--tablet/boats-tablet-zh.png": "b4d9b4c008f5624be9cdd2cfea56dbacb4b275488ac8ae87ba686a4a9ae44e9a",
+    "boats-display-BOATS-single-aa0e8--and-independent-expiry-en--desktop/boats-desktop-en.png": "e7d4ad8af9317fd6f93b0270c40fe5c36e28d2ed6dbba51b2b72c65f14b1a69b",
+    "boats-display-BOATS-single-aa0e8--and-independent-expiry-en--mobile/boats-mobile-en.png": "e4b10b506aef3cda0cf4f9abe281f68cf58075235eb8b54b5b6b826eac9a50e6",
+    "boats-display-BOATS-single-aa0e8--and-independent-expiry-en--tablet/boats-tablet-en.png": "5f405fe710d41fbd814831f9a170efe137c209a1f35d82f5a2f518e431f0bd09",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-desktop/attachments/daytime-completed-chart-e24dc1fb5c2b6a4373395414416037cc161b8988.png": "9096d3e1726f1d798733bbb0d403395072dd01a780cce707669b3e3b9f34260a",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-desktop/attachments/daytime-completion-readback-fa7936a5e8c88098112c7d6d6f03096ff0f207fa.json": "be6dbd6f85a3e99eb9942d3c5dac53a78f93f5d1bb2513f11bc95f3cfad2251b",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-desktop/attachments/daytime-pending-chart-6eacb6790f6f7444ba16cc80387478538a68c479.png": "4daacaad0e167424f02d9b50349f0a5230a8dc565f56cdabbf26d17eb5d12bb0",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-mobile/attachments/daytime-completed-chart-f721b0541ab04a12b156c5fa2ae44d8beced5ece.png": "6438d977016c2b16da143b2aadf780efe9de89aa02e6919d5636e376ce496c01",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-mobile/attachments/daytime-completion-readback-7c4be6e2471a22bf5570811d0955c1903d95362f.json": "c8e532d6acf1d22e098b41c50b4432443bac53160f174e7923bda43fabd660aa",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-mobile/attachments/daytime-pending-chart-e5f454875364006f801ee6d56afee723bd1842d0.png": "20701fcbfc5be74364841b974826430583843dbd27597f80102ea3dbaf9c4e40",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-tablet/attachments/daytime-completed-chart-707036c04467615501ca7ad6a65c0a6cf9d2b5d8.png": "73e85e0fc0421f3fb9d445e60e88ca003f96482b6b6590554454cd6b8826b358",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-tablet/attachments/daytime-completion-readback-1ef93e81903e3048546ef2508363571e17d4638a.json": "8ed5136b09008a0541fd231345262b0785d031e06933beee45bb56bcdda5dca4",
+    "overnight-refresh-24H-firs-29a7d-inventing-overnight-history-tablet/attachments/daytime-pending-chart-ac98ab1df509c53e67a77a35c0955d2fb8ace94c.png": "ef5b6b77d272332cb498ddd1d97f613a1c6bcd9f7697796e6797045824bc69d3"
+  },
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "desktop|boats-display.spec.ts|BOATS single-venue label, age and independent expiry (en)",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "desktop|boats-display.spec.ts|BOATS single-venue label, age and independent expiry (zh)",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "desktop|boats-display.spec.ts|coalesced trailing null clears BOATS and a later failure cannot revive it",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "tablet|boats-display.spec.ts|BOATS single-venue label, age and independent expiry (en)",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "tablet|boats-display.spec.ts|BOATS single-venue label, age and independent expiry (zh)",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "tablet|boats-display.spec.ts|coalesced trailing null clears BOATS and a later failure cannot revive it",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "mobile|boats-display.spec.ts|BOATS single-venue label, age and independent expiry (en)",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "mobile|boats-display.spec.ts|BOATS single-venue label, age and independent expiry (zh)",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "boats-display.spec.ts",
+      "key": "mobile|boats-display.spec.ts|coalesced trailing null clears BOATS and a later failure cannot revive it",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "desktop|mobile-session-settings.spec.ts|en 12h: phone session settings are reachable by touch",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "desktop|mobile-session-settings.spec.ts|en D: phone session settings are reachable by touch",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "desktop|mobile-session-settings.spec.ts|zh 12h: phone session settings are reachable by touch",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "desktop|mobile-session-settings.spec.ts|zh D: phone session settings are reachable by touch",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "tablet|mobile-session-settings.spec.ts|en 12h: phone session settings are reachable by touch",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "tablet|mobile-session-settings.spec.ts|en D: phone session settings are reachable by touch",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "tablet|mobile-session-settings.spec.ts|zh 12h: phone session settings are reachable by touch",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "tablet|mobile-session-settings.spec.ts|zh D: phone session settings are reachable by touch",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "mobile|mobile-session-settings.spec.ts|en 12h: phone session settings are reachable by touch",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "mobile|mobile-session-settings.spec.ts|en D: phone session settings are reachable by touch",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "mobile|mobile-session-settings.spec.ts|zh 12h: phone session settings are reachable by touch",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "mobile-session-settings.spec.ts",
+      "key": "mobile|mobile-session-settings.spec.ts|zh D: phone session settings are reachable by touch",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "desktop|overnight-chart.spec.ts|12h 24H countdown ends at the post-market boundary",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "desktop|overnight-chart.spec.ts|en dark: opt-in BOATS chart is honest about overnight coverage",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "desktop|overnight-chart.spec.ts|en light: opt-in BOATS chart is honest about overnight coverage",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "desktop|overnight-chart.spec.ts|zh dark: opt-in BOATS chart is honest about overnight coverage",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "desktop|overnight-chart.spec.ts|zh light: opt-in BOATS chart is honest about overnight coverage",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "desktop|overnight-chart.spec.ts|24H settings respect D timeframe eligibility without losing the saved preference",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "desktop|overnight-chart.spec.ts|24H settings respect 12h timeframe eligibility without losing the saved preference",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "tablet|overnight-chart.spec.ts|12h 24H countdown ends at the post-market boundary",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "tablet|overnight-chart.spec.ts|en dark: opt-in BOATS chart is honest about overnight coverage",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "tablet|overnight-chart.spec.ts|en light: opt-in BOATS chart is honest about overnight coverage",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "tablet|overnight-chart.spec.ts|zh dark: opt-in BOATS chart is honest about overnight coverage",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "tablet|overnight-chart.spec.ts|zh light: opt-in BOATS chart is honest about overnight coverage",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "tablet|overnight-chart.spec.ts|24H settings respect D timeframe eligibility without losing the saved preference",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "tablet|overnight-chart.spec.ts|24H settings respect 12h timeframe eligibility without losing the saved preference",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "mobile|overnight-chart.spec.ts|12h 24H countdown ends at the post-market boundary",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "mobile|overnight-chart.spec.ts|en dark: opt-in BOATS chart is honest about overnight coverage",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "mobile|overnight-chart.spec.ts|en light: opt-in BOATS chart is honest about overnight coverage",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "mobile|overnight-chart.spec.ts|zh dark: opt-in BOATS chart is honest about overnight coverage",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "mobile|overnight-chart.spec.ts|zh light: opt-in BOATS chart is honest about overnight coverage",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "mobile|overnight-chart.spec.ts|24H settings respect D timeframe eligibility without losing the saved preference",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-chart.spec.ts",
+      "key": "mobile|overnight-chart.spec.ts|24H settings respect 12h timeframe eligibility without losing the saved preference",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-history.spec.ts",
+      "key": "desktop|overnight-history.spec.ts|en: captured BOATS history survives a page reload",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-history.spec.ts",
+      "key": "desktop|overnight-history.spec.ts|zh: captured BOATS history survives a page reload",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-history.spec.ts",
+      "key": "tablet|overnight-history.spec.ts|en: captured BOATS history survives a page reload",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-history.spec.ts",
+      "key": "tablet|overnight-history.spec.ts|zh: captured BOATS history survives a page reload",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-history.spec.ts",
+      "key": "mobile|overnight-history.spec.ts|en: captured BOATS history survives a page reload",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-history.spec.ts",
+      "key": "mobile|overnight-history.spec.ts|zh: captured BOATS history survives a page reload",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H REST refresh corrects OHLCV without rebuilding or moving the chart",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|1m: ETH and 24H retire old AI data and reject a stale command target",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|12h: ETH and 24H retire old AI data and reject a stale command target",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H first paint adopts the completed daytime request without inventing overnight history",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H retains initial overnight history when the first refresh has no BOATS receipt",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H empty first paint leaves Loading after a settled empty result",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H empty first paint leaves Loading after a settled failure",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H cold quote-only first paint keeps its trade watermark after the quote expires",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H cold failed daytime assembly never paints provisional BOATS candles",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H warm complete history paints on first response while background refresh remains pending",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|switching from a painted 1m chart to 24H clears old candles before the 24H fetch resolves",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "desktop|overnight-refresh.spec.ts|24H cold first paint does not publish nonempty partial history as a ready chart",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H REST refresh corrects OHLCV without rebuilding or moving the chart",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|1m: ETH and 24H retire old AI data and reject a stale command target",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|12h: ETH and 24H retire old AI data and reject a stale command target",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H first paint adopts the completed daytime request without inventing overnight history",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H retains initial overnight history when the first refresh has no BOATS receipt",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H empty first paint leaves Loading after a settled empty result",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H empty first paint leaves Loading after a settled failure",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H cold quote-only first paint keeps its trade watermark after the quote expires",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H cold failed daytime assembly never paints provisional BOATS candles",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H warm complete history paints on first response while background refresh remains pending",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|switching from a painted 1m chart to 24H clears old candles before the 24H fetch resolves",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "tablet|overnight-refresh.spec.ts|24H cold first paint does not publish nonempty partial history as a ready chart",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H REST refresh corrects OHLCV without rebuilding or moving the chart",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|1m: ETH and 24H retire old AI data and reject a stale command target",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|12h: ETH and 24H retire old AI data and reject a stale command target",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H first paint adopts the completed daytime request without inventing overnight history",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H retains initial overnight history when the first refresh has no BOATS receipt",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H empty first paint leaves Loading after a settled empty result",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H empty first paint leaves Loading after a settled failure",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H cold quote-only first paint keeps its trade watermark after the quote expires",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H cold failed daytime assembly never paints provisional BOATS candles",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H warm complete history paints on first response while background refresh remains pending",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|switching from a painted 1m chart to 24H clears old candles before the 24H fetch resolves",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-refresh.spec.ts",
+      "key": "mobile|overnight-refresh.spec.ts|24H cold first paint does not publish nonempty partial history as a ready chart",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "desktop|overnight-status.spec.ts|en dark: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "desktop|overnight-status.spec.ts|en light: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "desktop|overnight-status.spec.ts|zh dark: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "desktop|overnight-status.spec.ts|zh light: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "desktop"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "tablet|overnight-status.spec.ts|en dark: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "tablet|overnight-status.spec.ts|en light: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "tablet|overnight-status.spec.ts|zh dark: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "tablet|overnight-status.spec.ts|zh light: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "tablet"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "mobile|overnight-status.spec.ts|en dark: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "mobile|overnight-status.spec.ts|en light: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "mobile|overnight-status.spec.ts|zh dark: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "mobile"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "file": "overnight-status.spec.ts",
+      "key": "mobile|overnight-status.spec.ts|zh light: 24H chart labels live snapshot provenance without claiming all-venue coverage",
+      "project": "mobile"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/overnight-status.spec.ts",
+    "e2e/overnight-chart.spec.ts",
+    "e2e/overnight-history.spec.ts",
+    "e2e/overnight-refresh.spec.ts",
+    "e2e/boats-display.spec.ts",
+    "e2e/mobile-session-settings.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/tiingo24h-terminal-ux-20261103-sol/terminal/test-results/pr1268-browser-r1"
+  ],
+  "completedAt": "2026-11-09T16:59:30.297979+00:00",
+  "currentImages": {
+    "desktop-en-dark.png": {
+      "bytes": 185591,
+      "sha256": "f08572683bc8d00b621b1ed77c9faa7a4b8e655a83fb22a0f45e0c59c24b8239"
+    },
+    "desktop-en-light.png": {
+      "bytes": 185856,
+      "sha256": "5696a71d465e64057f9aafe649ecf32d435ffc108f1b61708d8080895b2cc5c0"
+    },
+    "desktop-zh-dark.png": {
+      "bytes": 187067,
+      "sha256": "953a7966e1af1c93fd6f0b7e85098e4b07ef4a537be2319cab898d9f0edc4e7f"
+    },
+    "desktop-zh-light.png": {
+      "bytes": 187704,
+      "sha256": "233a754a4ab9f53cd85984c14ea21844858c73eadc2cba84ae6392631d5c07cc"
+    },
+    "mobile-en-dark.png": {
+      "bytes": 77535,
+      "sha256": "4f0eae43681e58f51be9d28d381b432bf697e36185394a8287ac6e47f37db182"
+    },
+    "mobile-en-light.png": {
+      "bytes": 76487,
+      "sha256": "d358a8b2dee90fb34c8bf819b68c40b59baa63ed8a62fb8068d653e620c6a7a3"
+    },
+    "mobile-zh-dark.png": {
+      "bytes": 82506,
+      "sha256": "cada6a6339917137867681d9656a3916dcf4a38ce77411b6704a05b33fe5f450"
+    },
+    "mobile-zh-light.png": {
+      "bytes": 81239,
+      "sha256": "f70f8535a5346db165567fb90b54ba328016920696ef402e6ddf188c93e8b3e9"
+    },
+    "tablet-en-dark.png": {
+      "bytes": 108818,
+      "sha256": "4c078ab83703cc4da93b62314dc2ef6ec51e51bc835a63641364a348270bf0d9"
+    },
+    "tablet-en-light.png": {
+      "bytes": 106926,
+      "sha256": "bef6b931035e8e7dc16f8983459524447b6a126c02e3fbaa924801359746d383"
+    },
+    "tablet-zh-dark.png": {
+      "bytes": 111403,
+      "sha256": "322fe5ab705e47fbd94bc8bb6b3450c218996b91f8e8aa65e057360287b815f2"
+    },
+    "tablet-zh-light.png": {
+      "bytes": 110475,
+      "sha256": "ee606ee8bc40b2a8333bd71dc055b4b0e5f0d0949bb7833000ef1aae098b5910"
+    }
+  },
+  "exit": 0,
+  "expectedActiveCases": 88,
+  "expectedNonMobileSkips": 8,
+  "failed": 0,
+  "flaky": 0,
+  "head": "f7276cf077b877a54509cba28ab247b5524d8530",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1268-source-integration-20261109/boats-browser-r1-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T16:59:30.164057+00:00",
+    "sha256": "b7a9245cfca39989f2fb4e7724b043e5e07f0a37b01d6646fda79606b3f53dd8"
+  },
+  "logSha256": "08a3c1088bb0204db0938c84df9937a027b4ae77f28e28c173000303ca960834",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "passed": 88,
+  "port": 3892,
+  "preservedPriorImages": {
+    "desktop-en-dark.png": "b94c7926f198d5cbcfd7e788809f4c79c079e95b2829c0978d6198b41c68edb1",
+    "desktop-en-light.png": "887611c014b0fad8583ffedafc62a46db599f9bc81957ecd7bfb280697ff303e",
+    "desktop-zh-dark.png": "394734814098c63efb30a8630c3d93ddd5719960e6215999a666632506214d81",
+    "desktop-zh-light.png": "ef25d653fea46c43daa7facd3ffd86cd9d2c5938786219714b7a8a06401d4fcd",
+    "mobile-en-dark.png": "6f2bd5277af53727c7594c6fa5d16c63de762736c0df86412ed1f61093545599",
+    "mobile-en-light.png": "6f2bd5277af53727c7594c6fa5d16c63de762736c0df86412ed1f61093545599",
+    "mobile-zh-dark.png": "871392cdfd54649bdba079808f977da497f840ea2ac1e94103310dd030ffab7d",
+    "mobile-zh-light.png": "cd1129a290e18e99d2aeab6d01351716eda0329d532dc513a957f4bd9bd8a00c",
+    "tablet-en-dark.png": "85aabd08eea536ea7b34005599cd59546e08127d4838f0234ddf1cd6d22207aa",
+    "tablet-en-light.png": "3dda3130c6b931cc42d4b738e3b21d15808327540da42561c3dc7acb5e75bdb4",
+    "tablet-zh-dark.png": "8e384f89acbe0ec38b9ac6fde4acd951bb0d7b74e09ee56020f14cf5229ccb68",
+    "tablet-zh-light.png": "8e384f89acbe0ec38b9ac6fde4acd951bb0d7b74e09ee56020f14cf5229ccb68"
+  },
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr1268_affected_browser_validation.v1",
+  "seconds": 694.48,
+  "skipped": 8,
+  "sourceEntries": 1937,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T16:47:48.976123+00:00",
+  "state": "QUALIFIED"
+}

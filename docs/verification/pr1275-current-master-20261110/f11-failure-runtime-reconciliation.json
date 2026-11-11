@@ -1,0 +1,52 @@
+{
+  "schema": "terminal.pr1275.failed-capture-runtime-reconciliation.v1",
+  "at": "2026-11-10T09:10:48.605868+00:00",
+  "captureObserverPid": 90366,
+  "ownedGroup": 93951,
+  "identityBefore": [
+    {
+      "pid": 93951,
+      "parent": 1,
+      "group": 93951,
+      "started": "Tue Nov 10 02:01:24 2026",
+      "command": "npm run dev --webpack --hostname 127.0.0.1 --port 3565",
+      "cwd": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/terminal"
+      ],
+      "args": "npm run dev --webpack --hostname 127.0.0.1 --port 3565"
+    },
+    {
+      "pid": 93990,
+      "parent": 93951,
+      "group": 93951,
+      "started": "Tue Nov 10 02:01:24 2026",
+      "command": "node",
+      "cwd": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/terminal"
+      ],
+      "args": "node /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/terminal/node_modules/.bin/next dev --webpack --hostname 127.0.0.1 --port 3565"
+    },
+    {
+      "pid": 94010,
+      "parent": 93990,
+      "group": 93951,
+      "started": "Tue Nov 10 02:01:25 2026",
+      "command": "next-server (v16.2.9)",
+      "cwd": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/terminal"
+      ],
+      "args": "next-server (v16.2.9)"
+    }
+  ],
+  "signal": "SIGTERM",
+  "purpose": "settle original failed F11 capture only",
+  "nextEnvAtRecovery": {
+    "bytes": 255,
+    "sha256": "af6041dab0293ffa61774940044e74f15de3f91b3c3aa0510b98172b2a8ebd28",
+    "text": "/// <reference types=\"next\" />\n/// <reference types=\"next/image-types/global\" />\nimport \"./.next/f11/dev/types/routes.d.ts\";\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n"
+  },
+  "processGroupAbsent": true,
+  "groupAfter": [],
+  "portFree": true,
+  "listenerAfter": ""
+}
