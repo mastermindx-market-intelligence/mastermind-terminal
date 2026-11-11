@@ -1,0 +1,82 @@
+[
+  {
+    "path": "browser/artifacts/.last-run.json",
+    "bytes": 45,
+    "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+  },
+  {
+    "path": "browser/artifacts/drawing-professional-editi-24804-e-pane-that-dispatched-them-desktop/trace.zip",
+    "bytes": 66902521,
+    "sha256": "dc9b6be902e4cbf432dc2694355d35c336bf40dcd9c86cfafdc83a0e98f2e782"
+  },
+  {
+    "path": "browser/artifacts/drawing-professional-editi-74c35--only-user-authored-objects-desktop/trace.zip",
+    "bytes": 33567976,
+    "sha256": "7a0a08f107bdc22be4c2b4e29cd802083cc78ed4bb870939436a28e79e994821"
+  },
+  {
+    "path": "browser/artifacts/drawing-professional-editi-cf171--current-plus-recent-colors-desktop/trace.zip",
+    "bytes": 94490086,
+    "sha256": "2e40abcf5657e0ae32c5ce0db75b4b5c6c86561c3fdf54e4af3d5d34467b8fdc"
+  },
+  {
+    "path": "browser/browser.log",
+    "bytes": 1268,
+    "sha256": "fb79aad6354f58a77cb4d1cf9b9c512709737e3d56fb48b935c541d824e25208"
+  },
+  {
+    "path": "browser/execution.json",
+    "bytes": 2280,
+    "sha256": "2cb8b14f4f9d0dd0c13f2c53e226aba6765853c36c65fa1dff88755eb2c4ef46"
+  },
+  {
+    "path": "browser/report.json",
+    "bytes": 13165,
+    "sha256": "8f0f499c2cd3d27ca25aef3186ee6741b385a400531ec1ef5dba58d0bc231a68"
+  },
+  {
+    "path": "browser/selection.log",
+    "bytes": 453,
+    "sha256": "67c2400204b330e0cb64874d04df62c429d98c124570831c58008afb674c402e"
+  },
+  {
+    "path": "browser/source-after.json",
+    "bytes": 530023,
+    "sha256": "90e5bf189b1006af0684dd0c19e9a667ae45428c5200ba1dd2fb0edf5cc4488b"
+  },
+  {
+    "path": "browser/source-before.json",
+    "bytes": 530023,
+    "sha256": "90e5bf189b1006af0684dd0c19e9a667ae45428c5200ba1dd2fb0edf5cc4488b"
+  },
+  {
+    "path": "lint.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "source-before.ts",
+    "bytes": 22127,
+    "sha256": "7ca65555514514d0f1a75deef40dd01fdbd8237ec4bc5e15ee17f92935b2f571"
+  },
+  {
+    "path": "source-repair.json",
+    "bytes": 482,
+    "sha256": "62e247fd0a06569e04438f2471b584f4a80e7572b67b48563bee73849ced84b6"
+  },
+  {
+    "path": "typecheck.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "unit.log",
+    "bytes": 1681,
+    "sha256": "d2b7be8d10a149181400a416530f08f9c0ece798ea05885eef9c21cad4c7badd"
+  },
+  {
+    "path": "validation-results.json",
+    "bytes": 860,
+    "sha256": "36c969117e2707e96833dfd3030a59e966a879a098d06c61e6096cdacd1d06fb"
+  }
+]
