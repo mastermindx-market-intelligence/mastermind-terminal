@@ -1,0 +1,11 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1048/terminal
+
+ ✓ lib/__tests__/drawingSidebarReadiness.test.tsx (6 tests) 369ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  04:34:29
+   Duration  2.15s (transform 465ms, setup 0ms, collect 1.22s, tests 369ms, environment 248ms, prepare 49ms)
+

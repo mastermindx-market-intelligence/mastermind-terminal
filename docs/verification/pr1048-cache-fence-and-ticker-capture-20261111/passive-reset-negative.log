@@ -1,0 +1,40 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1048/terminal
+
+ ❯ lib/__tests__/drawingSidebarReadiness.test.tsx (6 tests | 1 failed | 5 skipped) 120ms
+   × drawing controls follow the shell's real owner and load readiness > fences the transitional old-owner cache and ignores the stale owner's rejection 119ms
+     → expected { owner: 'account:owner-b', …(6) } to match object { hasCache: false, …(2) }
+(4 matching properties omitted from actual)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/drawingSidebarReadiness.test.tsx > drawing controls follow the shell's real owner and load readiness > fences the transitional old-owner cache and ignores the stale owner's rejection
+AssertionError: expected { owner: 'account:owner-b', …(6) } to match object { hasCache: false, …(2) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  Object {
+    "cacheLength": 0,
+    "disabled": true,
+-   "hasCache": false,
++   "hasCache": true,
+  }
+
+ ❯ lib/__tests__/drawingSidebarReadiness.test.tsx:176:8
+    174|     await mount({ userId: "owner-b" });
+    175|     expect(observations.find(row => row.owner === "account:owner-b" &&…
+    176|       .toMatchObject({ hasCache: false, cacheLength: 0, disabled: true…
+       |        ^
+    177|     expect(requests).toHaveLength(2);
+    178|     expect(requests[1]).toMatchObject({ owner: "account:owner-b", sett…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 skipped (6)
+   Start at  04:34:26
+   Duration  2.67s (transform 705ms, setup 0ms, collect 1.78s, tests 120ms, environment 372ms, prepare 86ms)
+

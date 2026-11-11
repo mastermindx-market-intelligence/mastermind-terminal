@@ -401,7 +401,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs e2e/tools/ticker_news_capture_receipt.test.cjs
       - name: Record PR-touched paths for the evidence drift gate
         # The planner below fails a pull request whose OWN diff drifted an
         # evidence-locked source without a recaptured, committed lock — the
@@ -715,6 +715,19 @@ jobs:
         env:
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
           TERMINAL_E2E_WORKERS: ${{ steps.lane.outputs.workers }}
+      - name: Capture current ticker News evidence
+        if: matrix.shard == 'serial'
+        timeout-minutes: 15
+        env:
+          CI: '1'
+          TERMINAL_CROPS: '1'
+          TERMINAL_TICKER_NEWS_CAPTURE_PACKET: ticker-news
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/ticker-news-current/report.json
+        run: |
+          node e2e/tools/ticker_news_capture_receipt.cjs --prepare
+          npm run test:e2e:responsive -- e2e/ticker-news.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/ticker-news-current/playwright --reporter=github,json
+          node e2e/tools/ticker_news_capture_receipt.cjs --verify
       # This feature is default-off; the ordinary matrix skips its browser tests.
       # Exercise it with the SAME harness, without altering production flags.
       - name: Qualify investor shell opt-in

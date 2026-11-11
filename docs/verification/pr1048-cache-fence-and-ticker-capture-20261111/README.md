@@ -1,0 +1,17 @@
+# Correct the drawing cache contract and obtain a current ticker packet
+
+The previous source candidate e368f26 completed the current-input capture and F11 entry steps. Its unit job 130420100557 in run 42989799627 passed 23,272 tests and failed two. The attached original failure excerpt shows an obsolete transitional-cache expectation and a ticker evidence lock still bound to the prior TerminalShell. The actual CI merge checkout was 09495282, with canonical parents 18fabe9d and e368f26. Event metadata and branch-head identities are not substituted for that checkout.
+
+## Drawing owner behavior
+
+The product already resets the previous owner's drawing store in useLayoutEffect and publishes its store ref synchronously. The test now first proves owner A has a ready cache, then requires the transient B/A observation to contain no A cache and remain disabled. It still checks B's own ready placeholder, actual requests, stale A rejection immunity, and current B rejection disabling. All six drawing readiness tests pass. Temporarily restoring only the passive-effect reset makes the selected case fail on hasCache=true; the original TerminalShell bytes were restored exactly. No product behavior was relaxed to satisfy an obsolete expectation.
+
+## Ticker capture and source binding
+
+The existing serial Playwright owner now records its actual checkout, before/after sources, previous packet and sibling packet inventories, ten EN/ZH crops across desktop/tablet/mobile and unavailable states, exact report rows, and settled lifecycle. The observer is the already-qualified #1403 implementation with only two nonexistent WatchlistDisplaySettings paths omitted from its source list. The sixteen retained source inputs include the actual shell, spec, helpers, observer, configuration and lockfile. Its 33 receipt tests pass. No layout lock or image has been restamped. A genuine natural CI capture must return before its ten images and EVIDENCE.yml can be imported.
+
+The workflow retains the same serial lane, port, one worker, zero retries, job budget and existing artifact uploader. The shard contract now classifies opt-in suites by an actual opt-in environment flag; an ordinary ticker recapture is not a feature flag. All 281 affected CI contracts pass, including the existing four opt-in suites and production selection. Changed JS/TS lint and observer syntax checks pass. Full strict TypeScript from e368 remains the accepted unchanged-product check; natural CI will validate this followup.
+
+Both new e2e/tools files participate in the existing recursive visual source snapshot. Therefore the older e368 PL6/VI operation cannot qualify the new candidate. The next natural run must capture and validate a complete successor under the unchanged producer, explicit records selector and consumers. Historical PL6/VI/Batch3 manifests and memberships remain byte-exact. The committed-lock planner remains unchanged and binding. Complete generated operation families stay under the incumbent Actions artifact owner, with exact qualification and retention metadata required before acceptance; a green job or hash-only record cannot replace missing payloads.
+
+SQL0050, coordinated Macro/provider behavior, ordinary-model target/ACK/persistence acceptance, the historical M2 cleanup EPERM boundary, and native merge/release controls remain open. This source repair neither applies a migration nor enrolls, merges, deploys or claims production acceptance.

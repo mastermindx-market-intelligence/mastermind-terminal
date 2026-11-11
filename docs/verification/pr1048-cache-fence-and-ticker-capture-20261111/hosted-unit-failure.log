@@ -1,0 +1,73 @@
+2026-11-11T09:17:48.5278137Z ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+2026-11-11T09:17:48.5278494Z 
+2026-11-11T09:17:48.5280661Z  FAIL  lib/__tests__/drawingSidebarReadiness.test.tsx > drawing controls follow the shell's real owner and load readiness > fences the transitional old-owner cache and ignores the stale owner's rejection
+2026-11-11T09:17:48.5297703Z AssertionError: expected { owner: 'account:owner-b', …(6) } to match object { hasCache: true, disabled: true }
+2026-11-11T09:17:48.5308124Z (5 matching properties omitted from actual)
+2026-11-11T09:17:48.5308518Z 
+2026-11-11T09:17:48.5308822Z - Expected
+2026-11-11T09:17:48.5309167Z + Received
+2026-11-11T09:17:48.5309345Z 
+2026-11-11T09:17:48.5309581Z   Object {
+2026-11-11T09:17:48.5310428Z     "disabled": true,
+2026-11-11T09:17:48.5310907Z -   "hasCache": true,
+2026-11-11T09:17:48.5311376Z +   "hasCache": false,
+2026-11-11T09:17:48.5311769Z   }
+2026-11-11T09:17:48.5311964Z 
+2026-11-11T09:17:48.5312594Z  ❯ lib/__tests__/drawingSidebarReadiness.test.tsx:175:8
+2026-11-11T09:17:48.5461096Z     173|     await mount({ userId: "owner-b" });
+2026-11-11T09:17:48.5462767Z     174|     expect(observations.find(row => row.owner === "account:owner-b" &&…
+2026-11-11T09:17:48.5464998Z     175|       .toMatchObject({ hasCache: true, disabled: true });
+2026-11-11T09:17:48.5465970Z        |        ^
+2026-11-11T09:17:48.5466812Z     176|     expect(requests).toHaveLength(2);
+2026-11-11T09:17:48.5468139Z     177|     expect(requests[1]).toMatchObject({ owner: "account:owner-b", sett…
+2026-11-11T09:17:48.5507751Z 
+2026-11-11T09:17:48.5540358Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+2026-11-11T09:17:48.5554452Z 
+2026-11-11T09:17:48.5568768Z  FAIL  lib/__tests__/tickerNewsEvidence.test.ts > ticker-news evidence lock is EVIDENCE.yml > each layoutFiles sha256 matches the file on disk
+2026-11-11T09:17:48.5570406Z AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected 'd947b118b60a3cf7075f5c7045f4ed89a1747…' to be '9a52f109c3ab87f3e24da8bfa79ff6cac05a1…' // Object.is equality
+2026-11-11T09:17:48.5571183Z 
+2026-11-11T09:17:48.5571626Z Expected: "9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc"
+2026-11-11T09:17:48.5572402Z Received: "d947b118b60a3cf7075f5c7045f4ed89a1747ca87fa39220ddd11895c4700660"
+2026-11-11T09:17:48.5572810Z 
+2026-11-11T09:17:48.5573203Z  ❯ lib/__tests__/tickerNewsEvidence.test.ts:85:67
+2026-11-11T09:17:48.5574135Z  Test Files  2 failed | 1300 passed | 6 skipped (1308)
+2026-11-11T09:17:48.5574996Z      83|       const abs = join(REPO, rel);
+2026-11-11T09:17:48.5575872Z      84|       expect(existsSync(abs), `${rel} is recorded in layoutFiles but a…
+2026-11-11T09:17:48.5576868Z      85|       expect(sha256Of(abs), `${rel} changed without a recapture`).toBe…
+2026-11-11T09:17:48.5577617Z        |                                                                   ^
+2026-11-11T09:17:48.5578068Z      86|     }
+2026-11-11T09:17:48.5578439Z      87|   });
+2026-11-11T09:17:48.5578742Z 
+2026-11-11T09:17:48.5579152Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+2026-11-11T09:17:48.5579552Z 
+2026-11-11T09:17:48.5685478Z       Tests  2 failed | 23272 passed | 50 skipped | 3 todo (23327)
+2026-11-11T09:17:48.5696593Z    Start at  09:11:48
+2026-11-11T09:17:48.5736001Z    Duration  359.54s (transform 49.73s, setup 0ms, collect 218.38s, tests 426.33s, environment 173.59s, prepare 83.72s)
+2026-11-11T09:17:48.5736591Z 
+2026-11-11T09:17:48.5950303Z 
+2026-11-11T09:17:48.5960197Z ##[error]AssertionError: expected { owner: 'account:owner-b', …(6) } to match object { hasCache: true, disabled: true }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  Object {
+    "disabled": true,
+-   "hasCache": true,
++   "hasCache": false,
+  }
+
+ ❯ lib/__tests__/drawingSidebarReadiness.test.tsx:175:8
+
+
+2026-11-11T09:17:48.5963130Z 
+2026-11-11T09:17:48.5967946Z ##[error]AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected 'd947b118b60a3cf7075f5c7045f4ed89a1747…' to be '9a52f109c3ab87f3e24da8bfa79ff6cac05a1…' // Object.is equality
+
+Expected: "9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc"
+Received: "d947b118b60a3cf7075f5c7045f4ed89a1747ca87fa39220ddd11895c4700660"
+
+ ❯ lib/__tests__/tickerNewsEvidence.test.ts:85:67
+
+
+2026-11-11T09:17:49.1096357Z ##[error]Process completed with exit code 1.
+2026-11-11T09:17:49.1201607Z 

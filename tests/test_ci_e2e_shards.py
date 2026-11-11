@@ -840,7 +840,11 @@ def serial_opt_in_specs() -> frozenset[str]:
     (and therefore the one production build) does not carry."""
     found: set[str] = set()
     for step in ci_workflow()["jobs"]["terminal-e2e"]["steps"]:
-        if "matrix.shard == 'serial'" in str(step.get("if", "")):
+        # A serial evidence capture uses the ordinary server environment.
+        # Only a step that actually supplies an opt-in feature flag changes
+        # whether a spec can run against the shared production build.
+        if ("matrix.shard == 'serial'" in str(step.get("if", ""))
+                and any(flag in step.get("env", {}) for flag in OPT_IN_ENV)):
             found.update(re.findall(r"\be2e/([A-Za-z0-9._-]+\.spec\.ts)\b", str(step.get("run", ""))))
     return frozenset(found)
 
