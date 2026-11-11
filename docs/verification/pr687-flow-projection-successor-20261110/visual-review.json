@@ -1,0 +1,39 @@
+{
+  "executionReceipt": "browser-chromium/execution.json",
+  "executionSha256": "3d0722cd8a1f1d5b7864c367c76c927b0fb63678a77a6d41800a826207f8dcc5",
+  "findings": [
+    "Desktop English bucket 10:35 is selected and displays six canonical Tape cards; coverage remains the all-loaded population.",
+    "Tablet Chinese interval and selected bucket controls are legible and the native card column retains its layout.",
+    "Mobile English restored Tape shows the 15-minute interval, nine total events and the existing selected-print owner retained after interval change.",
+    "Desktop and mobile Chinese held-read frames retain the translated absence reason while the six-card bucket remains usable.",
+    "Tablet English and mobile Chinese screenshots visibly show the selected AAPL 230C Oct 23 print and $504,000 = 6,000 x $0.84 x 100 arithmetic using ordinary page/rail scrolling."
+  ],
+  "imageHashes": {
+    "browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/selected-bucket.png": "99dc8add50ff8c1af92c08bac97716e9fe3d8cd4fa8bbaae07e2c429c43bf772",
+    "browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/restored-tape.png": "7eec0454347699c8e48ca062e55739a31e6e947d92c1b035258d938c9eed2de4",
+    "browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/selected-print-inspector.png": "6567360e0828b6d81f55be92357d950156bce87d54c4e6ef15d8b4f141b2d3f9",
+    "browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-desktop/held-projection.png": "4c5f019718640141aa1ed8b04767895672d5a1c928d266219ccdb580af92f8d7",
+    "browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-mobile/held-projection.png": "ed2446d882c1f5957f461426a6aa65e183a9994140c1df14d0274135a4be87df",
+    "browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/selected-print-inspector.png": "52b3d55b3af17d153cc4c5cb2fe7c3898f40726ddc6e73f6ab7dc504f84e4a81",
+    "browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/selected-bucket.png": "1c6d908d87090a6cc423b8298199681407c41b457aefc8d3714bc7b6633dff86"
+  },
+  "images": [
+    "browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/selected-bucket.png",
+    "browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/selected-bucket.png",
+    "browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/restored-tape.png",
+    "browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-desktop/held-projection.png",
+    "browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/selected-print-inspector.png",
+    "browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/selected-print-inspector.png",
+    "browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-mobile/held-projection.png"
+  ],
+  "inspectedCount": 7,
+  "limits": [
+    "Seven representative images were manually inspected; the packet contains 24 unique PNGs plus report attachments.",
+    "Fixed viewport Chromium synthetic local consumer proof; no live producer, deployed generation, physical Safari or other-browser claim.",
+    "No replacement drawer, viewport growth or claim that bucket/interval changes clear the parent's inspector selection."
+  ],
+  "recordedAt": "2026-11-10T17:36:08.336528+00:00",
+  "reviewer": "Current assigned principal /root",
+  "schema": "terminal_pr687_visual_review.v1",
+  "state": "SEVEN_REPRESENTATIVE_FINAL_IMAGES_INSPECTED"
+}

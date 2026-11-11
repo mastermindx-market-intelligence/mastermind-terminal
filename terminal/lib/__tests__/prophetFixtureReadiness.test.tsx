@@ -68,8 +68,14 @@ async function resolveSourceRoute(url: string) {
       return routes.has(pathname) ? { type: "appFile", itemPath: pathname } : null;
     },
   } as unknown as Parameters<typeof getResolveRoutes>[0];
-  const resolve = getResolveRoutes(fsChecker, { ...defaultConfig, useFileSystemPublicRoutes: true, crossOrigin: undefined, skipProxyUrlNormalize: false } as unknown as Parameters<typeof getResolveRoutes>[1],
-    { dir: process.cwd(), dev: false, minimalMode: false, port: 3108, hostname: "127.0.0.1" } as Parameters<typeof getResolveRoutes>[2], undefined as unknown as Parameters<typeof getResolveRoutes>[3], {} as Parameters<typeof getResolveRoutes>[4]);
+  const resolve = getResolveRoutes(
+    fsChecker,
+    { ...defaultConfig, useFileSystemPublicRoutes: true, crossOrigin: undefined, skipProxyUrlNormalize: false } as unknown as Parameters<typeof getResolveRoutes>[1],
+    () => defaultConfig.assetPrefix,
+    { dir: process.cwd(), dev: false, minimalMode: false, port: 3108, hostname: "127.0.0.1" } as Parameters<typeof getResolveRoutes>[3],
+    undefined as unknown as Parameters<typeof getResolveRoutes>[4],
+    {} as Parameters<typeof getResolveRoutes>[5],
+  );
   const socket = new Socket(); const req = new IncomingMessage(socket); req.url = url; req.method = "GET"; req.headers = { host: "127.0.0.1:3108" };
   const res = new ServerResponse(req);
   try { return await resolve({ req, res, isUpgradeReq: false, signal: new AbortController().signal }); }

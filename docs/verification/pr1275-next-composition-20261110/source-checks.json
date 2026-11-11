@@ -1,0 +1,83 @@
+{
+  "changedPriorInputs": [
+    "terminal/lib/__tests__/productionTypeProject.test.ts",
+    "terminal/next.config.ts",
+    "terminal/package-lock.json"
+  ],
+  "finishedAt": "2026-11-10T16:22:48.252269+00:00",
+  "nextVersion": "16.4.6",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "nodeVersion": "v22.23.4",
+  "observedInputs": 45,
+  "protectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "sourceHead": "360c3acf4396384c321df95fc442024ccff58b8e",
+  "sourceInputsUnchanged": true,
+  "sourceTree": "38a4df7b21280409adeebe8eabe715965fd23d1c",
+  "startedAt": "2026-11-10T16:22:12.219879+00:00",
+  "state": "AFFECTED_SOURCE_QUALIFIED",
+  "steps": [
+    {
+      "command": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/lib/node_modules/npm/bin/npm-cli.js",
+        "ci",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "exit": 0,
+      "finishedAt": "2026-11-10T16:22:37.523180+00:00",
+      "groupAbsent": true,
+      "logSha256": "9e4d38ef32e1a1f28e24f31a003b1c092bc04faca0ff640714e1e8a7ee816c33",
+      "name": "npm-ci",
+      "pid": 56885,
+      "seconds": 25.161,
+      "startedAt": "2026-11-10T16:22:12.361327+00:00"
+    },
+    {
+      "command": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/productionTypeProject.test.ts",
+        "lib/__tests__/nextConfigDevIndicator.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/docs/verification/pr1275-next-composition-20261110/affected-config-report.json"
+      ],
+      "exit": 0,
+      "finishedAt": "2026-11-10T16:22:43.774391+00:00",
+      "groupAbsent": true,
+      "logSha256": "81ef0a773277fb97b57f8bafec1937e588073b848f95e899eaf6448e1aeb0877",
+      "name": "affected-config-tests",
+      "pid": 59224,
+      "seconds": 5.426,
+      "startedAt": "2026-11-10T16:22:38.348101+00:00"
+    },
+    {
+      "command": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "next.config.ts",
+        "lib/__tests__/productionTypeProject.test.ts"
+      ],
+      "exit": 0,
+      "finishedAt": "2026-11-10T16:22:47.321656+00:00",
+      "groupAbsent": true,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "affected-lint",
+      "pid": 59646,
+      "seconds": 3.544,
+      "startedAt": "2026-11-10T16:22:43.776445+00:00"
+    }
+  ],
+  "tests": {
+    "numFailedTests": 0,
+    "numPassedTests": 31,
+    "numPendingTests": 0,
+    "numTodoTests": 0,
+    "numTotalTests": 31,
+    "success": true
+  }
+}

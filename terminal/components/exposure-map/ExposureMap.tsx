@@ -263,6 +263,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     requestAnimationFrame(() => { inspector.current?.focus(); });
   }, [identity]);
   const s = read.summary;
+  const gammaLeader = metric === "gamma" && read.state === "data" && !stale ? s.netLeader?.strike : undefined;
+  const gammaLevelSide = gammaLeader != null && read.spot != null && gammaLeader !== read.spot
+    ? (gammaLeader < read.spot ? "below" : "above")
+    : null;
   const focus = selected ?? s.netLeader;
   const structure = useMemo(() => describeExposure(s.nodes, read.spot, focus?.strike ?? null), [s.nodes, read.spot, focus?.strike]);
   const expiryReads = useMemo(() => read.expiries.map(exp => ({ exp, read: readScope({ kind: "one", exp }, metric, shock) })), [read.expiries, readScope, metric, shock]);
@@ -422,7 +426,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <div className={styles.chartBody}><ChartPanel symbol={root} indicators={NONE} timeframe={tf} onChartApi={setApi} onVisualReady={onVisualReady} optionsLevel={pinned} userTier="free" /></div>
           <div className={styles.caption}><span>{t("positiveExposureNegativeExposureSelectedNode")}</span><span>{t("reference")}</span></div>
         </div>
-        {!archivedSession && <ExposureDivergence key={JSON.stringify([root, read.session])} root={root} timeframe={tf} onTimeframe={setTf} inspectorHost={momentumHost} onAverages={onAverages} />}
+        {!archivedSession && <ExposureDivergence key={JSON.stringify([root, read.session])} root={root} timeframe={tf} onTimeframe={setTf} inspectorHost={momentumHost} gammaLevelSide={gammaLevelSide} onAverages={onAverages} />}
       </div>
       {phone ? <MobileSheet open={!!selected} onClose={close} title={`${root} · ${t("inspect")}`} ariaLabel={t("inspect")} detents={[60,94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={`${styles.map} ${styles.inspectorSheet}`}>{inspectorPanel}</MobileSheet> : inspectorPanel}
     </div>

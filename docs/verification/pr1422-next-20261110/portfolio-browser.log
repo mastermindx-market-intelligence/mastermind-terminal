@@ -1,0 +1,35 @@
+[warmup] /terminal?symbol=NVDA → 200 in 129ms
+[warmup] /options → 200 in 3369ms
+[warmup] /portfolio → 200 in 1690ms
+[warmup] /alerts → 200 in 1628ms
+[warmup] /analysis → 200 in 1856ms
+[warmup] /discover → 200 in 1954ms
+[warmup] /admin → 200 in 701ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 382ms
+[warmup] /login → 200 in 147ms
+[warmup] /reset-password → 200 in 406ms
+[warmup] /api/me → 200 in 1053ms
+[warmup] /api/watchlist → 200 in 486ms
+[warmup] /api/layouts → 200 in 638ms
+[warmup] /api/watchlist/annotations → 409 in 315ms
+[warmup] 14 routes compiled in 15s
+[fixture-ready] prophet_idx fixture 200 in 522ms
+
+Running 12 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (6.7s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   2 [desktop] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (9.7s)
+  ✓   3 [desktop] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › en: an expanded panel stays collapsed when the count comes back (8.3s)
+  ✓   4 [desktop] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › zh: an expanded panel stays collapsed when the count comes back (6.8s)
+  ✓   5 [tablet] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (8.8s)
+  ✓   6 [tablet] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (5.2s)
+  -   7 [tablet] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › en: an expanded panel stays collapsed when the count comes back
+  -   8 [tablet] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › zh: an expanded panel stays collapsed when the count comes back
+  ✓   9 [mobile] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (5.5s)
+  ✓  10 [mobile] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (5.3s)
+  -  11 [mobile] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › en: an expanded panel stays collapsed when the count comes back
+  -  12 [mobile] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › zh: an expanded panel stays collapsed when the count comes back
+
+  4 skipped
+  8 passed (1.7m)

@@ -1,0 +1,39 @@
+{
+  "data_classification": "SYNTHETIC LOCAL",
+  "source_snapshot_ref": "synthetic:options-exposure-surface-journey/v1",
+  "root": "SPY",
+  "session": "2026-10-19",
+  "spot": 100,
+  "clock_frozen_at": "2026-10-19T20:30:00Z",
+  "lang": "zh",
+  "theme": "light",
+  "project": "desktop",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "screenshots": {
+    "overview": "test-results/synthetic-exposure-surface-desktop-zh-overview.png",
+    "surface-field": "test-results/synthetic-exposure-surface-desktop-zh-surface-field.png",
+    "surface-cell": "test-results/synthetic-exposure-surface-desktop-zh-surface-cell.png",
+    "selected-node": "test-results/synthetic-exposure-surface-desktop-zh-selected-node.png",
+    "chart-reference": "test-results/synthetic-exposure-surface-desktop-zh-chart-reference.png",
+    "return": "test-results/synthetic-exposure-surface-desktop-zh-return.png"
+  },
+  "actual_theme_by_stage": {
+    "overview": "light",
+    "surface-field": "light",
+    "surface-cell": "light",
+    "selected-node": "light",
+    "chart-reference": "dark",
+    "return": "dark"
+  },
+  "blocked_external_requests": [
+    {
+      "origin": "https://www.mastermind-x.com",
+      "path": "/mm_brain.js"
+    }
+  ],
+  "browser_zoom_200_percent": "NOT PROVED — no CSS zoom or DPR substitute",
+  "cached_selection_latency_p95": "TARGET <100ms; NOT MEASURED"
+}

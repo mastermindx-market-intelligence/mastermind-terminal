@@ -1,0 +1,307 @@
+{
+  "producer": "3b76190b39ad6b0a25db4a1003e004412581bc84",
+  "closeMatrixSha256": "92ad36feb952d7bbca3ac0275044bd70a071817437334ddca28caf8d297c6774",
+  "heatmapSha256": "c6564a626ac9399456dcfd56f0893cded14f3d66a43b25ffbc6c01375f0f3fce",
+  "rows": [
+    {
+      "id": "xlp",
+      "name": "Consumer Staples",
+      "name_zh": "必需消费",
+      "ticker": "XLP"
+    },
+    {
+      "id": "xlc",
+      "name": "Communication Services",
+      "name_zh": "通讯服务",
+      "ticker": "XLC"
+    },
+    {
+      "id": "xly",
+      "name": "Consumer Discretionary",
+      "name_zh": "非必需消费",
+      "ticker": "XLY"
+    },
+    {
+      "id": "xli",
+      "name": "Industrials",
+      "name_zh": "工业",
+      "ticker": "XLI"
+    },
+    {
+      "id": "xlu",
+      "name": "Utilities",
+      "name_zh": "公用事业",
+      "ticker": "XLU"
+    },
+    {
+      "id": "xlre",
+      "name": "Real Estate",
+      "name_zh": "房地产",
+      "ticker": "XLRE"
+    },
+    {
+      "id": "xle",
+      "name": "Energy",
+      "name_zh": "能源",
+      "ticker": "XLE"
+    },
+    {
+      "id": "xlk",
+      "name": "Technology",
+      "name_zh": "科技",
+      "ticker": "XLK"
+    },
+    {
+      "id": "xlv",
+      "name": "Health Care",
+      "name_zh": "医疗保健",
+      "ticker": "XLV"
+    },
+    {
+      "id": "xlf",
+      "name": "Financials",
+      "name_zh": "金融",
+      "ticker": "XLF"
+    },
+    {
+      "id": "xlb",
+      "name": "Materials",
+      "name_zh": "原材料",
+      "ticker": "XLB"
+    }
+  ],
+  "series": {
+    "schema": "sector_breadth_close.v1",
+    "basis": "current_cohort_daily_closes",
+    "dates": [
+      "2026-10-15",
+      "2026-10-16",
+      "2026-10-19",
+      "2026-10-20",
+      "2026-10-21",
+      "2026-10-22"
+    ],
+    "sectors": {
+      "XLB": {
+        "eligible": 19,
+        "matched": 19,
+        "advancing": [
+          16,
+          11,
+          8,
+          13,
+          11,
+          13
+        ],
+        "declining": [
+          3,
+          8,
+          11,
+          6,
+          8,
+          6
+        ]
+      },
+      "XLC": {
+        "eligible": 21,
+        "matched": 21,
+        "advancing": [
+          17,
+          6,
+          8,
+          17,
+          4,
+          14
+        ],
+        "declining": [
+          4,
+          15,
+          12,
+          4,
+          17,
+          7
+        ]
+      },
+      "XLE": {
+        "eligible": 21,
+        "matched": 21,
+        "advancing": [
+          1,
+          21,
+          5,
+          13,
+          12,
+          6
+        ],
+        "declining": [
+          20,
+          0,
+          16,
+          8,
+          9,
+          15
+        ]
+      },
+      "XLF": {
+        "eligible": 75,
+        "matched": 73,
+        "advancing": [
+          67,
+          42,
+          15,
+          70,
+          52,
+          57
+        ],
+        "declining": [
+          6,
+          31,
+          58,
+          3,
+          21,
+          16
+        ]
+      },
+      "XLI": {
+        "eligible": 79,
+        "matched": 79,
+        "advancing": [
+          63,
+          40,
+          17,
+          59,
+          61,
+          50
+        ],
+        "declining": [
+          16,
+          39,
+          61,
+          20,
+          18,
+          29
+        ]
+      },
+      "XLK": {
+        "eligible": 81,
+        "matched": 81,
+        "advancing": [
+          41,
+          8,
+          66,
+          48,
+          63,
+          28
+        ],
+        "declining": [
+          40,
+          73,
+          15,
+          33,
+          18,
+          53
+        ]
+      },
+      "XLP": {
+        "eligible": 33,
+        "matched": 33,
+        "advancing": [
+          24,
+          27,
+          5,
+          26,
+          7,
+          32
+        ],
+        "declining": [
+          9,
+          6,
+          28,
+          7,
+          26,
+          1
+        ]
+      },
+      "XLRE": {
+        "eligible": 30,
+        "matched": 30,
+        "advancing": [
+          29,
+          23,
+          1,
+          29,
+          11,
+          24
+        ],
+        "declining": [
+          1,
+          7,
+          29,
+          1,
+          19,
+          6
+        ]
+      },
+      "XLU": {
+        "eligible": 31,
+        "matched": 31,
+        "advancing": [
+          13,
+          28,
+          2,
+          29,
+          18,
+          26
+        ],
+        "declining": [
+          18,
+          3,
+          29,
+          2,
+          12,
+          4
+        ]
+      },
+      "XLV": {
+        "eligible": 60,
+        "matched": 60,
+        "advancing": [
+          56,
+          19,
+          24,
+          55,
+          25,
+          46
+        ],
+        "declining": [
+          4,
+          41,
+          36,
+          5,
+          35,
+          14
+        ]
+      },
+      "XLY": {
+        "eligible": 53,
+        "matched": 53,
+        "advancing": [
+          52,
+          22,
+          23,
+          43,
+          17,
+          39
+        ],
+        "declining": [
+          1,
+          31,
+          29,
+          10,
+          36,
+          14
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+# B-PL-6 batch 1 — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:31:29.432Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
+  terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
+  terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
+  terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [OptionsHubView, DiscoverLeaders, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_pl6_batch1.cjs
+files:
+  - AnalysisWorkspace-1440-zh.png
+  - AnalysisWorkspace-1440.png
+  - AnalysisWorkspace-390-zh.png
+  - AnalysisWorkspace-390.png
+  - ChartChrome-1440-zh.png
+  - ChartChrome-1440.png
+  - ChartChrome-390-zh.png
+  - ChartChrome-390.png
+  - DiscoverLeaders-1440-zh.png
+  - DiscoverLeaders-1440.png
+  - DiscoverLeaders-390-zh.png
+  - DiscoverLeaders-390.png
+  - OptionsHubView-1440-zh.png
+  - OptionsHubView-1440.png
+  - OptionsHubView-390-zh.png
+  - OptionsHubView-390.png
+  - OptionsScreener-volume-1440-zh.png
+  - OptionsScreener-volume-1440.png
+  - OptionsScreener-volume-390-zh.png
+  - OptionsScreener-volume-390.png
+  - OptionsScreener-volume-820-zh.png
+  - OptionsScreener-volume-820.png
+  - SearchModal-1440-zh.png
+  - SearchModal-1440.png
+  - SearchModal-390-zh.png
+  - SearchModal-390.png
+  - StockAnalysis-1440-zh.png
+  - StockAnalysis-1440.png
+  - StockAnalysis-390-zh.png
+  - StockAnalysis-390.png

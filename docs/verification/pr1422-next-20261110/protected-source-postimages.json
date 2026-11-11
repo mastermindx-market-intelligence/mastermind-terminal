@@ -1,0 +1,58 @@
+{
+  "terminal/package.json": {
+    "blob": "d9a47a03bfda0b9f539903b1c545cfbfec241d20",
+    "sha256": "798410dee72bd38b90bceca63fd38f545be3ec086d741c3ca372ccbc5da6b317"
+  },
+  "terminal/package-lock.json": {
+    "blob": "43172affa9516ddcbd6e8f7a59bb54888baa7e3b",
+    "sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "terminal/lib/__tests__/prophetFixtureReadiness.test.tsx": {
+    "blob": "0160ee26673fd1f7b8b56423281c285df47d2130",
+    "sha256": "701ddc7a3a3d29a1151e846be7ff7699f0c82a3901a29dc7f449c4e5212a21d7"
+  },
+  "terminal/components/EventImpactPanel.tsx": {
+    "blob": "5ede8b3306e4147831d40c5517f572028d60f79a",
+    "sha256": "698d0de0e6b95f2644bee0912215065c566786b4a7bb51f088753e31b1c99e64"
+  },
+  "terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx": {
+    "blob": "9f1f0235df9d4cb37604d47b28ff066ef3ef9ab5",
+    "sha256": "73bf79ab13bbc6b7791ead7adc3dbe38cfe6b9258c93393518e911b64eadb866"
+  },
+  "terminal/next.config.ts": {
+    "blob": "98a50a5d764ad7071f3b8873189255c49162b08a",
+    "sha256": "d984c2a181c5ce6a23b341d1a166c1801043ab9288370a564884e63dc39f2f4a"
+  },
+  "terminal/lib/__tests__/nextConfigDevIndicator.test.ts": {
+    "blob": "21f0a9c66037c457020368ef87724f09c8adedd9",
+    "sha256": "14ce651e6e02867089217c357f156b7e0d8084f4d8a595f3328947bb68c559ce"
+  },
+  "terminal/e2e/tools/qualify_shared_shell_intelligence.cjs": {
+    "blob": "d12c5a1afd7346bd6344311cc11d20a9cf84b1fc",
+    "sha256": "fc9a4bdd34294db9aa30cd674287461570091766fc95016a531536e7021c9083"
+  },
+  "terminal/components/ChartPanel.tsx": {
+    "blob": "d3135dc6181e8a1c28f28b248aa229296f25cde3",
+    "sha256": "4de1669f2281be54cb007264ef33a11c6d314bc1e2c903ab5b3fb77a1b1b4dae"
+  },
+  "terminal/e2e/rs-pivot-study.spec.ts": {
+    "blob": "679099a26c39ae1d154a07921ccf401868705180",
+    "sha256": "84b2c3b8aee5af00759bfbd7f8e9c874f4f013201562ab38dc12ad32ed7efd4c"
+  },
+  "terminal/e2e/sector-intraday-comparison.spec.ts": {
+    "blob": "1766146acb966150c65424d16f877aa537fae440",
+    "sha256": "994d76e1a48f8569d2448bbb767518400e877137da959125b7beb4e320b3e913"
+  },
+  "terminal/e2e/sector-leadership-dossier.spec.ts": {
+    "blob": "2fd60e1177ea9c447c189c3b4529ad9772f4517f",
+    "sha256": "54f0a2b9663ce7e8b83524df146d0a84ea62c1a3b903941293ff45c26fed60d3"
+  },
+  "terminal/e2e/watchlist-annotation-sync.spec.ts": {
+    "blob": "4801a270d4d8403979db053b87f0cf5d10ae42f3",
+    "sha256": "7f525133c34dce17e4b14a89cba3c0e335ab7b06b4583b71dd8a03fa2f482bf7"
+  },
+  "terminal/lib/__tests__/productionTypeProject.test.ts": {
+    "blob": "c228d3249515ac12e5af88181c7bab46d3c34406",
+    "sha256": "495518ed2042e3edf02e807734bc058a5e3b8d3473496854d79b631f94ed3a68"
+  }
+}

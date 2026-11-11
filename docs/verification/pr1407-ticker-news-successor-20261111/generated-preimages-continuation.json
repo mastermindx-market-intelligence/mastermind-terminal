@@ -1,0 +1,14 @@
+{
+  "terminal/next-env.d.ts": {
+    "present": true,
+    "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+    "backup": "generated-preimages-continuation/next-env.d.ts",
+    "bytes": 296
+  },
+  "terminal/tsconfig.json": {
+    "present": true,
+    "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3",
+    "backup": "generated-preimages-continuation/tsconfig.json",
+    "bytes": 666
+  }
+}

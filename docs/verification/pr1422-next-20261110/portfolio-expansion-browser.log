@@ -1,0 +1,29 @@
+[warmup] /terminal?symbol=NVDA → 200 in 117ms
+[warmup] /options → 200 in 2935ms
+[warmup] /portfolio → 200 in 1584ms
+[warmup] /alerts → 200 in 1312ms
+[warmup] /analysis → 200 in 2027ms
+[warmup] /discover → 200 in 2416ms
+[warmup] /admin → 200 in 750ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 506ms
+[warmup] /login → 200 in 182ms
+[warmup] /reset-password → 200 in 642ms
+[warmup] /api/me → 200 in 708ms
+[warmup] /api/watchlist → 200 in 325ms
+[warmup] /api/layouts → 200 in 324ms
+[warmup] /api/watchlist/annotations → 409 in 268ms
+[warmup] 14 routes compiled in 14s
+[fixture-ready] prophet_idx fixture 200 in 849ms
+
+Running 6 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › en: an expanded panel stays collapsed when the count comes back (5.5s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  2 [desktop] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › zh: an expanded panel stays collapsed when the count comes back (7.2s)
+  -  3 [tablet] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › en: an expanded panel stays collapsed when the count comes back
+  -  4 [tablet] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › zh: an expanded panel stays collapsed when the count comes back
+  -  5 [mobile] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › en: an expanded panel stays collapsed when the count comes back
+  -  6 [mobile] › e2e/portfolio-event-refresh.spec.ts:268:9 › Portfolio event panel expansion is retired at a count boundary › zh: an expanded panel stays collapsed when the count comes back
+
+  4 skipped
+  2 passed (48.9s)

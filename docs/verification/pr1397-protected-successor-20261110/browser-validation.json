@@ -1,0 +1,34 @@
+{
+  "completedAt": "2026-11-10T07:09:37.803991+00:00",
+  "head": "e5a11c73e05809ea84c84464ce5a14f9b4f483d4",
+  "protectedMaster": "d15741d452403594a4ddb540a97b9a981c2a62ca",
+  "results": {
+    "beta": {
+      "executionSha256": "0b31a113abf1f1abb0a526b0b42c1186bb8ee51ba5fd5ccfd5d6670d65fa2915",
+      "failed": 0,
+      "flaky": 0,
+      "ownedServerStopped": true,
+      "passed": 30,
+      "seconds": 288.55,
+      "skipped": 0,
+      "sourceStable": true,
+      "state": "QUALIFIED"
+    },
+    "ordinary": {
+      "executionSha256": "8cf7166a80715389dee120d42f33cea1f51a3eee5b23522e3ec998d0e4964e12",
+      "failed": 0,
+      "flaky": 0,
+      "ownedServerStopped": true,
+      "passed": 30,
+      "seconds": 251.76,
+      "skipped": 0,
+      "sourceStable": true,
+      "state": "QUALIFIED"
+    }
+  },
+  "schema": "terminal_pr1397_composed_browser_validation.v1",
+  "sourceEntries": 3517,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T07:00:27.350981+00:00",
+  "state": "QUALIFIED"
+}

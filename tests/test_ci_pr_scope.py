@@ -92,6 +92,10 @@ def test_renamed_markdown_stays_docs(repo: Path) -> None:
     "DEPLOY.md",                      # webhookSigning.test.ts
     "AGENTS.md",                      # instruction-recovery tests
     "terminal/CLAUDE.md",
+    "docs/AGENTS.md",
+    "docs/pr-crops/CLAUDE.md",
+    "terminal/docs/CLAUDE.md",
+    "terminal/docs/pr-crops/nested/AGENTS.md",
     "supabase/migrations/README.md",  # migration namespace guard input
     "docs/evidence/new.json",         # only raster images are inert evidence
     "docs/evidence/new.svg",
@@ -120,6 +124,44 @@ def test_markdown_renamed_into_source_is_full(repo: Path) -> None:
         (r / "docs/guide.md").rename(r / "terminal/lib/guide.ts")
     base = _pr_merge(repo, mutate)
     assert ci_pr_scope.classify(repo, expected_base=base, **_KW).mode == "full"
+
+
+@pytest.mark.parametrize("path", ["docs/nested/CLAUDE.md", "terminal/docs/pr-crops/AGENTS.md"])
+@pytest.mark.parametrize("operation", ["modify", "delete"])
+def test_nested_instruction_modification_or_deletion_is_full(
+    repo: Path, path: str, operation: str,
+) -> None:
+    _write(repo, path, "original instructions\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "instruction baseline")
+
+    def mutate(r: Path) -> None:
+        if operation == "delete":
+            (r / path).unlink()
+        else:
+            _write(r, path, "changed instructions\n")
+
+    base = _pr_merge(repo, mutate)
+    decision = ci_pr_scope.classify(repo, expected_base=base, **_KW)
+    assert decision.mode == "full"
+    assert decision.reason == "SOURCE_TOUCHED:" + path
+
+
+@pytest.mark.parametrize("path", ["docs/nested/AGENTS.md", "terminal/docs/pr-crops/CLAUDE.md"])
+@pytest.mark.parametrize("into_instruction", [True, False])
+def test_rename_into_or_out_of_nested_instructions_is_full(
+    repo: Path, path: str, into_instruction: bool,
+) -> None:
+    guide = str(Path(path).with_name("guide.md"))
+    before, after = (guide, path) if into_instruction else (path, guide)
+    _write(repo, before, "unchanged instruction text\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "rename baseline")
+    base = _pr_merge(repo, lambda r: (r / before).rename(r / after))
+    decision = ci_pr_scope.classify(repo, expected_base=base, **_KW)
+    assert decision.mode == "full"
+    assert decision.reason == "SOURCE_TOUCHED:" + path
+    assert decision.changed == 2
 
 
 def test_executable_markdown_is_unqualified(repo: Path) -> None:

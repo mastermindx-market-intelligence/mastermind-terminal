@@ -109,13 +109,16 @@ export function parseSectorDepthReturn(raw: string | null): SectorState | null {
   return state;
 }
 
-/** Large shared links retain the actual outer workspace, sector and theme.
- * The exact same-tab selection is retained separately in browser history. */
+/** Large shared links retain the actual outer workspace, sector, theme and —
+ * when the opener was a native job surface — that job, so a reduced public
+ * return still lands on the same destination family. The exact same-tab
+ * selection is retained separately in browser history. */
 export function sectorDepthReturnQuery(state: SectorState): string | null {
   const full = encodeSectorDepthReturn(state);
   if (!full || full.length <= PUBLIC_SNAPSHOT_LIMIT) return full;
   return encodeSectorDepthReturn({ ...DEFAULT_SECTOR_STATE,
-    workspace: state.workspace, sector: state.sector, theme: state.theme });
+    workspace: state.workspace, sector: state.sector, theme: state.theme,
+    ...(state.sectorJob ? { sectorJob: state.sectorJob } : {}) });
 }
 
 /** The /discover href for a native sector detail entry that must land back on

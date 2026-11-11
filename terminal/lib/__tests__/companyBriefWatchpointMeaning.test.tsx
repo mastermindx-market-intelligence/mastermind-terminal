@@ -26,7 +26,7 @@ it.each(["en", "zh"] as const)("does not promote generic retained source quotes 
   const button = [...panel!.querySelectorAll("button")].find(node => node.querySelector("strong")?.textContent === quote.text)!;
   expect(button).toBeDefined();
   await act(async () => button.click());
-  expect(host.querySelector(".ci-evidence.open blockquote")?.textContent).toBe(quote.source_span?.display_excerpt);
+  expect(document.querySelector(".ci-evidence.open blockquote")?.textContent).toBe(quote.source_span?.display_excerpt);
   expect(host.querySelector(".ci-paper-watch header p")?.textContent).toBe(lang === "zh" ? "本次事件的指引与关注事项" : "Guidance and watchpoints from this event");
 });
 
@@ -43,5 +43,5 @@ it.each(["en", "zh"] as const)("renders an unclassified internal watch metric wi
   expect(row.querySelector("span")?.textContent).toBe(lang === "zh" ? "关注事项" : "Watchpoint");
   expect(row.textContent).not.toContain("fx_yoy_headwind");
   await act(async () => (row as HTMLButtonElement).click());
-  expect(host.querySelector(".ci-evidence.open blockquote")?.textContent).toBe(claim.source_span?.display_excerpt);
+  expect(document.querySelector(".ci-evidence.open blockquote")?.textContent).toBe(claim.source_span?.display_excerpt);
 });

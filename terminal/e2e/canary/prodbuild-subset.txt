@@ -1,0 +1,11 @@
+e2e/options-deeplink.spec.ts
+e2e/pine-editor-integrity.spec.ts
+e2e/cache-invalidation-epoch.spec.ts
+e2e/command-palette.spec.ts
+e2e/overnight-chart.spec.ts
+e2e/password-recovery.spec.ts
+e2e/screener-preset-persistence.spec.ts
+e2e/portfolio-rail-read-state.spec.ts
+e2e/discover-heatmap-load-failure.spec.ts
+e2e/document-language.spec.ts
+e2e/alerts-failure-states.spec.ts

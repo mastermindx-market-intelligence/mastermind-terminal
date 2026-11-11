@@ -10,7 +10,8 @@ existed.
 
 "Docs" is a positive allowlist, not "everything under docs/":
 
-* Markdown under ``docs/`` or ``terminal/docs/``, minus the sub-trees and
+* Markdown under ``docs/`` or ``terminal/docs/``, minus agent instruction
+  files at any depth and the sub-trees and
   files that runtime code or tests read (``terminal/docs/api/`` is served by
   ``terminal/app/docs/api/contract/route.ts``; specimens, refs and the
   chart-engine receipts are test inputs; a few named contracts are compared
@@ -39,6 +40,8 @@ from pathlib import Path
 _SHA_LEN = 40
 _MODES = ("docs", "full")
 _DOCS_TREES = ("docs/", "terminal/docs/")
+# These files direct repository work regardless of their nesting depth.
+_INSTRUCTION_FILES = frozenset({"AGENTS.md", "CLAUDE.md"})
 # Sub-trees of the docs trees that CI executes, serves or compares.
 _CONSUMED_TREES = (
     "terminal/docs/api/",        # served by terminal/app/docs/api/contract/route.ts
@@ -113,6 +116,8 @@ def _decode(name: bytes) -> str:
 def is_docs_path(path: str) -> bool:
     """True only for inert prose or evidence that nothing in CI reads."""
     if not path or not path.startswith(_DOCS_TREES):
+        return False
+    if path.rsplit("/", 1)[-1] in _INSTRUCTION_FILES:
         return False
     if path.startswith(_CONSUMED_TREES) or path in _CONSUMED_FILES:
         return False

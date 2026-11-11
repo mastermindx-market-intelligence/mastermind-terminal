@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
+import { isSharedShellDevOpen, SHARED_SHELL_DEV_EMAIL } from "@/lib/shared-shell/devOpen";
 import { isPaidTier } from "@/lib/entitlement";
 import { PROPRIETARY_SCRIPT } from "@/lib/pine";
 import PineEditorMount from "@/components/mounts/PineEditorMount";
@@ -45,6 +46,12 @@ export default async function ScriptsPage() {
         libraryUnavailable={!read.ok}
       />
     );
+  }
+
+  // Beta development mode (lib/shared-shell/devOpen.ts): the flagship-only editor
+  // under the synthetic dev identity — no auth read, so no login dependency.
+  if (isSharedShellDevOpen()) {
+    return <PineEditorMount scripts={[PROPRIETARY_SCRIPT as Script]} isPro={false} email={SHARED_SHELL_DEV_EMAIL} />;
   }
 
   const supabase = await createClient();

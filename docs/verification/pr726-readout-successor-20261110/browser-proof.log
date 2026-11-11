@@ -1,0 +1,13 @@
+{"matrix":"desktop-en-dark","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"desktop-en-light","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"desktop-zh-dark","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"desktop-zh-light","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"tablet-en-dark","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"tablet-en-light","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"tablet-zh-dark","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"tablet-zh-light","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"mobile-en-dark","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"mobile-en-light","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"mobile-zh-dark","state":"PASS","states":9,"transitions":3,"images":2}
+{"matrix":"mobile-zh-light","state":"PASS","states":9,"transitions":3,"images":2}
+{"state":"BROWSER_MATRICES_PASSED","matrices":12,"states":108,"transitions":36,"images":24,"sourceStable":true,"browserClosed":true,"serverClosed":true}

@@ -1,0 +1,20 @@
+[warmup] /terminal?symbol=NVDA → 200 in 106ms
+[warmup] /options → 200 in 3631ms
+[warmup] /portfolio → 200 in 1257ms
+[warmup] /alerts → 200 in 921ms
+[warmup] /analysis → 200 in 1793ms
+[warmup] /discover → 200 in 1623ms
+[warmup] /admin → 200 in 682ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 462ms
+[warmup] /login → 200 in 81ms
+[warmup] /reset-password → 200 in 563ms
+[warmup] /api/me → 200 in 477ms
+[warmup] /api/watchlist → 200 in 227ms
+[warmup] /api/layouts → 200 in 252ms
+[warmup] /api/watchlist/annotations → 409 in 158ms
+[warmup] 14 routes compiled in 12s
+[fixture-ready] prophet_idx fixture 200 in 450ms
+
+Running 9 tests using 1 worker
+·········
+  9 passed (52.1s)

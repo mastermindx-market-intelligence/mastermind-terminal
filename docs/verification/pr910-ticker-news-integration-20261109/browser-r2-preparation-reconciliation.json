@@ -1,0 +1,12 @@
+{
+  "archive": "docs/verification/pr910-ticker-news-integration-20261109/browser-r2-preparation-not-run",
+  "cause": "Readiness repair precondition was absent after the initial exact replacement count check found a second unrelated matching assertion. Initial driver stopped before browser launch.",
+  "exit": 1,
+  "initialProcess": 33147,
+  "nextLockAbsent": true,
+  "preservedSourceBeforeSha256": "0586900fc60d6283889596bea301540d4eaa39d7d8b97a010652c6bbcd28e815",
+  "samePortFree": true,
+  "schema": "terminal_pr910_browser_preparation_reconciliation.v1",
+  "sourceRepairNowApplied": true,
+  "state": "NO_BROWSER_EXECUTION_OCCURRED"
+}

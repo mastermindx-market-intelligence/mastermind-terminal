@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const {MANIFESTS, planEvidenceCapture} = require("./plan-evidence-capture.cjs");
+const {MANIFESTS, planEvidenceCapture, driftedTouchedSources} = require("./plan-evidence-capture.cjs");
 const { EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS, nativeDefinition } = require("../../e2e/tools/capture_ci_evidence.cjs");
 
 function fixture(t) {
@@ -228,4 +228,72 @@ test("missing or malformed batch3 evidence cannot authorize a merge-group captur
   assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
   fs.writeFileSync(file, "layoutFiles:\n  tampered: x\n");
   assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+});
+
+test("a PR-touched locked source that drifted fails the PR itself", t => {
+  const f = fixture(t);
+  fs.appendFileSync(path.join(f.root, f.paths[3]), "changed without recapture\n");
+  const gate = driftedTouchedSources(f.root,
+    "docs/guide.md\n" + f.paths[3] + "\nterminal/lib/unrelated.ts\n");
+  assert.equal(gate.plan.reason, "source-drift");
+  assert.deepEqual(gate.drifted, [f.paths[3]]);
+});
+
+test("drift inherited from the base never fails an untouched pull request", t => {
+  const f = fixture(t);
+  fs.appendFileSync(path.join(f.root, f.paths[3]), "inherited drift\n");
+  const gate = driftedTouchedSources(f.root, "terminal/components/other.tsx\n");
+  assert.equal(gate.plan.reason, "source-drift");
+  assert.deepEqual(gate.drifted, []);
+});
+
+test("negative: a docs-only pull request is unaffected by any source drift", t => {
+  const f = fixture(t);
+  fs.appendFileSync(path.join(f.root, f.paths[0]), "drift exists on master\n");
+  fs.appendFileSync(path.join(f.root, f.paths[7]), "and more drift\n");
+  const gate = driftedTouchedSources(f.root, "README.md\ndocs/evidence/shot.png\n");
+  assert.deepEqual(gate.drifted, []);
+});
+
+test("a fail-closed plan cannot attribute drift, so the PR gate stays silent", t => {
+  const f = fixture(t);
+  fs.rmSync(f.manifest);
+  const gate = driftedTouchedSources(f.root, f.paths.slice(0, 4).join("\n"));
+  assert.equal(gate.plan.reason, "fail-closed");
+  assert.deepEqual(gate.drifted, []);
+});
+
+test("recapturing and committing an updated lock clears the PR gate", t => {
+  const f = fixture(t);
+  fs.appendFileSync(path.join(f.root, f.paths[3]), "changed WITH recapture\n");
+  const bytes = fs.readFileSync(path.join(f.root, f.paths[3]));
+  const hashes = [...f.hashes];
+  hashes[3] = crypto.createHash("sha256").update(bytes).digest("hex");
+  for (const manifest of MANIFESTS) {
+    fs.writeFileSync(path.join(f.root, manifest), f.render(f.paths, hashes));
+  }
+  const gate = driftedTouchedSources(f.root, f.paths[3] + "\n");
+  assert.equal(gate.plan.reason, "locked-source-match");
+  assert.deepEqual(gate.drifted, []);
+});
+
+test("an empty touched list never attributes drift to a pull request", t => {
+  const f = fixture(t);
+  fs.appendFileSync(path.join(f.root, f.paths[2]), "drift\n");
+  const gate = driftedTouchedSources(f.root, "");
+  assert.equal(gate.plan.reason, "source-drift");
+  assert.deepEqual(gate.drifted, []);
+});
+
+test("GEX drift is attributed only when the pull request touched that source", t => {
+  const f = fixture(t);
+  const source = f.gex.producer.LAYOUT_FILES.find(file => !EOD_LAYOUT_FILES.includes(file));
+  assert.ok(source);
+  fs.appendFileSync(path.join(f.root, source), "changed GEX source\n");
+  const own = driftedTouchedSources(f.root, source + "\n");
+  assert.equal(own.plan.reason, "source-drift");
+  assert.deepEqual(own.drifted, [source]);
+  const inherited = driftedTouchedSources(f.root, "docs/guide.md\n");
+  assert.equal(inherited.plan.reason, "source-drift");
+  assert.deepEqual(inherited.drifted, []);
 });

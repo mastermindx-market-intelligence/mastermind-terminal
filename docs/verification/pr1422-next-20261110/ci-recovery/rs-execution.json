@@ -1,0 +1,28 @@
+{
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/rs-pivot-study.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/rs-missing-chunk-artifacts",
+    "--grep",
+    "^a missing study client chunk leaves the streamed action inert$"
+  ],
+  "completedAt": "2026-11-10T13:21:08.594970+00:00",
+  "exit": 1,
+  "logSha256": "9af247d4314a84d842487df203bea11fd46b9609ad8d28af9f6be1b2172daaae",
+  "port": 34232,
+  "qualification": "FAILED_NO_EXTRA_RUNTIME_PROBE",
+  "seconds": 39.098,
+  "sourceBase": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+  "sourceCount": 2016,
+  "sourcePostimages": "rs-source-before.json",
+  "sourceStable": true,
+  "startedAt": "2026-11-10T13:20:29.496609+00:00"
+}

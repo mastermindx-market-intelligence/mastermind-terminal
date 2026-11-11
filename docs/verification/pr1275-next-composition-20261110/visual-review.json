@@ -1,0 +1,65 @@
+{
+  "sourceHead": "17f1e9cf88728b60f7366484dac6799569c50ed3",
+  "sourceTree": "ebee9a9c9d7d752662f4839d4ec228c0c6f7ca2a",
+  "reviewedAt": "2026-11-10T16:35:32.439466+00:00",
+  "reviewer": "Assigned principal; direct image inspection; Web5A self-check",
+  "images": [
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+      "sha256": "5d4665ced5778a21f3da8a8b2c9cf064b85084efd79576470a6b0e0f75eb6de3",
+      "bytes": 72928,
+      "gitBlob": "dc4b4972fcbb16132ddd06b304910faa2f6c57f7",
+      "sameAsPrior": true,
+      "directlyViewed": true,
+      "finding": "Shown NVDA research header, responsive navigation/overflow controls and English/Chinese natural unavailable state are legible, with no observed clipping, overlap or blur."
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png",
+      "sha256": "371f08415e8549c4aa662e6f4e7d25708690e73e595ce0a428c0306d634c49d0",
+      "bytes": 72866,
+      "gitBlob": "ec2e2be1e963e4f6801321163c23a91361320e97",
+      "sameAsPrior": false,
+      "directlyViewed": true,
+      "finding": "Shown NVDA research header, responsive navigation/overflow controls and English/Chinese natural unavailable state are legible, with no observed clipping, overlap or blur."
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png",
+      "sha256": "185a3840432d2288822bbc8d56f6ac89a1f82cb32a22b9ae9ce49ca62a8bfd13",
+      "bytes": 35568,
+      "gitBlob": "71d1e677afaaa7b14afe71c61a927cabc93d1580",
+      "sameAsPrior": true,
+      "directlyViewed": true,
+      "finding": "Shown NVDA research header, responsive navigation/overflow controls and English/Chinese natural unavailable state are legible, with no observed clipping, overlap or blur."
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png",
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833",
+      "bytes": 34375,
+      "gitBlob": "06b076e3edd05cdf949202efb3aa3809c95df6a4",
+      "sameAsPrior": true,
+      "directlyViewed": true,
+      "finding": "Shown NVDA research header, responsive navigation/overflow controls and English/Chinese natural unavailable state are legible, with no observed clipping, overlap or blur."
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png",
+      "sha256": "f48d6b1bedb2fa5bb808e3ab6dcdb2b128f108c863859f7a3b6a9fb044394b7c",
+      "bytes": 21970,
+      "gitBlob": "b2cfe3686a8483fa138be62c277a1b360e927e17",
+      "sameAsPrior": true,
+      "directlyViewed": true,
+      "finding": "Shown NVDA research header, responsive navigation/overflow controls and English/Chinese natural unavailable state are legible, with no observed clipping, overlap or blur."
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+      "sha256": "51e70e33bb4eb0a7775c8b79086de33a440f918deaf1ddf15321b27370641b9c",
+      "bytes": 22687,
+      "gitBlob": "19e07a3dc9fce6d780c1e48fef20ef13b6d42456",
+      "sameAsPrior": true,
+      "directlyViewed": true,
+      "finding": "Shown NVDA research header, responsive navigation/overflow controls and English/Chinese natural unavailable state are legible, with no observed clipping, overlap or blur."
+    }
+  ],
+  "limits": [
+    "Provider-closed component/entry evidence; no populated live fundamentals, signed-in production, installation, light-theme parity, physical-device or measured-comprehension claim."
+  ]
+}

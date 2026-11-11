@@ -1,0 +1,9 @@
+{
+  "afterSha256": "38548416357cd37858952862f5d56f84a557469bfd59a98213bb258cde587744",
+  "beforeSha256": "0a7481db3340fe956ffee4bfbf97e0a95af0a25a1b060b143e0b1be9f019b2f7",
+  "preparedAt": "2026-11-09T18:39:52.390893+00:00",
+  "reason": "R2 recorded two trusted presses on the same completed drawing but no trusted double-click; avoid replacing an already selected SVG hit target on those presses.",
+  "schema": "terminal_pr632_selected_hit_continuity.v1",
+  "state": "PENDING_PHYSICAL_GESTURE_PROOF",
+  "testUnchangedSha256": "0b6f75ed26a0536db22a81da66846fc38a12de207eeaf7d8e8e6990f0d4b9aa0"
+}

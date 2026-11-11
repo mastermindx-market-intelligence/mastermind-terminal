@@ -1,0 +1,10 @@
+{
+  "base": "ceab6184a492911b1dd224430b1c6a0e66f9b0a2",
+  "path": "terminal/e2e/sector-retained-depth.spec.ts",
+  "beforeBlob": "ec7c915f04b942d12d3140233c70246ceb0c5fed",
+  "beforeSha256": "c602b32d12e8edee4f8a525a32f71da505acc56a05d14474b16ee37339b4c941",
+  "afterBlob": "66a0c8bbf7492c57c5fa81386a867db1d4591b1e",
+  "afterSha256": "12a3c16bcc7c2959b4502b8e978e98c04af2adee31712755cc3a62b872176f51",
+  "replacementCount": 2,
+  "productionSourceChanged": false
+}

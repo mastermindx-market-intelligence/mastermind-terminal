@@ -1,0 +1,42 @@
+[
+  {
+    "check": "mounted-vitest",
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "lib/__tests__/technicalsUnavailableRows.test.tsx"
+    ],
+    "exit_code": 0,
+    "seconds": 20.414,
+    "sha256": "b19ecc1689e913e40d571a97f1cf8d3e069a5ecbb32e8eee9f8a7fa2cdc91331",
+    "log": "mounted-vitest.log",
+    "tail": "\n> terminal@0.1.0 test\n> vitest run lib/__tests__/technicalsUnavailableRows.test.tsx\n\n\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m\n\n\u001b[1m\u001b[7m\u001b[36m RUN \u001b[39m\u001b[27m\u001b[22m \u001b[36mv2.1.9 \u001b[39m\u001b[90m/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal\u001b[39m\n\n \u001b[32m\u2713\u001b[39m lib/__tests__/technicalsUnavailableRows.test.tsx \u001b[2m(\u001b[22m\u001b[2m8 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2293\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m\u2713\u001b[22m\u001b[39m Technicals table: unavailable numeric values\u001b[2m > \u001b[22mupdates the 50/200-bar boundaries in both directions without stale cells \u001b[33m367\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m\u2713\u001b[22m\u001b[39m Technicals unavailable rows on real daily-derived timeframes\u001b[2m > \u001b[22mW: uses active buckets through EN/ZH/EN boundary reversals \u001b[33m631\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m\u2713\u001b[22m\u001b[39m Technicals unavailable rows on real daily-derived timeframes\u001b[2m > \u001b[22m1M: uses active buckets through EN/ZH/EN boundary reversals \u001b[33m402\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m8 passed\u001b[39m\u001b[22m\u001b[90m (8)\u001b[39m\n\u001b[2m   Start at \u001b[22m 00:27:31\n\u001b[2m   Duration \u001b[22m 15.99s\u001b[2m (transform 688ms, setup 0ms, collect 1.12s, tests 2.29s, environment 1.52s, prepare 8.68s)\u001b[22m\n\n"
+  },
+  {
+    "check": "next-typegen",
+    "command": [
+      "npx",
+      "next",
+      "typegen"
+    ],
+    "exit_code": 0,
+    "seconds": 8.033,
+    "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+    "log": "next-typegen.log",
+    "tail": "Generating route types...\n\u2713 Types generated successfully\n"
+  },
+  {
+    "check": "full-typecheck",
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "exit_code": 0,
+    "seconds": 101.646,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "log": "full-typecheck.log",
+    "tail": ""
+  }
+]

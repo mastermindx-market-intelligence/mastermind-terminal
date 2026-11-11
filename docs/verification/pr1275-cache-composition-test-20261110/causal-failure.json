@@ -1,0 +1,194 @@
+{
+  "schema": "terminal.pr1275.cache-composition-test.causal-failure.v1",
+  "originalPrHead": "edb979fdf580713052c14297018d0aca0fdb3052",
+  "run": 42858222339,
+  "job": 129984061769,
+  "attempt": 1,
+  "event": "pull_request",
+  "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42858222339/job/129984061769",
+  "actualCheckout": "c65cc7ca61d56b19acf3a3f9779783ec3709f8eb",
+  "checkoutTree": "2ef063a84629f58a66ef2cf1c122d17490df9cec",
+  "checkoutParents": [
+    "3ba8e1a663a752c7de42c717c3826e722dda416d",
+    "edb979fdf580713052c14297018d0aca0fdb3052"
+  ],
+  "runtime": {
+    "node": "20.20.2",
+    "npm": "10.8.2",
+    "os": "Ubuntu24.04.5"
+  },
+  "sourceTestPreimage": "4e42163a5739c593c1a764b1f86c066613d66fbf",
+  "unchangedRuntimeConfig": "71069181428ef3af6ac567a15878703ab0398069",
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1
+    },
+    {
+      "name": "Run actions/checkout@v4",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2
+    },
+    {
+      "name": "Run actions/setup-node@v4",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3
+    },
+    {
+      "name": "Retain actual checkout and observed event identities",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4
+    },
+    {
+      "name": "Run npm ci",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5
+    },
+    {
+      "name": "Run npx next typegen",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 6
+    },
+    {
+      "name": "Run npx tsc --noEmit",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7
+    },
+    {
+      "name": "Check immutable evidence orchestration (synthetic)",
+      "status": "completed",
+      "conclusion": "failure",
+      "number": 8
+    },
+    {
+      "name": "Record PR-touched paths for the evidence drift gate",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 9
+    },
+    {
+      "name": "Plan current-source evidence capture",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 10
+    },
+    {
+      "name": "Prepare Chromium for original mock captures",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 11
+    },
+    {
+      "name": "Capture and validate evidence on this checkout",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 12
+    },
+    {
+      "name": "Capture provider-closed F11 theses entry on this checkout",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 13
+    },
+    {
+      "name": "Run npm test",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 14
+    },
+    {
+      "name": "Disclose quarantined e2e journeys",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 15
+    },
+    {
+      "name": "Plain-language guard self-check",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 16
+    },
+    {
+      "name": "Plain-language guard (forward-only, added lines block)",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 17
+    },
+    {
+      "name": "Retain current-checkout mock evidence and failure diagnostics",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 18
+    },
+    {
+      "name": "Post Run actions/setup-node@v4",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 35
+    },
+    {
+      "name": "Post Run actions/checkout@v4",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 36
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 37
+    }
+  ],
+  "commandExcerpt": [
+    "2026-11-10T17:14:45.0109533Z ##[group]Run node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs",
+    "2026-11-10T17:14:45.0111673Z \u001b[36;1mnode --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs\u001b[0m"
+  ],
+  "failureExcerpt": [
+    "2026-11-10T17:14:45.9821451Z # Subtest: actual Next config composes exact F11 and closed-canonical modes without changing ordinary defaults",
+    "2026-11-10T17:14:45.9823066Z not ok 51 - actual Next config composes exact F11 and closed-canonical modes without changing ordinary defaults",
+    "2026-11-10T17:14:45.9824092Z   ---",
+    "2026-11-10T17:14:45.9824647Z   duration_ms: 663.285564",
+    "2026-11-10T17:14:45.9826253Z   location: '/home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs:616:1'",
+    "2026-11-10T17:14:45.9827619Z   failureType: 'testCodeFailure'",
+    "2026-11-10T17:14:45.9828309Z   error: |-",
+    "2026-11-10T17:14:45.9828959Z     Expected values to be strictly equal:",
+    "2026-11-10T17:14:45.9829621Z     ",
+    "2026-11-10T17:14:45.9830125Z     true !== false",
+    "2026-11-10T17:14:45.9830652Z     ",
+    "2026-11-10T17:14:45.9831168Z   code: 'ERR_ASSERTION'",
+    "2026-11-10T17:14:45.9831803Z   name: 'AssertionError'",
+    "2026-11-10T17:14:45.9832863Z   expected: false",
+    "2026-11-10T17:14:45.9833575Z   actual: true",
+    "2026-11-10T17:14:45.9834234Z   operator: 'strictEqual'",
+    "2026-11-10T17:14:45.9835153Z   stack: |-",
+    "2026-11-10T17:14:45.9836838Z     TestContext.<anonymous> (/home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs:637:37)",
+    "2026-11-10T17:14:45.9838648Z     Test.runInAsyncScope (node:async_hooks:206:9)",
+    "2026-11-10T17:14:45.9839666Z     Test.run (node:internal/test_runner/test:796:25)",
+    "2026-11-10T17:14:45.9841193Z     Test.processPendingSubtests (node:internal/test_runner/test:526:18)",
+    "2026-11-10T17:14:45.9842390Z     Test.postRun (node:internal/test_runner/test:889:19)",
+    "2026-11-10T17:14:45.9843402Z     Test.run (node:internal/test_runner/test:835:12)",
+    "2026-11-10T17:14:45.9844590Z     async Test.processPendingSubtests (node:internal/test_runner/test:526:7)",
+    "2026-11-10T17:14:45.9845962Z   ..."
+  ],
+  "summaryExcerpt": [
+    "2026-11-10T17:14:54.6949602Z # tests 337",
+    "2026-11-10T17:14:54.6949793Z # suites 0",
+    "2026-11-10T17:14:54.6949993Z # pass 336",
+    "2026-11-10T17:14:54.6950180Z # fail 1",
+    "2026-11-10T17:14:54.6950368Z # cancelled 0",
+    "2026-11-10T17:14:54.6950564Z # skipped 0",
+    "2026-11-10T17:14:54.6950754Z # todo 0"
+  ],
+  "logExcerptOnly": true,
+  "diagnosis": "The test treated absence of reactDebugChannel as absence of the entire experimental object. Exact fixture development intentionally sets experimental.turbopackFileSystemCacheForDev=false, including no-debug profiles.",
+  "negativeBaseline": "Actual hosted failure retained; no duplicate replay of old failure.",
+  "qualificationLimits": "Earlier hosted Next typegen and full TypeScript succeeded on c65cc7. Both capture steps and npm test were skipped. These receipts do not establish successor CI success."
+}
