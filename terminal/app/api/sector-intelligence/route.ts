@@ -370,7 +370,15 @@ async function readIncumbent(req: Request): Promise<Response> {
     if (req.signal.aborted) return failure(499, "error", "request_aborted");
     return failure(502, "error", "upstream_transport");
   }
-  finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
+  finally {
+    clearTimeout(timer); req.signal.removeEventListener("abort", abort);
+    // SF-1 class: every exit releases the owner's body. The classifier above
+    // has already chosen status, class and code; aborting the shared
+    // controller afterwards only drops any still-open owner socket — the
+    // mid-stream early stop and any exit that never read the body. Completed
+    // reads and already-cancelled bodies are untouched no-ops.
+    controller.abort();
+  }
 }
 
 /** Lane 1 population member list (COO order 2, 2026-11-10).

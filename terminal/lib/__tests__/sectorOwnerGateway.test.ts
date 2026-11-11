@@ -385,6 +385,23 @@ describe("the entitled-then-preview generation walk (R2/R4, COO rulings 2026-11-
     expect(result.receipt).toMatchObject({ source: "generation", path: SECTOR_GENERATION_PREVIEW_PATH, status: "ready" });
   });
 
+  it("SF-1 class: a non-2xx owner exit releases the unread owner body", async () => {
+    // The owner body is a real, permanently-idle stream: only a cancel or the
+    // finally's controller abort can end it. Non-2xx exits classify on the
+    // status alone — the body is never read — and the cancel fires once.
+    const body = new ReadableStream({ pull() { /* idle forever: the refusal body does not exist yet */ } });
+    const cancelSpy = vi.spyOn(body, "cancel");
+    upstream.mockResolvedValueOnce(new Response(body, { status: 502 }));
+    const response = await GET(request("generation"));
+    const result = await response.json();
+    expect(response.status).toBe(502);
+    expect(result.receipt.failure).toBe("upstream_bad_gateway");
+    expect(result.data).toBeNull();
+    expect(upstream).toHaveBeenCalledTimes(1);
+    expect(String(upstream.mock.calls[0][0])).toBe(OWNER + SECTOR_GENERATION_PATH);
+    expect(cancelSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("403 on both paths is the only subscription cause", async () => {
     upstream.mockResolvedValueOnce(unreadableDenial()).mockResolvedValueOnce(unreadableDenial());
     const response = await GET(request("generation"));
