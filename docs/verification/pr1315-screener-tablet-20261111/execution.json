@@ -1,0 +1,405 @@
+{
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "screener-cross-market.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 4280,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "two listings of one issuer keep their own id, currency and label (AC-E03-01/02)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-cross-market.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 4173,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a GICS screen excludes stale labels by name until opted in (AC-E03-02/03)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-cross-market.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 3347,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a traded-value floor applies in one currency and counts what it could not compare (AC-E03-04)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-cross-market.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 4644,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a market change keeps valid filters and clears incompatible ones by name (AC-E03-05)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-cross-market.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 3334,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a language change keeps every filter and changes only how labels read (AC-E03-05)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-cross-market.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 5688,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "an absent or unreadable scan is a stated state with a working Retry (AC-E03-03)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-cross-market.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 2929,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a row opens its own listing by its exact, encoded id (AC-E03-01)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-cross-market.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 4494,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a smart screen is saved only in a sense its grammar holds (E04 hand-over, AC-E03-02/04)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-failure-state.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 2446,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a manifest outage shows the failure state with a working Retry, never an endless skeleton"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-failure-state.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 2833,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a 404 manifest reads as not published, and the negative cache does not block Retry"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-failure-state.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 3214,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "an empty-but-real manifest is the EMPTY state, never the failure state"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-fundamental.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 11330,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] net margin \u2265 15%: one scaling, counted unknowns, period evidence and the statement drilldown"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-fundamental.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 13489,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] net margin \u2265 15%: one scaling, counted unknowns, period evidence and the statement drilldown"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-fundamental.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 4670,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "P/E \u2264 10\u00d7, only-unknown and include-unknown: a negative P/E is never a cheap valuation"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-fundamental.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 4178,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a smart screen saved with a fundamental condition reopens with it \u2014 the table is the saved screen"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-fundamental.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 3018,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "an unpublished or failing scan is a stated state with Retry \u2014 never an empty or passing screen"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-fundamental.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 5720,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] a saved screen opened on the selected field loads ITS threshold; Update, chip removal and Clear filters act on what the table shows"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-fundamental.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 5714,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] a saved screen opened on the selected field loads ITS threshold; Update, chip removal and Clear filters act on what the table shows"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-technical-scan.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 44656,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "E01 technical screen journey (en)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-technical-scan.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 41051,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "E01 technical screen journey (zh)"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "screener-technical-scan.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "duration": 11524,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "AC-E01-03: an incomplete generation is labelled, and still accounts every name"
+    }
+  ],
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "--project=tablet",
+    "e2e/screener-fundamental.spec.ts",
+    "e2e/screener-cross-market.spec.ts",
+    "e2e/screener-technical-scan.spec.ts",
+    "e2e/screener-failure-state.spec.ts",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/tmp/terminal-pr1315-screener-tablet-20261111-c3/artifacts"
+  ],
+  "completedAt": "2026-11-11T11:29:21.138309+00:00",
+  "crossMarketSpecBlob": "63bee8256a49cb0468d81c12074510b906c93cb7",
+  "discoveredCases": 21,
+  "exit": 0,
+  "generatedPostimages": {
+    "terminal/next-env.d.ts": {
+      "bytes": 296,
+      "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+    },
+    "terminal/tsconfig.json": {
+      "bytes": 666,
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3"
+    }
+  },
+  "generatedPreimages": {
+    "terminal/next-env.d.ts": {
+      "present": false
+    },
+    "terminal/tsconfig.json": {
+      "bytes": 666,
+      "present": true,
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3"
+    }
+  },
+  "generatedPreimagesRestored": true,
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "screener-tablet-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-11T11:29:14.660464+00:00",
+    "sha256": "274f371d0ed68c648379c5be6f5e0199821add334ca2a6c6ac1b7af0f75700f3"
+  },
+  "lifecycleAdapter": "Only receipt path presentation changes from relative-to-repo to relative-to-output; absence/lock checks unchanged.",
+  "lifecycleHelperSourceSha256": "2b2fb07824c574abd0177b6a11e05cc27f963ad65504fff27be1cc074f12aad3",
+  "logSha256": "3d5c1b86ffc0c38f54116fe1e15e509720584e9a8497c23d118a33506172a2fc",
+  "nextLockAbsent": true,
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "nodeVersion": "v22.23.4",
+  "originalHeadPreserved": true,
+  "port": 61888,
+  "portClosed": true,
+  "producerPid": 73659,
+  "protectedSelectorBlob": "2c0ccac181e6bf96952bef3327a8543c210a5f07",
+  "reportErrors": [],
+  "reportSha256": "12736a279627eca00184f27cf41c6b6f5504f58dfcf82bd531b0a8bf0840eb6c",
+  "schema": "terminal.pr1315.screener-tablet-consumer.v1",
+  "scope": "Real local fixture-backed tablet consumer using the original project and four spec files. Does not claim hosted selector main() admission, CI latency percentiles, physical tablet, authenticated live Screener acceptance, or a screenshot review.",
+  "seconds": 243.81,
+  "sourceAfterTestSha256": "44b690f20ce6c244dd573ac5688da4e7e5b02f4cc95fddd14f9164a0f4830549",
+  "sourceBeforeSha256": "44b690f20ce6c244dd573ac5688da4e7e5b02f4cc95fddd14f9164a0f4830549",
+  "sourceConfigBlob": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+  "sourceEntries": 2123,
+  "sourceFinalSha256": "44b690f20ce6c244dd573ac5688da4e7e5b02f4cc95fddd14f9164a0f4830549",
+  "sourceHead": "297d2f7ed2abc3310b5eda40059743059b5f100e",
+  "sourceStableDuringRun": true,
+  "sourceTree": "29a1161fc738e240267d0ccc8fa316ddd7678ffa",
+  "startedAt": "2026-11-11T11:24:51.446076+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 237459.892,
+    "expected": 21,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-11T11:24:52.684Z",
+    "unexpected": 0
+  },
+  "stripCssBlob": "86555e1b58b1af6679b4f1e9229f2d1e6214aac4",
+  "viewport": {
+    "hasTouch": true,
+    "height": 1180,
+    "width": 820
+  },
+  "workspaceClean": true
+}

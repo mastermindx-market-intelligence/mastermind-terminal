@@ -1,0 +1,44 @@
+[warmup] /terminal?symbol=NVDA → 200 in 267ms
+[warmup] /options → 200 in 3932ms
+[warmup] /portfolio → 200 in 1785ms
+[warmup] /alerts → 200 in 1281ms
+[warmup] /analysis → 200 in 2851ms
+[warmup] /discover → 200 in 3272ms
+[warmup] /admin → 200 in 747ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 453ms
+[warmup] /login → 200 in 165ms
+[warmup] /reset-password → 200 in 425ms
+[warmup] /api/me → 200 in 1107ms
+[warmup] /api/watchlist → 200 in 266ms
+[warmup] /api/layouts → 200 in 267ms
+[warmup] /api/watchlist/annotations → 409 in 248ms
+[warmup] 14 routes compiled in 17s
+[fixture-ready] prophet_idx fixture 200 in 595ms
+
+Running 21 tests using 1 worker
+
+  ✓   1 [tablet] › e2e/screener-cross-market.spec.ts:75:5 › two listings of one issuer keep their own id, currency and label (AC-E03-01/02) (4.3s)
+  ✓   2 [tablet] › e2e/screener-cross-market.spec.ts:104:5 › a GICS screen excludes stale labels by name until opted in (AC-E03-02/03) (4.2s)
+  ✓   3 [tablet] › e2e/screener-cross-market.spec.ts:148:5 › a traded-value floor applies in one currency and counts what it could not compare (AC-E03-04) (3.3s)
+  ✓   4 [tablet] › e2e/screener-cross-market.spec.ts:200:5 › a market change keeps valid filters and clears incompatible ones by name (AC-E03-05) (4.6s)
+  ✓   5 [tablet] › e2e/screener-cross-market.spec.ts:230:5 › a language change keeps every filter and changes only how labels read (AC-E03-05) (3.3s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   6 [tablet] › e2e/screener-cross-market.spec.ts:255:5 › an absent or unreadable scan is a stated state with a working Retry (AC-E03-03) (5.7s)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   7 [tablet] › e2e/screener-cross-market.spec.ts:322:5 › a row opens its own listing by its exact, encoded id (AC-E03-01) (2.9s)
+  ✓   8 [tablet] › e2e/screener-cross-market.spec.ts:331:5 › a smart screen is saved only in a sense its grammar holds (E04 hand-over, AC-E03-02/04) (4.5s)
+  ✓   9 [tablet] › e2e/screener-failure-state.spec.ts:48:5 › a manifest outage shows the failure state with a working Retry, never an endless skeleton (2.4s)
+  ✓  10 [tablet] › e2e/screener-failure-state.spec.ts:89:5 › a 404 manifest reads as not published, and the negative cache does not block Retry (2.8s)
+  ✓  11 [tablet] › e2e/screener-failure-state.spec.ts:108:5 › an empty-but-real manifest is the EMPTY state, never the failure state (3.2s)
+  ✓  12 [tablet] › e2e/screener-fundamental.spec.ts:130:7 › [en] net margin ≥ 15%: one scaling, counted unknowns, period evidence and the statement drilldown (11.3s)
+  ✓  13 [tablet] › e2e/screener-fundamental.spec.ts:130:7 › [zh] net margin ≥ 15%: one scaling, counted unknowns, period evidence and the statement drilldown (13.5s)
+  ✓  14 [tablet] › e2e/screener-fundamental.spec.ts:189:5 › P/E ≤ 10×, only-unknown and include-unknown: a negative P/E is never a cheap valuation (4.7s)
+  ✓  15 [tablet] › e2e/screener-fundamental.spec.ts:233:5 › a smart screen saved with a fundamental condition reopens with it — the table is the saved screen (4.2s)
+  ✓  16 [tablet] › e2e/screener-fundamental.spec.ts:288:5 › an unpublished or failing scan is a stated state with Retry — never an empty or passing screen (3.0s)
+  ✓  17 [tablet] › e2e/screener-fundamental.spec.ts:334:7 › [en] a saved screen opened on the selected field loads ITS threshold; Update, chip removal and Clear filters act on what the table shows (5.7s)
+  ✓  18 [tablet] › e2e/screener-fundamental.spec.ts:334:7 › [zh] a saved screen opened on the selected field loads ITS threshold; Update, chip removal and Clear filters act on what the table shows (5.7s)
+  ✓  19 [tablet] › e2e/screener-technical-scan.spec.ts:143:7 › E01 technical screen journey (en) (44.7s)
+  ✓  20 [tablet] › e2e/screener-technical-scan.spec.ts:143:7 › E01 technical screen journey (zh) (41.1s)
+  ✓  21 [tablet] › e2e/screener-technical-scan.spec.ts:264:5 › AC-E01-03: an incomplete generation is labelled, and still accounts every name (11.5s)
+
+  21 passed (4.0m)

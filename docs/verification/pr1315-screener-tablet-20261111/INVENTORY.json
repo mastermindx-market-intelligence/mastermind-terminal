@@ -1,0 +1,42 @@
+{
+  "count": 9,
+  "files": {
+    "README.md": {
+      "bytes": 3193,
+      "sha256": "0162fbf8720fb679325ab4d3cc9d07c36c152dd0c6ecb04b2f30d9649df3e613"
+    },
+    "browser-report.json": {
+      "bytes": 31266,
+      "sha256": "12736a279627eca00184f27cf41c6b6f5504f58dfcf82bd531b0a8bf0840eb6c"
+    },
+    "browser.log": {
+      "bytes": 4261,
+      "sha256": "3d5c1b86ffc0c38f54116fe1e15e509720584e9a8497c23d118a33506172a2fc"
+    },
+    "capture.py": {
+      "bytes": 10043,
+      "sha256": "6253b4e10260da8c7c42c4f652707c81fa44700614a9e389eb8e85855190c53d"
+    },
+    "execution.json": {
+      "bytes": 12111,
+      "sha256": "9b08833944f1962db2b40668e694fdc14c63f2b7ea6fbd942c9e451d9dcf1778"
+    },
+    "generated-preimages.json": {
+      "bytes": 214,
+      "sha256": "3026124b9f19535b715466ffc741f289db50ab430152724a662e7ca4238ec4b9"
+    },
+    "qualification.json": {
+      "bytes": 1201,
+      "sha256": "fd44d131b23ef19420b79bb07ad5685949a29f351559efa0e7679192b1f7c3d9"
+    },
+    "screener-tablet-lifecycle.json": {
+      "bytes": 3899,
+      "sha256": "274f371d0ed68c648379c5be6f5e0199821add334ca2a6c6ac1b7af0f75700f3"
+    },
+    "source-before.json": {
+      "bytes": 247508,
+      "sha256": "44b690f20ce6c244dd573ac5688da4e7e5b02f4cc95fddd14f9164a0f4830549"
+    }
+  },
+  "schema": "terminal.pr1315.screener-tablet-inventory.v1"
+}

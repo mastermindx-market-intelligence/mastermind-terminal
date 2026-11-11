@@ -1,0 +1,38 @@
+{
+  "allThreeSourceMapsIdentical": true,
+  "captureDriverSha256": "6253b4e10260da8c7c42c4f652707c81fa44700614a9e389eb8e85855190c53d",
+  "countsBySpec": {
+    "screener-cross-market.spec.ts": 8,
+    "screener-failure-state.spec.ts": 3,
+    "screener-fundamental.spec.ts": 7,
+    "screener-technical-scan.spec.ts": 3
+  },
+  "failed": 0,
+  "flaky": 0,
+  "generatedPreimagesRestored": true,
+  "limits": [
+    "No hosted selector main admission or latency canary",
+    "No authenticated production Screener acceptance",
+    "No screenshot review or physical-device claim"
+  ],
+  "nextLockAbsent": true,
+  "originalFeaturePr": 1454,
+  "ownedPortClosed": true,
+  "passed": 21,
+  "reportSha256": "12736a279627eca00184f27cf41c6b6f5504f58dfcf82bd531b0a8bf0840eb6c",
+  "retries": 0,
+  "schema": "terminal.pr1315.screener-tablet-qualification.v1",
+  "skipped": 0,
+  "sourceEntries": 2123,
+  "sourceHead": "297d2f7ed2abc3310b5eda40059743059b5f100e",
+  "sourceStableDuringRun": true,
+  "sourceTree": "29a1161fc738e240267d0ccc8fa316ddd7678ffa",
+  "state": "QUALIFIED_LOCAL_CONSUMER",
+  "trackingIssue": 1315,
+  "viewport": {
+    "hasTouch": true,
+    "height": 1180,
+    "width": 820
+  },
+  "workspaceClean": true
+}
