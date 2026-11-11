@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: actual pinned Next type emitter matches restoration predicate
+not ok 1 - actual pinned Next type emitter matches restoration predicate
+  ---
+  duration_ms: 20.901833
+  type: 'test'
+  location: '/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal/e2e/tools/f11_owned_server.test.cjs:124:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+      '/// <reference types="next" />\n' +
+        '/// <reference types="next/image-types/global" />\n' +
+        'import "./.next/f11/dev/types/routes.d.ts";\n' +
+    +   'import "./.next/f11/dev/types/root-params.d.ts";\n' +
+        '\n' +
+        '// NOTE: This file should not be edited\n' +
+        '// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    /// <reference types="next" />
+    /// <reference types="next/image-types/global" />
+    import "./.next/f11/dev/types/routes.d.ts";
+    
+    // NOTE: This file should not be edited
+    // see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+    
+  actual: |-
+    /// <reference types="next" />
+    /// <reference types="next/image-types/global" />
+    import "./.next/f11/dev/types/routes.d.ts";
+    import "./.next/f11/dev/types/root-params.d.ts";
+    
+    // NOTE: This file should not be edited
+    // see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal/e2e/tools/f11_owned_server.test.cjs:128:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 172.42075

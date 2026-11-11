@@ -1,0 +1,424 @@
+/* Sector-ETF flow matrix — tokens only (light+dark both resolve through the
+   shared token set), no accent stripes, signed ink exclusively on
+   var(--up)/var(--down) so html[data-updown="east"] flips it at token level. */
+
+.root {
+  min-width: 0;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--panel);
+  color: var(--text);
+}
+
+/* ── header ────────────────────────────────────────────────────────────── */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.headText {
+  flex: 1 1 320px;
+  min-width: 0;
+  max-width: 62ch;
+}
+.title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.sub {
+  margin: 4px 0 0;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.headMeta {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.badge {
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--text-2);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.clock {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 11px;
+  text-align: right;
+}
+.note {
+  margin: 10px 0 0;
+  max-width: 92ch;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* ── controls: view toggle + visible unit legend ───────────────────────── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin-top: 12px;
+}
+.toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+.toggleBtn {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-2);
+  font: 600 12px/1.2 var(--font-ui);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.toggleBtn[aria-pressed="true"] {
+  background: var(--panel-3);
+  color: var(--text);
+}
+.unitLegend {
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* ── matrix table ──────────────────────────────────────────────────────── */
+.matrixArea {
+  margin-top: 12px;
+}
+/* The wide table scrolls inside its own labelled region; the page never
+   scrolls horizontally. */
+.scrollX {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.grid {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.grid[data-view="exact"] {
+  min-width: 780px;
+}
+
+.colHead {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-2);
+  font: 650 11px/1.35 var(--font-ui);
+  text-align: right;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+.colEtf {
+  min-width: 128px;
+  text-align: left;
+}
+.windowId {
+  display: block;
+  color: var(--text);
+  font: 700 12px/1.2 var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.cappedDays {
+  display: block;
+  margin-top: 2px;
+  font-size: 9.5px;
+  font-weight: 600;
+}
+.colCoverage {
+  min-width: 11ch;
+  text-align: left;
+  white-space: normal;
+}
+
+.rowHead {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding: 7px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  white-space: normal;
+}
+.ticker {
+  display: block;
+  font: 700 12px/1.25 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.rowName {
+  display: block;
+  margin-top: 1px;
+  max-width: 18ch;
+  overflow-wrap: anywhere;
+  font-size: 10.5px;
+  color: var(--text-2);
+}
+
+.cell {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  font: 600 12px/1.3 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.val {
+  color: var(--text);
+}
+
+/* Signed ink is token-level only: hue comes from data-sign over
+   var(--up)/var(--down); intensity comes from the inline --heat percentage
+   the component derives from the per-window ETF-only scale. */
+.grid[data-view="heat"] .cell[data-sign="up"] {
+  background: color-mix(in srgb, var(--up) var(--heat, 0%), transparent);
+}
+.grid[data-view="heat"] .cell[data-sign="down"] {
+  background: color-mix(in srgb, var(--down) var(--heat, 0%), transparent);
+}
+.grid[data-view="exact"] .cell {
+  background: transparent;
+}
+
+/* A missing reading is muted and untinted; a measured 0 keeps full ink —
+   the two states must never read the same. */
+.cell[data-missing] .val {
+  color: var(--text-2);
+  font-weight: 500;
+}
+.cell[data-zero] .val {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* F03 selected cell: a full-boxed ring (never a left stripe) that survives
+   both views, plus the standard focus treatment for keyboard arrivals. */
+.cell[data-sel] {
+  outline: 1px solid var(--brand-2);
+  outline-offset: -1px;
+  border-radius: 2px;
+}
+.cell:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: -2px;
+  border-radius: 2px;
+}
+
+/* F03 readout bar under the matrix + the standing tint/keyboard hint. */
+.readout {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  color: var(--text);
+  font: 600 12px/1.45 var(--font-ui);
+}
+.matrixHint {
+  margin: 8px 0 0;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Net row: separated, never tinted by the ETF scale; direction ink on the
+   text itself. These rules sit after the heat rules so they win the tie. */
+.netRow th,
+.netRow td {
+  border-top: 2px solid var(--line);
+  border-bottom: 0;
+}
+.grid .netRow .rowHead {
+  background: var(--panel-2);
+}
+.grid .netRow .cell {
+  background: var(--panel-2);
+  font-weight: 700;
+}
+.netRow .cell[data-missing] .val {
+  color: var(--text-2);
+  font-weight: 500;
+}
+.netRow .cell[data-sign="up"] .val {
+  color: var(--up);
+}
+.netRow .cell[data-sign="down"] .val {
+  color: var(--down);
+}
+.netLabel {
+  display: block;
+  font: 650 11.5px/1.3 var(--font-ui);
+  color: var(--text);
+}
+
+.coverageCell {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  color: var(--text-2);
+  font: 500 10.5px/1.4 var(--font-ui);
+  white-space: normal;
+  min-width: 12ch;
+}
+
+/* ── phone (≤760px): picker + the selected ETF's five exact windows ─────── */
+.phone {
+  display: none;
+}
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.chip {
+  min-height: 44px;
+  min-width: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text-2);
+  font: 650 12px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.chip[aria-pressed="true"] {
+  border-color: var(--brand-2);
+  background: var(--panel);
+  color: var(--text);
+}
+.selected {
+  margin: 14px 0 0;
+  font: 700 14px/1.35 var(--font-ui);
+}
+.windowList {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.windowItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  row-gap: 2px;
+  column-gap: 12px;
+  padding: 9px 0 8px;
+  border-bottom: 1px solid var(--line);
+}
+.windowLabel {
+  flex: 0 0 auto;
+  font: 650 11px/1.35 var(--font-ui);
+  color: var(--text-2);
+}
+.phoneVal {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font: 650 13px/1.35 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.windowItem[data-sign="up"] .phoneVal {
+  color: var(--up);
+}
+.windowItem[data-sign="down"] .phoneVal {
+  color: var(--down);
+}
+.unit {
+  font: 500 10px/1 var(--font-ui);
+  color: var(--text-2);
+}
+.stateLine {
+  flex-basis: 100%;
+  color: var(--text-2);
+  font-size: 10.5px;
+}
+.partLine {
+  flex-basis: 100%;
+  color: var(--text-2);
+  font-size: 10.5px;
+}
+.coverageLine {
+  margin: 10px 0 0;
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+/* ── a11y helpers ──────────────────────────────────────────────────────── */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.toggleBtn:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+
+/* ── responsive contract: phone swap at ≤760px, zero page scroll ───────── */
+@media (max-width: 760px) {
+  .root {
+    padding: 16px 15px;
+  }
+  .toggle,
+  .matrixArea {
+    display: none;
+  }
+  .phone {
+    display: block;
+  }
+  .headMeta {
+    align-items: flex-start;
+  }
+  .clock {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggleBtn,
+  .chip {
+    transition: none;
+  }
+}

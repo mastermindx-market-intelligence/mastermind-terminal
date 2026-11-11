@@ -1,4 +1,7 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page, type Route, type TestInfo } from "@playwright/test";
+
+// A LITERAL, deliberately: this spec must fail if the editor's copy changes under it.
+const UNSAVED = "Unsaved changes";
 
 /**
  * D3 + D4 — the Pine editor must not lose user-authored content, and must say which script it is
@@ -51,13 +54,19 @@ const editor = (page: Page) => page.locator(".editor textarea");
 const sideRow = (page: Page, name: string) => page.locator(".script-row", { hasText: name });
 const console_ = (page: Page) => page.locator(".console");
 
-/** #433's scripts fixture is READ-ONLY on purpose, so a successful save is fulfilled at the
- *  transport. This is the honest level for D3b: the write always reached the database — what went
- *  stale was the editor's CLIENT baseline, which is exactly what these specs observe. */
+/** The scripts fixture remains read-only. Return the documented server receipt at
+ * the transport so these cases exercise the editor's saved baseline and next CAS
+ * token without claiming a database write. */
+async function fulfillSaveReceipt(route: Route) {
+  const body = route.request().postDataJSON();
+  const previous = Date.parse(body.expected_updated_at ?? "");
+  const updated_at = new Date(Math.max(Date.now(), Number.isFinite(previous) ? previous + 1 : 0)).toISOString();
+  await route.fulfill({ status: 200, contentType: "application/json",
+    body: JSON.stringify({ ok: true, id: body.id ?? "fixture-new-id", updated_at }) });
+}
+
 async function stubSaveOk(page: Page) {
-  await page.route("**/api/scripts/save", (route) => route.fulfill({
-    status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, id: "fixture-id" }),
-  }));
+  await page.route("**/api/scripts/save", fulfillSaveReceipt);
 }
 
 async function openScripts(page: Page, testInfo: TestInfo, baseURL?: string, query = "") {
@@ -79,7 +88,7 @@ async function setSource(page: Page, text: string) {
   await editor(page).click();
   await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.type(text);
-  await expect(console_(page)).toContainText("unsaved changes", { timeout: 10_000 });
+  await expect(console_(page)).toContainText(UNSAVED, { timeout: 10_000 });
 }
 
 test.describe("D3b — a successful save becomes the editor's baseline", () => {
@@ -92,14 +101,14 @@ test.describe("D3b — a successful save becomes the editor's baseline", () => {
     await expect(editor(page)).toHaveValue(A_SRC);
     const EDITED = "//@version=6\nindicator(\"My Momentum\")\nplot(close * 2) // A-PRIME\n";
     await setSource(page, EDITED);
-    await expect(console_(page)).toContainText("unsaved changes");
+    await expect(console_(page)).toContainText(UNSAVED);
 
     // Save, and assert the editor stops calling itself dirty. Deliberately NOT asserting the
     // "Saved ✓" label: it lives for 2.2s and a loaded runner can miss the window entirely, which
     // made this spec flaky. Losing the dirty marker is the durable, load-independent evidence that
     // the baseline actually moved — which is the thing D3b fixed.
     await page.getByRole("button", { name: /Save/ }).first().click();
-    await expect(console_(page)).not.toContainText("unsaved changes", { timeout: 15_000 });
+    await expect(console_(page)).not.toContainText(UNSAVED, { timeout: 15_000 });
 
     // Leave and come back. THIS is where the save used to disappear.
     await sideRow(page, B).click();
@@ -107,7 +116,7 @@ test.describe("D3b — a successful save becomes the editor's baseline", () => {
     await sideRow(page, A).click();
     await expect(editor(page)).toHaveValue(/A-PRIME/);
     // …and it is not merely displayed — the editor considers it stored, so a further switch is clean.
-    await expect(console_(page)).not.toContainText("unsaved changes");
+    await expect(console_(page)).not.toContainText(UNSAVED);
   });
 
   test("a second save sends the SAVED source, not the pre-save one", async ({ page, baseURL }, testInfo) => {
@@ -119,7 +128,7 @@ test.describe("D3b — a successful save becomes the editor's baseline", () => {
     const sent: string[] = [];
     await page.route("**/api/scripts/save", async (route) => {
       sent.push(JSON.parse(route.request().postData() || "{}").source ?? "");
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, id: "fixture-id" }) });
+      await fulfillSaveReceipt(route);
     });
 
     await sideRow(page, A).click();
@@ -302,4 +311,39 @@ test.describe("D4 — the visible script and the ?id= deep link agree", () => {
     // which script is on screen.
     await expect.poll(() => new URL(page.url()).searchParams.get("id")).not.toBe("does-not-exist");
   });
+});
+
+
+test("a delayed save preserves newer typing and requires a second explicit save", async ({ page, baseURL }, testInfo) => {
+  await openScripts(page, testInfo, baseURL);
+  await sideRow(page, A).click();
+  await expect(editor(page)).toHaveValue(A_SRC);
+  const requests: Array<{ source: string; expected_updated_at?: string }> = [];
+  let pending: Route | undefined;
+  await page.route("**/api/scripts/save", async (route) => {
+    requests.push(route.request().postDataJSON());
+    if (requests.length === 1) pending = route;
+    else await fulfillSaveReceipt(route);
+  });
+  await setSource(page, "//@version=6\nindicator(\"My Momentum\")\nplot(close * 2) // CLICK-SNAPSHOT\n");
+  const save = page.getByRole("button", { name: /Sav(?:e|ing)/ }).first();
+  await save.click();
+  await expect.poll(() => requests.length).toBe(1);
+  await setSource(page, "//@version=6\nindicator(\"My Momentum\")\nplot(close * 3) // NEWER-TYPING\n");
+  await save.click();
+  expect(requests).toHaveLength(1);
+  expect(requests[0].source).toContain("CLICK-SNAPSHOT");
+  await fulfillSaveReceipt(pending!);
+  await expect(save).not.toHaveText(/Saving/);
+  expect(requests).toHaveLength(1);
+  await expect(editor(page)).toHaveValue(/NEWER-TYPING/);
+  await expect(console_(page)).toContainText(UNSAVED);
+  await save.click();
+  await expect.poll(() => requests.length).toBe(2);
+  expect(requests[1].source).toContain("NEWER-TYPING");
+  expect(Date.parse(requests[1].expected_updated_at!)).toBeGreaterThan(Date.parse(requests[0].expected_updated_at!));
+  await expect(console_(page)).not.toContainText(UNSAVED);
+  await sideRow(page, B).click();
+  await sideRow(page, A).click();
+  await expect(editor(page)).toHaveValue(/NEWER-TYPING/);
 });

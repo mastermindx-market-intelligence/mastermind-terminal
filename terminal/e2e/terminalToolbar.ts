@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { isPhoneViewport } from "./phoneChrome";
 
 const TOOLBAR_DEFAULT_UNARMED_BUDGET_MS = 8_000;
 const TOOLBAR_INVOCATION_BUDGET_MS = 12_000;
@@ -555,10 +556,37 @@ function routeOnlyAction(what: string, control: Locator): ToolbarAction {
   return { what, done: async () => false, control, direct: async () => {}, overflow: async () => {} };
 }
 
+async function phoneToolbarStage(
+  page: Page,
+  target: Locator,
+  done: () => Promise<boolean>,
+  intent: ToolbarIntent,
+  remainingStages: number,
+  what: string,
+): Promise<void> {
+  const result = await clickOnceAndObserve(page, target, done, intent, remainingStages);
+  if (result.done) return;
+  const opts = { ...routeOnlyAction(what, target), done };
+  const receipt = await captureToolbarFailure(page, opts, intent.deadline);
+  if (receipt.done) return;
+  const code = receipt.page_closed ? "TOOLBAR_PAGE_CLOSED"
+    : result.budgetExhausted || receipt.budget_remaining_ms <= 0
+      ? "TOOLBAR_BUDGET_EXHAUSTED" : "TOOLBAR_ACTION_FAILED";
+  throw new Error(formatToolbarFailure(code, receipt));
+}
+
 export async function toggleToolbarReplay(page: Page, intent?: ToolbarIntent): Promise<void> {
+  const activeIntent = intent ?? createToolbarIntent();
+  if (isPhoneViewport(page)) {
+    const hub = page.getByTestId("analysis-hub");
+    await phoneToolbarStage(page, page.getByTestId("roller-more"), () => hub.isVisible(),
+      activeIntent, 2, "the Analysis hub");
+    await phoneToolbarStage(page, page.getByTestId("hub-tile-replay"), async () => (await hub.count()) === 0,
+      activeIntent, 1, "the Replay toggle");
+    return;
+  }
   const direct = page.locator('[data-toolbar-action="replay"]');
   const opts = routeOnlyAction("the Replay toggle", direct);
-  const activeIntent = intent ?? createToolbarIntent();
   const deadline = activeIntent.deadline;
   const snapshot = await waitForSettledToolbar(page, opts, deadline);
   if (snapshot.mode === "full") {
@@ -592,10 +620,21 @@ export async function chooseToolbarSplit(page: Page, count: 1 | 2 | 4, intent?: 
 }
 
 export async function openLayoutMenu(page: Page, intent?: ToolbarIntent): Promise<Locator> {
+  const activeIntent = intent ?? createToolbarIntent();
+  if (isPhoneViewport(page)) {
+    const sheet = page.locator(".phone-workspaces-sheet:has([data-layout-save])");
+    const ready = () => sheet.locator("[data-layout-save]").isVisible();
+    if (await ready()) return sheet;
+    const hub = page.getByTestId("analysis-hub");
+    await phoneToolbarStage(page, page.getByTestId("roller-more"), () => hub.isVisible(),
+      activeIntent, 2, "the Analysis hub");
+    await phoneToolbarStage(page, page.getByTestId("hub-tile-workspaces"), ready,
+      activeIntent, 1, "the Saved Layouts menu");
+    return sheet;
+  }
   const directPop = page.locator('[data-toolbar-action="layouts"] .pop.show');
   const overflowPop = page.locator(".toolbar-overflow-pop.show");
   const control = page.locator('[data-toolbar-action="layouts"] > button');
-  const activeIntent = intent ?? createToolbarIntent();
   await viaToolbar(page, {
     what: "the Saved Layouts menu",
     done: async () => (await directPop.locator("[data-layout-save]").isVisible())

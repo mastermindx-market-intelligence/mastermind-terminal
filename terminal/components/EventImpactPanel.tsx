@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLang } from "@/lib/i18n";
 import type { Position } from "@/lib/portfolio";
 import {
   presentCarried,
   presentDaysUntil,
   presentEventSentence,
+  presentInvalidation,
   presentPosition,
   presentUnjoinable,
   type EventImpactRead,
@@ -111,32 +112,154 @@ export interface EventImpactPanelProps {
 // out of `EventImpactRead` (eventImpact.ts stays a pure, fetch-free module) and added here instead.
 type PanelRead = EventImpactRead | { readonly state: "checking" };
 
+/**
+ * The route's own position projection: `app/api/event-impact/route.ts` maps every position to
+ * exactly {id, ticker, shares, status} before joining it against the calendar. Those four fields
+ * are therefore the ONLY facts about the book that can change what this route would answer.
+ *
+ * Cost basis, notes, currency and dates are NOT projected, so a change to one of them cannot
+ * change the answer and must never restart this read.
+ *
+ * Order is deliberately not part of the key: the route re-reads the book with its own ordered
+ * query and never sees this array, so a reordered prop list cannot change what it answers. The
+ * key is canonicalised (sorted) so the same book in a new array — or in a new order — is
+ * recognised as the same input.
+ */
+function readIdentity(positions: readonly Position[], holdingsUnreadable: boolean): string {
+  if (holdingsUnreadable) return "holdings-unreadable";
+  const rows = positions.map(p => JSON.stringify([p.id, p.ticker, p.shares ?? null, p.status]));
+  rows.sort();
+  return rows.join("|");
+}
+
+/** One read attempt, with everything that must still be true for it in order to publish. */
+type ReadScope = {
+  /** The semantic identity this attempt was made for. */
+  identity: string;
+  /** The committed lifetime this attempt was made under (see `committed.epoch`). */
+  epoch: number;
+  /** This attempt's own sequence number — a newer attempt retires an older one. */
+  sequence: number;
+  /** The effect-lifetime token this attempt was created under. */
+  token: { revoked: boolean };
+};
+
+/** A published read, bound to the identity and the committed lifetime it was fetched for. */
+type PublishedRead = { identity: string; epoch: number; read: PanelRead };
+
 export default function EventImpactPanel({ positions, holdingsUnreadable }: EventImpactPanelProps) {
   const { lang } = useLang();
   const c = useCallback((k: string) => COPY[k][lang === "zh" ? 1 : 0], [lang]);
+
+  // ── committed input identity ────────────────────────────────────────────────────────────
+  // Derived from the props alone, so it is already available DURING render — which is what
+  // lets the render below tell a current read from an obsolete one without waiting for an
+  // effect to run.
+  const identity = useMemo(
+    () => readIdentity(positions, holdingsUnreadable),
+    [positions, holdingsUnreadable],
+  );
+
+  // ── committed lifetime ──────────────────────────────────────────────────────────────────
+  // The epoch advances once per COMMITTED identity change. It is what makes A → B → A safe:
+  // the first A read carries the epoch it was made under, and returning to A does not return to
+  // that epoch — so semantic equality alone can never resurrect a retired read.
+  //
+  // The adjustment happens DURING render, using React's documented "adjusting state when a prop
+  // changes" pattern — the same one PortfolioView uses for its owner-scoped seed reset: React
+  // discards the speculative render and re-renders immediately, so the render that COMMITS
+  // already carries the new epoch, and a render that never commits never advances it. A
+  // generation mutated in place during render would advance for a commit that never happened.
+  const [committed, setCommitted] = useState({ identity, epoch: 0 });
+  if (committed.identity !== identity) {
+    setCommitted({ identity, epoch: committed.epoch + 1 });
+  }
+
+  // Effect-lifetime token: a NEW token per effect setup, permanently invalidated by its cleanup.
+  // A StrictMode replacement setup mints a fresh token instead of resurrecting a shared boolean,
+  // so no callback captured under an earlier setup can ever revive. Same shape as
+  // PortfolioView's owner-lifetime token — the existing owner-keyed retirement, reused here.
+  const lifetimeRef = useRef<{ revoked: boolean }>({ revoked: false });
+  // Per-attempt sequence: a newer read retires an older one even inside the same epoch.
+  const sequenceRef = useRef(0);
 
   // The initial render must never CLAIM anything about the fetch it hasn't made yet.
   // `holdingsUnreadable` is a known server-passed fact (not a guess), so that branch is honest
   // immediately; absent that, the old default of `no_holdings` asserted "you hold nothing" to a
   // user who may hold plenty, on the one surface whose job is to describe their book (m2, review
   // r2) — `checking` replaces it with a neutral busy state until the fetch actually resolves.
-  const [read, setRead] = useState<PanelRead>(
-    holdingsUnreadable ? { state: "holdings_unreadable" } : { state: "checking" }
-  );
+  //
+  // `published` is null until a read lands. It is never a bare read: a bare read could not say
+  // WHICH input it was fetched for, which is the whole defect this repair closes.
+  const [published, setPublished] = useState<PublishedRead | null>(null);
   const [busy, setBusy] = useState(false);
-  const [showAll, setShowAll] = useState(false);
 
-  const load = useCallback(async () => {
-    if (holdingsUnreadable) {
-      setRead({ state: "holdings_unreadable" });
+  // The existing collapse policy, kept as DATA rather than as an effect: the expansion is
+  // remembered together with the boundaries it was granted under, so it ends the moment the
+  // open-position count or the book's readability changes — and survives every other change,
+  // including a meaningful same-count edit.
+  //
+  // The grant is RETIRED at that boundary change, not merely MASKED by it. Masking — storing
+  // the boundaries and comparing them against the current ones — only makes the panel LOOK
+  // collapsed while the boundaries differ, and leaves the stored grant alive: expand under
+  // eight positions, commit seven, then commit eight again, and the stored boundaries match
+  // once more, so "Show all" reopens for a boundary the user never granted. Retirement is a
+  // one-way door: the first committed boundary that differs clears the grant, so a later match
+  // finds nothing left to restore.
+  //
+  // The retirement uses React's documented "adjusting state when a prop changes" pattern — the
+  // same idiom the committed lifetime above uses for its epoch, and the same one PortfolioView
+  // uses for its owner-scoped seed reset. React discards a speculative render and re-renders
+  // immediately, so the render that COMMITS already carries the retired grant, and a render
+  // that never commits never retires it. A generation mutated in place during render would
+  // retire the grant for a commit that never happened — and would burn it even for a render
+  // React went on to discard.
+  const [expandedUnder, setExpandedUnder] = useState<{ count: number; unreadable: boolean } | null>(null);
+  if (
+    expandedUnder !== null &&
+    (expandedUnder.count !== positions.length || expandedUnder.unreadable !== holdingsUnreadable)
+  ) {
+    setExpandedUnder(null);
+  }
+  // Computed from the retired-and-current grant alike: when the boundaries differ the grant is
+  // already on its way out and `showAll` is false, whether this render sees the old grant or
+  // the retired one.
+  const showAll =
+    expandedUnder !== null &&
+    expandedUnder.count === positions.length &&
+    expandedUnder.unreadable === holdingsUnreadable;
+
+  const load = useCallback(async (scope: ReadScope, unreadable: boolean) => {
+    // Everything that must still be true for this attempt to publish: its own effect lifetime
+    // (unmount, StrictMode) and its place in the request order — a changed input starts a new
+    // read, and the new read's sequence retires this one. A response, body, error or `finally`
+    // that fails either is retired work: it may not publish, and it may not clear the current
+    // busy state.
+    const current = () =>
+      !scope.token.revoked &&
+      scope.token === lifetimeRef.current &&
+      scope.sequence === sequenceRef.current;
+    // A setup retired before admission must not start a request or change busy state.
+    if (!current()) return;
+    const publish = (next: EventImpactRead) => {
+      if (!current()) return;
+      setPublished({ identity: scope.identity, epoch: scope.epoch, read: next });
+    };
+    if (unreadable) {
+      // The book could not be read, so no request is made. The previous read is invalidated: it
+      // described a book this panel is no longer allowed to describe, and the busy state of the
+      // retired attempt must settle here rather than wait for a request that never happens.
+      publish({ state: "holdings_unreadable" });
+      if (current()) setBusy(false);
       return;
     }
     setBusy(true);
     try {
       const res = await fetch("/api/event-impact", { cache: "no-store" });
+      if (!current()) return;
       if (res.ok) {
         const body = (await res.json()) as EventImpactRead;
-        setRead(body);
+        publish(body);
         return;
       }
       // A non-2xx response (401 unauthenticated, 429 rate-limited, 503, other 5xx) must never
@@ -147,7 +270,7 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
       // would be an affirmatively false claim (MAJOR: state-mapping honesty). Read the body and
       // trust its own typed state before falling back to a generic calendar_unreadable guess.
       if (res.status === 401) {
-        setRead({ state: "unauthenticated" });
+        publish({ state: "unauthenticated" });
         return;
       }
       if (res.status === 503) {
@@ -158,7 +281,7 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
             body.state === "calendar_unreadable" ||
             body.state === "upstream_locked"
           ) {
-            setRead(body);
+            publish(body);
             return;
           }
         } catch {
@@ -172,28 +295,65 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
       // outcomes. Rendering it as `calendar_unreadable` would show "Your positions are fine" for
       // a request that never established that (minor, review r5 — same family as the withdrawn r2
       // string, one state over). `upstream_locked` is the honest "can't say anything yet" state.
-      setRead({ state: "upstream_locked" });
+      publish({ state: "upstream_locked" });
     } catch {
       // A network failure (fetch threw) is the same "we don't know" case — never claim the
       // positions were read when the request never even completed.
-      setRead({ state: "upstream_locked" });
+      publish({ state: "upstream_locked" });
     } finally {
-      setBusy(false);
+      // Only the current attempt may clear the busy state: a retired attempt finishing late
+      // must not report the current read as finished.
+      if (current()) setBusy(false);
     }
-  }, [holdingsUnreadable]);
+  }, []);
 
+  // The read follows the committed identity. Setting up a read also mints a fresh effect
+  // lifetime, so the previous attempt — still in flight when the input changed, or the one a
+  // StrictMode teardown retired — can never publish.
   useEffect(() => {
-    setShowAll(false);
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [holdingsUnreadable, positions.length, load]);
+    const token = { revoked: false };
+    lifetimeRef.current = token;
+    const scope: ReadScope = {
+      identity,
+      epoch: committed.epoch,
+      sequence: ++sequenceRef.current,
+      token,
+    };
+    // Development setup-cleanup-setup retires the first token before this admission.
+    queueMicrotask(() => { void load(scope, holdingsUnreadable); });
+    return () => { token.revoked = true; };
+  }, [identity, committed.epoch, holdingsUnreadable, load]);
 
-  const retry = useCallback(() => void load(), [load]);
+  const retry = useCallback(() => {
+    const scope: ReadScope = {
+      identity,
+      epoch: committed.epoch,
+      sequence: ++sequenceRef.current,
+      token: lifetimeRef.current,
+    };
+    void load(scope, holdingsUnreadable);
+  }, [identity, committed.epoch, holdingsUnreadable, load]);
+
+  // A published read is CURRENT only when it was fetched for the identity committed right now
+  // AND under the committed lifetime that produced it. This is what keeps a committed input
+  // change from presenting the previous input's result as current while the fresh read is still
+  // being scheduled: the render already knows the new identity, so the obsolete rows are gone
+  // before any effect runs.
+  const currentPublished =
+    published !== null && published.identity === identity && published.epoch === committed.epoch
+      ? published
+      : null;
+  const read: PanelRead = currentPublished
+    ? currentPublished.read
+    : holdingsUnreadable
+      ? { state: "holdings_unreadable" }
+      : { state: "checking" };
 
   const visible = useMemo(() => {
-    if (read.state !== "ok") return [];
-    return showAll ? read.events : read.events.slice(0, VISIBLE_MAX);
-  }, [read, showAll]);
+    if (!currentPublished || currentPublished.read.state !== "ok") return [];
+    const events = currentPublished.read.events;
+    return showAll ? events : events.slice(0, VISIBLE_MAX);
+  }, [currentPublished, showAll]);
 
   return (
     <section
@@ -297,6 +457,13 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
                     </div>
                   ))}
                 </dl>
+                <p
+                  className={s.voidLine}
+                  data-testid="event-impact-invalidation"
+                  data-null={e.invalidation.null_reason ? "1" : "0"}
+                >
+                  {presentInvalidation(e.invalidation, lang)}
+                </p>
               </div>
             </li>
           ))}
@@ -304,7 +471,7 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
       )}
 
       {read.state === "ok" && !showAll && read.events.length > VISIBLE_MAX && (
-        <button type="button" className={s.more} onClick={() => setShowAll(true)}>
+        <button type="button" className={s.more} onClick={() => setExpandedUnder({ count: positions.length, unreadable: holdingsUnreadable })}>
           {fill(c("eiShowAll"), { n: read.events.length })}
         </button>
       )}

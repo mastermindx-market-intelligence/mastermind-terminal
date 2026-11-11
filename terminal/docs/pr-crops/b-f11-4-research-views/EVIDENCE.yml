@@ -1,0 +1,69 @@
+# B-F11-4 research management views — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: aafc16cef1635e851a9cbb95966c5cfbe1e657a0
+# capturedAt: 2026-11-09T01:33:02.899Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/workspaces/ThesisWorkspace.tsx: "afabf2e3251975c419a0d8247c44c94757cc51c3470507f199413e371c4033dc"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
+  terminal/lib/rmsViews.ts: "bab307d0762d76d31a4d9b7de07f4c9c15c2e4c9915b60e8d971171b3e19def0"
+  terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [empty, named-views, save-flow, window-closed, view-subject-empty, unavailable]
+view_subject_empty_scope: 1440 only, en and zh
+unavailable_scope: 1440 only, en and zh
+crop_surface: |
+  Every PNG is the thesis list pane only — cropPane() clips to
+  [data-testid="thesis-list-pane"], the surface spec 2.10 asks for. At the 1440
+  viewport that pane is about 290px wide, so a "1440" crop is a ~290px image taken
+  from a 1440x900 render, not a 1440-wide frame.
+capture_flag: TERMINAL_E2E_FIXTURE
+window_closed_data: |
+  A real alert_outbox row in the e2e fixture database, seeded by the fixture
+  transport for the first thesis created in a store whose key carries
+  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped
+  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real
+  against it; nothing in this capture stubs a network response.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  CAPTURE_ONLY=window-closed TERMINAL_CROP_PORT=43102 node e2e/tools/capture_f11_4_research_views.cjs
+capture_scope: |
+  The 2026-11-09T01:33:02.899Z run regenerated the four window-closed
+  crops: EN and ZH at 1440x900 and 390x844. The checkout was protected
+  aafc16cef1635e851a9cbb95966c5cfbe1e657a0 with the exact route,
+  rmsViews.ts and route-test postimages from PR #1302 head
+  363853f8d7d6fb0635996ed0ffc7ea6bbf9bc4f2.
+  The other sixteen PNGs are retained byte-for-byte from protected
+  aafc16cef1635e851a9cbb95966c5cfbe1e657a0. Their prior manifest recorded
+  capturedAtHead 24c8032378e3374f3aae9f02b005659b38edcd54 and capturedAt
+  2026-11-06T20:27:05.748Z. The capture fields above describe this
+  partial run; files lists the complete twenty-image packet.
+files:
+  - empty-1440-zh.png
+  - empty-1440.png
+  - empty-390-zh.png
+  - empty-390.png
+  - named-views-1440-zh.png
+  - named-views-1440.png
+  - named-views-390-zh.png
+  - named-views-390.png
+  - save-flow-1440-zh.png
+  - save-flow-1440.png
+  - save-flow-390-zh.png
+  - save-flow-390.png
+  - unavailable-1440-zh.png
+  - unavailable-1440.png
+  - view-subject-empty-1440-zh.png
+  - view-subject-empty-1440.png
+  - window-closed-1440-zh.png
+  - window-closed-1440.png
+  - window-closed-390-zh.png
+  - window-closed-390.png

@@ -3,6 +3,8 @@
 Packet `B-PL-5` (wave B4). Owns
 `terminal/scripts/check_plain_language.mjs`,
 `terminal/lib/__tests__/plainLanguageGuard.test.ts`, and this doc.
+Packet `B-PLAT-B5-1` added the CI wiring (§14) and
+`terminal/lib/__tests__/plainLanguageGuardCi.test.ts`.
 
 ## 1. What law this enforces
 
@@ -121,7 +123,7 @@ node terminal/scripts/check_plain_language.mjs --json          # machine contrac
 |---|---|
 | 0 | no blocking findings, or a disclosed fail-open (base ref unresolvable / no diff) |
 | 1 | ≥1 blocking finding on a line the diff added |
-| 2 | infrastructure fault: `--diff-file` supplied but unreadable, or `--root` unreadable (fails CLOSED, loud `::error`) |
+| 2 | infrastructure fault: `--diff-file` supplied but unreadable, `--root` unreadable, or `--self-check` found a rule that no longer detects its own violation (fails CLOSED, loud `::error`) |
 
 `--json` prints `{version, mode, base, baseResolved, vocabulary, scannedFiles,
 findings[], legacy[], counts, nulls[]}`. Keys are the contract; additive
@@ -146,11 +148,18 @@ the report, never silent, so a reviewer can read and question it.
 
 **Locally**, from the repo root: `node terminal/scripts/check_plain_language.mjs`.
 
-**In CI**: no workflow or `package.json` change was needed. `.github/workflows/ci.yml`'s
-`terminal` job already runs `npm test` (`vitest run`) inside `working-directory: terminal`,
-and `terminal/vitest.config.ts` includes `lib/__tests__/**/*.test.ts` — so
-`terminal/lib/__tests__/plainLanguageGuard.test.ts` runs on every PR for free,
-spawning the checker against in-memory fixtures via `execFileSync`.
+**In CI**: the guard runs twice in the `terminal-unit` job of
+`.github/workflows/ci.yml` — a self-check, then a forward-only enforce run
+against the pull request's base. Both are described in §14. That job is what
+the required "Terminal typecheck + tests" check aggregates, so a blocking
+finding turns the required check red.
+
+Two suites ride along on the same job's `npm test` step, because
+`terminal/vitest.config.ts` includes `lib/__tests__/**/*.test.ts`:
+`terminal/lib/__tests__/plainLanguageGuard.test.ts` (the rules) and
+`terminal/lib/__tests__/plainLanguageGuardCi.test.ts` (the wiring in §14).
+Both spawn the checker against in-memory fixtures; neither reads real git
+history.
 
 ## 7. `--self-check`
 
@@ -160,6 +169,14 @@ files — with that line marked as added, and reports `<rule> detected` only
 when the rule's own logic produced a matching blocking finding against it.
 It is a real invocation of the production code path, not a re-typed proxy
 regex, so it can only pass by the rule actually firing.
+
+Since packet `B-PLAT-B5-1` it is a gate rather than a printout: if any rule
+comes back `NOT detected`, the run prints a `::error` naming the dead rules
+and exits 2. A self-check that always exited 0 could not protect anything —
+the CI step would have stayed green with every rule dead, and the enforce run
+straight after it would have reported a clean tree for a pull request full of
+violations. Exit 2 (not 1) is deliberate: a dead rule is a fault in the guard,
+not a finding about the diff.
 
 ## 8. Known gaps (printed, not hidden)
 
@@ -196,22 +213,26 @@ regex, so it can only pass by the rule actually firing.
   all) — but the guard still cannot distinguish "genuinely compliant" from
   "missed by a rule gap" beyond the rules R1–R5b actually implement. That is
   a detection-coverage limit, not a misreported null.
-- **CI base resolution is untested end-to-end against a real repo-wide diff.**
-  `actions/checkout@v4` at default depth likely cannot resolve
-  `origin/master` inside the `terminal` job, so the repo-wide `--since
-  origin/master` path may always take the disclosed fail-open branch in CI.
-  This is why the CI proof for this packet runs through the vitest suite's
-  own `--diff-file` fixtures rather than a live repo-wide scan, and why the
-  guard is a developer command + test suite today, not yet wired as a
-  standalone PR-diff check in `.github/workflows/ci.yml`. Wiring it there
-  (and confirming checkout depth) is out of this packet's owned paths
-  (`terminal/scripts/check_plain_language.mjs`,
-  `terminal/lib/__tests__/plainLanguageGuard.test.ts`, this doc) and needs a
-  follow-up wiring packet rather than a silent scope expansion here. If
-  checkout depth ever changes and full history becomes available, the
-  `--since` path starts working with no code change; if it stays shallow,
-  the disclosed fail-open is the correct, non-silent outcome — never a false
-  green on a real violation.
+- **CI wiring is live, and it does not use the repo-wide `--since` path.**
+  Packet `B-PLAT-B5-1` wired the guard into `.github/workflows/ci.yml` (§14):
+  it runs in the `terminal-unit` job, as the job's last two steps, after
+  "Disclose quarantined e2e journeys" — first a self-check that exits 2 if
+  any rule (R1–R5b) can no longer detect its own violation, then a
+  forward-only enforce run fed an explicit `--diff-file`. On `pull_request`
+  that diff's base is `HEAD^1`, the merge commit's first parent, which
+  `terminal-unit`'s `fetch-depth: 2` checkout makes resolvable and which
+  cannot drift while the job runs; off `pull_request` the base branch tip is
+  fetched explicitly at step time instead. Because the CI step always
+  supplies `--diff-file`, the repo-wide `origin/master`-guessing `--since`
+  path described in §4's exit-code table (row 0) is a local-development
+  convenience only — it is not what CI exercises, so `actions/checkout@v4`'s
+  default depth in other jobs is irrelevant to this guard. §14 has the full
+  wiring detail, including the one still-disclosed residual: a
+  `workflow_dispatch` run whose branch is behind its base at dispatch time
+  can see a legacy line as newly added — a false red only, never a false
+  green. That includes merge-on-green's own dispatches: it issues the branch
+  refresh and dispatches this workflow immediately after, without waiting for
+  the (async) refresh to land, so the same window is open there too.
 
 ## 9. Review fixes (round 2, PR #530)
 
@@ -661,3 +682,95 @@ reviewer finding only where they conflict — none did this round.
 - **NIT fixed — §11's R3 bullet still read as present-tense current
   behavior.** Marked superseded, pointing at §12 (the containment fix) and
   the source's own updated `lineIsVisible` doc comment, per the minor above.
+
+## 14. CI wiring (packet `B-PLAT-B5-1`)
+
+Before this packet the guard was advisory. It existed, it was tested, and
+nothing ran it: no workflow named it, no `package.json` script named it, and
+no job depended on it. A pull request could put a raw state enum or an
+untranslated statistic token in front of a user and every required check
+still went green.
+
+Two steps in the `terminal-unit` job of `.github/workflows/ci.yml` now run it.
+They are the LAST two steps in that job — after `npm test` and after
+"Disclose quarantined e2e journeys". The placement is deliberate: the
+disclosure step's own comment promises it annotates every run, but it carries
+no `if: always()`, so a guard step in front of it would, the first time it
+found a blocking line, skip the disclosure outright and quietly retract that
+promise. That job feeds the aggregate check named "Terminal typecheck +
+tests", which is the check master's branch protection requires — so either
+guard step going red blocks the merge.
+
+**Step 1, the self-check** (`node scripts/check_plain_language.mjs
+--self-check`) proves the guard still works before anyone trusts what it says
+about the diff. Each rule is fed a fixture that violates it, through the same
+`scanLines()` the real scan uses. If a rule no longer fires, the step exits 2
+and the job is red. A dead guard must never be readable as a clean tree.
+
+**Step 2, the enforce run** takes the forward-only verdict. A finding on a
+line this pull request ADDED is blocking and fails the step. The identical
+finding on a pre-existing line is printed as the legacy census and never
+fails anything. An untouched legacy file cannot turn a pull request red —
+that is the same promise §2 makes, unchanged, and
+`plainLanguageGuardCi.test.ts` holds the guard to it with fixtures on both
+sides.
+
+Two details in that step are load-bearing, and both are commented in the
+workflow itself:
+
+- **On `pull_request` the base is `HEAD^1`, the merge commit's first parent
+  — never a freshly fetched `refs/heads/<base>`.** HEAD on that trigger is
+  the merge commit `M` GitHub built when the run was queued: this branch
+  merged into the base tip *as it was then*. Re-fetching the base branch at
+  step time would instead read the base *as it is now*, and the base can
+  advance while the job runs. Every line those newer commits changed still
+  stands in `M` in its older form, so `git diff base@now M` emits that older
+  form as a `+` line. Legacy findings in files the pull request never opened
+  would then count as ADDED and turn the required check red — precisely the
+  false red the forward-only promise in §2 exists to prevent, and, because it
+  depends on someone else's merge timing, an intermittent one. `M`'s first
+  parent *is* the base tip GitHub merged against and cannot drift, because
+  `M` is fixed.
+
+  This is why the job's checkout asks for `fetch-depth: 2`. The default depth
+  of 1 holds `M` and neither parent. `actions/checkout` does the deepening
+  itself against the exact ref it checks out (`refs/pull/N/merge`), so the
+  parents come down with it; a later `git fetch --deepen=1 origin` would not
+  reliably do the same, because checkout leaves `remote.origin.fetch`
+  pointing at `refs/heads/*` and the merge commit sits on no branch. Only
+  `terminal-unit` asks for the extra commit.
+
+  The step runs under `set -euo pipefail`, so an `HEAD^1` that cannot be
+  resolved kills it loudly instead of leaving the base empty and passing
+  green. Fail closed, like the guard's own exit 2.
+- **Off `pull_request`, the base branch tip is fetched explicitly.** A
+  `workflow_dispatch` re-run has no merge commit, and a shallow checkout does
+  not contain the base — without the fetch `$BASE` cannot resolve at all.
+  This step always supplies `--diff-file` (never `--since`), so an
+  unresolved `$BASE` does not fail open: `git diff --unified=0 "$BASE" HEAD`
+  fails under `set -euo pipefail` and the step dies loudly, having invoked
+  the guard on nothing. The fetch is what lets `$BASE` resolve, not a guard
+  against a silent pass. Once it resolves, the step fetches `origin/<base
+  ref>` (or `master` when there is no base ref) one commit deep, reading the
+  branch name from an environment variable rather than interpolating it into
+  the shell text. The diff is then base tip vs HEAD, so the branch's OWN
+  changes count as added and can block — which is the point of re-running
+  the proof. A pre-existing line can surface as added on that path only if
+  the branch is BEHIND the base: git reads the branch's older copy of a line
+  the base has since changed as an addition. merge-on-green issues that
+  refresh (`PUT /pulls/{n}/update-branch`, queued async as a 202) and
+  dispatches this workflow immediately after, without polling the refresh to
+  completion or pinning the dispatch to the post-refresh sha — so the
+  disclosed residual (§8) is not limited to a hand-dispatched run: it is the
+  window, on ANY `workflow_dispatch` run, between the branch's tip at
+  dispatch time and the base moving; the failure direction stays false-red
+  only.
+- **The diff is taken with two dots, not three.** `git diff A B` compares two
+  trees and needs no merge base; `git diff A...B` needs one, and two shallow
+  histories give git nothing to find it in. On a pull request run, HEAD is
+  the merge commit and the base is its first parent, so the two-dot diff is
+  exactly the change the pull request makes — which is also what the
+  three-dot form would have produced.
+
+The guard reads that diff through `--diff-file`, the same entry point every
+test in both suites uses, so what CI exercises is the path the suites cover.

@@ -20,6 +20,28 @@ export async function isolateLayoutStore(page: Page, testInfo: TestInfo, baseURL
   return key;
 }
 
+export async function joinLayoutTeam(
+  page: Page,
+  teamId: string,
+  role: "owner" | "admin" | "member",
+  baseURL?: string,
+) {
+  const url = baseURL ?? DEFAULT_BASE;
+  await page.context().addCookies([
+    { name: "mm_e2e_layout_team", value: teamId, url },
+    { name: "mm_e2e_layout_role", value: role, url },
+  ]);
+}
+
+/** Select a distinct synthetic identity while retaining the same fixture store/team. */
+export async function useLayoutIdentity(page: Page, identity: string, baseURL?: string) {
+  await page.context().addCookies([{
+    name: "mm_e2e_layout_user",
+    value: identity,
+    url: baseURL ?? DEFAULT_BASE,
+  }]);
+}
+
 /**
  * Make one class of layout statement fail, the way a Supabase outage would.
  *

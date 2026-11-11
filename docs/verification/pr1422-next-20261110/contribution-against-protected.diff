@@ -1,0 +1,1273 @@
+diff --git a/terminal/components/EventImpactPanel.tsx b/terminal/components/EventImpactPanel.tsx
+index cbd8a0d32..5ede8b330 100644
+--- a/terminal/components/EventImpactPanel.tsx
++++ b/terminal/components/EventImpactPanel.tsx
+@@ -239,6 +239,8 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
+       !scope.token.revoked &&
+       scope.token === lifetimeRef.current &&
+       scope.sequence === sequenceRef.current;
++    // A setup retired before admission must not start a request or change busy state.
++    if (!current()) return;
+     const publish = (next: EventImpactRead) => {
+       if (!current()) return;
+       setPublished({ identity: scope.identity, epoch: scope.epoch, read: next });
+@@ -317,7 +319,8 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
+       sequence: ++sequenceRef.current,
+       token,
+     };
+-    void load(scope, holdingsUnreadable);
++    // Development setup-cleanup-setup retires the first token before this admission.
++    queueMicrotask(() => { void load(scope, holdingsUnreadable); });
+     return () => { token.revoked = true; };
+   }, [identity, committed.epoch, holdingsUnreadable, load]);
+ 
+diff --git a/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs b/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs
+index bc1d882f9..68390da6e 100644
+--- a/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs
++++ b/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs
+@@ -1,8 +1,10 @@
++/* eslint-disable @typescript-eslint/no-require-imports -- This standalone Node qualifier is intentionally CommonJS. */
+ /* Local fixture-only qualification of the actual native routes. No real account,
+  * credential, service, or external writer is used. Both HTTP servers are loopback
+  * children owned and stopped by this process. Never production acceptance. */
+ const fs = require('node:fs');
+ const path = require('node:path');
++const os = require('node:os');
+ const http = require('node:http');
+ const crypto = require('node:crypto');
+ const {spawn,execFileSync} = require('node:child_process');
+@@ -19,8 +21,15 @@ const {sectorFixture} = require('../fixtures/sector-company-v3.ts');
+ const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
+ const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
+ if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
+-const OUT = VARIANT ? path.join(EVIDENCE_ROOT,VARIANT) : EVIDENCE_ROOT;
+-fs.mkdirSync(OUT,{recursive:true});
++const CANONICAL_OUT = VARIANT ? path.join(EVIDENCE_ROOT,VARIANT) : EVIDENCE_ROOT;
++fs.mkdirSync(CANONICAL_OUT,{recursive:true});
++// Next watches the project tree. Keep live logs and screenshots outside it and
++// retain the complete result only after this qualifier's server has closed.
++const OUT = fs.mkdtempSync(path.join(os.tmpdir(),'terminal-intelligence-'));
++const outputRelative=path.relative(fs.realpathSync(ROOT),fs.realpathSync(OUT));
++if(outputRelative!== '..'&&!outputRelative.startsWith('..'+path.sep)&&!path.isAbsolute(outputRelative)){
++ fs.rmdirSync(OUT);throw Error('live qualification output must be outside the project');
++}
+ const OWNER = '11111111-1111-4111-8111-111111111111';
+ const PORT = Number(process.env.INTELLIGENCE_TEST_PORT || 3347);
+ if (!Number.isInteger(PORT) || PORT < 1024 || PORT > 65535) throw Error('invalid test port');
+@@ -43,7 +52,68 @@ report.sourceFiles=Object.fromEntries([
+  'e2e/tools/qualify_shared_shell_intelligence.cjs'
+ ].map(file=>[file,crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,file))).digest('hex')]));
+ report.trackedWorkingChanges=execFileSync('git',['diff','--name-only'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+-let theme='dark',locale='en', browser, child, fixture;
++let theme='dark',locale='en', browser, child, childClosed, fixture;
++report.authReads=0;
++report.authStatuses={200:0,401:0};
++report.outputOutsideProject=true;
++report.overviewNavigations=[];
++report.reloadDiagnostics={counts:{},events:{},dropped:{}};
++function diagnostic(kind,value){
++ const key=kind+':'+String(value.event||value.type||value.reason||'observed').slice(0,80);
++ const data=report.reloadDiagnostics;
++ if(!Object.hasOwn(data.counts,key)&&Object.keys(data.counts).length>=48)return;
++ data.counts[key]=(data.counts[key]||0)+1;
++ const events=data.events[key]??=[];
++ const limit=/reload/i.test(key)?20:kind==='console'?24:12;
++ if(events.length<limit)events.push({at:Date.now(),theme,locale,...value});
++ else data.dropped[key]=(data.dropped[key]||0)+1;
++}
++const diagnosticText=(value,limit=512)=>typeof value==='string'?value.slice(0,limit):undefined;
++const diagnosticPath=value=>{try{return new URL(value).pathname;}catch{return diagnosticText(value);}};
++const diagnosticUpdate=value=>value&&typeof value==='object'?{
++ type:diagnosticText(value.type),path:diagnosticText(value.path),
++ resourcePath:diagnosticText(value.resource?.path),
++ resourceHeaderNames:value.resource?.headers&&typeof value.resource.headers==='object'?Object.keys(value.resource.headers).slice(0,12):undefined,
++ instructionType:diagnosticText(value.instruction?.type),reason:diagnosticText(value.reason,2048)
++}:undefined;
++async function observeReloads(ctx,page){
++ page.on('console',message=>{
++  const text=message.text();
++  if(['warning','error'].includes(message.type())||/HMR|Fast Refresh|Turbopack|full reload/i.test(text))
++   diagnostic('console',{type:message.type(),text:text.slice(0,2048)});
++ });
++ page.on('websocket',socket=>{
++  const pathname=new URL(socket.url()).pathname;
++  if(!['/_next/hmr','/_next/webpack-hmr'].includes(pathname))return;
++  diagnostic('socket',{type:'opened',path:pathname});
++  socket.on('close',()=>diagnostic('socket',{type:'closed',path:pathname}));
++  socket.on('socketerror',error=>diagnostic('socket',{type:'error',path:pathname,error:diagnosticText(String(error),2048)}));
++  for(const direction of ['framesent','framereceived'])socket.on(direction,frame=>{
++   const payload=frame.payload,bytes=Buffer.byteLength(payload);
++   if(typeof payload!=='string'||bytes>1024*1024){diagnostic(direction,{path:pathname,bytes,binary:typeof payload!=='string'});return;}
++   try{
++    const value=JSON.parse(payload);
++    diagnostic(direction,{path:pathname,bytes,type:diagnosticText(value.type),event:diagnosticText(value.event),action:diagnosticText(value.action),
++     hmrVersion:value.hmrVersion,dataHmrVersion:value.data?.hmrVersion,sessionId:value.data?.sessionId,
++     resource:diagnosticText(value.resource)||diagnosticText(value.resource?.path),resourcePath:diagnosticText(value.path),
++     resourceHeaderNames:value.headers&&typeof value.headers==='object'?Object.keys(value.headers).slice(0,12):undefined,
++     dataType:diagnosticText(value.data?.type),hadRuntimeError:value.hadRuntimeError,
++     updates:Array.isArray(value.data)?value.data.slice(0,8).map(diagnosticUpdate):diagnosticUpdate(value.data),
++     reason:typeof value.reason==='string'?value.reason.slice(0,2048):undefined,
++     stackTrace:typeof value.stackTrace==='string'?value.stackTrace.slice(0,4096):undefined,
++     dependencyChain:Array.isArray(value.dependencyChain)?value.dependencyChain.slice(0,8).map(item=>diagnosticText(item)):undefined});
++   }catch{diagnostic(direction,{path:pathname,bytes,nonJson:true});}
++  });
++ });
++ const protocol=await ctx.newCDPSession(page);
++ await protocol.send('Page.enable');await protocol.send('Network.enable');
++ protocol.on('Page.frameRequestedNavigation',event=>diagnostic('navigation',{reason:event.reason,path:diagnosticPath(event.url),frameId:event.frameId}));
++ protocol.on('Network.requestWillBeSent',event=>{
++  if(event.type!=='Document')return;
++  diagnostic('document',{path:diagnosticPath(event.request.url),redirectStatus:event.redirectResponse?.status,
++   initiator:event.initiator?.type,stack:event.initiator?.stack?.callFrames?.slice(0,8).map(frame=>({functionName:diagnosticText(frame.functionName),path:diagnosticPath(frame.url),lineNumber:frame.lineNumber,columnNumber:frame.columnNumber}))});
++ });
++}
+ const now = Math.floor(Date.now()/1000);
+ const enc = v=>Buffer.from(JSON.stringify(v)).toString('base64url');
+ const head=enc({alg:'HS256',typ:'JWT'}),body=enc({sub:OWNER,email:'research-fixture@example.test',aud:'authenticated',role:'authenticated',iat:now,exp:now+3600});
+@@ -52,13 +122,18 @@ const token=`${head}.${body}.${crypto.createHmac('sha256',crypto.randomBytes(32)
+ const user=()=>({id:OWNER,aud:'authenticated',role:'authenticated',email:'research-fixture@example.test',email_confirmed_at:'2026-01-01T00:00:00Z',created_at:'2026-01-01T00:00:00Z',app_metadata:{provider:'email',providers:['email']},user_metadata:{theme,lang:locale,onboarded_at:'2026-01-01T00:00:00Z'}});
+ const session=()=>({access_token:token,refresh_token:'fixture-only-refresh-never-used',expires_in:3600,expires_at:now+3600,token_type:'bearer',user:user()});
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
++async function within(promise,ms,label){
++ let timer;
++ try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label)),ms);})]);}
++ finally{clearTimeout(timer);}
++}
+ async function startFixture(){
+  fixture=http.createServer((req,res)=>{
+   res.setHeader('Access-Control-Allow-Origin',BASE);res.setHeader('Access-Control-Allow-Headers',req.headers['access-control-request-headers']||'authorization,apikey,content-type,x-client-info,x-supabase-api-version');res.setHeader('Access-Control-Allow-Methods','GET,OPTIONS');res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');
+   if(req.method==='OPTIONS'){res.writeHead(204).end();return;}
+   if(req.method!=='GET'){report.fixtureWrites.push({method:req.method,path:req.url});res.writeHead(405).end('{}');return;}
+   const u=new URL(req.url,'http://localhost');
+-  if(u.pathname==='/auth/v1/user'){if(req.headers.authorization!==`Bearer ${token}`){res.writeHead(401).end('{"message":"invalid fixture session"}');return;}res.end(JSON.stringify(user()));return;}
++  if(u.pathname==='/auth/v1/user'){report.authReads++;if(req.headers.authorization!==`Bearer ${token}`){report.authStatuses[401]++;res.writeHead(401).end('{"message":"invalid fixture session"}');return;}report.authStatuses[200]++;res.end(JSON.stringify(user()));return;}
+   if(u.pathname==='/api/me'){res.end(JSON.stringify({tier:'pro',features:['terminal_live_options'],status:'active'}));return;}
+   if(u.pathname.startsWith('/rest/')){res.end('[]');return;}
+   res.writeHead(404).end('{"error":"fixture route absent"}');
+@@ -90,6 +165,9 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
+   const authBase=await startFixture();
+   const log=fs.openSync(path.join(OUT,'local-next.log'),'w');
+   child=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','--hostname','127.0.0.1','--port',String(PORT)],{cwd:ROOT,stdio:['ignore',log,log],env:{...process.env,MMX_SHARED_SHELL:'1',NEXT_PUBLIC_SUPABASE_URL:authBase,NEXT_PUBLIC_SUPABASE_ANON_KEY:'fixture-anon-key',BILLING_GATEWAY_BASE:authBase,FLOW_FIXTURE:'1',TERMINAL_REQUIRE_AUTH:'0',TERMINAL_E2E_FIXTURE:'1',TERMINAL_E2E_EMAIL:'research-fixture@example.test',TERMINAL_E2E_ENTITLEMENT:'unlimited',ANALYSIS_LOCAL_PREVIEW:'1',RATE_LIMIT_MAX:'100000',ISSUE_DESK_API_BASE:authBase}});
++  childClosed=new Promise((resolve,reject)=>{child.once('close',(code,signal)=>resolve({code,signal}));child.once('error',reject);});
++  // Attach a rejection observer immediately; cleanup still receives the original error.
++  void childClosed.catch(()=>{});
+   fs.closeSync(log);
+   let ready=false;
+   for(let i=0;i<100;i++){if(child.exitCode!==null)throw Error(`Next exited ${child.exitCode}`);try{const r=await fetch(BASE+'/api/shared-shell/status',{signal:AbortSignal.timeout(2000)});if(r.ok){ready=true;break;}}catch{}await sleep(1000);}
+@@ -102,7 +180,11 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
+   }
+   for(const [w,h] of [[1440,900],[820,1180],[390,844]])for(const mode of [['dark','en'],['light','zh']]){
+    [theme,locale]=mode;const ctx=await context();const page=await ctx.newPage();await page.setViewportSize({width:w,height:h});
++   await observeReloads(ctx,page);
+    page.on('pageerror',e=>report.errors.push({cell:`${w}-${theme}-${locale}`,error:e.message}));
++   const documentNavigations=[];
++   report.overviewNavigations.push({cell:`${w}-${theme}-${locale}`,documents:documentNavigations});
++   page.on('request',request=>{if(request.isNavigationRequest()&&request.frame()===page.mainFrame())documentNavigations.push(request.url());});
+    await page.goto(BASE+'/intelligence',{waitUntil:'domcontentloaded'});
+    await expect(page.locator('[data-intelligence-overview]')).toBeVisible({timeout:45000});
+    await expect(page.locator('[data-intelligence-source="macro"]')).toHaveAttribute('data-read-state','ready',{timeout:30000});
+@@ -115,7 +197,8 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
+     await expect(page.getByRole('dialog').locator('[data-intelligence-nav="drawer"]')).toBeVisible();
+     await page.keyboard.press('Escape');
+    }
+-   report.cells.push({w,h,theme,locale,screenshot:file,bounds});await ctx.close();
++   if(documentNavigations.length!==1||documentNavigations[0]!==BASE+'/intelligence')throw Error(`unexpected overview navigation: ${JSON.stringify(documentNavigations)}`);
++   report.cells.push({w,h,theme,locale,screenshot:file,bounds,documentNavigations});await ctx.close();
+   }
+   theme='dark';locale='en';const ctx=await context();const page=await ctx.newPage();
+   await page.goto(BASE+'/intelligence');await expect(page.locator('[data-intelligence-source="prophet"]')).toHaveAttribute('data-read-state','ready');
+@@ -163,8 +246,29 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
+   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
+  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}
+  finally{
+-  if(browser)await browser.close();if(child&&child.exitCode===null){child.kill('SIGTERM');await Promise.race([new Promise(r=>child.once('exit',r)),sleep(5000)]);if(child.exitCode===null)child.kill('SIGKILL');}
+-  if(fixture)await new Promise(r=>fixture.close(r));report.finishedAt=new Date().toISOString();
+-  report.externalRequests=[...new Set(report.externalRequests)];fs.writeFileSync(path.join(OUT,'browser-qualification.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({passed:report.passed,cells:report.cells.length,failure:report.failure,errors:report.errors,receipt:path.join(OUT,'browser-qualification.json')}));
++  const cleanupErrors=[];
++  if(browser)try{await within(browser.close(),10000,'browser close unsettled');}catch(error){cleanupErrors.push(String(error));}
++  report.ownedChildClosed=!child;
++  if(child){
++   if(child.exitCode===null&&child.signalCode===null)child.kill('SIGTERM');
++   try{report.childClose=await within(childClosed,5000,'Next close unsettled');report.ownedChildClosed=true;}
++   catch(error){
++    if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');
++    try{report.childClose=await within(childClosed,5000,'Next kill unsettled');report.ownedChildClosed=true;}
++    catch(settleError){cleanupErrors.push(String(error),String(settleError));}
++   }
++  }
++  if(fixture)try{await within(new Promise((resolve,reject)=>fixture.close(error=>error?reject(error):resolve())),5000,'fixture close unsettled');report.fixtureClosed=true;}catch(error){cleanupErrors.push(String(error));}
++  report.finishedAt=new Date().toISOString();
++  report.externalRequests=[...new Set(report.externalRequests)];
++  if(cleanupErrors.length){report.passed=false;report.cleanupErrors=cleanupErrors;process.exitCode=1;}
++  fs.writeFileSync(path.join(OUT,'browser-qualification.json'),JSON.stringify(report,null,2)+'\n');
++  let receipt=path.join(OUT,'browser-qualification.json');
++  if(report.ownedChildClosed){
++   fs.cpSync(OUT,CANONICAL_OUT,{recursive:true});
++   receipt=path.join(CANONICAL_OUT,'browser-qualification.json');
++   fs.rmSync(OUT,{recursive:true});
++  }
++  console.log(JSON.stringify({passed:report.passed,cells:report.cells.length,failure:report.failure,errors:report.errors,cleanupErrors:report.cleanupErrors,receipt}));
+  }
+ })();
+diff --git a/terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx b/terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx
+index ef2a3a08c..9f1f0235d 100644
+--- a/terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx
++++ b/terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx
+@@ -465,26 +465,47 @@ describe("EventImpactPanel — effect lifetime", () => {
+     expect(errors).toHaveLength(0);
+   });
+ 
+-  it("rejects a retired result under StrictMode setup-cleanup-setup while the current load works", async () => {
+-    const StrictMode = (await import("react")).StrictMode;
+-    await act(async () => {
+-      root.render(
+-        <StrictMode>
+-          <EventImpactPanel positions={[{ ...BASE }]} holdingsUnreadable={false} />
+-        </StrictMode>
+-      );
+-    });
+-    await flush();
+-    // StrictMode mounts, tears down and mounts again: the first setup's read is retired.
+-    expect(requests.length).toBeGreaterThanOrEqual(1);
+-    const retired = requests[0];
+-    const current = requests[requests.length - 1];
+-    await respond(retired, true, 200);
+-    await complete(current, "CURRENT_FACT", [{ ...BASE }]);
+-    await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
+-    expect(panelText()).toContain("CURRENT_FACT");
+-    expect(panelText()).not.toContain("RETIRED_FACT");
+-  });
++  it.each(["before-current", "after-current"] as const)(
++    "admits one StrictMode read and retires a committed input's body %s",
++    async (order) => {
++      const StrictMode = (await import("react")).StrictMode;
++      const render = (positions: Position[]) => act(async () => {
++        root.render(
++          <StrictMode>
++            <EventImpactPanel positions={positions} holdingsUnreadable={false} />
++          </StrictMode>
++        );
++      });
++      await render([{ ...BASE }]);
++      await flush();
++      // The throwaway setup is revoked before admission; only the live setup reads.
++      expect(requests).toHaveLength(1);
++      const retired = requests[0];
++      await respond(retired, true, 200);
++
++      const edited = [{ ...BASE, shares: 25 }];
++      await render(edited);
++      await flush();
++      expect(requests).toHaveLength(2);
++      const current = requests[1];
++      expect(current).not.toBe(retired);
++      expect(checking()).toBeTruthy();
++
++      if (order === "before-current") {
++        await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
++        expect(checking()).toBeTruthy();
++        expect(panelText()).not.toContain("RETIRED_FACT");
++      }
++      await complete(current, "CURRENT_FACT", edited);
++      if (order === "after-current") {
++        await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
++      }
++      expect(panelText()).toContain("CURRENT_FACT");
++      expect(panelText()).not.toContain("RETIRED_FACT");
++      expect(checking()).toBeFalsy();
++      expect(requests).toHaveLength(2);
++    },
++  );
+ });
+ 
+ describe("EventImpactPanel — language register", () => {
+diff --git a/terminal/lib/__tests__/nextConfigDevIndicator.test.ts b/terminal/lib/__tests__/nextConfigDevIndicator.test.ts
+index c76161d90..21f0a9c66 100644
+--- a/terminal/lib/__tests__/nextConfigDevIndicator.test.ts
++++ b/terminal/lib/__tests__/nextConfigDevIndicator.test.ts
+@@ -31,3 +31,28 @@ describe("next.config.ts devIndicators gate", () => {
+     expect(nextConfig.devIndicators).toBeUndefined();
+   });
+ });
++
++describe("fixture development cache isolation", () => {
++  afterEach(() => {
++    vi.unstubAllEnvs();
++    vi.resetModules();
++  });
++
++  it.each([
++    { mode: "development", fixture: "1", transport: undefined, cache: false, debug: undefined },
++    { mode: "development", fixture: "1", transport: "intl-fixture-v1", cache: false, debug: false },
++    { mode: "development", fixture: "0", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
++    { mode: "development", fixture: undefined, transport: undefined, cache: undefined, debug: undefined },
++    { mode: "production", fixture: "1", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
++    { mode: "test", fixture: "1", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
++  ])("keeps the actual config boundary for $mode / fixture=$fixture / transport=$transport", async ({ mode, fixture, transport, cache, debug }) => {
++    vi.stubEnv("NODE_ENV", mode);
++    vi.stubEnv("TERMINAL_E2E_FIXTURE", fixture);
++    vi.stubEnv("TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT", transport);
++    vi.resetModules();
++    const { default: nextConfig } = await import("../../next.config");
++    expect(nextConfig.experimental?.turbopackFileSystemCacheForDev).toBe(cache);
++    expect(nextConfig.experimental?.reactDebugChannel).toBe(debug);
++    expect(nextConfig.experimental?.turbopackFileSystemCacheForBuild).toBeUndefined();
++  });
++});
+diff --git a/terminal/lib/__tests__/prophetFixtureReadiness.test.tsx b/terminal/lib/__tests__/prophetFixtureReadiness.test.tsx
+index f21fa0648..0160ee266 100644
+--- a/terminal/lib/__tests__/prophetFixtureReadiness.test.tsx
++++ b/terminal/lib/__tests__/prophetFixtureReadiness.test.tsx
+@@ -68,8 +68,14 @@ async function resolveSourceRoute(url: string) {
+       return routes.has(pathname) ? { type: "appFile", itemPath: pathname } : null;
+     },
+   } as unknown as Parameters<typeof getResolveRoutes>[0];
+-  const resolve = getResolveRoutes(fsChecker, { ...defaultConfig, useFileSystemPublicRoutes: true, crossOrigin: undefined, skipProxyUrlNormalize: false } as unknown as Parameters<typeof getResolveRoutes>[1],
+-    { dir: process.cwd(), dev: false, minimalMode: false, port: 3108, hostname: "127.0.0.1" } as Parameters<typeof getResolveRoutes>[2], undefined as unknown as Parameters<typeof getResolveRoutes>[3], {} as Parameters<typeof getResolveRoutes>[4]);
++  const resolve = getResolveRoutes(
++    fsChecker,
++    { ...defaultConfig, useFileSystemPublicRoutes: true, crossOrigin: undefined, skipProxyUrlNormalize: false } as unknown as Parameters<typeof getResolveRoutes>[1],
++    () => defaultConfig.assetPrefix,
++    { dir: process.cwd(), dev: false, minimalMode: false, port: 3108, hostname: "127.0.0.1" } as Parameters<typeof getResolveRoutes>[3],
++    undefined as unknown as Parameters<typeof getResolveRoutes>[4],
++    {} as Parameters<typeof getResolveRoutes>[5],
++  );
+   const socket = new Socket(); const req = new IncomingMessage(socket); req.url = url; req.method = "GET"; req.headers = { host: "127.0.0.1:3108" };
+   const res = new ServerResponse(req);
+   try { return await resolve({ req, res, isUpgradeReq: false, signal: new AbortController().signal }); }
+diff --git a/terminal/next.config.ts b/terminal/next.config.ts
+index 50d6906dd..98a50a5d7 100644
+--- a/terminal/next.config.ts
++++ b/terminal/next.config.ts
+@@ -4,9 +4,10 @@ import { readFileSync, readdirSync } from "node:fs";
+ import path from "path";
+ 
+ const isProd = process.env.NODE_ENV === "production";
++const isFixtureDevelopment = process.env.NODE_ENV === "development"
++  && process.env.TERMINAL_E2E_FIXTURE === "1";
+ // Only the closed canonical fixture transport denies the optional debug WebSocket.
+-const isClosedCanonicalTransport = process.env.NODE_ENV === "development"
+-  && process.env.TERMINAL_E2E_FIXTURE === "1"
++const isClosedCanonicalTransport = isFixtureDevelopment
+   && process.env.TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT === "intl-fixture-v1";
+ 
+ // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
+@@ -170,7 +171,16 @@ const embedChartHeaders = embedHeaders.map((header) =>
+ );
+ 
+ const nextConfig: NextConfig = {
+-  ...(isClosedCanonicalTransport ? { experimental: { reactDebugChannel: false } } : {}),
++  ...(isFixtureDevelopment ? {
++    experimental: {
++      // Sequential fixture servers change public environment values. Next 16.4's
++      // persistent dev-cache restoration can restart the shared client entry forever:
++      // https://github.com/vercel/next.js/issues/100251 and /issues/100267.
++      // Keep Turbopack/HMR; each fixture server computes its own development state.
++      turbopackFileSystemCacheForDev: false,
++      ...(isClosedCanonicalTransport ? { reactDebugChannel: false } : {}),
++    },
++  } : {}),
+   // Internal public-sample diagnostics must never be copied into a deploy artifact.
+   // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
+   // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
+diff --git a/terminal/package-lock.json b/terminal/package-lock.json
+index 2e162a8eb..43172affa 100644
+--- a/terminal/package-lock.json
++++ b/terminal/package-lock.json
+@@ -20,7 +20,7 @@
+         "ajv-formats": "^3.0.1",
+         "cookie": "^1.0.2",
+         "lightweight-charts": "^5.2.0",
+-        "next": "16.2.9",
++        "next": "16.4.6",
+         "react": "19.2.4",
+         "react-dom": "19.2.4",
+         "server-only": "^0.0.1",
+@@ -36,7 +36,7 @@
+         "@types/three": "0.186.0",
+         "esbuild": "^0.21.5",
+         "eslint": "^9",
+-        "eslint-config-next": "16.2.9",
++        "eslint-config-next": "16.4.6",
+         "jsdom": "^26.1.0",
+         "pngjs": "7.0.0",
+         "tailwindcss": "^4",
+@@ -520,9 +520,9 @@
+       }
+     },
+     "node_modules/@emnapi/runtime": {
+-      "version": "1.11.1",
+-      "resolved": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.11.1.tgz",
+-      "integrity": "sha512-vgj7R3y3Wgx24IQaGPA/R6YFXLHVMOZ0uVEyIQPaWs+rd1AzfEMXlAC22FYwO1XkKR6NPsq7mUandH8oIRdZFw==",
++      "version": "1.11.3",
++      "resolved": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.11.3.tgz",
++      "integrity": "sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==",
+       "license": "MIT",
+       "optional": true,
+       "dependencies": {
+@@ -1176,9 +1176,9 @@
+       }
+     },
+     "node_modules/@img/sharp-darwin-arm64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-darwin-arm64/-/sharp-darwin-arm64-0.34.5.tgz",
+-      "integrity": "sha512-imtQ3WMJXbMY4fxb/Ndp6HBTNVtWCUI0WdobyheGf5+ad6xX8VIDO8u2xE4qc/fr08CKG/7dDseFtn6M6g/r3w==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-darwin-arm64/-/sharp-darwin-arm64-0.35.5.tgz",
++      "integrity": "sha512-QRUlFQ0WxvdWyqqG/WtI3iupfD5rBzmCHXSdPsY91sAtVtTo7Q4cb6zOccZ3gqEqkr0f1As1ehLqmEpDsRf+lg==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1188,19 +1188,19 @@
+         "darwin"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-darwin-arm64": "1.2.4"
++        "@img/sharp-libvips-darwin-arm64": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-darwin-x64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-darwin-x64/-/sharp-darwin-x64-0.34.5.tgz",
+-      "integrity": "sha512-YNEFAF/4KQ/PeW0N+r+aVVsoIY0/qxxikF2SWdp+NRkmMB7y9LBZAVqQ4yhGCm/H3H270OSykqmQMKLBhBJDEw==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-darwin-x64/-/sharp-darwin-x64-0.35.5.tgz",
++      "integrity": "sha512-+BR255RhDlpygUpOc/Jdt1nT6DQ3XG/ERo5wbcdOf5Q320dKtPCKPLR1LJs9VGXRaMa8l1uUa0tkCNOXiAxZUw==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1210,19 +1210,38 @@
+         "darwin"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-darwin-x64": "1.2.4"
++        "@img/sharp-libvips-darwin-x64": "1.3.4"
++      }
++    },
++    "node_modules/@img/sharp-freebsd-wasm32": {
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-freebsd-wasm32/-/sharp-freebsd-wasm32-0.35.5.tgz",
++      "integrity": "sha512-Y/z91nEZ4uIBX5X3nfTovjU9lHNKFYbL2lpHCLVNmXQK03VIZvXBBt0KxbPGp2SdGSF+2mQU4e+hQaWOt86iAw==",
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "freebsd"
++      ],
++      "dependencies": {
++        "@img/sharp-wasm32": "0.35.5"
++      },
++      "engines": {
++        "node": ">=20.9.0"
++      },
++      "funding": {
++        "url": "https://opencollective.com/libvips"
+       }
+     },
+     "node_modules/@img/sharp-libvips-darwin-arm64": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-darwin-arm64/-/sharp-libvips-darwin-arm64-1.2.4.tgz",
+-      "integrity": "sha512-zqjjo7RatFfFoP0MkQ51jfuFZBnVE2pRiaydKJ1G/rHZvnsrHAOcQALIi9sA5co5xenQdTugCvtb1cuf78Vf4g==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-darwin-arm64/-/sharp-libvips-darwin-arm64-1.3.4.tgz",
++      "integrity": "sha512-5R89nBYiRdUlSWJxPhO+GVtaXzXSxKnRu/xqMn3KTA3L9EB9Oy/P+Nn2f2vlhPuUdy/Zusb2DarbyTpGCfEDuw==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1236,9 +1255,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-darwin-x64": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-darwin-x64/-/sharp-libvips-darwin-x64-1.2.4.tgz",
+-      "integrity": "sha512-1IOd5xfVhlGwX+zXv2N93k0yMONvUlANylbJw1eTah8K/Jtpi15KC+WSiaX/nBmbm2HxRM1gZ0nSdjSsrZbGKg==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-darwin-x64/-/sharp-libvips-darwin-x64-1.3.4.tgz",
++      "integrity": "sha512-iR2OKH80yi0U+dUplyh3/xdpFvps6YkCwsXenIJxqxR1v9o+xtKTGbS9H7cps+2Vxjc8B1j96p75NmTGjIhtpQ==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1252,9 +1271,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-linux-arm": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm/-/sharp-libvips-linux-arm-1.2.4.tgz",
+-      "integrity": "sha512-bFI7xcKFELdiNCVov8e44Ia4u2byA+l3XtsAj+Q8tfCwO6BQ8iDojYdvoPMqsKDkuoOo+X6HZA0s0q11ANMQ8A==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm/-/sharp-libvips-linux-arm-1.3.4.tgz",
++      "integrity": "sha512-LmRtTsOHuvM2+wlO2Db37dx5MiZhB0FvSunciw48YjdOkZz9KAiRbm8ujeMOA1INqmei5NapFxYEK1D1ZSidmw==",
+       "cpu": [
+         "arm"
+       ],
+@@ -1268,9 +1287,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-linux-arm64": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm64/-/sharp-libvips-linux-arm64-1.2.4.tgz",
+-      "integrity": "sha512-excjX8DfsIcJ10x1Kzr4RcWe1edC9PquDRRPx3YVCvQv+U5p7Yin2s32ftzikXojb1PIFc/9Mt28/y+iRklkrw==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm64/-/sharp-libvips-linux-arm64-1.3.4.tgz",
++      "integrity": "sha512-Y3dgX/6lE2QhQb+Gxy0WZxfg9MEm/JBjamZpS2IklP7xIQoKN4hzAm7KcMVGtaVDt3neE9OKBC7vAfonA/Lr1A==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1284,9 +1303,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-linux-ppc64": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-ppc64/-/sharp-libvips-linux-ppc64-1.2.4.tgz",
+-      "integrity": "sha512-FMuvGijLDYG6lW+b/UvyilUWu5Ayu+3r2d1S8notiGCIyYU/76eig1UfMmkZ7vwgOrzKzlQbFSuQfgm7GYUPpA==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-ppc64/-/sharp-libvips-linux-ppc64-1.3.4.tgz",
++      "integrity": "sha512-Le6boB8Tai0Nis+gIxIpKx68UDVVIqdR8Tin5Yf1z2LJJQLDJvCDRqRu+jC2qCoD+eIomonmOwB4smBRxfVpYQ==",
+       "cpu": [
+         "ppc64"
+       ],
+@@ -1300,9 +1319,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-linux-riscv64": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-riscv64/-/sharp-libvips-linux-riscv64-1.2.4.tgz",
+-      "integrity": "sha512-oVDbcR4zUC0ce82teubSm+x6ETixtKZBh/qbREIOcI3cULzDyb18Sr/Wcyx7NRQeQzOiHTNbZFF1UwPS2scyGA==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-riscv64/-/sharp-libvips-linux-riscv64-1.3.4.tgz",
++      "integrity": "sha512-aHkkIEHPRdQEegJN20MLmGtxYD9R2wQr3Cwpddnu5+YKMt6Uzax7S9h5gpZTo8wyrGuZSlfQ63OevL5mTyOC7Q==",
+       "cpu": [
+         "riscv64"
+       ],
+@@ -1316,9 +1335,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-linux-s390x": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-s390x/-/sharp-libvips-linux-s390x-1.2.4.tgz",
+-      "integrity": "sha512-qmp9VrzgPgMoGZyPvrQHqk02uyjA0/QrTO26Tqk6l4ZV0MPWIW6LTkqOIov+J1yEu7MbFQaDpwdwJKhbJvuRxQ==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-s390x/-/sharp-libvips-linux-s390x-1.3.4.tgz",
++      "integrity": "sha512-ra/mB6MikESDUO7Yg+Mi95bFBb9GsObURuhnOv3OqknjGe9sZrG8tCe9q0xSIGrtLgvgw0gKnFWcK4blSgQOuQ==",
+       "cpu": [
+         "s390x"
+       ],
+@@ -1332,9 +1351,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-linux-x64": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-x64/-/sharp-libvips-linux-x64-1.2.4.tgz",
+-      "integrity": "sha512-tJxiiLsmHc9Ax1bz3oaOYBURTXGIRDODBqhveVHonrHJ9/+k89qbLl0bcJns+e4t4rvaNBxaEZsFtSfAdquPrw==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-x64/-/sharp-libvips-linux-x64-1.3.4.tgz",
++      "integrity": "sha512-GJ//SSXbnwSDes02umB3nDJLFcQzw8a18V8fyhqr6tV515tOEMdImjjxj1AoafMRz56F3PHgftnj1QEKSU1zkw==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1348,9 +1367,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-linuxmusl-arm64": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-arm64/-/sharp-libvips-linuxmusl-arm64-1.2.4.tgz",
+-      "integrity": "sha512-FVQHuwx1IIuNow9QAbYUzJ+En8KcVm9Lk5+uGUQJHaZmMECZmOlix9HnH7n1TRkXMS0pGxIJokIVB9SuqZGGXw==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-arm64/-/sharp-libvips-linuxmusl-arm64-1.3.4.tgz",
++      "integrity": "sha512-hvulFwtjUcagsis6BBxHwGFwWoNZjgYmULGVrZcyfNbjA8hKILbRxGg15/7w5HDyXHXUos/j6baAWqnCyQ2DWA==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1364,9 +1383,9 @@
+       }
+     },
+     "node_modules/@img/sharp-libvips-linuxmusl-x64": {
+-      "version": "1.2.4",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-x64/-/sharp-libvips-linuxmusl-x64-1.2.4.tgz",
+-      "integrity": "sha512-+LpyBk7L44ZIXwz/VYfglaX/okxezESc6UxDSoyo2Ks6Jxc4Y7sGjpgU9s4PMgqgjj1gZCylTieNamqA1MF7Dg==",
++      "version": "1.3.4",
++      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-x64/-/sharp-libvips-linuxmusl-x64-1.3.4.tgz",
++      "integrity": "sha512-6zXKeE/p39I1AmA3cJG35eyBGNqNddLnUXjhwBnsGjFPWqf5VKkDBEqaEkPDoTEtkxwi2vv8Tcr2mDyP4So7Fg==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1380,9 +1399,9 @@
+       }
+     },
+     "node_modules/@img/sharp-linux-arm": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-linux-arm/-/sharp-linux-arm-0.34.5.tgz",
+-      "integrity": "sha512-9dLqsvwtg1uuXBGZKsxem9595+ujv0sJ6Vi8wcTANSFpwV/GONat5eCkzQo/1O6zRIkh0m/8+5BjrRr7jDUSZw==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-linux-arm/-/sharp-linux-arm-0.35.5.tgz",
++      "integrity": "sha512-LEaXK2WdXVK5ykcw0buWyPMsmLLL2vpHLD6yrNSW+JGEL3BZPA4tpKN6iaMc4AxTTAoaX/sU1rOL51lcIz48ZQ==",
+       "cpu": [
+         "arm"
+       ],
+@@ -1392,19 +1411,19 @@
+         "linux"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-linux-arm": "1.2.4"
++        "@img/sharp-libvips-linux-arm": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-linux-arm64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-linux-arm64/-/sharp-linux-arm64-0.34.5.tgz",
+-      "integrity": "sha512-bKQzaJRY/bkPOXyKx5EVup7qkaojECG6NLYswgktOZjaXecSAeCWiZwwiFf3/Y+O1HrauiE3FVsGxFg8c24rZg==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-linux-arm64/-/sharp-linux-arm64-0.35.5.tgz",
++      "integrity": "sha512-LYVx5JTsOM2CBzmxreh+nl64/3H6Xb09iSLknqH47z2T2DFFxDeFLP5y4dJwe6H7uGQlHPyEEtIqyo3DYsRwdQ==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1414,19 +1433,19 @@
+         "linux"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-linux-arm64": "1.2.4"
++        "@img/sharp-libvips-linux-arm64": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-linux-ppc64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-linux-ppc64/-/sharp-linux-ppc64-0.34.5.tgz",
+-      "integrity": "sha512-7zznwNaqW6YtsfrGGDA6BRkISKAAE1Jo0QdpNYXNMHu2+0dTrPflTLNkpc8l7MUP5M16ZJcUvysVWWrMefZquA==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-linux-ppc64/-/sharp-linux-ppc64-0.35.5.tgz",
++      "integrity": "sha512-QVxAAq8evVRI9ia2vqgwrmWucn5Dfv+JdWzj75pD8omHLPSP7f8p20O8jxzjCcuCEQEOtYOZUmX1hkiZ0kdevA==",
+       "cpu": [
+         "ppc64"
+       ],
+@@ -1436,19 +1455,19 @@
+         "linux"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-linux-ppc64": "1.2.4"
++        "@img/sharp-libvips-linux-ppc64": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-linux-riscv64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-linux-riscv64/-/sharp-linux-riscv64-0.34.5.tgz",
+-      "integrity": "sha512-51gJuLPTKa7piYPaVs8GmByo7/U7/7TZOq+cnXJIHZKavIRHAP77e3N2HEl3dgiqdD/w0yUfiJnII77PuDDFdw==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-linux-riscv64/-/sharp-linux-riscv64-0.35.5.tgz",
++      "integrity": "sha512-LtdreXguaavKODPIfzJ4kffx7UNt1omwtK0rch4EBbbSTXPnxWmYSayXdLJw0fJzQ97kHt1gL/yh4tvU+nCyRQ==",
+       "cpu": [
+         "riscv64"
+       ],
+@@ -1458,19 +1477,19 @@
+         "linux"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-linux-riscv64": "1.2.4"
++        "@img/sharp-libvips-linux-riscv64": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-linux-s390x": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-linux-s390x/-/sharp-linux-s390x-0.34.5.tgz",
+-      "integrity": "sha512-nQtCk0PdKfho3eC5MrbQoigJ2gd1CgddUMkabUj+rBevs8tZ2cULOx46E7oyX+04WGfABgIwmMC0VqieTiR4jg==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-linux-s390x/-/sharp-linux-s390x-0.35.5.tgz",
++      "integrity": "sha512-UZasTOFiYzotTsGOCu42BfUzP6Tu6Do/947iRm1RsLKvlllxwGcn4RN27LibGWceix4Y+Pmw3jsnTcCQIgWjqA==",
+       "cpu": [
+         "s390x"
+       ],
+@@ -1480,19 +1499,19 @@
+         "linux"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-linux-s390x": "1.2.4"
++        "@img/sharp-libvips-linux-s390x": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-linux-x64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-linux-x64/-/sharp-linux-x64-0.34.5.tgz",
+-      "integrity": "sha512-MEzd8HPKxVxVenwAa+JRPwEC7QFjoPWuS5NZnBt6B3pu7EG2Ge0id1oLHZpPJdn3OQK+BQDiw9zStiHBTJQQQQ==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-linux-x64/-/sharp-linux-x64-0.35.5.tgz",
++      "integrity": "sha512-SxFtLTeJInhAA9Q836kux2vZNeOBQEx658qvbboZScr0wIARym3IcGmW7KpVD5sbVg0Ojy+udFQdayYIZyoNog==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1502,19 +1521,19 @@
+         "linux"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-linux-x64": "1.2.4"
++        "@img/sharp-libvips-linux-x64": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-linuxmusl-arm64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-linuxmusl-arm64/-/sharp-linuxmusl-arm64-0.34.5.tgz",
+-      "integrity": "sha512-fprJR6GtRsMt6Kyfq44IsChVZeGN97gTD331weR1ex1c1rypDEABN6Tm2xa1wE6lYb5DdEnk03NZPqA7Id21yg==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-linuxmusl-arm64/-/sharp-linuxmusl-arm64-0.35.5.tgz",
++      "integrity": "sha512-9HbMclmI1zlNkFRs3z9/eBtDjfD0sGlrX1z6b1qwmiFY5ElDLh4BC0LPBdVp7z1DXFiKlIcznf+ZlsuZzLxQqg==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1524,19 +1543,19 @@
+         "linux"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-linuxmusl-arm64": "1.2.4"
++        "@img/sharp-libvips-linuxmusl-arm64": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-linuxmusl-x64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-linuxmusl-x64/-/sharp-linuxmusl-x64-0.34.5.tgz",
+-      "integrity": "sha512-Jg8wNT1MUzIvhBFxViqrEhWDGzqymo3sV7z7ZsaWbZNDLXRJZoRGrjulp60YYtV4wfY8VIKcWidjojlLcWrd8Q==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-linuxmusl-x64/-/sharp-linuxmusl-x64-0.35.5.tgz",
++      "integrity": "sha512-4KOphqB035HrVdqLZfCgMzzERrQkkzOwRhl4OAkRO1YCldbaFjySXMaK534Mo0V+LndnlJk+sbUyLeU0ULyD1A==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1546,38 +1565,54 @@
+         "linux"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-libvips-linuxmusl-x64": "1.2.4"
++        "@img/sharp-libvips-linuxmusl-x64": "1.3.4"
+       }
+     },
+     "node_modules/@img/sharp-wasm32": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-wasm32/-/sharp-wasm32-0.34.5.tgz",
+-      "integrity": "sha512-OdWTEiVkY2PHwqkbBI8frFxQQFekHaSSkUIJkwzclWZe64O1X4UlUjqqqLaPbUpMOQk6FBu/HtlGXNblIs0huw==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-wasm32/-/sharp-wasm32-0.35.5.tgz",
++      "integrity": "sha512-Ptsga1su4tQx+LLF1ECS9U6nz5kmrXKo6XVbtR48Ke3ZRxxgaWBu7IDtEe1quo8hiupwm6WFqxVlXaSf7IINGQ==",
++      "license": "Apache-2.0 AND LGPL-3.0-or-later AND MIT",
++      "optional": true,
++      "dependencies": {
++        "@emnapi/runtime": "^1.11.3"
++      },
++      "engines": {
++        "node": ">=20.9.0"
++      },
++      "funding": {
++        "url": "https://opencollective.com/libvips"
++      }
++    },
++    "node_modules/@img/sharp-webcontainers-wasm32": {
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-webcontainers-wasm32/-/sharp-webcontainers-wasm32-0.35.5.tgz",
++      "integrity": "sha512-hfhF/FmoQyTUkA0bIKFOtw536BQSeBMe6BF6QyWlrPxT754+TFLaZ7sKKTfvvM0yJgKgaYTwnFCIZ/GuDw5SUA==",
+       "cpu": [
+         "wasm32"
+       ],
+-      "license": "Apache-2.0 AND LGPL-3.0-or-later AND MIT",
++      "license": "Apache-2.0",
+       "optional": true,
+       "dependencies": {
+-        "@emnapi/runtime": "^1.7.0"
++        "@img/sharp-wasm32": "0.35.5"
+       },
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       }
+     },
+     "node_modules/@img/sharp-win32-arm64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-win32-arm64/-/sharp-win32-arm64-0.34.5.tgz",
+-      "integrity": "sha512-WQ3AgWCWYSb2yt+IG8mnC6Jdk9Whs7O0gxphblsLvdhSpSTtmu69ZG1Gkb6NuvxsNACwiPV6cNSZNzt0KPsw7g==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-win32-arm64/-/sharp-win32-arm64-0.35.5.tgz",
++      "integrity": "sha512-X4t7g+7ZA5DKblCBEXGjUqqemj4vczING/5viFwAL8h4N3qYeyjwdCvRLHi4EdOUI+2Z7UFlp1VM+p/AuEtm6Q==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1587,16 +1622,16 @@
+         "win32"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       }
+     },
+     "node_modules/@img/sharp-win32-ia32": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-win32-ia32/-/sharp-win32-ia32-0.34.5.tgz",
+-      "integrity": "sha512-FV9m/7NmeCmSHDD5j4+4pNI8Cp3aW+JvLoXcTUo0IqyjSfAZJ8dIUmijx1qaJsIiU+Hosw6xM5KijAWRJCSgNg==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-win32-ia32/-/sharp-win32-ia32-0.35.5.tgz",
++      "integrity": "sha512-5Zm82LoBc43nhwNybZlG7Y1KO//Zhsn306fQl29ZOuStHLGTo3BWL83q3cznX0poxSAMuYL1On/BHBxkBeKr6A==",
+       "cpu": [
+         "ia32"
+       ],
+@@ -1606,16 +1641,16 @@
+         "win32"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": "^20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       }
+     },
+     "node_modules/@img/sharp-win32-x64": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.34.5.tgz",
+-      "integrity": "sha512-+29YMsqY2/9eFEiW93eqWnuLcWcufowXewwSNIT6UwZdUUCrM3oFjMWH/Z6/TMmb4hlFenmfAVbpWeup2jryCw==",
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.35.5.tgz",
++      "integrity": "sha512-x76eH0vEiHlcMQu8Y8IenntaACtddpT6W0wmXtWrnKcnKI7ME5DdgqhAD6SEWOEl1v2zDvkZDhFA9KnURwpfqg==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1625,7 +1660,7 @@
+         "win32"
+       ],
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+@@ -1701,25 +1736,26 @@
+       }
+     },
+     "node_modules/@next/env": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/env/-/env-16.2.9.tgz",
+-      "integrity": "sha512-ki5VxxXfzD/9TDe13wyeTKIjQTAwBVpnr8KhRDUr8ltMUq1/NBpWNT5tiPoxiGl+PHM4X2ahSOiPk6iAimIzPg==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/env/-/env-16.4.6.tgz",
++      "integrity": "sha512-SunBjJ6t+oBtecS3dTjdVuMhUogP5wD/vrGL5EVuQYM1iS4O5ilL51HkiJ3sPjMzRHiCChvr4dbaSJbR7F3lxA==",
+       "license": "MIT"
+     },
+     "node_modules/@next/eslint-plugin-next": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/eslint-plugin-next/-/eslint-plugin-next-16.2.9.tgz",
+-      "integrity": "sha512-UZi8+YT/MLgTC9nrrn2Xd4lBYv1B7lVmtWHfPcthAI5Tt/C1LuDe6DfmtCtJ+WQod3ksY4VrKSvk3oMVAnL7qw==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/eslint-plugin-next/-/eslint-plugin-next-16.4.6.tgz",
++      "integrity": "sha512-HdqERVOafOD8JaUSAkwf9aSu/1rsHlkN8C5GcXYBH3C/z1MxBhZFxB5rz/xqMMRiIj7r9tIv8OCLQ9JWUxCvWA==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
++        "@eslint-community/eslint-utils": "4.9.1",
+         "fast-glob": "3.3.1"
+       }
+     },
+     "node_modules/@next/swc-darwin-arm64": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-16.2.9.tgz",
+-      "integrity": "sha512-HkfxNYUCmcct0Xsqib5KxqMSHV4AHJq857BNRchyBDs4YS19aHzVfn1kDuBYKqLLQBjXgnkIsjV2Kd4d2wzYhw==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-16.4.6.tgz",
++      "integrity": "sha512-kJ4VVZkley17xKaJx72QN2IBqjrj7zenCQZaUF0l9ShS/1Mt2kW4+Z5KGG6vgr3L/J562xTOizVyM1iA/u5nlg==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1733,9 +1769,9 @@
+       }
+     },
+     "node_modules/@next/swc-darwin-x64": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-16.2.9.tgz",
+-      "integrity": "sha512-7IAtK4MeybpqRV9GRABWEhJ62mOS+rzWOzOTFie4cSEtm12xsoOMJRcECoZx3FHPzFAqN/IJtHqWAFOLfl152w==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-16.4.6.tgz",
++      "integrity": "sha512-eIPGZIqC+8JKaeZmvnCANJQF4xWkkHqSnAAajtFxgwDMAOnCgxNvP52SeWZ41PyVwoe+Le/NQuZSaQ8j7YshSA==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1749,9 +1785,9 @@
+       }
+     },
+     "node_modules/@next/swc-linux-arm64-gnu": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-gnu/-/swc-linux-arm64-gnu-16.2.9.tgz",
+-      "integrity": "sha512-hBD75iWpUtkL9SmQmcRhmLomn9jgkPzCEkbOcLgHymPEKzv+6ONy13RRiIEz/iEObjkS2Jlb5gYS2XGoS3X4rw==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-gnu/-/swc-linux-arm64-gnu-16.4.6.tgz",
++      "integrity": "sha512-9nI6O8vvczH2D9ZNdMGqb/3NuT15T9ksOZnAmx9/gjF2cOi74+xxyf1Hk96uIMfm14c9y6wHeBq6SH8g6udvcA==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1765,9 +1801,9 @@
+       }
+     },
+     "node_modules/@next/swc-linux-arm64-musl": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-musl/-/swc-linux-arm64-musl-16.2.9.tgz",
+-      "integrity": "sha512-qZTI3pf9SGc/obr8NkQAekBxmp1QK+kVm+VAf3BALLfFAj+1kUhkTxmrWpVos9R/UYIA8AWX2p6cGI5WdwzVUA==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-musl/-/swc-linux-arm64-musl-16.4.6.tgz",
++      "integrity": "sha512-7/qPhTxDp2ScluOJOhLuhWmlA17o1yZ0SIgpISBCpBxXgtnK4+KGywBpFkfLPiU1rnSM1faFGzYkH6i7JdTrqA==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1781,9 +1817,9 @@
+       }
+     },
+     "node_modules/@next/swc-linux-x64-gnu": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-gnu/-/swc-linux-x64-gnu-16.2.9.tgz",
+-      "integrity": "sha512-xm0HfRNX+UkH4R3c18ynswjj5o5uEj/7iI9p9omdtTSIsRCzQqkGMA+10nzJ4EHnYC3as65IMhbbl5fWRUWHYg==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-gnu/-/swc-linux-x64-gnu-16.4.6.tgz",
++      "integrity": "sha512-oOpbNa8XOW1qCGd9VvzC4fbkkRxEls7/WI6tz+YHC0xRA7KpV1U7DrAnCPjzVyOk/karzWEepCOcTIDmwK8FwQ==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1797,9 +1833,9 @@
+       }
+     },
+     "node_modules/@next/swc-linux-x64-musl": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-musl/-/swc-linux-x64-musl-16.2.9.tgz",
+-      "integrity": "sha512-QumimHkGEG6vM3PfEDWKyKen03NcqLOkeKB1EfcPe7VxzmEiCa4jNnMyBn/US5zcd/VE1CI+O8Ovb3lfjVHfGw==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-musl/-/swc-linux-x64-musl-16.4.6.tgz",
++      "integrity": "sha512-aM8CZ+OR2EwXaAYw7KGkW2GDmNDsLBIRe1MMRZCJPTdw/xhTD0IMUVO4sf3KqrzuRouGzwwLZn34+gFeVXiUQA==",
+       "cpu": [
+         "x64"
+       ],
+@@ -1813,9 +1849,9 @@
+       }
+     },
+     "node_modules/@next/swc-win32-arm64-msvc": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/swc-win32-arm64-msvc/-/swc-win32-arm64-msvc-16.2.9.tgz",
+-      "integrity": "sha512-hzQpKZvw8rAwI6A2uQh6SacCSvNAXaIkPNsWwzqqfRiIMiXMfH936skDhz1OO6KpvdKkJrgHHtqQOq5PIXOvdQ==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/swc-win32-arm64-msvc/-/swc-win32-arm64-msvc-16.4.6.tgz",
++      "integrity": "sha512-U0p7/tEtqvHX2crhd841CDwKtp5CFkKXVjOhmfccR3Pvp64sj8KBwRqsvltqLOwVBbj0NtkxwXSDpEHYGbxeXQ==",
+       "cpu": [
+         "arm64"
+       ],
+@@ -1829,9 +1865,9 @@
+       }
+     },
+     "node_modules/@next/swc-win32-x64-msvc": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-16.2.9.tgz",
+-      "integrity": "sha512-qr2VL3Ce5QrwgO2yh1ujSBawrimjVKX8FGF/cOynmdYKJY0BdHpGVNIRK1tqONB10Vkm25Ub1BD2bkjWs4+96w==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-16.4.6.tgz",
++      "integrity": "sha512-3ZG15/5WIdlTQsIEvc9sPTTSL5XFrlLklIKmfF4fwsDnoAhu6NcBDXsk3mbGxNyo6aVLEGex+fHCv2MahY7a9g==",
+       "cpu": [
+         "x64"
+       ],
+@@ -2385,9 +2421,9 @@
+       }
+     },
+     "node_modules/@swc/helpers": {
+-      "version": "0.5.15",
+-      "resolved": "https://registry.npmjs.org/@swc/helpers/-/helpers-0.5.15.tgz",
+-      "integrity": "sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==",
++      "version": "0.5.23",
++      "resolved": "https://registry.npmjs.org/@swc/helpers/-/helpers-0.5.23.tgz",
++      "integrity": "sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==",
+       "license": "Apache-2.0",
+       "dependencies": {
+         "tslib": "^2.8.0"
+@@ -4687,21 +4723,21 @@
+       }
+     },
+     "node_modules/eslint-config-next": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/eslint-config-next/-/eslint-config-next-16.2.9.tgz",
+-      "integrity": "sha512-olGtBrs07bQchpaJWeqbk9GaMoU0oGmN/pYNEBXSbfgKngb5uHnPe37X6tVeh6DJfaWFQildvinGEOrolo5fmw==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/eslint-config-next/-/eslint-config-next-16.4.6.tgz",
++      "integrity": "sha512-IBGGrVf9E6pL0NGL0hmeicVGeSyv1VEzIWq6IecDqkw+YFByhEtDJS9u1r6s6a1VxK6rssh69KyNFQUgfaacqw==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+-        "@next/eslint-plugin-next": "16.2.9",
++        "@next/eslint-plugin-next": "16.4.6",
+         "eslint-import-resolver-node": "^0.3.6",
+         "eslint-import-resolver-typescript": "^3.5.2",
+         "eslint-plugin-import": "^2.32.0",
+         "eslint-plugin-jsx-a11y": "^6.10.0",
+         "eslint-plugin-react": "^7.37.0",
+-        "eslint-plugin-react-hooks": "^7.0.0",
++        "eslint-plugin-react-hooks": "^7.1.0",
+         "globals": "16.4.0",
+-        "typescript-eslint": "^8.46.0"
++        "typescript-eslint": "^8.56.0"
+       },
+       "peerDependencies": {
+         "eslint": ">=9.0.0",
+@@ -6742,9 +6778,9 @@
+       "license": "MIT"
+     },
+     "node_modules/nanoid": {
+-      "version": "3.3.15",
+-      "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.3.15.tgz",
+-      "integrity": "sha512-y7Wygv/7mEOvxTuEQDB8StXdMRBWf1kR/tlhAzBRUFkB2jfcLOAxO/SHmOO2zgz1pVgK29/kyupn059/bCHdjA==",
++      "version": "3.3.20",
++      "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.3.20.tgz",
++      "integrity": "sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==",
+       "funding": [
+         {
+           "type": "github",
+@@ -6783,16 +6819,16 @@
+       "license": "MIT"
+     },
+     "node_modules/next": {
+-      "version": "16.2.9",
+-      "resolved": "https://registry.npmjs.org/next/-/next-16.2.9.tgz",
+-      "integrity": "sha512-MEOJiq/UvuezAdqVSceHbqDgZt1kDw2tpGVOlsdIoJsQdbN2JY2hpVG4xnXGkbdJUOEWhnRfiu/O4Hpc9Juwww==",
++      "version": "16.4.6",
++      "resolved": "https://registry.npmjs.org/next/-/next-16.4.6.tgz",
++      "integrity": "sha512-QZJiYhaZLJMo2KpkQGQIwvmd79WVsAWeYIU554a8d7zArS3si/IRy3lBNV/rtYhE70oLwdLYhPAXLPx8HwcwtA==",
+       "license": "MIT",
+       "dependencies": {
+-        "@next/env": "16.2.9",
+-        "@swc/helpers": "0.5.15",
++        "@next/env": "16.4.6",
++        "@swc/helpers": "0.5.23",
+         "baseline-browser-mapping": "^2.9.19",
+         "caniuse-lite": "^1.0.30001579",
+-        "postcss": "8.4.31",
++        "postcss": "8.5.23",
+         "styled-jsx": "5.1.6"
+       },
+       "bin": {
+@@ -6802,15 +6838,15 @@
+         "node": ">=20.9.0"
+       },
+       "optionalDependencies": {
+-        "@next/swc-darwin-arm64": "16.2.9",
+-        "@next/swc-darwin-x64": "16.2.9",
+-        "@next/swc-linux-arm64-gnu": "16.2.9",
+-        "@next/swc-linux-arm64-musl": "16.2.9",
+-        "@next/swc-linux-x64-gnu": "16.2.9",
+-        "@next/swc-linux-x64-musl": "16.2.9",
+-        "@next/swc-win32-arm64-msvc": "16.2.9",
+-        "@next/swc-win32-x64-msvc": "16.2.9",
+-        "sharp": "^0.34.5"
++        "@next/swc-darwin-arm64": "16.4.6",
++        "@next/swc-darwin-x64": "16.4.6",
++        "@next/swc-linux-arm64-gnu": "16.4.6",
++        "@next/swc-linux-arm64-musl": "16.4.6",
++        "@next/swc-linux-x64-gnu": "16.4.6",
++        "@next/swc-linux-x64-musl": "16.4.6",
++        "@next/swc-win32-arm64-msvc": "16.4.6",
++        "@next/swc-win32-x64-msvc": "16.4.6",
++        "sharp": "^0.35.5"
+       },
+       "peerDependencies": {
+         "@opentelemetry/api": "^1.1.0",
+@@ -6836,9 +6872,9 @@
+       }
+     },
+     "node_modules/next/node_modules/postcss": {
+-      "version": "8.4.31",
+-      "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.4.31.tgz",
+-      "integrity": "sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ==",
++      "version": "8.5.23",
++      "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.5.23.tgz",
++      "integrity": "sha512-g50586zr4bZmwFiTlflMu8E0bDTb5I5gertgwAKmsdUlTQIhZtunzUlD1WSzwcVWPoAVpsrA6vlfCD7oXvRwgg==",
+       "funding": [
+         {
+           "type": "opencollective",
+@@ -6855,9 +6891,9 @@
+       ],
+       "license": "MIT",
+       "dependencies": {
+-        "nanoid": "^3.3.6",
+-        "picocolors": "^1.0.0",
+-        "source-map-js": "^1.0.2"
++        "nanoid": "^3.3.16",
++        "picocolors": "^1.1.1",
++        "source-map-js": "^1.2.1"
+       },
+       "engines": {
+         "node": "^10 || ^12 || >=14"
+@@ -7683,48 +7719,53 @@
+       }
+     },
+     "node_modules/sharp": {
+-      "version": "0.34.5",
+-      "resolved": "https://registry.npmjs.org/sharp/-/sharp-0.34.5.tgz",
+-      "integrity": "sha512-Ou9I5Ft9WNcCbXrU9cMgPBcCK8LiwLqcbywW3t4oDV37n1pzpuNLsYiAV8eODnjbtQlSDwZ2cUEeQz4E54Hltg==",
+-      "hasInstallScript": true,
++      "version": "0.35.5",
++      "resolved": "https://registry.npmjs.org/sharp/-/sharp-0.35.5.tgz",
++      "integrity": "sha512-Ywn4OnzGukp7CDMrp08RQ50YKmuwG47brZgIVPTvBaaAfQlRlygrRqSrxdCiL9M+LlzLBiJ68IR1QqvzHyjC7g==",
+       "license": "Apache-2.0",
+       "optional": true,
+       "dependencies": {
+-        "@img/colour": "^1.0.0",
++        "@img/colour": "^1.1.0",
+         "detect-libc": "^2.1.2",
+-        "semver": "^7.7.3"
++        "semver": "^7.8.5"
+       },
+       "engines": {
+-        "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
++        "node": ">=20.9.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/libvips"
+       },
+       "optionalDependencies": {
+-        "@img/sharp-darwin-arm64": "0.34.5",
+-        "@img/sharp-darwin-x64": "0.34.5",
+-        "@img/sharp-libvips-darwin-arm64": "1.2.4",
+-        "@img/sharp-libvips-darwin-x64": "1.2.4",
+-        "@img/sharp-libvips-linux-arm": "1.2.4",
+-        "@img/sharp-libvips-linux-arm64": "1.2.4",
+-        "@img/sharp-libvips-linux-ppc64": "1.2.4",
+-        "@img/sharp-libvips-linux-riscv64": "1.2.4",
+-        "@img/sharp-libvips-linux-s390x": "1.2.4",
+-        "@img/sharp-libvips-linux-x64": "1.2.4",
+-        "@img/sharp-libvips-linuxmusl-arm64": "1.2.4",
+-        "@img/sharp-libvips-linuxmusl-x64": "1.2.4",
+-        "@img/sharp-linux-arm": "0.34.5",
+-        "@img/sharp-linux-arm64": "0.34.5",
+-        "@img/sharp-linux-ppc64": "0.34.5",
+-        "@img/sharp-linux-riscv64": "0.34.5",
+-        "@img/sharp-linux-s390x": "0.34.5",
+-        "@img/sharp-linux-x64": "0.34.5",
+-        "@img/sharp-linuxmusl-arm64": "0.34.5",
+-        "@img/sharp-linuxmusl-x64": "0.34.5",
+-        "@img/sharp-wasm32": "0.34.5",
+-        "@img/sharp-win32-arm64": "0.34.5",
+-        "@img/sharp-win32-ia32": "0.34.5",
+-        "@img/sharp-win32-x64": "0.34.5"
++        "@img/sharp-darwin-arm64": "0.35.5",
++        "@img/sharp-darwin-x64": "0.35.5",
++        "@img/sharp-freebsd-wasm32": "0.35.5",
++        "@img/sharp-libvips-darwin-arm64": "1.3.4",
++        "@img/sharp-libvips-darwin-x64": "1.3.4",
++        "@img/sharp-libvips-linux-arm": "1.3.4",
++        "@img/sharp-libvips-linux-arm64": "1.3.4",
++        "@img/sharp-libvips-linux-ppc64": "1.3.4",
++        "@img/sharp-libvips-linux-riscv64": "1.3.4",
++        "@img/sharp-libvips-linux-s390x": "1.3.4",
++        "@img/sharp-libvips-linux-x64": "1.3.4",
++        "@img/sharp-libvips-linuxmusl-arm64": "1.3.4",
++        "@img/sharp-libvips-linuxmusl-x64": "1.3.4",
++        "@img/sharp-linux-arm": "0.35.5",
++        "@img/sharp-linux-arm64": "0.35.5",
++        "@img/sharp-linux-ppc64": "0.35.5",
++        "@img/sharp-linux-riscv64": "0.35.5",
++        "@img/sharp-linux-s390x": "0.35.5",
++        "@img/sharp-linux-x64": "0.35.5",
++        "@img/sharp-linuxmusl-arm64": "0.35.5",
++        "@img/sharp-linuxmusl-x64": "0.35.5",
++        "@img/sharp-webcontainers-wasm32": "0.35.5",
++        "@img/sharp-win32-arm64": "0.35.5",
++        "@img/sharp-win32-ia32": "0.35.5",
++        "@img/sharp-win32-x64": "0.35.5"
++      },
++      "peerDependenciesMeta": {
++        "@types/node": {
++          "optional": true
++        }
+       }
+     },
+     "node_modules/sharp/node_modules/semver": {
+diff --git a/terminal/package.json b/terminal/package.json
+index 9dd360467..d9a47a03b 100644
+--- a/terminal/package.json
++++ b/terminal/package.json
+@@ -25,7 +25,7 @@
+     "ajv-formats": "^3.0.1",
+     "cookie": "^1.0.2",
+     "lightweight-charts": "^5.2.0",
+-    "next": "16.2.9",
++    "next": "16.4.6",
+     "react": "19.2.4",
+     "react-dom": "19.2.4",
+     "server-only": "^0.0.1",
+@@ -41,7 +41,7 @@
+     "@types/three": "0.186.0",
+     "esbuild": "^0.21.5",
+     "eslint": "^9",
+-    "eslint-config-next": "16.2.9",
++    "eslint-config-next": "16.4.6",
+     "jsdom": "^26.1.0",
+     "pngjs": "7.0.0",
+     "tailwindcss": "^4",

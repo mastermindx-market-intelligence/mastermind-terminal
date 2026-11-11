@@ -1,0 +1,310 @@
+{
+  "schema": "terminal-pr-source-proof-v1",
+  "operation_id": "terminal-pr-estate-support-20261111-c3-496",
+  "recorded_date": "2026-11-11",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pr": 496,
+  "original_branch": "sol/terminal-r1t-toolbar-settled-20260831",
+  "original_head": "f664ba3d604934572ea50a98a8560abfac0631f8",
+  "integrated_protected_master": "74c007125129090cc762f2bc4b1b152123326444",
+  "tested_source_tree": "0354429170eb12b539424d03d9f2992015385a5e",
+  "law_pin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "source_blobs": [
+    {
+      "path": "terminal/e2e/layout-integrity.spec.ts",
+      "blob": "f14bda81ecbedf7fcbcd69bf01c046343bfcce61"
+    },
+    {
+      "path": "terminal/e2e/terminalToolbar.ts",
+      "blob": "f7668594d06aaf095eb1d23149f3eea577184af7"
+    },
+    {
+      "path": "terminal/e2e/w2a-workspaces.spec.ts",
+      "blob": "284aee2880dd124ec172d2daabbbfcb105e9b379"
+    },
+    {
+      "path": "terminal/lib/__tests__/terminalToolbarDeadline.test.ts",
+      "blob": "7f6fb00b2a8cec7be5f61cd50bf33d613e8c74fe"
+    },
+    {
+      "path": "terminal/lib/__tests__/useAdaptiveToolbar.test.ts",
+      "blob": "418f187d758045865d026436af06472a84cff6dd"
+    },
+    {
+      "path": "terminal/lib/useAdaptiveToolbar.ts",
+      "blob": "a32f999a61b14033ac3ea29af1dc807d609a21b3"
+    }
+  ],
+  "scope": "Preserve accepted adaptive-toolbar implementation; compose current layout/workspace browser coverage and one bounded phone toolbar intent.",
+  "static": {
+    "units": {
+      "passed": 43,
+      "failed": 0,
+      "hook_tests": 7,
+      "deadline_tests": 36,
+      "new_phone_regressions": 5
+    },
+    "lint": "PASS",
+    "typegen": "PASS",
+    "full_typecheck": "PASS",
+    "diff_check_against_integrated_master": "PASS",
+    "initial_diff_check": {
+      "returncode": 2,
+      "qualification": "Compared against stale original PR HEAD and flagged inherited protected-master whitespace across historical changes. The owned six-path diff against 74c007125129090cc762f2bc4b1b152123326444 passes; no unrelated cleanup was performed."
+    },
+    "raw_checks": [
+      {
+        "name": "diff-check",
+        "returncode": 2,
+        "seconds": 8.85,
+        "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/diff-check.log"
+      },
+      {
+        "name": "toolbar-units",
+        "returncode": 0,
+        "seconds": 14.4,
+        "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/toolbar-units.log"
+      },
+      {
+        "name": "scoped-lint",
+        "returncode": 0,
+        "seconds": 9.76,
+        "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/scoped-lint.log"
+      },
+      {
+        "name": "typegen",
+        "returncode": 0,
+        "seconds": 6.49,
+        "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/typegen.log"
+      },
+      {
+        "name": "typecheck",
+        "returncode": 0,
+        "seconds": 92.48,
+        "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/typecheck.log"
+      }
+    ]
+  },
+  "browser": {
+    "unique_selected_cases": 56,
+    "unique_cases_proven": 56,
+    "original": {
+      "startTime": "2026-11-11T08:24:04.250Z",
+      "duration": 846005.015,
+      "expected": 37,
+      "skipped": 0,
+      "unexpected": 19,
+      "flaky": 0,
+      "execution": {
+        "returncode": 1,
+        "seconds": 853.58,
+        "port": 57727,
+        "port_open_after": false,
+        "source_count": 6469,
+        "source_changed": [],
+        "next_lock_exists": true
+      },
+      "classification": "37 cases passed; 19 were interrupted/prelaunch failures after the shared Chromium executable disappeared. The first affected case reports browserContext.newPage closed; subsequent launch errors report a missing executable. The cause of the executable disappearance is unproven."
+    },
+    "recovery": {
+      "startTime": "2026-11-11T08:44:55.741Z",
+      "duration": 378484.583,
+      "expected": 19,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0,
+      "execution": {
+        "returncode": 0,
+        "seconds": 385.83,
+        "port": 57727,
+        "port_open_after": false,
+        "source_count": 6469,
+        "source_changed": [],
+        "lock_path_exists": true,
+        "lock_open_handles": false,
+        "lock_observation": "",
+        "lock_stderr": ""
+      },
+      "classification": "Only the 19 affected case instances were resumed. All passed, one worker, retries=0; the original 37 passing cases were not rerun.",
+      "environment": {
+        "returncode": 0,
+        "seconds": 30.22,
+        "versions": [
+          "1.61.1",
+          "1.61.1"
+        ],
+        "cache": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/.playwright-browsers",
+        "global_cache_modified": false,
+        "original_browser_port_closed": true,
+        "original_lock_open_handles": false
+      }
+    },
+    "source_snapshot": {
+      "count": 6469,
+      "sha256": "0bced9c8dbe97cd92e6c43cb263e15c7522bcd880b510aa424b54f3e31eb1838",
+      "before_after_changed": [],
+      "file": "browser-source-before.json.gz"
+    },
+    "no_skip_or_retry_added": true,
+    "original_results_preserved": true,
+    "case_identity_reconciliation": "The set of original non-expected (file, full title, project) identities exactly equals the set of resumed identities. Original and resumed attempts each have retry=0."
+  },
+  "captures": [
+    {
+      "name": "1440-en-ready",
+      "bytes": 297627,
+      "sha256": "46ee6e42d38ada07af8527ae430c1d57f49f0e76a120f448730defe87c453097",
+      "git_blob": "974edd0d70ee5e12333e4d1f35dbdfcdfa441254",
+      "path": "captures/1440-en-ready.png",
+      "visually_inspected": true
+    },
+    {
+      "name": "820-en-row-open",
+      "bytes": 169714,
+      "sha256": "296236429bd9e99eeb9b3977f943f5510179655c2c8f29f5b794a52ade6790d0",
+      "git_blob": "821d5b01ceef86ea70b72b5197697910d1776cc7",
+      "path": "captures/820-en-row-open.png",
+      "visually_inspected": true
+    },
+    {
+      "name": "390-en-hub-entry",
+      "bytes": 75650,
+      "sha256": "02f8bc46c92902c58ced39d078c0d2957349b8bfa6b239570d7d634a9bdf8948",
+      "git_blob": "94c8e1163c4e8873e2d951654e67739f12c8997d",
+      "path": "captures/390-en-hub-entry.png",
+      "visually_inspected": true
+    },
+    {
+      "name": "390-en-ready",
+      "bytes": 66966,
+      "sha256": "e4e6869a8b16c0834e8b4c74731f4fcd95b3a8c340cb5b8c8b1fc2b14c76386d",
+      "git_blob": "810f00f774c35e1ae4ad2fe610fe5b02d29c093e",
+      "path": "captures/390-en-ready.png",
+      "visually_inspected": true
+    },
+    {
+      "name": "390-zh-row-open",
+      "bytes": 67700,
+      "sha256": "853ef5b94a567cbc4d8de1eb2ec205b53d50a7df2ff3f71f267ad0d80b594514",
+      "git_blob": "05092109576f6d2ff266163dcc136b36ca63a8ee",
+      "path": "captures/390-zh-row-open.png",
+      "visually_inspected": true
+    }
+  ],
+  "visual_findings": "Desktop menu and tablet workspace row actions fit their viewports. Phone hub exposes Workspaces and Replay; phone workspace save and Chinese row actions render coherently. These are local fixture-backed browser captures, not production acceptance.",
+  "artifacts": [
+    {
+      "name": "checks-initial.json",
+      "bytes": 1259,
+      "sha256": "d86f9eb59f23ec15758c8c22e589cec43eee0022c5e58e27c64407c516e72815",
+      "git_blob": "1492dceb9be42d67be002647f5941e0889135f03"
+    },
+    {
+      "name": "toolbar-units.log",
+      "bytes": 1744,
+      "sha256": "0f721f3baa24e8a204b6188f40f6af33a24231e95c33dfd5a1e18ba20b8ae9db",
+      "git_blob": "f7db1cce595f758977eba6492a58fda33b96e09c"
+    },
+    {
+      "name": "scoped-lint.log",
+      "bytes": 939,
+      "sha256": "19082c32bec00d202e09eac6686180bef74fdc1f0c7b8308a92a0c0e056fdabd",
+      "git_blob": "43464f52213ccb39c3e8d69bd0f100ad0f064d85"
+    },
+    {
+      "name": "typegen.log",
+      "bytes": 59,
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "git_blob": "7bab5fceadb39ca7d44c9f1a13fba79599520d0b"
+    },
+    {
+      "name": "typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "name": "diff-against-protected.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "name": "browser-report.json.gz",
+      "bytes": 573697,
+      "sha256": "7c50f8b9c0da6663b86f985aab69e8d7445d3a0be8355ed4b3b4a32fad90aa98",
+      "git_blob": "b916d4646fc8d3511c9f1711afced6f2b361de5f"
+    },
+    {
+      "name": "browser.log.gz",
+      "bytes": 3889,
+      "sha256": "5681544acd0c2f652f442d64f7171849ac0fb0d2c8fd7a98b6f3b3dc0ed35a60",
+      "git_blob": "0845f274b665fd850ec1a9c6438d721a3fedd6e7"
+    },
+    {
+      "name": "browser-execution.json",
+      "bytes": 164,
+      "sha256": "bebbf02c594dba782fc0738f54516d741d4c0a85376b3b8a824eb15ecfed51d1",
+      "git_blob": "3d50b03465764b60cf4bfd9d958d7701b9b1625a"
+    },
+    {
+      "name": "browser-recovery-report.json.gz",
+      "bytes": 3117,
+      "sha256": "763b66860c219ad29a6b2124f4694a93a15aeb04f52da307d2582ee2e7741a63",
+      "git_blob": "ccb1e5287c8f90e25928f3696a817c1833661457"
+    },
+    {
+      "name": "browser-recovery.log",
+      "bytes": 4208,
+      "sha256": "7724ce8c7b24a957268956255438393c500e889e7b63a2a21b4d9076bab2397a",
+      "git_blob": "90c5558e98716e4ea5ff0c09fa26553410d87b40"
+    },
+    {
+      "name": "browser-recovery-execution.json",
+      "bytes": 241,
+      "sha256": "ef597350dfd89662e5b2f97ff428d2285c62a453814394e8ff3271a6dd1a6c28",
+      "git_blob": "a38ab1ed0328e40a3a7011de6006617b04bc1182"
+    },
+    {
+      "name": "browser-recovery-command.json",
+      "bytes": 1331,
+      "sha256": "86a62132940e8d744c037c796d72e0328401bbcec854c7d54118e6394460f409",
+      "git_blob": "9807308c28b0c92e3cd0435ceabd1ad59fc0d4eb"
+    },
+    {
+      "name": "browser-recovery-environment.json",
+      "bytes": 331,
+      "sha256": "ccc194a17b5b8f487ab541b899fbed554e7dddb85927333d75a1693c8f166860",
+      "git_blob": "0bcd0e4bb6956de9937ca1db77e99f5e3aa712c6"
+    },
+    {
+      "name": "chromium-install-owned-cache.log",
+      "bytes": 7035,
+      "sha256": "dda2756e538f4d92f216951de3775643f7ee13aab592d17d1c92f7bd2f5564eb",
+      "git_blob": "eaf791cb56604b347ebb13b0f0a42c5c5aceb9f5"
+    },
+    {
+      "name": "browser-source-before.json.gz",
+      "bytes": 286131,
+      "sha256": "a1b72a2e0b90714b551c80e83134833fd49d8d7f1e39654959eaa041a575d4ef",
+      "git_blob": "bc5bc6dfb9f255c1232cd79060d2a2dcee5bf067"
+    }
+  ],
+  "release_state": {
+    "ready": true,
+    "merge_blocked": true,
+    "auto_merge_enabled": false,
+    "native_changes_requested_reviews": [
+      5108504922,
+      5108886118
+    ],
+    "required_ci": "Fresh publication-head CI pending",
+    "production_or_deployment_proven": false
+  },
+  "limitations": [
+    "The accepted hook bytes are unchanged. Existing sibling failToolbar/openOverflow false-failure classification, callback-clock origin, and revision-proxy late-toggle followups are not represented as fixed by this integration.",
+    "Protected master advanced subsequently to 18fabe9d3c1439c4185559ba5ce491518fe999c9 in two disjoint screener files. Hosted CI must qualify the current merge projection.",
+    "Initial wrapper exit status was not used as the browser verdict: browser-execution.json correctly retains child returncode=1.",
+    "The Next lock pathname remained after the runs; the listener was closed and the recovery receipt proves no open lock handles. No unrelated process cleanup was attempted."
+  ]
+}

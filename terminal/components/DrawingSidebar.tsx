@@ -18,6 +18,7 @@ import {
 } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { Tip } from "@/components/ui/Tip";
+import styles from "./DrawingSidebar.module.css";
 import {
   DRAWING_TOOL_GROUPS,
   getDrawingTool,
@@ -36,8 +37,8 @@ type FavoritePositions = { desktop: FavoritePosition; compact: FavoritePosition 
 
 export type DrawingSidebarProps = {
   tool: DrawKind | null;
-  /** Drawing creation is retired while Replay or a multi-chart grid is active. */
-  creationDisabledReason: "replay" | "multi-chart" | null;
+  /** Creation follows the shell's readiness fence and Replay/multi-chart restrictions. */
+  creationDisabledReason: "loading" | "replay" | "multi-chart" | null;
   magnet: DrawingMagnetMode;
   /** Effective keep-active state: global Stay, a per-tool pin, or freehand auto-stay. */
   sticky: boolean;
@@ -54,7 +55,8 @@ export type DrawingSidebarProps = {
   canUndo: boolean;
   canRedo: boolean;
   drawStyle: DrawingStyle;
-  onTool: (id: DrawKind | null) => void;
+  /** Requests a tool. Return `false` when the parent refuses it (e.g. drawings not loaded). */
+  onTool: (id: DrawKind | null) => boolean | void;
   onMagnet: (mode: DrawingMagnetMode) => void;
   onSticky: (sticky: boolean) => void;
   onPinned: (tool: DrawKind | null) => void;
@@ -204,6 +206,12 @@ export default function DrawingSidebar({
   const [favoritesDragging, setFavoritesDragging] = useState(false);
   const [favoritePositions, setFavoritePositions] = useState<FavoritePositions>(DEFAULT_FAVORITE_POSITIONS);
   const selectedTool = getDrawingTool(tool);
+  // Each group remembers the last tool the parent actually armed — from this dock or any
+  // other surface — never a request the parent refused. Adjusted during render so the
+  // memory never lags the `tool` prop.
+  if (selectedTool && lastUsed[selectedTool.groupId] !== selectedTool.id) {
+    setLastUsed({ ...lastUsed, [selectedTool.groupId]: selectedTool.id });
+  }
   const creationDisabled = creationDisabledReason !== null;
   const favoriteMode = isMobile ? "compact" : "desktop";
   const favoritePosition = favoritePositions[favoriteMode];
@@ -634,12 +642,9 @@ export default function DrawingSidebar({
     if (creationDisabled) return;
     const registered = getDrawingTool(nextTool.id);
     if (!registered) return;
-    setLastUsed((current) => (
-      current[registered.groupId] === registered.id
-        ? current
-        : { ...current, [registered.groupId]: registered.id }
-    ));
-    onTool(registered.id);
+    // lastUsed follows the `tool` prop (see `selectedTool` above), so a refused or
+    // ignored request never repaints its group button. A refusal must not pin either.
+    if (onTool(registered.id) === false) return;
     if (pin === true) onPinned(registered.id);
     else if (pin === false) onPinned(null);
   }
@@ -808,7 +813,7 @@ export default function DrawingSidebar({
   return (
     <>
     <div
-      className="ds-dock"
+      className={`ds-dock ${styles.dock}`}
       ref={captureSidebar}
       role="toolbar"
       aria-label={t("drawingToolbar")}
@@ -921,7 +926,8 @@ export default function DrawingSidebar({
               : labeled(mainButton, shownLabel, {
                   shortcut: shown.shortcut?.label,
                   hint: creationDisabled
-                    ? t(creationDisabledReason === "replay" ? "drawingUnavailableReplay" : "drawingUnavailableMultiChart")
+                    ? t(creationDisabledReason === "loading" ? "loading"
+                      : creationDisabledReason === "replay" ? "drawingUnavailableReplay" : "drawingUnavailableMultiChart")
                     : autoKeepsActive
                       ? t("drawingFreehandStaysActive")
                       : t(pinned && active ? "drawingDoubleClickUnlock" : "drawingDoubleClickKeepActive"),

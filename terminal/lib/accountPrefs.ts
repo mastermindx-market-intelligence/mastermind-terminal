@@ -206,3 +206,101 @@ export function readLang(): LangId {
   const attr = document.documentElement.getAttribute("data-lang");
   return isLangId(attr) ? attr : "en";
 }
+
+// ── write fence (B-F08-7b) ────────────────────────────────────────────────────────────────
+//
+// The Terminal already writes key-scoped at the top level. This closed set turns that from an
+// observed property into an invariant: a user_metadata patch cannot name a key the Terminal
+// does not own. Alert delivery keys (`alert_email_optin`, `alert_categories`, `tz`,
+// `quiet_hours`) and macro's `brain_depth` are absent by construction. A dropped key is
+// dropped, never thrown — a preference write must not crash a signed-in session.
+
+/** Top-level `user_metadata` keys the Terminal client is permitted to write. */
+export const TERMINAL_WRITE_KEYS = [
+  "market_focus",
+  "markets",
+  "terminal",
+  "theme",
+  "theme_auto",
+  "lang",
+  "prefs",
+  "trade_types",
+  "display_name",
+  "first_name",
+  "last_name",
+  "theme_pref",
+  "onboarded_at",
+] as const;
+
+export type TerminalWriteKey = (typeof TERMINAL_WRITE_KEYS)[number];
+
+const TERMINAL_WRITE_KEY_SET: ReadonlySet<string> = new Set(TERMINAL_WRITE_KEYS);
+
+/**
+ * Filter a user_metadata patch to TERMINAL_WRITE_KEYS. Pure: no React, no Supabase, no I/O.
+ * `dropped` names every key that was removed. Unknown keys the Terminal never owned are
+ * never returned in `data`. A null, undefined, or array patch is not a key map: `data`
+ * is empty and `dropped` names the shape so the send helper can take the not-sent branch.
+ */
+export function scopeAccountWrite(patch: unknown): {
+  data: Record<string, unknown>;
+  dropped: string[];
+} {
+  const data: Record<string, unknown> = {};
+  const dropped: string[] = [];
+  if (patch === null) return { data, dropped: ["null"] };
+  if (patch === undefined) return { data, dropped: ["undefined"] };
+  if (Array.isArray(patch)) return { data, dropped: ["array"] };
+  if (!patch || typeof patch !== "object") return { data, dropped: [typeof patch] };
+  for (const key of Object.keys(patch as Record<string, unknown>)) {
+    if (TERMINAL_WRITE_KEY_SET.has(key)) data[key] = (patch as Record<string, unknown>)[key];
+    else dropped.push(key);
+  }
+  return { data, dropped };
+}
+
+/** The not-sent outcome of `sendScopedAccountWrite`. Same `{ error }` shape callers already treat as failure.
+ *  `name` only — no display message. The developer text lives solely in the dev-mode console.warn. */
+export type ScopedToEmptyResult = {
+  error: { name: "ScopedToEmpty" };
+  dropped: string[];
+};
+
+export function isScopedToEmpty(result: unknown): result is ScopedToEmptyResult {
+  if (!result || typeof result !== "object") return false;
+  const err = (result as { error?: unknown }).error;
+  return !!err && typeof err === "object" && (err as { name?: unknown }).name === "ScopedToEmpty";
+}
+
+/**
+ * Apply the write fence, warn in development about anything dropped, and call `send` only
+ * when at least one owned key remains.
+ *
+ * Three outcomes:
+ *   - sent — every key is owned; `send` is called with the patch.
+ *   - scoped-and-sent — some keys are dropped; `send` is called with the owned remainder.
+ *   - not sent — no owned key remains (all-foreign, empty, or not a key map). Returns
+ *     `{ error: { name: "ScopedToEmpty" }, dropped }` and does not call `send`. The
+ *     developer text ("no owned key in patch") is a console.warn only, never a display
+ *     message. Callers treat this as "nothing the Terminal may write": the pump evicts
+ *     those keys and the outbox strips them from the durable record.
+ */
+export async function sendScopedAccountWrite<R extends { error?: unknown } | void>(
+  send: (data: Record<string, unknown>) => Promise<R>,
+  patch: unknown,
+): Promise<R | ScopedToEmptyResult> {
+  const { data, dropped } = scopeAccountWrite(patch);
+  if (dropped.length && process.env.NODE_ENV !== "production") {
+    console.warn("[accountPrefs] dropped keys the Terminal does not own", dropped);
+  }
+  if (Object.keys(data).length === 0) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[accountPrefs] no owned key in patch", dropped);
+    }
+    return {
+      error: { name: "ScopedToEmpty" },
+      dropped,
+    };
+  }
+  return send(data);
+}

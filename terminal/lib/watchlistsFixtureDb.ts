@@ -19,6 +19,7 @@
 // The positions table is seeded EMPTY: a new book has nothing in it, and every spec that wants
 // rows creates them through the real route.
 
+import { createHash } from "node:crypto";
 import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 
 export const FIXTURE_STORE_COOKIE = "mm_e2e_wl";
@@ -45,6 +46,28 @@ export const FIXTURE_FAULT_COOKIE = "mm_e2e_fault";
 export const FAULT_POSITIONS_READ = "positions_read";
 export const FAULT_POSITIONS_MUTATION_NOOP = "positions_mutation_noop";
 export const FAULT_THESES_READ = "theses_read";
+export const FAULT_SAVED_VIEWS_READ = "saved_views_read";
+export const FAULT_ALERT_OUTBOX_READ = "alert_outbox_read";
+export const FAULT_TARGETS_READ = "targets_read";
+/** Every INSERT/UPSERT/UPDATE/DELETE on `workspace_settings` fails with the supabase-js error
+ *  shape; reads still answer. Proves a refused account write never reads back as "Saved". */
+export const FAULT_WORKSPACE_SETTINGS_WRITE = "workspace_settings_write";
+
+/**
+ * Store-key token that models "macro's nightly thesis-condition monitor enqueued one
+ * `alert_outbox` row." In a store whose key holds this token, the FIRST thesis created
+ * through `apply_thesis_version_v1` also gets a real fixture `alert_outbox` row; every
+ * later thesis in that store stays unmatched, so the Window closed preset can be
+ * exercised with one matched row beside one unmatched one.
+ *
+ * This is fixture DATA, read through the shipped path: `GET /api/thesis-fire-status`
+ * runs its real query, `mapOutboxToConditionStates()` maps the row, and the preset
+ * filters for real. Round-2 review of PR #546 BLOCKER 1: the crop capture used to stub
+ * that API at the network layer with `page.route`, so the committed pixels depicted no
+ * shipped code at all. Terminal never writes this table in production — macro's engine
+ * does — which is exactly why the e2e world needs a seam here and not a write route.
+ */
+export const FIXTURE_MONITOR_FIRED_TOKEN = "monitorfired";
 
 export function fixtureFaults(raw: string | undefined | null): Set<string> {
   return new Set((raw || "").split(",").map((token) => token.trim()).filter(Boolean));
@@ -56,6 +79,11 @@ type Store = {
   positions: DbRow[];
   theses: DbRow[];
   thesisVersions: DbRow[];
+  workspaceSettings: DbRow[];
+  alertOutbox: DbRow[];
+  /** See FIXTURE_MONITOR_FIRED_TOKEN. Derived from the store key, never written to. */
+  monitorFires: boolean;
+  targets: DbRow[];
   seq: number;
 };
 
@@ -107,6 +135,10 @@ function seedStore(key: string): Store {
     positions: [],
     theses: [],
     thesisVersions: [],
+    workspaceSettings: [],
+    alertOutbox: [],
+    monitorFires: key.includes(FIXTURE_MONITOR_FIRED_TOKEN),
+    targets: [],
     seq: 0,
   };
 }
@@ -126,7 +158,7 @@ export function resetFixtureStores(): void {
   stores.clear();
 }
 
-type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions";
+type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions" | "workspace_settings" | "alert_outbox" | "portfolio_targets";
 
 export type FixtureDatabaseEvent = {
   source: "table" | "rpc";
@@ -155,6 +187,9 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "portfolio_positions") return this.store.positions;
     if (this.table === "theses") return this.store.theses;
     if (this.table === "thesis_versions") return this.store.thesisVersions;
+    if (this.table === "workspace_settings") return this.store.workspaceSettings;
+    if (this.table === "alert_outbox") return this.store.alertOutbox;
+    if (this.table === "portfolio_targets") return this.store.targets;
     return this.store.symbols;
   }
 
@@ -201,7 +236,15 @@ class FixtureQuery implements WatchlistQuery {
 
   in(column: string, values: readonly unknown[]): WatchlistQuery {
     const set = new Set(values);
-    this.predicates.push((row) => set.has(row[column]));
+    this.predicates.push((row) => {
+      const jsonPath = column.match(/^payload->>([A-Za-z_]+)$/);
+      if (jsonPath) {
+        const payload = row.payload;
+        if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+        return set.has((payload as Record<string, unknown>)[jsonPath[1]]);
+      }
+      return set.has(row[column]);
+    });
     return this;
   }
 
@@ -244,9 +287,21 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "portfolio_positions" && this.mode === "read" && this.faults.has(FAULT_POSITIONS_READ)) {
       return { data: null, error: { message: "fixture: positions store unavailable" } };
     }
+    if (this.table === "portfolio_targets" && this.mode === "read" && this.faults.has(FAULT_TARGETS_READ)) {
+      return { data: null, error: { message: "fixture: targets store unavailable" } };
+    }
     if ((this.table === "theses" || this.table === "thesis_versions")
       && this.mode === "read" && this.faults.has(FAULT_THESES_READ)) {
       return { data: null, error: { message: "fixture: thesis store unavailable" } };
+    }
+    if (this.table === "workspace_settings" && this.mode === "read" && this.faults.has(FAULT_SAVED_VIEWS_READ)) {
+      return { data: null, error: { message: "fixture: workspace_settings unavailable" } };
+    }
+    if (this.table === "workspace_settings" && this.mode !== "read" && this.faults.has(FAULT_WORKSPACE_SETTINGS_WRITE)) {
+      return { data: null, error: { message: "fixture: workspace_settings write unavailable" } };
+    }
+    if (this.table === "alert_outbox" && this.mode === "read" && this.faults.has(FAULT_ALERT_OUTBOX_READ)) {
+      return { data: null, error: { message: "fixture: alert_outbox unavailable" } };
     }
     if (this.table === "portfolio_positions"
       && (this.mode === "update" || this.mode === "delete")
@@ -268,8 +323,28 @@ class FixtureQuery implements WatchlistQuery {
         ...(this.table === "portfolio_positions"
           ? { created_at: new Date().toISOString(), status: "open" }
           : {}),
+        ...(this.table === "workspace_settings"
+          ? { updated_at: new Date().toISOString() }
+          : {}),
+        ...(this.table === "portfolio_targets"
+          ? {
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            band_pct: 5,
+            role_label: null,
+          }
+          : {}),
         ...row,
       }));
+      // Model the existing portfolio primary key so retry/concurrency proofs exercise
+      // the same refusal as Postgres, including collisions across different owners.
+      if (this.table === "portfolio_positions") {
+        const ids = new Set(this.store.positions.map(row => row.id));
+        for (const row of incoming) {
+          if (ids.has(row.id)) return { data: null, error: { code: "23505", message: "duplicate portfolio position id" } };
+          ids.add(row.id);
+        }
+      }
       // The live schema's unique (user_id,name) is what makes the migration converge under a
       // race instead of duplicating a list — model it rather than accepting anything.
       if (this.table === "watchlists") {
@@ -280,11 +355,41 @@ class FixtureQuery implements WatchlistQuery {
           }
         }
       }
+      if (this.table === "workspace_settings") {
+        const keyOk = /^[a-z][a-z0-9_.]{0,63}$/;
+        for (const row of incoming) {
+          if (typeof row.key !== "string" || !keyOk.test(row.key)) {
+            return { data: null, error: { message: "new row violates check constraint workspace_settings_key" } };
+          }
+          // Grok minor 5 (round-2 review): this used to reject EVERY scope="workspace"
+          // insert, which made the shared fixture lie about a table the live schema
+          // allows both scopes on. Model the real constraint instead — a row's owner is
+          // team_id for a workspace row and user_id for a user row, and 0015's unique
+          // index on (scope, owner_id, key) cannot hold without one. That B-F11-4 writes
+          // no workspace row is asserted where it belongs: the route test (invalid_scope
+          // 400) and savedViews' own team-scoping test.
+          if (row.scope !== "user" && row.scope !== "workspace") {
+            return { data: null, error: { message: "new row violates check constraint workspace_settings_scope" } };
+          }
+          if (row.scope === "workspace" ? !row.team_id : !row.user_id) {
+            return { data: null, error: { message: "workspace_settings row has no owner for its scope" } };
+          }
+          const ownerId = row.team_id ?? row.user_id;
+          row.owner_id = ownerId;
+          const clash = this.store.workspaceSettings.some((existing) =>
+            existing.scope === row.scope && existing.owner_id === ownerId && existing.key === row.key);
+          if (clash) {
+            if (this.mode === "upsert" && this.ignoreDuplicates) continue;
+            return { data: null, error: { message: "duplicate key value violates unique constraint" } };
+          }
+        }
+      }
       // …and unique (watchlist_id, symbol) since migration 0008. Modelling it here is what lets
       // the browser suite prove that concurrent adds converge on ONE row: without it the fixture
       // would happily hold the duplicates the real table now refuses, and an e2e "proof" of
       // uniqueness would be proving a property the product does not have.
       const accepted: DbRow[] = [];
+      const returned: DbRow[] = [];
       for (const row of incoming) {
         if (this.table === "watchlist_symbols") {
           const clash = this.store.symbols.some((existing) =>
@@ -295,10 +400,26 @@ class FixtureQuery implements WatchlistQuery {
             return { data: null, error: { message: "duplicate key value violates unique constraint" } };
           }
         }
+        if (this.table === "portfolio_targets") {
+          const existing = this.store.targets.find((rowExisting) =>
+            rowExisting.user_id === row.user_id && rowExisting.ticker === row.ticker);
+          const queued = accepted.find((queuedRow) =>
+            queuedRow.user_id === row.user_id && queuedRow.ticker === row.ticker);
+          if (existing || queued) {
+            if (this.mode === "upsert") {
+              const target = existing ?? queued;
+              if (target) Object.assign(target, row, { updated_at: new Date().toISOString() });
+              if (target && !returned.includes(target)) returned.push(target);
+              continue;
+            }
+            return { data: null, error: { message: "duplicate key value violates unique constraint" } };
+          }
+        }
         accepted.push(row);
+        returned.push(row);
       }
       this.rows.push(...accepted);
-      return { data: this.project(accepted), error: null };
+      return { data: this.project(returned), error: null };
     }
     if (this.mode === "update") {
       const targets = this.matched();
@@ -318,6 +439,16 @@ class FixtureQuery implements WatchlistQuery {
         // untouched here: deleting a list must never delete a position (packet section 0, gate C).
       } else if (this.table === "portfolio_positions") {
         this.store.positions = kept;
+      } else if (this.table === "workspace_settings") {
+        this.store.workspaceSettings = kept;
+      } else if (this.table === "alert_outbox") {
+        this.store.alertOutbox = kept;
+      } else if (this.table === "theses") {
+        this.store.theses = kept;
+      } else if (this.table === "thesis_versions") {
+        this.store.thesisVersions = kept;
+      } else if (this.table === "portfolio_targets") {
+        this.store.targets = kept;
       } else {
         this.store.symbols = kept;
       }
@@ -367,6 +498,43 @@ function thesisRpcResult(row: DbRow): Promise<DbResult> {
     }],
     error: null,
   });
+}
+
+export function uuid5ThesisAlertId(thesisId: string): string {
+  // PROVEN producer namespace: engine/thesis_condition_monitor.py:126.
+  // uuid5("thesis:<id>"): engine/thesis_condition_monitor.py:318-323.
+  const namespace = "6f1e6cf4-6e9b-5f2a-9d0a-6d0f6a5b6c00";
+  const namespaceBytes = Buffer.from(namespace.replace(/-/g, ""), "hex");
+  const digest = createHash("sha1").update(namespaceBytes).update(`thesis:${thesisId}`, "utf8").digest();
+  digest[6] = (digest[6] & 0x0f) | 0x50;
+  digest[8] = (digest[8] & 0x3f) | 0x80;
+  const hex = digest.toString("hex");
+  return [
+    hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32),
+  ].join("-").toLowerCase();
+}
+
+export function producerThesisFireEventId(
+  thesisId: string,
+  tripwireId: string,
+  tripwireVersion: number,
+  firedOn: string,
+): string {
+  // Mirrors engine/thesis_condition_monitor.py:296-315.
+  const digest = createHash("sha256")
+    .update([thesisId, tripwireId, String(tripwireVersion), firedOn].join("|"), "utf8")
+    .digest("hex")
+    .slice(0, 32);
+  return `thesis:${digest}`;
+}
+
+function userConditionText(value: unknown): string {
+  if (!Array.isArray(value)) return typeof value === "string" ? value : "";
+  return value.filter((item): item is string => typeof item === "string" && item.length > 0).join("; ");
+}
+
+function closeSentence(text: string): string {
+  return text && ".!?".includes(text.slice(-1)) ? text : `${text}.`;
 }
 
 function thesisSubstance(value: unknown): unknown {
@@ -446,6 +614,85 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     };
     store.theses.push(head);
     store.thesisVersions.push(version);
+    if (store.monitorFires && store.alertOutbox.length === 0) {
+      const contentRecord = content as { title?: unknown; falsifiers?: unknown };
+      const subjectRefRecord = subjectRef as {
+        display?: unknown;
+        key?: unknown;
+        kind?: unknown;
+        owner?: unknown;
+        listing?: unknown;
+      };
+      const isIssuer = subjectRefRecord.kind === "issuer"
+        && (subjectRefRecord.owner === "terminal.analysis_symbol" || subjectRefRecord.owner === "data_os.security_master");
+      const isSupportedSubject = (subjectRefRecord.kind === "issuer"
+        && (subjectRefRecord.owner === "terminal.analysis_symbol" || subjectRefRecord.owner === "data_os.security_master"))
+        || (subjectRefRecord.kind === "theme" && subjectRefRecord.owner === "macro.theme_registry");
+      const rawListing = subjectRefRecord.listing;
+      const listingSymbol = rawListing && typeof rawListing === "object" && !Array.isArray(rawListing)
+        ? (rawListing as { symbol?: unknown }).symbol
+        : undefined;
+      const rawTicker = typeof listingSymbol === "string" && listingSymbol.trim()
+        ? listingSymbol
+        : subjectRefRecord.key;
+      const subjectDisplay = isIssuer && isSupportedSubject && typeof rawTicker === "string" && rawTicker.trim()
+        ? rawTicker.trim().toUpperCase()
+        : "";
+      if (!isSupportedSubject) return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
+      const title = typeof contentRecord.title === "string" && contentRecord.title.trim() ? contentRecord.title.trim() : "your thesis";
+      const condition = userConditionText(contentRecord.falsifiers);
+      const tripwireId = "11111111-1111-4111-8111-111111111111";
+      const tripwireVersion = 1;
+      const firedOn = "2026-09-25";
+      const subject = subjectDisplay
+        ? `A window we watch for ${subjectDisplay} has closed`
+        : "A market condition we watch for your thesis has changed";
+      const subjectZh = subjectDisplay
+        ? `你关注的“${subjectDisplay}”窗口已关闭`
+        : "你关注的一项市场条件已发生变化";
+      const closedPrefix = `${subject}.`;
+      const closedPrefixZh = `${subjectZh}。`;
+      const summaryPlain = condition
+        ? `${closedPrefix} Your thesis "${title}" lists: ${closeSentence(condition)}`
+        : `${closedPrefix} Your thesis lists no conditions yet.`;
+      const summaryPlainZh = condition
+        ? `${closedPrefixZh}你的论点《${title}》列出的条件：${condition}（翻译待补）`
+        : `${closedPrefixZh}你的论点尚未列出任何条件。`;
+      store.alertOutbox.push({
+        id: crypto.randomUUID(),
+        user_id: userId,
+        alert_id: uuid5ThesisAlertId(id),
+        fire_event_id: producerThesisFireEventId(id, tripwireId, tripwireVersion, firedOn),
+        channel: "email",
+        status: "pending",
+        attempts: 0,
+        last_error: null,
+        deliver_after: null,
+        delivered_at: null,
+        payload: {
+          thesis_id: id,
+          thesis_version: 1,
+          fired_at: firedOn,
+          tripwire_id: tripwireId,
+          tripwire_version: tripwireVersion,
+          category: "thesis_window",
+          source: "macro.thesis_condition_monitor",
+          subject,
+          subject_zh: subjectZh,
+          summary_plain: summaryPlain,
+          summary_plain_zh: summaryPlainZh,
+          condition_plain: condition,
+          condition_plain_zh: condition ? `${condition}（翻译待补）` : "",
+          engine_window_plain: "",
+          engine_window_plain_zh: "",
+          evidence_url: "https://www.mastermind-x.com/cycle.html",
+          requires_tier: null,
+          coverage: "full",
+          ticker: isIssuer ? String(subjectDisplay) : null,
+        },
+        created_at: now,
+      });
+    }
     return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
   }
 

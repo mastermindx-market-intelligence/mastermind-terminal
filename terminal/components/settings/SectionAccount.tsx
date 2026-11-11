@@ -1,9 +1,17 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
+import { updateAuthPassword } from "@/lib/passwordAuth";
 import { Group, IconGoogle, IconSignOut, IconTwitterX, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
 import type { ExportFormat } from "@/lib/accountExport";
+import {
+  classifyTeamSummary,
+  parseTeamsResponse,
+  type TeamRole,
+  type TeamsFetch,
+} from "@/lib/teamSummary";
 
 // ── Account ──────────────────────────────────────────────────────────────────
 // Ported from the macro dashboard's `_renderSDAccount` + `_wireSDAccount`:
@@ -28,12 +36,63 @@ export function isActiveDeletionStatus(status: string): boolean {
   return status === "received" || status === "in_progress" || status === "completed";
 }
 
-function providerLabelKey(p: string): string {
+/** Pane copy for a failed account write. ScopedToEmpty (name only) uses the generic
+ *  sentence; every other error keeps its own message, else the generic sentence. */
+export function accountSaveErrorText(e: unknown, t: SectionProps["t"]): string {
+  if ((e as { name?: unknown })?.name === "ScopedToEmpty") return t("acsErrGen");
+  return (e as Error)?.message || t("acsErrGen");
+}
+
+export function passwordErrorKey(code: string | undefined): string {
+  if (code === "invalid_credentials") return "acsPwWrongCurrent";
+  if (code === "same_password") return "acsPwSame";
+  if (code === "over_request_rate_limit") return "acsPwRateLimited";
+  if (code === "weak_password") return "acsPwShort";
+  return "acsPwFailed";
+}
+
+export function canChangePassword(provider: string | undefined | null): boolean {
+  return provider === "email";
+}
+
+export const TEAM_FETCH_TIMEOUT_MS = 10_000;
+
+const ONE_TEAM_KEY: Record<TeamRole, string> = {
+  owner: "acsTeamOneOwner",
+  admin: "acsTeamOneAdmin",
+  member: "acsTeamOneMember",
+};
+
+function fill(template: string, vars: Record<string, string | number>): string {
+  return Object.entries(vars).reduce(
+    (acc, [k, v]) => acc.replaceAll(`{${k}}`, String(v)),
+    template,
+  );
+}
+
+export function teamSummaryText(
+  t: (key: string, fallback?: string) => string,
+  fetch: TeamsFetch | null,
+): string {
+  if (!fetch) return t("acsTeamLoading");
+  if (fetch.status === "unavailable") return t("acsTeamUnavailable");
+  const s = classifyTeamSummary(fetch.teams, fetch.truncated);
+  if (s.kind === "none") return t("acsTeamNone");
+  if (s.kind === "one") {
+    const name = s.team.teamName || t("acsTeamUnnamed");
+    return fill(t(ONE_TEAM_KEY[s.team.role]), { name });
+  }
+  const count = `${s.count}${s.truncated ? "+" : ""}`;
+  return fill(t("acsTeamMany"), { count });
+}
+
+function providerLabelKey(p: string | null): string {
+  if (!p) return "acsProvUnknown";
   if (p === "google") return "acsProvGoogle";
   if (p === "twitter") return "acsProvX";
   return "acsProvEmail";
 }
-function ProviderIcon({ p }: { p: string }) {
+function ProviderIcon({ p }: { p: string | null }) {
   if (p === "google") return <IconGoogle />;
   if (p === "twitter") return <IconTwitterX />;
   return null;
@@ -71,6 +130,8 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
   const [emailIn, setEmailIn] = useState("");
   const [pw1, setPw1] = useState("");
   const [pw2, setPw2] = useState("");
+  const [pwCur, setPwCur] = useState("");
+  const [teamsFetch, setTeamsFetch] = useState<TeamsFetch | null>(null);
 
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -96,6 +157,33 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     })();
     return () => { live = false; };
   }, []);
+  const hasAccount = user !== null;
+  useEffect(() => {
+    if (!hasAccount) {
+      setTeamsFetch(null);
+      return;
+    }
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), TEAM_FETCH_TIMEOUT_MS);
+    let live = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/teams", { signal: ac.signal });
+        const body = await res.json().catch(() => null);
+        const parsed = res.ok ? parseTeamsResponse(body) : { status: "unavailable" as const };
+        if (live) setTeamsFetch(parsed);
+      } catch {
+        if (live) setTeamsFetch({ status: "unavailable" });
+      } finally {
+        clearTimeout(timer);
+      }
+    })();
+    return () => {
+      live = false;
+      clearTimeout(timer);
+      ac.abort();
+    };
+  }, [hasAccount]);
   function stepText(r: DeletionReceipt): string {
     const step = r.steps.find((s) => !s.done) || r.steps[r.steps.length - 1];
     return step ? step.text[lang === "zh" ? 1 : 0] : r.receipt_code;
@@ -173,7 +261,9 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
 
   const displayName = (typeof user?.meta?.display_name === "string" ? user.meta.display_name : "") || "";
   const addr = user?.email || email;
-  const provider = user?.provider || "email";
+  const provider = user ? user.provider : null;
+  const passwordLockedKey =
+    provider == null || provider === "" ? "acsPwProviderUnknown" : "acsPwNoPassword";
   const since = acsDate(user?.createdAt, lang);
   const lastIn = acsDate(user?.lastSignInAt, lang);
   const uid = user?.id || "";
@@ -186,26 +276,30 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     setMsg(null);
     if (kind === "name") setNameIn(displayName);
     if (kind === "email") setEmailIn("");
-    if (kind === "pw") { setPw1(""); setPw2(""); }
+    if (kind === "pw") { setPw1(""); setPw2(""); setPwCur(""); }
     if (kind === "del") setDelIn("");
   }
   function cancelEdit() {
     setEditing(null);
     setMsg(null);
-    setEmailIn(""); setPw1(""); setPw2(""); setDelIn("");
+    setEmailIn(""); setPw1(""); setPw2(""); setPwCur(""); setDelIn("");
   }
 
   async function saveName() {
     const val = nameIn.trim();
     setBusy(true); setMsg(null);
     try {
-      const { error } = await createClient().auth.updateUser({ data: { display_name: val } });
+      const result = await sendScopedAccountWrite(
+        (data) => createClient().auth.updateUser({ data }),
+        { display_name: val },
+      );
+      const error = result && typeof result === "object" ? result.error : undefined;
       if (error) throw error;
       onPatchMeta({ display_name: val });   // ID card + rail repaint without a refetch
       setEditing(null);
       void onRefreshUser();
     } catch (e) {
-      setMsg({ kind: "err", text: (e as Error)?.message || t("acsErrGen") });
+      setMsg({ kind: "err", text: accountSaveErrorText(e, t) });
     } finally {
       setBusy(false);
     }
@@ -231,19 +325,21 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
   }
 
   async function savePw() {
+    if (!pwCur.trim()) { setMsg({ kind: "err", text: t("acsCurrentPwRequired") }); return; }
     if (pw1.length < 8) { setMsg({ kind: "err", text: t("acsPwShort") }); return; }
     if (pw1 !== pw2) { setMsg({ kind: "err", text: t("acsPwMismatch") }); return; }
     setBusy(true); setMsg(null);
     try {
-      const { error } = await createClient().auth.updateUser({ password: pw1 });
+      const { error } = await updateAuthPassword(pw1, pwCur);
       if (error) throw error;
       setMsg({ kind: "ok", text: t("acsPwOk") });
-      setPw1(""); setPw2("");
+      setPw1(""); setPw2(""); setPwCur("");
       closeTimer.current = setTimeout(() => { setEditing(null); setMsg(null); }, 1200);
     } catch (e) {
-      setMsg({ kind: "err", text: (e as Error)?.message || t("acsErrGen") });
+      setMsg({ kind: "err", text: t(passwordErrorKey((e as { code?: string })?.code)) });
     } finally {
       setBusy(false);
+      setPwCur("");
     }
   }
 
@@ -260,18 +356,22 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     // and the button still confirms it — swallowing the rejection would leave
     // the user with a button that silently does nothing.
     const legacy = () => {
+      let ta: HTMLTextAreaElement | null = null;
       try {
-        const ta = document.createElement("textarea");
+        ta = document.createElement("textarea");
         ta.value = uid;
         ta.style.position = "fixed";
         ta.style.opacity = "0";
         document.body.appendChild(ta);
         ta.focus();
         ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
-        flip();
-      } catch { /* clipboard genuinely unavailable — no false confirmation */ }
+        if (document.execCommand("copy")) flip();
+        else setCopied(false);
+      } catch {
+        setCopied(false);
+      } finally {
+        ta?.remove();
+      }
     };
     if (navigator.clipboard?.writeText) navigator.clipboard.writeText(uid).then(flip).catch(legacy);
     else legacy();
@@ -349,6 +449,7 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
             </Row>
 
             {/* password */}
+            {canChangePassword(provider) ? (
             <Row
               label={t("acsPassword")}
               value="••••••••"
@@ -356,6 +457,15 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
               editing={editing === "pw"}
             >
               <div className="acs-form">
+                <input
+                  className="acs-in"
+                  type="password"
+                  value={pwCur}
+                  placeholder={t("acsCurrentPwPh")}
+                  aria-label={t("acsCurrentPw")}
+                  autoComplete="current-password"
+                  onChange={(e) => setPwCur(e.target.value)}
+                />
                 <input
                   className="acs-in"
                   type="password"
@@ -378,9 +488,17 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
                 <FormBtns busy={busy} t={t} onCancel={cancelEdit} onSave={savePw} saveKey="acsUpdatePw" />
               </div>
             </Row>
+            ) : (
+            <Row
+              label={t("acsPassword")}
+              value={null}
+              desc={t(passwordLockedKey)}
+            />
+            )}
           </Group>
 
           <Group title={t("acsSecurity")}>
+            {hasAccount ? <Row label={teamSummaryText(t, teamsFetch)} /> : null}
             <Row
               label={t("acsLoginMethod")}
               control={

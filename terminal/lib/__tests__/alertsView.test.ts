@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import path from "path";
 import {
-  buildAlertsView, monitorFor, foldOutbox, deliveryFor, ALERTS_COPY, copy, conditionText, conditionsWord, verdictText,
-  firedEventTextZh,
+  buildAlertsView, monitorFor, foldOutbox, deliveryFor, ALERTS_COPY, copy, conditionText, conditionsWord, verdictText, formatFiredAt,
+  firedEventTextZh, lanesForArmedAlerts, noCoverageAcross, rowChipKey,
   type RunReceipt, type OutboxRow, type Alert,
 } from "../alertsView";
 
@@ -483,5 +483,584 @@ describe("firedEventTextZh — the ZH event sentence never restates the conditio
     expect(firedEventTextZh("72", "price")).toBe("触发时价格 72");
     expect(firedEventTextZh("not-a-number", "price")).toBe("已触发，未记录触发价");
     expect(firedEventTextZh("", "price")).toBe("已触发，未记录触发价");
+  });
+});
+
+describe("B-F08-B5-3 monitorFor two-lane worst-of", () => {
+  const fresh = baseRun();
+  const partial = baseRun({ outcome: "partial", lane: "suite_alerts", run_id: "r2" });
+  const engine = { run: fresh, runsState: "READ_OK" as const };
+  const suitePartial = { run: partial, runsState: "READ_OK" as const };
+  const suiteFresh = { run: baseRun({ lane: "suite_alerts", run_id: "r2" }), runsState: "READ_OK" as const };
+  const suiteZero = { run: null, runsState: "READ_OK_ZERO" as const };
+  const suiteDown = { run: null, runsState: "READ_UNAVAILABLE" as const };
+
+  it("{success-fresh, partial} → degraded", () => {
+    expect(monitorFor([engine, suitePartial], NOW)).toBe("degraded");
+  });
+  it("{success-fresh, success-fresh} → watching", () => {
+    expect(monitorFor([engine, suiteFresh], NOW)).toBe("watching");
+  });
+  it("{success-fresh, READ_OK_ZERO} → never_ran", () => {
+    expect(monitorFor([engine, suiteZero], NOW)).toBe("never_ran");
+  });
+  it("{success-fresh, READ_UNAVAILABLE} → unknown", () => {
+    expect(monitorFor([engine, suiteDown], NOW)).toBe("unknown");
+  });
+  it("single-lane signature is unchanged", () => {
+    expect(monitorFor(fresh, "READ_OK", NOW)).toBe("watching");
+    expect(monitorFor(partial, "READ_OK", NOW)).toBe("degraded");
+  });
+});
+
+describe("B-F08-B5-3 suite-free user is byte-identical to today's single-lane path", () => {
+  it("lanesForArmedAlerts with only price alerts returns the engine lane alone", () => {
+    const engine = { run: baseRun(), runsState: "READ_OK" as const };
+    const suite = { run: null, runsState: "READ_OK_ZERO" as const };
+    const armed: Alert[] = [{ id: "a1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
+    const lanes = lanesForArmedAlerts(armed, engine, suite);
+    expect(lanes).toHaveLength(1);
+    expect(lanes[0].run).toBe(engine.run);
+    expect(lanes[0].runsState).toBe(engine.runsState);
+    expect(lanes[0].id).toBe("engine");
+    expect(monitorFor(lanes, NOW)).toBe(monitorFor(engine.run, engine.runsState, NOW));
+  });
+  it("zero alerts keeps the engine lane (today's empty.calm.zero path)", () => {
+    const engine = { run: null, runsState: "READ_OK_ZERO" as const };
+    const suite = { run: null, runsState: "READ_UNAVAILABLE" as const };
+    const lanes = lanesForArmedAlerts([], engine, suite);
+    expect(lanes).toHaveLength(1);
+    expect(lanes[0].runsState).toBe("READ_OK_ZERO");
+    expect(lanes[0].id).toBe("engine");
+  });
+});
+
+describe("B-F08-B5-3 lastAttempt/lastSuccess come from monitorLanes, never the engine receipt", () => {
+  // Round-2 MAJOR: monitorFor already used only the lanes that own the user's armed alerts,
+  // but lastAttemptAt / lastSuccessAt still came from receipts.run / last_success_at. A
+  // suite-only user then saw "Not recorded" beside "Last successful check 12:37" — freeze §4
+  // treats a last-success time as a proof-of-run claim. RED on the previous head: the four
+  // facts leak the engine receipt even when monitorLanes is the suite lane alone.
+  const engineFresh = {
+    run: baseRun(),
+    runsState: "READ_OK" as const,
+    lastSuccessAt: "2026-09-05T11:59:00Z",
+    lastSuccessState: "READ_OK" as const,
+    id: "engine" as const,
+  };
+  const suiteNever = {
+    run: null,
+    runsState: "READ_OK_ZERO" as const,
+    lastSuccessAt: null,
+    lastSuccessState: "READ_OK_ZERO" as const,
+    id: "suite" as const,
+  };
+  const suiteFresh = {
+    run: baseRun({ lane: "suite_alerts", run_id: "r2", started_at: "2026-09-05T11:57:00Z", concluded_at: "2026-09-05T11:58:00Z" }),
+    runsState: "READ_OK" as const,
+    lastSuccessAt: "2026-09-05T11:58:00Z",
+    lastSuccessState: "READ_OK" as const,
+    id: "suite" as const,
+  };
+  const suitePartial = {
+    run: baseRun({ lane: "suite_alerts", run_id: "r2", outcome: "partial", started_at: "2026-09-05T11:50:00Z", concluded_at: "2026-09-05T11:51:00Z" }),
+    runsState: "READ_OK" as const,
+    lastSuccessAt: "2026-09-05T10:00:00Z",
+    lastSuccessState: "READ_OK" as const,
+    id: "suite" as const,
+  };
+
+  it("suite-only never-ran is honest-null on all four facts, even when the engine lane is globally success", () => {
+    const armed: Alert[] = [{ id: "s1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "suite_event" } }];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suiteNever);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("never_ran");
+    expect(view.lastAttemptAt).toBeNull();
+    expect(view.lastAttemptState).toBe("READ_OK_ZERO");
+    expect(view.lastSuccessAt).toBeNull();
+    expect(view.lastSuccessState).toBe("READ_OK_ZERO");
+  });
+
+  it("mixed engine-success + suite-never-ran still honest-nulls lastSuccess (worst lane owns the facts)", () => {
+    const armed: Alert[] = [
+      { id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } },
+      { id: "s1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "suite_event" } },
+    ];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suiteNever);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("never_ran");
+    expect(view.lastAttemptAt).toBeNull();
+    expect(view.lastSuccessAt).toBeNull();
+    expect(view.lastSuccessState).toBe("READ_OK_ZERO");
+  });
+
+  it("a timestamp on the relevant lane is kept when lastSuccessState is omitted", () => {
+    const engine = {
+      run: baseRun(),
+      runsState: "READ_OK" as const,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      id: "engine" as const,
+    };
+    const suite = { run: null, runsState: "READ_OK_ZERO" as const, id: "suite" as const };
+    const armed: Alert[] = [{ id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
+    const lanes = lanesForArmedAlerts(armed, engine, suite);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engine.run, lastSuccessAt: engine.lastSuccessAt, lastSuccessState: "READ_UNAVAILABLE",
+      runsState: engine.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.lastSuccessAt).toBe("2026-09-05T11:59:00Z");
+    expect(view.lastSuccessState).toBe("READ_OK");
+  });
+
+  it("suite-free user still reports the engine lane's attempt and last success", () => {
+    const armed: Alert[] = [{ id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suiteNever);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("watching");
+    expect(view.lastAttemptAt).toBe(engineFresh.run.started_at);
+    expect(view.lastAttemptState).toBe("READ_OK");
+    expect(view.lastSuccessAt).toBe(engineFresh.lastSuccessAt);
+    expect(view.lastSuccessState).toBe("READ_OK");
+  });
+
+  it("suite-only watching reports the suite lane's times, not the engine's", () => {
+    const armed: Alert[] = [{ id: "s1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "suite_event" } }];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suiteFresh);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("watching");
+    expect(view.lastAttemptAt).toBe(suiteFresh.run.started_at);
+    expect(view.lastSuccessAt).toBe(suiteFresh.lastSuccessAt);
+  });
+
+  it("worst-lane degraded interpolates that lane's last success, not a newer engine success", () => {
+    const armed: Alert[] = [
+      { id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } },
+      { id: "s1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "suite_sequence" } },
+    ];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suitePartial);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("degraded");
+    expect(view.lastAttemptAt).toBe(suitePartial.run.started_at);
+    expect(view.lastSuccessAt).toBe(suitePartial.lastSuccessAt);
+  });
+});
+
+describe("B-F08-B5-3 noCoverageCount sums relevant lanes only", () => {
+  it("sums numeric unevaluable_n across the lanes passed in", () => {
+    expect(noCoverageAcross([baseRun({ unevaluable_n: 2 }), baseRun({ unevaluable_n: 1, lane: "suite_alerts" })])).toBe(3);
+  });
+  it("engine-only (suite-free) equals today's single-run value", () => {
+    expect(noCoverageAcross([baseRun({ unevaluable_n: 3 })])).toBe(3);
+    expect(noCoverageAcross([null])).toBeNull();
+  });
+});
+
+describe("B-F08-B5-3 R8 copy + unresolved chip", () => {
+  it("ships every new/changed string verbatim in both languages", () => {
+    expect(ALERTS_COPY["identity.unresolved"]).toEqual(["Cannot be checked", "无法检查"]);
+    expect(ALERTS_COPY["identity.unresolved.body"]).toEqual([
+      "The underlying saved on this alert is not in a form we can read, so it will never fire. Delete it and set it up again.",
+      "这条提醒保存的标的格式我们无法读取，因此它永远不会触发。请删除后重新设置。",
+    ]);
+    expect(ALERTS_COPY["noCoverage.body"]).toEqual([
+      "We could not check {n} of your conditions on the last run.",
+      "上次检查中，有 {n} 项条件我们未能完成检查。",
+    ]);
+    expect(ALERTS_COPY["noCoverage.body.prices"]).toBeUndefined();
+    expect(ALERTS_COPY["monitor.lane.suite"]).toEqual(["Signal-suite conditions", "信号套件条件"]);
+    expect(ALERTS_COPY["monitor.lane.engine"]).toEqual(["Price, trend and options conditions", "价格、趋势与期权条件"]);
+    expect(ALERTS_COPY["monitor.lane.degraded"]).toEqual([
+      "{lane}: monitoring degraded — last successful check {t}.",
+      "{lane}：监控降级 —— 上次成功检查 {t}。",
+    ]);
+    expect(ALERTS_COPY["resolution.armed"]).toEqual(["Armed — still watching", "已启用 —— 仍在监控"]);
+  });
+  it("identity.unresolved replaces resolution.armed on an unresolved row", () => {
+    expect(rowChipKey({ identity_state: "unresolved", active: true, condition: { type: "opt_gamma_flip" } })).toBe("identity.unresolved");
+    expect(rowChipKey({ identity_state: "ok", active: true, condition: { type: "opt_gamma_flip" } })).toBe("resolution.armed");
+    expect(copy("identity.unresolved", "en")).not.toBe(copy("resolution.armed", "en"));
+    expect(copy("identity.unresolved.body", "zh")).toMatch(/[，。]/);
+  });
+});
+
+describe("coverage.count excludes unresolved rows (REQUIRED 4)", () => {
+  it("an unresolved armed alert newer than the last run is not counted as tracked", () => {
+    const unresolved: Alert = {
+      id: "u1", active: true, created_at: "2026-09-05T12:00:00Z",
+      identity_state: "unresolved",
+      condition: { type: "opt_gamma_flip", root: "TOOLONGROOTNAME" },
+    };
+    const ok: Alert = {
+      id: "p1", active: true, created_at: "2026-01-01T00:00:00Z",
+      identity_state: "ok",
+      condition: { type: "price", op: "above", value: 200 },
+    };
+    const view = buildAlertsView({
+      alerts: [unresolved, ok], alertsState: "READ_OK",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", lastSuccessState: "READ_OK",
+      runsState: "READ_OK", outbox: [], outboxState: "READ_OK_ZERO", now: NOW,
+    });
+    expect(view.coverage.count).toBe(1);
+  });
+  it("a lone unresolved armed alert yields tracked count 0, never 1", () => {
+    const unresolved: Alert = {
+      id: "u1", active: true, created_at: "2026-09-05T12:00:00Z",
+      identity_state: "unresolved",
+      condition: { type: "opt_gamma_flip", root: "TOOLONGROOTNAME" },
+    };
+    const view = buildAlertsView({
+      alerts: [unresolved], alertsState: "READ_OK",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", lastSuccessState: "READ_OK",
+      runsState: "READ_OK", outbox: [], outboxState: "READ_OK_ZERO", now: NOW,
+    });
+    expect(view.coverage.count).toBe(0);
+  });
+});
+
+// F11-11b-pre: producer-shaped thesis-condition rows (category + source, no kind,
+// synthetic alert_id) surface as thesis rows. Real producer payload keys:
+// thesis_id, thesis_version, fired_at, tripwire_id, tripwire_version, category,
+// source, subject, subject_zh, summary_plain, summary_plain_zh, condition_plain,
+// condition_plain_zh, engine_window_plain, engine_window_plain_zh, evidence_url,
+// requires_tier, coverage, ticker.
+describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no kind, synthetic alert_id)", () => {
+  const THESIS_ID = "11111111-1111-4111-8111-111111111111";
+
+  // The producer's alert_id is a synthetic uuid5 of "thesis:<thesis_id>"; thesis_id is the bare thesis UUID.
+  const PRODUCER_ALERT_ID = "e8e75107-3228-56c2-997c-05c4961bd088";
+  function producerRow(over: Partial<OutboxRow> = {}): OutboxRow {
+    return {
+      alert_id: PRODUCER_ALERT_ID,
+      fire_event_id: "fe-thesis-1",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: {
+        thesis_id: THESIS_ID,
+        thesis_version: 1,
+        fired_at: "2026-09-05T11:58:00Z",
+        tripwire_id: "11111111-1111-1111-a111-111111111111",
+        tripwire_version: 1,
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        subject: "Your NVDA thesis window has closed.",
+        subject_zh: "你的英伟达论点观察窗口已结束。",
+        summary_plain: "Your NVDA thesis window has closed.",
+        summary_plain_zh: "你的英伟达论点观察窗口已结束。",
+        condition_plain: "Your NVDA thesis window has closed.",
+        condition_plain_zh: "你的英伟达论点观察窗口已结束。",
+        engine_window_plain: "The watch window expired.",
+        engine_window_plain_zh: "观察窗口已到期。",
+        evidence_url: null,
+        requires_tier: undefined,
+        coverage: "full",
+        ticker: "NVDA",
+        ...(over.payload as Record<string, unknown> ?? {}),
+      },
+      ...over,
+    };
+  }
+
+  function priceAlert(): Alert {
+    return {
+      id: "a-price",
+      active: false,
+      symbol: "NVDA",
+      created_at: "2026-09-01T00:00:00Z",
+      condition: { type: "price", triggered: { at: "2026-09-05T11:58:30Z", value: 42, note: "crossed" } },
+    };
+  }
+
+  function viewOf(outbox: OutboxRow[], alerts: Alert[] = []) {
+    return buildAlertsView({
+      alerts,
+      alertsState: alerts.length ? "READ_OK" : "READ_OK_ZERO",
+      run: baseRun(),
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox,
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+  }
+
+  it("producer-shaped row (category+source, no kind, synthetic alert_id) renders as a thesis row", () => {
+    const view = viewOf([producerRow()]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].delivery).toBe("pending");
+  });
+
+  it("a producer row with both recognizer fields and a full payload renders one bare-UUID thesis row", () => {
+    const row = producerRow({ payload: { ...producerRow().payload } });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+  });
+
+  it("does not render source-only producer payloads", () => {
+    const row = producerRow({ payload: { ...producerRow().payload, category: undefined as unknown as string } });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("does not render legacy-kind payloads without producer source and category", () => {
+    const payload: Record<string, unknown> = { ...producerRow().payload };
+    payload.kind = "thesis_condition";
+    payload.category = undefined;
+    payload.source = undefined;
+    const row = producerRow({ payload: payload as ReturnType<typeof producerRow>["payload"] });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("a row with a malformed thesis_id is skipped even when category+source are present", () => {
+    const badRow: OutboxRow = {
+      alert_id: "a-not-a-uuid",
+      fire_event_id: "fe-bad-thesis",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: {
+        thesis_id: "not-a-valid-uuid",
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        summary_plain: "Some text",
+      },
+    };
+    const view = viewOf([badRow]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("a producer-shaped row with a zero-version house-invalid thesis_id is skipped", () => {
+    const legacyDatum = producerRow({
+      payload: { ...producerRow().payload, thesis_id: "00000000-0000-0000-0000-000000000001" },
+    });
+    const view = viewOf([legacyDatum]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("a row with well-formed thesis_id but without producer source and category is skipped", () => {
+    const orphanRow: OutboxRow = {
+      alert_id: "",
+      fire_event_id: "fe-orphan",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: { thesis_id: THESIS_ID, ticker: "NVDA" },
+    };
+    const view = viewOf([orphanRow]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("producer-shaped row whose alert_id matches a real alerts entry stays on the alerts path once", () => {
+    const matchedRow = producerRow({ alert_id: "a-price" });
+    const view = viewOf([matchedRow], [priceAlert()]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe("a-price");
+    expect(view.rows[0].thesisId).toBeUndefined();
+  });
+
+  it("producer-shaped row with a synthetic alert_id matching no alerts entry takes the thesis path once", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun(),
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [producerRow()],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+  });
+
+  it("two fires of one thesis render one row per fire, newest first", () => {
+    const older = producerRow({ fire_event_id: "fe-thesis-old", created_at: "2026-09-05T11:58:00Z" });
+    const newer = producerRow({ fire_event_id: "fe-thesis-new", created_at: "2026-09-05T11:59:30Z" });
+    const view = viewOf([older, newer]);
+    expect(view.rows).toHaveLength(2);
+    expect(view.rows.map((row) => row.alertId)).toEqual([
+      `thesis:${THESIS_ID}:fe-thesis-new`,
+      `thesis:${THESIS_ID}:fe-thesis-old`,
+    ]);
+    expect(view.rows.map((row) => row.thesisId)).toEqual([THESIS_ID, THESIS_ID]);
+    expect(view.rows.map((row) => row.foldedRows)).toEqual([0, 0]);
+  });
+
+  it("two rows for one fire render once, using the newest row and truthful fold count", () => {
+    const older = producerRow({
+      status: "pending",
+      created_at: "2026-09-05T11:58:00Z",
+    });
+    const newer = producerRow({
+      status: "sent",
+      delivered_at: "2026-09-05T11:59:20Z",
+      created_at: "2026-09-05T11:59:30Z",
+    });
+    const view = viewOf([older, newer]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].outboxRow).toBe(newer);
+    expect(view.rows[0].delivery).toBe("sent");
+    expect(view.rows[0].foldedRows).toBe(1);
+  });
+
+  it("duplicate rows without a fire id or creation time use a stable non-undefined key", () => {
+    const row = producerRow({
+      fire_event_id: "",
+      created_at: "",
+      payload: { ...producerRow().payload, fired_at: "" },
+    });
+    const view = viewOf([row, { ...row }]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe("thesis:11111111-1111-4111-8111-111111111111:unknown-fire");
+  });
+
+  it("a row without a fire id uses its creation time as the fire key", () => {
+    const row = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:00:00Z",
+    });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe("thesis:11111111-1111-4111-8111-111111111111:2026-09-05T12:00:00Z");
+    expect(view.rows[0].foldedRows).toBe(0);
+  });
+
+  it("distinct thesis rows with empty fire ids do not collapse", () => {
+    const firstThesis = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:00:00Z",
+    });
+    const secondThesisId = "22222222-2222-4222-8222-222222222222";
+    const secondThesis = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:01:00Z",
+      payload: { ...producerRow().payload, thesis_id: secondThesisId },
+    });
+    const view = viewOf([firstThesis, secondThesis]);
+    expect(view.rows).toHaveLength(2);
+    expect(view.rows.map((row) => row.thesisId)).toEqual([secondThesisId, THESIS_ID]);
+    expect(view.rows.every((row) => row.foldedRows === 0)).toBe(true);
+  });
+
+  it("ordinary alert rows with empty fire ids fold by alert id and creation time", () => {
+    const ordinaryRow = (alertId: string): OutboxRow => ({
+      alert_id: alertId,
+      fire_event_id: "",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T12:00:00Z",
+      payload: { subject: "A price condition changed" },
+    });
+    const view = viewOf([ordinaryRow("alert-one"), ordinaryRow("alert-two")]);
+    expect(view.rows).toHaveLength(0);
+    const folded = foldOutbox([ordinaryRow("alert-one"), ordinaryRow("alert-two")]);
+    expect([...folded.keys()].sort()).toEqual([
+      "alert:alert-one:2026-09-05T12:00:00Z",
+      "alert:alert-two:2026-09-05T12:00:00Z",
+    ]);
+  });
+
+  it("ties on created_at order by the newer payload fired_at", () => {
+    const older = producerRow({ fire_event_id: "fe-thesis-old", payload: { ...producerRow().payload, fired_at: "2026-09-05T11:57:00Z" } });
+    const newer = producerRow({ fire_event_id: "fe-thesis-new" });
+    const view = viewOf([newer, older]);
+    expect(view.rows.map((row) => row.outboxRow?.fire_event_id)).toEqual(["fe-thesis-new", "fe-thesis-old"]);
+  });
+
+  it("one fire uses the producer fire identity in its row id", () => {
+    const view = viewOf([producerRow()]);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].foldedRows).toBe(0);
+  });
+
+
+  it("three fires across two theses render three globally newest-first rows", () => {
+    const secondThesisId = "22222222-2222-4222-8222-222222222222";
+    const rows = [
+      producerRow(),
+      producerRow({ fire_event_id: "fe-thesis-b-old", created_at: "2026-09-05T11:58:00Z", payload: { ...producerRow().payload, thesis_id: secondThesisId } }),
+      producerRow({ fire_event_id: "fe-thesis-b-new", created_at: "2026-09-05T11:59:40Z", payload: { ...producerRow().payload, thesis_id: secondThesisId } }),
+    ];
+    const view = viewOf(rows);
+    expect(view.rows.map((row) => row.alertId)).toEqual([
+      `thesis:${secondThesisId}:fe-thesis-b-new`,
+      `thesis:${THESIS_ID}:fe-thesis-1`,
+      `thesis:${secondThesisId}:fe-thesis-b-old`,
+    ]);
+    expect(view.rows.every((row) => row.foldedRows === 0)).toBe(true);
+  });
+});
+
+describe("formatFiredAt", () => {
+  it("renders a date-only producer value as an English calendar date", () => {
+    const rendered = formatFiredAt("2026-09-05", "en");
+    expect(rendered).toBe("Sep 5, 2026");
+    expect(rendered).not.toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("renders a date-only producer value as a Chinese calendar date", () => {
+    const rendered = formatFiredAt("2026-09-05", "zh");
+    expect(rendered).toBe("2026年9月5日");
+    expect(rendered).not.toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("keeps a full timestamp as a date and time", () => {
+    expect(formatFiredAt("2026-09-05T11:58:00Z", "en")).toMatch(/9\/5\/2026/);
+    expect(formatFiredAt("2026-09-05T11:58:00Z", "en")).toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("returns the existing dash for empty values", () => {
+    expect(formatFiredAt(null, "en")).toBe("—");
+    expect(formatFiredAt("", "zh")).toBe("—");
+  });
+
+  it("returns the existing dash for invalid values", () => {
+    expect(formatFiredAt("not-a-date", "en")).toBe("—");
+    expect(formatFiredAt("2026-09-05Tnot-a-time", "zh")).toBe("—");
   });
 });

@@ -1,20 +1,42 @@
 "use client";
 import {
   memo,
-  useCallback, useDeferredValue, useEffect, useMemo, useRef, useState,
+  useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore,
   type CSSProperties, type ReactNode,
 } from "react";
+import { dailyActivityNote, signedActivityLabel } from "@/lib/flowActivity";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
+import { createDefaultTapeView, decodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
+import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
+import { OptionsTapeSavedViews } from "@/components/options/OptionsTapeSavedViews";
+import { useTapeViewText } from "@/components/options/optionsTapeViewStrings";
 import { useLang, useT } from "@/lib/i18n";
+import screenerActionStyles from "./options/ScreenerTickerActions.module.css";
 import type { Lang } from "@/lib/i18n";
 import { daysHeld, daysToExpiry, volAboveOi } from "@/lib/plainAbbrev";
 import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
 import { getTutStr } from "@/lib/tutorial/tutorialStrings";
 import { abbrevSector } from "@/lib/sectorAbbrev";
 import { windowGexRows } from "@/lib/windowGexRows.mjs";
-import { flowGet, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
+import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
+import { FD } from "@/lib/flowdeskStrings";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
+import {
+  LEADERS_PREVIEW_ROWS,
+  filterLeaderRows,
+  leaderCountLabel,
+  leaderCoverageFootnote,
+  leaderDirectionCaveat,
+  leaderEmptyLabel,
+  leaderHistoryLabel,
+  leaderMissingRecurrenceLabel,
+  leaderSearchCountLabel,
+  leaderSearchEmptyLabel,
+  normalizeLeaderQuery,
+  visibleLeaderRows,
+} from "@/lib/leadersPresentation";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
 import {
@@ -40,6 +62,16 @@ import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import { OptionsCsvExportButton } from "@/components/options/OptionsCsvExportButton";
 import { OptionsFlowBoardView } from "@/components/options/OptionsFlowBoardView";
 import { FlowFreshnessReceipt } from "@/components/flowdesk/FlowFreshnessReceipt";
+import {
+  ContractPinButton,
+  ContractShortlistTray,
+  shortlistSource,
+  useContractShortlist,
+} from "@/components/options/ContractShortlist";
+import { useOptionsPlanScope } from "@/lib/useOptionsPlanScope";
+import { useShortlistT } from "@/lib/optionsContractShortlistLex";
+import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
+import { locatePin, sessionOf, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
 import {
@@ -361,12 +393,20 @@ interface LeadersColdStart {
 interface LeadersPayload {
   schema: string;
   as_of: string;
+  session_date?: string;
   stale: boolean;
+  stale_reason?: string | null;
+  source_age_stale?: boolean;
+  source_family?: string;
+  signal_policy?: string;
   cold_start: boolean;
   cold_start_detail?: LeadersColdStart;
   direction_note?: string;
   coverage: {
     n_universe: number;
+    n_expected_roots?: number;
+    n_current_roots?: number;
+    same_session_coverage_ratio?: number;
     n_flow_sessions: number;
     flow_z_live: boolean;
     tape_names: string[];
@@ -513,14 +553,9 @@ function fmtPremium(n: number): string {
   return `$${n.toFixed(0)}`;
 }
 
-/** Plain-language presentation of the premium z-score used by the data contract. */
+/** Signed presentation of the premium z-score used by the data contract: negative z is below the baseline, positive above. */
 function activityBand(z: number | null, lang: Lang): string {
-  if (z == null) return lang === "zh" ? "积累中" : "Warming";
-  const az = Math.abs(z);
-  if (az >= 3) return lang === "zh" ? "极异常" : "Extreme";
-  if (az >= 2) return lang === "zh" ? "很异常" : "Very unusual";
-  if (az >= 1) return lang === "zh" ? "偏高" : "Elevated";
-  return lang === "zh" ? "正常" : "Typical";
+  return signedActivityLabel(z, lang === "zh" ? "zh" : "en");
 }
 
 // GICS sector name → its SPDR ETF ticker. sector_etf_flows (ctx) is keyed by ETF
@@ -557,6 +592,13 @@ function fmtAsof(iso: string): string {
     const d = new Date(iso);
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "America/New_York" });
   } catch { return iso; }
+}
+
+/** Local bilingual copy helper for this large legacy hub.
+ * Keeps failure-state copy out of the global i18n layout evidence lock while
+ * still making EN/ZH routing explicit to the plain-language CI guard. */
+function pick(lang: Lang, en: string, zh: string): string {
+  return lang === "zh" ? zh : en;
 }
 
 function isStale(iso: string): boolean {
@@ -701,6 +743,7 @@ function TideTutorialButton({ lang }: { lang: Lang }) {
 // ─── Strike ladder SVG ───────────────────────────────────────────────────────
 
 const StrikeLadder = memo(function StrikeLadder({ strikes, lang, spotRef }: { strikes: StrikeRow[]; lang: string; spotRef: number | null }) {
+  const t = useT();
   const zh = lang === "zh";
   const ROW_H = 24;
   const LADDER_COLS = "52px 1fr 60px 1fr 52px";
@@ -804,7 +847,7 @@ const StrikeLadder = memo(function StrikeLadder({ strikes, lang, spotRef }: { st
             <span style={{ color: "var(--down)" }}>{zh ? "认沽" : "P"} {fmtPremium(inspect.put_prem)}</span>
             <span style={{ color: "var(--muted)" }}>{zh ? "量" : "Vol"} {inspect.vol.toLocaleString("en-US")}</span>
           </>
-        ) : <span style={{ color: "var(--muted)" }}>{zh ? "悬停查看行权价明细" : "Hover a strike for detail"}</span>}
+        ) : <span style={{ color: "var(--muted)" }}>{t("ohHoverStrike")}</span>}
       </div>
 
       {/* Column header — 5-col montage: [call $] [call bar] [strike] [put bar] [put $] */}
@@ -944,6 +987,7 @@ const SVG_NUM: CSSProperties = { fontFamily: "var(--font-num)", fontVariantNumer
 
 const MinuteNetChart = memo(function MinuteNetChart({ minutes, height = 160 }: { minutes: TickerMinute[]; height?: number }) {
   const { lang } = useLang();
+  const t = useT();
   // The wrapper is ALWAYS rendered so the ResizeObserver has an element from the
   // first paint — measuring is what makes 1 user unit == 1 CSS px (svgChart R1).
   const boxRef = useRef<HTMLDivElement>(null);
@@ -958,7 +1002,7 @@ const MinuteNetChart = memo(function MinuteNetChart({ minutes, height = 160 }: {
     // Honest empty: say WHY there is no line rather than collapsing to nothing.
     body = (
       <div className="obs-lbl" style={{ color: "var(--muted)", padding: "6px 0" }}>
-        {lang === "zh" ? "盘中分钟数据不足，暂无法绘制。" : "Not enough intraday minutes to plot yet."}
+        {t("ohNoMinutes")}
       </div>
     );
   } else {
@@ -996,6 +1040,7 @@ const MinuteNetChart = memo(function MinuteNetChart({ minutes, height = 160 }: {
 
 const TermStructureChart = memo(function TermStructureChart({ term }: { term: VolTerm[] }) {
   const { lang } = useLang();
+  const t = useT();
   const boxRef = useRef<HTMLDivElement>(null);
   const W = useChartWidth(boxRef, 600);
   const H = MIN_CHART_H.axis;
@@ -1005,7 +1050,7 @@ const TermStructureChart = memo(function TermStructureChart({ term }: { term: Vo
   if (pts0.length < 2) {
     body = (
       <div className="obs-lbl" style={{ color: "var(--muted)", padding: "6px 0" }}>
-        {lang === "zh" ? "可用到期不足两个，无法绘制期限结构。" : "Fewer than two expiries priced — no term structure to draw."}
+        {t("ohNoTermStructure")}
       </div>
     );
   } else {
@@ -1072,6 +1117,7 @@ const okIv = (v: unknown): v is number => typeof v === "number" && Number.isFini
 
 const SmileChart = memo(function SmileChart({ points, spotRef }: { points: VolSmilePoint[]; spotRef: number | null }) {
   const { lang } = useLang();
+  const t = useT();
   const boxRef = useRef<HTMLDivElement>(null);
   const W = useChartWidth(boxRef, 600);
   const H = 200;
@@ -1085,7 +1131,7 @@ const SmileChart = memo(function SmileChart({ points, spotRef }: { points: VolSm
   if (pts0.length < 2 || allIvs.length < 2) {
     body = (
       <div className="obs-lbl" style={{ color: "var(--muted)", padding: "6px 0" }}>
-        {lang === "zh" ? "该到期无有效双边报价，无法绘制微笑曲线。" : "No priced quotes on this expiry — nothing to plot."}
+        {t("ohNoSmile")}
       </div>
     );
   } else {
@@ -1166,6 +1212,7 @@ const SmileChart = memo(function SmileChart({ points, spotRef }: { points: VolSm
 
 const IvRankHistory = memo(function IvRankHistory({ history }: { history: VolHistPoint[] }) {
   const { lang } = useLang();
+  const t = useT();
   const boxRef = useRef<HTMLDivElement>(null);
   const W = useChartWidth(boxRef, 560);
   const H = MIN_CHART_H.spark;
@@ -1178,7 +1225,7 @@ const IvRankHistory = memo(function IvRankHistory({ history }: { history: VolHis
   if (vals.length < 2) {
     body = (
       <div className="obs-lbl" style={{ color: "var(--muted)", padding: "6px 0" }}>
-        {lang === "zh" ? "IV分位基线仍在积累。" : "IV-rank baseline is still building."}
+        {t("ohIvRankWarm")}
       </div>
     );
   } else {
@@ -1271,15 +1318,14 @@ const GexStrikeLadder = memo(function GexStrikeLadder({ rows, greek, spotRef, ga
   putWall: number | null;
   lang: string;
 }) {
+  const t = useT();
   const [wideMode, setWideMode] = useState(false);
 
   // Empty state — render bilingual pending message instead of null
   if (!rows.length) {
     return (
       <div style={{ padding: "20px 0", textAlign: "center", color: "var(--muted)", fontSize: 12 }}>
-        {lang === "zh"
-          ? "该标的夜间数据待更新"
-          : "Nightly data pending for this root"}
+        {t("ohNightlyPending")}
       </div>
     );
   }
@@ -1389,12 +1435,12 @@ const GexStrikeLadder = memo(function GexStrikeLadder({ rows, greek, spotRef, ga
                 )}
                 {isCallWall && (
                   <text x={MID * 2 - 4} y={y + 14} textAnchor="end" fill="var(--warn)" fontSize={9} fontWeight={600}>
-                    {lang === "zh" ? "认购集中" : "call concentration"}
+                    {t("ohCallConcentration")}
                   </text>
                 )}
                 {isPutWall && (
                   <text x={MID * 2 - 4} y={y + 14} textAnchor="end" fill="var(--warn)" fontSize={9} fontWeight={600}>
-                    {lang === "zh" ? "认沽集中" : "put concentration"}
+                    {t("ohPutConcentration")}
                   </text>
                 )}
               </g>
@@ -1485,18 +1531,32 @@ export interface OptionsHubViewProps {
   onTab?: (tab: TabKey) => void;
   /** Suppress the internal legacy tab strip even in uncontrolled mode. */
   hideTabStrip?: boolean;
+  /** Whole canonical draft only; an admitted Investigation owner supplies Save. */
+  onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
+  /** Every editor change, including null for invalid input or explicit close. */
+  onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }
+
+// No external hydration events are needed: React compares the server and client snapshots.
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
 
 export default function OptionsHubView({
   allowedTabs,
   activeTab: controlledTab,
   onTab,
   hideTabStrip,
+  onPlanDraftChange,
+  onPlanDraftInputChange,
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
   const t = useT();
+  const doiT = useShortlistT();
+  const viewText = useTapeViewText();
 
   const controlled = onTab !== undefined;
+  const [exposureMapFirst, setExposureMapFirst] = useState(false);
 
   // Tabs the hub is permitted to render. `tickers` is always reachable when
   // leaders/radar are allowed so their row → ticker-drill cross-jump survives
@@ -1625,21 +1685,60 @@ export default function OptionsHubView({
   }, []);
 
   // ── Filter state (Tape tab) ───────────────────────────────────────────────
-  const [minPrem, setMinPrem] = useState<number>(0);
-  const [dteBuckets, setDteBuckets] = useState<Set<DteBucket>>(new Set());
-  const [mnyBuckets, setMnyBuckets] = useState<Set<MnyBucket>>(new Set());
-  const [groupFilter, setGroupFilter] = useState<string>("");
+  const tapeInputHydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
+  const tapeParams = useSearchParams();
+  const requestedTapeView = JSON.stringify(tapeParams.getAll("tapeView"));
+  const [appliedTapeView, setAppliedTapeView] = useState(requestedTapeView);
+  const [initialTapeView] = useState(() => {
+    const values = tapeParams.getAll("tapeView");
+    const raw = values[0] ?? null;
+    const view = values.length <= 1 ? decodeTapeView(raw) : null;
+    return { view: view ?? createDefaultTapeView(), invalid: raw !== null && view === null };
+  });
+  const [invalidTapeView, setInvalidTapeView] = useState(initialTapeView.invalid);
+  const [minPrem, setMinPrem] = useState<number>(initialTapeView.view.minPrem);
+  const [dteBuckets, setDteBuckets] = useState<Set<DteBucket>>(new Set(initialTapeView.view.dteBuckets));
+  const [mnyBuckets, setMnyBuckets] = useState<Set<MnyBucket>>(new Set(initialTapeView.view.mnyBuckets));
+  const [groupFilter, setGroupFilter] = useState<string>(initialTapeView.view.groupFilter);
   // Tide tab sub-view: the classic net-premium tide chart, or the quanted-style Session
   // Flow pane (C+P|calls|puts · cumulative|per-min · off-open · fill · absolute).
   const [tideView, setTideView] = useState<"tide" | "session">("tide");
-  const [drillTicker, setDrillTicker] = useState<string | null>(null);
-  const [tapeTickerSearch, setTapeTickerSearch] = useState<string>("");
-  const [sideFilter, setSideFilter] = useState<string>("");
-  const [flagFilter, setFlagFilter] = useState<string>("");
-  const [sortKey, setSortKey] = useState<"ts" | "premium">("ts");
-  const [sortDir, setSortDir] = useState<1 | -1>(-1);
+  const [drillTicker, setDrillTicker] = useState<string | null>(initialTapeView.view.drillTicker);
+  const [tapeTickerSearch, setTapeTickerSearch] = useState<string>(initialTapeView.view.tapeTickerSearch);
+  const [sideFilter, setSideFilter] = useState<string>(initialTapeView.view.sideFilter);
+  const [flagFilter, setFlagFilter] = useState<string>(initialTapeView.view.flagFilter);
+  const [sortKey, setSortKey] = useState<"ts" | "premium">(initialTapeView.view.sortKey);
+  const [sortDir, setSortDir] = useState<1 | -1>(initialTapeView.view.sortDir);
   const [showPresets, setShowPresets] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
+
+  // One application path for URL restoration and saved display preferences.
+  const applyTapeView = (next: TapeViewState) => {
+    setMinPrem(next.minPrem);
+    setDteBuckets(new Set(next.dteBuckets));
+    setMnyBuckets(new Set(next.mnyBuckets));
+    setGroupFilter(next.groupFilter);
+    setDrillTicker(next.drillTicker);
+    setTapeTickerSearch(next.tapeTickerSearch);
+    setSideFilter(next.sideFilter);
+    setFlagFilter(next.flagFilter);
+    setSortKey(next.sortKey);
+    setSortDir(next.sortDir);
+    setShowPresets(false);
+  };
+
+  // Next keeps this component mounted for same-route history navigation. Apply
+  // only an actual change to the shared-view parameter; unrelated URL updates
+  // must preserve local filter edits. Guarded render-time adjustment prevents
+  // a frame of results for the previous view before an invalid link is withheld.
+  if (requestedTapeView !== appliedTapeView) {
+    const values = tapeParams.getAll("tapeView");
+    const decoded = values.length === 1 ? decodeTapeView(values[0]) : null;
+    const next = decoded ?? createDefaultTapeView();
+    setAppliedTapeView(requestedTapeView);
+    setInvalidTapeView(values.length > 0 && decoded === null);
+    applyTapeView(next);
+  }
 
   useEffect(() => {
     if (!showPresets) return;
@@ -1875,6 +1974,28 @@ export default function OptionsHubView({
   }, [activeTab, fetchScreener]);
 
   const [hotView, setHotView] = useState<ScreenerHotView>("by_premium");
+  const tickerSearchRef = useRef<HTMLInputElement>(null);
+  const focusTickerFromScreener = useRef(false);
+
+  useEffect(() => {
+    if (activeTab === "tickers" && focusTickerFromScreener.current) {
+      focusTickerFromScreener.current = false;
+      tickerSearchRef.current?.focus({ preventScroll: true });
+    }
+  }, [activeTab]);
+
+  function screenerTickerAction(root: string) {
+    return <button type="button" className={screenerActionStyles.ticker} data-screener-ticker={root}
+      aria-label={lang === "zh" ? `打开 ${root} 的个股详情` : `Open ${root} in Tickers`}
+      onClick={(event) => {
+        event.stopPropagation();
+        focusTickerFromScreener.current = event.detail === 0;
+        switchTab("tickers");
+        setSelectedTicker(root);
+      }}>
+      {root}
+    </button>;
+  }
 
   // ── Screener preset view state ────────────────────────────────────────────
   const [screenerPreset, setScreenerPreset] = useState<ScreenerPreset>("top_prem");
@@ -1920,16 +2041,10 @@ export default function OptionsHubView({
             {/* Why: nightly dataset vs a quiet current snapshot vs the last session. */}
             <div className="fin-empty-why" style={{ margin: "6px auto 0" }}>
               {screenerPreset === "doi" || screenerPreset === "hot"
-                ? (lang === "zh"
-                    ? "该视图来自夜间收盘构建，今晚运行后刷新。"
-                    : "This view is built from the nightly close — it refreshes after tonight’s run.")
+                ? t("ohNightlyView")
                 : marketOpenNow
-                ? (lang === "zh"
-                    ? "当前常规交易时段仍在进行 — 达标成交进入新的源数据快照后显示。"
-                    : "The regular-hours session is current — rows appear in new published source snapshots.")
-                : (lang === "zh"
-                    ? "市场休市 — 显示上一交易时段；下次开盘后恢复新的源数据快照。"
-                    : "Market closed — showing the last session; new source snapshots resume after the next open.")}
+                ? t("ohSessionCurrent")
+                : t("ohMarketClosedSnapshots")}
             </div>
           </>
         )}
@@ -1944,6 +2059,25 @@ export default function OptionsHubView({
     if (scrSortKey === key) setScrSortDir((d) => (d === -1 ? 1 : -1));
     else { setScrSortKey(key); setScrSortDir(-1); }
   }
+
+  // E15 exact-contract shortlist. Read-only over oiData/hotData: pinning never
+  // touches the source arrays, filters, sort or view. "Show in list" returns to
+  // the originating table exactly as its preset chip would, and never edits the
+  // index filter — a filtered-out pin is reported instead.
+  const planScope = useOptionsPlanScope();
+  const contractShortlist = useContractShortlist(planScope);
+  const showPinInList = (pin: ShortlistPin): PinLocation => {
+    const list = pin.family === "doi" ? oiData?.movers : hotData?.[pin.hotView ?? "by_premium"];
+    const where = locatePin(pin, list, scrRoot);
+    if (where !== "present") return where;
+    if (screenerPreset !== pin.family) {
+      setScreenerPreset(pin.family);
+      setScrSortKey(""); setScrSortDir(-1);
+      setScrGroup("");
+    }
+    if (pin.family === "hot" && pin.hotView && pin.hotView !== hotView) setHotView(pin.hotView);
+    return where;
+  };
 
   // The table and CSV consume the same memoized collections. That makes the
   // active preset's filters and ordering an executable contract instead of two
@@ -2133,20 +2267,36 @@ export default function OptionsHubView({
   const [leadersLoading, setLeadersLoading] = useState(false);
   const [leadersError, setLeadersError] = useState(false);
   const [leadersBoard, setLeadersBoard] = useState<"a" | "b">("a");
+  const [leadersExpanded, setLeadersExpanded] = useState(false);
+  const [leadersQuery, setLeadersQuery] = useState("");
+  const [showHistoricalLeaders, setShowHistoricalLeaders] = useState(false);
 
-  const fetchLeaders = useCallback(async () => {
-    if (leadersData) return;
+  // The nightly data can advance while this workspace stays mounted. The ordinary
+  // flowGet SWR path returns yesterday's cache and only refreshes it in the background;
+  // the previous "if (leadersData) return" then held that first payload indefinitely.
+  // Wait for revalidation on each Leaders entry or explicit retry.
+  const fetchLeaders = useCallback(async (force = false) => {
     setLeadersLoading(true); setLeadersError(false);
     try {
-      const d = await flowGet("leaders");
-      if (d) setLeadersData(d as unknown as LeadersPayload);
-      else setLeadersError(true);
+      // A manual check explicitly revalidates the publisher through the
+      // existing client/server cache owners, even inside the normal TTL.
+      const d = await flowGetFresh("leaders", { forceUpstream: force });
+      if (d && typeof d === "object" &&
+          Array.isArray((d as LeadersPayload).board_a) &&
+          Array.isArray((d as LeadersPayload).board_b) &&
+          (d as LeadersPayload).coverage) {
+        const payload = d as LeadersPayload;
+        setLeadersData(payload);
+        if (!payload.stale) setShowHistoricalLeaders(false);
+      } else {
+        setLeadersError(true);
+      }
     } catch { setLeadersError(true); }
     setLeadersLoading(false);
-  }, [leadersData]);
+  }, []);
 
   useEffect(() => {
-    if (activeTab === "leaders") fetchLeaders();
+    if (activeTab === "leaders") void fetchLeaders();
   }, [activeTab, fetchLeaders]);
 
   // ── Leader Radar fetch ────────────────────────────────────────────────────
@@ -2233,12 +2383,13 @@ export default function OptionsHubView({
           // hub's own header wherever the hub is acting as a HUB — standalone or inside the
           // workspace. A Discover single-tab embed (one allowed tab) is a bare mount of one
           // surface, not a hub header, and must stay bare.
-          const showVol = stripTabs.length > 1;
-          if (!showStrip && !showFlowTiming && !activeAsof && !showVol) return null;
+          const showVol = stripTabs.length > 1 && !(activeTab === "gex" && exposureMapFirst);
+          const showAsof = !!activeAsof && !(activeTab === "gex" && exposureMapFirst);
+          if (!showStrip && !showFlowTiming && !showAsof && !showVol) return null;
           return (
         <div className="options-flow-status-row" style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
           {showStrip && (
-            <nav className="obs-pillnav" aria-label={lang === "zh" ? "期权工具选项卡" : "Options Hub tabs"}>
+            <nav className="obs-pillnav" aria-label={t("ohHubTabs")}>
               {stripTabs.map((tb) => (
                 <button
                   key={tb.key}
@@ -2268,7 +2419,7 @@ export default function OptionsHubView({
               className="options-flow-freshness"
             />
           )}
-          {activeAsof && (
+          {showAsof && (
             <span style={{ color: "var(--text-dim)", fontSize: 11 }}>
               {t("asOf", "as of")} {fmtAsof(activeAsof)}
               {activeStale && (
@@ -2326,7 +2477,19 @@ export default function OptionsHubView({
           )}
 
           {/* ═══ TAPE TAB ═══════════════════════════════════════════════════ */}
-          {activeTab === "tape" && (
+          {activeTab === "tape" && invalidTapeView && (
+            <div className="fin-empty fin-empty-lg" role="alert" data-options-tape-view="invalid">
+              <div className="fin-empty-title">{viewText("tapeViewInvalid")}</div>
+              <p>{viewText("tapeViewInvalidBody")}</p>
+              <button className="chip" onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("tapeView");
+                window.history.replaceState(null, "", url);
+                setInvalidTapeView(false);
+              }}>{viewText("tapeViewOpenDefault")}</button>
+            </div>
+          )}
+          {activeTab === "tape" && !invalidTapeView && (
             <>
               {/* Belt: index roots, then sector groups. Both drive the SAME table below —
                   index chips reuse drillTicker (per-root), sector chips groupFilter, and the
@@ -2478,24 +2641,60 @@ export default function OptionsHubView({
 
                 {/* Ticker search */}
                 <input
-                  type="text"
+                  type="search"
+                  id="options-tape-ticker-search"
+                  name="options-tape-ticker-search"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  aria-label={t("tapeTickerPlaceholder", "Ticker…")}
                   placeholder={t("tapeTickerPlaceholder", "Ticker…")}
+                  // The SSR value is visible before React can preserve user edits.
+                  disabled={!tapeInputHydrated}
                   value={tapeTickerSearch}
                   onChange={(e) => { setTapeTickerSearch(e.target.value); setDrillTicker(null); }}
                   style={{ height: 28, padding: "0 10px", borderRadius: "var(--r-md)", background: "var(--inset)", border: "1px solid var(--line)", color: "var(--text)", font: "13px var(--font-ui)", width: 110 }}
                 />
 
+                {sideFilter && <button className="chip" onClick={() => setSideFilter("")}
+                  title={t("clearFilter")}>{viewText("tapeViewSide")}: {sideFilter} ×</button>}
+                {flagFilter && <button className="chip" onClick={() => setFlagFilter("")}
+                  title={t("clearFilter")}>{(flagFilter === "swept" ? viewText("tapeViewSwept") : t(flagFilter === "repeated" ? "presetRepeat" : "presetPutsOnStrength"))} ×</button>}
+
                 {/* Reset */}
-                {(minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter) && (
+                {(minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter || sortKey !== "ts" || sortDir !== -1) && (
                   <button
                     className="chip"
                     style={{ marginLeft: 4, color: "var(--muted)", height: 26, fontSize: 11 }}
-                    onClick={() => { setMinPrem(0); setDteBuckets(new Set()); setMnyBuckets(new Set()); setGroupFilter(""); setTapeTickerSearch(""); setDrillTicker(null); setSideFilter(""); setFlagFilter(""); }}
+                    onClick={() => { setMinPrem(0); setDteBuckets(new Set()); setMnyBuckets(new Set()); setGroupFilter(""); setTapeTickerSearch(""); setDrillTicker(null); setSideFilter(""); setFlagFilter(""); setSortKey("ts"); setSortDir(-1);
+                      const url = new URL(window.location.href);
+                      url.searchParams.delete("tapeView");
+                      window.history.replaceState(null, "", url);
+                    }}
                   >
                     {t("tapeReset", "Reset")}
                   </button>
                 )}
 
+                <OptionsTapeSavedViews state={{
+                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
+                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
+                  sortKey, sortDir,
+                }} onApply={(encoded) => {
+                  // Invalid shared links keep their explicit recovery boundary.
+                  const restored = decodeTapeView(encoded);
+                  if (invalidTapeView || !restored) return;
+                  // Also handles re-opening the URL's screen after unsaved local edits.
+                  applyTapeView(restored);
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tapeView", encoded);
+                  window.history.pushState(null, "", url);
+                }} />
+                <OptionsTapeViewLink state={{
+                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
+                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
+                  sortKey, sortDir,
+                }} />
                 <OptionsCsvExportButton
                   label={t("exportCsv")}
                   rowCount={events.length}
@@ -2538,12 +2737,10 @@ export default function OptionsHubView({
                   {fetchError && !feed && (
                     <div className="fin-empty fin-empty-lg" role="status">
                       <div className="fin-empty-title">
-                        {lang === "zh" ? "数据暂时不可用，请稍后重试。" : "Feed unavailable — retrying…"}
+                        {t("ohFeedUnavailable")}
                       </div>
                       <div className="fin-empty-why">
-                        {lang === "zh"
-                          ? "无法连接期权盘口数据流，本时段尚无缓存数据。"
-                          : "Can’t reach the options tape stream, and nothing is cached for this session yet."}
+                        {t("ohTapeUnreachable")}
                       </div>
                     </div>
                   )}
@@ -2588,12 +2785,12 @@ export default function OptionsHubView({
                             <td colSpan={11} style={{ textAlign: "center", padding: "40px 16px" }}>
                               <div className="fin-empty-title">
                                 {rawTapeCount > 0
-                                  ? (lang === "zh" ? "暂无符合条件的记录。" : "No events match these filters.")
+                                  ? t("ohNoFilterMatch")
                                   : feedDelayed && marketOpenNow
-                                  ? (lang === "zh" ? "源数据快照暂未刷新。" : "The source snapshot isn’t updating right now.")
+                                  ? t("ohSnapshotStalled")
                                   : feedDelayed
-                                  ? (lang === "zh" ? "市场休市 — 显示上一交易时段。" : "Market closed — showing the last session.")
-                                  : (lang === "zh" ? "本时段暂无异常期权流。" : "No unusual options flow yet this session.")}
+                                  ? t("ohMarketClosedLast")
+                                  : t("ohNoUnusualFlow")}
                               </div>
                               {/* Why: every empty tape states which of filters / stalled feed /
                                   closed market / quiet session is responsible. */}
@@ -2607,10 +2804,8 @@ export default function OptionsHubView({
                                       ? `最近更新 ${activeUpdatedLabel}。`
                                       : `Last update ${activeUpdatedLabel}.`)
                                   : feedDelayed
-                                  ? (lang === "zh" ? "显示上一完整交易时段。" : "Showing the last completed session.")
-                                  : (lang === "zh"
-                                      ? "最新源数据快照暂时清淡 — 达标大单进入后显示。"
-                                      : "The latest source snapshot is quiet — qualifying prints appear when published.")}
+                                  ? t("ohLastCompletedSession")
+                                  : t("ohSnapshotQuiet")}
                               </div>
                             </td>
                           </tr>
@@ -2675,8 +2870,8 @@ export default function OptionsHubView({
                 {unusualNames.length > 0 && (
                   <div className="flow-unusual-rail">
                     <div className="flow-unusual-heading">
-                      <span>{lang === "zh" ? "活跃度领先" : "Activity Leaders"}</span>
-                      <small>{lang === "zh" ? "对比过去一年" : "vs the past trading year"}</small>
+                      <span>{t("ohActivityLeaders")}</span>
+                      <small>{t("ohVsPastYear")}</small>
                     </div>
                     {unusualNames.map((u) => (
                       <button
@@ -2688,7 +2883,7 @@ export default function OptionsHubView({
                         <span className="flow-unusual-group">{lang === "zh" ? u.group_zh : u.group}</span>
                         <div className="flow-unusual-meta">
                           <span className="num">{fmtPremium(u.gross_premium_today)}</span>
-                          <span className="flow-unusual-band">{activityBand(u.prem_z, lang)}</span>
+                          <span className="flow-unusual-band" title={dailyActivityNote(lang)}>{activityBand(u.prem_z, lang)}</span>
                         </div>
                       </button>
                     ))}
@@ -2745,12 +2940,10 @@ export default function OptionsHubView({
                 tideUnavailable ? (
                   <div className="fin-empty fin-empty-lg" role="status">
                     <div className="fin-empty-title">
-                      {lang === "zh" ? "市场潮汐不可用。" : "Market tide unavailable."}
+                      {t("ohTideUnavailable")}
                     </div>
                     <div className="fin-empty-why">
-                      {lang === "zh"
-                        ? "无法连接盘中潮汐数据流，本时段尚无缓存序列。"
-                        : "Can’t reach the intraday tide stream, and no series is cached for this session yet."}
+                      {t("ohTideUnreachable")}
                     </div>
                   </div>
                 ) : (
@@ -2780,7 +2973,7 @@ export default function OptionsHubView({
                     </div>
                     <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
                       {/* Tide | Session sub-view toggle (quanted Wave 1) */}
-                      <div className="obs-pillnav" role="group" aria-label={lang === "zh" ? "资金潮视图" : "Tide view"} style={{ padding: 2 }}>
+                      <div className="obs-pillnav" role="group" aria-label={t("ohTideView")} style={{ padding: 2 }}>
                         <button
                           className={`obs-pillnav-tab${tideView === "tide" ? " on" : ""}`}
                           onClick={() => setTideView("tide")}
@@ -2866,7 +3059,7 @@ export default function OptionsHubView({
                               );
                             })()}
                             <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 4 }}>
-                              {lang === "zh" ? "点击筛选逐笔" : "click to filter Tape"}
+                              {t("ohClickFilterTape")}
                             </div>
                           </button>
                         );
@@ -2882,14 +3075,14 @@ export default function OptionsHubView({
                       <span style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--muted)" }}>
                         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           <span style={{ display: "inline-block", width: 12, height: 8, borderRadius: 2, background: "var(--up)" }} />
-                          {lang === "zh" ? "净认购 · 偏多" : "net call · bullish"}
+                          {t("ohNetCallBullish")}
                         </span>
                         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           <span style={{ display: "inline-block", width: 12, height: 8, borderRadius: 2, background: "var(--down)" }} />
-                          {lang === "zh" ? "净认沽 · 偏空" : "net put · bearish"}
+                          {t("ohNetPutBearish")}
                         </span>
                         <span style={{ color: "var(--text-dim)" }}>
-                          {lang === "zh" ? "条形长度 = 净方向权利金规模" : "bar length = size of net directional premium"}
+                          {t("ohBarLengthPremium")}
                         </span>
                       </span>
                     </div>
@@ -2996,6 +3189,7 @@ export default function OptionsHubView({
               >
                 <div style={{ padding: "10px 10px 8px" }}>
                   <input
+                    ref={tickerSearchRef}
                     type="text"
                     placeholder={lang === "zh" ? "搜索代码…" : "Search ticker…"}
                     value={tickerSearch}
@@ -3040,14 +3234,12 @@ export default function OptionsHubView({
                   {filteredCandidates.length === 0 && (
                     <div style={{ padding: "20px 12px" }}>
                       <div className="fin-empty-title" style={{ fontSize: 12 }}>
-                        {lang === "zh" ? "无结果" : "No results"}
+                        {t("ohNoResults")}
                       </div>
                       {/* Why: the list is session-scoped, not a universe search. */}
                       <div className="fin-empty-why" style={{ marginTop: 5 }}>
                         {tickerCandidates.length === 0
-                          ? (lang === "zh"
-                              ? "本时段尚无带期权流的标的。"
-                              : "No names have carried options flow this session yet.")
+                          ? t("ohNoFlowNames")
                           : (lang === "zh"
                               ? `仅列出本时段有期权流的 ${tickerCandidates.length} 个标的。`
                               : `Only the ${tickerCandidates.length} names with flow this session are listed.`)}
@@ -3066,9 +3258,7 @@ export default function OptionsHubView({
                         {t("tickersSelectPrompt", "Select a ticker from the list or search above")}
                       </div>
                       <div className="fin-empty-why">
-                        {lang === "zh"
-                          ? "左侧按今日净权利金影响排序，仅列出本时段有期权流的标的。"
-                          : "The list is ranked by today’s net premium impact, and only names with flow this session appear."}
+                        {t("ohListRankedByPremium")}
                       </div>
                     </div>
                   </div>
@@ -3149,15 +3339,15 @@ export default function OptionsHubView({
                         const histN = tctxData.history_n ?? 0;
                         const minN = 20;
                         const warming = histN < minN;
-                        const chips: { labelKey: string; label: string; zKey: keyof NonNullable<TctxPayload["z"]> }[] = [
-                          { labelKey: "tctxNetPremZ", label: "Net activity", zKey: "net_signed_premium_z252" },
-                          { labelKey: "tctxVolGtOiShare", label: "New-position activity", zKey: "vol_gt_oi_share_z252" },
+                        const chips: { label: string; zKey: keyof NonNullable<TctxPayload["z"]> }[] = [
+                          { label: t("tctxNetPremZ", "Net activity"), zKey: "net_signed_premium_z252" },
+                          { label: FD.volumeOiActivity[lang], zKey: "vol_gt_oi_share_z252" },
                         ];
                         return chips.map((c) => {
                           const zVal = tctxData.z?.[c.zKey];
                           return (
                             <div key={c.zKey} style={{ border: "1px solid var(--line)", borderRadius: "var(--r-tile)", padding: "5px 10px", background: "var(--panel)" }}>
-                              <div className="obs-lbl">{t(c.labelKey, c.label)}</div>
+                              <div className="obs-lbl">{c.label}</div>
                               <div className="num" style={{ fontSize: 13, fontWeight: 650, marginTop: 4, fontVariantNumeric: "tabular-nums", color: "var(--text)" }}>
                                 {warming || zVal == null
                                   ? <span style={{ fontSize: 10, color: "var(--text-dim)" }}>—</span>
@@ -3233,7 +3423,7 @@ export default function OptionsHubView({
                                     <td style={{ fontVariantNumeric: "tabular-nums" }}>{c.vol.toLocaleString("en-US")}</td>
                                     <td>
                                       {c.vol_gt_oi && (
-                                        <span className="flow-flag-chip">{lang === "zh" ? "量超持仓" : "vol>OI"}</span>
+                                        <span className="flow-flag-chip">{t("colVolGtOi")}</span>
                                       )}
                                     </td>
                                   </tr>
@@ -3314,11 +3504,11 @@ export default function OptionsHubView({
                                 <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 6, display: "flex", gap: 14 }}>
                                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                                     <span style={{ display: "inline-block", width: 10, height: 2, background: "var(--up)" }} />
-                                    {lang === "zh" ? "认购IV" : "Call IV"}
+                                    {t("ohCallIv")}
                                   </span>
                                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                                     <span style={{ display: "inline-block", width: 10, height: 2, borderBottom: "1px dashed var(--down)" }} />
-                                    {lang === "zh" ? "认沽IV" : "Put IV"}
+                                    {t("ohPutIv")}
                                   </span>
                                 </div>
                               </div>
@@ -3327,7 +3517,7 @@ export default function OptionsHubView({
                         )}
                         {volLoading && (
                           <div style={{ color: "var(--muted)", fontSize: 12, padding: "12px 0" }}>
-                            {lang === "zh" ? "波动率数据加载中…" : "Loading vol surface…"}
+                            {t("ohLoadingVol")}
                           </div>
                         )}
                       </div>
@@ -3368,7 +3558,7 @@ export default function OptionsHubView({
                 const PRESET_DEFS: PresetDef[] = [
                   { key: "top_prem",  en: "Top Premium",       zh: "保费最大",     needsFeed: true },
                   { key: "unusual_z", en: "Unusual Activity",   zh: "异常活跃",     needsFeed: true },
-                  { key: "fresh",     en: "Fresh Positioning",  zh: "新建仓位",     needsFeed: true },
+                  { key: "fresh",     en: "Volume > OI",       zh: "成交量>持仓",   needsFeed: true },
                   { key: "doi",       en: "ΔOI Builds",         zh: "持仓增长",     needsOi: true },
                   { key: "zerodte",   en: "0DTE Heavy",         zh: "高0DTE占比",   needsFeed: true },
                   { key: "hot",       en: "Hot Contracts",      zh: "热门合约",     needsHot: true },
@@ -3396,7 +3586,7 @@ export default function OptionsHubView({
                       </button>
                     ))}
                     <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--text-dim)" }}>
-                      {lang === "zh" ? "ETF品种覆盖，个股扩展中" : "ETF universe · single names expanding"}
+                      {t("ohEtfUniverseExpanding")}
                     </span>
                     <OptionsCsvExportButton
                       label={t("exportCsv")}
@@ -3491,6 +3681,16 @@ export default function OptionsHubView({
                 padding: "14px 18px", display: "flex", flexDirection: "column", gap: 16,
               }}>
 
+              {(oiData || hotData) && (
+                <ContractShortlistTray
+                  shortlist={contractShortlist}
+                  active={screenerPreset === "doi" || screenerPreset === "hot"}
+                  onShowInList={showPinInList}
+                  scopeKey={planScope}
+                  onPlanDraftChange={onPlanDraftChange}
+                  onPlanDraftInputChange={onPlanDraftInputChange}
+                />
+              )}
               {screenerLoading && !oiData && !hotData && !feed && (
                 <div className="fin-empty" role="status">{t("loading", "Loading…")}</div>
               )}
@@ -3501,9 +3701,7 @@ export default function OptionsHubView({
                     {lang === "zh" ? "暂无可筛选的数据" : "Nothing to screen yet"}
                   </div>
                   <div className="fin-empty-why">
-                    {lang === "zh"
-                      ? "盘中期权流与夜间收盘构建当前均无法读取。"
-                      : "Neither the intraday options tape nor the nightly close build could be read right now."}
+                    {t("ohNeitherFeed")}
                   </div>
                 </div>
               )}
@@ -3524,7 +3722,7 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{lang === "zh" ? "保费最大（今日）" : "Top Premium — Today"}</span>
+                      <span className="obs-lbl">{t("ohTopPremiumToday")}</span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
                       <table className="scr" style={{ fontSize: 12 }}>
@@ -3532,8 +3730,8 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("gross", "Gross Prem", "总保费", "Total premium across all flow events today")}
-                            {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
+                            {hdr("gross", "Gross Prem", "总权利金", "Total premium across all flow events today")}
+                            {hdr("z", "Activity", "活跃度", dailyActivityNote(lang))}
                             {hdr("call_share", "Call%", "认购占比", "Call premium share of total")}
                           </tr>
                         </thead>
@@ -3562,7 +3760,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "活跃度将今日权利金与约一年的交易历史比较。点击行查看详情。" : "Activity compares today’s premium with roughly one trading year. Click a row for details."}
+                      {t("ohActivityVsYear")}
                     </div>
                   </div>
                 );
@@ -3580,7 +3778,7 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{lang === "zh" ? "异常活跃度" : "Unusual Activity"}</span>
+                      <span className="obs-lbl">{t("ohUnusualActivity")}</span>
                       {warming.length > 0 && (
                         <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
                           {lang === "zh" ? `${warming.length} 基线积累中（未显示）` : `${warming.length} warming baselines hidden`}
@@ -3593,8 +3791,8 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
-                            {hdr("gross", "Gross", "总保费", "Total premium today")}
+                            {hdr("z", "Activity", "活跃度", dailyActivityNote(lang))}
+                            {hdr("gross", "Gross", "总权利金", "Total premium today")}
                             {hdr("call_share", "Call%", "认购占比")}
                           </tr>
                         </thead>
@@ -3627,7 +3825,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "“很异常”和“极异常”表示今日活动明显高于一年常态。点击行查看详情。" : "Very unusual and Extreme mean today’s activity is well above its one-year norm. Click a row for details."}
+                      {t("ohUnusualFoot")}
                     </div>
                   </div>
                 );
@@ -3644,7 +3842,7 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{lang === "zh" ? "新建仓位（vol>OI 信号）" : "Fresh Positioning — vol > OI signals"}</span>
+                      <span className="obs-lbl">{FD.volumeOiHeading[lang]}</span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
                       <table className="scr" style={{ fontSize: 12 }}>
@@ -3652,14 +3850,14 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("n", "Fresh hits", "新开仓次数", "Number of vol>OI events today")}
-                            {hdr("prem", "Prem", "保费", "Total premium on vol>OI events")}
+                            {hdr("n", "Vol > OI hits", "成交量>持仓次数", FD.volumeOiExplanation[lang])}
+                            {hdr("prem", "Prem", "保费", FD.volumeOiExplanation[lang])}
                           </tr>
                         </thead>
                         <tbody>
                           {rows.map((r) => (
                             <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(r.root); }}>
-                              <td style={{ textAlign: "left", fontWeight: 700 }}>{r.root}</td>
+                              <td style={{ textAlign: "left", fontWeight: 700 }}>{screenerTickerAction(r.root)}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
                               </td>
@@ -3668,13 +3866,13 @@ export default function OptionsHubView({
                             </tr>
                           ))}
                           {rows.length === 0 &&
-                            scrEmptyRow(4, "No vol>OI signals this session", "本时段暂无 vol>OI 信号",
+                            scrEmptyRow(4, FD.volumeOiHeading.en, FD.volumeOiHeading.zh,
                               (feed.events ?? []).filter((e) => e.vol_gt_oi).length)}
                         </tbody>
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "vol>OI 表示当日成交量超过昨日持仓，为新开仓信号（非确认）。" : "vol>OI means today's volume exceeds prior OI — a fresh-positioning signal (not confirmed)."}
+                      {FD.volumeOiExplanation[lang]}
                     </div>
                   </div>
                 );
@@ -3683,6 +3881,7 @@ export default function OptionsHubView({
               {/* ── ΔOI Builds view — oiData.movers ── */}
               {screenerPreset === "doi" && oiData && (() => {
                 const rows = oiRows;
+                const reportDate = sessionOf(oiData.asof);
                 const hdr = (key: string, en: string, zh: string, tip?: string) => (
                   <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
                     {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
@@ -3691,9 +3890,9 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{lang === "zh" ? "持仓增长（ΔOI）" : "OI Builds — ΔOI"}</span>
+                      <span className="obs-lbl">{t("ohOiBuilds")}</span>
                       <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-                        {lang === "zh" ? "截至上一交易日" : "as of previous session"}
+                        {reportDate ? doiT("e15O_report_dated").replace("{d}", reportDate) : doiT("e15O_report_date_unavailable")}
                       </span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
@@ -3704,8 +3903,8 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "认购/认沽" : "C/P"}</th>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "到期日" : "Exp"}</th>
                             <th>{lang === "zh" ? "行权价" : "Strike"}</th>
-                            {hdr("doi", "ΔOI", "持仓变动", "Open interest change (t-1 vs t-2)")}
-                            {hdr("oi", "OI t-1", "持仓（前日）")}
+                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), doiT("e15O_reported_doi_foot"))}
+                            {hdr("oi", doiT("e15O_reported_oi"), doiT("e15O_reported_oi"))}
                             {hdr("mid", "Mid", "中间价")}
                           </tr>
                         </thead>
@@ -3714,7 +3913,10 @@ export default function OptionsHubView({
                             const isAdd = m.d_oi > 0;
                             return (
                               <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(m.root); }}>
-                                <td style={{ textAlign: "left", fontWeight: 700 }}>{m.root}</td>
+                                <td style={{ textAlign: "left", fontWeight: 700 }}>
+                                  <ContractPinButton shortlist={contractShortlist} row={m} source={shortlistSource("doi", oiData)} list={oiData.movers} />
+                                  {screenerTickerAction(m.root)}
+                                </td>
                                 <td style={{ textAlign: "left" }}>
                                   <span style={{ color: m.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{m.right}</span>
                                 </td>
@@ -3736,7 +3938,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "ΔOI为前两个交易日持仓差值，不代表当日方向。" : "ΔOI = OI(t-1)−OI(t-2); does not imply direction of today's flow."}
+                      {doiT("e15O_reported_doi_foot")}
                     </div>
                   </div>
                 );
@@ -3768,13 +3970,14 @@ export default function OptionsHubView({
                         <tbody>
                           {rows.map((r) => (
                             <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(r.root); }}>
-                              <td style={{ textAlign: "left", fontWeight: 700 }}>{r.root}</td>
+                              <td style={{ textAlign: "left", fontWeight: 700 }}>{screenerTickerAction(r.root)}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
                               </td>
                               <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtPremium(r.zd_prem)}</td>
-                              <td style={{ fontVariantNumeric: "tabular-nums", color: r.zd_share > 0.5 ? "var(--warn)" : "var(--text)" }}>
-                                {(r.zd_share * 100).toFixed(1)}%
+                              <td style={{ fontVariantNumeric: "tabular-nums", color: r.zd_share !== null && r.zd_share > 0.5 ? "var(--warn)" : "var(--text)" }}
+                                title={r.zd_share === null ? pick(lang, "No total premium denominator", "总权利金为零，比例不可用") : undefined}>
+                                {r.zd_share === null ? (lang === "zh" ? "不可用" : "Unavailable") : `${(r.zd_share * 100).toFixed(1)}%`}
                               </td>
                             </tr>
                           ))}
@@ -3785,7 +3988,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "0DTE=当日到期合约；高占比可能反映日内投机活动。" : "0DTE = same-day expiry contracts. High share may indicate intraday speculative activity."}
+                      {t("ohZeroDteFoot")}
                     </div>
                   </div>
                 );
@@ -3796,7 +3999,7 @@ export default function OptionsHubView({
                 <div className="obs-card" style={{ overflow: "hidden" }}>
                   <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)", alignItems: "center" }}>
                     <span className="obs-lbl">
-                      {lang === "zh" ? "热门合约" : "Hot Contracts"}
+                      {t("ohHotContracts")}
                     </span>
                     <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
                       <button
@@ -3826,13 +4029,16 @@ export default function OptionsHubView({
                           <th>{t("colPrem", "Prem")}</th>
                           <th>{t("colVol", "Vol")}</th>
                           <th>{t("colClose", "Close")}</th>
-                          <th>{t("colVolGtOi", "vol>OI")}</th>
+                          <th>{t("colVolGtOi")}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {hotRows.map((c, i) => (
                           <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(c.root); }}>
-                            <td style={{ textAlign: "left", fontWeight: 700 }}>{c.root}</td>
+                            <td style={{ textAlign: "left", fontWeight: 700 }}>
+                              <ContractPinButton shortlist={contractShortlist} row={c} source={shortlistSource("hot", hotData, hotView)} list={hotData[hotView] ?? []} />
+                              {screenerTickerAction(c.root)}
+                            </td>
                             <td style={{ textAlign: "left" }}>
                               <span style={{ color: c.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{c.right}</span>
                             </td>
@@ -3843,7 +4049,7 @@ export default function OptionsHubView({
                             <td style={{ fontVariantNumeric: "tabular-nums", color: "var(--text-2)" }}>{c.close.toFixed(2)}</td>
                             <td>
                               {c.vol_gt_oi && (
-                                <span className="flow-flag-chip">{lang === "zh" ? "量超持仓" : "vol>OI"}</span>
+                                <span className="flow-flag-chip">{t("colVolGtOi")}</span>
                               )}
                             </td>
                           </tr>
@@ -3854,7 +4060,7 @@ export default function OptionsHubView({
                     </table>
                   </div>
                   <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                    {lang === "zh" ? "ETF覆盖；仅供展示参考，非投资建议。" : "ETF universe. Display only — not investment advice."}
+                    {t("ohEtfDisplayOnly")}
                   </div>
                 </div>
               )}
@@ -3876,7 +4082,15 @@ export default function OptionsHubView({
               ──────────────────────────────────────────────────────────────────── */}
           {(activeTab === "gex" || visitedTabs.has("gex")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "gex" ? "flex" : "none", minHeight: 0 }}>
-              <GexDeskView />
+              <GexDeskView onMapFirstChange={setExposureMapFirst}
+                onOpenPlan={renderableTabs.has("screener") ? () => {
+                  // Navigation only: preserve exact-contract pins. The shortlist owns
+                  // draft lifetime; never promote Matrix coordinates into snapshots.
+                  setScreenerPreset("doi");
+                  setScrRoot(""); setScrGroup("");
+                  setScrSortKey(""); setScrSortDir(-1);
+                  switchTab("screener");
+                } : undefined} />
             </div>
           )}
 
@@ -3933,50 +4147,123 @@ export default function OptionsHubView({
                 </div>
               )}
 
-              {/* Error / absent */}
+              {/* Fetch failure. This is not a cold-start signal: 403/429/503/network
+                  failures used to be mislabeled as "publishes tonight", which hid both
+                  entitlement regressions and real upstream outages. */}
               {leadersError && !leadersData && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("leadersAbsent", "Flow Leaders publishes after tonight's build")}
+                    {pick(lang, "Couldn't load Flow Leaders", "暂时无法加载资金流领涨榜")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {lang === "zh" ? "数据每晚收盘后构建" : "Data builds nightly after market close"}
+                    {pick(lang, "This panel couldn't reach its data. Retry in a moment.", "此面板暂时无法获取数据，请稍后重试。")}
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ height: 28, marginTop: 14 }}
+                    onClick={() => void fetchLeaders(true)}
+                    disabled={leadersLoading}
+                  >
+                    {leadersLoading ? t("loading", "Loading…") : pick(lang, "Retry", "重试")}
+                  </button>
                 </div>
               )}
 
               {leadersData && (() => {
                 const cov = leadersData.coverage;
-                // Render all rows as delivered — server already caps at 25 per board.
-                // No client-side qualification filter: accruing rows (all legs null) render so the
-                // board shows honestly. Chips/badges convey state. Sorted by K desc for signal rows.
+                // Keep every delivered row available, but do not make the reader scan a
+                // 100+ row wall on first load. The default preview is bounded and the explicit
+                // expander reveals the same sorted array — no hidden qualification or re-ranking.
                 const boardARows = [...leadersData.board_a].sort((a, b) => b.K_a - a.K_a);
                 const boardBRows = [...leadersData.board_b].sort((a, b) => b.K_b - a.K_b);
-                const displayRows = leadersBoard === "a" ? boardARows : boardBRows;
+                const allRows = leadersBoard === "a" ? boardARows : boardBRows;
+                const normalizedLeadersQuery = normalizeLeaderQuery(leadersQuery);
+                const filteredRows = filterLeaderRows(allRows, leadersQuery);
+                const searchingLeaders = normalizedLeadersQuery.length > 0;
+                const displayRows = searchingLeaders
+                  ? filteredRows
+                  : visibleLeaderRows(allRows, leadersExpanded);
+
+                // A recent build stamp is NOT a recent source session. Keep historical
+                // tables out of the active discovery surface by default: legacy
+                // options summaries froze on 2026-08-12 and can still be republished.
+                const insufficientCoverage = leadersData.stale_reason === "insufficient_same_session_coverage";
+                if (leadersData.stale && !showHistoricalLeaders) {
+                  return (
+                    <div role="status" style={{ padding: "24px 20px", border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--warn)", marginBottom: 8 }}>
+                        {pick(lang, "Current Flow Leaders unavailable", "当前资金流领涨榜不可用")}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>
+                        {insufficientCoverage
+                          ? pick(lang,
+                              `Partial ThetaData coverage for ${leadersData.session_date ?? "unknown session"}: ${cov.n_current_roots ?? 0} of ${cov.n_expected_roots ?? "?"} configured roots. Full-universe rankings are not qualified.`,
+                              `${leadersData.session_date ?? "未知交易日"} 的 ThetaData 覆盖不足：${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票。尚不足以形成全市场排名。`)
+                          : leadersData.session_date
+                            ? pick(lang,
+                                `Last verified source session: ${leadersData.session_date}. This is a historical snapshot, not today's options activity.`,
+                                `最后验证的数据会话：${leadersData.session_date}。这是历史快照，并非今日的期权活动。`)
+                            : pick(lang, "The latest market session cannot be verified.", "无法核实最新市场交易日。")}
+                        {" "}
+                        {pick(lang, "Rankings and signal flags are withheld until current-session evidence is available.",
+                          "在取得当前交易日证据之前，暂不展示排名和信号标记。")}
+                      </div>
+                      {leadersError && (
+                        <div style={{ fontSize: 12, color: "var(--warn)", marginTop: 8 }}>
+                          {pick(lang, "The latest refresh failed; the historical snapshot remains unchanged.",
+                            "最新刷新失败；历史快照未更改。")}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
+                        <button type="button" className="btn btn-ghost" disabled={leadersLoading}
+                          onClick={() => void fetchLeaders(true)}>
+                          {leadersLoading ? t("loading", "Loading…") : pick(lang, "Check for new data", "检查新数据")}
+                        </button>
+                        <button type="button" className="btn btn-ghost"
+                          onClick={() => setShowHistoricalLeaders(true)}>
+                          {insufficientCoverage
+                            ? pick(lang, "Inspect incomplete snapshot", "查看不完整快照")
+                            : pick(lang, "Inspect historical snapshot", "查看历史快照")}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <>
                     {/* ── Header strip ── */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                      <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
-                        {t("asOf", "as of")} {fmtAsof(leadersData.as_of)}
-                      </span>
                       <span style={{ fontSize: 11, color: "var(--muted)" }}>
-                        {lang === "zh"
-                          ? `前 ${displayRows.length} / 共 ${cov.n_universe}`
-                          : `top ${displayRows.length} of ${cov.n_universe}`}
+                        {searchingLeaders
+                          ? leaderSearchCountLabel(lang, displayRows.length, allRows.length, cov.n_universe)
+                          : leaderCountLabel(lang, displayRows.length, allRows.length, cov.n_universe)}
                         {" · "}
-                        {(() => {
-                          const reqSessions = leadersData.cold_start_detail?.required_for_recurrence ?? 5;
-                          return lang === "zh"
-                            ? `会话 ${cov.n_flow_sessions}/${reqSessions}`
-                            : `sessions ${cov.n_flow_sessions}/${reqSessions}`;
-                        })()}
+                        {leaderHistoryLabel(lang, cov.n_flow_sessions)}
                       </span>
+                      {!leadersData.stale && (
+                        <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
+                          {pick(lang, `Updated ${fmtAsof(leadersData.as_of)} ET`, `更新于 ${fmtAsof(leadersData.as_of)}（美东）`)}
+                        </span>
+                      )}
                       {leadersData.stale && (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
-                          {t("leadersStale", "Snapshot from prior session")}
+                          {leadersData.stale_reason === "insufficient_same_session_coverage"
+                            ? pick(lang,
+                                `Incomplete ThetaData coverage · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} roots`,
+                                `ThetaData 覆盖不足 · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票`)
+                            : leadersData.session_date
+                              ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
+                              : t("leadersStale", "Snapshot from prior session")}
                         </span>
+                      )}
+                      {leadersData.stale && showHistoricalLeaders && (
+                        <button type="button" className="btn btn-ghost"
+                          style={{ height: 26, fontSize: 11 }}
+                          onClick={() => setShowHistoricalLeaders(false)}>
+                          {pick(lang, "Hide historical snapshot", "收起历史快照")}
+                        </button>
                       )}
                     </div>
 
@@ -3997,36 +4284,81 @@ export default function OptionsHubView({
 
                     {/* Direction note */}
                     {leadersData.direction_note && (
-                      <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 10, fontStyle: "italic" }}>
-                        {leadersData.direction_note}
+                      <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 10 }}>
+                        {leaderDirectionCaveat(lang, leadersData.direction_note)}
                       </div>
                     )}
 
                     {/* ── Board toggle ── */}
-                    <div style={{ display: "flex", gap: 6, marginBottom: 14, alignItems: "center" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14, alignItems: "center" }}>
                       <button
                         className={`chip${leadersBoard === "a" ? " on" : ""}`}
                         style={{ height: 26, fontSize: 11 }}
-                        onClick={() => setLeadersBoard("a")}
+                        onClick={() => { setLeadersBoard("a"); setLeadersExpanded(false); }}
                       >
                         {t("leadersBoardALbl", "Flow Leadership")}
                       </button>
                       <button
                         className={`chip${leadersBoard === "b" ? " on" : ""}`}
                         style={{ height: 26, fontSize: 11 }}
-                        onClick={() => setLeadersBoard("b")}
+                        onClick={() => { setLeadersBoard("b"); setLeadersExpanded(false); }}
                       >
                         {t("leadersBoardBLbl", "Washout Turn")}
                       </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto", minWidth: 0 }}>
+                        <input
+                          type="search"
+                          aria-label={pick(lang, "Search Flow Leaders", "搜索资金流领涨榜")}
+                          placeholder={pick(lang, "Search ticker…", "搜索代码…")}
+                          value={leadersQuery}
+                          onChange={(event) => {
+                            setLeadersQuery(event.target.value);
+                            setLeadersExpanded(false);
+                          }}
+                          style={{
+                            width: 154, maxWidth: "42vw", height: 28, padding: "0 9px",
+                            borderRadius: "var(--r-md)", background: "var(--inset)",
+                            border: "1px solid var(--line)", color: "var(--text)",
+                            font: "12px var(--font-ui)",
+                          }}
+                        />
+                        {leadersQuery && (
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            style={{ height: 28, fontSize: 11 }}
+                            aria-label={pick(lang, "Clear Flow Leaders search", "清除资金流领涨榜搜索")}
+                            onClick={() => { setLeadersQuery(""); setLeadersExpanded(false); }}
+                          >
+                            {pick(lang, "Clear", "清除")}
+                          </button>
+                        )}
+                      </div>
+                      {!searchingLeaders && allRows.length > LEADERS_PREVIEW_ROWS && (
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          style={{ height: 28, fontSize: 11 }}
+                          aria-controls="flow-leaders-board"
+                          aria-expanded={leadersExpanded}
+                          onClick={() => setLeadersExpanded((v) => !v)}
+                        >
+                          {leadersExpanded
+                            ? pick(lang, `Show top ${LEADERS_PREVIEW_ROWS}`, `显示前 ${LEADERS_PREVIEW_ROWS} 个`)
+                            : pick(lang, `Show all ${allRows.length}`, `显示全部 ${allRows.length} 个`)}
+                        </button>
+                      )}
                     </div>
 
                     {/* ── Table ── */}
                     {displayRows.length === 0 ? (
                       <div style={{ padding: "30px 0", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
-                        {t("leadersNoQualifying", "No qualifying names yet — updates after tonight's build")}
+                        {searchingLeaders
+                          ? leaderSearchEmptyLabel(lang, normalizedLeadersQuery)
+                          : leaderEmptyLabel(lang)}
                       </div>
                     ) : (
-                      <div className="obs-scroll" style={{ overflowX: "auto" }}>
+                      <div id="flow-leaders-board" className="obs-scroll" style={{ overflowX: "auto" }}>
                         <table className="scr" style={{ fontSize: 12, minWidth: 680 }}>
                           <thead>
                             <tr>
@@ -4119,7 +4451,7 @@ export default function OptionsHubView({
                                       ? recur
                                       : (
                                         <span style={{ fontSize: 10, color: "var(--muted)", fontStyle: "italic" }}>
-                                          {t("leadersAccruing", "accruing")}
+                                          {leaderMissingRecurrenceLabel(lang, leadersData.stale, leadersData.stale_reason)}
                                         </span>
                                       )}
                                   </td>
@@ -4253,9 +4585,9 @@ export default function OptionsHubView({
                       </div>
                     )}
 
-                    {/* Per-source footnote */}
-                    <div style={{ marginTop: 14, fontSize: 11, color: "var(--text-dim)", lineHeight: 1.6 }}>
-                      {t("leadersFootnote", "Direction ~-soft (approximate). Sources: {sources}. All readings display-only — not investment advice.").replace("{sources}", leadersData.coverage.tape_names.join(", "))}
+                    {/* Coverage note — summarize scope; never dump hundreds of ticker names. */}
+                    <div style={{ marginTop: 12, fontSize: 11, color: "var(--text-dim)", lineHeight: 1.6 }}>
+                      {leaderCoverageFootnote(lang, leadersData.coverage.tape_names.length)}
                     </div>
                   </>
                 );
@@ -4275,15 +4607,24 @@ export default function OptionsHubView({
                 </div>
               )}
 
-              {/* Error / absent */}
+              {/* Fetch failure is distinct from a successful cold-start payload below. */}
               {radarError && !radarData && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("radarAbsent", "Leader Radar publishes after tonight's build")}
+                    {pick(lang, "Couldn't load Leader Radar", "暂时无法加载领涨雷达")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("radarAbsentSub", "Data builds nightly after market close")}
+                    {pick(lang, "This panel couldn't reach its data. Retry in a moment.", "此面板暂时无法获取数据，请稍后重试。")}
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ height: 28, marginTop: 14 }}
+                    onClick={() => void fetchRadar()}
+                    disabled={radarLoading}
+                  >
+                    {radarLoading ? t("radarLoading", "Loading Leader Radar…") : pick(lang, "Retry", "重试")}
+                  </button>
                 </div>
               )}
 
@@ -4715,9 +5056,7 @@ export default function OptionsHubView({
 
         {/* ── Disclaimer ── */}
         <div className="flow-disclaimer">
-          {lang === "zh"
-            ? "标注与方向标签为启发式近似（~），仅供展示，不构成投资建议。"
-            : "Notability and direction labels are heuristic and approximate (~). Display only — not investment advice."}
+          {t("ohHeuristicFoot")}
         </div>
       </Wrapper>
     </CoachProvider>

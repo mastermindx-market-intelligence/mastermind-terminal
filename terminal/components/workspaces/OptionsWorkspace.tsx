@@ -1,10 +1,15 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
+import Link from "next/link";
+import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useSearchParams } from "next/navigation";
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import OptionsHubView, { type TabKey } from "@/components/OptionsHubView";
+import OptionsStatisticsView from "@/components/options/OptionsStatisticsView";
 import OptionsWorkflowGuide from "@/components/options/OptionsWorkflowGuide";
 import { useLang, useT } from "@/lib/i18n";
+import { optionsWorkspaceCopy } from "@/lib/optionsWorkspaceCopy";
+import s from "./OptionsWorkspace.module.css";
 import {
   OPTIONS_HUB_WORKSPACE_VIEWS,
   OPTIONS_IA_BY_CATEGORY,
@@ -26,7 +31,7 @@ import {
  *
  * Reads resolve synchronously from `?tab=` on first render. Writes stay shallow
  * through history.replaceState. `statistics` is a category home with an explicit
- * source-build gate until the separate R3 publisher exists; no values are inferred.
+ * validated prospective Statistics snapshot; no values are inferred from Tape.
  */
 
 const ROUTE_VIEW: Record<string, OptionsWorkspaceViewKey> = {
@@ -72,11 +77,12 @@ function writeTabToUrl(pageKey: string) {
 export default function OptionsWorkspace() {
   const { lang } = useLang();
   const t = useT();
+  const futuresText = useFuturesText();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
-  const [activeView, setActiveView] = useState<OptionsWorkspaceViewKey>(
-    () => (rawTab && ROUTE_VIEW[rawTab]) || DEFAULT_VIEW,
-  );
+  // Native history changes and Back/Forward update useSearchParams through
+  // Next's router. Derive the view on every render so the URL stays authoritative.
+  const activeView = (rawTab && ROUTE_VIEW[rawTab]) || DEFAULT_VIEW;
 
   // Redirected legacy destinations are handled before this component in normal
   // requests. Keep a client guard for a passthrough or stale cached route.
@@ -89,7 +95,6 @@ export default function OptionsWorkspace() {
   }, [rawTab]);
 
   const selectView = useCallback((view: OptionsWorkspaceViewKey) => {
-    setActiveView(view);
     const pageKey = view === "statistics" ? "statistics" : OPTIONS_IA_VIEW_BY_KEY[view].pageKey;
     writeTabToUrl(pageKey);
   }, []);
@@ -127,11 +132,11 @@ export default function OptionsWorkspace() {
 
   return (
     <main
-      className="main2 options-workspace"
+      className={`main2 options-workspace ${s.workspace}`}
       data-options-ia="seven-category-stage-a"
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
     >
-      <header className="options-ia-nav">
+      <header className={`options-ia-nav ${s.nav}`}>
         <div className="options-ia-row options-ia-category-row">
           <span className="options-ia-row-label">{t("optionsIaCategoryLabel", "Category")}</span>
           <div className="options-ia-main">
@@ -139,11 +144,16 @@ export default function OptionsWorkspace() {
               tabs={CATEGORY_TABS}
               active={`cat-${activeCategory}`}
               onSelect={onCategorySelect}
-              aria-label={lang === "zh" ? "期权类别" : "Options categories"}
+              aria-label={t("optionsCategoriesAria")}
               className="options-category-tabs"
             />
+            <Link href="/options/futures" data-testid="options-futures-link"
+              className={s.futuresLink} aria-label={futuresText("title")}>
+              {futuresText("navTitle")}
+            </Link>
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
           </div>
+          <p className={s.navHint} aria-hidden="true">{optionsWorkspaceCopy(lang).browseCategories} <span>↔</span></p>
         </div>
         <div className="options-ia-row options-ia-view-row">
           <span className="options-ia-row-label">{t("optionsIaViewLabel", "View")}</span>
@@ -152,42 +162,19 @@ export default function OptionsWorkspace() {
               tabs={viewTabs}
               active={activePageKey}
               onSelect={onViewSelect}
-              aria-label={lang === "zh" ? "期权子视图" : "Options views"}
+              aria-label={t("optionsViewsAria")}
               className="options-view-tabs"
             />
           ) : (
-            <div className="options-ia-gate-strip" data-options-ia-gate="statistics-r3">
-              <span className="options-ia-gate-dot" aria-hidden="true" />
-              {t("optionsStatisticsGateShort", "Source publisher pending · no synthetic values")}
+            <div className={s.statisticsSummary} data-options-ia-gate="statistics-r3">
+              {optionsWorkspaceCopy(lang).statisticsSummary}
             </div>
           )}
         </div>
       </header>
 
       {activeView === "statistics" ? (
-        <section
-          id="wpanel-statistics"
-          className="options-statistics-gate"
-          data-options-ia-state="statistics-pending"
-          aria-labelledby="wtab-cat-statistics"
-        >
-          <div className="options-statistics-gate-card obs-card">
-            <div className="options-statistics-gate-eyebrow">
-              {t("optionsCategoryStatistics", "Statistics")}
-            </div>
-            <h1>{t("optionsStatisticsGateTitle", "Statistics opens when the source is honest")}</h1>
-            <p>
-              {t(
-                "optionsStatisticsGateBody",
-                "Exchange codes are retained. Contract statistics, trade-side statistics, and market share will appear here only after the publisher and validation gate ship.",
-              )}
-            </p>
-            <div className="options-statistics-gate-receipts" aria-label={lang === "zh" ? "统计页状态" : "Statistics status"}>
-              <span>{t("optionsStatisticsGatePublisher", "Publisher pending")}</span>
-              <span>{t("optionsStatisticsGateValues", "No values shown")}</span>
-            </div>
-          </div>
-        </section>
+        <OptionsStatisticsView />
       ) : (
         <OptionsHubView
           allowedTabs={RESEARCH_ALLOWED}

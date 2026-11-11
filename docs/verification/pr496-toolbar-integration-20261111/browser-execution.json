@@ -1,0 +1,9 @@
+{
+  "returncode": 1,
+  "seconds": 853.58,
+  "port": 57727,
+  "port_open_after": false,
+  "source_count": 6469,
+  "source_changed": [],
+  "next_lock_exists": true
+}

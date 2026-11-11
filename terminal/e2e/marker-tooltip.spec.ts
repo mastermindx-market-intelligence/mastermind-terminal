@@ -1,9 +1,10 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { settledChartDrag, settledPanSample } from "./helpers/settled";
+import { settled, settledChartDrag, settledPanSample } from "./helpers/settled";
 // The tooltip wording is owned by the copy module and imported, never transcribed — the same
 // reason washout-retro.spec.ts imports `retroLegendCopy`. Sentence-level copy contracts live in
 // lib/__tests__/markerTooltipCopy.test.ts; this suite pins that they RENDER, and render wired.
 import { markerTooltipCopy } from "../lib/signalVerdict";
+import { placeMarkerTip } from "../lib/markerTooltip";
 
 // ── THE TOOLTIPS THAT SHIPPED TO NOBODY ────────────────────────────────────────────────────
 //
@@ -63,6 +64,30 @@ function ohlcFixture(days = 420) {
 }
 
 const OHLC = ohlcFixture();
+
+function gapOhlcFixture() {
+  // Derive from the exact Oracle fixture so its dated slice remains aligned even if this
+  // suite starts across a UTC-day boundary.
+  const fixture = OHLC;
+  const bars = fixture.bars.map((bar) => [...bar] as typeof bar);
+  const gapIndex = bars.length - 24;
+  const priorHigh = bars[gapIndex - 1][2];
+  const shelfLow = +(priorHigh * 1.08).toFixed(2);
+  const shelfHigh = +(shelfLow * 1.025).toFixed(2);
+  for (let offset = 0; offset < 4; offset++) {
+    const low = +(shelfLow + offset * 0.01).toFixed(2);
+    const high = +(shelfHigh + offset * 0.01).toFixed(2);
+    const close = +((low + high) / 2).toFixed(2);
+    bars[gapIndex + offset] = [bars[gapIndex + offset][0], close, high, low, close, 1_500_000];
+  }
+  // The fifth bar trades back through the prior high, so the zone remains visible as a
+  // filled four-session band rather than extending indefinitely across unrelated tests.
+  const fill = bars[gapIndex + 4];
+  bars[gapIndex + 4] = [fill[0], fill[1], Math.max(fill[2], priorHigh), Math.min(fill[3], priorHigh * .99), fill[4], fill[5]];
+  return { ...fixture, bars };
+}
+
+const GAP_OHLC = gapOhlcFixture();
 const BAR_DATES = OHLC.bars.map((b) => b[0]);
 const BAR_CLOSES = OHLC.bars.map((b) => b[4]);
 const back = (n: number) => BAR_DATES.length - 1 - n;
@@ -138,18 +163,41 @@ async function applyZh(page: Page) {
   await expect(settings).toBeHidden();
 }
 
-async function openTerminal(page: Page, opts: { zh?: boolean; zhPreseed?: boolean } = {}) {
+async function openTerminal(
+  page: Page,
+  opts: {
+    zh?: boolean;
+    zhPreseed?: boolean;
+    indicators?: string[];
+    indicatorParams?: Record<string, unknown>;
+    devTier?: string;
+    chartSettings?: Record<string, unknown>;
+    ohlc?: ReturnType<typeof ohlcFixture>;
+    startTf?: string;
+  } = {},
+) {
   if (opts.zhPreseed) {
     await page.addInitScript(() => { localStorage.setItem("mm.lang", "zh"); });
   }
   await page.route(/\/data\/COST\.json(?:\?.*)?$/, async (route) => {
-    await route.fulfill({ contentType: "application/json", body: JSON.stringify(OHLC) });
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify(opts.ohlc ?? OHLC) });
   });
   await page.route(/\/data\/COST\.slice\.json(?:\?.*)?$/, async (route) => {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(SLICE) });
   });
   // Golden Oracle markers are an OPT-IN study — seed the saved indicator set.
-  await page.addInitScript(() => { localStorage.setItem("mm.inds", JSON.stringify(["_oracle"])); });
+  await page.addInitScript(([indicators, indicatorParams, devTier, startTf]) => {
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.inds", JSON.stringify(indicators));
+    if (indicatorParams) localStorage.setItem("mm.indParams", JSON.stringify(indicatorParams));
+    if (devTier) localStorage.setItem("mm.devTier", devTier);
+    if (startTf) localStorage.setItem("mm.startTf", JSON.stringify(startTf));
+  }, [opts.indicators ?? ["_oracle"], opts.indicatorParams, opts.devTier, opts.startTf] as const);
+  if (opts.chartSettings) {
+    await page.addInitScript((settings) => {
+      localStorage.setItem("mm.chartSettings", JSON.stringify(settings));
+    }, opts.chartSettings);
+  }
   await armTerminalVisualReady(page);
   await page.goto("/terminal?symbol=COST");
   await expect(page.locator(".workspace")).toBeVisible();
@@ -165,38 +213,91 @@ type Marker = { t: string; title: string; cx: number; cy: number };
 /** Every titled marker currently painted, in VIEWPORT coordinates — the same space the mouse
  *  moves in, so a test never has to convert. */
 async function markers(page: Page): Promise<Marker[]> {
+  return (await markerField(page)).list;
+}
+
+/** Every titled marker, plus the chart's LAYOUT ACCOUNTING — read in ONE evaluate so none of it
+ *  can straddle a relayout.
+ *
+ *  A marker's coordinates only mean something while nothing is queued to move them, and the marker
+ *  field itself cannot tell you that: it can sit perfectly still for seconds with a 118px shrink
+ *  already committed against it. The mount builds the default indicator set (two sub-panes) and then
+ *  swaps in the saved one; ChartPanel reports the new sub-pane count to TerminalShell, whose
+ *  `--subpanes` React state drives the mobile chart-body height formula (globals.css); the chart
+ *  then follows its container through a ResizeObserver + rAF. Under a saturated runner that state
+ *  commit lands seconds after the sub-panes are gone (run 36051830283: sub-panes removed by t≈3.0s,
+ *  `--subpanes: 0` committed at t≈5.2s), and lightweight-charts is drawing 464px into a 346px
+ *  `.pane{overflow:hidden}` in between — a stable, clipped, WRONG layout that two identical reads
+ *  happily accept. The shrink then lands during the tap and the finger's down point is 42px from
+ *  the marker it was aimed at.
+ *
+ *  So beside the markers this reads, from DOM the product already exposes (no test hook):
+ *    - `--subpanes` and `--drawing-host-height` on `.chart-body` — the REQUESTED topology and the
+ *      parent's measured height (#688);
+ *    - the sub-panes lightweight-charts is DRAWING right now (pane rows and the time-axis row carry
+ *      canvases; the 1px separator rows do not); and
+ *    - whether the lightweight-charts table is the same height as the wrapper it is meant to fill.
+ *  The requested topology catches the default-set transient, `declared === drawn` the window before
+ *  the state commits, `fills` the window before the chart follows it. */
+async function markerField(page: Page): Promise<{
+  subpanes: string; hostHeight: string; declared: number; drawn: number; fills: boolean; list: Marker[];
+}> {
   return page.locator("[data-sig-layer]").first().evaluate((svg) => {
-    const out: { t: string; title: string; cx: number; cy: number }[] = [];
-    for (const g of [...svg.querySelectorAll(":scope > g")]) {
+    const list: { t: string; title: string; cx: number; cy: number }[] = [];
+    for (const g of [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]) {
       const title = g.querySelector(":scope > title")?.textContent;
       if (!title) continue;
       const b = g.getBoundingClientRect();
       if (!(b.width > 0) || !(b.height > 0)) continue;
-      out.push({ t: title.split(" ·")[0], title, cx: b.x + b.width / 2, cy: b.y + b.height / 2 });
+      list.push({ t: title.split(" ·")[0], title, cx: b.x + b.width / 2, cy: b.y + b.height / 2 });
     }
-    return out;
+    const wrap = svg.parentElement;                                   // ChartPanel's `wrap`
+    const body = wrap?.closest<HTMLElement>(".chart-body") ?? null;
+    const table = wrap?.querySelector<HTMLElement>(".tv-lightweight-charts table") ?? null;
+    if (!wrap || !body || !table) return { subpanes: "", hostHeight: "", declared: -1, drawn: -2, fills: false, list };
+    const style = getComputedStyle(body);
+    const subpanes = style.getPropertyValue("--subpanes").trim();
+    const hostHeight = style.getPropertyValue("--drawing-host-height").trim();
+    const declared = Number.parseInt(subpanes || "0", 10);
+    const drawn = [...table.querySelectorAll("tr")].filter((tr) => tr.querySelector("canvas")).length - 2;
+    const fills = Math.abs(table.getBoundingClientRect().height - wrap.getBoundingClientRect().height) <= 1;
+    return { subpanes, hostHeight, declared, drawn, fills, list };
   });
 }
 
-/** The marker field, once it has STOPPED MOVING.
+/** The marker field, once the REQUESTED pane topology and its geometry have stopped moving — and
+ *  the chart has actually followed them.
  *
- *  The chart keeps sizing after hydration — panes lay out, the price axis takes its final width,
- *  and every marker's coordinates move with it. Measuring mid-settle hands back positions that are
- *  already stale by the time a pointer lands on them, which on the 390px viewport is the whole
- *  difference between a tap that opens a tooltip and one that lands 20px away in empty chart. The
- *  interaction is fine there — proven by hand — so the wait belongs in the test, not a retry.
- *  Two consecutive identical reads, never a sleep. */
-async function settledMarkers(page: Page): Promise<Marker[]> {
+ *  The default fixture requests only the price-pane Golden Oracle overlay (`_oracle`), so its
+ *  settled shell has zero indicator subpanes; moved-pane fixtures declare their expected count. During preference hydration the shell can briefly render
+ *  inherited/default subpanes; two identical marker-coordinate samples inside that transient
+ *  layout are not a readiness proof. A later 2 -> 0 subpane commit moves the whole marker field
+ *  after those coordinates were returned, turning a physical tap into a stale-coordinate miss.
+ *
+ *  Bind readiness to the actual parent layout contract: the requested subpanes, the chart drawing
+ *  exactly the sub-panes the parent has accounted for and filling its wrapper (`markerField`), plus
+ *  two identical reads of the parent host height and marker coordinates — never a sleep. A read
+ *  taken over a pending relayout never counts as the first of the two. This does not widen a hit
+ *  target, gesture threshold, timeout, or product behavior; it only refuses to measure the fixture
+ *  while its layout is still being committed. */
+async function settledMarkers(page: Page, expectedSubpanes = 0): Promise<Marker[]> {
   let prev = "";
   let list: Marker[] = [];
   await expect.poll(async () => {
-    list = await markers(page);
-    const key = list.map((m) => `${m.t}@${Math.round(m.cx)},${Math.round(m.cy)}`).join("|");
-    const settled = list.length > 0 && key === prev;
-    prev = key;
+    const field = await markerField(page);
+    list = field.list;
+    const key = [
+      `subpanes=${field.subpanes}`,
+      `hostHeight=${field.hostHeight}`,
+      ...list.map((m) => `${m.t}@${Math.round(m.cx)},${Math.round(m.cy)}`),
+    ].join("|");
+    const requestedTopologyReady = field.subpanes === String(expectedSubpanes);
+    const chartFollowed = field.declared === field.drawn && field.fills;
+    const settled = requestedTopologyReady && chartFollowed && list.length > 0 && key === prev;
+    prev = requestedTopologyReady && chartFollowed ? key : "";
     return settled;
   }, {
-    message: "the marker field should stop moving before it is measured",
+    message: `the requested ${expectedSubpanes}-subpane marker geometry should stop moving, with the chart filling a container sized for its panes, before it is measured`,
     timeout: 25_000,
     intervals: [150, 200, 300, 400, 500],
   }).toBe(true);
@@ -227,6 +328,27 @@ function pick(list: Marker[], ts: string): Marker {
 
 const tip = (page: Page) => page.locator(".mm-sig-tip");
 
+/** Prove the tooltip is at the product's actual placement for this marker, not merely "near" an
+ *  arbitrary corner. ChartPanel passes the marker centre through placeMarkerTip after every
+ *  relayout, so the browser box should reproduce that pure contract within subpixel rounding. */
+async function expectTipAnchoredToMarker(page: Page, marker: Marker) {
+  const [box, wrap] = await Promise.all([
+    tip(page).boundingBox(),
+    page.locator(".chart-wrap").first().boundingBox(),
+  ]);
+  expect(box, "the re-anchored tooltip should have a box").toBeTruthy();
+  expect(wrap, "the chart wrapper should have a box").toBeTruthy();
+  const expected = placeMarkerTip(
+    { x: marker.cx - wrap!.x, y: marker.cy - wrap!.y },
+    { w: box!.width, h: box!.height },
+    { w: wrap!.width, h: wrap!.height },
+  );
+  expect(Math.abs((box!.x - wrap!.x) - expected.left),
+    "tooltip left should match placeMarkerTip for the marker's current box").toBeLessThan(1);
+  expect(Math.abs((box!.y - wrap!.y) - expected.top),
+    "tooltip top should match placeMarkerTip for the marker's current box").toBeLessThan(1);
+}
+
 /** Give the pan test its visible-tooltip precondition without repeating the sibling tap test.
  *  Under a saturated full-suite runner, Playwright can split tap()'s down/up delivery beyond the
  *  product's intentional 300 ms long-press boundary. The sibling below retains that real-device
@@ -241,6 +363,24 @@ async function primeVisibleTooltip(page: Page, marker: Marker) {
   }, { t: marker.t, title: marker.title });
 }
 
+/** Hold the renderer's main thread for `ms` at the very END of the next pointerdown's propagation
+ *  path — after every product handler on the wrapper has recorded its own start time.
+ *
+ *  This is the shape of the defect, not a contrivance: the browser queues input behind whatever
+ *  the thread is already doing, so on a phone mid-repaint (or a saturated CI runner) a fingertip
+ *  that was down for a few milliseconds has its pointerup DISPATCHED hundreds of milliseconds
+ *  later. Measured on this chart before #619: with the thread held 400ms the tap dead-ended on
+ *  both touch viewports and both overlay layers, while the two events were stamped <1ms apart.
+ *  `once` so exactly one gesture is affected and the page is never left wedged. */
+async function stallNextGesture(page: Page, ms: number) {
+  await page.evaluate((hold) => {
+    window.addEventListener("pointerdown", () => {
+      const end = performance.now() + hold;
+      while (performance.now() < end) { /* hold the main thread */ }
+    }, { once: true });
+  }, ms);
+}
+
 /** Hover a marker and wait for its tooltip — polled on the tooltip's own `data-marker-at`, so the
  *  wait is for the state being asserted rather than for a timeout. */
 async function hoverMarker(page: Page, m: Marker) {
@@ -248,6 +388,35 @@ async function hoverMarker(page: Page, m: Marker) {
   await page.mouse.move(m.cx, m.cy, { steps: 6 });
   await expect(tip(page)).toHaveAttribute("data-marker-at", m.t, { timeout: 5_000 });
   await expect(tip(page)).toBeVisible();
+}
+
+async function moveRsiPaneAbovePrice(page: Page) {
+  const rsiLegend = page.locator(".lg-block").filter({ hasText: "RSI" }).first();
+  await expect(rsiLegend).toBeVisible({ timeout: 20_000 });
+  const rsiRow = rsiLegend.locator(".lg-row").filter({ hasText: "RSI" }).first();
+  const paneMenu = page.locator(".lg-more");
+  await settled({
+    drive: async (last) => {
+      if (last?.open || await paneMenu.isVisible().catch(() => false)) return;
+      await rsiRow.hover();
+      try {
+        await rsiRow.getByRole("button", { name: "More" }).click({ timeout: 3_000 });
+      } catch {
+        // A render can replace the hovered row. The next drive retries against its successor.
+      }
+    },
+    read: async () => ({ open: await paneMenu.isVisible().catch(() => false) }),
+    ok: (value) => value.open,
+    same: (prev, next) => prev.open && next.open,
+    message: "the RSI pane menu should stay open before moving the pane",
+  });
+  await paneMenu.getByText("Move pane up", { exact: true }).click();
+  await expect.poll(async () => Number(
+    await page.locator('[data-price-pane-scope="signals"]').getAttribute("data-pane-top"),
+  ), {
+    message: "the signal layer should follow the price pane below RSI",
+    timeout: 20_000,
+  }).toBeGreaterThan(20);
 }
 
 // ── 1. DISPLAY: five classes, five tooltips, the right words in each ────────────────────────
@@ -335,6 +504,157 @@ test("every marker class shows its own tooltip on hover", async ({ page }, testI
 
 });
 
+test("signals and every price overlay stay scoped to a moved price pane", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Pane move controls are a desktop interaction.");
+  test.setTimeout(90_000);
+  await openTerminal(page, {
+    indicators: ["_oracle", "rsi", "ichimoku", "trend"],
+    indicatorParams: { trend: {} },
+    devTier: "pro",
+    chartSettings: { visualContext: true, visualLevels: true },
+  });
+  const priceOverlays = page.locator('[data-price-pane-local="price-overlays"]');
+  await expect.poll(
+    () => priceOverlays.locator(":scope > polygon").count(),
+    { message: "Ichimoku should paint inside the shared price-overlay scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+  await expect.poll(
+    () => priceOverlays.locator('[data-visual-intelligence-overlay] > *').count(),
+    { message: "visual-intelligence overlays should paint inside the shared scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+  await expect.poll(
+    () => priceOverlays.locator('[data-price-suite-overlay="trend"] > *').count(),
+    { message: "the active Trend Waves suite should paint inside the shared scope", timeout: 45_000 },
+  ).toBeGreaterThan(0);
+
+  await moveRsiPaneAbovePrice(page);
+  await expect.poll(
+    () => priceOverlays.locator(":scope > polygon").count(),
+    { message: "Ichimoku should remain inside the moved price-pane scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+  await expect.poll(
+    () => priceOverlays.locator('[data-visual-intelligence-overlay] > *').count(),
+    { message: "visual-intelligence overlays should remain inside the moved price-pane scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+  await expect.poll(
+    () => priceOverlays.locator('[data-price-suite-overlay="trend"] > *').count(),
+    { message: "Trend Waves should remain inside the moved price-pane scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+
+  const proof = await page.evaluate(() => {
+    const readScope = (name: string) => {
+      const scope = document.querySelector<SVGGElement>(`[data-price-pane-scope="${name}"]`);
+      const local = document.querySelector<SVGGElement>(`[data-price-pane-local="${name}"]`);
+      const clipRef = scope?.getAttribute("clip-path")?.match(/^url\(#(.+)\)$/)?.[1] ?? "";
+      const rect = clipRef ? document.querySelector<SVGRectElement>(`#${CSS.escape(clipRef)} rect`) : null;
+      return {
+        top: Number(scope?.getAttribute("data-pane-top")),
+        height: Number(scope?.getAttribute("data-pane-height")),
+        transform: local?.getAttribute("transform") ?? "",
+        clipY: Number(rect?.getAttribute("y")),
+        clipHeight: Number(rect?.getAttribute("height")),
+        children: local?.children.length ?? 0,
+      };
+    };
+    const visual = document.querySelector<SVGGElement>("[data-visual-intelligence-overlay]");
+    return {
+      signals: readScope("signals"),
+      price: readScope("price-overlays"),
+      markerCount: document.querySelectorAll('[data-price-pane-local="signals"] > g > title').length,
+      directRootMarkers: document.querySelectorAll('[data-sig-layer] > g > title').length,
+      legacyPolygons: document.querySelectorAll('[data-price-pane-local="price-overlays"] > polygon').length,
+      visualChildren: visual?.children.length ?? 0,
+      visualParentScoped: visual?.parentElement?.getAttribute("data-price-pane-local") === "price-overlays",
+      trendSuiteChildren: document.querySelectorAll(
+        '[data-price-pane-local="price-overlays"] [data-price-suite-overlay="trend"] > *',
+      ).length,
+      trendSuiteOutsideScope: [...document.querySelectorAll('[data-price-suite-overlay="trend"]')]
+        .filter((node) => node.parentElement?.getAttribute("data-price-pane-local") !== "price-overlays").length,
+      priceTagPaneTop: Number(document.querySelector<HTMLElement>(".mm-ptag")?.dataset.paneTop),
+    };
+  });
+
+  expect(proof.signals.top).toBeGreaterThan(20);
+  expect(proof.signals.top).toBeCloseTo(proof.price.top, 1);
+  expect(proof.signals.top).toBeCloseTo(proof.priceTagPaneTop, 1);
+  expect(proof.signals.height).toBeGreaterThan(100);
+  expect(proof.signals.height).toBeCloseTo(proof.price.height, 1);
+  expect(proof.signals.transform).toBe(`translate(0 ${proof.signals.top})`);
+  expect(proof.price.transform).toBe(`translate(0 ${proof.price.top})`);
+  expect(proof.signals.clipY).toBeCloseTo(proof.signals.top, 1);
+  expect(proof.price.clipY).toBeCloseTo(proof.price.top, 1);
+  expect(proof.signals.clipHeight).toBeCloseTo(proof.signals.height, 1);
+  expect(proof.price.clipHeight).toBeCloseTo(proof.price.height, 1);
+  expect(proof.markerCount).toBe(5);
+  expect(proof.directRootMarkers).toBe(0);
+  expect(proof.price.children).toBeGreaterThan(0);
+  expect(proof.legacyPolygons).toBeGreaterThan(0);
+  expect(proof.visualChildren).toBeGreaterThan(0);
+  expect(proof.visualParentScoped).toBe(true);
+  expect(proof.trendSuiteChildren).toBeGreaterThan(0);
+  expect(proof.trendSuiteOutsideScope).toBe(0);
+
+  const movedMarkers = await settledMarkers(page, 1);
+  const retro = pick(movedMarkers, RETRO_TS);
+  const wrap = await page.locator(".chart-wrap").boundingBox();
+  expect(wrap).not.toBeNull();
+  expect(retro.cy).toBeGreaterThan(wrap!.y + proof.signals.top);
+  expect(retro.cy).toBeLessThan(wrap!.y + proof.signals.top + proof.signals.height);
+  await hoverMarker(page, retro);
+  await expect(tip(page)).toHaveText(retro.title);
+});
+
+test("Gap Zones stays clipped to price when oscillator panes are present", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The multi-pane geometry proof runs once on desktop.");
+  const gapColor = "#7f5af0";
+  await openTerminal(page, {
+    indicators: ["_oracle", "gaps", "rsi", "stochrsi", "macd"],
+    indicatorParams: {
+      gaps: { showGaps: true, hideFilled: false, minGapPct: 0, maxGaps: 40, gapUpCol: gapColor, gapDownCol: "#ff5470" },
+    },
+    ohlc: GAP_OHLC,
+    startTf: "D",
+  });
+
+  const gapRect = page.locator(`[data-price-pane-local="signals"] > g > rect[fill="${gapColor}"]`).first();
+  await expect(gapRect).toBeAttached({ timeout: 20_000 });
+  // Exercise the coordinate-space failure mode directly: move RSI above price, forcing the
+  // price pane away from root-SVG y=0, then prove the same live Gap Zones node is still owned by
+  // the translated + clipped signal scope rather than the chart-wide SVG.
+  await moveRsiPaneAbovePrice(page);
+  await expect(gapRect).toBeAttached({ timeout: 20_000 });
+  const proof = await page.evaluate((color) => {
+    const root = document.querySelector<SVGSVGElement>("[data-sig-layer]");
+    const scope = root?.querySelector<SVGGElement>('[data-price-pane-scope="signals"]') ?? null;
+    const local = root?.querySelector<SVGGElement>('[data-price-pane-local="signals"]') ?? null;
+    const zone = local?.querySelector<SVGRectElement>(`:scope > g > rect[fill="${color}"]`) ?? null;
+    const clipRef = scope?.getAttribute("clip-path")?.match(/^url\(#(.+)\)$/)?.[1] ?? "";
+    const clipRect = clipRef ? root?.querySelector<SVGRectElement>(`#${CSS.escape(clipRef)} rect`) ?? null : null;
+    const wrap = document.querySelector<HTMLElement>(".chart-wrap")?.getBoundingClientRect() ?? null;
+    return {
+      zoneFound: Boolean(zone),
+      localScope: zone?.parentElement?.parentElement?.getAttribute("data-price-pane-local") ?? null,
+      rootDirectZones: root?.querySelectorAll(`:scope > g > rect[fill="${color}"]`).length ?? -1,
+      paneTop: Number(scope?.getAttribute("data-pane-top")),
+      paneHeight: Number(scope?.getAttribute("data-pane-height")),
+      localTransform: local?.getAttribute("transform") ?? "",
+      clipY: Number(clipRect?.getAttribute("y")),
+      clipHeight: Number(clipRect?.getAttribute("height")),
+      chartHeight: wrap?.height ?? 0,
+    };
+  }, gapColor);
+
+  expect(proof.zoneFound).toBe(true);
+  expect(proof.localScope).toBe("signals");
+  expect(proof.rootDirectZones).toBe(0);
+  expect(proof.paneTop).toBeGreaterThan(20);
+  expect(proof.localTransform).toBe(`translate(0 ${proof.paneTop})`);
+  expect(proof.clipY).toBeCloseTo(proof.paneTop, 1);
+  expect(proof.clipHeight).toBeCloseTo(proof.paneHeight, 1);
+  expect(proof.paneHeight).toBeGreaterThan(100);
+  expect(proof.paneHeight).toBeLessThan(proof.chartHeight - 100);
+});
+
 /** Crop the tooltip together with the marker it belongs to — a tooltip shot on its own proves the
  *  box rendered, not that it rendered ON the thing the reader pointed at. */
 async function tipShot(page: Page, testInfo: TestInfo, name: string) {
@@ -343,7 +663,7 @@ async function tipShot(page: Page, testInfo: TestInfo, name: string) {
     if (!t || t.style.display === "none") return null;
     const at = t.getAttribute("data-marker-at");
     const layer = document.querySelector("[data-sig-layer]");
-    const g = [...(layer?.querySelectorAll(":scope > g") ?? [])]
+    const g = [...(layer?.querySelectorAll('[data-price-pane-local="signals"] > g') ?? [])]
       .find((n) => (n.querySelector(":scope > title")?.textContent ?? "").startsWith(`${at} ·`));
     const boxes = [t.getBoundingClientRect(), ...(g ? [g.getBoundingClientRect()] : [])];
     const pad = 16;
@@ -408,7 +728,7 @@ test("the pointer-events repair would have broken that drag", async ({ page }, t
   const m = pick(await settledMarkers(page), RETRO_TS);
 
   await page.locator("[data-sig-layer]").first().evaluate((svg) => {
-    for (const g of svg.querySelectorAll(":scope > g")) g.setAttribute("pointer-events", "all");
+    for (const g of svg.querySelectorAll('[data-price-pane-local="signals"] > g')) g.setAttribute("pointer-events", "all");
   });
 
   await page.mouse.move(m.cx, m.cy);
@@ -480,6 +800,109 @@ test("tapping a marker opens its tooltip, and tapping away dismisses it", async 
 
   // A tapped tooltip has no hover to dismiss it, so the next press must — otherwise it is litter
   // pinned over the chart. Tapped well clear of every marker.
+  const box = await page.locator("[data-sig-layer]").first().boundingBox();
+  await page.touchscreen.tap((box?.x ?? 0) + 20, (box?.y ?? 0) + 20);
+  await expect(tip(page)).toBeHidden();
+});
+
+test("a pane relayout after a tap re-anchors the tooltip instead of dismissing it", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  await page.touchscreen.tap(target.cx, target.cy);
+  await expect(tip(page)).toBeVisible({ timeout: 5_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+
+  // THE DEFECT. The chart keeps sizing well after hydration — panes lay out, the price axis takes
+  // its final width — so on a loaded machine a pane resize lands AFTER a tap that has already
+  // opened its tooltip. The pane ResizeObserver dismissed it unconditionally, which is invisible
+  // on desktop (the next pointermove re-opens the hover tooltip under a cursor that is still
+  // there) and TERMINAL on touch, where a tap has no cursor behind it. That asymmetry is why this
+  // went red on both touch viewports while desktop stayed green, and why it reached the `failed`
+  // bucket with the tooltip carrying the RIGHT marker's text and `display:none`.
+  //
+  // A viewport change drives that very same pane observer, deterministically and with no sleep —
+  // it is the trigger made reproducible, not a contrivance, and not a wait for a race to re-run.
+  const vp = page.viewportSize()!;
+  await page.setViewportSize({ width: vp.width, height: vp.height - 120 });
+
+  // Still open, still the SAME marker — the resize moved the anchor, not the reader's intent.
+  await expect(tip(page)).toBeVisible();
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+  expect(await tip(page).textContent()).toBe(target.title);
+
+  // …and re-anchored onto where that marker is NOW, rather than left behind at its old box. The
+  // anti-litter guarantee the dismissal was protecting is kept by MOVING the tooltip, not by
+  // destroying it: a tooltip is still never left pointing at empty chart.
+  const moved = pick(await settledMarkers(page), RETRO_TS);
+  await expectTipAnchoredToMarker(page, moved);
+});
+
+test("a tap keeps the marker it started on when geometry moves before pointerup", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  // The physical DOWN establishes marker identity. A chart/pane reflow may move that marker before
+  // the browser dispatches pointerup; release validates whether the gesture stayed a tap, but must
+  // not re-decide what the fingertip originally landed on from the marker's new coordinates.
+  await page.locator("[data-sig-layer]").first().evaluate((svg, at) => {
+    const layer = svg as SVGSVGElement;
+    const marker = [...layer.querySelectorAll<SVGGElement>('[data-price-pane-local="signals"] > g')].find((group) =>
+      group.querySelector(":scope > title")?.textContent?.startsWith(`${at.t} ·`),
+    );
+    if (!marker) throw new Error(`fixture lost marker ${at.t}`);
+    const before = marker.getBoundingClientRect();
+    const x = before.x + before.width / 2;
+    const y = before.y + before.height / 2;
+    const originalTransform = layer.style.transform;
+    const send = (type: string, buttons: number) => layer.dispatchEvent(new PointerEvent(type, {
+      pointerId: 71, pointerType: "touch", isPrimary: true, bubbles: true, cancelable: true,
+      button: 0, buttons, clientX: x, clientY: y,
+    }));
+
+    send("pointerdown", 1);
+    layer.style.transform = "translateY(-180px)";
+    const after = marker.getBoundingClientRect();
+    if (Math.abs(after.y - before.y) < 100) throw new Error("fixture failed to move marker geometry");
+    send("pointerup", 0);
+    layer.dataset.testOriginalTransform = originalTransform;
+  }, { t: target.t });
+
+  await expect(tip(page)).toBeVisible({ timeout: 5_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+  expect(await tip(page).textContent()).toBe(target.title);
+
+  // The tooltip is anchored by the product's current-box placement, not stale down coordinates.
+  const moved = pick(await settledMarkers(page), RETRO_TS);
+  await expectTipAnchoredToMarker(page, moved);
+
+  await page.locator("[data-sig-layer]").first().evaluate((svg) => {
+    const layer = svg as SVGSVGElement;
+    layer.style.transform = layer.dataset.testOriginalTransform || "";
+    delete layer.dataset.testOriginalTransform;
+  });
+});
+
+test("a tap still opens the tooltip when the thread stalls between down and up", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  // The gesture is a TAP by every physical measure — zero travel, its two events stamped under a
+  // millisecond apart — and the only thing between them is a busy main thread. Classified on when
+  // the handlers ran, it read as a 400ms long press and the tooltip never opened; classified on
+  // the events, which is what lib/markerTooltip.isTapSample does, it is the tap it always was.
+  // Revert that clock and this test goes red on both touch viewports.
+  await stallNextGesture(page, 400);
+  await page.touchscreen.tap(target.cx, target.cy);
+
+  await expect(tip(page)).toBeVisible({ timeout: 10_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+
+  // The threshold itself is NOT loosened — a press that really lasts is still a long press, and
+  // the same shared law still refuses it. (Unit-level: lib/__tests__/markerTooltip.test.ts.)
   const box = await page.locator("[data-sig-layer]").first().boundingBox();
   await page.touchscreen.tap((box?.x ?? 0) + 20, (box?.y ?? 0) + 20);
   await expect(tip(page)).toBeHidden();

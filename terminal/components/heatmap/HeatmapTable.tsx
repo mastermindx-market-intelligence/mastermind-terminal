@@ -111,11 +111,15 @@ export function HeatmapTable({ tiles, layer, selectedTicker, onSelect, lang }: H
     });
   }, [tiles, sortKey, sortDir]);
 
-  function Th({ colKey, label, right }: { colKey: SortKey; label: string; right?: boolean }) {
+  // Render elements directly: a component declared here remounts on every sort,
+  // which would discard keyboard focus after the first activation.
+  function sortHeader({ colKey, label, right }: { colKey: SortKey; label: string; right?: boolean }) {
     const active = sortKey === colKey;
     return (
       <th
         onClick={() => handleSort(colKey)}
+        scope="col"
+        aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : undefined}
         style={{
           ...TH_STYLE,
           textAlign: right ? "right" : "left",
@@ -123,20 +127,22 @@ export function HeatmapTable({ tiles, layer, selectedTicker, onSelect, lang }: H
           cursor: "pointer",
         }}
       >
-        {label}
-        {active && <span style={{ marginLeft: 3 }}>{sortDir === "asc" ? "▲" : "▼"}</span>}
+        <button type="button" onClick={event => { event.stopPropagation(); handleSort(colKey); }} style={CELL_BUTTON}>
+          {label}
+          {active && <span aria-hidden="true" style={{ marginLeft: 3 }}>{sortDir === "asc" ? "▲" : "▼"}</span>}
+        </button>
       </th>
     );
   }
 
   const priceHeaders = (
     <tr>
-      <Th colKey="ticker" label={t("colTicker")} />
+      {sortHeader({ colKey: "ticker", label: t("colTicker") })}
       <th style={TH_STYLE}>{zh ? "名称" : "Name"}</th>
       <th style={{ ...TH_STYLE, color: "var(--muted)" }}>{zh ? "板块" : "Sector"}</th>
-      <Th colKey="dolVol" label={zh ? "成交额~市值" : "DolVol~Cap"} right />
-      <Th colKey="price" label={t("colPrice")} right />
-      <Th colKey="chg1d" label={t("colChg")} right />
+      {sortHeader({ colKey: "dolVol", label: zh ? "成交额~市值" : "DolVol~Cap", right: true })}
+      {sortHeader({ colKey: "price", label: t("colPrice"), right: true })}
+      {sortHeader({ colKey: "chg1d", label: t("colChg"), right: true })}
       <th style={{ ...TH_STYLE, textAlign: "right", color: "var(--muted)", cursor: "default" }}>
         {zh ? "超额" : "RS"}
       </th>
@@ -148,13 +154,13 @@ export function HeatmapTable({ tiles, layer, selectedTicker, onSelect, lang }: H
 
   const flowHeaders = (
     <tr>
-      <Th colKey="ticker" label={t("colTicker")} />
+      {sortHeader({ colKey: "ticker", label: t("colTicker") })}
       <th style={TH_STYLE}>{zh ? "名称" : "Name"}</th>
-      <Th colKey="netPremiumMn" label={t("colPremium")} right />
-      <Th colKey="tone" label={zh ? "倾向(软)" : "Sent.(~soft)"} right />
-      <Th colKey="doiPc" label={`${t("colDoi")} (~soft)`} right />
+      {sortHeader({ colKey: "netPremiumMn", label: t("colPremium"), right: true })}
+      {sortHeader({ colKey: "tone", label: zh ? "倾向(软)" : "Sent.(~soft)", right: true })}
+      {sortHeader({ colKey: "doiPc", label: `${t("colDoi")} (~soft)`, right: true })}
       <th style={{ ...TH_STYLE, textAlign: "right", color: "var(--muted)" }}>{zh ? "板块" : "Sector"}</th>
-      <Th colKey="divergent" label={t("colDivergence")} />
+      {sortHeader({ colKey: "divergent", label: t("colDivergence") })}
     </tr>
   );
 
@@ -168,7 +174,7 @@ export function HeatmapTable({ tiles, layer, selectedTicker, onSelect, lang }: H
         )}
         {layer === "price" && (
           <span style={{ marginLeft: 10, fontStyle: "italic" }}>
-            {zh ? "成交额~市值 = 价格 × 成交量（代理指标）" : "DolVol~Cap = price × vol (proxy, no mcap in manifest yet)"}
+            {t("dolVolCapFormula")}
           </span>
         )}
       </div>
@@ -267,7 +273,13 @@ function TableRow({ tile, layer, isSelected, onClick, zh, universeAvgChg }: Tabl
     >
       {layer === "flow" ? (
         <>
-          <td style={{ ...TD_STYLE, fontWeight: 700 }}>{tile.ticker}</td>
+          <td style={{ ...TD_STYLE, fontWeight: 700 }}>
+            <button type="button" style={CELL_BUTTON}
+              aria-label={zh ? `查看 ${tile.ticker} 详情` : `Inspect ${tile.ticker}`}
+              onClick={event => { event.stopPropagation(); onClick(tile); }}>
+              {tile.ticker}
+            </button>
+          </td>
           <td style={{ ...TD_STYLE, color: "var(--text-2)", maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {tile.name}
           </td>
@@ -287,7 +299,13 @@ function TableRow({ tile, layer, isSelected, onClick, zh, universeAvgChg }: Tabl
         </>
       ) : (
         <>
-          <td style={{ ...TD_STYLE, fontWeight: 700 }}>{tile.ticker}</td>
+          <td style={{ ...TD_STYLE, fontWeight: 700 }}>
+            <button type="button" style={CELL_BUTTON}
+              aria-label={zh ? `查看 ${tile.ticker} 详情` : `Inspect ${tile.ticker}`}
+              onClick={event => { event.stopPropagation(); onClick(tile); }}>
+              {tile.ticker}
+            </button>
+          </td>
           <td style={{ ...TD_STYLE, color: "var(--text-2)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {tile.name}
           </td>
@@ -314,6 +332,20 @@ function TableRow({ tile, layer, isSelected, onClick, zh, universeAvgChg }: Tabl
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
+
+// Preserve the dense table's typography. The shared :focus-visible rule supplies
+// the visible keyboard outline; do not reset outline or introduce global styles.
+const CELL_BUTTON: React.CSSProperties = {
+  appearance: "none",
+  background: "transparent",
+  border: 0,
+  padding: 0,
+  color: "inherit",
+  font: "inherit",
+  letterSpacing: "inherit",
+  textTransform: "inherit",
+  cursor: "pointer",
+};
 
 const TABLE_WRAP: React.CSSProperties = {
   width: "100%",

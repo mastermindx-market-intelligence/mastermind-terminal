@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import SettingsPanelBoundary from "./SettingsPanelBoundary";
 import { createClient } from "@/lib/supabase/client";
 import {
   GUEST_IDENTITY, identityOwnerKey, isAccountOwner, ownerUserId, type AccountIdentity,
@@ -13,10 +14,13 @@ import {
 // each copy carried its own state. Here the BUTTONS mount three times and the
 // panel exactly once, so there is nothing to drift.
 
-export type SettingsSection = "account" | "billing" | "usage" | "prefs" | "terminal" | "sync";
+export type SettingsSection =
+  | "account" | "team" | "accuracy" | "billing" | "usage" | "prefs" | "alertDelivery" | "terminal" | "sync" | "webhooks" | "developer" | "sharing"
+  | "portfolioTargets";
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
-  "account", "billing", "usage", "prefs", "terminal", "sync",
+  "account", "team", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks", "developer", "sharing",
+  "portfolioTargets",
 ] as const;
 
 interface SettingsApi {
@@ -42,11 +46,12 @@ export interface AcsUser {
   email: string;
   createdAt: string | null;
   lastSignInAt: string | null;
-  provider: string;
+  /** Null when app_metadata carries no provider — never invented as "email". */
+  provider: string | null;
   meta: Record<string, unknown>;
 }
 
-function toAcsUser(u: {
+export function toAcsUser(u: {
   id?: string;
   email?: string;
   created_at?: string;
@@ -57,21 +62,21 @@ function toAcsUser(u: {
   if (!u) return null;
   const am = u.app_metadata || {};
   const providers = am.providers;
-  const provider =
-    (typeof am.provider === "string" && am.provider) ||
-    (Array.isArray(providers) && typeof providers[0] === "string" ? providers[0] : "") ||
-    "email";
+  const fromProvider = typeof am.provider === "string" ? am.provider.trim() : "";
+  const fromList =
+    Array.isArray(providers) && typeof providers[0] === "string" ? providers[0].trim() : "";
+  const raw = fromProvider || fromList;
   return {
     id: u.id || "",
     email: u.email || (u.user_metadata?.email as string | undefined) || "",
     createdAt: u.created_at || null,
     lastSignInAt: u.last_sign_in_at || null,
-    provider: String(provider).toLowerCase(),
+    provider: raw ? raw.toLowerCase() : null,
     meta: (u.user_metadata as Record<string, unknown>) || {},
   };
 }
 
-// Code-split: the panel and its six sections never load until the user opens
+// Code-split: the panel and its sections never load until the user opens
 // settings for the first time (mirrors OnboardingProvider's sheet).
 const SettingsPanel = dynamic(() => import("./SettingsPanel"), { ssr: false });
 
@@ -154,17 +159,19 @@ export function SettingsProvider({
     <SettingsCtx.Provider value={api}>
       {children}
       {everOpened && (
-        <SettingsPanel
-          visible={isOpen}
-          openSeq={openSeq}
-          section={section}
-          onSection={setSection}
-          onClose={close}
-          identity={identity}
-          user={user}
-          onPatchMeta={patchMeta}
-          onRefreshUser={refreshUser}
-        />
+        <SettingsPanelBoundary key={`${owner}:${openSeq}`} visible={isOpen} onClose={close} onRetry={() => setOpenSeq(n => n + 1)}>
+          <SettingsPanel
+            visible={isOpen}
+            openSeq={openSeq}
+            section={section}
+            onSection={setSection}
+            onClose={close}
+            identity={identity}
+            user={user}
+            onPatchMeta={patchMeta}
+            onRefreshUser={refreshUser}
+          />
+        </SettingsPanelBoundary>
       )}
     </SettingsCtx.Provider>
   );

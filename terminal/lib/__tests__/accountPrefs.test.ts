@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   legacyPrefsPatch, metaObject, readTerminalMeta, readMetaPrefs, readSharedPrefs, readUpDown,
   readLang, applyUpDown, sharedPrefsPatch, isLangId, isThemeId, isUpDown, isStartTf,
-  DEFAULT_UPDOWN, UPDOWN_KEY,
+  DEFAULT_UPDOWN, UPDOWN_KEY, isScopedToEmpty,
 } from "@/lib/accountPrefs";
 
 describe("metaObject — the merge base", () => {
@@ -279,5 +279,17 @@ describe("the dual write round-trips through BOTH representations", () => {
     const legacyWrite = legacyPrefsPatch({ lang: "zh" });
     const account = { prefs: { theme: "dark", lang: "en", ...legacyWrite } };
     expect(readSharedPrefs(account)).toEqual({ theme: "dark", lang: "zh" });
+  });
+});
+
+describe("isScopedToEmpty — result-shaped predicate", () => {
+  it("is true for a ScopedToEmpty send result", () => {
+    expect(isScopedToEmpty({ error: { name: "ScopedToEmpty" }, dropped: ["tz"] })).toBe(true);
+  });
+
+  it("is false for null, a string, and an Error without that name", () => {
+    expect(isScopedToEmpty(null)).toBe(false);
+    expect(isScopedToEmpty("ScopedToEmpty")).toBe(false);
+    expect(isScopedToEmpty(new Error("nope"))).toBe(false);
   });
 });

@@ -1,0 +1,1056 @@
+{
+  "original": [
+    {
+      "id": "05985c95bb9d7fb3d03d-df0ec9bafead42855cc3",
+      "title": "layout-integrity.spec.ts / saved layouts / a guest is never offered a Save that cannot succeed",
+      "file": "layout-integrity.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 11280
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-3e46460adf387e9ddd5f",
+      "title": "layout-integrity.spec.ts / saved layouts / a signed-in save round-trips, and a blank name never overwrites another layout",
+      "file": "layout-integrity.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 15934
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-6480a0ad2649fb1ce70c",
+      "title": "layout-integrity.spec.ts / saved layouts / concurrent saves of one name leave exactly one layout",
+      "file": "layout-integrity.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 7091
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-74339dd7e05095eb0913",
+      "title": "layout-integrity.spec.ts / saved layouts / a save failure is visible and does not clear the typed name",
+      "file": "layout-integrity.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 11717
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-84600d5afcb1911db1dc",
+      "title": "layout-integrity.spec.ts / saved layouts / a failed delete rolls back and the layout stays visible",
+      "file": "layout-integrity.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 13627
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-1bba979851dc4ea7cc5f",
+      "title": "layout-integrity.spec.ts / saved layouts / a loaded layout restores the workspace it saved, through the real UI",
+      "file": "layout-integrity.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 31160
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-41cec6c99ac4b81a8823",
+      "title": "layout-integrity.spec.ts / saved layouts / new layout copy renders in zh, with no English leaking through",
+      "file": "layout-integrity.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 16660
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-37a2bbb6631653d7da0f",
+      "title": "layout-integrity.spec.ts / saved layouts / a read outage says unavailable, not 'no saved layouts'",
+      "file": "layout-integrity.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 22894
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-882a94d65d7c3fe35b04",
+      "title": "layout-integrity.spec.ts / saved layouts / a guest is never offered a Save that cannot succeed",
+      "file": "layout-integrity.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 11944
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-0a3f47751927dd17eb5b",
+      "title": "layout-integrity.spec.ts / saved layouts / a signed-in save round-trips, and a blank name never overwrites another layout",
+      "file": "layout-integrity.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 25548
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-5e01d147635299a4fe09",
+      "title": "layout-integrity.spec.ts / saved layouts / concurrent saves of one name leave exactly one layout",
+      "file": "layout-integrity.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 10022
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-0a2c55cac2623ac92c3e",
+      "title": "layout-integrity.spec.ts / saved layouts / a save failure is visible and does not clear the typed name",
+      "file": "layout-integrity.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 19384
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-1f81af25cc62c42ac213",
+      "title": "layout-integrity.spec.ts / saved layouts / a failed delete rolls back and the layout stays visible",
+      "file": "layout-integrity.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 20367
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-3215ecf2830d0434a486",
+      "title": "layout-integrity.spec.ts / saved layouts / a loaded layout restores the workspace it saved, through the real UI",
+      "file": "layout-integrity.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 38640
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-b2d197c9b40f80697eec",
+      "title": "layout-integrity.spec.ts / saved layouts / new layout copy renders in zh, with no English leaking through",
+      "file": "layout-integrity.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 19089
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-6e0061494354f9b8b992",
+      "title": "layout-integrity.spec.ts / saved layouts / a read outage says unavailable, not 'no saved layouts'",
+      "file": "layout-integrity.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 23266
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-a6fb75ce66889a53f346",
+      "title": "layout-integrity.spec.ts / saved layouts / a guest is never offered a Save that cannot succeed",
+      "file": "layout-integrity.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 12364
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-045e454948e32b5f716d",
+      "title": "layout-integrity.spec.ts / saved layouts / a signed-in save round-trips, and a blank name never overwrites another layout",
+      "file": "layout-integrity.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 22284
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-34af2fad67766e79af9a",
+      "title": "layout-integrity.spec.ts / saved layouts / concurrent saves of one name leave exactly one layout",
+      "file": "layout-integrity.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9807
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-133508b2c50383a0f1ae",
+      "title": "layout-integrity.spec.ts / saved layouts / a save failure is visible and does not clear the typed name",
+      "file": "layout-integrity.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 17721
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-36c7ff17ca247d3ea8d5",
+      "title": "layout-integrity.spec.ts / saved layouts / a failed delete rolls back and the layout stays visible",
+      "file": "layout-integrity.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 18563
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-917788871fe1c7254a2a",
+      "title": "layout-integrity.spec.ts / saved layouts / a loaded layout restores the workspace it saved, through the real UI",
+      "file": "layout-integrity.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 45735
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-a3ef553c3421bdca4005",
+      "title": "layout-integrity.spec.ts / saved layouts / new layout copy renders in zh, with no English leaking through",
+      "file": "layout-integrity.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 22073
+        }
+      ]
+    },
+    {
+      "id": "05985c95bb9d7fb3d03d-2ff64333287785aa69e7",
+      "title": "layout-integrity.spec.ts / saved layouts / a read outage says unavailable, not 'no saved layouts'",
+      "file": "layout-integrity.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 32225
+        }
+      ]
+    },
+    {
+      "id": "9fb033e9959fc10e4c3d-10528a62cab41d90d32b",
+      "title": "replay-temporal-authority.spec.ts / Replay is offered to a single chart and reports that chart's own span",
+      "file": "replay-temporal-authority.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 10418
+        }
+      ]
+    },
+    {
+      "id": "9fb033e9959fc10e4c3d-9399794d0a8bfe71bbaf",
+      "title": "replay-temporal-authority.spec.ts / exiting Replay restores the chart without losing its symbol",
+      "file": "replay-temporal-authority.spec.ts",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 20569
+        }
+      ]
+    },
+    {
+      "id": "9fb033e9959fc10e4c3d-cab6d70d38a22c8594fb",
+      "title": "replay-temporal-authority.spec.ts / Replay is offered to a single chart and reports that chart's own span",
+      "file": "replay-temporal-authority.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 11329
+        }
+      ]
+    },
+    {
+      "id": "9fb033e9959fc10e4c3d-35e16ec7aa1200c1a991",
+      "title": "replay-temporal-authority.spec.ts / exiting Replay restores the chart without losing its symbol",
+      "file": "replay-temporal-authority.spec.ts",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 18848
+        }
+      ]
+    },
+    {
+      "id": "9fb033e9959fc10e4c3d-609f36faee1c69eccaeb",
+      "title": "replay-temporal-authority.spec.ts / Replay is offered to a single chart and reports that chart's own span",
+      "file": "replay-temporal-authority.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 12001
+        }
+      ]
+    },
+    {
+      "id": "9fb033e9959fc10e4c3d-d048e795613d8b18605d",
+      "title": "replay-temporal-authority.spec.ts / exiting Replay restores the chart without losing its symbol",
+      "file": "replay-temporal-authority.spec.ts",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 21346
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-6dbd13eb2515e9f3bb9f",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 EN / ready / empty / row-open / renaming / unsupported-rows / name-conflict / stale",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 32898
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-d33712772bf4978cccbb",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 EN / guest",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 10789
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-e92f45407dab0a192dc1",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 EN / loading",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 11714
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-c3bfa84d6dd824cf8361",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 EN / unavailable — a banner above the still-populated last-good list",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 18132
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-cec7cafc76a475e8648e",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 EN / unsupported-widget tile beside a working chart",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 20824
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-a3422a5560bf8bef4096",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 EN / reviewer ruling M5 — a genuinely unknown widget type opens the workspace, never bricks the row",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 19169
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-68c096d7745a5289bb29",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 EN / reviewer ruling B1/B2 — a tolerant-defect row opens 'ok' and surfaces the unreadable-settings disclosure",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 25854
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-13c932984afcf9397f84",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 ZH / ready / unavailable / stale, no English leaking through",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 56
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-279f9125b176043bb65f",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 ZH / tile in zh",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-fbf777697512d8a7209c",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 820×1180 (drill-down mount) / ready / row-open",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-e5f451566e6c9460bb51",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 820×1180 (drill-down mount) / stale in zh",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-32cd68064008ad19dc8c",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-en-ready",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 18
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-416dbe568e0694402141",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-en-row-open",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 4
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-4fc7c5e710e57bb8abda",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-en-stale",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-f51975fcf9871d43ebfb",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-zh-row-open",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 3
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-70055f7f016f48bf2e64",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-zh-import-error",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-6a1e2675f3078472cc7b",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-en-tile — the tile does not need the menu, only a loaded workspace",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-c1824be4d16c9abc4670",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / tap targets are >=44x44 at 820px",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-60587d1bfef6febdc319",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / tap targets are >=44x44 at 390px",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-7813cc2afdae1d80dd3e",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / zero horizontal document overflow at all three widths with the menu open + a row unfolded",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-23ecfed101677e958865",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / no raw failure code ever appears in the rendered menu, across every reachable failure state",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-2d27e51b6a245e7ce58d",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / EN/ZH leakage both ways",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-e6d408d9400a34a047c6",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / keyboard: Tab order, two-stage Escape, rename Enter/Escape, focus returns to the more toggle",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-d86c25bfa8346bd3ff71",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / an unreadable row is present, disabled, and no write fires on click",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 3
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-540d24c4f8278a04d8b4",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — team sharing / 1440 EN/ZH grouped library, share confirm, and member sees the shared workspace as read-only when the role flag is member",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-11612b2596324a126491",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — team sharing / 820 EN grouped library tap targets",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "unexpected",
+      "attempts": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2
+        }
+      ]
+    }
+  ],
+  "resumed": [
+    {
+      "id": "aefcaca6e7b387ce51ea-13c932984afcf9397f84",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 ZH / ready / unavailable / stale, no English leaking through",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 14527
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-279f9125b176043bb65f",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 1440×900 ZH / tile in zh",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 17852
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-fbf777697512d8a7209c",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 820×1180 (drill-down mount) / ready / row-open",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9982
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-e5f451566e6c9460bb51",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 820×1180 (drill-down mount) / stale in zh",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 8992
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-32cd68064008ad19dc8c",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-en-ready",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9807
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-416dbe568e0694402141",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-en-row-open",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 12599
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-4fc7c5e710e57bb8abda",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-en-stale",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 16165
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-f51975fcf9871d43ebfb",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-zh-row-open",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 12967
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-70055f7f016f48bf2e64",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-zh-import-error",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 10322
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-6a1e2675f3078472cc7b",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — 390×844 / 390-en-tile — the tile does not need the menu, only a loaded workspace",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 22230
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-c1824be4d16c9abc4670",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / tap targets are >=44x44 at 820px",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 13692
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-60587d1bfef6febdc319",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / tap targets are >=44x44 at 390px",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 17964
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-7813cc2afdae1d80dd3e",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / zero horizontal document overflow at all three widths with the menu open + a row unfolded",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 19204
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-23ecfed101677e958865",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / no raw failure code ever appears in the rendered menu, across every reachable failure state",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 32591
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-2d27e51b6a245e7ce58d",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / EN/ZH leakage both ways",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 29368
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-e6d408d9400a34a047c6",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / keyboard: Tab order, two-stage Escape, rename Enter/Escape, focus returns to the more toggle",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 17837
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-d86c25bfa8346bd3ff71",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — non-screenshot assertions (spec §7) / an unreadable row is present, disabled, and no write fires on click",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 14468
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-540d24c4f8278a04d8b4",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — team sharing / 1440 EN/ZH grouped library, share confirm, and member sees the shared workspace as read-only when the role flag is member",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 34651
+        }
+      ]
+    },
+    {
+      "id": "aefcaca6e7b387ce51ea-11612b2596324a126491",
+      "title": "w2a-workspaces.spec.ts / W2-A workspace menu — team sharing / 820 EN grouped library tap targets",
+      "file": "w2a-workspaces.spec.ts",
+      "project": "w2a-workspaces",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 13443
+        }
+      ]
+    }
+  ]
+}

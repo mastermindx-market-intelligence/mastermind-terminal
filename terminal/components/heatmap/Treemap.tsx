@@ -7,7 +7,7 @@
  *   - FLOW layer: color = SIGNED net premium. Sign → hue (a SOFT tape signal),
  *     |$M| → brightness (reliable). Near-flat (|$M| < 0.3) → dim neutral slate;
  *     no-flow → dim graphite. No confident directional read from a dim tile.
- *   - Size = EQUAL / CAP (dollar-volume proxy, manifest has price×vol) / PREMIUM.
+ *   - Size = EQUAL / CAP (legacy price×vol proxy) / USD CAP (cached USD mkt cap) / PREMIUM.
  *   - No directional buy/sell assertions anywhere in this component.
  *
  * DESIGN: flat Finviz/TradingView tiles, matching the Macro Dashboard heatmap.
@@ -20,6 +20,13 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { makeHeatmapT, sectorChipLabel } from "@/lib/heatmapStrings";
+import { deltaOiPutCallLabel } from "@/lib/plainLabels";
+import {
+  legacyCapProxyValue,
+  marketCapSizingValue,
+  partitionMarketCapTiles,
+} from "@/lib/heatmapCapitalization";
 import type { HeatmapTile, Layer, SizingMode, SectorBlock, TreemapNode, LayoutRect } from "./types";
 import { SECTOR_LABEL, SECTOR_ORDER } from "./sectorMap";
 import type { GicsSector } from "./types";
@@ -92,7 +99,7 @@ function priceColor(chg: number): string {
  * Flat flow tile color by SIGNED net premium (the number shown on the tile).
  *   sign  → hue: + = net-call/bullish (up color), − = net-put/bearish (down color)
  *   |$M|  → intensity via log10 so the median ~$0.4M name is a visible dim tone.
- * HONESTY: net-premium SIGN is a soft tape signal (see the "direction is soft"
+ * HONESTY: net-premium SIGN is a soft tape signal (see the direction-is-soft
  * caption); MAGNITUDE is reliable and always drives brightness.
  */
 function flowColor(tile: HeatmapTile): string {
@@ -204,27 +211,34 @@ function squarify(
 // ─── Tile value function ──────────────────────────────────────────────────────
 
 /**
- * Tile sizing:
- *   - "cap" → dollar-volume proxy (price × vol), falls back to equal if missing.
- *     min floor = 1 so no tile vanishes.
- *   - "premium" (flow layer) → abs(netPremiumMn), min 0.01.
- *   - "equal" → 1.
- *
- * NOTE: manifest lacks market_cap; dollar-volume (price×vol) is the documented
- * proxy and correlates well with cap rank for large/mid caps.
- * This will be superseded when nightly manifest injects mcap.
+ * Tile sizing (consumes terminal/lib/heatmapCapitalization.ts — the same pure
+ * helper the deterministic tests exercise):
+ *   - "cap"       → LEGACY dollar-volume proxy (price × vol), floor 1. Unchanged;
+ *                   never reinterprets old saved views via source mcap.
+ *   - "marketCap" → cached USD market cap (finite positive source value only).
+ *                   Independent of volume. Missing/invalid → 0 (no floor);
+ *                   those names are excluded from area layout and disclosed
+ *                   by the caller as a missing-cap list.
+ *   - "premium"   → abs(netPremiumMn) on flow layer, min 0.01.
+ *   - "equal"     → 1.
  */
 function tileValue(tile: HeatmapTile, sizing: SizingMode, layer: Layer): number {
   if (sizing === "premium" && layer === "flow" && tile.hasFlow) {
     return Math.max(Math.abs(tile.netPremiumMn ?? 0), 0.01);
   }
+  if (sizing === "marketCap") {
+    // Cached USD cap: finite positive source value only. No arbitrary floor.
+    return marketCapSizingValue(tile.mcap);
+  }
   if (sizing === "cap") {
-    // Dollar-volume proxy: price * vol. Floor at 1 so tiles with zero vol still render.
-    const dv = (tile.price ?? 0) * (tile.vol ?? 0);
-    return Math.max(dv, 1);
+    // LEGACY proxy — exact pre-A15 formula, preserved.
+    return legacyCapProxyValue(tile.price, tile.vol);
   }
   return 1;
 }
+
+/** Exported for deterministic tests that assert Treemap consumes the shared helper. */
+export const treemapTileValue = tileValue;
 
 // ─── Sector block layout ──────────────────────────────────────────────────────
 
@@ -239,6 +253,16 @@ function getHeaderH(blockH: number): number {
   return 0;
 }
 
+export interface SectorLayoutResult {
+  blocks: SectorBlock[];
+  /**
+   * marketCap mode: tiles with missing/invalid source capitalization.
+   * Kept out of the cap-weighted layout (no fabricated economic area) and
+   * listed by the orchestrator as a disclosed missing group.
+   */
+  excludedFromLayout: HeatmapTile[];
+}
+
 function layoutSectors(
   tiles: HeatmapTile[],
   sizing: SizingMode,
@@ -246,9 +270,16 @@ function layoutSectors(
   canvasW: number,
   canvasH: number,
   gap: number = 1
-): SectorBlock[] {
+): SectorLayoutResult {
+  // marketCap: only finite positive source cap may take area. Missing/invalid
+  // are returned for disclosure — never sized with a made-up floor.
+  const { usable, excluded } =
+    sizing === "marketCap"
+      ? partitionMarketCapTiles(tiles)
+      : { usable: tiles, excluded: [] as HeatmapTile[] };
+
   const bySector: Partial<Record<GicsSector, HeatmapTile[]>> = {};
-  for (const tile of tiles) {
+  for (const tile of usable) {
     const s = tile.sector;
     if (!bySector[s]) bySector[s] = [];
     bySector[s]!.push(tile);
@@ -259,10 +290,13 @@ function layoutSectors(
     const ts = bySector[sector];
     if (!ts || ts.length === 0) continue;
     const value = ts.reduce((s, t) => s + tileValue(t, sizing, layer), 0);
+    // Zero-value sectors (all tiles missing-cap in marketCap mode) get no
+    // fabricated block area — their names live in the disclosed missing list.
+    if (!(value > 0)) continue;
     sectorItems.push({ sector, tiles: ts, value });
   }
 
-  if (sectorItems.length === 0) return [];
+  if (sectorItems.length === 0) return { blocks: [], excludedFromLayout: excluded };
 
   const totalValue = sectorItems.reduce((s, i) => s + i.value, 0);
 
@@ -291,7 +325,10 @@ function layoutSectors(
       continue;
     }
 
-    const tileItems = sectorTiles.map(t => ({ value: tileValue(t, sizing, layer), tile: t }));
+    // Drop zero-value tiles so missing-cap names never take residual area.
+    const tileItems = sectorTiles
+      .map(t => ({ value: tileValue(t, sizing, layer), tile: t }))
+      .filter(i => i.value > 0);
     // Sort descending so largest tiles anchor top-left (best readability).
     tileItems.sort((a, b) => b.value - a.value);
     const nodes = squarify(tileItems, innerX, innerY, innerW, innerH);
@@ -299,7 +336,7 @@ function layoutSectors(
     blocks.push({ x: rect.x, y: rect.y, w: rect.w, h: rect.h, sector, nodes });
   }
 
-  return blocks;
+  return { blocks, excludedFromLayout: excluded };
 }
 
 // ─── Tooltip ──────────────────────────────────────────────────────────────────
@@ -366,7 +403,9 @@ export function Treemap({ tiles, layer, sizing, selectedTicker, onSelect, lang }
     return () => { ro.disconnect(); clearTimeout(timer); };
   }, []);
 
-  const blocks = layoutSectors(tiles, sizing, layer, dims.w, dims.h, 1);
+  // layoutSectors partitions marketCap tiles internally: missing/invalid source
+  // cap names take no fabricated area. HeatmapView discloses them via the shared helper.
+  const blocks = layoutSectors(tiles, sizing, layer, dims.w, dims.h, 1).blocks;
 
   const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
@@ -421,9 +460,11 @@ interface SectorBlockGroupProps {
 }
 
 function SectorBlockGroup({
-  block, layer, selectedTicker, onTileMouseEnter, onTileClick,
+  block, layer, selectedTicker, onTileMouseEnter, onTileClick, zh,
 }: SectorBlockGroupProps) {
-  const abbrev = SECTOR_LABEL[block.sector] ?? block.sector;
+  // The sector band is chrome, not data: in the ZH frame it reads 科技 / 通信,
+  // never the English GICS token. SECTOR_LABEL stays the EN text and the fallback.
+  const abbrev = sectorChipLabel(zh ? "zh" : "en", block.sector, SECTOR_LABEL[block.sector] ?? block.sector);
   const hH = getHeaderH(block.h);
   const avg = sectorAvgChg(block, layer);
   const avgColor = avg > 0 ? "var(--up)" : avg < 0 ? "var(--down)" : "rgba(148,163,184,0.6)";
@@ -553,6 +594,7 @@ function SectorBlockGroup({
             layer={layer}
             isSelected={selectedTicker === node.tile.ticker}
             fill={fill}
+            zh={zh}
             onMouseEnter={onTileMouseEnter}
             onClick={onTileClick}
           />
@@ -569,12 +611,14 @@ interface TileRectProps {
   layer: Layer;
   isSelected: boolean;
   fill: string;
+  zh: boolean;
   onMouseEnter: (tile: HeatmapTile, cx: number, cy: number) => void;
   onClick: (tile: HeatmapTile) => void;
 }
 
-function TileRect({ node, layer, isSelected, fill, onMouseEnter, onClick }: TileRectProps) {
+function TileRect({ node, layer, isSelected, fill, zh, onMouseEnter, onClick }: TileRectProps) {
   const { x, y, w, h, tile } = node;
+  const t = makeHeatmapT(zh ? "zh" : "en");
 
   // Font sizing — mirrors MomoEdge: tFs = min(w/4.5, h/2.2, 16), cFs = min(w/6, h/3.5, 12)
   const tFs = Math.min(w / 4.5, h / 2.2, 16);
@@ -653,7 +697,7 @@ function TileRect({ node, layer, isSelected, fill, onMouseEnter, onClick }: Tile
         </text>
       )}
 
-      {/* "price only" badge on flow layer when no flow data */}
+      {/* price-only badge on flow layer when no flow data */}
       {layer === "flow" && !tile.hasFlow && w > 36 && h > 16 && (
         <text
           x={x + w / 2}
@@ -663,7 +707,7 @@ function TileRect({ node, layer, isSelected, fill, onMouseEnter, onClick }: Tile
           fill="rgba(255,255,255,0.3)"
           style={{ userSelect: "none", fontFamily: "var(--font-ui)", pointerEvents: "none" }}
         >
-          price
+          {t("tilePriceBadge")}
         </text>
       )}
     </g>
@@ -681,6 +725,7 @@ interface HoverTooltipProps {
 }
 
 function HoverTooltip({ tooltip, layer, canvasW, canvasH, zh }: HoverTooltipProps) {
+  const t = makeHeatmapT(zh ? "zh" : "en");
   const { tile, cx, cy } = tooltip;
   const TIP_W = 180;
   const TIP_H = layer === "flow" ? 230 : 170;
@@ -756,25 +801,25 @@ function HoverTooltip({ tooltip, layer, canvasW, canvasH, zh }: HoverTooltipProp
 
             {tile.doiPc != null && (
               <>
-                <span style={{ color: "#475569" }}>ΔOI P/C</span>
+                <span style={{ color: "#475569" }}>{deltaOiPutCallLabel(zh ? "zh" : "en")}</span>
                 <span style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{tile.doiPc.toFixed(2)}</span>
               </>
             )}
 
             {isDivergent && (
               <div style={{ gridColumn: "1 / -1", marginTop: 4, padding: "3px 5px", background: "rgba(232,179,57,0.12)", borderRadius: 3, fontSize: 9, color: "var(--warn)", lineHeight: 1.4 }}>
-                {zh ? "价格/流向背离 — 以规模为准" : "price/flow divergence — magnitude read"}
+                {t("detailDivChip")}
               </div>
             )}
             <div style={{ gridColumn: "1 / -1", marginTop: 3, fontSize: 9, color: "var(--muted)", fontStyle: "italic" }}>
-              {zh ? "方向为软性读数" : "direction is soft"}
+              {t("directionIsSoft")}
             </div>
           </>
         )}
 
         {layer === "flow" && !tile.hasFlow && (
           <div style={{ gridColumn: "1 / -1", color: "var(--muted)", fontSize: 9, fontStyle: "italic", marginTop: 4 }}>
-            {zh ? "仅价格数据" : "price only"}
+            {t("tileNoFlow")}
           </div>
         )}
       </div>

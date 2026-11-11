@@ -1,0 +1,41 @@
+{
+  "branchHead": "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7",
+  "completedAt": "2026-11-10T15:49:33.322023+00:00",
+  "integratedDependency": "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185",
+  "protectedMaster": "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185",
+  "results": {
+    "expiry": {
+      "artifacts": 37,
+      "currentInputs": 77,
+      "exit": 0,
+      "failed": 0,
+      "flaky": 0,
+      "ownedServerStopped": true,
+      "passed": 9,
+      "qualificationSha256": "caffdecc46531a7da8f0173f6ccde0b43db30be16c7e91a2b6970e789c2b32e7",
+      "seconds": 73.9,
+      "skipped": 0,
+      "sourceStable": true,
+      "state": "QUALIFIED"
+    },
+    "integration": {
+      "artifacts": 374,
+      "currentInputs": 72,
+      "exit": 0,
+      "failed": 0,
+      "flaky": 0,
+      "ownedServerStopped": true,
+      "passed": 144,
+      "qualificationSha256": "fdb68045af826d208615fd3b2d54955961053312ba57d60895fdfa116b394c12",
+      "seconds": 804.78,
+      "skipped": 0,
+      "sourceStable": true,
+      "state": "QUALIFIED"
+    }
+  },
+  "schema": "terminal_pr1427_browser_successor_validation.v1",
+  "sourceEntries": 3577,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T15:34:39.542017+00:00",
+  "state": "BROWSER_PROOFS_QUALIFIED_PENDING_READER_AND_DESCRIPTOR"
+}

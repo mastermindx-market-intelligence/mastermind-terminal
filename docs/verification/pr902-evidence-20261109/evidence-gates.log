@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr902-alert-target-evidence-20261109-2fe663974ce0/terminal
+
+ ✓ lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts (6 tests) 15ms
+ ✓ lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts (7 tests) 25ms
+ ✓ lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts (6 tests) 11ms
+
+ Test Files  3 passed (3)
+      Tests  19 passed (19)
+   Start at  22:59:19
+   Duration  366ms (transform 36ms, setup 0ms, collect 52ms, tests 50ms, environment 0ms, prepare 125ms)
+

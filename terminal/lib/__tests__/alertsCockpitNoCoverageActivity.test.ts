@@ -98,4 +98,80 @@ describe("AlertsCockpit — no-coverage + zero rows must still answer the activi
     await mount();
     expect(container.querySelector('[data-cockpit-state="no-coverage"]')).not.toBeNull();
   });
+
+  it("CouldNotWatch counts conditions, never sources, and has no per-cause Prices row", async () => {
+    await mount();
+    const noCoverage = container.querySelector('[data-alerts-module="no-coverage"]');
+    expect(noCoverage).not.toBeNull();
+    expect(noCoverage!.textContent).toContain("1 condition");
+    expect(noCoverage!.textContent).not.toContain("sources");
+    expect(noCoverage!.textContent).not.toContain("Prices");
+    expect(noCoverage!.textContent).not.toContain("not covered");
+  });
+});
+
+describe("AlertsCockpit — unresolved row keeps its condition and suppresses calm-empty (REQUIRED 3/4)", () => {
+  let container: HTMLDivElement;
+  let root: Root | undefined;
+  let realFetch: typeof globalThis.fetch;
+
+  const UNRESOLVED = {
+    id: "u1", symbol: "SPY", active: true, created_at: "2026-09-05T12:00:00Z",
+    identity_state: "unresolved",
+    condition: { type: "opt_gamma_flip", root: "TOOLONGROOTNAME" },
+  };
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    realFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn(async (input: unknown) => {
+      const url = String(input);
+      if (url.startsWith("/api/alerts/receipts")) {
+        return {
+          ok: true, status: 200,
+          json: async () => ({
+            run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+            last_success_state: "READ_OK", outbox: [], outbox_state: "READ_OK_ZERO",
+          }),
+        } as Response;
+      }
+      if (url.startsWith("/api/alerts")) {
+        return { ok: true, status: 200, json: async () => ({ alerts: [UNRESOLVED] }) } as Response;
+      }
+      return { ok: false, status: 404, json: async () => ({}) } as Response;
+    }) as typeof globalThis.fetch;
+  });
+
+  afterEach(async () => {
+    await act(async () => { root?.unmount(); });
+    root = undefined;
+    container.remove();
+    globalThis.fetch = realFetch;
+  });
+
+  async function mount() {
+    await act(async () => {
+      root = createRoot(container);
+      root!.render(React.createElement(AlertsCockpit, { email: "test@example.com" }));
+    });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); });
+  }
+
+  it("the unresolved row keeps the condition text and puts the unresolved body on the desc line", async () => {
+    await mount();
+    const watching = container.querySelector('[data-alerts-module="watching-list"]');
+    expect(watching).not.toBeNull();
+    const text = watching!.textContent ?? "";
+    expect(text).toContain("Options gamma-flip level");
+    expect(text).toContain("The underlying saved on this alert is not in a form we can read");
+    expect(text).toContain("Cannot be checked");
+  });
+
+  it("an unresolved armed alert newer than the last run does not render the calm-empty sentence", async () => {
+    await mount();
+    expect(container.querySelector('[data-alerts-module="calm-empty"]')).toBeNull();
+    expect(container.textContent).not.toContain("No recent activity");
+    expect(container.textContent).toContain("0 tracked");
+  });
 });

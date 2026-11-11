@@ -1,5 +1,7 @@
 "use client";
 import s from "./alerts.module.css";
+import actions from "./AlertTimeline.module.css";
+import { pick } from "@/lib/finFormat";
 import { copy, type DeliveryState } from "@/lib/alertsView";
 
 export interface TimelineRow {
@@ -28,15 +30,14 @@ export default function AlertTimeline({
       <div className={s.moduleHead}>
         {/* Not anchored to a last-visit timestamp yet (Major 4) — "recent activity" makes
             no claim about when the account last looked, unlike "new"/"since you were here". */}
-        <span>{lang === "zh" ? "近期活动" : "Recent activity"}</span>
+        <span>{pick(lang === "zh", "Recent activity", "近期活动")}</span>
         <span className={s.moduleCount}>{rows.length} {lang === "zh" ? "条" : "shown"}</span>
       </div>
       <div className={s.spine}>
         {rows.map((r) => (
-          <div
-            key={r.id} className={s.row} role="button" tabIndex={0} data-delivery={r.delivery}
+          <button
+            key={r.id} type="button" className={`${s.row} ${actions.action}`} data-delivery={r.delivery}
             onClick={() => onOpen(r.id)}
-            onKeyDown={(e) => { if (e.key === "Enter") onOpen(r.id); }}
           >
             <span className={s.dot} />
             <span className={s.time}>{r.time}</span>
@@ -44,7 +45,7 @@ export default function AlertTimeline({
             <span className={s.verdict}>{r.verdict}</span>
             <span className={`${s.chip} ${CHIP_CLASS[r.delivery]}`}>{copy(`delivery.${r.delivery}`, lang)}</span>
             {r.foldedRows > 0 && <span className={s.moduleCount}>{copy("folded.note", lang, { n: r.foldedRows })}</span>}
-          </div>
+          </button>
         ))}
       </div>
     </div>

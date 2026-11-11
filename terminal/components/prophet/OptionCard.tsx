@@ -59,6 +59,10 @@ interface OptionCardProps {
 const LIVE_WINDOW_MS = 20 * 60 * 1000; // 20 min
 
 function isMarkFresh(mark: LiveMark, forced: boolean): boolean {
+  // A fixture may bypass the clock, not the numeric render contract.
+  if (![mark.bid, mark.ask, mark.mid].every((value) => typeof value === "number" && Number.isFinite(value))) {
+    return false;
+  }
   if (forced) return true;
   try {
     const age = Date.now() - new Date(mark.ts_utc).getTime();
@@ -109,14 +113,12 @@ export function OptionCard({ contract, lang, liveMark, liveMarkForced }: OptionC
             style={LIVE_CHIP}
             onMouseEnter={() => setTipKey("live")}
             onMouseLeave={() => setTipKey(null)}
-            aria-label={zh ? "盘中实时报价" : "Intraday live quote"}
+            aria-label={t("optionLiveQuote")}
           >
-            {zh ? "实时" : "LIVE"}
+            {t("optionLiveChip")}
             {tipKey === "live" && (
               <span style={TIP_STYLE}>
-                {zh
-                  ? "盘中实时中间价 — 20分钟内更新"
-                  : "Intraday mid-price — updated within 20 min"}
+                {t("optionLiveTip")}
               </span>
             )}
           </span>
@@ -131,9 +133,7 @@ export function OptionCard({ contract, lang, liveMark, liveMarkForced }: OptionC
             {t("optionEodMark")}
             {tipKey === "eod" && (
               <span style={TIP_STYLE}>
-                {zh
-                  ? "EOD收盘标记 — 非实时报价"
-                  : "EOD mark — not a live quote"}
+                {t("optionEodTip")}
               </span>
             )}
           </span>

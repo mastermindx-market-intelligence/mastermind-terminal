@@ -17,6 +17,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import React from "react";
 import AlertTimeline, { type TimelineRow } from "@/components/alerts/AlertTimeline";
+import { mappedOrNeutral, notClassified } from "@/lib/plainLabels";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -59,5 +60,36 @@ describe("AlertTimeline — zero-row guard (major 3, round-3 review)", () => {
     expect(container.textContent).toContain("NVDA");
     const mod = container.querySelector('[data-alerts-module="recent-activity"]');
     expect(mod).not.toBeNull();
+  });
+
+  it("renders the verdict sentence as given, without mappedOrNeutral wrapping it", () => {
+    // mappedOrNeutral(mapped, lang) = mapped || notClassified(lang). A truthy
+    // sentence such as "NVDA price above 200" would still pass a contains()
+    // check after wrapping. Feed a falsy verdict the wrapper would replace
+    // with notClassified(), and assert the raw empty verdict is what renders
+    // (the wrapper words never appear) alongside a real sentence.
+    expect(mappedOrNeutral("", "en")).toBe(notClassified("en"));
+    expect(mappedOrNeutral("", "zh")).toBe(notClassified("zh"));
+    mount([
+      { ...ROW, id: "empty", verdict: "" },
+      { ...ROW, id: "a1", verdict: "NVDA price above 200" },
+    ]);
+    expect(container.textContent).toContain("NVDA price above 200");
+    expect(container.textContent).not.toContain(notClassified("en"));
+    act(() => {
+      root?.unmount();
+      root = createRoot(container);
+      root!.render(React.createElement(AlertTimeline, {
+        rows: [
+          { ...ROW, id: "empty", verdict: "" },
+          { ...ROW, id: "a1", verdict: "价格低于 150" },
+        ],
+        lang: "zh",
+        onOpen: () => {},
+      }));
+    });
+    expect(container.textContent).toContain("价格低于 150");
+    expect(container.textContent).toContain("近期活动");
+    expect(container.textContent).not.toContain(notClassified("zh"));
   });
 });

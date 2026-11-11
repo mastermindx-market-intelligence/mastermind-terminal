@@ -5,13 +5,17 @@ import {
   createTeam,
   inviteTokenHash,
   isAbsentTableError,
+  listMemberNames,
   listTeams,
   newInviteToken,
   normalizeEmail,
   normalizeRole,
   normalizeTeamName,
+  TEAM_ROUTE_MESSAGES,
+  type TeamRouteCode,
   type TenancyDb,
 } from "@/lib/teams";
+import { LEX } from "@/lib/i18n";
 
 function fakeDb(responder: (table: string, calls: string[]) => { data?: unknown; error?: { code?: string; message?: string } | null }): TenancyDb {
   const captured: { table: string; calls: string[]; payload?: unknown }[] = [];
@@ -51,6 +55,18 @@ describe("normalizeRole", () => {
 describe("normalizeEmail", () => {
   it("rejects missing domain dot", () => expect(normalizeEmail("a@b")).toBeNull());
   it("trims and lowercases", () => expect(normalizeEmail("A@B.co ")).toBe("a@b.co"));
+});
+
+describe("listMemberNames", () => {
+  it("a client without rpc fails closed so the route can disclose the unread names", async () => {
+    const db = { from: () => ({}) } as unknown as TenancyDb;
+    const result = await listMemberNames(db, "t1");
+    expect(result).toEqual({
+      ok: false,
+      reason: "failed",
+      error: "team_member_names is not callable on this client",
+    });
+  });
 });
 
 describe("invite tokens", () => {
@@ -356,6 +372,9 @@ describe("createInvite authorization (MO-PAID-082)", () => {
     if (!r.ok) {
       expect(r.status).toBe(409);
       expect(r.code).toBe("duplicate_invite");
+      // h_t588_r3 MAJOR-1: 409 mapping only. Exact EN+ZH duplicate_invite literals are pinned
+      // in "duplicate_invite EN/ZH states the no-revoke limitation" below — not here, and not
+      // by the INVITE_MESSAGES completeness test (non-empty/distinct/banned-word only).
     }
   });
 });
@@ -470,7 +489,7 @@ describe("INVITE_MESSAGES plain-word completeness (acceptance #6)", () => {
   const allCodes: InviteCode[] = [
     "not_signed_in", "invalid_token", "already_used", "expired", "email_unknown", "email_mismatch",
     "invalid_email", "invalid_role", "not_admin", "team_not_found", "duplicate_invite",
-    "no_email_delivery", "unavailable", "failed",
+    "no_email_delivery", "unavailable", "read_failed", "failed",
   ];
   it("every InviteCode has a non-empty, distinct EN/ZH pair with no banned vocabulary", () => {
     for (const code of allCodes) {
@@ -487,6 +506,489 @@ describe("INVITE_MESSAGES plain-word completeness (acceptance #6)", () => {
       // "owner" as a natural word ("the team owner") is fine per the spec's own examples;
       // the banned-vocabulary law is about internal slugs/state names/status codes, not this.
       expect(en).not.toMatch(/\b\d{3}\b/);
+    }
+  });
+
+  it("duplicate_invite EN/ZH states the no-revoke limitation", () => {
+    const [en, zh] = INVITE_MESSAGES.duplicate_invite;
+    expect(en).toBe(
+      "There is already a pending invitation for this email address. Its link cannot be shown or regenerated; wait for it to expire or invite a different address.",
+    );
+    expect(zh).toBe(
+      "该邮箱地址已有一份待处理的邀请。其链接无法再次显示或重新生成；请等待其过期，或邀请另一个地址。",
+    );
+  });
+});
+
+const NEW_TEAM_ROUTE_CODES: TeamRouteCode[] = [
+  "owner_only",
+  "remove_not_allowed",
+  "owner_only_admin",
+  "owner_only_change_admin",
+  "owner_only_remove_admin",
+  "owner_locked",
+  "owner_cannot_leave",
+  "no_self_role",
+  "not_on_team",
+  "same_role",
+  "role_change_failed",
+  "remove_failed",
+  "transfer_requires_admin",
+  "same_owner",
+  "transfer_success",
+  "conflict",
+  "invalid_team_id",
+];
+
+const NEW_LEX_KEYS = [
+  "acsTeam",
+  "acsTeamSub",
+  "acsTeamPeople",
+  "acsRoleOwner",
+  "acsRoleAdmin",
+  "acsRoleMember",
+  "acsRoleOwnerWhat",
+  "acsRoleAdminWhat",
+  "acsRoleMemberWhat",
+  "acsTeamWhatEach",
+  "acsTeamYou",
+  "acsTeamJoined",
+  "acsMakeAdmin",
+  "acsMakeMember",
+  "acsTeamRemove",
+  "acsTeamLeave",
+  "acsOwnerLocked",
+  "acsTeamRemoveAsk",
+  "acsTeamLeaveAsk",
+  "acsTeamSaved",
+  "acsTeamRemoved",
+  "acsTeamLeft",
+  "acsTeamEmpty",
+  "acsTeamNoneCreate",
+  "acsTeamName",
+  "acsTeamCreate",
+  "acsTeamCreated",
+  "acsTeamNoName",
+  "acsRoleUnknown",
+  "acsTeamAccount",
+  "acsTeamInvites",
+  "acsTeamInviteBadge",
+  "acsTeamInviteExpires",
+  "acsTeamTruncated",
+  "acsTeamInvitesFail",
+  "acsTeamManyPanel",
+  "acsTeamListTruncated",
+  "acsTeamJoinedUnread",
+  "acsTeamExpiryUnread",
+  "acsTeamTransferButton",
+  "acsTeamTransferTitle",
+  "acsTeamTransferNote",
+  "acsTeamTransferAdminNeed",
+  "acsTeamTransferConfirm",
+  "acsTeamTransferConsequence",
+  "acsTeamTransferSuccess",
+  "acsTeamTransferRetry",
+] as const;
+
+const SENTENCE_LEX_KEYS = new Set([
+  "acsTeamSub",
+  "acsRoleOwnerWhat",
+  "acsRoleAdminWhat",
+  "acsRoleMemberWhat",
+  "acsOwnerLocked",
+  "acsTeamRemoveAsk",
+  "acsTeamLeaveAsk",
+  "acsTeamSaved",
+  "acsTeamRemoved",
+  "acsTeamLeft",
+  "acsTeamEmpty",
+  "acsTeamNoneCreate",
+  "acsTeamCreated",
+  "acsTeamInviteExpires",
+  "acsTeamTruncated",
+  "acsTeamInvitesFail",
+  "acsTeamManyPanel",
+  "acsTeamListTruncated",
+  "acsTeamTransferTitle",
+  "acsTeamTransferNote",
+  "acsTeamTransferAdminNeed",
+  "acsTeamTransferConfirm",
+  "acsTeamTransferConsequence",
+  "acsTeamTransferSuccess",
+]);
+
+const BANNED = [
+  "falsifier",
+  "refuted",
+  "证伪",
+  "team_members",
+  "team_role_changes",
+  "team_ownership_transfers",
+  "team_member_names",
+  "RLS",
+  "42501",
+  "23505",
+  "SECURITY DEFINER",
+  "transfer_team_ownership",
+];
+
+describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => {
+  it("seat R5: acsTeam* transfer copy addresses the customer as 你; same_owner and no_self_role follow that law", () => {
+    expect(LEX.acsTeamTransferConsequence[0]).toBe(
+      "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.",
+    );
+    expect(LEX.acsTeamTransferConsequence[1]).toBe(
+      "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。",
+    );
+    expect(LEX.acsTeamTransferConsequence[1]).not.toContain("您");
+    expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toBe("你已经是所有者。");
+    expect(TEAM_ROUTE_MESSAGES.no_self_role[1]).toBe("你无法更改自己的角色。请联系团队所有者。");
+    expect(TEAM_ROUTE_MESSAGES.conflict[1]).toMatch(/。/);
+  });
+
+  it("the role words a caller reads match the words the Team section paints (round-4 ruling R4(j))", () => {
+    // Every label this packet ships says "Administrator" (acsRoleAdmin, acsMakeAdmin), so the
+    // sentence that asks for a role says it too rather than the shorter "admin".
+    const [en, zh] = TEAM_ROUTE_MESSAGES.invalid_role;
+    expect(en).toBe("Choose a role: administrator or member.");
+    expect(en).not.toMatch(/\badmin\b/);
+    expect(zh).toContain("管理员");
+    expect(LEX.acsRoleAdmin[0]).toBe("Administrator");
+  });
+
+  it("not_admin_add says administrator, matching the rest of the catalogue (round-6 ruling R9(1))", () => {
+    const [en, zh] = TEAM_ROUTE_MESSAGES.not_admin_add;
+    expect(en).toBe("Only a team owner or administrator can add people.");
+    expect(en).not.toMatch(/\badmin\b/);
+    expect(zh).toBe("只有团队所有者或管理员才能添加成员。");
+  });
+
+  it("acsRoleOwnerWhat names leave and removal (round-6 ruling R9(2))", () => {
+    expect(LEX.acsRoleOwnerWhat[0]).toBe("Created this team. Can do everything. Cannot leave or be removed.");
+    expect(LEX.acsRoleOwnerWhat[1]).toBe("创建了该团队。拥有全部权限，不能退出，也不能被移除。");
+  });
+
+  it("every new TEAM_ROUTE_MESSAGES entry is a distinct EN/ZH sentence with no banned vocabulary", () => {
+    for (const code of NEW_TEAM_ROUTE_CODES) {
+      const [en, zh] = TEAM_ROUTE_MESSAGES[code];
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z].*[.!?]$/);
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+      expect(en).not.toMatch(/\b\d{3}\b/);
+    }
+  });
+
+  it("every new LEX key is a distinct EN/ZH pair with no banned vocabulary", () => {
+    for (const key of NEW_LEX_KEYS) {
+      const pair = LEX[key];
+      expect(pair, key).toBeTruthy();
+      const [en, zh] = pair;
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z]/);
+      if (SENTENCE_LEX_KEYS.has(key)) {
+        const filled = en.replaceAll("{name}", "Alex Chen");
+        expect(filled).toMatch(/^[A-Z].*[.!?]$/);
+      }
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+      expect(en).not.toMatch(/\b\d{3}\b/);
+    }
+  });
+});
+
+
+// --- Packet MO-B F12-13 tests appended ---
+import {
+  WORKSPACE_SETTING_KEYS,
+  WORKSPACE_SETTING_COPY,
+  normalizeWorkspaceSetting,
+  workspaceSettingDefaults,
+} from "@/lib/teams";
+
+describe("WORKSPACE_SETTING_KEYS — exactly two closed keys (R1)", () => {
+  it("exposes exactly default_chart_theme and share_layouts_by_default", () => {
+    expect(Object.keys(WORKSPACE_SETTING_KEYS).sort()).toEqual(
+      ["default_chart_theme", "share_layouts_by_default"].sort(),
+    );
+  });
+  it("default_chart_theme is a closed enum of green_up/red_up with green_up as default", () => {
+    expect(WORKSPACE_SETTING_KEYS.default_chart_theme.kind).toBe("enum");
+    expect([...WORKSPACE_SETTING_KEYS.default_chart_theme.values].sort()).toEqual(["green_up", "red_up"]);
+    expect(WORKSPACE_SETTING_KEYS.default_chart_theme.default).toBe("green_up");
+  });
+  it("share_layouts_by_default is a boolean with false default", () => {
+    expect(WORKSPACE_SETTING_KEYS.share_layouts_by_default.kind).toBe("boolean");
+    expect(WORKSPACE_SETTING_KEYS.share_layouts_by_default.default).toBe(false);
+  });
+});
+
+describe("normalizeWorkspaceSetting accept/reject matrix (R1, R7)", () => {
+  it("accepts default_chart_theme green_up", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "green_up")).toEqual({
+      ok: true,
+      key: "default_chart_theme",
+      value: "green_up",
+    });
+  });
+  it("accepts default_chart_theme red_up", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "red_up")).toEqual({
+      ok: true,
+      key: "default_chart_theme",
+      value: "red_up",
+    });
+  });
+  it("rejects default_chart_theme purple_up as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "purple_up")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+  });
+  it("rejects default_chart_theme null / undefined as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", null)).toEqual({ ok: false, code: "invalid_value" });
+    expect(normalizeWorkspaceSetting("default_chart_theme", undefined)).toEqual({ ok: false, code: "invalid_value" });
+  });
+  it("accepts share_layouts_by_default true / false", () => {
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", true)).toEqual({
+      ok: true,
+      key: "share_layouts_by_default",
+      value: true,
+    });
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", false)).toEqual({
+      ok: true,
+      key: "share_layouts_by_default",
+      value: false,
+    });
+  });
+  it("rejects string 'true' for the boolean as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", "true")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", "false")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+  });
+  it("rejects unknown keys as invalid_key", () => {
+    expect(normalizeWorkspaceSetting("not_a_key", "x")).toEqual({ ok: false, code: "invalid_key" });
+    expect(normalizeWorkspaceSetting("", "x")).toEqual({ ok: false, code: "invalid_key" });
+    expect(normalizeWorkspaceSetting(null, "x")).toEqual({ ok: false, code: "invalid_key" });
+  });
+});
+
+describe("workspaceSettingDefaults — exactly two rows in key order (R2)", () => {
+  it("returns the two closed defaults in canonical order", () => {
+    expect(workspaceSettingDefaults()).toEqual([
+      { key: "default_chart_theme", value: "green_up" },
+      { key: "share_layouts_by_default", value: false },
+    ]);
+  });
+});
+
+describe("WORKSPACE_SETTING_COPY — plain-word catalogue (R3)", () => {
+  const BANNED = [
+    "falsifier",
+    "refuted",
+    "证伪",
+    "default_chart_theme",
+    "share_layouts_by_default",
+    "green_up",
+    "red_up",
+    "RLS",
+    "42501",
+    "team_settings",
+    "workspace_settings",
+  ];
+  // Labels: section heading, captions, and the select-options twins. Plain words, but they are
+  // noun phrases (e.g. "Chart colours") rather than full sentences — the seat ruling pins these
+  // exact strings, so the test checks EN starts with a capital, ZH has CJK, and neither twin
+  // carries banned vocabulary.
+  const labels: Array<readonly [string, string]> = [
+    WORKSPACE_SETTING_COPY.heading,
+    WORKSPACE_SETTING_COPY.caption.default_chart_theme,
+    WORKSPACE_SETTING_COPY.caption.share_layouts_by_default,
+    ...WORKSPACE_SETTING_COPY.options.chart_theme,
+  ];
+  // Sentences: the explainer, the member share read-only sentences, and the read-only gate
+  // sentence. Each MUST end with a sentence terminator in both languages per the plain-language
+  // law (R3).
+  const sentences: Array<readonly [string, string]> = [
+    WORKSPACE_SETTING_COPY.memberReadOnly,
+    WORKSPACE_SETTING_COPY.explainer.share_layouts_by_default,
+    WORKSPACE_SETTING_COPY.shareValue.on,
+    WORKSPACE_SETTING_COPY.shareValue.off,
+  ];
+  it("every [EN, ZH] label is distinct, has CJK, and avoids banned vocabulary", () => {
+    for (const [en, zh] of labels) {
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z]/);
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+    }
+  });
+  it("every [EN, ZH] sentence is distinct, ends with a terminator, and avoids banned vocabulary", () => {
+    for (const [en, zh] of sentences) {
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z]/);
+      expect(en).toMatch(/[.!?。？]$/);
+      expect(zh).toMatch(/[.!?。？]$/);
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+    }
+  });
+  it("the ZH chart-theme options match the seat ruling wording 绿涨红跌 / 红涨绿跌", () => {
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[0][1]).toBe("绿涨红跌");
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[1][1]).toBe("红涨绿跌");
+  });
+  it("the seat ruling EN chart-theme options are plain words", () => {
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[0][0]).toBe("Green means up, red means down");
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[1][0]).toBe("Red means up, green means down");
+  });
+});
+
+// --- Audit heal of t#514 appended tests (criterion (e) FAIL) --------------------------------
+// Two pieces of the merged packet shipped untested: the exported `listInvites` behind
+// GET /api/teams/invitations, and the `truncated` flag this packet's own round-2 m1 introduced,
+// which was never asserted TRUE from any of the three producers that compute it.
+import {
+  INVITE_ACCEPT_PATH,
+  INVITE_EMAIL_DELIVERY_CHECKED_AT,
+  INVITE_TTL_DAYS,
+  buildInviteUrl,
+  inviteCheckedOn,
+  inviteDeliveryBlock,
+  isInviteToken,
+  noEmailDeliveryLine,
+  noEmailDeliveryPair,
+} from "@/lib/teams";
+
+describe("MO-PAID-081 link-only copy (W9T_F12_17)", () => {
+  const BANNED_WORDS = ["falsifier", "refuted", "证伪", "no_email_delivery", "team_invites", "accept_team_invite", "RLS", "slug", "enum"];
+
+  it("the checked date is a real ISO date and reads as words in both languages", () => {
+    expect(INVITE_EMAIL_DELIVERY_CHECKED_AT).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "en")).toBe("13 September 2026");
+    expect(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "zh")).toBe("2026年9月13日");
+    // A timestamp is read as its date, in UTC terms, with no locale library in the path.
+    expect(inviteCheckedOn("2026-09-13T09:00:00.000Z", "en")).toBe("13 September 2026");
+    expect(inviteCheckedOn("2026-01-05", "zh")).toBe("2026年1月5日");
+  });
+
+  it("an unreadable date falls back to the raw string, never to 'Invalid Date'", () => {
+    for (const bad of ["", "not-a-date", "2026-13-45", "2026-00-10", "13/09/2026"]) {
+      for (const lang of ["en", "zh"] as const) {
+        const out = inviteCheckedOn(bad, lang);
+        expect(out, `${bad}/${lang}`).toBe(bad);
+        expect(out).not.toContain("Invalid");
+        expect(out).not.toContain("NaN");
+      }
+    }
+  });
+
+  it("the dated line says plainly that no invitation mail is sent, and names the check date", () => {
+    const en = noEmailDeliveryLine("en");
+    const zh = noEmailDeliveryLine("zh");
+    expect(en).toBe(
+      `We do not send invitation emails: this server has no email delivery set up. Last checked on ${inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "en")}.`,
+    );
+    expect(zh).toContain("我们不会发送邀请邮件");
+    expect(zh).toContain(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "zh"));
+    expect(en).toMatch(/^[A-Z].*\.$/);
+    expect(zh).toMatch(/[一-鿿]/);
+    // Real Chinese with CJK punctuation, and no transliteration: not one run of Latin letters.
+    expect(zh).toContain("。");
+    expect(zh).toContain("：");
+    expect(zh).not.toMatch(/[A-Za-z]{2,}/);
+    // CJK sentences run together: no Latin space after a full stop or a colon.
+    expect(zh).not.toMatch(/[。，：、] /);
+    expect(en).not.toBe(zh);
+    for (const banned of BANNED_WORDS) {
+      expect(en).not.toContain(banned);
+      expect(zh).not.toContain(banned);
+    }
+    expect(en).not.toMatch(/\b\d{3}\b/);
+  });
+
+  it("the catalogued route answer IS the dated pair, plus what to do instead", () => {
+    const [en, zh] = INVITE_MESSAGES.no_email_delivery;
+    expect(en).toBe(noEmailDeliveryPair()[0]);
+    expect(zh).toBe(noEmailDeliveryPair()[1]);
+    expect(en.startsWith(noEmailDeliveryLine("en"))).toBe(true);
+    expect(zh.startsWith(noEmailDeliveryLine("zh"))).toBe(true);
+    expect(zh).not.toMatch(/[。，：、] /);
+    // The instruction names the real lifetime, so the number cannot drift from the constant.
+    expect(en).toContain(`${INVITE_TTL_DAYS} days`);
+    expect(zh).toContain(`${INVITE_TTL_DAYS} 天`);
+    expect(en).toMatch(/^[A-Z].*\.$/);
+    for (const banned of BANNED_WORDS) {
+      expect(en).not.toContain(banned);
+      expect(zh).not.toContain(banned);
+    }
+  });
+
+  it("moving the checked date moves the sentence — the date is a claim, not decoration", () => {
+    expect(noEmailDeliveryLine("en", "2027-01-05")).toContain("5 January 2027");
+    expect(noEmailDeliveryLine("zh", "2027-01-05")).toContain("2027年1月5日");
+    expect(noEmailDeliveryPair("2027-01-05")[0]).not.toBe(noEmailDeliveryPair()[0]);
+    expect(noEmailDeliveryPair("2027-01-05")[1]).not.toBe(noEmailDeliveryPair()[1]);
+  });
+
+  it("the delivery block always reports sent:false and carries both languages and the date", () => {
+    const block = inviteDeliveryBlock();
+    expect(block.sent).toBe(false);
+    expect(block.checkedAt).toBe(INVITE_EMAIL_DELIVERY_CHECKED_AT);
+    expect(block.message).toBe(INVITE_MESSAGES.no_email_delivery[0]);
+    expect(block.messageZh).toBe(INVITE_MESSAGES.no_email_delivery[1]);
+    const moved = inviteDeliveryBlock("2027-01-05");
+    expect(moved.sent).toBe(false);
+    expect(moved.checkedAt).toBe("2027-01-05");
+    expect(moved.message).toContain("5 January 2027");
+  });
+
+  it("buildInviteUrl points at the public accept page and carries the token once", () => {
+    const token = newInviteToken();
+    expect(INVITE_ACCEPT_PATH).toBe("/invite");
+    expect(buildInviteUrl("https://app.mastermind-x.com", token)).toBe(
+      `https://app.mastermind-x.com${INVITE_ACCEPT_PATH}?token=${token}`,
+    );
+    // A trailing slash on the origin must not double up in the link a person copies.
+    expect(buildInviteUrl("https://app.mastermind-x.com/", token)).toBe(
+      `https://app.mastermind-x.com${INVITE_ACCEPT_PATH}?token=${token}`,
+    );
+    expect(buildInviteUrl("", token)).toBe(`${INVITE_ACCEPT_PATH}?token=${token}`);
+    expect(buildInviteUrl("https://app.mastermind-x.com", token).split(token).length).toBe(2);
+  });
+
+  it("isInviteToken accepts only the shape newInviteToken mints", () => {
+    const token = newInviteToken();
+    expect(token).toMatch(/^[0-9a-f]{64}$/);
+    expect(isInviteToken(token)).toBe(true);
+    for (const bad of [
+      "", "x".repeat(64), "G".repeat(64), token.slice(0, 63), `${token}0`, token.toUpperCase(),
+      `${token}&admin=1`, null, undefined, 12345, {},
+    ]) {
+      expect(isInviteToken(bad), String(bad)).toBe(false);
     }
   });
 });

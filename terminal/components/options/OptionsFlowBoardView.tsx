@@ -2,6 +2,8 @@
 
 import { useDeferredValue, useMemo, useState } from "react";
 import type { Lang } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
+import { flowSideLabel, optionRightLabel, volAboveOiLabel } from "@/lib/plainLabels";
 import {
   selectOptionsFlowBoardRows,
   summarizeOptionsFlowBoard,
@@ -27,6 +29,13 @@ export interface OptionsFlowBoardEvent extends OptionsFlowBoardSource {
   swept?: boolean;
 }
 
+/** W3A: the ticker click carries the filter context of the row it came from. */
+export interface TickerClickCtx {
+  exp: string;
+  strike: number;
+  right: "C" | "P";
+}
+
 interface OptionsFlowBoardViewProps {
   mode: OptionsFlowBoardMode;
   lang: Lang;
@@ -36,7 +45,7 @@ interface OptionsFlowBoardViewProps {
   sessionDate?: string;
   stale: boolean;
   unavailable: boolean;
-  onOpenTicker: (root: string) => void;
+  onOpenTicker: (root: string, ctx?: TickerClickCtx) => void;
 }
 
 function formatPremium(value: number): string {
@@ -120,7 +129,7 @@ export function OptionsFlowBoardView({
     : (lang === "zh" ? "最大资金流事件" : "Largest Flow Events");
   const deck = zeroDte
     ? (lang === "zh"
-        ? "仅展示发布器标记的当日到期期权事件，并按聚合权利金排序。覆盖范围为达标资金流，而非完整 OPRA 逐笔。"
+        ? "仅展示发布器标记的当日到期期权事件，并按聚合权利金排序。覆盖范围为达标资金流，而非完整的逐笔期权成交记录。"
         : "Publisher-flagged same-day expiries, ordered by aggregated premium. Coverage is the qualifying flow feed, not the full OPRA tape.")
     : (lang === "zh"
         ? "按聚合权利金展示最大达标事件。每行可能合并同一轮询批次内同一合约的多笔成交，并非单笔成交排名。"
@@ -143,20 +152,20 @@ export function OptionsFlowBoardView({
       <div className="options-flow-board-head">
         <div>
           <div className="options-flow-board-eyebrow">
-            {lang === "zh" ? "资金流 · 仅供展示" : "Flow · display only"}
+            {pick(lang === "zh", "Flow · display only", "资金流 · 仅供展示")}
           </div>
           <h1>{title}</h1>
           <p>{deck}</p>
         </div>
-        <div className="options-flow-board-source" aria-label={lang === "zh" ? "数据来源" : "Data source"}>
+        <div className="options-flow-board-source" aria-label={pick(lang === "zh", "Data source", "数据来源")}>
           <span className={stale || unavailable ? "is-stale" : !events ? "is-pending" : ""}>{sourceStatus}</span>
-          <code>{feedSchema || "live_flow.feed/v1"}</code>
+          <code>{pick(lang === "zh", "Flow feed", "资金流数据源")}</code>
           {sessionDate && <small>{sessionDate}</small>}
         </div>
       </div>
 
       {events && (
-        <div className="options-flow-board-receipts" aria-label={lang === "zh" ? "当前筛选汇总" : "Current selection receipts"}>
+        <div className="options-flow-board-receipts" aria-label={pick(lang === "zh", "Current selection receipts", "当前筛选汇总")}>
           <SummaryReceipt label={lang === "zh" ? "聚合权利金" : "Gross premium"} value={formatPremium(summary.grossPremium)} />
           <SummaryReceipt label={lang === "zh" ? "事件" : "Events"} value={summary.eventCount.toLocaleString("en-US")} />
           <SummaryReceipt label={lang === "zh" ? "原始成交笔数" : "Underlying prints"} value={summary.printCount.toLocaleString("en-US")} />
@@ -169,7 +178,7 @@ export function OptionsFlowBoardView({
         </div>
       )}
 
-      <div className="options-flow-board-controls" aria-label={lang === "zh" ? "事件筛选" : "Event filters"}>
+      <div className="options-flow-board-controls" aria-label={pick(lang === "zh", "Event filters", "事件筛选")}>
         <label className="options-flow-board-search">
           <span>{lang === "zh" ? "代码" : "Ticker"}</span>
           <input
@@ -179,7 +188,7 @@ export function OptionsFlowBoardView({
             maxLength={12}
           />
         </label>
-        <div className="options-flow-board-chipset" aria-label={lang === "zh" ? "认购认沽筛选" : "Call put filter"}>
+        <div className="options-flow-board-chipset" aria-label={pick(lang === "zh", "Call put filter", "认购认沽筛选")}>
           {(["", "C", "P"] as OptionsFlowBoardRight[]).map((value) => (
             <button
               key={value || "all"}
@@ -188,11 +197,11 @@ export function OptionsFlowBoardView({
               aria-pressed={right === value}
               onClick={() => setRight(value)}
             >
-              {value || (lang === "zh" ? "全部 C/P" : "All C/P")}
+              {optionRightLabel(value, lang)}
             </button>
           ))}
         </div>
-        <div className="options-flow-board-chipset" aria-label={lang === "zh" ? "推断方向筛选" : "Inferred side filter"}>
+        <div className="options-flow-board-chipset" aria-label={pick(lang === "zh", "Inferred side filter", "推断方向筛选")}>
           {(["", "~buy", "~sell", "mixed"] as OptionsFlowBoardSide[]).map((value) => (
             <button
               key={value || "all"}
@@ -201,7 +210,7 @@ export function OptionsFlowBoardView({
               aria-pressed={side === value}
               onClick={() => setSide(value)}
             >
-              {value || (lang === "zh" ? "全部方向" : "All sides")}
+              {value ? flowSideLabel(value, lang) : pick(lang === "zh", "All sides", "全部方向")}
             </button>
           ))}
         </div>
@@ -215,26 +224,26 @@ export function OptionsFlowBoardView({
       <div className="options-flow-board-results">
         {!events && !unavailable && (
           <div className="options-flow-board-empty" role="status">
-            <strong>{lang === "zh" ? "正在读取盘中资金流…" : "Loading intraday flow…"}</strong>
-            <span>{lang === "zh" ? "等待首个不可变快照。" : "Awaiting the first immutable snapshot."}</span>
+            <strong>{pick(lang === "zh", "Loading intraday flow…", "正在读取盘中资金流…")}</strong>
+            <span>{pick(lang === "zh", "Awaiting the first immutable snapshot.", "等待首个不可变快照。")}</span>
           </div>
         )}
         {!events && unavailable && (
           <div className="options-flow-board-empty" role="status">
-            <strong>{lang === "zh" ? "资金流暂时不可用" : "Flow feed unavailable"}</strong>
-            <span>{lang === "zh" ? "无法连接数据源，本页不会填充合成值。" : "The source cannot be reached; this board will not fill synthetic values."}</span>
+            <strong>{pick(lang === "zh", "Flow feed unavailable", "资金流暂时不可用")}</strong>
+            <span>{pick(lang === "zh", "The source cannot be reached; this board will not fill synthetic values.", "无法连接数据源，本页不会填充合成值。")}</span>
           </div>
         )}
         {events && modeEvents.length === 0 && (
           <div className="options-flow-board-empty" role="status">
-            <strong>{zeroDte ? (lang === "zh" ? "本时段暂无 0DTE 达标事件" : "No qualifying 0DTE events this session") : (lang === "zh" ? "本时段暂无达标事件" : "No qualifying events this session")}</strong>
-            <span>{lang === "zh" ? "这是源数据的空值状态，而非计算结果。" : "This is an empty source state, not a calculated substitute."}</span>
+            <strong>{zeroDte ? pick(lang === "zh", "No qualifying 0DTE events this session", "本时段暂无当日到期的达标事件") : pick(lang === "zh", "No qualifying events this session", "本时段暂无达标事件")}</strong>
+            <span>{pick(lang === "zh", "This is an empty source state, not a calculated substitute.", "这是源数据的空值状态，而非计算结果。")}</span>
           </div>
         )}
         {events && modeEvents.length > 0 && selectedEvents.length === 0 && (
           <div className="options-flow-board-empty" role="status">
-            <strong>{lang === "zh" ? "暂无符合筛选条件的事件" : "No events match these filters"}</strong>
-            <button type="button" className="chip" onClick={resetFilters}>{lang === "zh" ? "清除筛选" : "Clear filters"}</button>
+            <strong>{pick(lang === "zh", "No events match these filters", "暂无符合筛选条件的事件")}</strong>
+            <button type="button" className="chip" onClick={resetFilters}>{pick(lang === "zh", "Clear filters", "清除筛选")}</button>
           </div>
         )}
 
@@ -245,13 +254,13 @@ export function OptionsFlowBoardView({
                 <thead>
                   <tr>
                     <th>{lang === "zh" ? "序号" : "#"}</th>
-                    <th>{lang === "zh" ? "时间 ET" : "Time ET"}</th>
+                    <th>{pick(lang === "zh", "Eastern time", "美东时间")}</th>
                     <th>{lang === "zh" ? "代码" : "Ticker"}</th>
                     <th>{lang === "zh" ? "合约" : "Contract"}</th>
                     <th>{lang === "zh" ? "方向" : "Side"}</th>
                     <th>{lang === "zh" ? "成交笔数" : "Prints"}</th>
                     <th>{lang === "zh" ? "张数" : "Contracts"}</th>
-                    <th>{lang === "zh" ? "聚合权利金" : "Aggregate premium"}</th>
+                    <th>{pick(lang === "zh", "Aggregate premium", "聚合权利金")}</th>
                     <th>{lang === "zh" ? "标记" : "Flags"}</th>
                   </tr>
                 </thead>
@@ -261,19 +270,19 @@ export function OptionsFlowBoardView({
                       <td className="options-flow-board-rank">{index + 1}</td>
                       <td>{formatTime(event.ts)}</td>
                       <td>
-                        <button type="button" className="options-flow-board-ticker" onClick={() => onOpenTicker(event.root)}>
+                        <button type="button" className="options-flow-board-ticker" onClick={() => onOpenTicker(event.root, { exp: event.exp, strike: event.strike, right: event.right })}>
                           {event.root}
                         </button>
                       </td>
                       <td><span className={event.right === "C" ? "is-call" : "is-put"}>{contractLabel(event)}</span></td>
-                      <td><span className={`options-flow-board-side side-${event.side.replace("~", "")}`}>{event.side}</span></td>
+                      <td><span className={`options-flow-board-side side-${event.side.replace("~", "")}`}>{flowSideLabel(event.side, lang)}</span></td>
                       <td>{event.n_prints.toLocaleString("en-US")}</td>
                       <td>{event.size.toLocaleString("en-US")}</td>
                       <td className="options-flow-board-premium">{formatPremium(event.premium)}</td>
                       <td>
                         <span className="options-flow-board-flags">
                           {event.zerodte && <span>0DTE</span>}
-                          {event.vol_gt_oi && <span>vol&gt;OI</span>}
+                          {event.vol_gt_oi && <span>{volAboveOiLabel(lang)}</span>}
                           {event.repeated && <span>{lang === "zh" ? "重复" : "repeat"}</span>}
                           {event.swept && <span>{lang === "zh" ? "扫单样" : "sweep-like"}</span>}
                         </span>
@@ -289,17 +298,17 @@ export function OptionsFlowBoardView({
                 <article key={event.id} className="options-flow-board-card" data-flow-event-row={event.id}>
                   <div className="options-flow-board-card-main">
                     <span className="options-flow-board-rank">#{index + 1}</span>
-                    <button type="button" className="options-flow-board-ticker" onClick={() => onOpenTicker(event.root)}>
+                    <button type="button" className="options-flow-board-ticker" onClick={() => onOpenTicker(event.root, { exp: event.exp, strike: event.strike, right: event.right })}>
                       {event.root}
                     </button>
                     <span className={event.right === "C" ? "is-call" : "is-put"}>{contractLabel(event)}</span>
                     <strong>{formatPremium(event.premium)}</strong>
                   </div>
                   <div className="options-flow-board-card-meta">
-                    <span>{formatTime(event.ts)} ET</span>
+                    <span>{formatTime(event.ts)} {pick(lang === "zh", "ET", "美东")}</span>
                     <span>{event.n_prints.toLocaleString("en-US")} {lang === "zh" ? "笔" : "prints"}</span>
                     <span>{event.size.toLocaleString("en-US")} {lang === "zh" ? "张" : "contracts"}</span>
-                    <span className={`options-flow-board-side side-${event.side.replace("~", "")}`}>{event.side}</span>
+                    <span className={`options-flow-board-side side-${event.side.replace("~", "")}`}>{flowSideLabel(event.side, lang)}</span>
                   </div>
                 </article>
               ))}
@@ -310,13 +319,15 @@ export function OptionsFlowBoardView({
 
       <footer className="options-flow-board-foot">
         <span>
-          {lang === "zh"
-            ? "仅供展示 · 每行是单轮询批次内单一合约的聚合事件 · 权利金 = 成交价 × 张数 × 100 的总和 · ~方向仍为启发式推断"
-            : "Display only · each row is one contract aggregate within a poll batch · premium = summed price × contracts × 100 · ~side remains heuristic"}
+          {pick(
+            lang === "zh",
+            "Display only · each row is one contract aggregate within a poll batch · premium = summed price × contracts × 100 · inferred side is still an estimate",
+            "仅供展示 · 每行是单轮询批次内单一合约的聚合事件 · 权利金 = 成交价 × 张数 × 100 的总和 · 推断方向仍为估计",
+          )}
         </span>
         <span>
           {!events
-            ? (lang === "zh" ? "等待数据源" : "Awaiting source")
+            ? pick(lang === "zh", "Awaiting source", "等待数据源")
             : selectedEvents.length > DISPLAY_LIMIT
               ? (lang === "zh" ? `显示前 ${DISPLAY_LIMIT} / ${selectedEvents.length.toLocaleString("en-US")} 条` : `Showing top ${DISPLAY_LIMIT} of ${selectedEvents.length.toLocaleString("en-US")}`)
               : (lang === "zh" ? `${selectedEvents.length.toLocaleString("en-US")} 条事件` : `${selectedEvents.length.toLocaleString("en-US")} events`)}

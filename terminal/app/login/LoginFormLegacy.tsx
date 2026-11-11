@@ -2,11 +2,12 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { safeAuthNext } from "@/lib/supabase/redirects";
 import { createClient } from "@/lib/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { useT } from "@/lib/i18n";
 
-function LoginForm() {
+function LoginForm({ defaultNext }: { defaultNext: string }) {
   const t = useT();
   const params = useSearchParams();
   const [mode, setMode] = useState<"signin" | "signup">(params.get("mode") === "signup" ? "signup" : "signin");
@@ -33,7 +34,7 @@ function LoginForm() {
       setBusy(false);
       return;
     }
-    router.push("/terminal");
+    router.push(safeAuthNext(params.get("next"), defaultNext));
     router.refresh();
   }
 
@@ -43,13 +44,13 @@ function LoginForm() {
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
           <Link href="/"><BrandMark size={40} /></Link>
         </div>
-        <h2>{mode === "signin" ? "Sign in to Mastermind" : "Create your account"}</h2>
+        <h2>{mode === "signin" ? t("lgSignInTitle") : t("lgCreateTitle")}</h2>
         <p className="sub">
-          {mode === "signin" ? "Welcome back." : "Free access to charts; Pro unlocks custom + proprietary indicators."}
+          {mode === "signin" ? t("lgWelcomeBack") : t("lgSignupPitch")}
         </p>
-        <label htmlFor="auth-email">Email</label>
+        <label htmlFor="auth-email">{t("lgEmail")}</label>
         <input id="auth-email" className="field" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-        <label htmlFor="auth-pw">Password</label>
+        <label htmlFor="auth-pw">{t("lgPassword")}</label>
         <input id="auth-pw" className="field" type="password" required minLength={6} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="••••••••" />
         {err && <div className="err">{err}</div>}
         <button className="btn btn-primary" style={{ width: "100%", marginTop: 18 }} disabled={busy}>
@@ -70,10 +71,10 @@ function LoginForm() {
 // Legacy full-page form — rendered ONLY when TERMINAL_REQUIRE_AUTH=1 (a redirect
 // to /terminal?signin=1 would loop through the auth guard in that mode). The
 // public product's login surface is the onboarding sheet (see page.tsx).
-export default function LoginFormLegacy() {
+export default function LoginFormLegacy({ defaultNext = "/terminal" }: { defaultNext?: string }) {
   return (
     <Suspense fallback={<main className="center" />}>
-      <LoginForm />
+      <LoginForm defaultNext={defaultNext} />
     </Suspense>
   );
 }

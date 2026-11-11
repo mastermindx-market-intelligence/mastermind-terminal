@@ -1,0 +1,15 @@
+{
+  "identifier": "DEFAULT_FILTERS",
+  "lintCounts": {
+    "errorCount": 0,
+    "warningCount": 1
+  },
+  "path": "terminal/components/flowdesk/FeedPane.tsx",
+  "protectedBlob": "5284f6155744e133d2569c5947ddc46e3cf14c23",
+  "protectedSource": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "recordedAt": "2026-11-10T17:28:21.003007+00:00",
+  "repairScope": "Projection admission and membership; no unrelated import cleanup required.",
+  "rule": "@typescript-eslint/no-unused-vars",
+  "sameSoleOccurrence": "import { FiltersPanel, DEFAULT_FILTERS } from \"./FiltersPanel\";",
+  "state": "ONE_INHERITED_WARNING_NO_NEW_LINT_ERRORS"
+}

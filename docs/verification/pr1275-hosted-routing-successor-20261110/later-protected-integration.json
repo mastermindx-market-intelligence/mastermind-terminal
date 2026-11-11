@@ -1,0 +1,365 @@
+{
+  "at": "2026-11-10T12:08:18.931167+00:00",
+  "composedIndexTreeBeforeReceipt": "0999de8239322d536b91fe4442d492fd64e074c9",
+  "fixtureInputOverlap": [],
+  "fixtureInputsPreserved": 15,
+  "head": "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+  "incomingCIAlreadyProtected": true,
+  "incomingEvidenceFiles": 53,
+  "incomingFiles": 57,
+  "incomingParents": [
+    "839bace1e89dd6def9311d3a410786c73a6332aa"
+  ],
+  "incomingProtected": "735eb66dd0446d1b4ee82c97fe87fce21757371a",
+  "method": "Exact protected postimage composition into the owned index; original capture identities retained.",
+  "observedInputOverlap": [],
+  "paths": [
+    {
+      "mode": "100644",
+      "path": "terminal/app/fin.css",
+      "postimage": "7ae26b89d179c9fd81841fd01f17669aa58b27c2",
+      "sha256": "7e64f68fc411daee9d223126ed9541654ae2b670fd50f5a8c03e94c27ec328cf"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/components/fin/TechnicalsPage.tsx",
+      "postimage": "ab1d19ebade74c1ba586808701b6f1315405363a",
+      "sha256": "d15fe17b802806c0eaf9fec2f165d6a08bebc7b4165f6e12c168aa4c5852883b"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20260926/EVIDENCE.yml",
+      "postimage": "766dc0c775f089bcdd202da5a4a8e03035eac416",
+      "sha256": "71a2e21905f017fa7154eeb50e7bc332620e3c4dcb3c95eea325b1f89e614e8f"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20260926/desktop-en.png",
+      "postimage": "68529e2a284c25052ca21148777a415be41c3b0e",
+      "sha256": "1a02ccebe84383c0f9b0e390ba582c0575613503ebc4e53f03cebaf9b93eec2e"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20260926/mobile-en.png",
+      "postimage": "5b5bbe6d06724354325a2027f103025c04434ea5",
+      "sha256": "63b73f2a6f4653d0203ed500fa1c38cabaaaae5c700b1b9896b463fc8e64608a"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20260926/mobile-zh.png",
+      "postimage": "697d4ee0dbe0ecdf85ee38a1816414e1ef56781e",
+      "sha256": "7626440f9b4d22cf3b4e0248faec3f5c1d50dfd90a24a82a02973b906261441d"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20260926/tablet-en.png",
+      "postimage": "98fa2496f95feaae5cc1014acb9dbc1c84b6d113",
+      "sha256": "42f15a236bd24bc1562894b517f649698c4b629b9f2072156d53b015dc1e297e"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/EVIDENCE.json",
+      "postimage": "15c00e54b4e288a876cea0c22f71a1c2b32ba59c",
+      "sha256": "d52f56abb253934ef941cf562104ce40e9bd4c1b2b2350f5cf066c55fbcc8aac"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/desktop-market-full-history-en.png",
+      "postimage": "7c2be0854e82db22413af579a96167b0731d2102",
+      "sha256": "a382a9224137733025f68647d8414ea97952de35eda013f3c11df8ceaf149821"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/desktop-market-full-history-zh.png",
+      "postimage": "df6adcfacee0a96d42b50c7f775dcdf11ed216ae",
+      "sha256": "e49719844e466a0385d4d18e4a4a06fbdbc8ada5c800ca55eea24f57f00b3ecc"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/desktop-market-neutral-en.png",
+      "postimage": "9d7d044bfe1398531c7dd419973c259cc7027dff",
+      "sha256": "658c56b5196950fdbacb69a03ea52d690c21d7f3b552a455410fff962d5890d0"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/desktop-market-neutral-zh.png",
+      "postimage": "f5390c5fd95d559a625e8247a118fb645ad26848",
+      "sha256": "d104b0d857f4e6c62e1b25280d03b2f37c2bb76f413fe098233478aeb9cd99e2"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/desktop-market-partial-en.png",
+      "postimage": "93d149c96c9ef49148730422a537ed7499aa379d",
+      "sha256": "6fa97fced4fd2d2b9f60f87d3f68add61edc6103bc1221672a904d54faeedf9a"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/desktop-market-partial-zh.png",
+      "postimage": "c25a3e0c41d06905607d4df5576e43a6c2e6392a",
+      "sha256": "ee9335a7ecaf14ebaba8d4028186d74651529f0c908bfedb684683b2bdc78c65"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/mobile-market-full-history-en.png",
+      "postimage": "def34a59328cda449181e618e92816d570af34fd",
+      "sha256": "d61c872b76c22e531dccaa4c3ca9aeb736abb85d596ed0d15191538feebcfdff"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/mobile-market-full-history-zh.png",
+      "postimage": "ad62cb8b80ba5a11ede44d4217b17c90a9112d60",
+      "sha256": "5bf6bd2242cf6234c576d22a166ce762a7a7c550df3570b999eedaa324b0f365"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/mobile-market-neutral-en.png",
+      "postimage": "c10e08ad36ddd19df1afe2b30563a05c1579cc24",
+      "sha256": "80978b258123591bb6320f936bea239a11b3356ccd5bcb591ca5ea5901443c2c"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/mobile-market-neutral-zh.png",
+      "postimage": "4d7d2697264b721170b155c31c7034e86216125f",
+      "sha256": "e22f3693195a63a6c8018d9d1f8a44ba359c527b65c8d032e8c19d389d31101b"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/mobile-market-partial-en.png",
+      "postimage": "db1d7ac482add87c34fde459d90f546291f4abf9",
+      "sha256": "16b7701b3f5c210dc628d70c8563fed9dc5b25346ac06094bcf014d45b2321c3"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/mobile-market-partial-zh.png",
+      "postimage": "9fe9237f1fa758c361b39b460ca8e0ecf7ed5137",
+      "sha256": "9c547b6c8844c6a9557c23fb1bae741ee4507f29f0909c55310fecb12481e8fe"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/tablet-market-full-history-en.png",
+      "postimage": "75fffcaa4160cb2d4b36200df371ec2f0dfa71f7",
+      "sha256": "2aec34996be7df3a2e97ce6b4acd3ea2abdedb49a0184b8d0d901a4506be6e3e"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/tablet-market-full-history-zh.png",
+      "postimage": "a55cd43b7936856c13886a8d858dd346440e353a",
+      "sha256": "be214875a553c4c488afe48dee76dbdf3eaa85a03c88f71f8569b63f967b0ba3"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/tablet-market-neutral-en.png",
+      "postimage": "5f1b143666e6962f0ce036161805ea855202f3d4",
+      "sha256": "3d0f1d7d4290a37e3bde4b8f64ab7ec766f148bd36602caa3068bc8aaa8a86b5"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/tablet-market-neutral-zh.png",
+      "postimage": "f0b7faa3cefd3443c11de2cda887ef9734e2daee",
+      "sha256": "06305c132c3a36ffe50bc0934bf0b8df5d195aaf19d58e7ebc5bdc40f0c7b0fd"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/tablet-market-partial-en.png",
+      "postimage": "76e63f691002a4455ba89aea30173df7f61f55cf",
+      "sha256": "35c8dd9fb407fe0a616fc3a4d348bfbeac042cf203a8d11121cd733832907f73"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261109/tablet-market-partial-zh.png",
+      "postimage": "18446b34ed7cdf549fafd3451797e491e15b3417",
+      "sha256": "3c2958f27af2dedd9b14ba41b9d7fb5253275502ac75246c7109c3d6cf9aa28e"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/EVIDENCE.json",
+      "postimage": "047810dfbfe04cc5333dbdcaa22d33f10df8a000",
+      "sha256": "0b5fe7bf39e972d77da1218d4d564457659fab610dc87e7506bb907a9174c008"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/browser-receipt.json",
+      "postimage": "7ef3fe1c5d589e872a5444015db63c6dd1936a28",
+      "sha256": "d42e6b013044f941ae404dcf39c861edabe5d73ae4cad0dc07b50521f1dadef0"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/browser-report.json",
+      "postimage": "4f41315fc55413c6cff0482dcdc76bed5b1dc857",
+      "sha256": "4779e464093fd34b386ed28afe73c08b3c5ecb5112c616080766c850de297a23"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/browser.log",
+      "postimage": "cdd83eae26d7028b60a6d107850a1b9bdd52ae7c",
+      "sha256": "3a999a5bf2f9389408c9fcac3d4a2aa7e2d2fac04deed25d9690cc8a0ebaada4"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/capture-inventory.json",
+      "postimage": "6a145a53f0847787b29fe4022a2b1ac97a4fbdf2",
+      "sha256": "fb37cfc46e9c8c6c2c92c9eb7e49e311ee40f10d2f0ccb5dbebd70fa8786c996"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/desktop-market-full-history-en.png",
+      "postimage": "855787cd8fa7fc838bc3881f689777839a0895db",
+      "sha256": "e17906481810d8ed645daed0243d2380e7e9fb513d46fb32552f7d8d02ddacf3"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/desktop-market-full-history-zh.png",
+      "postimage": "c6719af18f8bfa4d3c43efcdf620b111f9f22b90",
+      "sha256": "d01739804dab1c3bc57920659f70999d450dfa1cfe53e662ee8900a293909daf"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/desktop-market-neutral-en.png",
+      "postimage": "5ef5b3862c8e4ceab7b83903f8e51e54f76f64c8",
+      "sha256": "c58c912f80c664fe4c437f5e255250916aaa9d9de340ce43c7e9f527750d11c8"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/desktop-market-neutral-zh.png",
+      "postimage": "ab71241b4c0282b0eb47e39b981e69fd4cb8b59c",
+      "sha256": "a762d9584779496f4ec7eed288c8508b58f133fb126c874ac25302ddf73b9314"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/desktop-market-partial-en.png",
+      "postimage": "3fcc41adaa00f1d275546f98893a427c941b98b9",
+      "sha256": "7a5c3804cc715835cd0f92282e3b4855df8ddf5cee45f33cd6699287a6d0d5de"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/desktop-market-partial-zh.png",
+      "postimage": "6d297bb596332d385fe33b0fee107d0a501b13d7",
+      "sha256": "344ac28fba6c8edcc4093d34933c718ae50a7be1ad7735c3885298c30c2347eb"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/full-typecheck.log",
+      "postimage": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/mobile-market-full-history-en.png",
+      "postimage": "8728bb4db88188414c006d4cbaff97047b1d803f",
+      "sha256": "338c33a0d7d298abe1342e859914ceebf46f32f648c0ea8a7357e3131eafe2f4"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/mobile-market-full-history-zh.png",
+      "postimage": "040c1bd6fe0787fd6ce84b554b0a7bc630e337e6",
+      "sha256": "94c69704f7acc38709b2d8bc4991c6277c72929b899bf8837b0fdc332b33758b"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/mobile-market-neutral-en.png",
+      "postimage": "a9af078c453b504cbb902da9506520e44835d8fd",
+      "sha256": "c1d3024cb8865117e76874eb27781bad0061d407b685d292b30d455d2e03cdf9"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/mobile-market-neutral-zh.png",
+      "postimage": "af2b3c35328d68640be08c2064de771ee14fb753",
+      "sha256": "a60c8423166cb735230427048c9e5c888a699850649cd32f5989bc02438dbf2f"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/mobile-market-partial-en.png",
+      "postimage": "d7a9db76515ac0fdd4c621f4ac8d98e0be26672d",
+      "sha256": "157d310a8c1105c4bde1afd1666045be57cc76c1c671663c38a6e511c5d1402e"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/mobile-market-partial-zh.png",
+      "postimage": "b0d827013921fb1e6e9a05eea62c7eee578364f2",
+      "sha256": "43fb07de6cbb57668ceda48e68a2958a8461d4a484333ede606cad13930095a5"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/mounted-vitest.log",
+      "postimage": "ba9336d6b22e8b429c174d696e328352277cdd6b",
+      "sha256": "b19ecc1689e913e40d571a97f1cf8d3e069a5ecbb32e8eee9f8a7fa2cdc91331"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/next-typegen.log",
+      "postimage": "7bab5fceadb39ca7d44c9f1a13fba79599520d0b",
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/preflight.json",
+      "postimage": "0c605600007836cb5537558163780a7f8eb14184",
+      "sha256": "fc0c424c8d438f8c7c8a5a4436b9ccc4b63434c4ee76fff24fa60ff7b14db141"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/source-checks.json",
+      "postimage": "e8daba08ab404304d9306765cdcb01e87e635fff",
+      "sha256": "c75e0eead3dd7751951260a80549ac5cc78c4b6a113752155062f1852fe0d0f4"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/tablet-market-full-history-en.png",
+      "postimage": "75fffcaa4160cb2d4b36200df371ec2f0dfa71f7",
+      "sha256": "2aec34996be7df3a2e97ce6b4acd3ea2abdedb49a0184b8d0d901a4506be6e3e"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/tablet-market-full-history-zh.png",
+      "postimage": "a55cd43b7936856c13886a8d858dd346440e353a",
+      "sha256": "be214875a553c4c488afe48dee76dbdf3eaa85a03c88f71f8569b63f967b0ba3"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/tablet-market-neutral-en.png",
+      "postimage": "369463d8205653f8058471795b030bd1f61f92ec",
+      "sha256": "2f40a5a81ba16b54493c947f82ab41e8bdf3418822916e9a2bcea243f373fea0"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/tablet-market-neutral-zh.png",
+      "postimage": "f0b7faa3cefd3443c11de2cda887ef9734e2daee",
+      "sha256": "06305c132c3a36ffe50bc0934bf0b8df5d195aaf19d58e7ebc5bdc40f0c7b0fd"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/tablet-market-partial-en.png",
+      "postimage": "76e63f691002a4455ba89aea30173df7f61f55cf",
+      "sha256": "35c8dd9fb407fe0a616fc3a4d348bfbeac042cf203a8d11121cd733832907f73"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/tablet-market-partial-zh.png",
+      "postimage": "18446b34ed7cdf549fafd3451797e491e15b3417",
+      "sha256": "3c2958f27af2dedd9b14ba41b9d7fb5253275502ac75246c7109c3d6cf9aa28e"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/docs/pr-crops/research-market-vnext-20261110/test-cases.json",
+      "postimage": "15d49865be2d51e0d2aab88d6003fef24289e9c8",
+      "sha256": "9f042e31f2dbc7deea9e442ea2afd5c4f121c8b6f888839c4a9be3fa72f92fd5"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/e2e/research-workspace-nav.spec.ts",
+      "postimage": "785c335a77e5a1a8a00ed5f677fa47d9baf2d233",
+      "sha256": "fe2557c98d596c7f65aed3c945bf1a4cb71fdfea7b35b4ad7637570d9dfecdd2"
+    },
+    {
+      "mode": "100644",
+      "path": "terminal/lib/__tests__/technicalsUnavailableRows.test.tsx",
+      "postimage": "894bc41582987cbc192a3c96410b43ad35cea449",
+      "sha256": "0b31c942a5554f0016d64c3bf6d37326fb3aaf74f2d17df070f2e5ce3366f988"
+    }
+  ],
+  "previousProtected": "839bace1e89dd6def9311d3a410786c73a6332aa",
+  "priorIndexTree": "a8eaa6761706e62980795b035173ba5c80f4fa73",
+  "reason": "F11 stays on overview; incoming TechnicalsPage and added fin-market-scoped CSS affect Market. The producer, context bar, overview selection, lifecycle and existing fixture locks are unchanged. No repeat capture is indicated.",
+  "schema": "terminal.protected-successor-applicability.v1",
+  "sourceInputsPreserved": 43
+}

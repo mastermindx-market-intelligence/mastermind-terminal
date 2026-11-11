@@ -1,0 +1,1734 @@
+{
+  "sourceHead": "f26a81c0631b7029c3c07d9a6f60d3bc8f8a238d",
+  "kind": "ISOLATED_ACTUAL_TODAY_COMPONENT_FIXTURE",
+  "results": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1762
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1765
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1762
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1765
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2192
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2109
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2192
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2109
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "bodyHeight": 2191
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 4
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "overflow",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1948
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 6,
+        "linesExpanded": 8
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "overflow",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2294
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 6,
+        "linesExpanded": 8
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "first",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1639
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": null,
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "first",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1979
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": null,
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "quiet",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1639
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "quiet",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1979
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-30",
+          "names": {
+            "NVDA": {
+              "stage": 3,
+              "entry": "Extended / closed",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            },
+            "Technology": {
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            }
+          },
+          "regime_en": "Mixed",
+          "regime_zh": "分化"
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "teaser",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1608
+      },
+      "proof": {
+        "brief": true,
+        "posts": 0,
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "teaser",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1905
+      },
+      "proof": {
+        "brief": true,
+        "posts": 0,
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "unavailable",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1630
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "unavailable",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1906
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "storedAfter": {
+          "schema": "portfolio_state_digest.v1",
+          "asof": "2026-10-29",
+          "names": {
+            "NVDA": {
+              "stage": 2,
+              "entry": "Entry zone / open",
+              "sector": "Technology"
+            },
+            "AAPL": {
+              "stage": 3,
+              "sector": "Technology"
+            },
+            "XOM": {
+              "stage": 1,
+              "sector": "Energy"
+            }
+          },
+          "sectors": {
+            "Energy": {
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
+            },
+            "Technology": {
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
+            }
+          },
+          "regime_en": "Risk-on",
+          "regime_zh": "风险偏好"
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    }
+  ]
+}

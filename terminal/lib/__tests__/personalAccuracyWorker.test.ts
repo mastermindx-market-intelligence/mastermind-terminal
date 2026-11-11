@@ -1,0 +1,301 @@
+// B-F13-7 worker: due last-close claims settle through the registered resolver.
+// Stubbed client only — never a network, never public/data, never version history.
+
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { describe, expect, it } from "vitest";
+import {
+  CLAIM_OWNER_LAST_CLOSE,
+  resolveLastClose,
+  type Bar,
+  type ReadDailyBars,
+} from "@/lib/dailyCloseResolver";
+import { scoreDueClaims } from "../../scripts/score_personal_accuracy.mjs";
+import { runPersonalAccuracyNightly } from "../../scripts/score_personal_accuracy_entry";
+import { compareObserved, thresholdNumber } from "@/lib/personalAccuracy";
+import {
+  RESOLVER_REGISTRY,
+  RESOLVER_REGISTRY_NAME,
+  UNDETERMINED_NOTE,
+} from "@/lib/personalAccuracyStore";
+
+const FIXTURE_DIR = join(__dirname, "fixtures/dailyClose");
+
+function parseFixtureBars(fileName: string): Bar[] {
+  const payload = JSON.parse(readFileSync(join(FIXTURE_DIR, fileName), "utf8")) as {
+    bars: Array<[string, number, number, number, number, number]>;
+  };
+  return payload.bars.map(([date, open, high, low, close, vol]) => ({
+    date,
+    open,
+    high,
+    low,
+    close,
+    vol,
+  }));
+}
+
+const readDailyBars: ReadDailyBars = async (sym) => {
+  const file = join(FIXTURE_DIR, `${String(sym).toUpperCase()}.json`);
+  if (!existsSync(file)) return null;
+  const bars = parseFixtureBars(`${String(sym).toUpperCase()}.json`);
+  return bars.length ? bars : null;
+};
+
+type DueRow = {
+  claim_id: string;
+  status: string;
+  condition: Record<string, unknown>;
+  resolves_at: string;
+  resolution: null;
+  subject: { kind: string; id: string };
+};
+
+function stubClient(dueRows: DueRow[]) {
+  const writes: Array<{ claim_id: unknown; payload: Record<string, unknown> }> = [];
+  let selectCols = "";
+
+  function project(row: DueRow): Record<string, unknown> {
+    const cols = selectCols.split(",").map((c) => c.trim()).filter(Boolean);
+    const out: Record<string, unknown> = {};
+    for (const col of cols) {
+      if (Object.prototype.hasOwnProperty.call(row, col)) {
+        out[col] = (row as Record<string, unknown>)[col];
+      }
+    }
+    return out;
+  }
+
+  const readChain: Record<string, unknown> = {
+    select(cols: string) {
+      selectCols = cols;
+      return readChain;
+    },
+    in() {
+      return readChain;
+    },
+    lte() {
+      return Promise.resolve({ data: dueRows.map(project), error: null });
+    },
+  };
+
+  function updateChain(payload: Record<string, unknown>) {
+    let claimId: unknown;
+    const chain: Record<string, unknown> = {
+      eq(_column: string, value: unknown) {
+        claimId = value;
+        return chain;
+      },
+      in() {
+        writes.push({ claim_id: claimId, payload });
+        return Promise.resolve({ error: null });
+      },
+    };
+    return chain;
+  }
+
+  return {
+    from() {
+      return {
+        select: readChain.select,
+        in: readChain.in,
+        lte: readChain.lte,
+        update(payload: Record<string, unknown>) {
+          return updateChain(payload);
+        },
+      };
+    },
+    writes,
+  };
+}
+
+const DUE: DueRow = {
+  claim_id: "claim-aapl-last-close",
+  status: "matured",
+  condition: {
+    metric: CLAIM_OWNER_LAST_CLOSE.metric,
+    comparator: ">=",
+    threshold: 200,
+    owner: CLAIM_OWNER_LAST_CLOSE.owner,
+  },
+  resolves_at: "2026-09-04T20:00:00.000Z",
+  resolution: null,
+  subject: { kind: "security", id: "AAPL" },
+};
+
+function buildAndExecuteNightlyArtifact() {
+  const distDir = join(__dirname, "../../scripts/dist");
+  const artifact = join(distDir, "score_personal_accuracy.mjs");
+  const supabaseStub = join(__dirname, "personalAccuracyBundleSupabaseStub.mjs");
+  execFileSync(
+    "npx",
+    [
+      "esbuild",
+      "scripts/score_personal_accuracy_entry.ts",
+      "--bundle",
+      "--platform=node",
+      "--format=esm",
+      "--packages=external",
+      `--outfile=${join("scripts", "dist", "score_personal_accuracy.mjs")}`,
+      "--alias:@=.",
+      "--log-level=warning",
+    ],
+    { cwd: join(__dirname, "../.."), stdio: "pipe" },
+  );
+
+  const caseDir = mkdtempSync(join(tmpdir(), "personal-accuracy-bundle-"));
+  const loader = join(caseDir, "loader.mjs");
+  const registerHooks = join(caseDir, "register-hooks.mjs");
+  writeFileSync(loader, [
+    "import { pathToFileURL } from \"node:url\";",
+    `const supabaseStub = ${JSON.stringify(supabaseStub)};`,
+    "export function resolve(specifier, context, nextResolve) {",
+    "  if (specifier === \"@supabase/supabase-js\") {",
+    "    return { url: pathToFileURL(supabaseStub).href, shortCircuit: true };",
+    "  }",
+    "  return nextResolve(specifier, context);",
+    "}",
+    "",
+  ].join("\n"));
+  writeFileSync(registerHooks, [
+    "import { register } from \"node:module\";",
+    `register(${JSON.stringify(new URL(loader, import.meta.url).href)});`,
+    "",
+  ].join("\n"));
+
+  try {
+    return execFileSync(process.execPath, ["--import", registerHooks, artifact], {
+      cwd: distDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        NEXT_PUBLIC_SUPABASE_URL: "https://personal-accuracy-bundle.test",
+        SUPABASE_SERVICE_ROLE_KEY: "personal-accuracy-bundle-test-key",
+      } as unknown as NodeJS.ProcessEnv,
+    });
+  } finally {
+    rmSync(caseDir, { recursive: true, force: true });
+  }
+}
+
+describe("score_personal_accuracy worker last-close path", () => {
+  it("the produced nightly bundle scores exactly once", () => {
+    const stdout = buildAndExecuteNightlyArtifact();
+    expect(stdout).toBe(
+      "BUNDLE_SCORING_PASSES=1\nscore_personal_accuracy: settled 0, undetermined 0, skipped 0\n",
+    );
+    expect(stdout).not.toContain("score_personal_accuracy: failed");
+  });
+
+  it("settles a due last-close claim with the quote-owner resolver and the close-on note", async () => {
+    const client = stubClient([DUE]);
+    const counts = await scoreDueClaims(client, {
+      registry: { [CLAIM_OWNER_LAST_CLOSE.owner]: resolveLastClose },
+      resolverDeps: { readDailyBars },
+      thresholdNumber,
+      compareObserved,
+      now: "2026-09-05T00:00:00.000Z",
+    });
+    expect(counts.settled).toBe(1);
+    expect(counts.undetermined).toBe(0);
+    expect(client.writes).toHaveLength(1);
+    const resolution = client.writes[0].payload.resolution as {
+      outcome: unknown;
+      observed: unknown;
+      resolver: unknown;
+      note: unknown;
+    };
+    expect(resolution.outcome).toBe(1);
+    expect(resolution.observed).toBe(227);
+    expect(resolution.resolver).toBe("hub/lib/anchor.js");
+    expect(resolution.note).toBe("close on 2026-09-04");
+  });
+
+  it("writes undetermined and logs one line when the resolver and the worker disagree", async () => {
+    const errors: string[] = [];
+    const original = console.error;
+    console.error = (...args: unknown[]) => {
+      errors.push(String(args[0] ?? ""));
+    };
+    try {
+      const client = stubClient([DUE]);
+      const counts = await scoreDueClaims(client, {
+        registry: {
+          [CLAIM_OWNER_LAST_CLOSE.owner]: async () => ({
+            outcome: 0,
+            observed: 227,
+            resolver: CLAIM_OWNER_LAST_CLOSE.owner,
+            note: "close on 2026-09-04",
+          }),
+        },
+        thresholdNumber,
+        compareObserved,
+        now: "2026-09-05T00:00:00.000Z",
+      });
+      expect(counts.settled).toBe(1);
+      expect(counts.undetermined).toBe(1);
+      const resolution = client.writes[0].payload.resolution as {
+        outcome: unknown;
+        observed: unknown;
+        resolver: unknown;
+        note: unknown;
+      };
+      expect(resolution.outcome).toBeNull();
+      expect(resolution.observed).toBeNull();
+      expect(resolution.resolver).toBe("personalAccuracyStore.RESOLVER_REGISTRY");
+      expect(resolution.note).toBe(UNDETERMINED_NOTE);
+      expect(errors.some((line) => line.includes("disagreed"))).toBe(true);
+    } finally {
+      console.error = original;
+    }
+  });
+
+  it("logs the runtime esbuild requirement on the missing-esbuild exit path", () => {
+    const src = readFileSync(join(__dirname, "../../scripts/score_personal_accuracy.mjs"), "utf8");
+    expect(src).toContain(
+      "the scoring worker now needs esbuild at runtime; it is a devDependency; install with dev deps or promote it in a later packet",
+    );
+  });
+
+  it("build entry settles one due fixture once through the canonical registry", async () => {
+    expect(RESOLVER_REGISTRY[CLAIM_OWNER_LAST_CLOSE.owner]).toBe(resolveLastClose);
+    const due = [{ ...DUE }];
+    const client = stubClient(due);
+    const first = await runPersonalAccuracyNightly(client, {
+      resolverDeps: { readDailyBars },
+      now: "2026-09-05T00:00:00.000Z",
+    });
+    expect(first).toEqual({ settled: 1, undetermined: 0, skipped: 0 });
+    expect(client.writes).toHaveLength(1);
+    expect(client.writes[0].payload.resolution).toMatchObject({
+      outcome: 1,
+      observed: 227,
+      resolver: CLAIM_OWNER_LAST_CLOSE.owner,
+    });
+
+    due.pop();
+    const second = await runPersonalAccuracyNightly(client, {
+      resolverDeps: { readDailyBars },
+      now: "2026-09-05T00:05:00.000Z",
+    });
+    expect(second).toEqual({ settled: 0, undetermined: 0, skipped: 0 });
+    expect(client.writes).toHaveLength(1);
+  });
+
+  it("build entry leaves a missing close undetermined rather than inventing zero", async () => {
+    const client = stubClient([{ ...DUE }]);
+    const counts = await runPersonalAccuracyNightly(client, {
+      resolverDeps: { readDailyBars: async () => null },
+      now: "2026-09-05T00:00:00.000Z",
+    });
+    expect(counts).toEqual({ settled: 1, undetermined: 1, skipped: 0 });
+    expect(client.writes[0].payload.resolution).toMatchObject({
+      outcome: null,
+      observed: null,
+      resolver: RESOLVER_REGISTRY_NAME,
+      note: "the data this call named was not available",
+    });
+  });
+});

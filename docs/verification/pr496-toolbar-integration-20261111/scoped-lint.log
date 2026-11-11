@@ -1,0 +1,13 @@
+
+/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/terminal/lib/__tests__/terminalToolbarDeadline.test.ts
+  711:9  warning  'rawEvaluateReads' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  888:9  warning  '_fn' is defined but never used                        @typescript-eslint/no-unused-vars
+  889:9  warning  '_arg' is defined but never used                       @typescript-eslint/no-unused-vars
+  890:9  warning  '_opts' is defined but never used                      @typescript-eslint/no-unused-vars
+
+/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/terminal/lib/__tests__/useAdaptiveToolbar.test.ts
+  35:11  warning  '_target' is defined but never used  @typescript-eslint/no-unused-vars
+  36:13  warning  '_target' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 6 problems (0 errors, 6 warnings)
+

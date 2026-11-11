@@ -1,0 +1,120 @@
+[Reading 117 new lines (total: 117 lines)]
+
+{"preservedFromStaticSpecimenThroughR3Bytes": 18057, "commonUnchangedTailBytes": 18594, "coreProductBytesUnchanged": true}
+SOURCE_SNAPSHOT {"sources":1761,"sourceDigest":"250ec240c087a91a1e2544468f4a39f5912971d5dd12bc9c05a724061ce9d4f9","profile":{"fixture":"terminal-e2e.v1","buildMode":"next-dev","sharedShell":"0","investorShellPreview":"0","theme":"dark"}}
+{"action": "R3_RESPONSIVE_STARTED", "head": "5c9269d207e4cef89a60c39752d3233fbcb2fdc7", "port": 47329, "report": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-recovery-r3-5c9269d20.json", "flowCrops": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/docs/pr-crops/news-reading-current-20261102/flow-5c9269d20", "readingCrops": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/docs/pr-crops/news-reading-current-20261102/reading-5c9269d20"}
+[warmup] /terminal?symbol=NVDA → 200 in 84ms
+[warmup] /options → 200 in 191ms
+[warmup] /portfolio → 200 in 130ms
+[warmup] /alerts → 200 in 94ms
+[warmup] /analysis → 200 in 158ms
+[warmup] /discover → 200 in 116ms
+[warmup] /admin → 200 in 59ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 50ms
+[warmup] /login → 200 in 77ms
+[warmup] /reset-password → 200 in 92ms
+[warmup] /api/me → 200 in 60ms
+[warmup] /api/watchlist → 200 in 31ms
+[warmup] /api/layouts → 200 in 27ms
+[warmup] /api/watchlist/annotations → 409 in 28ms
+[warmup] 14 routes compiled in 1s
+
+Running 90 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › busier state renders the News rows (7.7s)
+  ✓   2 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › typical state renders the News rows (7.3s)
+  ✓   3 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › quieter state renders the News rows (6.3s)
+  ✓   4 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › thin state renders the News rows (6.1s)
+  ✓   5 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › partial state renders the News rows (7.0s)
+  ✓   6 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › unavailable state renders the News rows (6.1s)
+  ✓   7 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › busier state renders the News rows (6.6s)
+  ✓   8 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › typical state renders the News rows (7.4s)
+  ✓   9 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › quieter state renders the News rows (7.8s)
+  ✓  10 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › thin state renders the News rows (8.8s)
+  ✓  11 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › partial state renders the News rows (7.9s)
+  ✓  12 [desktop] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › unavailable state renders the News rows (8.8s)
+  ✓  13 [desktop] › e2e/news-flow-responsive.spec.ts:719:5 › E1 east convention keeps the live dot neutral (8.8s)
+  ✓  14 [desktop] › e2e/news-flow-responsive.spec.ts:745:5 › light treatment SPECIMEN captures from the static specimen page (421ms)
+  ✓  15 [desktop] › e2e/news-flow-responsive.spec.ts:835:9 › R2 evidence ladder › collapsed cell (en) (8.0s)
+  ✓  16 [desktop] › e2e/news-flow-responsive.spec.ts:890:9 › R2 evidence ladder › expanded cell (en) (8.9s)
+  ✓  17 [desktop] › e2e/news-flow-responsive.spec.ts:986:9 › R2 evidence ladder › restricted cell (en) (8.4s)
+  ✓  18 [desktop] › e2e/news-flow-responsive.spec.ts:1000:9 › R2 evidence ladder › unavailable cell (en) (7.1s)
+  ✓  19 [desktop] › e2e/news-flow-responsive.spec.ts:1014:9 › R2 evidence ladder › limited cell (en) (8.5s)
+  ✓  20 [desktop] › e2e/news-flow-responsive.spec.ts:835:9 › R2 evidence ladder › collapsed cell (zh) (7.8s)
+  ✓  21 [desktop] › e2e/news-flow-responsive.spec.ts:890:9 › R2 evidence ladder › expanded cell (zh) (8.7s)
+  ✓  22 [desktop] › e2e/news-flow-responsive.spec.ts:986:9 › R2 evidence ladder › restricted cell (zh) (8.6s)
+  ✓  23 [desktop] › e2e/news-flow-responsive.spec.ts:1000:9 › R2 evidence ladder › unavailable cell (zh) (8.8s)
+  ✓  24 [desktop] › e2e/news-flow-responsive.spec.ts:1014:9 › R2 evidence ladder › limited cell (zh) (8.3s)
+  ✓  25 [desktop] › e2e/news-flow-responsive.spec.ts:1036:7 › R2 evidence ladder › static cell (en) (10.6s)
+  -  26 [desktop] › e2e/news-flow-responsive.spec.ts:1056:7 › R2 evidence ladder › wrap cell (mobile)
+  ✓  27 [desktop] › e2e/news-flow-responsive.spec.ts:1082:7 › R2 evidence ladder › catchup cell (en) (9.8s)
+  ✓  28 [desktop] › e2e/news-reading-slice.spec.ts:209:7 › News reading slice › the panel owns the rail column while News is the active source (4.8s)
+  ✓  29 [desktop] › e2e/news-reading-slice.spec.ts:236:7 › News reading slice › the company card comes back when News is left (5.2s)
+  -  30 [desktop] › e2e/news-reading-slice.spec.ts:271:7 › News reading slice › the phone's Symbol details leaves News and reveals the dossier
+  ✓  31 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › busier state renders the News rows (10.0s)
+  ✓  32 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › typical state renders the News rows (9.7s)
+  ✓  33 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › quieter state renders the News rows (9.6s)
+  ✓  34 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › thin state renders the News rows (9.7s)
+  ✓  35 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › partial state renders the News rows (7.7s)
+  ✓  36 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › unavailable state renders the News rows (9.0s)
+  ✓  37 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › busier state renders the News rows (7.9s)
+  ✓  38 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › typical state renders the News rows (8.1s)
+  ✓  39 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › quieter state renders the News rows (10.0s)
+  ✓  40 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › thin state renders the News rows (8.6s)
+  ✓  41 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › partial state renders the News rows (8.8s)
+  ✓  42 [tablet] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › unavailable state renders the News rows (9.3s)
+  -  43 [tablet] › e2e/news-flow-responsive.spec.ts:719:5 › E1 east convention keeps the live dot neutral
+  ✓  44 [tablet] › e2e/news-flow-responsive.spec.ts:745:5 › light treatment SPECIMEN captures from the static specimen page (423ms)
+  ✓  45 [tablet] › e2e/news-flow-responsive.spec.ts:835:9 › R2 evidence ladder › collapsed cell (en) (9.3s)
+  ✓  46 [tablet] › e2e/news-flow-responsive.spec.ts:890:9 › R2 evidence ladder › expanded cell (en) (9.9s)
+  -  47 [tablet] › e2e/news-flow-responsive.spec.ts:986:9 › R2 evidence ladder › restricted cell (en)
+  -  48 [tablet] › e2e/news-flow-responsive.spec.ts:1000:9 › R2 evidence ladder › unavailable cell (en)
+  ✓  49 [tablet] › e2e/news-flow-responsive.spec.ts:1014:9 › R2 evidence ladder › limited cell (en) (10.0s)
+  ✓  50 [tablet] › e2e/news-flow-responsive.spec.ts:835:9 › R2 evidence ladder › collapsed cell (zh) (9.2s)
+  ✓  51 [tablet] › e2e/news-flow-responsive.spec.ts:890:9 › R2 evidence ladder › expanded cell (zh) (8.8s)
+  -  52 [tablet] › e2e/news-flow-responsive.spec.ts:986:9 › R2 evidence ladder › restricted cell (zh)
+  -  53 [tablet] › e2e/news-flow-responsive.spec.ts:1000:9 › R2 evidence ladder › unavailable cell (zh)
+  ✓  54 [tablet] › e2e/news-flow-responsive.spec.ts:1014:9 › R2 evidence ladder › limited cell (zh) (8.6s)
+  ✓  55 [tablet] › e2e/news-flow-responsive.spec.ts:1036:7 › R2 evidence ladder › static cell (en) (10.1s)
+  -  56 [tablet] › e2e/news-flow-responsive.spec.ts:1056:7 › R2 evidence ladder › wrap cell (mobile)
+  ✓  57 [tablet] › e2e/news-flow-responsive.spec.ts:1082:7 › R2 evidence ladder › catchup cell (en) (10.2s)
+  -  58 [tablet] › e2e/news-reading-slice.spec.ts:209:7 › News reading slice › the panel owns the rail column while News is the active source
+  ✓  59 [tablet] › e2e/news-reading-slice.spec.ts:236:7 › News reading slice › the company card comes back when News is left (5.1s)
+  -  60 [tablet] › e2e/news-reading-slice.spec.ts:271:7 › News reading slice › the phone's Symbol details leaves News and reveals the dossier
+  ✓  61 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › busier state renders the News rows (7.9s)
+  ✓  62 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › typical state renders the News rows (9.5s)
+  ✓  63 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › quieter state renders the News rows (8.9s)
+  ✓  64 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › thin state renders the News rows (9.8s)
+  ✓  65 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › partial state renders the News rows (7.8s)
+  ✓  66 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › EN News consumer cells › unavailable state renders the News rows (8.9s)
+  ✓  67 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › busier state renders the News rows (9.0s)
+  ✓  68 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › typical state renders the News rows (7.9s)
+  ✓  69 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › quieter state renders the News rows (7.5s)
+  ✓  70 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › thin state renders the News rows (7.3s)
+  ✓  71 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › partial state renders the News rows (7.8s)
+  ✓  72 [mobile] › e2e/news-flow-responsive.spec.ts:710:11 › ZH News consumer cells › unavailable state renders the News rows (7.1s)
+  -  73 [mobile] › e2e/news-flow-responsive.spec.ts:719:5 › E1 east convention keeps the live dot neutral
+  ✓  74 [mobile] › e2e/news-flow-responsive.spec.ts:745:5 › light treatment SPECIMEN captures from the static specimen page (354ms)
+  ✓  75 [mobile] › e2e/news-flow-responsive.spec.ts:835:9 › R2 evidence ladder › collapsed cell (en) (8.5s)
+  ✓  76 [mobile] › e2e/news-flow-responsive.spec.ts:890:9 › R2 evidence ladder › expanded cell (en) (8.6s)
+  -  77 [mobile] › e2e/news-flow-responsive.spec.ts:986:9 › R2 evidence ladder › restricted cell (en)
+  -  78 [mobile] › e2e/news-flow-responsive.spec.ts:1000:9 › R2 evidence ladder › unavailable cell (en)
+  ✓  79 [mobile] › e2e/news-flow-responsive.spec.ts:1014:9 › R2 evidence ladder › limited cell (en) (7.7s)
+  ✓  80 [mobile] › e2e/news-flow-responsive.spec.ts:835:9 › R2 evidence ladder › collapsed cell (zh) (7.8s)
+  ✓  81 [mobile] › e2e/news-flow-responsive.spec.ts:890:9 › R2 evidence ladder › expanded cell (zh) (9.0s)
+  -  82 [mobile] › e2e/news-flow-responsive.spec.ts:986:9 › R2 evidence ladder › restricted cell (zh)
+  -  83 [mobile] › e2e/news-flow-responsive.spec.ts:1000:9 › R2 evidence ladder › unavailable cell (zh)
+  ✓  84 [mobile] › e2e/news-flow-responsive.spec.ts:1014:9 › R2 evidence ladder › limited cell (zh) (7.9s)
+  ✓  85 [mobile] › e2e/news-flow-responsive.spec.ts:1036:7 › R2 evidence ladder › static cell (en) (7.7s)
+  ✓  86 [mobile] › e2e/news-flow-responsive.spec.ts:1056:7 › R2 evidence ladder › wrap cell (mobile) (7.8s)
+  ✓  87 [mobile] › e2e/news-flow-responsive.spec.ts:1082:7 › R2 evidence ladder › catchup cell (en) (7.8s)
+  -  88 [mobile] › e2e/news-reading-slice.spec.ts:209:7 › News reading slice › the panel owns the rail column while News is the active source
+  ✓  89 [mobile] › e2e/news-reading-slice.spec.ts:236:7 › News reading slice › the company card comes back when News is left (5.8s)
+  ✓  90 [mobile] › e2e/news-reading-slice.spec.ts:271:7 › News reading slice › the phone's Symbol details leaves News and reveals the dossier (4.9s)
+
+  16 skipped
+  74 passed (10.0m)
+{"action": "R3_RESPONSIVE_FINISHED", "rc": 0, "seconds": 597.68, "report_exists": true}
+
+✅ Process completed with exit code 0 (runtime: 600.32s)

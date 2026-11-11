@@ -1,0 +1,511 @@
+{
+  "sourceOnly": true,
+  "fixtureOnly": true,
+  "actualSharedControls": true,
+  "measurements": [
+    {
+      "device": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "lang": "en",
+      "shared": "1",
+      "bg": "#0f1115",
+      "cardBackground": "rgba(255, 255, 255, 0.03)",
+      "cardBorder": "rgba(255, 255, 255, 0.09)",
+      "noteColor": "rgb(139, 147, 161)",
+      "noteFont": "10px",
+      "noteRGB": [
+        139,
+        147,
+        161
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": false,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        32,
+        34,
+        38
+      ],
+      "noteContrast": 5.147814362576152
+    },
+    {
+      "device": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "lang": "en",
+      "shared": "1",
+      "bg": "#f7f8fa",
+      "cardBackground": "rgb(255, 255, 255)",
+      "cardBorder": "rgba(255, 255, 255, 0.16)",
+      "noteColor": "rgb(105, 118, 138)",
+      "noteFont": "10px",
+      "noteRGB": [
+        105,
+        118,
+        138
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": true,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        255,
+        255,
+        255
+      ],
+      "noteContrast": 4.606252605306737
+    },
+    {
+      "device": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "lang": "zh",
+      "shared": "1",
+      "bg": "#f7f8fa",
+      "cardBackground": "rgb(255, 255, 255)",
+      "cardBorder": "rgb(226, 229, 235)",
+      "noteColor": "rgb(105, 118, 138)",
+      "noteFont": "10px",
+      "noteRGB": [
+        105,
+        118,
+        138
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": true,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        255,
+        255,
+        255
+      ],
+      "noteContrast": 4.606252605306737
+    },
+    {
+      "device": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "lang": "zh",
+      "shared": "1",
+      "bg": "#0f1115",
+      "cardBackground": "rgba(255, 255, 255, 0.03)",
+      "cardBorder": "rgb(226, 229, 235)",
+      "noteColor": "rgb(139, 147, 161)",
+      "noteFont": "10px",
+      "noteRGB": [
+        139,
+        147,
+        161
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": false,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        32,
+        34,
+        38
+      ],
+      "noteContrast": 5.147814362576152
+    },
+    {
+      "device": "tablet",
+      "width": 820,
+      "height": 1180,
+      "theme": "dark",
+      "lang": "en",
+      "shared": "1",
+      "bg": "#0f1115",
+      "cardBackground": "rgba(255, 255, 255, 0.03)",
+      "cardBorder": "rgba(255, 255, 255, 0.09)",
+      "noteColor": "rgb(139, 147, 161)",
+      "noteFont": "10px",
+      "noteRGB": [
+        139,
+        147,
+        161
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": false,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        32,
+        34,
+        38
+      ],
+      "noteContrast": 5.147814362576152
+    },
+    {
+      "device": "tablet",
+      "width": 820,
+      "height": 1180,
+      "theme": "light",
+      "lang": "en",
+      "shared": "1",
+      "bg": "#f7f8fa",
+      "cardBackground": "rgb(255, 255, 255)",
+      "cardBorder": "rgba(251, 252, 252, 0.18)",
+      "noteColor": "rgb(105, 118, 138)",
+      "noteFont": "10px",
+      "noteRGB": [
+        105,
+        118,
+        138
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": true,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        255,
+        255,
+        255
+      ],
+      "noteContrast": 4.606252605306737
+    },
+    {
+      "device": "tablet",
+      "width": 820,
+      "height": 1180,
+      "theme": "light",
+      "lang": "zh",
+      "shared": "1",
+      "bg": "#f7f8fa",
+      "cardBackground": "rgb(255, 255, 255)",
+      "cardBorder": "rgb(226, 229, 235)",
+      "noteColor": "rgb(105, 118, 138)",
+      "noteFont": "10px",
+      "noteRGB": [
+        105,
+        118,
+        138
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": true,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        255,
+        255,
+        255
+      ],
+      "noteContrast": 4.606252605306737
+    },
+    {
+      "device": "tablet",
+      "width": 820,
+      "height": 1180,
+      "theme": "dark",
+      "lang": "zh",
+      "shared": "1",
+      "bg": "#0f1115",
+      "cardBackground": "rgba(255, 255, 255, 0.03)",
+      "cardBorder": "rgba(226, 229, 235, 0.984)",
+      "noteColor": "rgb(139, 147, 161)",
+      "noteFont": "10px",
+      "noteRGB": [
+        139,
+        147,
+        161
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": false,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        32,
+        34,
+        38
+      ],
+      "noteContrast": 5.147814362576152
+    },
+    {
+      "device": "mobile",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "lang": "en",
+      "shared": "1",
+      "bg": "#0f1115",
+      "cardBackground": "rgba(255, 255, 255, 0.03)",
+      "cardBorder": "rgba(255, 255, 255, 0.09)",
+      "noteColor": "rgb(139, 147, 161)",
+      "noteFont": "10px",
+      "noteRGB": [
+        139,
+        147,
+        161
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": false,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        33,
+        45,
+        49
+      ],
+      "noteContrast": 4.571580495914373
+    },
+    {
+      "device": "mobile",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "lang": "en",
+      "shared": "1",
+      "bg": "#f7f8fa",
+      "cardBackground": "rgb(255, 255, 255)",
+      "cardBorder": "rgba(245, 246, 248, 0.23)",
+      "noteColor": "rgb(105, 118, 138)",
+      "noteFont": "10px",
+      "noteRGB": [
+        105,
+        118,
+        138
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": true,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        255,
+        255,
+        255
+      ],
+      "noteContrast": 4.606252605306737
+    },
+    {
+      "device": "mobile",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "lang": "zh",
+      "shared": "1",
+      "bg": "#f7f8fa",
+      "cardBackground": "rgb(255, 255, 255)",
+      "cardBorder": "rgb(226, 229, 235)",
+      "noteColor": "rgb(105, 118, 138)",
+      "noteFont": "10px",
+      "noteRGB": [
+        105,
+        118,
+        138
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": true,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        255,
+        255,
+        255
+      ],
+      "noteContrast": 4.606252605306737
+    },
+    {
+      "device": "mobile",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "lang": "zh",
+      "shared": "1",
+      "bg": "#0f1115",
+      "cardBackground": "rgba(255, 255, 255, 0.03)",
+      "cardBorder": "rgba(226, 229, 235, 0.98)",
+      "noteColor": "rgb(139, 147, 161)",
+      "noteFont": "10px",
+      "noteRGB": [
+        139,
+        147,
+        161
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": false,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        32,
+        42,
+        46
+      ],
+      "noteContrast": 4.738599618708555
+    }
+  ]
+}

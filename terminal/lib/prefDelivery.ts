@@ -49,12 +49,15 @@
  * The store creates a new pump per owner rather than resetting this one.
  *
  * Deliberately free of React and Supabase imports: `send` is injected, so the whole retry and
- * coalescing contract is unit-testable with a fake authority and a fake clock.
+ * coalescing contract is unit-testable with a fake authority and a fake clock. The write fence
+ * (`scopeAccountWrite` / `isScopedToEmpty`) is a pure helper, not a network import.
  */
+
+import { isScopedToEmpty, scopeAccountWrite } from "@/lib/accountPrefs";
 
 /** What the UI shows about the delivery lane. */
 export type DeliveryPhase =
-  /** Nothing has been written this session. */
+  /** Nothing is outstanding and the pane makes no claim about the last write. */
   | "idle"
   /** Guest: the change is kept on this device and there is no authority to reach. */
   | "local"
@@ -204,12 +207,27 @@ export class PreferencePump {
         if (this.dead) return;
         this.sending = 0;
         // The Supabase shape: RESOLVED, with an error inside. A `.catch()` never sees this.
+        if (isScopedToEmpty(result)) {
+          const dropped = Array.isArray(result.dropped) ? result.dropped : Object.keys(payload);
+          for (const key of dropped) {
+            if (key in this.desired) delete this.desired[key];
+          }
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("[prefDelivery] nothing the Terminal may write; evicting", dropped);
+          }
+          this.attempts = 0;
+          if (Object.keys(this.desired).length === 0) this.revision = this.acked;
+          this.publish("idle");
+          this.kick();
+          return;
+        }
         if (result && typeof result === "object" && "error" in result && result.error) {
           this.fail();
           return;
         }
         this.attempts = 0;
         if (revision > this.acked) this.acked = revision;
+        for (const key of scopeAccountWrite(payload).dropped) delete this.desired[key];
         // A one-shot key needs no merge base — once its queuing revision is acknowledged it is
         // evicted, so it rides along only until it is actually delivered, never forever.
         for (const [key, atRev] of Array.from(this.oneShotKeys)) {

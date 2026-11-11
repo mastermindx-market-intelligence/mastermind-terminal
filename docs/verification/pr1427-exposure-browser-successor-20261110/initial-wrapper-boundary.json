@@ -1,0 +1,12 @@
+{
+  "boundary": "FileNotFoundError reading initially absent generated next-env.d.ts before typegen",
+  "continuation": "Only unexecuted source checks; no focused test replay",
+  "eslintStarted": false,
+  "focusedExitCode": 0,
+  "focusedPassed": 7,
+  "outerExitObserved": 1,
+  "trackedSourceUnchanged": true,
+  "typegenStarted": false,
+  "typescriptStarted": false,
+  "wrapperPid": 95551
+}

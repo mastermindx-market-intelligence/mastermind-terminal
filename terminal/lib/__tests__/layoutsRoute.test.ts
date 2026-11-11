@@ -29,6 +29,8 @@ vi.mock("@/lib/supabase/server", () => ({
           neq: () => q,
           is: () => q,
           order: () => q,
+          in: () => q,
+          limit: () => q,
           insert: () => q,
           update: () => q,
           upsert: () => q,
@@ -58,7 +60,10 @@ describe("GET /api/layouts", () => {
     H.user = null;
     const r = await GET();
     expect(r.status).toBe(401);
-    await expect(r.json()).resolves.toEqual({ error: "unauthenticated" });
+    const body = await r.json();
+    expect(body.error).toBe("UNAUTHENTICATED");
+    expect(typeof body.message).toBe("string");
+    expect(typeof body.messageZh).toBe("string");
   });
 
   it("reports a store failure as 503, not 200 []", async () => {
@@ -72,7 +77,10 @@ describe("GET /api/layouts", () => {
     H.results = [{ data: [] }];
     const r = await GET();
     expect(r.status).toBe(200);
-    await expect(r.json()).resolves.toEqual({ layouts: [] });
+    const body = await r.json();
+    expect(body.layouts).toEqual([]);
+    expect(body.teams).toEqual([]);
+    expect(body.teamRead).toEqual({ ok: true });
   });
 });
 
@@ -216,8 +224,8 @@ describe("POST /api/layouts — op: save_workspace", () => {
   });
 
   it("200s a create (no prior row, no legacy row to migrate)", async () => {
-    // attempt1 (is-null guard): 0 rows · attempt2 (neq guard): 0 rows · existing check: none · insert: ok
-    H.results = [{ data: [] }, { data: [] }, { data: [] }, { data: [{ id: "L1" }] }];
+    // Unversioned guard: 0 rows · existing check: none · insert: ok
+    H.results = [{ data: [] }, { data: [] }, { data: [{ id: "L1" }] }];
     const r = await post({ op: "save_workspace", name: "Swing", envelope: VALID_ENVELOPE, expectedRevision: null });
     expect(r.status).toBe(200);
     await expect(r.json()).resolves.toEqual({ ok: true, id: "L1", revision: 1 });
@@ -231,7 +239,8 @@ describe("POST /api/layouts — op: save_workspace", () => {
   });
 
   it("409s a stale revision (0 rows updated, row still present)", async () => {
-    H.results = [{ data: [] }, { data: [{ id: "L1" }] }];
+    // All three supported-requirements UPDATE attempts miss before the conflict read.
+    H.results = [{ data: [] }, { data: [] }, { data: [] }, { data: [{ id: "L1" }] }];
     const r = await post({ op: "save_workspace", name: "Swing", envelope: VALID_ENVELOPE, expectedRevision: 3 });
     expect(r.status).toBe(409);
     await expect(r.json()).resolves.toEqual({ error: "stale_revision" });
@@ -246,7 +255,7 @@ describe("POST /api/layouts — op: save_workspace", () => {
 
   it("409s a name_conflict on create (insert loses the unique-index race)", async () => {
     const UNIQUE_VIOLATION: LayoutDbResult = { error: { code: "23505", message: "duplicate" } };
-    H.results = [{ data: [] }, { data: [] }, { data: [] }, UNIQUE_VIOLATION];
+    H.results = [{ data: [] }, { data: [] }, UNIQUE_VIOLATION];
     const r = await post({ op: "save_workspace", name: "Swing", envelope: VALID_ENVELOPE, expectedRevision: null });
     expect(r.status).toBe(409);
     await expect(r.json()).resolves.toEqual({ error: "name_conflict" });

@@ -1,0 +1,552 @@
+{
+  "exposure-archive-memory-desktop-en.png": {
+    "bytes": 23604,
+    "mtimeNs": 1794325107812085687,
+    "sha256": "12e503680a84ef7a91d15336cfca6dda5c9d992fb1f10ce765c51aa3b4ff2d01"
+  },
+  "exposure-archive-memory-desktop-zh.png": {
+    "bytes": 25742,
+    "mtimeNs": 1794325157681596893,
+    "sha256": "c0508b06af9d8aef7a727c8df410195a838964fb484e45daac562c4004267df1"
+  },
+  "exposure-archive-memory-mobile-en.png": {
+    "bytes": 22499,
+    "mtimeNs": 1794325589934107685,
+    "sha256": "0bd13f64d9c04704bfc3ae77791b0e3af832533c6f58aa03b069e64a42ca6075"
+  },
+  "exposure-archive-memory-mobile-zh.png": {
+    "bytes": 24840,
+    "mtimeNs": 1794325651971123869,
+    "sha256": "f79df79bb7ba1aa62deb43a32a92c2f2c6523f259fac1ac6d4f1e93818792168"
+  },
+  "exposure-archive-memory-tablet-en.png": {
+    "bytes": 23369,
+    "mtimeNs": 1794325316383079255,
+    "sha256": "337e70524147a5c6fc8b7086a6fa586ea90dc7aec2b90c96ce41bcee910acf6c"
+  },
+  "exposure-archive-memory-tablet-zh.png": {
+    "bytes": 25685,
+    "mtimeNs": 1794325368202806983,
+    "sha256": "b4368a5ab4ddb246801513235618b77acae486c1c803eff289282535a535f3f9"
+  },
+  "exposure-comparison-desktop-en.png": {
+    "bytes": 122644,
+    "mtimeNs": 1794325112241351277,
+    "sha256": "7c00f65c39c864839f7cd4288260c5c5db6321658b2a13ccb958721aec04b832"
+  },
+  "exposure-comparison-desktop-zh.png": {
+    "bytes": 123772,
+    "mtimeNs": 1794325161866168421,
+    "sha256": "91bef14ed14c712b2f8bec2c1f46ab61cbd86b15bb3e9aea1f86c1d498fdc523"
+  },
+  "exposure-comparison-fullscreen-en.png": {
+    "bytes": 124198,
+    "mtimeNs": 1794325112489133623,
+    "sha256": "7381ccb6313fe0cfa89cd4b249f840c5a7c1e37f1418d2af4a937be9cbdd6586"
+  },
+  "exposure-comparison-fullscreen-zh.png": {
+    "bytes": 124673,
+    "mtimeNs": 1794325162086148027,
+    "sha256": "fab4ec089fd7577b11025d25420f0c12dcc9d6d9049111d93f2ab5e3796b91b9"
+  },
+  "exposure-comparison-mobile-en.png": {
+    "bytes": 55686,
+    "mtimeNs": 1794325594063895685,
+    "sha256": "5a2906c67e2eb531b92492545993a49ecd962ce2b8bdd4123f0ca7d2a097888d"
+  },
+  "exposure-comparison-mobile-zh.png": {
+    "bytes": 57349,
+    "mtimeNs": 1794325657246320708,
+    "sha256": "f5bab0516334053ddf9351292941d5260290ef90c9a0cf8d542a127ce432b37c"
+  },
+  "exposure-comparison-tablet-en.png": {
+    "bytes": 118015,
+    "mtimeNs": 1794325321009134605,
+    "sha256": "87ded7d9dd46148c65094c5bd749eda9b8c5fa94687958ec1ed936d1fe9f1837"
+  },
+  "exposure-comparison-tablet-zh.png": {
+    "bytes": 118281,
+    "mtimeNs": 1794325372003712756,
+    "sha256": "50626cbe3594a23c613d111a5f209b551ebcc5ec05513770a751aa9be7fdf6c0"
+  },
+  "exposure-main-chart-desktop-en.png": {
+    "bytes": 279114,
+    "mtimeNs": 1794325090854601261,
+    "sha256": "f21b931344561636af339c23033eedc1f3f73dd7bdfc25041e89ede23d9e341e"
+  },
+  "exposure-main-chart-desktop-zh.png": {
+    "bytes": 283474,
+    "mtimeNs": 1794325145643165426,
+    "sha256": "26e3d5089a278d701bd5b82dc32dc4ae196c9915198fdc38d92e1572206f5b41"
+  },
+  "exposure-main-chart-mobile-en.png": {
+    "bytes": 104018,
+    "mtimeNs": 1794325575585727376,
+    "sha256": "ed0dc52560124b272f3bf9c31dc1df4f9b41dc5a0d085da4d95802114b3d172d"
+  },
+  "exposure-main-chart-mobile-zh.png": {
+    "bytes": 109838,
+    "mtimeNs": 1794325634200975863,
+    "sha256": "1491e2a7aa8d548530407e11405a0488e0da8948a3deb116a3730a60ba07db2d"
+  },
+  "exposure-main-chart-tablet-en.png": {
+    "bytes": 156286,
+    "mtimeNs": 1794325299329650744,
+    "sha256": "1d001a0e878dcb7f093254f59c410f2a8462a84aad7705610643fbbe92453085"
+  },
+  "exposure-main-chart-tablet-zh.png": {
+    "bytes": 157660,
+    "mtimeNs": 1794325355616727732,
+    "sha256": "5b60fe470062d22c6787335defbec9eb5a386315f006f4f824dfee35b4e8944f"
+  },
+  "exposure-matched-gamma-desktop-en.png": {
+    "bytes": 135705,
+    "mtimeNs": 1794325048293906141,
+    "sha256": "19b6c1b21fdafa8a22546ba22a87c9428c17f9ff7dbfe1d145fd62bdfe2936b7"
+  },
+  "exposure-matched-gamma-desktop-zh.png": {
+    "bytes": 135023,
+    "mtimeNs": 1794325121372386673,
+    "sha256": "ff428afc0bbca35fc6aa2e3f6f8308682b4ebe4cdbac2fa787e5df47b52790ab"
+  },
+  "exposure-matched-gamma-expanded-desktop-en.png": {
+    "bytes": 205239,
+    "mtimeNs": 1794325048536263122,
+    "sha256": "1c8e7f8de285791719da9983aeeeb72d310e4d0ce5312d4fbb40299d6f1715e9"
+  },
+  "exposure-matched-gamma-expanded-desktop-zh.png": {
+    "bytes": 203265,
+    "mtimeNs": 1794325121591791445,
+    "sha256": "274f82d0d7ee3b6e26605bf8d1e443effb22c7370530af0ff5ce826e590825d7"
+  },
+  "exposure-matched-gamma-expanded-mobile-en.png": {
+    "bytes": 149587,
+    "mtimeNs": 1794325531538942362,
+    "sha256": "f7250d1742f5c603a5b70a0f0bcbbaf5e135074bf495f237d943bc2488f51ece"
+  },
+  "exposure-matched-gamma-expanded-mobile-zh.png": {
+    "bytes": 160258,
+    "mtimeNs": 1794325602062113905,
+    "sha256": "f91d595f59ebc842fbf500fb1a9e02001eb79d39ffa2aec8370d52def5edc44a"
+  },
+  "exposure-matched-gamma-expanded-tablet-en.png": {
+    "bytes": 144141,
+    "mtimeNs": 1794325264153074372,
+    "sha256": "03bc245cdfde620060f1cddf7b2d0bdd6d9cc84ea48a480cc41bbccf5c488f67"
+  },
+  "exposure-matched-gamma-expanded-tablet-zh.png": {
+    "bytes": 159905,
+    "mtimeNs": 1794325329658327139,
+    "sha256": "a7c5a67d621e2006461decbdbba4d86251033744c41383b784a570020d711775"
+  },
+  "exposure-matched-gamma-mobile-en.png": {
+    "bytes": 79553,
+    "mtimeNs": 1794325531354015660,
+    "sha256": "90b43cb75d58973cad33a373bd7592a609f6ce6cffa71312dd08fc7992e14846"
+  },
+  "exposure-matched-gamma-mobile-zh.png": {
+    "bytes": 80149,
+    "mtimeNs": 1794325601906125960,
+    "sha256": "4479b937dc022ea1393206159c07e1eba6b602e09cfeb2bcdaec0bd4542c8387"
+  },
+  "exposure-matched-gamma-tablet-en.png": {
+    "bytes": 88632,
+    "mtimeNs": 1794325263984849918,
+    "sha256": "a88492658172ce17cf042cf2d1d7041f5e893634b61c5d94a9841bf375879e7e"
+  },
+  "exposure-matched-gamma-tablet-zh.png": {
+    "bytes": 93024,
+    "mtimeNs": 1794325329470221219,
+    "sha256": "e66505a4f171c8d2855e12f7c2b4a4735513655da8530dc32b8506e89e8d3813"
+  },
+  "exposure-partial-desktop-en.png": {
+    "bytes": 223713,
+    "mtimeNs": 1794325094065899370,
+    "sha256": "4766d524174cd537871d25568a3f4abcc339f12e891ac791a973023143a7c1b4"
+  },
+  "exposure-partial-desktop-zh.png": {
+    "bytes": 222587,
+    "mtimeNs": 1794325148663582919,
+    "sha256": "7a2fed7d6ebdb4bcc0755640f2899a20d5d361350c8b060fbb632d7e08b69379"
+  },
+  "exposure-partial-mobile-en.png": {
+    "bytes": 62036,
+    "mtimeNs": 1794325578001998196,
+    "sha256": "d9b12c39fe488241c350bcf68eacba1a5a32435e3581b0984a2bf157ea28bd05"
+  },
+  "exposure-partial-mobile-zh.png": {
+    "bytes": 59413,
+    "mtimeNs": 1794325637568313913,
+    "sha256": "57adf19bd4b23392ed83e41e5eced70eb213643f6410d3af9bf09b230b0ed25e"
+  },
+  "exposure-partial-tablet-en.png": {
+    "bytes": 89749,
+    "mtimeNs": 1794325302461060752,
+    "sha256": "1afaafd74b71e2de43d83392a8a628323a30a37000cbaba4d92ca461a92bded4"
+  },
+  "exposure-partial-tablet-zh.png": {
+    "bytes": 94124,
+    "mtimeNs": 1794325358001887783,
+    "sha256": "cc2463fc955117704102f3319287ada3d810e5df68a1084473472d90abee14a0"
+  },
+  "exposure-projected-memory-desktop-en.png": {
+    "bytes": 62683,
+    "mtimeNs": 1794325105330704519,
+    "sha256": "2cbbb30e4908b2eb615a5ea97b57d23cfb073dcc3fbc7d92b186522c5990420f"
+  },
+  "exposure-projected-memory-desktop-zh.png": {
+    "bytes": 76352,
+    "mtimeNs": 1794325155671157170,
+    "sha256": "dc12a76efad18b5b126f9ff05c76f92198cf1e6da2e57e6491dd3d7915bd2b6f"
+  },
+  "exposure-projected-memory-mobile-en.png": {
+    "bytes": 67139,
+    "mtimeNs": 1794325588248462850,
+    "sha256": "ff608e5cec79b8e5545418ceb1b83cfdae3da7cc90cc01582777dcaefc2c406f"
+  },
+  "exposure-projected-memory-mobile-zh.png": {
+    "bytes": 80072,
+    "mtimeNs": 1794325649304533630,
+    "sha256": "f46879ac71cc58a0d98ef9416afb638e96e55b837719a634cbc32f81791501ca"
+  },
+  "exposure-projected-memory-tablet-en.png": {
+    "bytes": 69087,
+    "mtimeNs": 1794325313861246583,
+    "sha256": "b2c2f9e57c21ca11e369561f04b636ec601467c36e6b2057a69e58eeac8ed8b3"
+  },
+  "exposure-projected-memory-tablet-zh.png": {
+    "bytes": 82360,
+    "mtimeNs": 1794325366109572066,
+    "sha256": "c98437695ccd00fb11750fceaf63dea93a4fe7068d2edff79a89dbc77680fae6"
+  },
+  "exposure-scanner-desktop-en.png": {
+    "bytes": 145540,
+    "mtimeNs": 1794325112809244715,
+    "sha256": "2100c113b6343aae7ad5f97db54907e0224f4f879d932428bdeac3f7ac1508c1"
+  },
+  "exposure-scanner-desktop-zh.png": {
+    "bytes": 159535,
+    "mtimeNs": 1794325162436402773,
+    "sha256": "7cd15bcde78c590f2950683d1a2e2b0e8aab516d872ed3f3290dbd75d2f89e7c"
+  },
+  "exposure-scanner-mobile-en.png": {
+    "bytes": 63190,
+    "mtimeNs": 1794325594212551720,
+    "sha256": "e0e19a9f358045c78d9fc7242c1de5b62f1d0f7258d36b09232e35a0edcca040"
+  },
+  "exposure-scanner-mobile-zh.png": {
+    "bytes": 77076,
+    "mtimeNs": 1794325657558317054,
+    "sha256": "7304b783e85c73cd46522eacd4a8158f0daec1368128f3a94404482b0ff61fdc"
+  },
+  "exposure-scanner-tablet-en.png": {
+    "bytes": 147095,
+    "mtimeNs": 1794325321221532300,
+    "sha256": "c428ced57d3114e65aa42def11a7609b313dda49a1223bb66125b774fb5e7b24"
+  },
+  "exposure-scanner-tablet-zh.png": {
+    "bytes": 161538,
+    "mtimeNs": 1794325372174695309,
+    "sha256": "9b416f43b22037198cc6de899c2ecfb91375c6feb1d260339a8354384c0cc954"
+  },
+  "exposure-workspace-desktop-en-dark.png": {
+    "bytes": 226199,
+    "mtimeNs": 1794325110170962328,
+    "sha256": "462241ade4d893495ccea204db28daeed8ad67211ae9e930bd6500870ea35b6d"
+  },
+  "exposure-workspace-desktop-en-light.png": {
+    "bytes": 165136,
+    "mtimeNs": 1794325110252210432,
+    "sha256": "e8f62e15d5fba3a9119af411bbb8716ba4b14897eb3fa0d1ef9cc0605a1127e6"
+  },
+  "exposure-workspace-desktop-zh-dark.png": {
+    "bytes": 227105,
+    "mtimeNs": 1794325160026845599,
+    "sha256": "89dbcc8221c6c93a64933bd8ec4e3d7f2e8df594dc106385d8831c0a364481ba"
+  },
+  "exposure-workspace-desktop-zh-light.png": {
+    "bytes": 167193,
+    "mtimeNs": 1794325160097861472,
+    "sha256": "2817ad4113fed1d0f919b23c7694e04aabd3fca7ab1c57c2bdf853918545bb83"
+  },
+  "exposure-workspace-mobile-en-dark.png": {
+    "bytes": 117787,
+    "mtimeNs": 1794325592345794303,
+    "sha256": "431eb96d252542a42c2d493246a5469bf0b25abbc4aa70a50afaf3635a0fe1de"
+  },
+  "exposure-workspace-mobile-en-light.png": {
+    "bytes": 79274,
+    "mtimeNs": 1794325592405135859,
+    "sha256": "d1dee909e9f476d61e0c2f4246b2796c5355234ea7f0f8b18a97fe7509118c3f"
+  },
+  "exposure-workspace-mobile-zh-dark.png": {
+    "bytes": 120437,
+    "mtimeNs": 1794325654556758370,
+    "sha256": "b89a005cdeacf6a884c8335069890d7bde4cf359f0936e02f96058d53d5fa6d8"
+  },
+  "exposure-workspace-mobile-zh-light.png": {
+    "bytes": 82293,
+    "mtimeNs": 1794325654639483316,
+    "sha256": "24fe12818dfd8ecaf944b60ca7f32ef8356d4c72659ffdadc6e64fc1dd1bf325"
+  },
+  "exposure-workspace-tablet-en-dark.png": {
+    "bytes": 186250,
+    "mtimeNs": 1794325318940295829,
+    "sha256": "4658dd7f5676e8138ccfd8c4ced0f90cbe9f23f1fbcad2886dc1e4e4db2e6c63"
+  },
+  "exposure-workspace-tablet-en-light.png": {
+    "bytes": 139149,
+    "mtimeNs": 1794325319020016997,
+    "sha256": "7a578d2570e492b227bdd7f274ca51228b6ad4ba5779c01cd94d3af576291d90"
+  },
+  "exposure-workspace-tablet-zh-dark.png": {
+    "bytes": 188568,
+    "mtimeNs": 1794325370147693069,
+    "sha256": "22654b7de0e396b314a90f44d49160b634a8b356f35b122b9fb373737f933073"
+  },
+  "exposure-workspace-tablet-zh-light.png": {
+    "bytes": 141765,
+    "mtimeNs": 1794325370206628542,
+    "sha256": "609962c85dea7ab643751e97a6e16e3896792293302f717ad5e4019eb7d46b89"
+  },
+  "synthetic-exposure-surface-desktop-en-chart-reference.png": {
+    "bytes": 218753,
+    "mtimeNs": 1794324959484499187,
+    "sha256": "b3aa42890e29f99f4868697019abd62028369689b5d1de11d3de54135b0eb447"
+  },
+  "synthetic-exposure-surface-desktop-en-keyboard-cell.png": {
+    "bytes": 184335,
+    "mtimeNs": 1794324946120538017,
+    "sha256": "d8270636b1a1a31444ceddfd691f5be3b02943ec9bcb81acb27353cf1b1b55cf"
+  },
+  "synthetic-exposure-surface-desktop-en-overview.png": {
+    "bytes": 215775,
+    "mtimeNs": 1794324945563548517,
+    "sha256": "2fa8c9951ad17bea14bdb4f7f8f29e4a79d557d7f597b30fdf843c9bcb4d55c2"
+  },
+  "synthetic-exposure-surface-desktop-en-return.png": {
+    "bytes": 216643,
+    "mtimeNs": 1794324961076742079,
+    "sha256": "db831a49c8d3ee199c19019fdb8696df7aeb937be2ebe6c9cbc00e665cdcc900"
+  },
+  "synthetic-exposure-surface-desktop-en-selected-node.png": {
+    "bytes": 181538,
+    "mtimeNs": 1794324946950523110,
+    "sha256": "31c29685a472bb58a6ad70f7cf9e7b943f02bc01a1686d613338db1c4650e3ca"
+  },
+  "synthetic-exposure-surface-desktop-en-surface-cell.png": {
+    "bytes": 188928,
+    "mtimeNs": 1794324946412835909,
+    "sha256": "f0ce9499579d5c114848e98db54782e72a5fa83eb22e2404536c4d6798bb564c"
+  },
+  "synthetic-exposure-surface-desktop-en-surface-field.png": {
+    "bytes": 188928,
+    "mtimeNs": 1794324946301452817,
+    "sha256": "f0ce9499579d5c114848e98db54782e72a5fa83eb22e2404536c4d6798bb564c"
+  },
+  "synthetic-exposure-surface-desktop-zh-chart-reference.png": {
+    "bytes": 223192,
+    "mtimeNs": 1794324975500381680,
+    "sha256": "a973984f6688e9aa57a30733a53ae9dbdabf226a6cf8b4d1ed1ede5b2ba172bb"
+  },
+  "synthetic-exposure-surface-desktop-zh-overview.png": {
+    "bytes": 163171,
+    "mtimeNs": 1794324965225759379,
+    "sha256": "442c2af1477691481452daef828a248f9665e73f419bb2b695e01488a5a1b7b1"
+  },
+  "synthetic-exposure-surface-desktop-zh-return.png": {
+    "bytes": 218188,
+    "mtimeNs": 1794324977797032431,
+    "sha256": "d60c97496b4c3cfef2ee5b9e8c2b7aec95d86ec7e31eb7c528ec7a6b1dfa36ba"
+  },
+  "synthetic-exposure-surface-desktop-zh-selected-node.png": {
+    "bytes": 164679,
+    "mtimeNs": 1794324966162397406,
+    "sha256": "96e55cb6fdd979fa6fba17de5052121143c22d452fd9329e184d15cbc04512ba"
+  },
+  "synthetic-exposure-surface-desktop-zh-surface-cell.png": {
+    "bytes": 132674,
+    "mtimeNs": 1794324965783225711,
+    "sha256": "00f24f7ef299dba478b7c2d54e5e661b9f5dea02d0702e51b1b34d6783877d2e"
+  },
+  "synthetic-exposure-surface-desktop-zh-surface-field.png": {
+    "bytes": 132674,
+    "mtimeNs": 1794324965708721470,
+    "sha256": "00f24f7ef299dba478b7c2d54e5e661b9f5dea02d0702e51b1b34d6783877d2e"
+  },
+  "synthetic-exposure-surface-mobile-en-chart-reference-fullscreen.png": {
+    "bytes": 50151,
+    "mtimeNs": 1794325431427271900,
+    "sha256": "e9ca7a19b48d665c8a5d28bad31d6ae4319ae1c83138554a773e6685bbf33c12"
+  },
+  "synthetic-exposure-surface-mobile-en-chart-reference-narrow320-fullscreen.png": {
+    "bytes": 45708,
+    "mtimeNs": 1794325433805538265,
+    "sha256": "db497ca145c936086fb32c1aabe2e8122f180830899948a4e62dc385dc74a5c6"
+  },
+  "synthetic-exposure-surface-mobile-en-chart-reference-narrow320.png": {
+    "bytes": 74089,
+    "mtimeNs": 1794325432677695491,
+    "sha256": "ed8d29336df4e218136cbfc501494e2b15138dd9028d68218eb0df74d708f0fa"
+  },
+  "synthetic-exposure-surface-mobile-en-chart-reference.png": {
+    "bytes": 78101,
+    "mtimeNs": 1794325435697664819,
+    "sha256": "24bdef67067336c0f833f0a564887ee5606363d80a96d264b45afb09a97a4ef0"
+  },
+  "synthetic-exposure-surface-mobile-en-overview-narrow320.png": {
+    "bytes": 63185,
+    "mtimeNs": 1794325416219562962,
+    "sha256": "8f5aa698c4c3572856817b1380aab4798d2375276013a6393c82683efa95bfea"
+  },
+  "synthetic-exposure-surface-mobile-en-overview.png": {
+    "bytes": 70468,
+    "mtimeNs": 1794325416524276608,
+    "sha256": "320f0fcf9e6a508fdbf16c8845423f243f4eee1205ce9e5d0d4ebbc82923d759"
+  },
+  "synthetic-exposure-surface-mobile-en-return.png": {
+    "bytes": 96950,
+    "mtimeNs": 1794325437715320686,
+    "sha256": "4843b280bbe874995250dc6ca80bc02e2627e6d83baa84526c7bc7ba15486f44"
+  },
+  "synthetic-exposure-surface-mobile-en-selected-node.png": {
+    "bytes": 57456,
+    "mtimeNs": 1794325418086437171,
+    "sha256": "1e91d24d2cda20b25a9e95b4e98b75d4b1818d8fa8b3f3755ac801686e43e859"
+  },
+  "synthetic-exposure-surface-mobile-en-surface-cell.png": {
+    "bytes": 59103,
+    "mtimeNs": 1794325417516383082,
+    "sha256": "32b8dcb39ed3d93b37bb6398620e25aa81fa9d737cfdbebdc0dd92cac7bf2bd7"
+  },
+  "synthetic-exposure-surface-mobile-en-surface-field.png": {
+    "bytes": 54390,
+    "mtimeNs": 1794325417431051014,
+    "sha256": "20964eb22b2a989692847c5430318713f03837b9d53099f7c3f444624359ac33"
+  },
+  "synthetic-exposure-surface-mobile-en-surface-narrow320.png": {
+    "bytes": 43872,
+    "mtimeNs": 1794325417267245287,
+    "sha256": "13f9474c748de4efe3fd01fa3526cc441a8a1cf0ed3c240022e2ca47033bbb0f"
+  },
+  "synthetic-exposure-surface-mobile-zh-chart-reference-fullscreen.png": {
+    "bytes": 50109,
+    "mtimeNs": 1794325451570998569,
+    "sha256": "dc0a32d4063e6bbb852ebf790af450e1bccb82accfc61b626e62af2deddde5f9"
+  },
+  "synthetic-exposure-surface-mobile-zh-chart-reference-narrow320-fullscreen.png": {
+    "bytes": 46196,
+    "mtimeNs": 1794325453812484384,
+    "sha256": "193eb1d5fea30dc6342b4e293fb48ce7a01eb13f5e39144e17368399fcea72af"
+  },
+  "synthetic-exposure-surface-mobile-zh-chart-reference-narrow320.png": {
+    "bytes": 77684,
+    "mtimeNs": 1794325452791241902,
+    "sha256": "57b5dfad16b1f837243357b31c517e7b0626a493b52e6c418ea7ea0b6fe806cc"
+  },
+  "synthetic-exposure-surface-mobile-zh-chart-reference.png": {
+    "bytes": 81958,
+    "mtimeNs": 1794325455050268988,
+    "sha256": "0df8459a337449b962f5c7c871b3f8885b50446d9eee10aac4a0e7ee1ee6fb2c"
+  },
+  "synthetic-exposure-surface-mobile-zh-overview-narrow320.png": {
+    "bytes": 66537,
+    "mtimeNs": 1794325442331433706,
+    "sha256": "482ca7a32a3be5ccb0eb747c4e2a2089bf047cbed7f3c7033d14a5405cc90f4a"
+  },
+  "synthetic-exposure-surface-mobile-zh-overview.png": {
+    "bytes": 70391,
+    "mtimeNs": 1794325442605078180,
+    "sha256": "0edd814fe8b854adefc88059eaec088b8052736433d1e93bf4222ab5248cf0cf"
+  },
+  "synthetic-exposure-surface-mobile-zh-return.png": {
+    "bytes": 96676,
+    "mtimeNs": 1794325456952898697,
+    "sha256": "348b87994523cbdbfc32cbdeb371776eb1b5955dd001c69ba45092d0c6349c8d"
+  },
+  "synthetic-exposure-surface-mobile-zh-selected-node.png": {
+    "bytes": 58475,
+    "mtimeNs": 1794325443320159226,
+    "sha256": "65b7de5810ffe72fc4eecc3bf8760aa69b00f6d5bae992174e2ae5f9de315907"
+  },
+  "synthetic-exposure-surface-mobile-zh-surface-cell.png": {
+    "bytes": 58008,
+    "mtimeNs": 1794325442997617932,
+    "sha256": "016b1da53044d29641d2aa57d8a983252eb6b00a01a8ac7b59cdb47c652e6f6a"
+  },
+  "synthetic-exposure-surface-mobile-zh-surface-field.png": {
+    "bytes": 53715,
+    "mtimeNs": 1794325442936997170,
+    "sha256": "d1e003ae50a8f3fad0bd51b30f0238d1df54f3fed4b1fddeb0e07907e7ef41db"
+  },
+  "synthetic-exposure-surface-tablet-en-chart-reference-fullscreen.png": {
+    "bytes": 93688,
+    "mtimeNs": 1794325207955537695,
+    "sha256": "35f606520ff8a3a6af612b7f3f14986906e72585f45cdfcb71c67f8ea34da9c8"
+  },
+  "synthetic-exposure-surface-tablet-en-chart-reference.png": {
+    "bytes": 109939,
+    "mtimeNs": 1794325208750770502,
+    "sha256": "53ef7d427e20d60ff8b8f9a328316b474b73eca6b743b5fb4716876ae805f2c3"
+  },
+  "synthetic-exposure-surface-tablet-en-overview.png": {
+    "bytes": 176177,
+    "mtimeNs": 1794325202989609748,
+    "sha256": "4e6e9ff3df042f0420281662a7e9f83187c7d7d6c82d1d35cbd48a4fb57933d4"
+  },
+  "synthetic-exposure-surface-tablet-en-return.png": {
+    "bytes": 115947,
+    "mtimeNs": 1794325210020410337,
+    "sha256": "590eaf5973299b99c0ebeea2708b418816f4fcc1da43ba284a52cf66326c3820"
+  },
+  "synthetic-exposure-surface-tablet-en-selected-node.png": {
+    "bytes": 107806,
+    "mtimeNs": 1794325203556417688,
+    "sha256": "85b9721a986b582de0e5c0930eb996e7539db85fe51cd2e32bc12b0c8a113fa8"
+  },
+  "synthetic-exposure-surface-tablet-en-surface-cell.png": {
+    "bytes": 103578,
+    "mtimeNs": 1794325203336434709,
+    "sha256": "b526dd11ccb4dfcae261490483eacf5f7186389cdd1396025ae211016a5b48c4"
+  },
+  "synthetic-exposure-surface-tablet-en-surface-field.png": {
+    "bytes": 103578,
+    "mtimeNs": 1794325203278170188,
+    "sha256": "b526dd11ccb4dfcae261490483eacf5f7186389cdd1396025ae211016a5b48c4"
+  },
+  "synthetic-exposure-surface-tablet-zh-chart-reference-fullscreen.png": {
+    "bytes": 93730,
+    "mtimeNs": 1794325217081313624,
+    "sha256": "a1521c5b7f778a2bda50e87bb329d4e115a2d19275b44a8077969fb71d7afb84"
+  },
+  "synthetic-exposure-surface-tablet-zh-chart-reference.png": {
+    "bytes": 111789,
+    "mtimeNs": 1794325218207445773,
+    "sha256": "e163611ee09c66ebf81b20e5d7ee1209766497be4706cfe32357a2f38befad35"
+  },
+  "synthetic-exposure-surface-tablet-zh-overview.png": {
+    "bytes": 131060,
+    "mtimeNs": 1794325213203084543,
+    "sha256": "07c6b64c38fe26db261e7aa0702bf3fc188a2dfbb48e3aaa0d179e4efb098fb6"
+  },
+  "synthetic-exposure-surface-tablet-zh-return.png": {
+    "bytes": 120311,
+    "mtimeNs": 1794325219392376437,
+    "sha256": "7714cc3ef5627ef37fdc3e0413d53b4e8504ac3a49b8f793db544cdcf309417a"
+  },
+  "synthetic-exposure-surface-tablet-zh-selected-node.png": {
+    "bytes": 112071,
+    "mtimeNs": 1794325213749574360,
+    "sha256": "8b85aa5cdcb0daf63d55bb984107afe75fb76de7c102fec7febbb8d7a7337fd4"
+  },
+  "synthetic-exposure-surface-tablet-zh-surface-cell.png": {
+    "bytes": 113897,
+    "mtimeNs": 1794325213548276213,
+    "sha256": "b69cb7d22127ee454cb43c58d20c827107c38626a74105b6bc17ee436b60fd9d"
+  },
+  "synthetic-exposure-surface-tablet-zh-surface-field.png": {
+    "bytes": 113897,
+    "mtimeNs": 1794325213478633498,
+    "sha256": "b69cb7d22127ee454cb43c58d20c827107c38626a74105b6bc17ee436b60fd9d"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "source": "18a0cbd8014cd5a064e4107c624de2d75322d9f2",
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/nextConfigDevIndicator.test.ts",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/docs/verification/pr1422-next-20261110/cache-config-tests-report.json"
+  ],
+  "exit": 0,
+  "seconds": 1.954,
+  "logSha256": "668f24503a32f1951833d1197bb2bdf86ac285520fdecff5ff86b5c41298819b"
+}

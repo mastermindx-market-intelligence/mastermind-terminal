@@ -1,0 +1,12 @@
+legacy (pre-existing, not blocking)
+terminal/components/alerts/AlertTimeline.tsx:45: raw_slug_interpolation: "verdict" — raw "verdict" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/fin/ForecastPage.tsx:647: raw_slug_interpolation: "type" — raw "type" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/screener/CrossMarketStrip.tsx:188: raw_slug_interpolation: "code" — raw "code" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/lib/sharedShellCopy.ts:1: missing_zh: "use client" — added English literal in a user-visible position with no zh routing (t(/tPlain(/pick(/LEX[)
+  route through t()/tPlain()/pick() with a LEX entry carrying an [en, zh] pair
+terminal/lib/visualIntelligenceCopy.ts:81: raw_state_enum: "DELAYED_15M" — raw state enum in a user-visible position
+  say "15-minute delayed" / "延迟15分钟" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+null: zh_translation @ terminal/components/options/OptionsPlanPayoffPanel.tsx: not evaluable — no new user-visible strings added

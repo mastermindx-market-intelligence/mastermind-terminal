@@ -14,6 +14,39 @@ export type AcsQuotas = AccountQuotas;
 export type AcsPlan = AccountPlan;
 export type AcsUsage = AccountUsage;
 
+export type DevTeamMember = {
+  userId: string;
+  role: "owner" | "admin" | "member" | string | null;
+  displayName: string;
+  createdAt: string | null;
+};
+export type DevTeamInvite = {
+  id: string;
+  email: string;
+  role: "admin" | "member";
+  expiresAt: string | null;
+};
+/** Dev-harness roster (app/dev/settings). The harness has no Supabase session.
+ *  `team`/`callerRole` are null for the zero-team default state, which the crops depict. */
+export type DevTeamFixture = {
+  team: { id: string; name: string } | null;
+  callerRole: "owner" | "admin" | "member" | null;
+  callerUserId: string;
+  members: DevTeamMember[];
+  invites: DevTeamInvite[];
+  truncated?: boolean;
+  /**
+   * Optional workspace-scoped settings block (MO-PAID-083 / packet MO-B F12-13). Present on the
+   * owner fixture so the controls have saved values; absent on the zero-team fixture so the
+   * "Team settings" block is hidden alongside the roster (R3 gate). When `null` is passed the
+   * section paints the closed defaults.
+   */
+  settings?: {
+    default_chart_theme: "green_up" | "red_up";
+    share_layouts_by_default: boolean;
+  } | null;
+};
+
 /** What every section receives from the panel. */
 export interface SectionProps {
   t: (key: string, fallback?: string) => string;
@@ -29,17 +62,21 @@ export interface SectionProps {
   onRefreshUser: () => Promise<void>;
 }
 
-/** Locale-aware date, matching the macro dashboard's `_sdDate`. */
-export function acsDate(iso: string | null | undefined, lang: "en" | "zh"): string {
-  if (!iso) return "";
+/** Locale-aware date, matching the macro dashboard's `_sdDate`. Unreadable input is null, never "Invalid Date". */
+export function acsDate(iso: string | null | undefined, lang: "en" | "zh"): string | null {
+  if (!iso) return null;
   try {
-    return new Date(iso).toLocaleDateString(lang === "zh" ? "zh-CN" : undefined, {
+    const ms = new Date(iso).getTime();
+    if (Number.isNaN(ms)) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString(lang === "zh" ? "zh-CN" : undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
   } catch {
-    return "";
+    return null;
   }
 }
 

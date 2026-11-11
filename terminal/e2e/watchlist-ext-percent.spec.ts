@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import {boatsQuote} from "./fixtures/boatsQuote";
+
 async function armTerminalVisualReady(page: Page) {
   await page.addInitScript(() => {
     const readyWindow = window as Window & { __mmWatchlistVisualReady?: boolean };
@@ -43,7 +45,7 @@ test("Ext price and Ext % are independent, persistent watchlist columns", async 
     await route.fulfill({ json: { quotes: Object.fromEntries(syms.map((sym) => [
       sym,
       sym === "NVDA"
-        ? { extPrice: 421.14, extChg: 7.84, extTs: 1_785_533_400, extSession: "post" }
+        ? boatsQuote(421.14,7.84)
         : null,
     ])) } });
   });
@@ -59,7 +61,7 @@ test("Ext price and Ext % are independent, persistent watchlist columns", async 
   await expect(extHeader).toHaveCount(0);
   await expect(nvda.locator('[data-watchlist-column="extPct"]')).toHaveText("+7.84%");
   await expect(nvda.locator('[data-watchlist-column="extPct"]')).toHaveClass(/\bup\b/);
-  await expect(nvda.locator('[data-watchlist-column="extPct"]')).toHaveAttribute("title", "After hours · +7.84%");
+  await expect(nvda.locator('[data-watchlist-column="extPct"]')).toHaveAttribute("title", /Latest qualifying BOATS trade · single venue · \d+s ago · \+7.84%/);
   const aapl = page.locator(".wl-row", { has: page.locator(".tk", { hasText: /^AAPL$/ }) });
   const bitcoin = page.locator(".wl-row", { has: page.locator(".tk", { hasText: /^BTC-USD$/ }) });
   await expect(aapl.locator('[data-watchlist-column="extPct"]')).toHaveText("—");
@@ -92,4 +94,88 @@ test("Ext price and Ext % are independent, persistent watchlist columns", async 
   await waitForTerminalVisualReady(page);
   await expect(extHeader).toHaveText("Ext");
   await expect(extPctHeader).toHaveCount(0);
+});
+
+test("a transient ext-quote outage keeps the unexpired BOATS trade at every width", async ({ page }, testInfo) => {
+  const isDesktop = testInfo.project.name === "desktop";
+
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.setVersion", "1");
+    localStorage.setItem("mm.set", JSON.stringify({
+      tableView: true,
+      cols: { last: true, changePct: true, change: false, volume: false, ext: true, extPct: true },
+      disp: "symbol",
+      logo: true,
+      colW: {},
+    }));
+  });
+
+  let mode: "initial" | "outage" | "recovered" = "initial";
+  let requestCount = 0;
+  const quoteViews: Array<string | null> = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.pathname === "/api/quote") quoteViews.push(url.searchParams.get("view"));
+  });
+  await page.route("**/api/ext-quote?**", async (route) => {
+    requestCount++;
+    if (mode === "outage") {
+      await route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "quote_hub_unavailable" }),
+      });
+      return;
+    }
+
+    const syms = (new URL(route.request().url()).searchParams.get("syms") || "")
+      .split(",").filter(Boolean);
+    const quote = mode === "recovered"
+      ? boatsQuote(422.08,8.06)
+      : boatsQuote(421.14,7.84);
+    await route.fulfill({ json: { quotes: Object.fromEntries(syms.map((sym) => [
+      sym,
+      sym === "NVDA" ? quote : null,
+    ])) } });
+  });
+
+  await armTerminalVisualReady(page);
+  await page.goto("/terminal?symbol=NVDA");
+  await waitForTerminalVisualReady(page);
+  await expect.poll(() => quoteViews.length).toBeGreaterThan(0);
+  expect(quoteViews.every((view) => view === "regular")).toBe(true);
+
+  const nvda = page.locator(".wl-row", { has: page.locator(".tk", { hasText: /^NVDA$/ }) });
+  const extPrice = nvda.locator('[data-watchlist-column="ext"]');
+  const extPct = nvda.locator('[data-watchlist-column="extPct"]');
+  const detail = page.locator(".ah-block");
+  const compactExtended = page.locator('[data-quote-lane="extended"]');
+  const expectExt = async (price: string, pct: string) => {
+    if (isDesktop) {
+      await expect(extPrice).toHaveText(price);
+      await expect(extPct).toHaveText(pct);
+      await expect(detail.locator(".ah-price")).toHaveText(price);
+      await expect(detail.locator(".ah-chg")).toHaveText(pct);
+      return;
+    }
+    await expect(compactExtended).toContainText("BOATS");
+    await expect(compactExtended).toContainText(price);
+    await expect(compactExtended).toContainText(pct);
+  };
+  await expectExt("421.14", "+7.84%");
+
+  // Re-run the same callback the shell uses when a hidden tab becomes visible. A failed
+  // refresh is not an authoritative deletion: every surface must keep the last-good print.
+  mode = "outage";
+  const beforeOutage = requestCount;
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await expect.poll(() => requestCount).toBeGreaterThan(beforeOutage);
+  await expectExt("421.14", "+7.84%");
+
+  // A later successful response remains authoritative and advances all consumers together.
+  mode = "recovered";
+  const beforeRecovery = requestCount;
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await expect.poll(() => requestCount).toBeGreaterThan(beforeRecovery);
+  await expectExt("422.08", "+8.06%");
 });

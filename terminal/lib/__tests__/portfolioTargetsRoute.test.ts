@@ -1,0 +1,513 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { DbResult, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
+
+const H = vi.hoisted(() => ({
+  user: { id: "e2e-user-pftargets" } as { id: string } | null,
+  failReadTable: null as string | null,
+  missingRoleColumn: false,
+  // R6 (i): a driver that THROWS, not one that returns an error row — the GET path wraps its
+  // select in try/catch and the POST path's maybeSingle must do the same.
+  throwOnMaybeSingle: false,
+  throwOnUpdate: false,
+  throwOnInsert: false,
+  throwOnDelete: false,
+  positionWrites: [] as { table: string; op: string }[],
+  // R6 (h): every `from(table)` the route reaches, so "store never read" is an assertion and not
+  // a dangling `expect(...)` with no matcher.
+  reads: [] as string[],
+}));
+
+vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: () => undefined })) }));
+
+vi.mock("@/lib/supabase/server", async () => {
+  const { createFixtureDb } = await import("@/lib/watchlistsFixtureDb");
+  return {
+    createClient: vi.fn(async () => {
+      const db: WatchlistDb = createFixtureDb("pftargets");
+      const failing: DbResult = { data: null, error: { message: "database unavailable" } };
+      const failedQuery = (result = failing): WatchlistQuery => {
+        const query = Object.assign(Promise.resolve(result), {
+          select: () => failedQuery(result),
+          eq: () => failedQuery(result),
+          in: () => failedQuery(result),
+          order: () => failedQuery(result),
+          limit: () => failedQuery(result),
+          insert: () => failedQuery(result),
+          update: () => failedQuery(result),
+          delete: () => failedQuery(result),
+          maybeSingle: async () => result,
+        });
+        return query as unknown as WatchlistQuery;
+      };
+      // R6 (i): a driver whose `maybeSingle` THROWS, preserved across the whole
+      // `.select().eq().eq()` chain — each link returns a fresh query object, so a shallow
+      // proxy on `from(table)` alone would be bypassed before `maybeSingle` is ever reached.
+      const CHAIN = new Set(["select", "eq", "in", "order", "limit", "insert", "update", "delete"]);
+      const wrapThrowing = (query: WatchlistQuery): WatchlistQuery => new Proxy(query, {
+        get(target, prop, receiver) {
+          if (prop === "maybeSingle" && H.throwOnMaybeSingle) {
+            return async () => { throw new Error("driver exploded"); };
+          }
+          if (prop === "update" && H.throwOnUpdate) {
+            return () => { throw new Error("driver exploded"); };
+          }
+          if (prop === "insert" && H.throwOnInsert) {
+            return () => { throw new Error("driver exploded"); };
+          }
+          if (prop === "delete" && H.throwOnDelete) {
+            return () => { throw new Error("driver exploded"); };
+          }
+          const value = Reflect.get(target, prop, receiver);
+          if (typeof value !== "function") return value;
+          const fn = (value as (...a: unknown[]) => unknown).bind(target);
+          if (!CHAIN.has(String(prop))) return fn;
+          return (...args: unknown[]) => {
+            const out = fn(...args);
+            return out && typeof out === "object" ? wrapThrowing(out as WatchlistQuery) : out;
+          };
+        },
+      }) as unknown as WatchlistQuery;
+      return {
+        auth: { getUser: vi.fn(async () => ({ data: { user: H.user } })) },
+        from: (table: string) => {
+          H.reads.push(table);
+          if (H.failReadTable === table) return failedQuery();
+          const spied = new Proxy(db.from(table), {
+            get(target, prop, receiver) {
+              if (prop === "select" && table === "portfolio_targets" && H.missingRoleColumn) {
+                return (fields: string) => fields.includes("role_label")
+                  ? failedQuery({ data: null, error: { message: "column role_label does not exist", code: "42703" } } as DbResult)
+                  : target.select(fields);
+              }
+              if (prop === "insert" || prop === "update" || prop === "delete") {
+                return (value?: unknown) => {
+                  H.positionWrites.push({ table, op: String(prop) });
+                  const fn = Reflect.get(target, prop, receiver) as (...args: unknown[]) => unknown;
+                  return typeof fn === "function" ? fn.call(target, value) : fn;
+                };
+              }
+              const value = Reflect.get(target, prop, receiver);
+              return typeof value === "function" ? value.bind(target) : value;
+            },
+          }) as unknown as WatchlistQuery;
+          return (H.throwOnMaybeSingle || H.throwOnUpdate || H.throwOnInsert || H.throwOnDelete)
+            ? wrapThrowing(spied)
+            : spied;
+        },
+      };
+    }),
+  };
+});
+
+import { GET, POST } from "@/app/api/portfolio/targets/route";
+import { POST as PORTFOLIO_POST } from "@/app/api/portfolio/route";
+import { fixtureUserId, resetFixtureStores } from "@/lib/watchlistsFixtureDb";
+import type { PortfolioTargetsSummary } from "@/lib/portfolioTargets";
+
+const postTargets = (body: Record<string, unknown>) => POST(new Request("https://x.test/api/portfolio/targets", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify(body),
+}));
+const postBook = (body: Record<string, unknown>) => PORTFOLIO_POST(new Request("https://x.test/api/portfolio", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify(body),
+}));
+
+const owner = fixtureUserId("pftargets");
+
+async function seedHolding(ticker: string, shares = 10, entryPrice = 100) {
+  const response = await postBook({ action: "create", ticker, shares, entryPrice, entryCurrency: "USD" });
+  expect(response.status).toBe(200);
+  return (await response.json()).position as { id: string; ticker: string };
+}
+
+beforeEach(() => {
+  resetFixtureStores();
+  H.user = { id: owner };
+  H.failReadTable = null;
+  H.missingRoleColumn = false;
+  H.throwOnMaybeSingle = false;
+  H.throwOnUpdate = false;
+  H.throwOnInsert = false;
+  H.throwOnDelete = false;
+  H.positionWrites = [];
+  H.reads = [];
+  vi.clearAllMocks();
+});
+
+describe("GET /api/portfolio/targets", () => {
+  it("is 401 when signed out, store never read", async () => {
+    H.user = null;
+    const response = await GET();
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "unauthenticated" });
+    expect(H.positionWrites).toEqual([]);
+    expect(H.reads).toEqual([]);
+  });
+
+  it("is 200 with an empty summary and no untargeted entries when the book itself is empty", async () => {
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const payload = await response.json() as { summary: PortfolioTargetsSummary };
+    expect(payload.summary.schema).toBe("portfolio_targets.v1");
+    expect(payload.summary.weightBasis).toBe("cost");
+    expect(payload.summary.drifts).toEqual([]);
+    expect(payload.summary.untargeted).toEqual([]);
+    expect(payload.summary.orphaned).toEqual([]);
+    expect(payload.summary.targetsSumPct).toBeNull();
+    expect(payload.summary.targetsSumOffBy100).toBeNull();
+  });
+
+  it("is 200 listing every open, sized holding as untargeted when no targets exist yet", async () => {
+    await seedHolding("AAA", 10, 1000);
+    await seedHolding("BBB", 100, 100);
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const { summary } = await response.json() as { summary: PortfolioTargetsSummary };
+    expect(summary.drifts).toEqual([]);
+    expect(summary.untargeted.map((u) => u.ticker).sort()).toEqual(["AAA", "BBB"]);
+    expect(summary.untargeted.every((u) => u.currentWeightPct === 50)).toBe(true);
+  });
+
+  it("is 503 with 'portfolio unavailable', never a fabricated empty summary, when the positions read fails", async () => {
+    await seedHolding("AAA");
+    H.failReadTable = "portfolio_positions";
+    const response = await GET();
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "portfolio unavailable" });
+  });
+
+  it("is 503 with 'targets unavailable', never a fabricated empty summary, when the targets read fails", async () => {
+    await seedHolding("AAA");
+    H.failReadTable = "portfolio_targets";
+    const response = await GET();
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
+  });
+});
+
+describe("POST /api/portfolio/targets — action:set", () => {
+  it("upserts a target on a currently open, sized holding and a subsequent GET reflects it", async () => {
+    await seedHolding("NVDA", 100, 200);
+    const set = await postTargets({ action: "set", ticker: "nvda", targetWeightPct: 80, bandPct: 5 });
+    expect(set.status).toBe(200);
+    const body = await set.json();
+    expect(body.ok).toBe(true);
+    expect(body.target).toMatchObject({ ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+
+    const got = await GET();
+    expect(got.status).toBe(200);
+    const { summary } = await got.json() as { summary: PortfolioTargetsSummary };
+    expect(summary.drifts).toHaveLength(1);
+    expect(summary.drifts[0]).toMatchObject({
+      ticker: "NVDA",
+      currentWeightPct: 100,
+      targetWeightPct: 80,
+      driftPct: 20,
+      status: "outside_band",
+    });
+  });
+
+  it("is 400 'not a current holding' and writes nothing when the ticker is not open+sized", async () => {
+    await seedHolding("AAA", 10, 100);
+    const closed = await seedHolding("BBB", 10, 100);
+    await postBook({ action: "close", id: closed.id });
+
+    const missing = await postTargets({ action: "set", ticker: "ZZZ", targetWeightPct: 10 });
+    expect(missing.status).toBe(400);
+    expect(await missing.json()).toEqual({ error: "not a current holding" });
+
+    const unsized = await postBook({ action: "create", ticker: "CCC" });
+    expect(unsized.status).toBe(200);
+    const onUnsized = await postTargets({ action: "set", ticker: "CCC", targetWeightPct: 10 });
+    expect(onUnsized.status).toBe(400);
+    expect(await onUnsized.json()).toEqual({ error: "not a current holding" });
+
+    const onClosed = await postTargets({ action: "set", ticker: "BBB", targetWeightPct: 10 });
+    expect(onClosed.status).toBe(400);
+
+    const got = await GET();
+    const { summary } = await got.json() as { summary: PortfolioTargetsSummary };
+    expect(summary.drifts).toEqual([]);
+    expect(summary.orphaned).toEqual([]);
+  });
+
+  it("is 400 'invalid target' and writes nothing when targetWeightPct is out of range", async () => {
+    await seedHolding("AAA");
+    const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 101 });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid target" });
+    const got = await GET();
+    expect((await got.json()).summary.drifts).toEqual([]);
+  });
+
+  it("is 400 'invalid band' and writes nothing when bandPct is out of range", async () => {
+    await seedHolding("AAA");
+    const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40, bandPct: 51 });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid band" });
+    const got = await GET();
+    expect((await got.json()).summary.drifts).toEqual([]);
+  });
+
+  it("defaults bandPct to 5 on first create when omitted", async () => {
+    await seedHolding("AAA");
+    const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+    expect(response.status).toBe(200);
+    expect((await response.json()).target.bandPct).toBe(5);
+  });
+
+  it("leaves the existing bandPct unchanged on an update that omits it", async () => {
+    await seedHolding("AAA");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40, bandPct: 12 });
+    const update = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 55 });
+    expect(update.status).toBe(200);
+    expect((await update.json()).target).toMatchObject({ targetWeightPct: 55, bandPct: 12 });
+  });
+});
+
+describe("POST /api/portfolio/targets — action:clear", () => {
+  it("deletes an existing target; a subsequent GET returns the ticker to untargeted", async () => {
+    await seedHolding("AAA");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+    const cleared = await postTargets({ action: "clear", ticker: "AAA" });
+    expect(cleared.status).toBe(200);
+    expect(await cleared.json()).toEqual({ ok: true, clearedTicker: "AAA" });
+    const got = await GET();
+    const { summary } = await got.json() as { summary: PortfolioTargetsSummary };
+    expect(summary.drifts).toEqual([]);
+    expect(summary.untargeted.map((u) => u.ticker)).toEqual(["AAA"]);
+  });
+
+  it("is 404 'target not found' when clearing a ticker with no saved target", async () => {
+    await seedHolding("AAA");
+    const response = await postTargets({ action: "clear", ticker: "AAA" });
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "target not found" });
+  });
+});
+
+describe("cross-route consistency", () => {
+  it("closing a position through the existing /api/portfolio route leaves its target row intact and GET renders it as orphaned", async () => {
+    const held = await seedHolding("AAA");
+    await seedHolding("BBB");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40, bandPct: 8 });
+    const closed = await postBook({ action: "close", id: held.id });
+    expect(closed.status).toBe(200);
+
+    const got = await GET();
+    expect(got.status).toBe(200);
+    const { summary } = await got.json() as { summary: PortfolioTargetsSummary };
+    expect(summary.drifts.some((d) => d.ticker === "AAA")).toBe(false);
+    expect(summary.orphaned).toEqual([{ ticker: "AAA", targetWeightPct: 40, bandPct: 8, roleLabel: null }]);
+  });
+
+  it("never issues a write against portfolio_positions from this route or from portfolioTargets.ts", async () => {
+    await seedHolding("AAA");
+    H.positionWrites = [];
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+    await GET();
+    await postTargets({ action: "clear", ticker: "AAA" });
+    const againstPositions = H.positionWrites.filter((e) => e.table === "portfolio_positions");
+    expect(againstPositions).toEqual([]);
+  });
+});
+
+describe("POST /api/portfolio/targets — unsupported", () => {
+  it("is 400 'unsupported action' for a missing or unknown action", async () => {
+    const missing = await postTargets({ ticker: "AAA" });
+    expect(missing.status).toBe(400);
+    expect(await missing.json()).toEqual({ error: "unsupported action" });
+    const other = await postTargets({ action: "rebalance", ticker: "AAA" });
+    expect(other.status).toBe(400);
+    expect(await other.json()).toEqual({ error: "unsupported action" });
+  });
+});
+
+// ── Round 2, ruling R6 (i) — dispatch on `action` before validating the ticker ─────────────────
+describe("POST /api/portfolio/targets — error ordering and driver faults (R6 i)", () => {
+  it("answers 'unsupported action', not 'invalid ticker', for an unknown action with no ticker", async () => {
+    const response = await postTargets({ action: "bogus" });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "unsupported action" });
+    expect(H.positionWrites).toEqual([]);
+  });
+
+  it("answers 'unsupported action' for a missing action even when the ticker is absent", async () => {
+    const response = await postTargets({});
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "unsupported action" });
+  });
+
+  it("still answers 'invalid ticker' for a supported action with a bad ticker", async () => {
+    const response = await postTargets({ action: "set", ticker: "", targetWeightPct: 10 });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid ticker" });
+  });
+
+  it("is 503, never a 500, when the targets driver THROWS on the set path's read", async () => {
+    await seedHolding("NVDA", 100, 200);
+    H.throwOnMaybeSingle = true;
+    const response = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
+    expect(H.positionWrites.filter((w) => w.table === "portfolio_targets")).toEqual([]);
+  });
+
+  it("is 503, never a 500, when the targets driver THROWS on update", async () => {
+    await seedHolding("NVDA", 100, 200);
+    const saved = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+    expect(saved.status).toBe(200);
+    H.throwOnUpdate = true;
+    const response = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 55, bandPct: 5 });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
+  });
+
+  it("is 503, never a 500, when the targets driver THROWS on insert", async () => {
+    await seedHolding("NVDA", 100, 200);
+    H.throwOnInsert = true;
+    const response = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
+  });
+
+  it("is 503, never a 500, when the targets driver THROWS on delete", async () => {
+    await seedHolding("NVDA", 100, 200);
+    const saved = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+    expect(saved.status).toBe(200);
+    H.throwOnDelete = true;
+    const response = await postTargets({ action: "clear", ticker: "NVDA" });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
+  });
+});
+
+// ── Optional `expectedOwnerId` refusal precondition (Sol ruling, PR1044, 2026-10-20) ────────────
+// Comparison-only, never auth: the session still owns identity on every path. A stub B session
+// owns a valid holding AND a saved target; an A session naming B as `expectedOwnerId` must be
+// refused 409 before the store is touched at all, a B session naming B proceeds normally, and
+// omission is legacy behavior.
+describe("POST /api/portfolio/targets — optional expectedOwnerId refusal precondition", () => {
+  const userB = fixtureUserId("pftargets-b");
+
+  it("409s set and clear carrying a mismatched expectedOwnerId, with zero store mutation calls", async () => {
+    // Session stub B owns a valid holding and a saved target (set under its own matching id).
+    H.user = { id: userB };
+    await seedHolding("NVDA", 100, 200);
+    const seeded = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 40, expectedOwnerId: userB });
+    expect(seeded.status).toBe(200);
+
+    // A session, precondition naming B. Pre-fix these answered 400 "not a current holding" /
+    // 404 "target not found" — the discriminator this block exists to pin.
+    H.user = { id: owner };
+    H.positionWrites = [];
+    const readsBefore = H.reads.length;
+    for (const body of [
+      { action: "set", ticker: "NVDA", targetWeightPct: 90, expectedOwnerId: userB },
+      { action: "clear", ticker: "NVDA", expectedOwnerId: userB },
+    ]) {
+      const response = await postTargets(body);
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: "owner mismatch" });
+    }
+    expect(H.positionWrites).toEqual([]);
+    expect(H.reads.length).toBe(readsBefore); // refused before the store is reached at all
+    // B's target row survives untouched, still rendered as B's drift.
+    H.user = { id: userB };
+    const got = await GET();
+    const { summary } = await got.json() as { summary: PortfolioTargetsSummary };
+    expect(summary.drifts[0]).toMatchObject({ ticker: "NVDA", targetWeightPct: 40 });
+  });
+
+  it("proceeds normally when expectedOwnerId matches the session, and stays legacy when omitted", async () => {
+    await seedHolding("AAA", 10, 100);
+    const matching = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 30, expectedOwnerId: owner });
+    expect(matching.status).toBe(200);
+    expect((await matching.json()).target).toMatchObject({ ticker: "AAA", targetWeightPct: 30 });
+    const omitted = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 55 });
+    expect(omitted.status).toBe(200);
+    expect((await omitted.json()).target).toMatchObject({ targetWeightPct: 55 });
+    const cleared = await postTargets({ action: "clear", ticker: "AAA" });
+    expect(cleared.status).toBe(200);
+    expect(await cleared.json()).toEqual({ ok: true, clearedTicker: "AAA" });
+  });
+
+  it("409s null, nonstring and malformed expectedOwnerId values before any store call", async () => {
+    await seedHolding("AAA");
+    H.positionWrites = []; // the seed's own insert is not part of this assertion
+    H.reads = [];
+    for (const bad of [null, 123, true, { id: owner }, ["x"], ""]) {
+      const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 10, expectedOwnerId: bad });
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: "owner mismatch" });
+    }
+    expect(H.positionWrites).toEqual([]);
+    expect(H.reads).toEqual([]);
+  });
+
+  it("keeps the signed-out 401 ahead of the precondition", async () => {
+    H.user = null;
+    const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 10, expectedOwnerId: owner });
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "unauthenticated" });
+    expect(H.positionWrites).toEqual([]);
+  });
+});
+
+
+describe("role-only edits retain target and owner semantics", () => {
+  it("sets, reads and clears a label without touching weights; legacy set preserves it", async () => {
+    await seedHolding("AAA");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40, bandPct: 7 });
+    const response = await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "  观察仓位  ", expectedOwnerId: owner });
+    expect(response.status).toBe(200);
+    expect((await response.json()).target).toMatchObject({ roleLabel: "观察仓位", targetWeightPct: 40, bandPct: 7 });
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 55 });
+    const saved = (await (await GET()).json()).summary;
+    expect(saved.roleLabelsAvailable).toBe(true);
+    expect(saved.drifts[0]).toMatchObject({ roleLabel: "观察仓位", targetWeightPct: 55, bandPct: 7 });
+    expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: null })).status).toBe(200);
+    expect((await (await GET()).json()).summary.drifts[0].roleLabel).toBeNull();
+  });
+  it("does not create a target or overwrite another account's label", async () => {
+    expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research" })).status).toBe(404);
+    await seedHolding("AAA");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+    H.reads = []; H.positionWrites = [];
+    expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research", expectedOwnerId: "other" })).status).toBe(409);
+    expect(H.reads).toEqual([]);
+    expect(H.positionWrites).toEqual([]);
+    H.user = { id: "different-user" };
+    expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research" })).status).toBe(404);
+  });
+  it("rejects absent/invalid role intent before any store call and preserves unknown writes", async () => {
+    for (const roleLabel of [undefined, 1, "x".repeat(49), "a\nb"]) {
+      expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel })).status).toBe(400);
+    }
+    expect(H.reads).toEqual([]);
+    await seedHolding("AAA");
+    await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+    H.throwOnUpdate = true;
+    const failed = await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research" });
+    expect(failed.status).toBe(503);
+    expect(await failed.json()).toEqual({ error: "role change unconfirmed" });
+  });
+});
+
+
+it("keeps legacy target reads usable before migration but refuses role writes before mutation", async () => {
+  await seedHolding("AAA");
+  await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 40 });
+  H.missingRoleColumn = true;
+  const read = await GET();
+  expect(read.status).toBe(200);
+  const summary = (await read.json()).summary;
+  expect(summary.roleLabelsAvailable).toBe(false);
+  expect(summary.drifts[0].targetWeightPct).toBe(40);
+  H.positionWrites = [];
+  expect((await postTargets({ action: "set_role", ticker: "AAA", roleLabel: "research" })).status).toBe(503);
+  expect(H.positionWrites).toEqual([]);
+});

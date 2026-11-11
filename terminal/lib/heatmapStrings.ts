@@ -25,7 +25,8 @@ const HM_LEX = {
   viewTable:        ["TABLE", "列表"],
 
   // ── Sizing modes ─────────────────────────────────────────────────────────────
-  sizeCap:          ["CAP", "市值"],
+  // Legacy key retained: this mode uses price * reported volume, not market cap.
+  sizeCap:          ["Price × volume", "价格 × 成交量"],
   sizeEqual:        ["EQUAL", "等面积"],
   sizeCapDeferred:  ["CAP (soon)", "市值（即将上线）"],
   sizePremium:      ["PREMIUM", "权利金"],
@@ -41,26 +42,31 @@ const HM_LEX = {
   advancers:        ["Adv", "上涨"],
   decliners:        ["Dec", "下跌"],
   totalPremium:     ["Total premium", "总权利金"],
+  magnitudeOnly:    ["Size only", "仅规模"],
+  netPut:           ["Net puts", "净认沽"],
+  premiumSize:      ["Premium size", "权利金规模"],
+  netCall:          ["Net calls", "净认购"],
+  directionIsSoft:  ["Direction is a soft read", "方向为软性读数"],
   bullFlow:         ["Bull flow", "偏多流向"],
   bullFlowTip:      ["Share of active-flow names with net-bullish ΔOI (breadth, not premium share)", "净持仓变化偏多的活跃标的占比（广度，非权利金占比）"],
-  mixedZone:        ["MIXED", "混合"],
+  mixedZone:        ["Mixed", "混合"],
   callHeavy:        ["CALL-HEAVY", "以认购为主"],
   putHeavy:         ["PUT-HEAVY", "以认沽为主"],
   priceMode:        ["Mode", "市场状态"],
   bullish:          ["BULLISH", "偏多"],
   bearish:          ["BEARISH", "偏空"],
-  mixed:            ["MIXED", "混合"],
+  mixed:            ["Mixed", "混合"],
 
   // ── Flow tone labels (magnitude-first, direction soft) ───────────────────────
   tonePos:          ["positive tone (~soft)", "积极倾向（~软性）"],
   toneNeg:          ["negative tone (~soft)", "消极倾向（~软性）"],
   toneNeutral:      ["neutral / mixed", "中性 / 混合"],
-  toneSoftNote:     ["Positioning tone from ΔOI — direction is soft (magnitude reliable)", "基于ΔOI的持仓倾向 — 方向为软性读数，权利金规模可靠"],
+  toneSoftNote:     ["Positioning tone from the change in open interest — direction is a soft read; size is reliable.", "持仓倾向来自未平仓合约的变化——方向为软性读数，规模可靠。"],
 
   // ── Sector labels ────────────────────────────────────────────────────────────
   sectorAll:        ["ALL", "全部"],
-  sectorTech:       ["TECH", "科技"],
-  sectorComm:       ["COMM", "通信"],
+  sectorTech:       ["Tech", "科技"],
+  sectorComm:       ["Comms", "通信"],
   sectorConsDisc:   ["CONS DISC", "非必需消费"],
   sectorConsStaple: ["STAPLES", "必需消费"],
   sectorFinance:    ["FINANCE", "金融"],
@@ -72,10 +78,11 @@ const HM_LEX = {
   sectorRealEstate: ["REAL EST", "房地产"],
   sectorCrypto:     ["CRYPTO", "加密货币"],
   sectorETF:        ["ETF", "ETF"],
-  sectorOther:      ["OTHER", "其他"],
+  sectorOther:      ["Other", "其他"],
 
   // ── Tile & detail ────────────────────────────────────────────────────────────
-  tileNoFlow:       ["price only", "仅价格"],
+  tilePriceBadge:   ["price", "价格"],
+  tileNoFlow:       ["Price only", "仅价格"],
   detailTitle:      ["Detail", "详情"],
   detailPrice:      ["Price", "价格"],
   detailChg:        ["Chg (1D)", "涨跌幅（1日）"],
@@ -83,8 +90,8 @@ const HM_LEX = {
   detailCallPct:    ["Call share", "认购占比"],
   detailTone:       ["Positioning tone", "持仓倾向"],
   detailToneSoft:   ["(ΔOI-based, direction soft)", "（基于ΔOI，方向为软性）"],
-  detailLean:       ["Lean (~soft)", "倾向（~软性）"],
-  detailDivChip:    ["price/flow divergence — magnitude read", "价格与资金流背离 — 以规模为准"],
+  detailLean:       ["Lean", "倾向"],
+  detailDivChip:    ["Price and flow disagree — trust the size", "价格与资金流背离 — 以规模为准"],
   detailDivNote:    ["Price direction and flow tone disagree beyond dead-zones. Treat as a magnitude observation, not a directional call.", "价格走势与持仓倾向超出中性区间后背离。视为规模观察，非方向性判断。"],
   detailNoDoi:      ["ΔOI tone unavailable", "ΔOI倾向数据缺失"],
   detailNoFlow:     ["No flow data — price only", "无资金流数据 — 仅显示价格"],
@@ -122,12 +129,30 @@ const HM_LEX = {
   dataNote:         ["EOD/nightly — no live price tick available", "每日收盘数据，无实时行情"],
   capSizingDeferred: ["Cap-weighted sizing: coming soon", "市值加权面积：即将上线"],
   flowDirSoft:      ["Flow direction is soft — magnitude is the reliable read", "资金流方向为软性读数 — 权利金规模是可靠依据"],
+  dolVolCapFormula: ["DolVol~Cap = price × vol (proxy, no mcap in manifest yet)", "成交额~市值 = 价格 × 成交量（代理指标）"],
 
   // ── Empty / loading ──────────────────────────────────────────────────────────
   loading:          ["Loading…", "加载中…"],
   loadingHeatmap:   ["Loading heatmap…", "加载热力图中…"],
   noData:           ["No data available", "暂无数据"],
+  loadErrorTitle:   ["Could not load the heatmap", "无法加载热力图"],
+  loadErrorWhy:     ["The price snapshot could not be read just now. This is a failed read, not an empty market.", "暂时无法读取价格快照。这是读取失败，并非市场无数据。"],
+  refreshFailed:    ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
+  retry:            ["Retry", "重试"],
   noFlowData:       ["Flow data unavailable — showing price layer", "资金流数据不可用 — 显示价格层"],
+  // The flow layer's other three answers. A refused read is an access question, a read
+  // that did not land is a failure to retry — neither says flow is missing.
+  flowAuth:         ["Flow layer needs live options access — showing price layer", "资金流图层需要实时期权权限 — 显示价格层"],
+  flowLoadError:    ["Could not load the flow layer", "无法加载资金流图层"],
+  flowLoadErrorWhy: ["This is a failed read, not missing flow data — tiles show price only.", "这是读取失败，并非缺少资金流数据 — 图块仅显示价格。"],
+  flowRefreshFailed: ["Could not refresh the flow layer — showing the last read.", "无法刷新资金流图层 — 显示上次读取的数据。"],
+  // A search that matches nothing is not a market with no data.
+  noMatch:          ["No names match “{q}”", "没有与“{q}”匹配的名称"],
+  clearSearch:      ["Clear search", "清除搜索"],
+  // The live-quote overlay states what it refreshed, and stops saying "live" when it did not.
+  liveNote:         ["live (15m delayed) top {n} · rest EOD", "实时（延迟15分钟）前{n}支 · 其余为昨收"],
+  liveStale:        ["Quotes could not refresh — {n} from the last read · rest EOD", "报价无法刷新 — {n}支为上次读取 · 其余为昨收"],
+  liveFailed:       ["Live quotes could not load — all values EOD", "实时报价无法加载 — 全部为昨收"],
   priceOnly:        ["Price data only (34 names, nightly)", "仅价格数据（34个标的，每日更新）"],
 
   // ── Soft assertions (HONESTY DOCTRINE) ──────────────────────────────────────
@@ -136,6 +161,30 @@ const HM_LEX = {
 } as const;
 
 type HeatmapKey = keyof typeof HM_LEX;
+
+/** GICS sector → sector-chip key. Keeps the ZH chip row off the English GICS tokens. */
+const SECTOR_CHIP_KEY: Record<string, HeatmapKey> = {
+  "Information Technology": "sectorTech",
+  "Communication Services": "sectorComm",
+  "Consumer Discretionary": "sectorConsDisc",
+  "Consumer Staples":       "sectorConsStaple",
+  "Financials":             "sectorFinance",
+  "Health Care":            "sectorHealth",
+  "Energy":                 "sectorEnergy",
+  "Industrials":            "sectorIndustrial",
+  "Materials":              "sectorMaterials",
+  "Utilities":              "sectorUtilities",
+  "Real Estate":            "sectorRealEstate",
+  "Crypto":                 "sectorCrypto",
+  "ETF":                    "sectorETF",
+  "Other":                  "sectorOther",
+};
+
+/** Sector chip text for `lang`; unmapped sectors fall back to the caller's label. */
+export function sectorChipLabel(lang: Lang, sector: string, fallback: string): string {
+  const key = SECTOR_CHIP_KEY[sector];
+  return key ? getHeatmapStr(lang, key) : fallback;
+}
 
 export function getHeatmapStr(lang: Lang, key: HeatmapKey): string {
   const entry = HM_LEX[key];

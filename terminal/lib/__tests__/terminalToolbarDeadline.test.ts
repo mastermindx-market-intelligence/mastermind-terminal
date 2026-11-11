@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Locator, Page } from "@playwright/test";
 import {
   allocateToolbarStage,
@@ -10,12 +10,107 @@ import {
   createToolbarTestBound,
   executeToolbarStage,
   formatToolbarFailure,
+  openLayoutMenu,
+  toggleToolbarReplay,
   toggleToolbarSync,
   waitForSettledToolbar,
   type ToolbarAction,
   type ToolbarFailureReceipt,
   type ToolbarIntent,
 } from "../../e2e/terminalToolbar";
+
+function phoneToolbarFixture(options: {
+  hubOpen?: boolean;
+  sheetOpen?: boolean;
+  rejectReplayAfterEffect?: boolean;
+} = {}) {
+  let hubOpen = options.hubOpen ?? false;
+  let sheetOpen = options.sheetOpen ?? false;
+  const clicks: Array<{ target: string; timeout: number; noWaitAfter: boolean }> = [];
+  const empty = { isVisible: async () => false, isEnabled: async () => false };
+  const control = (target: string, effect: () => void) => ({
+    isVisible: async () => true,
+    isEnabled: async () => true,
+    click: async (args: { timeout: number; noWaitAfter: boolean }) => {
+      clicks.push({ target, ...args });
+      effect();
+      if (target === "replay" && options.rejectReplayAfterEffect) {
+        throw new Error("click rejected after the phone route changed");
+      }
+    },
+  });
+  const hub = { isVisible: async () => hubOpen, count: async () => hubOpen ? 1 : 0 };
+  const save = { isVisible: async () => sheetOpen };
+  const sheet = {
+    isVisible: async () => sheetOpen,
+    locator: () => save,
+  } as unknown as Locator;
+  const page = {
+    isClosed: () => false,
+    viewportSize: () => ({ width: 390, height: 844 }),
+    waitForFunction: async () => { throw new Error("phone must not wait for the desktop toolbar"); },
+    getByTestId: (id: string) => {
+      if (id === "analysis-hub") return hub;
+      if (id === "roller-more") return control("more", () => { hubOpen = true; });
+      if (id === "hub-tile-workspaces") return control("workspaces", () => { sheetOpen = true; hubOpen = false; });
+      if (id === "hub-tile-replay") return control("replay", () => { hubOpen = false; });
+      return empty;
+    },
+    locator: (selector: string) => {
+      if (selector.startsWith(".phone-workspaces-sheet")) return sheet;
+      if (selector === ".chart-tabs") return {
+        first: () => ({ evaluate: async () => ({ mode: "compact", revision: 4,
+          settled: false, overflowOpen: false, backVisible: false }) }),
+      };
+      return empty;
+    },
+  } as unknown as Page;
+  return { page, clicks, sheet, ready: () => sheetOpen };
+}
+
+describe("current phone toolbar routes share the bounded action owner", () => {
+  it("rejects an underfunded closed-hub route before opening More", async () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    try {
+      const fixture = phoneToolbarFixture();
+      await expect(openLayoutMenu(fixture.page, { deadline: 1_002 }))
+        .rejects.toThrow(/^TOOLBAR_BUDGET_EXHAUSTED /);
+      expect(fixture.clicks).toEqual([]);
+      expect(fixture.ready()).toBe(false);
+    } finally { clock.mockRestore(); }
+  });
+
+  it("opens the current phone sheet through one More and one Workspaces action", async () => {
+    const fixture = phoneToolbarFixture();
+    await expect(openLayoutMenu(fixture.page, { deadline: Date.now() + 8_000 }))
+      .resolves.toBe(fixture.sheet);
+    expect(fixture.clicks.map(({ target }) => target)).toEqual(["more", "workspaces"]);
+    expect(fixture.clicks.every(({ timeout, noWaitAfter }) => timeout > 0 && noWaitAfter)).toBe(true);
+    expect(fixture.ready()).toBe(true);
+  });
+
+  it("uses the genuine final-stage remainder when the phone hub is already open", async () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    try {
+      const fixture = phoneToolbarFixture({ hubOpen: true });
+      await expect(openLayoutMenu(fixture.page, { deadline: 1_002 })).resolves.toBe(fixture.sheet);
+      expect(fixture.clicks).toEqual([{ target: "workspaces", timeout: 2, noWaitAfter: true }]);
+    } finally { clock.mockRestore(); }
+  });
+
+  it("returns an already open phone destination without spending another action", async () => {
+    const fixture = phoneToolbarFixture({ sheetOpen: true });
+    await expect(openLayoutMenu(fixture.page, { deadline: 0 })).resolves.toBe(fixture.sheet);
+    expect(fixture.clicks).toEqual([]);
+  });
+
+  it("accepts a landed phone Replay action even if its click promise rejects", async () => {
+    const fixture = phoneToolbarFixture({ rejectReplayAfterEffect: true });
+    await expect(toggleToolbarReplay(fixture.page, { deadline: Date.now() + 8_000 }))
+      .resolves.toBeUndefined();
+    expect(fixture.clicks.map(({ target }) => target)).toEqual(["more", "replay"]);
+  });
+});
 
 describe("toolbar invocation deadline ownership", () => {
   it("binds every layout-integrity toolbar journey at callback entry with no unarmed call site", () => {
@@ -65,22 +160,22 @@ describe("toolbar invocation deadline ownership", () => {
       new URL("../../e2e/w2a-workspaces.spec.ts", import.meta.url),
       "utf8",
     );
-    const callbackFirstLines = [
-      ...source.matchAll(/async \(\{ page(?:, baseURL)? \}, testInfo\) => \{\n([^\n]+)/g),
-    ].map((match) => match[1].trim());
-    const toolbarOpenCalls = source.match(/openLayoutMenu\(page(?:, createToolbarIntent\(toolbarBound\))?\)/g) ?? [];
-    const saveCalls = source.split("\n").filter((line) => line.includes("await saveWorkspace(page,"));
+    const callbackStarts = [
+      ...source.matchAll(/async \(\{ (?:page|browser)(?:, baseURL)? \}, testInfo\) => \{\n((?:[^\n]*\n){1,3})/g),
+    ].map((match) => match[1]);
+    const toolbarOpenCalls = source.match(/openLayoutMenu\((?:page|owner|member)(?:, createToolbarIntent\(toolbarBound\))?\)/g) ?? [];
+    const saveCalls = source.split("\n").filter((line) => line.includes("await saveWorkspace("));
 
-    expect(callbackFirstLines.length).toBeGreaterThan(0);
-    expect(callbackFirstLines).toEqual(
-      callbackFirstLines.map(() => "const toolbarBound = createW2AToolbarBound(testInfo);"),
-    );
+    expect(callbackStarts.length).toBeGreaterThan(0);
+    // F12 owns several browser contexts under one test clock. Its existing timeout override
+    // precedes the bound; creating a separate clock for each page would exceed that ownership.
+    expect(callbackStarts.every((start) => /^\s*(?:test\.setTimeout\([^\n]+\);\n\s*)?const toolbarBound = createW2AToolbarBound\(testInfo\);/.test(start))).toBe(true);
     expect(source).toContain("bound: ToolbarTestBound");
     expect(source).not.toContain("bound?: ToolbarTestBound");
     expect(toolbarOpenCalls.length).toBeGreaterThan(0);
-    expect(toolbarOpenCalls).toEqual(
-      toolbarOpenCalls.map(() => "openLayoutMenu(page, createToolbarIntent(toolbarBound))"),
-    );
+    expect(toolbarOpenCalls.every((call) => /, createToolbarIntent\(toolbarBound\)\)$/.test(call))).toBe(true);
+    expect(toolbarOpenCalls.some((call) => call.startsWith("openLayoutMenu(owner,"))).toBe(true);
+    expect(toolbarOpenCalls.some((call) => call.startsWith("openLayoutMenu(member,"))).toBe(true);
     expect(saveCalls.length).toBeGreaterThan(0);
     expect(saveCalls.every((line) => /, toolbarBound\);(?:\s*\/\/.*)?\s*$/.test(line))).toBe(true);
   });
