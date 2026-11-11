@@ -1,0 +1,162 @@
+{
+  "artifacts": {
+    "artifacts": [
+      {
+        "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13890412473/zip",
+        "created_at": "2026-11-11T20:15:29Z",
+        "digest": "sha256:cf26dc948e266c3d4a7528ed72710a8906ac9218305c81463bfad42bd3dac921",
+        "expired": false,
+        "expires_at": "2027-02-09T20:05:25Z",
+        "id": 13890412473,
+        "name": "intelligence-beta-qa-43093205282-1",
+        "node_id": "MDg6QXJ0aWZhY3QxMzg5MDQxMjQ3Mw==",
+        "size_in_bytes": 1257360,
+        "updated_at": "2026-11-11T20:15:29Z",
+        "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13890412473",
+        "workflow_run": {
+          "head_branch": "sol/web-d06-terminal-reader-resilience-20261103-c4",
+          "head_repository_id": 1290596392,
+          "head_sha": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+          "id": 43093205282,
+          "repository_id": 1290596392
+        }
+      },
+      {
+        "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13889948515/zip",
+        "created_at": "2026-11-11T20:15:32Z",
+        "digest": "sha256:5bcef76cf1fcd43b43dc4f3d5f3034bd6bc25dfb33c4bd07752680163dac73f8",
+        "expired": false,
+        "expires_at": "2027-02-09T20:05:25Z",
+        "id": 13889948515,
+        "name": "responsive-qa-43093205282-serial",
+        "node_id": "MDg6QXJ0aWZhY3QxMzg4OTk0ODUxNQ==",
+        "size_in_bytes": 12800548,
+        "updated_at": "2026-11-11T20:15:32Z",
+        "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13889948515",
+        "workflow_run": {
+          "head_branch": "sol/web-d06-terminal-reader-resilience-20261103-c4",
+          "head_repository_id": 1290596392,
+          "head_sha": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+          "id": 43093205282,
+          "repository_id": 1290596392
+        }
+      },
+      {
+        "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13889718177/zip",
+        "created_at": "2026-11-11T20:10:44Z",
+        "digest": "sha256:6afad35e62f9707eaefc8a1f6d5dd01bacf7d527c378d979628839c30f82e742",
+        "expired": false,
+        "expires_at": "2026-11-12T20:10:42Z",
+        "id": 13889718177,
+        "name": "e2e-prodbuild-43093205282",
+        "node_id": "MDg6QXJ0aWZhY3QxMzg4OTcxODE3Nw==",
+        "size_in_bytes": 26332353,
+        "updated_at": "2026-11-11T20:10:44Z",
+        "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13889718177",
+        "workflow_run": {
+          "head_branch": "sol/web-d06-terminal-reader-resilience-20261103-c4",
+          "head_repository_id": 1290596392,
+          "head_sha": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+          "id": 43093205282,
+          "repository_id": 1290596392
+        }
+      },
+      {
+        "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13889259404/zip",
+        "created_at": "2026-11-11T20:15:06Z",
+        "digest": "sha256:4c6dbf3841a5a21ebaedd9a10bcdb5532142e87599891a825a51599e26300862",
+        "expired": false,
+        "expires_at": "2027-02-09T20:05:25Z",
+        "id": 13889259404,
+        "name": "responsive-qa-43093205282-serial-safe-summary-1",
+        "node_id": "MDg6QXJ0aWZhY3QxMzg4OTI1OTQwNA==",
+        "size_in_bytes": 1747,
+        "updated_at": "2026-11-11T20:15:06Z",
+        "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13889259404",
+        "workflow_run": {
+          "head_branch": "sol/web-d06-terminal-reader-resilience-20261103-c4",
+          "head_repository_id": 1290596392,
+          "head_sha": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+          "id": 43093205282,
+          "repository_id": 1290596392
+        }
+      }
+    ],
+    "total_count": 4
+  },
+  "observedAt": "2026-11-11T20:39:19.963445+00:00",
+  "unitAnnotations": [
+    {
+      "annotation_level": "warning",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/cb2c8eb7b9944a7cc89b73c97a000757581d7eac/.github",
+      "end_column": null,
+      "end_line": 2,
+      "message": "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/",
+      "path": ".github",
+      "raw_details": "",
+      "start_column": null,
+      "start_line": 2,
+      "title": ""
+    },
+    {
+      "annotation_level": "failure",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/cb2c8eb7b9944a7cc89b73c97a000757581d7eac/.github",
+      "end_column": null,
+      "end_line": 1225,
+      "message": "Process completed with exit code 1.",
+      "path": ".github",
+      "raw_details": "",
+      "start_column": null,
+      "start_line": 1225,
+      "title": ""
+    },
+    {
+      "annotation_level": "failure",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/cb2c8eb7b9944a7cc89b73c97a000757581d7eac/terminal/e2e/tools/briefs_inbox_capture_contract.cjs",
+      "end_column": null,
+      "end_line": 83,
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a current capture\n+ actual - expected\n\n+ '92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435'\n- '05c52c714ae7a7fcb5a14d44c0fb6eb5ccabe21b0eb2ed8a1608cd2dfbf1f4e8'\n\nExpected: \"05c52c714ae7a7fcb5a14d44c0fb6eb5ccabe21b0eb2ed8a1608cd2dfbf1f4e8\"\nReceived: \"92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435\"\n\n \u276f validateInboxPacket e2e/tools/briefs_inbox_capture_contract.cjs:83:12\n \u276f Module.readInboxPacket e2e/tools/briefs_inbox_capture_contract.cjs:134:10\n \u276f lib/__tests__/f11_7RecurringBriefsEvidence.test.ts:87:20\n\n",
+      "path": "terminal/e2e/tools/briefs_inbox_capture_contract.cjs",
+      "raw_details": "",
+      "start_column": null,
+      "start_line": 83,
+      "title": "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts > B-F11-7 current inbox proof and preserved historical subscription packet > requires an independently qualified current eight-view inbox packet"
+    },
+    {
+      "annotation_level": "failure",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/cb2c8eb7b9944a7cc89b73c97a000757581d7eac/.github",
+      "end_column": null,
+      "end_line": 764,
+      "message": "terminal/components/Bad.tsx:2: raw_state_enum: \"BOTTOM_WATCH\" \u2014 say \"Watching for a bottom\" / \"\u5173\u6ce8\u7b51\u5e95\" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)",
+      "path": ".github",
+      "raw_details": "",
+      "start_column": null,
+      "start_line": 764,
+      "title": "plain-language"
+    },
+    {
+      "annotation_level": "failure",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/cb2c8eb7b9944a7cc89b73c97a000757581d7eac/.github",
+      "end_column": null,
+      "end_line": 763,
+      "message": "1 blocking plain-language finding(s) on newly added lines",
+      "path": ".github",
+      "raw_details": "",
+      "start_column": null,
+      "start_line": 763,
+      "title": "plain-language"
+    },
+    {
+      "annotation_level": "notice",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/cb2c8eb7b9944a7cc89b73c97a000757581d7eac/.github",
+      "end_column": null,
+      "end_line": 1,
+      "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+      "path": ".github",
+      "raw_details": "",
+      "start_column": null,
+      "start_line": 1,
+      "title": ""
+    }
+  ]
+}

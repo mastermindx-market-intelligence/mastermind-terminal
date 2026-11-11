@@ -139,7 +139,7 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
     root = Path(__file__).resolve().parents[1]
     tests_dir = root / "terminal" / "lib" / "__tests__"
     marker = re.compile(
-        r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\("
+        r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\(|readInboxPacket\("
     )
     expected = sorted(
         "lib/__tests__/" + path.name
@@ -150,14 +150,31 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
     assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
     assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
     assert "lib/__tests__/lexEvidenceProjection.test.ts" in expected
+    inbox_suite = "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
+    assert inbox_suite in expected
     listed = subprocess.run(
         ["bash", "scripts/ci/evidence-lock-suites.sh"],
         cwd=root / "terminal", check=True, capture_output=True, text=True,
         env={**os.environ, "LC_ALL": "C"},
     ).stdout.split()
+    assert inbox_suite in listed, "the inbox reader must run with its current-checkout capture"
     assert sorted(listed) == expected
+    owner_steps = jobs()["terminal-unit"]["steps"]
+    capture_index = next(
+        i for i, step in enumerate(owner_steps)
+        if step.get("name") == "Capture current-source recurring inbox evidence"
+    )
+    reader_index = next(
+        i for i, step in enumerate(owner_steps)
+        if step.get("name") == "Validate fresh evidence through the unit readers"
+    )
+    assert capture_index < reader_index
+    capture = owner_steps[capture_index]
+    assert capture["run"] == "node e2e/tools/capture_b_f11_7_recurring_briefs.cjs --active-inbox"
+    assert "if" not in capture
+    assert not capture.get("continue-on-error", False)
     lane = next(
-        str(step["run"]) for step in jobs()["terminal-unit"]["steps"]
+        str(step["run"]) for step in owner_steps
         if step.get("name") == "Validate fresh evidence through the unit readers"
     )
     shard = next(

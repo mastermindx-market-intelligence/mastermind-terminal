@@ -1,0 +1,144 @@
+{
+  "added": [
+    "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
+  ],
+  "baseline": "One explicit missing-inbox partition assertion fails on unchanged inventory.",
+  "checks": "104 affected Python contracts, Bash syntax and diff check passed.",
+  "created_at": "2026-11-11T20:50:17.327342+00:00",
+  "files": [
+    {
+      "bytes": 4111,
+      "path": "README.md",
+      "sha256": "26c762f43aea30d29d95019309f980784a87aa28a7d33dee771b0778395a0535"
+    },
+    {
+      "bytes": 675,
+      "path": "adoption-intent.json",
+      "sha256": "9b1419dd87c78fbd8378694b50d4d512babfef3896b2396560ada7e9aab9e986"
+    },
+    {
+      "bytes": 325,
+      "path": "adoption-readback.json",
+      "sha256": "373134290688f533c7448483bdbd1b02fe82b25c0098c93ba609d3ac7de76396"
+    },
+    {
+      "bytes": 2181,
+      "path": "checks.json",
+      "sha256": "6224b02cb4b4b118592766cc5ceef41aabeaa7b202e2c13eee707855ea30d421"
+    },
+    {
+      "bytes": 5446,
+      "path": "diagnosis.json",
+      "sha256": "5eb81d76d46116ed35f0b71ffb2748cbad3b6543d71645a9785ef9ee0a2f97ab"
+    },
+    {
+      "bytes": 287,
+      "path": "diff-check.json",
+      "sha256": "326d248a6477e71d571af96f5b24d8f560e3d7c98eb22ebcabcc6ef7d9e4a316"
+    },
+    {
+      "bytes": 0,
+      "path": "diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2371,
+      "path": "inventory-after.json",
+      "sha256": "578dfceccf50667817907ac36ba3ba09a80c67e5ce130b5b30089385d24b8026"
+    },
+    {
+      "bytes": 2110,
+      "path": "inventory-before.json",
+      "sha256": "5144dfba6f2d9d7f086b183c98b8bdc0a8d1bb69635f09df6e7ed1c3915c1e10"
+    },
+    {
+      "bytes": 41801,
+      "path": "original-evidence-owner.log.gz",
+      "sha256": "4f0d90cb763708e7e36b5ab54a77118e6819a13aa9a1c0ff376195fcac2659b4"
+    },
+    {
+      "bytes": 317035,
+      "path": "original-natural-ci.json",
+      "sha256": "2a7609800361c25d9405d998479e4608c97d9f4bafc50e6c4fae4085bdde2ff2"
+    },
+    {
+      "bytes": 8189,
+      "path": "original-unit-annotations-and-artifacts.json",
+      "sha256": "3c3b2fa6edb79f929ea9f44cf7d29dc5e749258e9fdd799d5065e60fde31dd5f"
+    },
+    {
+      "bytes": 5345,
+      "path": "packaging-recovery.json",
+      "sha256": "eb6ccb8df990c44314fb9af4756a2de17ea8bee05225733cc65ea6a30f212a3e"
+    },
+    {
+      "bytes": 446,
+      "path": "partition-and-browser-contracts.json",
+      "sha256": "d98e42a5e2c8807c71a5344df3ae8c1eed98df3f60cf594df260bf8e532616b4"
+    },
+    {
+      "bytes": 180,
+      "path": "partition-and-browser-contracts.log",
+      "sha256": "1834dfea7ceea8bd469d7a48857f703614c88a69edb7f76cd13ba4b529f5b496"
+    },
+    {
+      "bytes": 1073,
+      "path": "preservation.json",
+      "sha256": "f014758eb995bfbf283ec1989495bc78b3b9603962f46b1cdf44649704a3c1bf"
+    },
+    {
+      "bytes": 8399,
+      "path": "prior-publication-objects.json",
+      "sha256": "40a0ee3532c0c498e543e11a2cdb9e0ce401741316d4a684d11f549e0d9d1342"
+    },
+    {
+      "bytes": 238,
+      "path": "regression-before.json",
+      "sha256": "7712ac485e90232d536d045bf75ececdbf6d662a1dfe68cca5e17657bd3ac865"
+    },
+    {
+      "bytes": 2490,
+      "path": "regression-before.log",
+      "sha256": "14aebe73896d5b3e471e0dd61bafcae12c7141772904c1277fba4823bb1caf5e"
+    },
+    {
+      "bytes": 751,
+      "path": "regression-intent.json",
+      "sha256": "8cba788ae89f917e09129657346124bd805dcd9b31b0eaad733a701da9bbddb0"
+    },
+    {
+      "bytes": 578,
+      "path": "repair-intent.json",
+      "sha256": "c6336b79df092968f3cad792adb1d0d8faabd7f7cecc388de77049f6ab481068"
+    },
+    {
+      "bytes": 324,
+      "path": "shell-syntax.json",
+      "sha256": "ce074c9aad9dc81e5553b81e8e3ccc107da02f563d99a812a0ca57bc035a5371"
+    },
+    {
+      "bytes": 0,
+      "path": "shell-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3532,
+      "path": "source.diff",
+      "sha256": "3fc82a8759fa8bcc99cc843403ba49c72e3da7c91637b3394b6ca8e56e19fd06"
+    }
+  ],
+  "fresh_natural_ci_required": true,
+  "inventory_after": 40,
+  "inventory_before": 39,
+  "operation": "terminal-pr1270-inbox-partition-20261111-c3",
+  "original_artifact_retention_failure_preserved": true,
+  "packaging_recovery": "packaging-recovery.json",
+  "parent_head": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+  "raw_log_compression_verified": true,
+  "removed": [],
+  "source_paths": [
+    "terminal/scripts/ci/evidence-lock-suites.sh",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "strict_reader_and_original_captures_preserved": true
+}

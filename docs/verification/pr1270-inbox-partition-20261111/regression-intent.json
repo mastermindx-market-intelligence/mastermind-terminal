@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_merge_group_fast_lane_contract.py::test_unit_shards_exclude_exactly_the_evidence_lane_suites"
+  ],
+  "cwd": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3",
+  "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "started_at": "2026-11-11T20:46:48.072267+00:00",
+  "test_before_sha256": "d6cddbd543964383322202f1f7fb29405fddbb918b0c72371a196d04856d2971",
+  "test_regression_sha256": "07fe5d4e2adf6ef86afb1c690e4f456ad62f8acfcd09733cbad0b04bbc92eb1a",
+  "unchanged_inventory_sha256": "12318bd3af4b438112b0604428e797ecf3c7ee6c3b94c076aed3dc268940a769"
+}

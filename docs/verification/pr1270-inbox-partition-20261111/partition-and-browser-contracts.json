@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_merge_group_fast_lane_contract.py",
+    "tests/test_ci_browser_setup.py"
+  ],
+  "completed_at": "2026-11-11T20:47:31.643712+00:00",
+  "exit": 0,
+  "log_sha256": "1834dfea7ceea8bd469d7a48857f703614c88a69edb7f76cd13ba4b529f5b496",
+  "name": "partition-and-browser-contracts",
+  "started_at": "2026-11-11T20:47:25.692474+00:00"
+}

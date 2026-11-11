@@ -1,0 +1,12 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "completed_at": "2026-11-11T20:47:31.878409+00:00",
+  "exit": 0,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "name": "diff-check",
+  "started_at": "2026-11-11T20:47:31.643996+00:00"
+}

@@ -1,0 +1,121 @@
+{
+  "cause": "Delegated readInboxPacket call omitted from the single evidence-suite inventory; parallel unit checkout read a stale committed packet.",
+  "committed_packet_capture": {
+    "capturedAt": "2026-11-11T09:27:28.415Z",
+    "checkout": {
+      "commit": "9fcd00a869e488e0cc9254e1076c6f00ecc7d337",
+      "tree": "1ba4248341a26b23b03de7006744d471e83a33b3"
+    }
+  },
+  "committed_packet_sha256": "ab9a2e640c8ce38488f8df02d4acc72ef1f39038981420e7decb6823f57eb76f",
+  "expected_next_owner_result": {
+    "files": 40,
+    "status": "EXPECTED_NOT_OBSERVED",
+    "tests": 278
+  },
+  "failed_unit_job": 130776265970,
+  "failure_consumer": "terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts:87",
+  "failure_path": "terminal/e2e/tools/briefs_inbox_capture_contract.cjs:83",
+  "head": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+  "original_checkout": "bb64f589909ec5e45558a28bf71202cfa377e7f1",
+  "original_evidence_job": 130776266118,
+  "original_fresh_reader_result": {
+    "files_passed": 39,
+    "inbox_suite_included": false,
+    "tests_passed": 272
+  },
+  "original_run": 43093205282,
+  "separate_retention_failure": "Original CreateArtifact failed after five internal attempts received HTML instead of JSON. No original unit-evidence archive was returned by the artifact inventory.",
+  "source_bindings": [
+    {
+      "captured_sha256": "4d561b964a59860a0e927cf9d5a0586ef17387599d43abc09f6ec19317b718e6",
+      "current_sha256": "4d561b964a59860a0e927cf9d5a0586ef17387599d43abc09f6ec19317b718e6",
+      "matches": true,
+      "path": "terminal/components/briefs/BriefsInbox.tsx"
+    },
+    {
+      "captured_sha256": "bb6f2189bf88e48677535af2267224a0fe1fea163524347135ddd4267becc6b6",
+      "current_sha256": "bb6f2189bf88e48677535af2267224a0fe1fea163524347135ddd4267becc6b6",
+      "matches": true,
+      "path": "terminal/components/briefs/briefs.module.css"
+    },
+    {
+      "captured_sha256": "6860c360d83679033d06aa22f425fa541b6e6a5fa18fce534970a9cf64f748de",
+      "current_sha256": "6860c360d83679033d06aa22f425fa541b6e6a5fa18fce534970a9cf64f748de",
+      "matches": true,
+      "path": "terminal/lib/briefs.ts"
+    },
+    {
+      "captured_sha256": "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b",
+      "current_sha256": "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b",
+      "matches": true,
+      "path": "terminal/components/alerts/AlertsCockpit.tsx"
+    },
+    {
+      "captured_sha256": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+      "current_sha256": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+      "matches": true,
+      "path": "terminal/components/alerts/alerts.module.css"
+    },
+    {
+      "captured_sha256": "a1b1d475fdd7b74b9ff73c119c6a3f4836522166a4f3aa1d4ab90f55e95aa8b6",
+      "current_sha256": "a1b1d475fdd7b74b9ff73c119c6a3f4836522166a4f3aa1d4ab90f55e95aa8b6",
+      "matches": true,
+      "path": "terminal/components/alerts/AlertsCockpitMount.tsx"
+    },
+    {
+      "captured_sha256": "ffedd63f63a67a484c0584595d007e8ad8698aed504f0fdb81659acf3477cd7c",
+      "current_sha256": "ffedd63f63a67a484c0584595d007e8ad8698aed504f0fdb81659acf3477cd7c",
+      "matches": true,
+      "path": "terminal/app/(shell)/alerts/page.tsx"
+    },
+    {
+      "captured_sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+      "current_sha256": "05c52c714ae7a7fcb5a14d44c0fb6eb5ccabe21b0eb2ed8a1608cd2dfbf1f4e8",
+      "matches": false,
+      "path": "terminal/lib/i18n.tsx"
+    },
+    {
+      "captured_sha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+      "current_sha256": "fbc2f2f636039a7c15328b508e1f8f70e13d81a6d8b6a8ab99f41e5862a85a0b",
+      "matches": false,
+      "path": "terminal/app/globals.css"
+    },
+    {
+      "captured_sha256": "07766cfee2d7f04fabfcf06f8cbdf303acca104e8d61d34e44f0d9d49fc31ba1",
+      "current_sha256": "07766cfee2d7f04fabfcf06f8cbdf303acca104e8d61d34e44f0d9d49fc31ba1",
+      "matches": true,
+      "path": "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs"
+    },
+    {
+      "captured_sha256": "d98ee81fd6848e24da6c70eb3426c07f317e4401aef01b9953ce0dd2eeed114b",
+      "current_sha256": "d98ee81fd6848e24da6c70eb3426c07f317e4401aef01b9953ce0dd2eeed114b",
+      "matches": true,
+      "path": "terminal/e2e/tools/briefs_inbox_capture_contract.cjs"
+    },
+    {
+      "captured_sha256": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+      "current_sha256": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+      "matches": true,
+      "path": "terminal/e2e/tools/capture_ci_evidence.cjs"
+    },
+    {
+      "captured_sha256": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+      "current_sha256": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+      "matches": true,
+      "path": "terminal/next.config.ts"
+    },
+    {
+      "captured_sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+      "current_sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+      "matches": true,
+      "path": "terminal/package.json"
+    },
+    {
+      "captured_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+      "current_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+      "matches": true,
+      "path": "terminal/package-lock.json"
+    }
+  ]
+}

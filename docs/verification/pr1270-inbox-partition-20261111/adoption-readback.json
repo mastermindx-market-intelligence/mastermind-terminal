@@ -1,0 +1,11 @@
+{
+  "clean": true,
+  "completed_at": "2026-11-11T20:46:47.429051+00:00",
+  "head": "cb2c8eb7b9944a7cc89b73c97a000757581d7eac",
+  "merge_head_present": false,
+  "state": "APPLIED_BY_EXACT_TREE_ADOPTION",
+  "stderr": "",
+  "stdout": "",
+  "tracked_bytes_unchanged": true,
+  "tree": "e2d9e8ea7512216250d7a8c6f1b01e01c465e7c9"
+}

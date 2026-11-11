@@ -1,0 +1,21 @@
+{
+  "all_other_existing_tracked_paths_unchanged": true,
+  "new_suite_count": 40,
+  "no_new_capture_or_relabeling": true,
+  "old_suite_count": 39,
+  "only_added_suite": "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts",
+  "original_packet_sha256": "ab9a2e640c8ce38488f8df02d4acc72ef1f39038981420e7decb6823f57eb76f",
+  "prior_source_and_proof_packets": "Preserved exactly; the complete publication tree is checked against the qualified index.",
+  "removed_suites": [],
+  "source_hashes": {
+    "terminal/scripts/ci/evidence-lock-suites.sh": "97be4febaf739af5e3fb8a2f6ab446714ecd28fa8357b50f977aa0c8335e33a9",
+    "tests/test_merge_group_fast_lane_contract.py": "07fe5d4e2adf6ef86afb1c690e4f456ad62f8acfcd09733cbad0b04bbc92eb1a"
+  },
+  "source_paths_changed": [
+    "terminal/scripts/ci/evidence-lock-suites.sh",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "strict_consumer_blob": "81108e3a0930a113c2fe75eeff2e77546127dafe",
+  "strict_contract_blob": "a4484f993c7f4b921298d2365be5d5d8bec6ede0",
+  "workflow_blob": "a913227d4ad13cf85df93c08a5163c2ed3fd81af"
+}
