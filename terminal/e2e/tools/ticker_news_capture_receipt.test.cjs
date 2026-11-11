@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { PNG } = require("pngjs");
-const { TITLES, SHOTS, VIEWPORTS, validateReport, validateImages } = require("./ticker_news_capture_receipt.cjs");
+const { TITLES, SHOTS, VIEWPORTS, validateReport, validateImages, validateFontWitnesses } = require("./ticker_news_capture_receipt.cjs");
 
 // Synthetic report and tiny PNGs test rejection behavior only. They are never
 // browser evidence and are not written into any capture packet.
@@ -73,4 +73,50 @@ test("rejects a corrupt image CRC", () => {
 test("rejects a crop wider than its viewport", () => {
   const wide=PNG.sync.write(new PNG({ width: 1441, height: 2 }));
   assert.throws(() => validateImages(() => wide, names));
+});
+
+const completedAt = "2026-11-11T00:05:00.000Z";
+function cjkFixtures() {
+  const font = { schema: "terminal.cjk-font-runtime.v1", receiptSha256: "a".repeat(64),
+    resolvedFace: { family: "Fixture CJK", postScriptName: "FixtureCJK-Regular", charsetRanges: [[0x3002, 0x3002], [0x3400, 0x9fff]] } };
+  const witnesses = Object.fromEntries(SHOTS.filter(shot => shot.lang === "zh").map(shot => {
+    const text = shot.state === "live-feed" ? "新闻" : "新闻暂时不可用。";
+    return [shot.file + ".json", { schema: "ticker-news.cjk-glyph-witness.v1", file: shot.file,
+      fontReceiptSha256: font.receiptSha256, observedAt: "2026-11-11T00:02:00.000Z", text,
+      bounds: { x: 1, y: 1, width: 100, height: 30 },
+      fonts: [{ familyName: font.resolvedFace.family, postScriptName: font.resolvedFace.postScriptName,
+        isCustomFont: false, glyphCount: [...text].length }] }];
+  }));
+  return { font, witnesses };
+}
+function checkCjk(value) {
+  return validateFontWitnesses(file => Buffer.from(JSON.stringify(value.witnesses[file])),
+    Object.keys(value.witnesses), value.font, startedAt, completedAt);
+}
+test("requires five distinct native-font witnesses for the five Chinese crops", () => {
+  const result = checkCjk(cjkFixtures());
+  assert.equal(result.length, 5);
+  assert.ok(result.every(row => row.witnessFile === row.file + ".json" && /^[0-9a-f]{64}$/.test(row.sha256)));
+});
+const fontMutations = {
+  "missing witness despite passing DOM assertions": v => { delete v.witnesses[Object.keys(v.witnesses)[0]]; },
+  "extra witness": v => { v.witnesses["extra.json"] = {}; },
+  "another capture receipt": v => { v.witnesses[Object.keys(v.witnesses)[0]].fontReceiptSha256 = "b".repeat(64); },
+  "another crop identity": v => { v.witnesses[Object.keys(v.witnesses)[0]].file = "mobile-zh-dark.png"; },
+  "old glyph observation": v => { v.witnesses[Object.keys(v.witnesses)[0]].observedAt = "2026-11-10T00:00:00Z"; },
+  "future glyph observation": v => { v.witnesses[Object.keys(v.witnesses)[0]].observedAt = "2026-11-12T00:00:00Z"; },
+  "Latin-only observation": v => { v.witnesses[Object.keys(v.witnesses)[0]].text = "News"; },
+  "tofu fallback face": v => { v.witnesses[Object.keys(v.witnesses)[0]].fonts[0].familyName = "Last Resort"; },
+  "different native face": v => { v.witnesses[Object.keys(v.witnesses)[0]].fonts[0].postScriptName = "OtherFace"; },
+  "injected custom font": v => { v.witnesses[Object.keys(v.witnesses)[0]].fonts[0].isCustomFont = true; },
+  "missing painted glyph": v => { v.witnesses[Object.keys(v.witnesses)[0]].fonts[0].glyphCount = 1; },
+  "missing character coverage": v => { v.font.resolvedFace.charsetRanges = [[0x20, 0x7e]]; },
+  "missing source punctuation": v => { v.witnesses["unavailable-desktop-zh-dark.png.json"].text = "新闻暂时不可用"; },
+  "missing punctuation coverage": v => { v.font.resolvedFace.charsetRanges = [[0x3400, 0x9fff]]; },
+  "unpainted status punctuation": v => { v.witnesses["unavailable-desktop-zh-dark.png.json"].fonts[0].glyphCount = 7; },
+  "hidden node": v => { v.witnesses[Object.keys(v.witnesses)[0]].bounds.width = 0; },
+  "offscreen node": v => { v.witnesses[Object.keys(v.witnesses)[0]].bounds.y = 10000; },
+};
+for (const [name, mutate] of Object.entries(fontMutations)) test("rejects " + name, () => {
+  const value = cjkFixtures(); mutate(value); assert.throws(() => checkCjk(value));
 });

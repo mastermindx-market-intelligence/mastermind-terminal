@@ -186,6 +186,10 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
             || { echo "::warning::apt/--with-deps failed or stalled on a cache hit; the cached browser is kept and the run proceeds (missing system libraries fail the tests visibly)"; timeout --signal=TERM --kill-after=15s 60s npx playwright install chromium; }
+      - name: Prepare pinned CJK font for browser proof
+        timeout-minutes: 3
+        working-directory: terminal
+        run: timeout --signal=TERM --kill-after=15s 120s python3 -I ../.github/scripts/terminal_cjk_font.py --install
       - name: Download production build artifact
         if: matrix.server == 'prod'
         uses: actions/download-artifact@v4

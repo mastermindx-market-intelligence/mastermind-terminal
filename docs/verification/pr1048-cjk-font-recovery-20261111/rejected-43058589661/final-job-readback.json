@@ -1,0 +1,183 @@
+{
+  "schema": "terminal.source-repair-prior-ci.v1",
+  "run": 43058589661,
+  "sourceHead": "4eee35f4945cb82365e63e72b8d8fa0cb73c8022",
+  "jobs": [
+    {
+      "id": 130654652971,
+      "name": "Terminal browser scope selection",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130654653306,
+      "name": "PR test scope",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130655286724,
+      "name": "Quote Hub tests",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130655286896,
+      "name": "Investigation PostgreSQL invariants",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130655287583,
+      "name": "Ingest + signal-layer tests",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657663624,
+      "name": "Terminal e2e production build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657664279,
+      "name": "Terminal unit + typecheck (shard)",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 130657666901,
+      "name": "Terminal e2e desktop-2 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657666912,
+      "name": "Terminal e2e mobile-1 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657666956,
+      "name": "Terminal e2e tablet-2 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657666982,
+      "name": "Terminal e2e desktop-1 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667008,
+      "name": "Terminal e2e serial (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667046,
+      "name": "Terminal e2e serial-standalone (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667173,
+      "name": "Terminal e2e desktop-5 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667189,
+      "name": "Terminal e2e desktop-3 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667212,
+      "name": "Terminal e2e tablet-1 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667341,
+      "name": "Terminal e2e tablet-3 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667368,
+      "name": "Terminal e2e tablet-4 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667485,
+      "name": "Terminal e2e desktop-4 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667559,
+      "name": "Terminal e2e mobile-5 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657667958,
+      "name": "Terminal e2e mobile-2 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657668069,
+      "name": "Terminal e2e desktop-6 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657668293,
+      "name": "Terminal e2e mobile-4 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130657668371,
+      "name": "Terminal e2e mobile-3 (shard)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130660724797,
+      "name": "Terminal e2e prodbuild-mobile-1 (prod build)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130660724866,
+      "name": "Terminal e2e prodbuild-desktop-1 (prod build)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130660725019,
+      "name": "Terminal e2e prodbuild-tablet-1 (prod build)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130660725047,
+      "name": "Terminal e2e prodbuild-desktop-2 (prod build)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130692405007,
+      "name": "Terminal typecheck + tests",
+      "status": "completed",
+      "conclusion": "failure"
+    }
+  ],
+  "success": 27,
+  "failure": 2
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "terminal.cjk-source-repair-checks.v1",
+  "parents": [
+    "4eee35f4945cb82365e63e72b8d8fa0cb73c8022",
+    "ed6529da70f124c2790c5ddf3b6d4482d739cb46"
+  ],
+  "cleanUnionTree": "b5955ae0c3ff8d7e9ccbffa1f4cc92272cc4b7f4",
+  "sourceFiles": {
+    ".github/scripts/terminal_cjk_font.py": "e7aaa1b2d1b964dda9c9ae7f31e0ce29f265a37c0970bcaff28176e8eeab4ad4",
+    ".github/fonts/noto-cjk/pin.json": "2550632b58b37cb388bb0b522c25001d5d6af3be4cf713df0bf160ba3c30338f",
+    ".github/fonts/noto-cjk/OFL.txt": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+    ".github/workflows/ci.yml": "59c1f3f791681a26d3571c567e1b7ac4fb28ee914dc07d070eaaf2b1f761e6b5",
+    ".github/workflows/e2e-prodbuild-canary.yml": "6137085065dd6f430c77c281b6c0510ac7aa448916e968a37201821d40f45f77",
+    "terminal/e2e/ticker-news.spec.ts": "b88ce51b0760d5294f77df4a558f0890efe3496040313af5078c9daa60761ca0",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "e7f1dbb056336ea75265966573d6320254056ee0fb2de9380c84e1075f140f8e",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs": "5fcaad5a75681cfc36d5e7d10130f64a3417543f53bc62b11d585eb3eb24a88f",
+    "tests/test_ci_cjk_font.py": "3b0eb8122efaaf9c78b1f7af3835c63685b6b97671487ac3f47d401a60e40a42"
+  },
+  "python": {
+    "command": "python -m pytest -q tests/test_ci_cjk_font.py tests/test_ci_browser_setup.py tests/test_ci_e2e_selfhosted_lane.py tests/test_ci_e2e_shards.py tests/test_ci_ticker_news_capture.py",
+    "passed": 274,
+    "exitCode": 0,
+    "nativeFontconfigCase": "Actual fc-cache/fc-query/fc-match with a private copy of existing libre DejaVu Sans; not a Noto/CJK/browser proof."
+  },
+  "observer": {
+    "command": "node --test e2e/tools/ticker_news_capture_receipt.test.cjs",
+    "passed": 51,
+    "skipped": 0,
+    "exitCode": 0
+  },
+  "typecheck": {
+    "strict": true,
+    "scope": "ticker-news.spec.ts and imported types",
+    "exitCode": 0,
+    "wholeProjectTypecheckClaimed": false
+  },
+  "eslint": {
+    "paths": [
+      "terminal/e2e/ticker-news.spec.ts",
+      "terminal/e2e/tools/ticker_news_capture_receipt.cjs",
+      "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs"
+    ],
+    "diagnostics": 0,
+    "exitCode": 0
+  },
+  "whitespace": {
+    "command": "git diff --check b5955ae0c3ff8d7e9ccbffa1f4cc92272cc4b7f4",
+    "exitCode": 0
+  },
+  "workflowPreservation": "Removing exactly four additive font steps and reverting one explanatory comment reproduces the clean protected/original workflow union byte for byte.",
+  "localBrowserAttempted": false,
+  "notoBinaryDownloadedLocally": false,
+  "runtime": {
+    "node": "v24.22.1",
+    "python": "Python 3.12.14"
+  },
+  "logSha256": {
+    "python-contracts.log": "3565a15369be1aaf30022ed8ac56ea4511d165cb43729155400f133927618c90",
+    "observer-contracts.log": "1d8b6773c33d3fa94a3d2aaf628dfad0a17de8a3282383286d6790b6ac7f1d1a",
+    "scoped-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scoped-eslint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

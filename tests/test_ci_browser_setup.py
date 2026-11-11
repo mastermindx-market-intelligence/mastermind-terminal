@@ -62,6 +62,29 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     assert not f11.get("continue-on-error", False)
 
 
+def test_e18_current_source_capture_is_required_and_its_packet_is_retained():
+    steps = _steps()
+    index = {step["name"]: i for i, step in enumerate(steps) if "name" in step}
+    capture_index = index["Capture current-source E18 alert-management evidence"]
+    assert index[PREPARE] < capture_index < index[CAPTURE]
+    capture = steps[capture_index]
+    assert capture["run"] == "node e2e/tools/capture_e18_alert_management.cjs"
+    assert capture["timeout-minutes"] == 8
+    assert "if" not in capture
+    assert not capture.get("continue-on-error", False)
+    assert capture["env"] == {
+        "TERMINAL_CROP_PORT": "47283",
+        "TMPDIR": "${{ runner.temp }}/terminal-ci-evidence",
+    }
+    checkout_index = next(i for i, step in enumerate(steps)
+                          if step.get("run") == "node e2e/tools/capture_ci_evidence.cjs --checkout-only")
+    assert checkout_index < capture_index
+    artifact = steps[index["Retain current-checkout mock evidence and failure diagnostics"]]
+    assert artifact["if"] == "always()"
+    assert "${{ runner.temp }}/terminal-ci-evidence/" in artifact["with"]["path"].splitlines()
+    assert "terminal/docs/pr-crops/e18-alert-management/" in artifact["with"]["path"].splitlines()
+
+
 MOCK_INSTALLERS = r'''
 npx() { echo "UNBOUNDED_NPX"; return 99; }
 timeout() {

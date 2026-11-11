@@ -1,5 +1,6 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
+import { createHash } from "node:crypto";
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { editorialView } from "../lib/__tests__/fixtures/newsEditorial";
 import type { TickerNewsViewMode } from "../lib/newsTypes";
@@ -350,6 +351,52 @@ async function openNews(page: Page, expectedState = "live") {
   return panel;
 }
 
+// Observe a real visible Chinese node before its existing crop. DOM text alone
+// passed with tofu when apt's CJK fonts were unavailable; the platform-font
+// record proves which native face actually painted these glyphs.
+async function retainCjkGlyphWitness(page: Page, target: Locator, file: string) {
+  await expect(target).toBeVisible();
+  await page.evaluate(async () => { await document.fonts.ready; });
+  const receiptPath = process.env.TERMINAL_CJK_FONT_RECEIPT;
+  if (!receiptPath) throw new Error("The capture requires its verified job-private CJK font");
+  const receiptBytes = readFileSync(receiptPath);
+  const receipt = JSON.parse(receiptBytes.toString("utf8")) as {
+    snapshot: { resolvedFace: { family: string; postScriptName: string } };
+  };
+  const text = (await target.textContent())?.trim() ?? "";
+  expect(text).toBe(file.startsWith("unavailable-") ? "新闻暂时不可用。" : "新闻");
+  const bounds = await target.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(await target.getAttribute("data-ticker-font-witness")).toBeNull();
+  const session = await page.context().newCDPSession(page);
+  try {
+    await target.evaluate((node, value) => node.setAttribute("data-ticker-font-witness", value), file);
+    await session.send("DOM.enable");
+    await session.send("CSS.enable");
+    const { root } = await session.send("DOM.getDocument");
+    const { nodeId } = await session.send("DOM.querySelector", {
+      nodeId: root.nodeId, selector: `[data-ticker-font-witness="${file}"]`,
+    });
+    expect(nodeId).toBeGreaterThan(0);
+    const { fonts } = await session.send("CSS.getPlatformFontsForNode", { nodeId }) as {
+      fonts: { familyName: string; postScriptName: string; isCustomFont: boolean; glyphCount: number }[];
+    };
+    expect(fonts.some(face => face.familyName === receipt.snapshot.resolvedFace.family
+      && face.postScriptName === receipt.snapshot.resolvedFace.postScriptName
+      && !face.isCustomFont && face.glyphCount >= [...text].length),
+    "Visible Chinese text must use the pinned native CJK glyphs").toBe(true);
+    const directory = join(process.cwd(), "test-results/ticker-news-current/font-witnesses");
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(join(directory, file + ".json"), JSON.stringify({
+      schema: "ticker-news.cjk-glyph-witness.v1", file, observedAt: new Date().toISOString(), text, bounds, fonts,
+      fontReceiptSha256: createHash("sha256").update(receiptBytes).digest("hex"),
+    }, null, 2) + "\n", { flag: "wx" });
+  } finally {
+    try { await target.evaluate(node => node.removeAttribute("data-ticker-font-witness")); }
+    finally { await session.detach(); }
+  }
+}
+
 async function pickSymbol(page: Page, testInfo: TestInfo, symbol: string, searchText: string) {
   const desktop = testInfo.project.name === "desktop";
   if (desktop) await page.locator(".pair").first().click();
@@ -441,6 +488,8 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
           }
           expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
           if (LEGACY_CROPS && theme === "dark" && mode === "news") {
+            if (lang === "zh") await retainCjkGlyphWitness(page, panel.getByText("新闻", { exact: true }),
+              [viewport.size, lang, "dark.png"].join("-"));
             await panel.screenshot({
               path: join(LEGACY_OUT, [viewport.size, lang, "dark.png"].join("-")),
             });
@@ -483,6 +532,8 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     if (CROPS) {
+      if (LEGACY_CROPS && lang === "zh") await retainCjkGlyphWitness(page, panel.getByRole("status"),
+        `unavailable-${size}-${lang}-dark.png`);
       await panel.screenshot({ path: join(UNAVAILABLE_OUT, `unavailable-${size}-${lang}-dark.png`) });
     }
   }

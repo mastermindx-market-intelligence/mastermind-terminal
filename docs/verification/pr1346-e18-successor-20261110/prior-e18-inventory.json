@@ -1,0 +1,19 @@
+{
+  "capturedSourceHead": "33d55577356a55ed2839d38c507b568b3caafed2",
+  "files": {
+    "EVIDENCE.yml": "3f9a157e2e7c20e2b3e4265e3486caedf08fe6d8294d27c2c5492af4cd158986",
+    "results-desktop-en.png": "540c87cb0054da1af4bb823e806cf249d03449e943900a4833f1fd53b38e94fc",
+    "results-desktop-zh.png": "39d458837462a4b8e0c7f66abae42f6f18cc440bb04ca00b272c130ed6ff3e59",
+    "results-mobile-en.png": "14205e697b54178021ff7c7435cf6ccd7dcb9c2640eb1168e0512dad6de3919d",
+    "results-mobile-zh.png": "967aa0a8e8e7859f40792883b5db319cce2e927a2c61950d4eee70b5ca764229",
+    "results-tablet-en.png": "7421b91002fa4a067fff352139a271c8693cff4fe194d3d2d569856a87f3b0a0",
+    "results-tablet-zh.png": "abba7bc13a1a70c675e5f481084af22b3be1f2f780f216a604066e6bf3954f66",
+    "review-desktop-en.png": "09614843b0be4a76199126d66285767f119dfb9632c92d2ec063a0bc35c3bfd4",
+    "review-desktop-zh.png": "f5dc40c271e2246677a6e3309d847ad2338182d5a20de18749eb4da9ca24b682",
+    "review-mobile-en.png": "c52ea5d4e4b0a54ac666ad53d4e6f50376f1787e8739632e1e1eb4f7006e2c7f",
+    "review-mobile-zh.png": "fb2fba694ffa373ee6c940efe54a5339d5cd9c1069ae37c3d3a3bbdf9841892c",
+    "review-tablet-en.png": "d069e49efcfce8a316f69ec2a398e36dd728a33a9757fc998116f07e24a4fdb5",
+    "review-tablet-zh.png": "85f01ad5b129ccfacc0a9059d46f2580ecada055ffff8e5179ed8fbec2b4ef1e"
+  },
+  "schema": "terminal_pr1346_prior_e18_inventory.v1"
+}

@@ -1,0 +1,722 @@
+﻿2026-11-11T16:36:07.9040068Z Current runner version: '2.338.2'
+2026-11-11T16:36:07.9068227Z ##[group]Runner Image Provisioner
+2026-11-11T16:36:07.9068971Z Hosted Compute Agent
+2026-11-11T16:36:07.9069465Z Version: 20261028.624
+2026-11-11T16:36:07.9069991Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-11T16:36:07.9070612Z Build Date: 2026-10-28T21:51:42Z
+2026-11-11T16:36:07.9071205Z Worker ID: {56188fa9-d7ef-4292-992d-4d8a3bc927ef}
+2026-11-11T16:36:07.9071811Z Region: eastus
+2026-11-11T16:36:07.9072257Z Cloud: Azure
+2026-11-11T16:36:07.9072690Z ##[endgroup]
+2026-11-11T16:36:07.9074692Z ##[group]Operating System
+2026-11-11T16:36:07.9075248Z Ubuntu
+2026-11-11T16:36:07.9075740Z 24.04.5
+2026-11-11T16:36:07.9076153Z LTS
+2026-11-11T16:36:07.9076557Z ##[endgroup]
+2026-11-11T16:36:07.9077005Z ##[group]Runner Image
+2026-11-11T16:36:07.9077508Z Image: ubuntu-24.04
+2026-11-11T16:36:07.9077991Z Version: 20261101.360.1
+2026-11-11T16:36:07.9079108Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-11T16:36:07.9080523Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-11T16:36:07.9081397Z ##[endgroup]
+2026-11-11T16:36:07.9082391Z ##[group]GITHUB_TOKEN Permissions
+2026-11-11T16:36:07.9085358Z Contents: read
+2026-11-11T16:36:07.9086166Z Metadata: read
+2026-11-11T16:36:07.9086893Z ##[endgroup]
+2026-11-11T16:36:07.9089636Z Secret source: Actions
+2026-11-11T16:36:07.9090521Z Cache mode: write
+2026-11-11T16:36:07.9091114Z Prepare workflow directory
+2026-11-11T16:36:07.9680750Z Prepare all required actions
+2026-11-11T16:36:07.9731584Z Getting action download info
+2026-11-11T16:36:08.2115615Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-11T16:36:08.3462441Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-11-11T16:36:08.4531567Z Download action repository 'actions/cache@v4' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+2026-11-11T16:36:08.6964217Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-11-11T16:36:09.0100257Z Complete job name: Terminal e2e serial (shard)
+2026-11-11T16:36:09.1232299Z ##[group]Run actions/checkout@v4
+2026-11-11T16:36:09.1233708Z with:
+2026-11-11T16:36:09.1235120Z   repository: mastermindx-market-intelligence/mastermind-terminal
+2026-11-11T16:36:09.1244132Z   token: ***
+2026-11-11T16:36:09.1245099Z   ssh-strict: true
+2026-11-11T16:36:09.1245973Z   ssh-user: git
+2026-11-11T16:36:09.1247159Z   persist-credentials: true
+2026-11-11T16:36:09.1248442Z   clean: true
+2026-11-11T16:36:09.1249349Z   sparse-checkout-cone-mode: true
+2026-11-11T16:36:09.1250420Z   fetch-depth: 1
+2026-11-11T16:36:09.1251363Z   fetch-tags: false
+2026-11-11T16:36:09.1252408Z   show-progress: true
+2026-11-11T16:36:09.1253314Z   lfs: false
+2026-11-11T16:36:09.1254482Z   submodules: false
+2026-11-11T16:36:09.1255510Z   set-safe-directory: true
+2026-11-11T16:36:09.1256750Z   allow-unsafe-pr-checkout: false
+2026-11-11T16:36:09.1258155Z env:
+2026-11-11T16:36:09.1258992Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:36:09.1260010Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:36:09.1261067Z ##[endgroup]
+2026-11-11T16:36:09.7549680Z Syncing repository: mastermindx-market-intelligence/mastermind-terminal
+2026-11-11T16:36:09.7551404Z ##[group]Getting Git version info
+2026-11-11T16:36:09.7551944Z Working directory is '/home/runner/work/mastermind-terminal/mastermind-terminal'
+2026-11-11T16:36:09.7552660Z [command]/usr/bin/git version
+2026-11-11T16:36:09.8005835Z git version 2.56.0
+2026-11-11T16:36:09.8031514Z ##[endgroup]
+2026-11-11T16:36:09.8048026Z Temporarily overriding HOME='/home/runner/work/_temp/14c2dd75-79ae-4dcc-9588-cbf73efae022' before making global git config changes
+2026-11-11T16:36:09.8049613Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-11T16:36:09.8054502Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mastermind-terminal/mastermind-terminal
+2026-11-11T16:36:09.8129281Z Deleting the contents of '/home/runner/work/mastermind-terminal/mastermind-terminal'
+2026-11-11T16:36:09.8131615Z ##[group]Initializing the repository
+2026-11-11T16:36:09.8132757Z [command]/usr/bin/git init /home/runner/work/mastermind-terminal/mastermind-terminal
+2026-11-11T16:36:09.8486704Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-11T16:36:09.8487779Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-11T16:36:09.8488601Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-11T16:36:09.8489657Z hint: call:
+2026-11-11T16:36:09.8490125Z hint:
+2026-11-11T16:36:09.8490627Z hint: 	git config --global init.defaultBranch <name>
+2026-11-11T16:36:09.8491146Z hint:
+2026-11-11T16:36:09.8491669Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-11T16:36:09.8492869Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-11T16:36:09.8493621Z hint:
+2026-11-11T16:36:09.8494383Z hint: 	git branch -m <name>
+2026-11-11T16:36:09.8494858Z hint:
+2026-11-11T16:36:09.8495777Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-11T16:36:09.8498547Z Initialized empty Git repository in /home/runner/work/mastermind-terminal/mastermind-terminal/.git/
+2026-11-11T16:36:09.8516238Z [command]/usr/bin/git remote add origin https://github.com/mastermindx-market-intelligence/mastermind-terminal
+2026-11-11T16:36:09.8599807Z ##[endgroup]
+2026-11-11T16:36:09.8600877Z ##[group]Disabling automatic garbage collection
+2026-11-11T16:36:09.8607918Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-11T16:36:09.8649237Z ##[endgroup]
+2026-11-11T16:36:09.8650190Z ##[group]Setting up auth
+2026-11-11T16:36:09.8660418Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-11T16:36:09.8736538Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-11T16:36:09.9461480Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-11T16:36:09.9509846Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-11T16:36:09.9794299Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-11T16:36:09.9843111Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-11T16:36:10.0119866Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-11T16:36:10.0410732Z ##[endgroup]
+2026-11-11T16:36:10.0411827Z ##[group]Fetching the repository
+2026-11-11T16:36:10.0425299Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +5530a2cb6e79db7e1b8426ea38dfee64f9b6e134:refs/remotes/pull/1048/merge
+2026-11-11T16:36:53.8255010Z From https://github.com/mastermindx-market-intelligence/mastermind-terminal
+2026-11-11T16:36:53.8255735Z  * [new ref]           5530a2cb6e79db7e1b8426ea38dfee64f9b6e134 -> pull/1048/merge
+2026-11-11T16:36:53.8258442Z ##[endgroup]
+2026-11-11T16:36:53.8259233Z ##[group]Determining the checkout info
+2026-11-11T16:36:53.8261641Z ##[endgroup]
+2026-11-11T16:36:53.8267431Z [command]/usr/bin/git sparse-checkout disable
+2026-11-11T16:36:53.8333675Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-11T16:36:53.8396408Z ##[group]Checking out the ref
+2026-11-11T16:36:53.8397574Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/1048/merge
+2026-11-11T16:36:54.8896415Z Updating files:  12% (3114/24775)
+2026-11-11T16:36:55.2142241Z Updating files:  13% (3221/24775)
+2026-11-11T16:36:55.5745750Z Updating files:  14% (3469/24775)
+2026-11-11T16:36:55.6012633Z Updating files:  15% (3717/24775)
+2026-11-11T16:36:55.6744674Z Updating files:  16% (3964/24775)
+2026-11-11T16:36:55.8348543Z Updating files:  17% (4212/24775)
+2026-11-11T16:36:55.8798710Z Updating files:  18% (4460/24775)
+2026-11-11T16:36:55.9119960Z Updating files:  18% (4609/24775)
+2026-11-11T16:36:56.0310850Z Updating files:  19% (4708/24775)
+2026-11-11T16:36:56.1055238Z Updating files:  20% (4955/24775)
+2026-11-11T16:36:56.1375287Z Updating files:  21% (5203/24775)
+2026-11-11T16:36:56.1578803Z Updating files:  22% (5451/24775)
+2026-11-11T16:36:56.1858521Z Updating files:  23% (5699/24775)
+2026-11-11T16:36:56.2085604Z Updating files:  24% (5946/24775)
+2026-11-11T16:36:56.2341273Z Updating files:  25% (6194/24775)
+2026-11-11T16:36:56.2547382Z Updating files:  26% (6442/24775)
+2026-11-11T16:36:56.2760506Z Updating files:  27% (6690/24775)
+2026-11-11T16:36:56.3906175Z Updating files:  28% (6937/24775)
+2026-11-11T16:36:56.4513321Z Updating files:  29% (7185/24775)
+2026-11-11T16:36:56.5262090Z Updating files:  30% (7433/24775)
+2026-11-11T16:36:56.5461668Z Updating files:  31% (7681/24775)
+2026-11-11T16:36:56.5694613Z Updating files:  32% (7928/24775)
+2026-11-11T16:36:56.6286846Z Updating files:  33% (8176/24775)
+2026-11-11T16:36:56.7528400Z Updating files:  34% (8424/24775)
+2026-11-11T16:36:56.8770818Z Updating files:  35% (8672/24775)
+2026-11-11T16:36:56.8793738Z Updating files:  36% (8919/24775)
+2026-11-11T16:36:57.0225850Z Updating files:  36% (8921/24775)
+2026-11-11T16:36:57.0572572Z Updating files:  37% (9167/24775)
+2026-11-11T16:36:57.0929069Z Updating files:  38% (9415/24775)
+2026-11-11T16:36:57.1323181Z Updating files:  39% (9663/24775)
+2026-11-11T16:36:57.1707212Z Updating files:  40% (9910/24775)
+2026-11-11T16:36:57.2086725Z Updating files:  41% (10158/24775)
+2026-11-11T16:36:57.2459234Z Updating files:  42% (10406/24775)
+2026-11-11T16:36:57.2832096Z Updating files:  43% (10654/24775)
+2026-11-11T16:36:57.3230067Z Updating files:  44% (10901/24775)
+2026-11-11T16:36:57.3912146Z Updating files:  45% (11149/24775)
+2026-11-11T16:36:57.4604938Z Updating files:  46% (11397/24775)
+2026-11-11T16:36:57.5159295Z Updating files:  47% (11645/24775)
+2026-11-11T16:36:57.5618609Z Updating files:  48% (11892/24775)
+2026-11-11T16:36:57.6193472Z Updating files:  49% (12140/24775)
+2026-11-11T16:36:57.6725280Z Updating files:  50% (12388/24775)
+2026-11-11T16:36:57.7319983Z Updating files:  51% (12636/24775)
+2026-11-11T16:36:57.7875962Z Updating files:  52% (12883/24775)
+2026-11-11T16:36:57.8391704Z Updating files:  53% (13131/24775)
+2026-11-11T16:36:57.8792980Z Updating files:  54% (13379/24775)
+2026-11-11T16:36:57.9003904Z Updating files:  54% (13535/24775)
+2026-11-11T16:36:57.9925555Z Updating files:  55% (13627/24775)
+2026-11-11T16:36:58.1318075Z Updating files:  56% (13874/24775)
+2026-11-11T16:36:58.2096986Z Updating files:  57% (14122/24775)
+2026-11-11T16:36:58.3153235Z Updating files:  58% (14370/24775)
+2026-11-11T16:36:58.4111105Z Updating files:  59% (14618/24775)
+2026-11-11T16:36:58.4980741Z Updating files:  60% (14865/24775)
+2026-11-11T16:36:58.5359019Z Updating files:  61% (15113/24775)
+2026-11-11T16:36:58.6510271Z Updating files:  62% (15361/24775)
+2026-11-11T16:36:58.7387946Z Updating files:  63% (15609/24775)
+2026-11-11T16:36:58.8116600Z Updating files:  64% (15856/24775)
+2026-11-11T16:36:58.8688018Z Updating files:  65% (16104/24775)
+2026-11-11T16:36:58.8791015Z Updating files:  66% (16352/24775)
+2026-11-11T16:36:58.9074628Z Updating files:  66% (16401/24775)
+2026-11-11T16:36:58.9792905Z Updating files:  67% (16600/24775)
+2026-11-11T16:36:59.0808933Z Updating files:  68% (16847/24775)
+2026-11-11T16:36:59.3163140Z Updating files:  69% (17095/24775)
+2026-11-11T16:36:59.4002965Z Updating files:  70% (17343/24775)
+2026-11-11T16:36:59.5041300Z Updating files:  71% (17591/24775)
+2026-11-11T16:36:59.5513968Z Updating files:  72% (17838/24775)
+2026-11-11T16:36:59.6562954Z Updating files:  73% (18086/24775)
+2026-11-11T16:36:59.7358177Z Updating files:  74% (18334/24775)
+2026-11-11T16:36:59.7638254Z Updating files:  75% (18582/24775)
+2026-11-11T16:36:59.8427075Z Updating files:  76% (18829/24775)
+2026-11-11T16:36:59.8795557Z Updating files:  77% (19077/24775)
+2026-11-11T16:36:59.9101278Z Updating files:  77% (19295/24775)
+2026-11-11T16:37:00.0019889Z Updating files:  78% (19325/24775)
+2026-11-11T16:37:00.0446292Z Updating files:  79% (19573/24775)
+2026-11-11T16:37:00.1002961Z Updating files:  80% (19820/24775)
+2026-11-11T16:37:00.1399045Z Updating files:  81% (20068/24775)
+2026-11-11T16:37:00.1967521Z Updating files:  82% (20316/24775)
+2026-11-11T16:37:00.2379525Z Updating files:  83% (20564/24775)
+2026-11-11T16:37:00.2719326Z Updating files:  84% (20811/24775)
+2026-11-11T16:37:00.3309520Z Updating files:  85% (21059/24775)
+2026-11-11T16:37:00.3723146Z Updating files:  86% (21307/24775)
+2026-11-11T16:37:00.3949090Z Updating files:  87% (21555/24775)
+2026-11-11T16:37:00.4831586Z Updating files:  88% (21802/24775)
+2026-11-11T16:37:00.5047767Z Updating files:  89% (22050/24775)
+2026-11-11T16:37:00.5253655Z Updating files:  90% (22298/24775)
+2026-11-11T16:37:00.5468897Z Updating files:  91% (22546/24775)
+2026-11-11T16:37:00.5649293Z Updating files:  92% (22793/24775)
+2026-11-11T16:37:00.5847216Z Updating files:  93% (23041/24775)
+2026-11-11T16:37:00.6049966Z Updating files:  94% (23289/24775)
+2026-11-11T16:37:00.6256650Z Updating files:  95% (23537/24775)
+2026-11-11T16:37:00.6475856Z Updating files:  96% (23784/24775)
+2026-11-11T16:37:00.6714558Z Updating files:  97% (24032/24775)
+2026-11-11T16:37:00.7010819Z Updating files:  98% (24280/24775)
+2026-11-11T16:37:00.7257849Z Updating files:  99% (24528/24775)
+2026-11-11T16:37:00.7258677Z Updating files: 100% (24775/24775)
+2026-11-11T16:37:00.7259193Z Updating files: 100% (24775/24775), done.
+2026-11-11T16:37:00.7925147Z Note: switching to 'refs/remotes/pull/1048/merge'.
+2026-11-11T16:37:00.7925669Z 
+2026-11-11T16:37:00.7926087Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-11T16:37:00.7927111Z changes and commit them, and you can discard any commits you make in this
+2026-11-11T16:37:00.7928359Z state without impacting any branches by switching back to a branch.
+2026-11-11T16:37:00.7928810Z 
+2026-11-11T16:37:00.7929055Z If you want to create a new branch to retain commits you create, you may
+2026-11-11T16:37:00.7929639Z do so (now or later) by using -c with the switch command. Example:
+2026-11-11T16:37:00.7929976Z 
+2026-11-11T16:37:00.7930105Z   git switch -c <new-branch-name>
+2026-11-11T16:37:00.7930328Z 
+2026-11-11T16:37:00.7930447Z Or undo this operation with:
+2026-11-11T16:37:00.7930655Z 
+2026-11-11T16:37:00.7930757Z   git switch -
+2026-11-11T16:37:00.7930915Z 
+2026-11-11T16:37:00.7931191Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-11T16:37:00.7931597Z 
+2026-11-11T16:37:00.7932064Z HEAD is now at 5530a2cb Merge 4eee35f4945cb82365e63e72b8d8fa0cb73c8022 into b418e924c734ad5f457aab1b783cacb75dd5a109
+2026-11-11T16:37:00.8234908Z ##[endgroup]
+2026-11-11T16:37:00.8290319Z [command]/usr/bin/git log -1 --format=%H
+2026-11-11T16:37:00.8333054Z 5530a2cb6e79db7e1b8426ea38dfee64f9b6e134
+2026-11-11T16:37:00.8564489Z ##[group]Run bash ../.github/scripts/terminal_e2e_lane.sh
+2026-11-11T16:37:00.8564987Z [36;1mbash ../.github/scripts/terminal_e2e_lane.sh[0m
+2026-11-11T16:37:00.8587237Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:37:00.8587493Z env:
+2026-11-11T16:37:00.8587695Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:37:00.8587935Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:37:00.8588168Z ##[endgroup]
+2026-11-11T16:37:00.8765187Z ##[group]Run actions/setup-node@v4
+2026-11-11T16:37:00.8765479Z with:
+2026-11-11T16:37:00.8765672Z   node-version: 20
+2026-11-11T16:37:00.8765875Z   cache: npm
+2026-11-11T16:37:00.8766118Z   cache-dependency-path: terminal/package-lock.json
+2026-11-11T16:37:00.8766429Z   always-auth: false
+2026-11-11T16:37:00.8766637Z   check-latest: false
+2026-11-11T16:37:00.8768911Z   token: ***
+2026-11-11T16:37:00.8769299Z env:
+2026-11-11T16:37:00.8769486Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:37:00.8769725Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:37:00.8769951Z ##[endgroup]
+2026-11-11T16:37:01.0309246Z Attempting to download 20...
+2026-11-11T16:37:01.0506510Z (node:2369) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T16:37:01.0507526Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T16:37:01.7028633Z Acquiring 20.20.2 - x64 from https://github.com/actions/node-versions/releases/download/20.20.2-23521894959/node-20.20.2-linux-x64.tar.gz
+2026-11-11T16:37:02.0317381Z Extracting ...
+2026-11-11T16:37:02.0450653Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/905c9fd0-e2e8-407c-a4bd-078553a989a9 -f /home/runner/work/_temp/58f07628-19a6-406b-94b8-9dc12d3c560e
+2026-11-11T16:37:03.0653544Z Adding to the cache ...
+2026-11-11T16:37:05.9233114Z ##[group]Environment details
+2026-11-11T16:37:06.1656443Z node: v20.20.2
+2026-11-11T16:37:06.1656884Z npm: 10.8.2
+2026-11-11T16:37:06.1657197Z yarn: 1.22.22
+2026-11-11T16:37:06.1657895Z ##[endgroup]
+2026-11-11T16:37:06.1677906Z [command]/opt/hostedtoolcache/node/20.20.2/x64/bin/npm config get cache
+2026-11-11T16:37:06.2721953Z /home/runner/.npm
+2026-11-11T16:37:06.3387355Z Cache hit for: node-cache-Linux-x64-npm-9e394b79118f59a2011ffa58fc050f70a9d0ea5fee457f3ab89821f08f961017
+2026-11-11T16:37:06.3502448Z (node:2369) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-11T16:37:07.3953053Z Received 163577856 of 208306740 (78.5%), 155.8 MBs/sec
+2026-11-11T16:37:07.6615213Z Received 208306740 of 208306740 (100.0%), 157.5 MBs/sec
+2026-11-11T16:37:07.6616469Z Cache Size: ~199 MB (208306740 B)
+2026-11-11T16:37:07.6670734Z [command]/usr/bin/tar -xf /home/runner/work/_temp/9f198ba6-6000-46d8-9d54-1c5d8ffefdf5/cache.tzst -P -C /home/runner/work/mastermind-terminal/mastermind-terminal --use-compress-program unzstd
+2026-11-11T16:37:08.1268060Z Cache restored successfully
+2026-11-11T16:37:08.1369527Z Cache restored from key: node-cache-Linux-x64-npm-9e394b79118f59a2011ffa58fc050f70a9d0ea5fee457f3ab89821f08f961017
+2026-11-11T16:37:08.1640750Z ##[group]Run npm ci
+2026-11-11T16:37:08.1641040Z [36;1mnpm ci[0m
+2026-11-11T16:37:08.1663546Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:37:08.1663815Z env:
+2026-11-11T16:37:08.1664309Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:37:08.1664574Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:37:08.1664822Z ##[endgroup]
+2026-11-11T16:37:12.2444951Z npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+2026-11-11T16:37:59.9726667Z 
+2026-11-11T16:37:59.9729973Z added 480 packages, and audited 481 packages in 52s
+2026-11-11T16:37:59.9734876Z 
+2026-11-11T16:37:59.9735360Z 169 packages are looking for funding
+2026-11-11T16:37:59.9735806Z   run `npm fund` for details
+2026-11-11T16:38:00.2498600Z 
+2026-11-11T16:38:00.2499829Z 23 vulnerabilities (14 moderate, 7 high, 2 critical)
+2026-11-11T16:38:00.2500371Z 
+2026-11-11T16:38:00.2500742Z To address issues that do not require attention, run:
+2026-11-11T16:38:00.2501339Z   npm audit fix
+2026-11-11T16:38:00.2501502Z 
+2026-11-11T16:38:00.2501797Z To address all issues (including breaking changes), run:
+2026-11-11T16:38:00.2502262Z   npm audit fix --force
+2026-11-11T16:38:00.2502452Z 
+2026-11-11T16:38:00.2502608Z Run `npm audit` for details.
+2026-11-11T16:38:00.3453109Z ##[group]Run npx next typegen
+2026-11-11T16:38:00.3453434Z [36;1mnpx next typegen[0m
+2026-11-11T16:38:00.3475917Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:38:00.3476185Z env:
+2026-11-11T16:38:00.3476388Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:38:00.3476635Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:38:00.3476898Z ##[endgroup]
+2026-11-11T16:38:00.9479868Z Generating route types...
+2026-11-11T16:38:00.9906493Z ✓ Types generated successfully
+2026-11-11T16:38:01.0196228Z ##[group]Run echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+2026-11-11T16:38:01.0197079Z [36;1mecho "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"[0m
+2026-11-11T16:38:01.0219490Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:38:01.0219891Z env:
+2026-11-11T16:38:01.0220207Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:38:01.0220612Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:38:01.0221008Z ##[endgroup]
+2026-11-11T16:38:01.0723207Z ##[group]Run actions/cache@v4
+2026-11-11T16:38:01.0723757Z with:
+2026-11-11T16:38:01.0724382Z   path: ~/.cache/ms-playwright
+2026-11-11T16:38:01.0724840Z   key: pw-Linux-1.61.1
+2026-11-11T16:38:01.0725261Z   enableCrossOsArchive: false
+2026-11-11T16:38:01.0725711Z   fail-on-cache-miss: false
+2026-11-11T16:38:01.0726132Z   lookup-only: false
+2026-11-11T16:38:01.0726498Z   save-always: false
+2026-11-11T16:38:01.0726894Z env:
+2026-11-11T16:38:01.0727218Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:38:01.0727653Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:38:01.0728080Z ##[endgroup]
+2026-11-11T16:38:01.1915035Z (node:2501) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T16:38:01.1916122Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T16:38:01.2703150Z Cache hit for: pw-Linux-1.61.1
+2026-11-11T16:38:01.2823175Z (node:2501) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-11T16:38:02.3211383Z Received 138412032 of 273647253 (50.6%), 130.6 MBs/sec
+2026-11-11T16:38:02.8583736Z Received 273647253 of 273647253 (100.0%), 168.5 MBs/sec
+2026-11-11T16:38:02.8586373Z Cache Size: ~261 MB (273647253 B)
+2026-11-11T16:38:02.8707489Z [command]/usr/bin/tar -xf /home/runner/work/_temp/8d31e2f1-68e0-4253-99a3-5b1c560f130d/cache.tzst -P -C /home/runner/work/mastermind-terminal/mastermind-terminal --use-compress-program unzstd
+2026-11-11T16:38:03.9959818Z Cache restored successfully
+2026-11-11T16:38:04.0293100Z Cache restored from key: pw-Linux-1.61.1
+2026-11-11T16:38:04.0496014Z ##[group]Run if [ "$TERMINAL_E2E_LANE" = "hosted" ]; then
+2026-11-11T16:38:04.0496508Z [36;1mif [ "$TERMINAL_E2E_LANE" = "hosted" ]; then[0m
+2026-11-11T16:38:04.0497032Z [36;1m  timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \[0m
+2026-11-11T16:38:04.0498195Z [36;1m    || { echo "::warning::apt/--with-deps failed or stalled on a cache hit; the cached browser is kept and the run proceeds (missing system libraries fail the tests visibly)"; timeout --signal=TERM --kill-after=15s 60s npx playwright install chromium; }[0m
+2026-11-11T16:38:04.0499150Z [36;1melse[0m
+2026-11-11T16:38:04.0499389Z [36;1m  npx playwright install chromium[0m
+2026-11-11T16:38:04.0499690Z [36;1mfi[0m
+2026-11-11T16:38:04.0519770Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:38:04.0520031Z env:
+2026-11-11T16:38:04.0520232Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:38:04.0520485Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:38:04.0520725Z ##[endgroup]
+2026-11-11T16:38:04.9261551Z Installing dependencies...
+2026-11-11T16:38:04.9337770Z Switching to root user to install dependencies...
+2026-11-11T16:38:05.0495776Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-11T16:38:05.0946070Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-11-11T16:38:05.2119400Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [764 kB]
+2026-11-11T16:38:05.2284911Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [693 kB]
+2026-11-11T16:38:05.2357388Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.6 kB]
+2026-11-11T16:38:25.1014456Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-11T16:38:45.1248202Z Ign:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease
+2026-11-11T16:39:05.1430449Z Ign:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease
+2026-11-11T16:39:25.1659548Z Ign:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease
+2026-11-11T16:39:45.1949881Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-11T16:40:05.2193662Z Ign:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease
+2026-11-11T16:40:05.2240571Z Ign:2 https://archive.ubuntu.com/ubuntu noble InRelease
+2026-11-11T16:40:24.5719353Z Err:2 https://security.ubuntu.com/ubuntu noble InRelease
+2026-11-11T16:40:24.5720017Z   Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:40:25.2404393Z Ign:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease
+2026-11-11T16:40:25.2578934Z Ign:3 https://archive.ubuntu.com/ubuntu noble-updates InRelease
+2026-11-11T16:40:45.2662353Z Ign:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease
+2026-11-11T16:40:45.2834367Z Err:3 https://security.ubuntu.com/ubuntu noble-updates InRelease
+2026-11-11T16:40:45.2835374Z   Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:40:45.2838633Z Ign:4 https://archive.ubuntu.com/ubuntu noble-backports InRelease
+2026-11-11T16:41:05.3084859Z Err:4 https://security.ubuntu.com/ubuntu noble-backports InRelease
+2026-11-11T16:41:05.3085572Z   Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:41:05.3105420Z Ign:5 https://archive.ubuntu.com/ubuntu noble-security InRelease
+2026-11-11T16:41:25.3326237Z Err:5 https://security.ubuntu.com/ubuntu noble-security InRelease
+2026-11-11T16:41:25.3326941Z   Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:41:28.0173047Z Fetched 1473 kB in 3min 20s (7353 B/s)
+2026-11-11T16:41:29.2376401Z Reading package lists...
+2026-11-11T16:41:29.2530145Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble/InRelease  Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:41:29.2532908Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-updates/InRelease  Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:41:29.2536587Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-backports/InRelease  Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:41:29.2539020Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-security/InRelease  Temporary failure resolving 'azure.archive.ubuntu.com'
+2026-11-11T16:41:29.2540347Z W: Some index files failed to download. They have been ignored, or old ones used instead.
+2026-11-11T16:41:29.2705602Z Reading package lists...
+2026-11-11T16:41:29.5393826Z Building dependency tree...
+2026-11-11T16:41:29.5401794Z Reading state information...
+2026-11-11T16:41:29.7145791Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-11-11T16:41:29.7147108Z libasound2t64 set to manually installed.
+2026-11-11T16:41:29.7148157Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-11T16:41:29.7149103Z libatk-bridge2.0-0t64 set to manually installed.
+2026-11-11T16:41:29.7149940Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-11T16:41:29.7150694Z libatk1.0-0t64 set to manually installed.
+2026-11-11T16:41:29.7151479Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-11T16:41:29.7152164Z libatspi2.0-0t64 set to manually installed.
+2026-11-11T16:41:29.7152832Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-11-11T16:41:29.7153314Z libcairo2 set to manually installed.
+2026-11-11T16:41:29.7153768Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-11-11T16:41:29.7154778Z libcups2t64 set to manually installed.
+2026-11-11T16:41:29.7155536Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-11-11T16:41:29.7156054Z libdbus-1-3 set to manually installed.
+2026-11-11T16:41:29.7156508Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-11-11T16:41:29.7157313Z libdrm2 set to manually installed.
+2026-11-11T16:41:29.7157732Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-11-11T16:41:29.7158130Z libgbm1 set to manually installed.
+2026-11-11T16:41:29.7158562Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+2026-11-11T16:41:29.7158997Z libglib2.0-0t64 set to manually installed.
+2026-11-11T16:41:29.7159428Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-11-11T16:41:29.7159830Z libnspr4 set to manually installed.
+2026-11-11T16:41:29.7160226Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+2026-11-11T16:41:29.7160622Z libnss3 set to manually installed.
+2026-11-11T16:41:29.7161040Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-11-11T16:41:29.7161468Z libpango-1.0-0 set to manually installed.
+2026-11-11T16:41:29.7161890Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-11-11T16:41:29.7162294Z libx11-6 set to manually installed.
+2026-11-11T16:41:29.7162664Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-11-11T16:41:29.7163027Z libxcb1 set to manually installed.
+2026-11-11T16:41:29.7163450Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-11-11T16:41:29.7164164Z libxcomposite1 set to manually installed.
+2026-11-11T16:41:29.7164779Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-11-11T16:41:29.7165196Z libxdamage1 set to manually installed.
+2026-11-11T16:41:29.7165609Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-11-11T16:41:29.7165990Z libxext6 set to manually installed.
+2026-11-11T16:41:29.7166438Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-11-11T16:41:29.7166835Z libxfixes3 set to manually installed.
+2026-11-11T16:41:29.7167253Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-11-11T16:41:29.7167664Z libxkbcommon0 set to manually installed.
+2026-11-11T16:41:29.7168084Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-11-11T16:41:29.7168488Z libxrandr2 set to manually installed.
+2026-11-11T16:41:29.7168883Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+2026-11-11T16:41:29.7169438Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-11-11T16:41:29.7170222Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-11-11T16:41:29.7170673Z libfontconfig1 set to manually installed.
+2026-11-11T16:41:29.7171129Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-11-11T16:41:29.7171568Z libfreetype6 set to manually installed.
+2026-11-11T16:41:29.7171993Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-11-11T16:41:29.7172423Z fonts-liberation set to manually installed.
+2026-11-11T16:41:29.7172836Z The following additional packages will be installed:
+2026-11-11T16:41:29.7173206Z   xfonts-encodings xfonts-utils
+2026-11-11T16:41:29.7173515Z Recommended packages:
+2026-11-11T16:41:29.7173800Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-11-11T16:41:29.7385603Z The following NEW packages will be installed:
+2026-11-11T16:41:29.7386485Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-11-11T16:41:29.7398399Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-11-11T16:41:29.7399135Z   xfonts-utils
+2026-11-11T16:41:29.7625733Z 0 upgraded, 9 newly installed, 0 to remove and 3 not upgraded.
+2026-11-11T16:41:29.7626231Z Need to get 21.1 MB of archives.
+2026-11-11T16:41:29.7626690Z After this operation, 79.5 MB of additional disk space will be used.
+2026-11-11T16:41:29.7627213Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-11T16:41:49.8009388Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+2026-11-11T16:42:04.0681548Z ##[warning]apt/--with-deps failed or stalled on a cache hit; the cached browser is kept and the run proceeds (missing system libraries fail the tests visibly)
+2026-11-11T16:42:09.8271511Z Ign:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+2026-11-11T16:42:09.9320561Z ##[group]Run npm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile  --workers="$TERMINAL_E2E_WORKERS"
+2026-11-11T16:42:09.9321998Z [36;1mnpm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile  --workers="$TERMINAL_E2E_WORKERS"[0m
+2026-11-11T16:42:09.9342257Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:42:09.9342512Z env:
+2026-11-11T16:42:09.9342724Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:42:09.9342989Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:42:09.9343254Z   TERMINAL_E2E_PORT: 3108
+2026-11-11T16:42:09.9343494Z   TERMINAL_E2E_WORKERS: 1
+2026-11-11T16:42:09.9343722Z ##[endgroup]
+2026-11-11T16:42:10.0478025Z 
+2026-11-11T16:42:10.0478494Z > terminal@0.1.0 test:e2e:responsive
+2026-11-11T16:42:10.0480051Z > playwright test --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile --workers=1
+2026-11-11T16:42:10.0481428Z 
+2026-11-11T16:42:24.7694237Z [warmup] /terminal?symbol=NVDA → 200 in 136ms
+2026-11-11T16:42:27.0949465Z [warmup] /options → 200 in 2325ms
+2026-11-11T16:42:28.0048861Z [warmup] /portfolio → 200 in 910ms
+2026-11-11T16:42:28.8175322Z [warmup] /alerts → 200 in 813ms
+2026-11-11T16:42:30.4344176Z [warmup] /analysis → 200 in 1617ms
+2026-11-11T16:42:32.7632649Z [warmup] /discover → 200 in 2328ms
+2026-11-11T16:42:33.2227554Z [warmup] /admin → 200 in 459ms
+2026-11-11T16:42:33.5586074Z [warmup] /embed/chart?symbol=NVDA → 200 in 336ms
+2026-11-11T16:42:33.6869501Z [warmup] /login → 200 in 128ms
+2026-11-11T16:42:34.0650096Z [warmup] /reset-password → 200 in 378ms
+2026-11-11T16:42:34.6190973Z [warmup] /api/me → 200 in 554ms
+2026-11-11T16:42:34.8507478Z [warmup] /api/watchlist → 200 in 232ms
+2026-11-11T16:42:35.0831765Z [warmup] /api/layouts → 200 in 232ms
+2026-11-11T16:42:35.2705177Z [warmup] /api/watchlist/annotations → 409 in 188ms
+2026-11-11T16:42:35.2705988Z [warmup] 14 routes compiled in 11s
+2026-11-11T16:42:35.8604452Z [fixture-ready] prophet_idx fixture 200 in 590ms
+2026-11-11T16:42:36.6644937Z 
+2026-11-11T16:42:36.6647932Z Running 84 tests using 1 worker
+2026-11-11T16:42:44.4184284Z [WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+2026-11-11T16:45:37.8396696Z ·············°°····°····°······°·°°°°°°°°°°···°°·°°·°··°···°·°°°°°°°°·····°··°°·
+2026-11-11T16:45:51.2825542Z ····
+2026-11-11T16:45:51.2838648Z ##[notice]  33 skipped
+  51 passed (3.7m)
+2026-11-11T16:45:51.2840590Z   33 skipped
+2026-11-11T16:45:51.2841075Z   51 passed (3.7m)
+2026-11-11T16:45:51.3106088Z ##[group]Run node e2e/tools/ticker_news_capture_receipt.cjs --prepare
+2026-11-11T16:45:51.3106651Z [36;1mnode e2e/tools/ticker_news_capture_receipt.cjs --prepare[0m
+2026-11-11T16:45:51.3107645Z [36;1mnpm run test:e2e:responsive -- e2e/ticker-news.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/ticker-news-current/playwright --reporter=github,json[0m
+2026-11-11T16:45:51.3108616Z [36;1mnode e2e/tools/ticker_news_capture_receipt.cjs --verify[0m
+2026-11-11T16:45:51.3128814Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:45:51.3129076Z env:
+2026-11-11T16:45:51.3129277Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:45:51.3129534Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:45:51.3129777Z   CI: 1
+2026-11-11T16:45:51.3129962Z   TERMINAL_CROPS: 1
+2026-11-11T16:45:51.3130223Z   TERMINAL_TICKER_NEWS_CAPTURE_PACKET: ticker-news
+2026-11-11T16:45:51.3130539Z   TERMINAL_E2E_PORT: 3108
+2026-11-11T16:45:51.3130940Z   PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/ticker-news-current/report.json
+2026-11-11T16:45:51.3131341Z ##[endgroup]
+2026-11-11T16:45:51.6304439Z 
+2026-11-11T16:45:51.6305182Z > terminal@0.1.0 test:e2e:responsive
+2026-11-11T16:45:51.6307233Z > playwright test e2e/ticker-news.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/ticker-news-current/playwright --reporter=github,json
+2026-11-11T16:45:51.6309034Z 
+2026-11-11T16:46:06.1745190Z [warmup] /terminal?symbol=NVDA → 200 in 139ms
+2026-11-11T16:46:08.7245225Z [warmup] /options → 200 in 2546ms
+2026-11-11T16:46:09.6014937Z [warmup] /portfolio → 200 in 881ms
+2026-11-11T16:46:10.3641054Z [warmup] /alerts → 200 in 762ms
+2026-11-11T16:46:11.8890397Z [warmup] /analysis → 200 in 1524ms
+2026-11-11T16:46:14.0033631Z [warmup] /discover → 200 in 2116ms
+2026-11-11T16:46:14.4355612Z [warmup] /admin → 200 in 430ms
+2026-11-11T16:46:14.7731782Z [warmup] /embed/chart?symbol=NVDA → 200 in 339ms
+2026-11-11T16:46:14.9097964Z [warmup] /login → 200 in 137ms
+2026-11-11T16:46:15.3351539Z [warmup] /reset-password → 200 in 425ms
+2026-11-11T16:46:15.8879498Z [warmup] /api/me → 200 in 553ms
+2026-11-11T16:46:16.1018047Z [warmup] /api/watchlist → 200 in 214ms
+2026-11-11T16:46:16.2943016Z [warmup] /api/layouts → 200 in 193ms
+2026-11-11T16:46:16.4421381Z [warmup] /api/watchlist/annotations → 409 in 147ms
+2026-11-11T16:46:16.4421960Z [warmup] 14 routes compiled in 10s
+2026-11-11T16:46:17.0189048Z [fixture-ready] prophet_idx fixture 200 in 576ms
+2026-11-11T16:46:17.6224537Z 
+2026-11-11T16:46:17.6245088Z Running 21 tests using 1 worker
+2026-11-11T16:46:25.7471469Z [WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+2026-11-11T16:51:04.4330729Z [WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+2026-11-11T16:58:47.7144310Z ·······°°·°°··°··°°··
+2026-11-11T16:58:47.7158150Z ##[warning]terminal/[desktop] › e2e/ticker-news.spec.ts took 6.7m
+2026-11-11T16:58:47.7160375Z ##[notice]  7 skipped
+  14 passed (12.9m)
+2026-11-11T16:58:47.7246802Z   Slow test file: [desktop] › e2e/ticker-news.spec.ts (6.7m)
+2026-11-11T16:58:47.7247846Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+2026-11-11T16:58:47.7248542Z   7 skipped
+2026-11-11T16:58:47.7248812Z   14 passed (12.9m)
+2026-11-11T16:58:48.1268863Z Qualified ticker-news capture: 14 passed, 7 authored skips, 0 failures/flakes/retries; 10 fresh PNGs. Manifest unchanged.
+2026-11-11T16:58:48.1423452Z ##[group]Run npm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/investor-shell-preview
+2026-11-11T16:58:48.1425279Z [36;1mnpm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/investor-shell-preview[0m
+2026-11-11T16:58:48.1445817Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:58:48.1446087Z env:
+2026-11-11T16:58:48.1446301Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:58:48.1446559Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:58:48.1446828Z   MMX_INVESTOR_SHELL_PREVIEW: 1
+2026-11-11T16:58:48.1447096Z   CI: 1
+2026-11-11T16:58:48.1447301Z   TERMINAL_E2E_PORT: 31991
+2026-11-11T16:58:48.1447554Z ##[endgroup]
+2026-11-11T16:58:48.2619336Z 
+2026-11-11T16:58:48.2619829Z > terminal@0.1.0 test:e2e:responsive
+2026-11-11T16:58:48.2622218Z > playwright test e2e/investor-shell-preview.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/investor-shell-preview
+2026-11-11T16:58:48.2624166Z 
+2026-11-11T16:59:02.2705716Z [warmup] /terminal?symbol=NVDA → 200 in 141ms
+2026-11-11T16:59:04.4436550Z [warmup] /options → 200 in 2173ms
+2026-11-11T16:59:05.2565889Z [warmup] /portfolio → 200 in 813ms
+2026-11-11T16:59:06.1008289Z [warmup] /alerts → 200 in 844ms
+2026-11-11T16:59:07.6611746Z [warmup] /analysis → 200 in 1560ms
+2026-11-11T16:59:09.7759842Z [warmup] /discover → 200 in 2114ms
+2026-11-11T16:59:10.1902509Z [warmup] /admin → 200 in 415ms
+2026-11-11T16:59:10.4836620Z [warmup] /embed/chart?symbol=NVDA → 200 in 293ms
+2026-11-11T16:59:10.6125768Z [warmup] /login → 200 in 127ms
+2026-11-11T16:59:10.9665730Z [warmup] /reset-password → 200 in 355ms
+2026-11-11T16:59:11.4867204Z [warmup] /api/me → 200 in 521ms
+2026-11-11T16:59:11.6946825Z [warmup] /api/watchlist → 200 in 208ms
+2026-11-11T16:59:11.8896525Z [warmup] /api/layouts → 200 in 195ms
+2026-11-11T16:59:12.0397867Z [warmup] /api/watchlist/annotations → 409 in 150ms
+2026-11-11T16:59:12.0398447Z [warmup] 14 routes compiled in 10s
+2026-11-11T16:59:12.6110309Z [fixture-ready] prophet_idx fixture 200 in 571ms
+2026-11-11T16:59:12.8478281Z 
+2026-11-11T16:59:12.8478973Z Running 24 tests using 1 worker
+2026-11-11T16:59:28.3826083Z [WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+2026-11-11T16:59:58.9705628Z ···°······°°°°····°·°°··
+2026-11-11T16:59:58.9712993Z ##[notice]  8 skipped
+  16 passed (1.2m)
+2026-11-11T16:59:58.9717935Z   8 skipped
+2026-11-11T16:59:58.9718358Z   16 passed (1.2m)
+2026-11-11T16:59:58.9980730Z ##[group]Run npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts e2e/discover-focus-continuity.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/shared-shell-refinement --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs
+2026-11-11T16:59:58.9983167Z [36;1mnpm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts e2e/discover-focus-continuity.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/shared-shell-refinement --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs[0m
+2026-11-11T16:59:59.0004403Z shell: /usr/bin/bash -e {0}
+2026-11-11T16:59:59.0004665Z env:
+2026-11-11T16:59:59.0004867Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T16:59:59.0005112Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T16:59:59.0005354Z   MMX_SHARED_SHELL: 1
+2026-11-11T16:59:59.0005668Z   TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: intl-fixture-v1
+2026-11-11T16:59:59.0006008Z   CI: 1
+2026-11-11T16:59:59.0006209Z   TERMINAL_E2E_PORT: 31992
+2026-11-11T16:59:59.0006444Z ##[endgroup]
+2026-11-11T16:59:59.1102895Z 
+2026-11-11T16:59:59.1103581Z > terminal@0.1.0 test:e2e:responsive
+2026-11-11T16:59:59.1106170Z > playwright test e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts e2e/discover-focus-continuity.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/shared-shell-refinement --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs
+2026-11-11T16:59:59.1107785Z 
+2026-11-11T17:00:14.4980222Z [warmup] /terminal?symbol=NVDA → 200 in 113ms
+2026-11-11T17:00:16.5699547Z [warmup] /options → 200 in 2073ms
+2026-11-11T17:00:17.4013018Z [warmup] /portfolio → 200 in 832ms
+2026-11-11T17:00:18.1441798Z [warmup] /alerts → 200 in 742ms
+2026-11-11T17:00:19.6970986Z [warmup] /analysis → 200 in 1552ms
+2026-11-11T17:00:21.6817069Z [warmup] /discover → 200 in 1985ms
+2026-11-11T17:00:22.0807029Z [warmup] /admin → 200 in 398ms
+2026-11-11T17:00:22.3751041Z [warmup] /embed/chart?symbol=NVDA → 200 in 296ms
+2026-11-11T17:00:22.5248487Z [warmup] /login → 200 in 150ms
+2026-11-11T17:00:22.8340432Z [warmup] /reset-password → 200 in 308ms
+2026-11-11T17:00:23.3755895Z [warmup] /api/me → 200 in 543ms
+2026-11-11T17:00:23.5629764Z [warmup] /api/watchlist → 200 in 187ms
+2026-11-11T17:00:23.7572453Z [warmup] /api/layouts → 200 in 194ms
+2026-11-11T17:00:23.9075724Z [warmup] /api/watchlist/annotations → 409 in 150ms
+2026-11-11T17:00:23.9077202Z [warmup] 14 routes compiled in 10s
+2026-11-11T17:00:24.5020103Z [fixture-ready] prophet_idx fixture 200 in 594ms
+2026-11-11T17:02:03.6125829Z ##[notice]  13 skipped
+  32 passed (2.1m)
+2026-11-11T17:02:03.6549889Z ##[group]Run node e2e/tools/sharedShellSafeReporter.cjs --publish-safe-summary
+2026-11-11T17:02:03.6550647Z [36;1mnode e2e/tools/sharedShellSafeReporter.cjs --publish-safe-summary[0m
+2026-11-11T17:02:03.6572307Z shell: /usr/bin/bash -e {0}
+2026-11-11T17:02:03.6572765Z env:
+2026-11-11T17:02:03.6573120Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T17:02:03.6573767Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T17:02:03.6574576Z   SAFE_DIRECTORY_DEV: 2049
+2026-11-11T17:02:03.6574923Z   SAFE_DIRECTORY_INO: 9705631
+2026-11-11T17:02:03.6575386Z   SAFE_FILE_DEV: 2049
+2026-11-11T17:02:03.6575613Z   SAFE_FILE_INO: 9703786
+2026-11-11T17:02:03.6576118Z   SAFE_FILE_SHA256: 602c27c10387e894ea6e18f923961090a2bf9c726ea2f309b5c8b7ac4517c3af
+2026-11-11T17:02:03.6576775Z   SAFE_STEP_OUTCOME: success
+2026-11-11T17:02:03.6577112Z ##[endgroup]
+2026-11-11T17:02:03.7202372Z ##[group]Run actions/upload-artifact@v4
+2026-11-11T17:02:03.7202692Z with:
+2026-11-11T17:02:03.7202974Z   name: responsive-qa-43058589661-serial-safe-summary-1
+2026-11-11T17:02:03.7203471Z   path: /home/runner/work/_temp/terminal-shared-shell-upload-YfrQt4/safe-summary.json
+2026-11-11T17:02:03.7204331Z   if-no-files-found: warn
+2026-11-11T17:02:03.7204609Z   compression-level: 6
+2026-11-11T17:02:03.7204845Z   overwrite: false
+2026-11-11T17:02:03.7205078Z   include-hidden-files: false
+2026-11-11T17:02:03.7205343Z env:
+2026-11-11T17:02:03.7205535Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T17:02:03.7205782Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T17:02:03.7206021Z ##[endgroup]
+2026-11-11T17:02:03.8987705Z (node:11105) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T17:02:03.8988558Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T17:02:03.9014285Z With the provided path, there will be 1 file uploaded
+2026-11-11T17:02:03.9042174Z Artifact name is valid!
+2026-11-11T17:02:03.9045898Z Root directory input is valid!
+2026-11-11T17:02:04.1110702Z Beginning upload of artifact content to blob storage
+2026-11-11T17:02:04.1319701Z (node:11105) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-11T17:02:04.1750847Z Uploaded bytes 1745
+2026-11-11T17:02:04.1939661Z Finished uploading artifact content to blob storage!
+2026-11-11T17:02:04.1941204Z SHA256 digest of uploaded artifact zip is 81d9fe95d8d61bfa5fda576b589d519acacf949ae01234b8a4d2cfe3885a42e3
+2026-11-11T17:02:04.1942321Z Finalizing artifact upload
+2026-11-11T17:02:04.9056366Z Artifact responsive-qa-43058589661-serial-safe-summary-1.zip successfully finalized. Artifact ID 13875640686
+2026-11-11T17:02:04.9059073Z Artifact responsive-qa-43058589661-serial-safe-summary-1 has been successfully uploaded! Final size is 1745 bytes. Artifact ID is 13875640686
+2026-11-11T17:02:04.9065581Z Artifact download URL: https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43058589661/artifacts/13875640686
+2026-11-11T17:02:04.9247969Z ##[group]Run node e2e/tools/qualify_shared_shell_intelligence.cjs
+2026-11-11T17:02:04.9248825Z [36;1mnode e2e/tools/qualify_shared_shell_intelligence.cjs[0m
+2026-11-11T17:02:04.9277553Z shell: /usr/bin/bash -e {0}
+2026-11-11T17:02:04.9278039Z env:
+2026-11-11T17:02:04.9278397Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T17:02:04.9278860Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T17:02:04.9279296Z   CI: 1
+2026-11-11T17:02:04.9279714Z   INTELLIGENCE_TEST_PORT: 31993
+2026-11-11T17:02:04.9280310Z   INTELLIGENCE_TEST_VARIANT: ci-intelligence-43058589661-1
+2026-11-11T17:02:04.9280942Z ##[endgroup]
+2026-11-11T17:02:35.1620614Z {"passed":true,"cells":6,"errors":[],"receipt":"/home/runner/work/mastermind-terminal/mastermind-terminal/terminal/docs/pr-crops/shared-shell-intelligence-20261103/ci-intelligence-43058589661-1/browser-qualification.json"}
+2026-11-11T17:02:35.1998986Z ##[group]Run actions/upload-artifact@v4
+2026-11-11T17:02:35.1999554Z with:
+2026-11-11T17:02:35.1999991Z   name: intelligence-beta-qa-43058589661-1
+2026-11-11T17:02:35.2000674Z   path: terminal/docs/pr-crops/shared-shell-intelligence-20261103/ci-intelligence-43058589661-1
+2026-11-11T17:02:35.2001197Z   if-no-files-found: warn
+2026-11-11T17:02:35.2001455Z   compression-level: 6
+2026-11-11T17:02:35.2001936Z   overwrite: false
+2026-11-11T17:02:35.2002167Z   include-hidden-files: false
+2026-11-11T17:02:35.2002421Z env:
+2026-11-11T17:02:35.2002613Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T17:02:35.2002864Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T17:02:35.2003106Z ##[endgroup]
+2026-11-11T17:02:35.4242547Z (node:11457) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T17:02:35.4244857Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T17:02:35.4315159Z With the provided path, there will be 11 files uploaded
+2026-11-11T17:02:35.4319757Z Artifact name is valid!
+2026-11-11T17:02:35.4320693Z Root directory input is valid!
+2026-11-11T17:02:35.6450421Z Beginning upload of artifact content to blob storage
+2026-11-11T17:02:35.7222244Z (node:11457) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-11T17:02:35.8161174Z Uploaded bytes 1014813
+2026-11-11T17:02:35.8348477Z Finished uploading artifact content to blob storage!
+2026-11-11T17:02:35.8350180Z SHA256 digest of uploaded artifact zip is b69c8cb362738b5087c8ba05083b861f4c262f03e234f6bff5c968faa45f0bc2
+2026-11-11T17:02:35.8351850Z Finalizing artifact upload
+2026-11-11T17:02:36.2383089Z Artifact intelligence-beta-qa-43058589661-1.zip successfully finalized. Artifact ID 13874099372
+2026-11-11T17:02:36.2385463Z Artifact intelligence-beta-qa-43058589661-1 has been successfully uploaded! Final size is 1014813 bytes. Artifact ID is 13874099372
+2026-11-11T17:02:36.2387493Z Artifact download URL: https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43058589661/artifacts/13874099372
+2026-11-11T17:02:36.2567698Z ##[group]Run actions/upload-artifact@v4
+2026-11-11T17:02:36.2568047Z with:
+2026-11-11T17:02:36.2568287Z   name: responsive-qa-43058589661-serial
+2026-11-11T17:02:36.2568614Z   path: terminal/test-results
+2026-11-11T17:02:36.2568892Z   if-no-files-found: ignore
+2026-11-11T17:02:36.2569163Z   compression-level: 6
+2026-11-11T17:02:36.2569400Z   overwrite: false
+2026-11-11T17:02:36.2569641Z   include-hidden-files: false
+2026-11-11T17:02:36.2569895Z env:
+2026-11-11T17:02:36.2570119Z   TERMINAL_E2E_LANE: hosted
+2026-11-11T17:02:36.2570369Z   TERMINAL_E2E_LANE_WORKERS: 2
+2026-11-11T17:02:36.2570629Z ##[endgroup]
+2026-11-11T17:02:36.4338841Z (node:11481) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T17:02:36.4339700Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T17:02:36.4886961Z With the provided path, there will be 170 files uploaded
+2026-11-11T17:02:36.4888017Z Artifact name is valid!
+2026-11-11T17:02:36.4888836Z Root directory input is valid!
+2026-11-11T17:02:36.6928500Z Beginning upload of artifact content to blob storage
+2026-11-11T17:02:37.0303266Z (node:11481) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-11T17:02:37.3373405Z Uploaded bytes 8388608
+2026-11-11T17:02:37.4827893Z Uploaded bytes 11846652
+2026-11-11T17:02:37.5075564Z Finished uploading artifact content to blob storage!
+2026-11-11T17:02:37.5077208Z SHA256 digest of uploaded artifact zip is fe77aa0a715cb0d4a4ccac305efe39791089b8bf07778ee177f9275c485e8e3d
+2026-11-11T17:02:37.5078818Z Finalizing artifact upload
+2026-11-11T17:02:37.8752155Z Artifact responsive-qa-43058589661-serial.zip successfully finalized. Artifact ID 13873869731
+2026-11-11T17:02:37.8754433Z Artifact responsive-qa-43058589661-serial has been successfully uploaded! Final size is 11846652 bytes. Artifact ID is 13873869731
+2026-11-11T17:02:37.8760654Z Artifact download URL: https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43058589661/artifacts/13873869731
+2026-11-11T17:02:37.8992620Z Post job cleanup.
+2026-11-11T17:02:38.0141136Z Cache hit occurred on the primary key pw-Linux-1.61.1, not saving cache.
+2026-11-11T17:02:38.0143212Z (node:11494) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T17:02:38.0145268Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T17:02:38.0264247Z Post job cleanup.
+2026-11-11T17:02:38.1564843Z (node:11503) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-11T17:02:38.1565901Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-11T17:02:38.1570271Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-9e394b79118f59a2011ffa58fc050f70a9d0ea5fee457f3ab89821f08f961017, not saving cache.
+2026-11-11T17:02:38.1798310Z Post job cleanup.
+2026-11-11T17:02:38.2760780Z [command]/usr/bin/git version
+2026-11-11T17:02:38.2813050Z git version 2.56.0
+2026-11-11T17:02:38.2856562Z Temporarily overriding HOME='/home/runner/work/_temp/80b91d09-27de-4af5-ab56-aa929a697907' before making global git config changes
+2026-11-11T17:02:38.2858202Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-11T17:02:38.2863226Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mastermind-terminal/mastermind-terminal
+2026-11-11T17:02:38.2917148Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-11T17:02:38.2966839Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-11T17:02:38.3312116Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-11T17:02:38.3370214Z http.https://github.com/.extraheader
+2026-11-11T17:02:38.3376813Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-11T17:02:38.3439572Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-11T17:02:38.3771015Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-11T17:02:38.3820936Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-11T17:02:38.4293178Z Cleaning up orphan processes
+2026-11-11T17:02:38.4778328Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/cache@v4, actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+

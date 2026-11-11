@@ -1,0 +1,80 @@
+{
+  "schema": "terminal.cjk-upstream-provenance.v1",
+  "repository": "notofonts/noto-cjk",
+  "releaseCommit": "523d033d6cb47f4a80c58a35753646f5c3608a78",
+  "manifestCommit": "f8d157532fbfaeda587e826d4cd5b21a49186f7c",
+  "releaseTree": {
+    "sha": "523d033d6cb47f4a80c58a35753646f5c3608a78",
+    "url": "https://api.github.com/repos/notofonts/noto-cjk/git/trees/523d033d6cb47f4a80c58a35753646f5c3608a78",
+    "truncated": false,
+    "files": [
+      {
+        "path": "LICENSE",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "d952d62c065f3f35fb83a173496e90b21525aef3",
+        "size": 4301,
+        "url": "https://api.github.com/repos/notofonts/noto-cjk/git/blobs/d952d62c065f3f35fb83a173496e90b21525aef3"
+      },
+      {
+        "path": "Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "dc15562470b4f842321894787a0d066879ccff8b",
+        "size": 16437364,
+        "url": "https://api.github.com/repos/notofonts/noto-cjk/git/blobs/dc15562470b4f842321894787a0d066879ccff8b"
+      }
+    ]
+  },
+  "manifestTree": {
+    "sha": "f8d157532fbfaeda587e826d4cd5b21a49186f7c",
+    "url": "https://api.github.com/repos/notofonts/noto-cjk/git/trees/f8d157532fbfaeda587e826d4cd5b21a49186f7c",
+    "truncated": false,
+    "files": [
+      {
+        "path": "Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "dc15562470b4f842321894787a0d066879ccff8b",
+        "size": 16437364,
+        "url": "https://api.github.com/repos/notofonts/noto-cjk/git/blobs/dc15562470b4f842321894787a0d066879ccff8b"
+      },
+      {
+        "path": "_manifest/spdx_2.2/manifest.spdx.json",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "68b3684f0d0a5a66b962db989962cb183f45a39e",
+        "size": 343185,
+        "url": "https://api.github.com/repos/notofonts/noto-cjk/git/blobs/68b3684f0d0a5a66b962db989962cb183f45a39e"
+      }
+    ]
+  },
+  "spdx": {
+    "SPDXID": "SPDXRef-File-Sans-OTF-SimplifiedChinese-NotoSansCJKsc-Regular.otf",
+    "fileName": "./Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf",
+    "copyrightText": "© 2014-2021 Adobe (http://www.adobe.com/).",
+    "licenseConcluded": "OFL-1.1",
+    "fileTypes": [
+      "OTHER"
+    ],
+    "licenseInfoInFiles": [
+      "OFL-1.1"
+    ],
+    "checksums": [
+      {
+        "algorithm": "SHA1",
+        "checksumValue": "d577bdc302c03212e1d05fd3f808657a71edea0c"
+      },
+      {
+        "algorithm": "SHA256",
+        "checksumValue": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b"
+      }
+    ],
+    "fileComment": "Binary file contributed by Adobe",
+    "fileContributor": [
+      "Adobe",
+      "Ryoko NISHIZUKA 西塚涼子 (kana, bopomofo & ideographs); Paul D. Hunt (Latin, Greek & Cyrillic); Sandoll Communications 산돌커뮤니케이션, Soo-young JANG 장수영 & Joo-yeon KANG 강주연 (hangul elements, letters & syllables)"
+    ]
+  },
+  "binaryDownloadedLocally": false
+}

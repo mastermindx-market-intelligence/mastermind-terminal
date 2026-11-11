@@ -1,0 +1,98 @@
+{
+  "schema": "terminal.ticker-visual-disposition.v1",
+  "sourceHead": "4eee35f4945cb82365e63e72b8d8fa0cb73c8022",
+  "actualCheckout": "5530a2cb6e79db7e1b8426ea38dfee64f9b6e134",
+  "run": 43058589661,
+  "attempt": 1,
+  "job": 130657667008,
+  "artifact": 13873869731,
+  "disposition": "REJECTED",
+  "mechanicalChecksPassed": true,
+  "visualAcceptance": false,
+  "reason": "Principal inspected all five changed Chinese PNGs. Chinese labels, unavailable status and retry text rendered as missing-glyph boxes. DOM/report/PNG-CRC checks alone did not detect missing installed CJK fonts.",
+  "inspectedChineseImages": [
+    {
+      "file": "desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "fe3d94a490816ac7c2026e2f9a97e2e98eb6f233c48c554b75989f6ac0fff074"
+      }
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "f6d5bad787673d49acf090137a94e0a4dbcdee3cc3491cc39e17a894d7ffb666"
+      }
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 605,
+        "sha256": "2c86030bb0f3c33b861569162da1f737d87c7d860d91557e676144014c503a11"
+      }
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "c327132d531d02b007ccf78ce25c95365802bc085c58211341b910b5ca4ed40e"
+      }
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "b497feb6d46c1c6dd346aa8080d24f1816206eddb39724cdddc66c7123e30681"
+      }
+    }
+  ],
+  "englishDisposition": "All five EN images are byte-identical to the previously accepted original-8a ticker packet; this does not qualify the rejected bilingual packet.",
+  "selectedPacketChanged": false,
+  "rawReceiptsModified": false,
+  "productionAcceptance": false,
+  "reportStorage": {
+    "file": "report.json.gz",
+    "encoding": "gzip",
+    "rawBytes": 992730,
+    "rawSha256": "a19f8f5623db464cf8d2378aab011ea4f1e5799045a58993e3e871a529abcd19",
+    "compressedBytes": 219212,
+    "compressedSha256": "8c195a48a2793812f181885de0c1069294ccaae61a652609d54205df17b6ea82",
+    "decompressionEqualsOriginal": true
+  }
+}
