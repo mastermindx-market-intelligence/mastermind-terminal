@@ -191,22 +191,25 @@ user and no `/etc/cron.allow` or `/etc/at.allow` naming one (an allow file makes
 cron and `at` ignore the deny file; the loop asserts both), linger off for every
 slot user (`loginctl show-user ghrunner-N` reports `Linger=no`), the `USER` column of
 `loginctl list-sessions --no-legend` being the third (systemd 249 to 256 layout; the
-loop's session check reads it), `/etc/pam.d/sudo` not
-pulling in `pam_systemd` (Ubuntu's `common-session-noninteractive` does not; a
-stack that does would move `run.sh` into a `user-N.slice` session scope outside
-the job cgroup), and no auditd `execve` rule that records argv, which would log the
-JIT config blob.
+loop's session check reads it), and util-linux `setpriv` (the loop drops to the
+slot user with it rather than `sudo`, so no PAM session stack runs for `run.sh` and
+nothing can move it into a `user-N.slice` session scope outside the job cgroup). The
+JIT config blob is never in argv, so an auditd `execve` rule cannot record it.
 
 ```
-# system unit for slot N (PrivateTmp=yes, Delegate=yes), running as root for the reset;
-# minting runs as ghmint, the only account that can read the org credential. The only
-# sudoers line this needs is
-#   Defaults!/opt/actions-runner/slots/ubuntu0-e2e-N/run.sh !log_allowed
-# so the JIT blob on that command line is not written to the auth log (root runs
-# run.sh as ghrunner-N under the stock `root ALL=(ALL:ALL) ALL` line; nothing grants
-# ghmint or ghrunner-N any sudo). Keep the unit's default KillMode=control-group.
-# Do not replace the sudo with `systemd-run`: a transient unit's ExecStart, JIT blob
-# included, is readable by every user through `systemctl show`.
+# bash, in a system unit for slot N (PrivateTmp=yes, Delegate=yes), running as root for
+# the reset; minting runs as ghmint, the only account that can read the org credential;
+# nothing grants ghmint or ghrunner-N any sudo. Keep the unit's default
+# KillMode=control-group.
+# The JIT blob is never on a command line. Step 5 hands it to run.sh in the environment
+# variable ACTIONS_RUNNER_INPUT_JITCONFIG (the runner reads it and removes it from its
+# own environment; /proc/<pid>/environ is readable only by that uid and root) and drops
+# to ghrunner-N with `setpriv`, which execs in place. `sudo -u ghrunner-N run.sh
+# --jitconfig "$jit"` would leave a root sudo parent holding the blob in its
+# /proc/<pid>/cmdline, readable by every uid unless /proc is mounted hidepid=2, for the
+# whole job, and sudo writes the full command line to the auth log.
+# Do not use `systemd-run` either: a transient unit's ExecStart and Environment are
+# readable by every user through `systemctl show`.
 u=ghrunner-N; slot=/opt/actions-runner/slots/ubuntu0-e2e-N
 # unified cgroup v2 only: on a hybrid/v1 host /proc/self/cgroup has several lines and
 # the path below would be wrong
@@ -237,11 +240,22 @@ while :; do
   if loginctl list-sessions --no-legend | awk '{print $3}' | grep -qx "$u"; then echo "slot $u has a logind session; not minting" >&2; exit 1; fi
   if pgrep -u "$u" >/dev/null; then echo "slot $u still has a live process; not minting" >&2; exit 1; fi
   # 5. one-shot JIT config, minted as ghmint, handed only to this run.sh in a fresh job cgroup.
-  #    The shell that writes itself into cgroup.procs is the one that execs run.sh (in a
-  #    `( ... )` subshell `$$` is still the loop shell's pid, so the job would stay outside).
+  #    The process that writes itself into cgroup.procs is the one that execs run.sh: in the
+  #    `( ... )` subshell that is $BASHPID ($$ is still the loop shell's pid, so the job
+  #    would stay outside). The subshell resets the environment to what `sudo -H -u`
+  #    gives (env_reset, secure_path) and adds only the JIT config.
   jit="$(sudo -u ghmint mint-jitconfig ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)"  # never echoed
   mkdir "$job_cg" || exit 1
-  sh -c 'echo $$ > "$1/cgroup.procs" && shift && exec "$@"' _ "$job_cg" sudo -u "$u" "$slot/run.sh" --jitconfig "$jit"
+  (
+    login_shell="$(getent passwd "$u" | cut -d: -f7)"   # before PATH is cleared
+    unset $(env | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p') 2>/dev/null
+    export HOME="/home/$u" USER="$u" LOGNAME="$u" LANG=C.UTF-8 SHELL="$login_shell" \
+      PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+      ACTIONS_RUNNER_INPUT_JITCONFIG="$jit"
+    echo "$BASHPID" > "$job_cg/cgroup.procs" || exit 1
+    cd "/home/$u" || exit 1
+    exec setpriv --reuid="$u" --regid="$u" --init-groups "$slot/run.sh"
+  )
 done
 ```
 
