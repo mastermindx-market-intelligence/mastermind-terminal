@@ -219,6 +219,7 @@ grep -qx "$u" /etc/cron.deny && grep -qx "$u" /etc/at.deny || exit 1   # timers 
 ! grep -qx "$u" /etc/cron.allow /etc/at.allow 2>/dev/null || exit 1     # an allow file overrides deny
 [ "$(getent passwd "$u" | cut -d: -f7)" = /usr/sbin/nologin ] || exit 1  # no login path for the slot user
 sshd -T -C user="$u",host=localhost,addr=127.0.0.1 | grep -qi '^denyusers .*ghrunner-' || exit 1  # sshd denies it too
+backoff=15
 while :; do
   # 1. no timer may fire as $u after the reset: purge cron/at BEFORE killing anything
   crontab -r -u "$u" 2>/dev/null; for j in $(atq | awk -v u="$u" '$NF==u{print $1}'); do atrm "$j"; done
@@ -243,30 +244,49 @@ while :; do
   #    The process that writes itself into cgroup.procs is the one that execs run.sh: in the
   #    `( ... )` subshell that is $BASHPID ($$ is still the loop shell's pid, so the job
   #    would stay outside). The subshell resets the environment to what `sudo -H -u`
-  #    gives (env_reset, secure_path) and adds only the JIT config.
-  jit="$(sudo -u ghmint mint-jitconfig ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)"  # never echoed
+  #    gives (env_reset, secure_path) and adds only the JIT config. A mint failure is an
+  #    API/network problem, not a survivor: back off and retry rather than exit.
+  if ! jit="$(sudo -u ghmint /usr/local/bin/mint-jitconfig mint ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)" || [ -z "$jit" ]; then
+    unset jit; sleep "$backoff"; [ "$backoff" -lt 300 ] && backoff=$((backoff * 2)); continue
+  fi   # never echoed
   mkdir "$job_cg" || exit 1
+  started=$SECONDS
   (
-    login_shell="$(getent passwd "$u" | cut -d: -f7)"   # before PATH is cleared
-    unset $(env | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p') 2>/dev/null
-    export HOME="/home/$u" USER="$u" LOGNAME="$u" LANG=C.UTF-8 SHELL="$login_shell" \
-      PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    lang="${LANG:-C.UTF-8}"; login_shell="$(getent passwd "$u" | cut -d: -f7)"   # before PATH is cleared
+    # compgen lists names only, never values: drop every exported variable and every
+    # function (an exported function reaches children as BASH_FUNC_*); survivors fail closed
+    mapfile -t exported < <(compgen -e); mapfile -t functions < <(compgen -A function)
+    unset "${exported[@]}" || exit 1
+    unset -f "${functions[@]}" || exit 1
+    [ -z "$(compgen -e)$(compgen -A function)" ] || exit 1
+    export HOME="/home/$u" USER="$u" LOGNAME="$u" LANG="$lang" SHELL="$login_shell" \
+      PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin \
       ACTIONS_RUNNER_INPUT_JITCONFIG="$jit"
     echo "$BASHPID" > "$job_cg/cgroup.procs" || exit 1
     cd "/home/$u" || exit 1
     exec setpriv --reuid="$u" --regid="$u" --init-groups "$slot/run.sh"
   )
+  rc=$?; unset jit
+  # a runner that dies within seconds (setpriv missing, broken run.sh) must not re-mint at
+  # the cycle rate: back off like a mint failure; a runner that ran normally resets it
+  if [ "$rc" -ne 0 ] && [ $((SECONDS - started)) -lt 30 ]; then
+    sleep "$backoff"; [ "$backoff" -lt 300 ] && backoff=$((backoff * 2))
+  else
+    backoff=15
+  fi
 done
 ```
 
 The unit's `Restart=on-failure` must **not** be used to paper over the fail-closed
 `exit 1`: a slot that refuses to mint has a survivor on it and needs an operator to
-look, not an automatic retry beside it.
+look, not an automatic retry beside it. Set `LimitCORE=0` in the unit: the JIT config
+sits in `run.sh`'s environment until the runner reads it, and a core dump in that
+window would write it to disk where the slot uid could later retrieve it.
 
 The JIT config must carry **all four labels**; `runs-on` requires every label in
-the array. Never list runner processes with their arguments (`ps -f`, `pgrep -a`)
-in a shared transcript: the JIT config blob on the command line is credential
-material for that one job.
+the array. The JIT config blob is never on a command line, but job processes can
+still carry tokens in theirs: never list runner processes with their arguments
+(`ps -f`, `pgrep -a`) or dump a process environment in a shared transcript.
 
 **What this does and does not bound.** With per-slot users that cannot log in,
 `hidepid=2`, JIT configs, 0700 slot and home directories, cron and `at` denied, a
