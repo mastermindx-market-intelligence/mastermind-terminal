@@ -94,12 +94,14 @@ export function parseProphetFrom(raw: string | null | undefined): ProphetReturnC
 /** Build the carrier's wire form from a sector page's own location. Null when
  * the origin is not an admissible sector surface or the envelope would exceed
  * its budget — the caller then links without a return control rather than
- * dropping the user somewhere unvalidated. */
+ * dropping the user somewhere unvalidated. The wire form is the RAW JSON: the
+ * URL serializer percent-encodes it exactly once (pre-encoding here would
+ * double-encode through URLSearchParams and read back undecodable). */
 export function encodeProphetFrom(pathname: string, search: string): string | null {
   const href = `${pathname}${search.startsWith("?") ? search : search ? `?${search}` : ""}`;
   if (!prophetFromHrefAdmissible(href)) return null;
-  const encoded = encodeURIComponent(JSON.stringify({ v: 1, kind: "sector", href }));
-  return encoded.length > PROPHET_FROM_MAX_ENCODED ? null : encoded;
+  const raw = JSON.stringify({ v: 1, kind: "sector", href });
+  return encodeURIComponent(raw).length > PROPHET_FROM_MAX_ENCODED ? null : raw;
 }
 
 /** The return address as a link renders it — the validated relative href. */
@@ -152,10 +154,11 @@ export function writeProphetState(url: URL, state: ProphetUrlState): string {
   if (state.offset !== 0) url.searchParams.set("prophetOffset", String(state.offset));
   else url.searchParams.delete("prophetOffset");
   const from = state.from !== null
-    ? encodeURIComponent(JSON.stringify({ v: state.from.v, kind: state.from.kind, href: state.from.href }))
+    ? JSON.stringify({ v: state.from.v, kind: state.from.kind, href: state.from.href })
     : null;
-  if (from !== null && from.length <= PROPHET_FROM_MAX_ENCODED) url.searchParams.set(PROPHET_FROM_PARAM, from);
-  else url.searchParams.delete(PROPHET_FROM_PARAM);
+  if (from !== null && encodeURIComponent(from).length <= PROPHET_FROM_MAX_ENCODED) {
+    url.searchParams.set(PROPHET_FROM_PARAM, from);
+  } else url.searchParams.delete(PROPHET_FROM_PARAM);
   return url.pathname + url.search + url.hash;
 }
 

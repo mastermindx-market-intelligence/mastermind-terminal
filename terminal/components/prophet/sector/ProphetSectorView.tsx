@@ -48,7 +48,14 @@ function useSectorMembersFetch<T extends SectorMembersPayload>(
     abort.current = controller;
     void (async () => {
       setRead({ status: "loading" });
-      const result = await fetchProphetSectorMembers({ ...query(), signal: controller.signal });
+      let result: Awaited<ReturnType<typeof fetchProphetSectorMembers>>;
+      try {
+        result = await fetchProphetSectorMembers({ ...query(), signal: controller.signal });
+      } catch (error) {
+        // A superseded fetch's abort is expected; the newer cycle owns the state.
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        throw error;
+      }
       if (mine !== seq.current) return;
       if (result.status === "ok") setRead({ status: "ready", payload: result.payload as T });
       else setRead({ status: result.status } as Read<T>);

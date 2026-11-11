@@ -583,7 +583,7 @@ html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs
 .obs-prophet-lane-nav {
   z-index: 3;
   display: grid;
-  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  grid-template-columns: repeat(4, minmax(96px, 1fr));
   align-self: flex-start;
   width: min(630px, calc(100% - 24px));
   margin: 12px 12px 0;
