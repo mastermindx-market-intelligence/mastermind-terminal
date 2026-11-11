@@ -638,6 +638,20 @@ describe("reliability", () => {
       not_stated: "siUniverseNotStated",
     });
   });
+
+  it("N-3 — reliability(null) reads not_stated, never a low coerced from 0", () => {
+    // The exported helper had no shipped consumer, but it is exactly the trap
+    // an integrator (lane 3) could import: a null count is NOT a measured 0 —
+    // same law as groupReliability. Real numbers keep the threshold
+    // derivation pinned by the boundaries test above; nothing else changes.
+    expect(reliability(null)).toBe("not_stated");
+    expect(reliability(undefined)).toBe("not_stated");
+    // A MEASURED 0 is still low; the derivation for real numbers is untouched.
+    expect(reliability(0)).toBe("low");
+    expect(reliability(5)).toBe("low");
+    expect(reliability(6)).toBe("med");
+    expect(reliability(12)).toBe("high");
+  });
 });
 
 describe("filterGroups", () => {
