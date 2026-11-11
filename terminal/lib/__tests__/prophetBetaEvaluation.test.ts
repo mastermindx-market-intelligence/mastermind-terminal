@@ -75,55 +75,76 @@ describe("the closed prophet.beta_evaluation/v1 decoder — the real artifact", 
   });
 });
 
-describe("the announced v1 correction (rebuilt-plan cohort) is optional at decode", () => {
-  // The evaluation owner will republish with (per the CEO brief): a population
-  // block naming the excluded cohort, two sensitivity blocks, a
-  // `superseded_as_run` block, a new D5 deviation and a rewritten headline —
-  // exact shapes land in CHANGES_v1_correction.md. Until then this build must
-  // keep working on BOTH artifacts: the new keys arrive as unknown keys (the
-  // closed decoder tolerates unknown KEYS, rejects unknown VALUES), D5 rides
-  // the existing deviations shape, and the rewritten headline is just prose.
-  const corrected = (): unknown => mutate(draft => {
-    draft.population = {
-      basis: "published_at_time",
-      excluded_cohort: {
-        plans: 16,
-        reason_code: "rebuilt_after_outage",
-        why: "rebuilt after an outage, so nobody could have acted on them at the time",
-      },
-    };
-    draft.sensitivity_excluding_rebuilt = { positions: 494, note: "cohort excluded" };
-    draft.sensitivity_including_rebuilt = { positions: 508, note: "cohort included" };
-    draft.superseded_as_run = {
-      note: "figures before the rebuilt-plan correction",
-      vs_passive_market: { total_diff: 0.031, total_diff_ci95: [-0.121, 0.183] },
-    };
-    const devs = draft.deviations as Array<Record<string, unknown>>;
-    devs.push({
-      ...devs[devs.length - 1],
-      id: "D5",
-      what: "16 plans rebuilt after an outage were counted as if published at the time",
-      why: "they are excluded from the corrected population",
-    });
-    draft.headline = [
-      "Release level: descriptive only (L0).",
-      "Corrected: the book's difference versus the market is not distinguishable from zero.",
-    ];
+describe("the D5 correction: population and sensitivity blocks", () => {
+  // The committed fixture IS the corrected artifact (16 outage-reconstructed
+  // plans excluded). These tests prove the typed decode preserves the wire
+  // values and that the page still works on the PRE-correction shape (blocks
+  // absent → null, never a zero that reads as a value).
+  it("decodes the population block and preserves every published cohort figure", () => {
+    const raw = wireAt(wire(), "population");
+    const decoded = decodeBetaEvaluation(wire())!.population;
+    expect(decoded).not.toBeNull();
+    expect(decoded!.primary).toBe(raw.primary);
+    const cohortRaw = wireAt(raw, "excluded_cohort") as Record<string, unknown>;
+    const cohort = decoded!.excludedCohort!;
+    expect(cohort.eraPlansExcluded).toBe(cohortRaw.era_plans_excluded);
+    expect(cohort.ofWhichReplayedReceiptedBake).toBe(cohortRaw.of_which_replayed_receipted_bake);
+    expect(cohort.ofWhichSyntheticBoardReconstructions).toBe(cohortRaw.of_which_synthetic_board_reconstructions);
+    expect(cohort.planIds).toEqual(cohortRaw.plan_ids);
+    expect(cohort.wouldHaveEnteredPositionsAsRun).toBe(cohortRaw.would_have_entered_positions_as_run);
+    // The census arithmetic is the artifact's own; we only preserve it.
+    expect(cohort.ofWhichReplayedReceiptedBake! + cohort.ofWhichSyntheticBoardReconstructions!)
+      .toBe(cohort.eraPlansExcluded);
+    expect(decoded!.review?.file).toBe(wireAt(raw, "review").file);
   });
 
-  it("still decodes, preserves every number, and surfaces D5 and the new headline", () => {
-    const raw = wire();
-    const decoded = decodeBetaEvaluation(corrected());
+  it("decodes the sensitivity block: label verbatim, variant row and superseded books preserved", () => {
+    const raw = wireAt(wire(), "sensitivity");
+    const decoded = decodeBetaEvaluation(wire())!.sensitivity;
     expect(decoded).not.toBeNull();
-    expect(decoded!.window.sessions).toBe(wireAt(raw, "window").sessions);
-    const c6 = findComparator(decoded!.comparators, INCUMBENT_COMPARATOR_ID)!;
-    expect(c6.vsSpy!.totalDiff).toBe(wireAt(wireCmp(INCUMBENT_COMPARATOR_ID), "vs_passive_market").total_diff);
-    expect(decoded!.deviations.map(d => d.id))
-      .toEqual([...(raw.deviations as Array<Record<string, unknown>>).map(d => d.id), "D5"]);
-    expect(decoded!.headline).toEqual([
-      "Release level: descriptive only (L0).",
-      "Corrected: the book's difference versus the market is not distinguishable from zero.",
-    ]);
+    expect(decoded!.label).toBe(raw.label);
+    const variantRaw = wireAt(raw, "backfill_replays_admitted_after_availability");
+    const variant = decoded!.backfillReplaysAdmittedAfterAvailability!;
+    expect(variant.positions).toBe(variantRaw.positions);
+    expect(variant.excessTotalVsSpy).toBe(variantRaw.excess_total_vs_spy);
+    expect(variant.excessTotalCi95).toEqual(variantRaw.excess_total_ci95);
+    expect(variant.hitRateVsSpy?.beatSpy).toBe(wireAt(variantRaw, "hit_rate_vs_spy").beat_spy);
+    const supersededRaw = wireAt(raw, "superseded_as_run") as Record<string, unknown>;
+    const superseded = decoded!.supersededAsRun!;
+    expect(superseded.sameEngineSeedPricesCosts).toBe(true);
+    const c6Old = superseded.rows.find(r => r.comparatorId === INCUMBENT_COMPARATOR_ID)!.row;
+    expect(c6Old.excessTotalVsSpy).toBe(wireAt(supersededRaw, INCUMBENT_COMPARATOR_ID).excess_total_vs_spy);
+    expect(c6Old.totalNetReturn).toBe(wireAt(supersededRaw, INCUMBENT_COMPARATOR_ID).total_net_return);
+    const contrastsRaw = wireAt(supersededRaw, "contrasts") as Record<string, unknown>;
+    expect(superseded.contrasts.map(c => c.id)).toEqual(Object.keys(contrastsRaw));
+  });
+
+  it("carries the unmatured 63-session horizon as absent metrics, never zeros", () => {
+    const raw63 = wireAt(wireAt(wire(), "event_study").horizons as object, "63") as Record<string, unknown>;
+    const h63 = decodeBetaEvaluation(wire())!.eventStudy.horizons.find(h => h.horizon === "63")!;
+    expect(raw63.status).toBe("unmatured");
+    expect(h63.status).toBe("unmatured");
+    expect(h63.n).toBe(raw63.n);
+    expect(h63.excessVsSpy).toBeNull();
+    expect(h63.shareBeatingSpy).toBeNull();
+    expect(h63.nDates).toBeNull();
+    const es = decodeBetaEvaluation(wire())!.eventStudy;
+    expect(es.excludedBackfilledPlans).toBe(wireAt(wire(), "event_study").excluded_backfilled_plans);
+    // A matured horizon still carries the full metric set.
+    const h21 = es.horizons.find(h => h.horizon === "21")!;
+    expect(h21.excessVsSpy).not.toBeNull();
+  });
+
+  it("still decodes the PRE-correction artifact shape with the D5 blocks absent", () => {
+    const decoded = decodeBetaEvaluation(mutate(draft => {
+      delete draft.population;
+      delete draft.sensitivity;
+      delete (draft.event_study as Record<string, unknown>).excluded_backfilled_plans;
+    }));
+    expect(decoded).not.toBeNull();
+    expect(decoded!.population).toBeNull();
+    expect(decoded!.sensitivity).toBeNull();
+    expect(decoded!.eventStudy.excludedBackfilledPlans).toBeNull();
   });
 });
 
@@ -200,6 +221,22 @@ describe("the closed decoder — malformed variants fail closed", () => {
     ["contrast with out-of-range p", (d: Record<string, unknown>) => {
       const rows = (d.contrasts as Record<string, unknown>).rows as Array<Record<string, unknown>>;
       rows[0].p_holm = 1.5;
+    }],
+    ["population cohort count not a number", (d: Record<string, unknown>) => {
+      ((d.population as Record<string, unknown>).excluded_cohort as Record<string, unknown>).era_plans_excluded = "sixteen";
+    }],
+    ["sensitivity variant excess not a number", (d: Record<string, unknown>) => {
+      const s = (d.sensitivity as Record<string, unknown>);
+      (s.backfill_replays_admitted_after_availability as Record<string, unknown>).excess_total_vs_spy = "+4.7 pp";
+    }],
+    ["unmatured horizon carrying an invalid metric", (d: Record<string, unknown>) => {
+      const horizons = ((d.event_study as Record<string, unknown>).horizons) as Record<string, unknown>;
+      (horizons["63"] as Record<string, unknown>).excess_vs_spy = { mean: "n/a" };
+    }],
+    ["superseded contrast with out-of-range p", (d: Record<string, unknown>) => {
+      const sup = ((d.sensitivity as Record<string, unknown>).superseded_as_run) as Record<string, unknown>;
+      const contrasts = sup.contrasts as Record<string, Record<string, unknown>>;
+      contrasts.K1_C6_minus_C1.p_one_sided = 1.5;
     }],
   ])("rejects %s", (_name, edit) => {
     expect(decodeBetaEvaluation(mutate(edit))).toBeNull();
