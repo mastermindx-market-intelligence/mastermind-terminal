@@ -19,8 +19,8 @@ import { useLang, type Lang } from "@/lib/i18n";
 import MobileSheet from "@/components/ui/MobileSheet";
 import {
   buildPerPlanVerdictText, comparatorShortName, evaluationLevelLabel, criterionLabel,
-  exclusionReasonLabel, fillTemplate, humanizeEngineText, humanizeIdentifier,
-  makeEvaluationT, type EvaluationLexKey,
+  drawdownThresholdPct, exclusionReasonLabel, fillTemplate, fmtCriterionRequired,
+  humanizeEngineText, humanizeIdentifier, makeEvaluationT, type EvaluationLexKey,
 } from "@/lib/prophetEvaluationStrings";
 import {
   fmtCi95, fmtCount, fmtCriterionObserved, fmtPercent, fmtP, fmtRatio, fmtSignedPercent, fmtSignedPp, fmtDate,
@@ -255,31 +255,10 @@ export default function ProphetEvaluationView() {
         <p className="pev-verdict-level" data-testid="pev-verdict-level">
           {t("levelLabel")}: <b>{levelLabel}</b>
         </p>
-        {(() => {
-          const sessions = release.globalMinimumForL1.find(c => c.criterion === "window_sessions");
-          const drawdown = release.globalMinimumForL1.find(c => c.criterion === "spy_drawdown_present");
-          // The required string is the artifact's own text (">= 252"); extract its
-          // digits for the sentence, falling back to the verbatim string.
-          const requiredNumber = (raw: string | undefined): string => {
-            const digits = raw?.match(/\d+/)?.[0];
-            return digits ? fmtCount(Number(digits)) : (raw ?? "");
-          };
-          const values: Record<string, string> = {
-            sessions: fmtCount(win.sessions), first: fmtDate(win.firstReturnClose), last: fmtDate(win.lastClose),
-            minSessions: requiredNumber(sessions?.required),
-            needDd: drawdown?.required ?? "", seenDd: fmtSignedPercent(win.spyMaxDrawdown),
-          };
-          return <p className="pev-sentence">{fillTemplate(t("verdictWindowSentence"), values)}</p>;
-        })()}
-        {verdictDiff && bookTotal !== null && c6?.status === "evaluated" && (
-          <p className="pev-sentence" data-testid="pev-verdict-book">
-            {fillTemplate(t("verdictBookSentence"), {
-              book: fmtSignedPercent(bookTotal), benchmark: benchmarkName, spy: fmtSignedPercent(win.spyTotalReturn),
-              diff: fmtSignedPp(verdictDiff.diff), ci: fmtCi95(verdictDiff.ci[0], verdictDiff.ci[1], "pp"),
-              zero: t(intervalIncludesZero(verdictDiff.ci) ? "ciIncludesZero" : "ciExcludesZero"),
-            })}
-          </p>
-        )}
+        {/* D12/E3 reading order: the one-sentence finding sits DIRECTLY under
+            the release level — level, then the finding, then the numbers.
+            This sentence is the surface's own copy (not the artifact's text),
+            computed from the interval exactly as published. */}
         {verdictDiff && (
           <p
             className={`pev-sentence ${intervalIncludesZero(verdictDiff.ci) ? "pev-distinguish" : "pev-dim"}`}
@@ -289,6 +268,15 @@ export default function ProphetEvaluationView() {
               t(intervalIncludesZero(verdictDiff.ci) ? "notDistinguishableSentence" : "intervalExcludesZeroNote"),
               { sessions: fmtCount(win.sessions), benchmark: benchmarkName },
             )}
+          </p>
+        )}
+        {verdictDiff && bookTotal !== null && c6?.status === "evaluated" && (
+          <p className="pev-sentence" data-testid="pev-verdict-book">
+            {fillTemplate(t("verdictBookSentence"), {
+              book: fmtSignedPercent(bookTotal), benchmark: benchmarkName, spy: fmtSignedPercent(win.spyTotalReturn),
+              diff: fmtSignedPp(verdictDiff.diff), ci: fmtCi95(verdictDiff.ci[0], verdictDiff.ci[1], "pp"),
+              zero: t(intervalIncludesZero(verdictDiff.ci) ? "ciIncludesZero" : "ciExcludesZero"),
+            })}
           </p>
         )}
         {/* Per-plan forward marks, AFTER the book-level sentences so the two
@@ -308,6 +296,28 @@ export default function ProphetEvaluationView() {
           return text === null ? null : (
             <p className="pev-sentence pev-dim" data-testid="pev-verdict-perplan">{text}</p>
           );
+        })()}
+        {/* D12/E3: the sample-size paragraph sits BELOW the numbers — window,
+            predeclared minimum, observed drawdown. The threshold is the page's
+            own formatting of the artifact's required value ("at least 8%"),
+            and the deepest fall renders as a magnitude ("5.9%"), never a raw
+            signed wire value. */}
+        {(() => {
+          const sessions = release.globalMinimumForL1.find(c => c.criterion === "window_sessions");
+          const drawdown = release.globalMinimumForL1.find(c => c.criterion === "spy_drawdown_present");
+          // The required string is the artifact's own text (">= 252"); extract its
+          // digits for the sentence, falling back to the verbatim string.
+          const requiredNumber = (raw: string | undefined): string => {
+            const digits = raw?.match(/\d+/)?.[0];
+            return digits ? fmtCount(Number(digits)) : (raw ?? "");
+          };
+          const values: Record<string, string> = {
+            sessions: fmtCount(win.sessions), first: fmtDate(win.firstReturnClose), last: fmtDate(win.lastClose),
+            minSessions: requiredNumber(sessions?.required),
+            needDd: drawdown ? drawdownThresholdPct(drawdown.required) : "",
+            seenDd: fmtPercent(Math.abs(win.spyMaxDrawdown)),
+          };
+          return <p className="pev-sentence pev-dim" data-testid="pev-verdict-window">{fillTemplate(t("verdictWindowSentence"), values)}</p>;
         })()}
         {/* The correction rides WITH the verdict: a cold reader at phone width
             sees both the honest interval and the fact of the correction in the
@@ -587,7 +597,10 @@ export default function ProphetEvaluationView() {
                 <span className="pev-num">
                   {fmtCriterionObserved(c.criterion, c.observed)}
                   {" "}
-                  <span className="pev-dim">({t("requiredLabel")} {c.required})</span>
+                  {/* D12/E3: required in reader words where the page formats the
+                      threshold itself ("8% or deeper"); other criteria keep the
+                      artifact's own text verbatim. */}
+                  <span className="pev-dim">({t("requiredLabel")} {fmtCriterionRequired(lang, c.criterion, c.required)})</span>
                 </span>
                 <span className={`pev-chip ${c.met ? "is-met" : "is-not"}`}>{c.met ? t("metLabel") : t("notMetLabel")}</span>
               </li>
@@ -638,7 +651,7 @@ export default function ProphetEvaluationView() {
                   {jobA.criteria.map(c => (
                     <tr key={c.criterion}>
                       <td>{criterionLabel(lang, c.criterion)}</td>
-                      <td className="pev-num">{c.required}</td>
+                      <td className="pev-num">{fmtCriterionRequired(lang, c.criterion, c.required)}</td>
                       <td className="pev-num">{fmtCriterionObserved(c.criterion, c.observed)}</td>
                       <td className={`pev-chip ${c.met ? "is-met" : "is-not"}`}>{c.met ? t("metLabel") : t("notMetLabel")}</td>
                     </tr>

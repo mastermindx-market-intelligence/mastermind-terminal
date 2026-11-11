@@ -10,7 +10,8 @@ import {
   fmtSignedPercent, fmtSignedPp,
 } from "../lib/prophetBetaEvaluationFormat";
 import {
-  comparatorShortName, evaluationLevelLabel, getEvaluationStr, humanizeEngineText, perPlanFigure,
+  comparatorShortName, drawdownThresholdPct, evaluationLevelLabel, fmtCriterionRequired,
+  getEvaluationStr, humanizeEngineText, perPlanFigure,
 } from "../lib/prophetEvaluationStrings";
 
 /**
@@ -199,7 +200,7 @@ const PANEL_PROOF: Record<(typeof PANELS)[number], (page: Page) => Promise<void>
   // Global-minimum criteria and their required/observed strings ride in the details panel.
   details: async page => {
     for (const c of globalMin.slice(0, 3)) {
-      await expect(page.getByRole("dialog")).toContainText(c.required);
+      await expect(page.getByRole("dialog")).toContainText(fmtCriterionRequired("en", c.criterion, c.required));
       if (c.observed !== null) {
         await expect(page.getByRole("dialog")).toContainText(fmtCriterionObserved(c.criterion, c.observed));
       }
@@ -276,8 +277,11 @@ test("cold reader: verdict, correction, participation, comparison and caveats (E
   await expect(verdict).toContainText(ART.window.firstReturnClose);
   await expect(verdict).toContainText(ART.window.lastClose);
   await expect(verdict).toContainText(requiredDigits("window_sessions"));
-  await expect(verdict).toContainText(ddRequired);
-  await expect(verdict).toContainText(fmtSignedPercent(ART.window.spyMaxDrawdown));
+  // D12/E3: the drawdown threshold renders in reader words, derived from the
+  // artifact's own required string through the production formatters —
+  // "at least 8%" in the sentence, and the deepest fall as a magnitude.
+  await expect(verdict).toContainText(`at least ${drawdownThresholdPct(ddRequired)}`);
+  await expect(verdict).toContainText(`deepest fall was ${fmtPercent(Math.abs(ART.window.spyMaxDrawdown))}`);
   const bookCard = page.getByTestId("pev-verdict-book");
   await expect(bookCard).toContainText(fmtSignedPercent(BOOK));
   await expect(bookCard).toContainText(fmtSignedPercent(ART.window.spyTotalReturn));
@@ -326,7 +330,9 @@ test("cold reader: verdict, correction, participation, comparison and caveats (E
   await expect(verdict).toContainText("not established");
   const minimum = page.getByTestId("pev-minimum");
   for (const c of globalMin) {
-    await expect(minimum).toContainText(c.required);
+    // D12/E3: the drawdown required renders as reader words ("8% or deeper");
+    // every other criterion keeps the artifact's own required text.
+    await expect(minimum).toContainText(fmtCriterionRequired("en", c.criterion, c.required));
     if (c.observed !== null) {
       await expect(minimum).toContainText(fmtCriterionObserved(c.criterion, c.observed));
     }

@@ -15,7 +15,7 @@ import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
 import {
   claimKeyLabel, claimStatusLabel, comparatorShortName, criterionLabel,
-  deviationKindLabel, exclusionReasonLabel, fillTemplate,
+  deviationKindLabel, exclusionReasonLabel, fillTemplate, fmtCriterionRequired,
   getEvaluationStr, humanizeEngineText, humanizeIdentifier, makeEvaluationT,
   releaseJobName, evaluationLevelLabel,
   type EvaluationLexKey,
@@ -81,7 +81,9 @@ function CriteriaTable({ rows, lang }: { rows: ReleaseCriterion[]; lang: Lang })
           {rows.map(c => (
             <tr key={c.criterion}>
               <td>{criterionLabel(lang, c.criterion)}</td>
-              <td className="pev-num">{c.required}</td>
+              {/* D12/E3: required in reader words where the page formats the
+                  threshold itself; other criteria keep the artifact's text. */}
+              <td className="pev-num">{fmtCriterionRequired(lang, c.criterion, c.required)}</td>
               <td className="pev-num">{fmtCriterionObserved(c.criterion, c.observed)}</td>
               <td className={`pev-chip ${c.met === null ? "is-unknown" : c.met ? "is-met" : "is-not"}`}>
                 {c.met === null ? "—" : c.met ? t("metLabel") : t("notMetLabel")}

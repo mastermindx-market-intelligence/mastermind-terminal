@@ -39,9 +39,13 @@ const PROPHET_EVALUATION_LEX = {
 
   // ── Verdict (SX05 reading order, first) ───────────────────────────────────
   verdictTitle: ["The verdict, in plain words", "直白结论"],
+  // D12/E3: the sample-size sentence carries the threshold in reader words —
+  // the page formats the artifact's own "<= -0.08" as "at least 8%", and the
+  // observed drawdown as a magnitude ("deepest fall was 5.9%"), never a raw
+  // signed wire value. Sits BELOW the book/per-plan numbers in the verdict.
   verdictWindowSentence: [
-    "Evaluated over {sessions} sessions ({first} to {last}); the predeclared minimum for any accepted historical claim is {minSessions} sessions including a market drawdown of {needDd} or deeper. This window saw {seenDd}.",
-    "评估区间 {first} 至 {last}，共 {sessions} 个交易日；任何被接受的历史结论所需的预申报下限为 {minSessions} 个交易日，且须包含一次不浅于 {needDd} 的市场回撤。本窗口实际最深回撤为 {seenDd}。",
+    "Evaluated over {sessions} sessions ({first} to {last}); the predeclared minimum for any accepted historical claim is {minSessions} sessions including a market fall of at least {needDd}; this window's deepest fall was {seenDd}.",
+    "评估区间 {first} 至 {last}，共 {sessions} 个交易日；任何被接受的历史结论所需的预申报下限为 {minSessions} 个交易日，且须包含一次至少 {needDd} 的市场下跌；本窗口最深跌幅为 {seenDd}。",
   ],
   verdictBookSentence: [
     "The model book of published Prophet plans returned {book} while {benchmark} returned {spy} — a difference of {diff} (95% interval {ci}), which {zero}.",
@@ -124,6 +128,8 @@ const PROPHET_EVALUATION_LEX = {
   criteriaLabel: ["Predeclared criteria", "预申报标准"],
   observedLabel: ["observed", "实测"],
   requiredLabel: ["required", "要求"],
+  // D12/E3: the drawdown threshold rendered as reader words in the tables.
+  requiredDeeper: ["{v} or deeper", "{v} 或更深"],
   metLabel: ["met", "达标"],
   notMetLabel: ["not met", "未达标"],
   capNote: [
@@ -885,6 +891,26 @@ export function criterionLabel(lang: Lang, id: string): string {
 /** Claim-key display name ("incremental_selection_value" → reader language). */
 export function claimKeyLabel(lang: Lang, key: string): string {
   return humanizeIdentifier(lang, key);
+}
+
+/** D12/E3: the drawdown threshold as a magnitude percent ("<= -0.08" → "8%"),
+ * for the verdict sentence's "a market fall of at least …" clause. Returns
+ * the raw string untouched when no numeric threshold parses out. */
+export function drawdownThresholdPct(required: string): string {
+  const n = required.match(/-?\d+(?:\.\d+)?/);
+  if (!n) return required;
+  const pct = Math.abs(Number(n[0])) * 100;
+  return `${Number.isInteger(pct) ? pct.toFixed(0) : pct.toFixed(1)}%`;
+}
+
+/** D12/E3: a criterion's required value in reader words where the page formats
+ * it itself. Today only the market-drawdown threshold is human-formatted
+ * ("<= -0.08" → "8% or deeper"); every other criterion keeps the artifact's
+ * own required text verbatim. */
+export function fmtCriterionRequired(lang: Lang, criterion: string, required: string): string {
+  if (criterion !== "spy_drawdown_present") return required;
+  if (!/-?\d+(?:\.\d+)?/.test(required)) return required;
+  return fillTemplate(getEvaluationStr(lang, "requiredDeeper"), { v: drawdownThresholdPct(required) });
 }
 
 /** Claim-status chip text; statuses are a closed engine vocabulary. */

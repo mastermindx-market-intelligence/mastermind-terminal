@@ -34,18 +34,29 @@ export function ForestPlot({ rows, ariaLabel }: { rows: ForestRow[]; ariaLabel: 
   const wrapRef = useRef<HTMLDivElement>(null);
   const w = useChartWidth(wrapRef);
   if (rows.length === 0) return <div ref={wrapRef} className="pev-chart-wrap" />;
-  const labelW = w >= 620 ? 200 : w >= 430 ? 156 : 124;
-  const rowH = 30;
+  // D12/E1+E2 (extended to this chart): below 430px the end-anchored side
+  // labels physically render at negative x (the longest strategy name is wider
+  // than the old 124px column — "Simple participation rule" lost its first
+  // letters off the SVG's left edge), so narrow widths stack each label on its
+  // own line above its row, exactly like PlaceboRangeChart. The x-domain is
+  // padded 7% both sides so the extreme band never touches the plot edge, and
+  // the axis carries its unit ("pp") in a right gutter.
+  const stacked = w < 430;
+  const labelW = stacked ? 0 : w >= 620 ? 200 : 156;
+  const rowH = stacked ? 44 : 30;
   const padTop = 6;
   const axisH = 26;
-  const h = Math.max(MIN_CHART_H.axis, rows.length * rowH + padTop + axisH);
-  const plotL = labelW + 8;
-  const plotR = w - 12;
+  const h = stacked
+    ? rows.length * rowH + padTop + axisH
+    : Math.max(MIN_CHART_H.axis, rows.length * rowH + padTop + axisH);
+  const plotL = stacked ? 10 : labelW + 8;
+  const unitW = 30;
+  const plotR = w - 12 - unitW;
   const lo = Math.min(0, ...rows.map(r => r.lo));
   const hi = Math.max(0, ...rows.map(r => r.hi));
   const span = hi - lo || 1;
-  const x = (v: number) => plotL + ((v - lo) / span) * (plotR - plotL);
-  const { values: ticks, step } = niceTicks(lo - span * 0.04, hi + span * 0.04,
+  const x = (v: number) => plotL + ((v - (lo - span * 0.07)) / (span * 1.14)) * (plotR - plotL);
+  const { values: ticks, step } = niceTicks(lo - span * 0.07, hi + span * 0.07,
     Math.max(3, Math.min(6, Math.floor((plotR - plotL) / 90))));
   const zeroX = x(0);
   return (
@@ -54,11 +65,12 @@ export function ForestPlot({ rows, ariaLabel }: { rows: ForestRow[]; ariaLabel: 
         {/* Zero line — the anchor of the whole chart. */}
         <line x1={zeroX} y1={padTop} x2={zeroX} y2={h - axisH} className="pev-forest-zero" />
         {rows.map((row, i) => {
-          const cy = padTop + i * rowH + rowH / 2;
+          const rowTop = padTop + i * rowH;
+          const cy = stacked ? rowTop + 30 : rowTop + rowH / 2;
           const cls = row.includesZero ? "pev-ci-neutral" : row.lo > 0 ? "pev-ci-pos" : "pev-ci-neg";
           return (
             <g key={row.key}>
-              <text x={labelW} y={cy} textAnchor="end" className="pev-forest-lbl">{row.label}</text>
+              <text x={stacked ? plotL : labelW} y={stacked ? rowTop + 11 : cy} textAnchor={stacked ? "start" : "end"} className="pev-forest-lbl">{row.label}</text>
               <line x1={x(row.lo)} y1={cy} x2={x(row.hi)} y2={cy} className={cls} strokeWidth={2} />
               <line x1={x(row.lo)} y1={cy - 4} x2={x(row.lo)} y2={cy + 4} className={cls} strokeWidth={2} />
               <line x1={x(row.hi)} y1={cy - 4} x2={x(row.hi)} y2={cy + 4} className={cls} strokeWidth={2} />
@@ -73,6 +85,7 @@ export function ForestPlot({ rows, ariaLabel }: { rows: ForestRow[]; ariaLabel: 
             <text x={x(t)} y={h - 8} textAnchor="middle" className="pev-forest-tick">{fmtTickPp(t, step)}</text>
           </g>
         ))}
+        <text x={w - 12} y={h - 8} textAnchor="end" className="pev-forest-tick">pp</text>
       </svg>
     </div>
   );
@@ -157,26 +170,41 @@ export interface PlaceboRangeRow {
  * only — the numbers live in the adjacent text rows; aria-label points there.
  * The band is NEUTRAL by law (it is a distribution, not a result); the mark is
  * the plain text colour, never a win/loss colour, because outside-vs-inside
- * the band is the artifact's statement, not ours. */
+ * the band is the artifact's statement, not ours.
+ *
+ * D12 chart law (E1/E2): the x-domain is padded on both sides so every mark
+ * and band keeps clear space from the plot edges (a mark at the data maximum
+ * never touches the axis edge again); the axis carries its unit (pp) in a
+ * right gutter; the height is exactly the rows plus the axis — no filler band
+ * below; and under 620px each row label sits on its own line ABOVE its row
+ * (the beside-the-row label column cuts long "N sessions later (n plans)"
+ * labels at the left on phones). */
 export function PlaceboRangeChart({ rows, ariaLabel }: { rows: PlaceboRangeRow[]; ariaLabel: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const w = useChartWidth(wrapRef);
   if (rows.length === 0) return <div ref={wrapRef} className="pev-chart-wrap" />;
-  const labelW = w >= 620 ? 200 : w >= 430 ? 156 : 124;
-  const rowH = 34;
+  // Stacked labels below 620px: the side-label column cannot hold the full
+  // "42 sessions later (414 plans)" text without cutting it at the left.
+  const stacked = w < 620;
+  const labelW = stacked ? 0 : 200;
+  const rowH = stacked ? 46 : 34;
   const bandH = 16;
   const padTop = 8;
   const axisH = 26;
-  const h = Math.max(MIN_CHART_H.axis, rows.length * rowH + padTop + axisH);
-  const plotL = labelW + 8;
-  const plotR = w - 12;
-  // The domain unions every row's band AND mark, plus zero — a mark outside its
-  // band must stay inside the plot (that outside-ness is the whole finding).
-  const lo = Math.min(0, ...rows.map(r => Math.min(r.bandLo, r.point)));
-  const hi = Math.max(0, ...rows.map(r => Math.max(r.bandHi, r.point)));
-  const span = hi - lo || 1;
-  const x = (v: number) => plotL + ((v - lo) / span) * (plotR - plotL);
-  const { values: ticks, step } = niceTicks(lo - span * 0.04, hi + span * 0.04,
+  const h = rows.length * rowH + padTop + axisH;
+  const plotL = stacked ? 10 : labelW + 8;
+  const unitW = 30;
+  const plotR = w - 12 - unitW;
+  // The data domain unions every row's band AND mark, plus zero — a mark
+  // outside its band must stay inside the plot (that outside-ness is the
+  // whole finding) — then pads 7% on both sides so extremes keep clear air.
+  const dataLo = Math.min(0, ...rows.map(r => Math.min(r.bandLo, r.point)));
+  const dataHi = Math.max(0, ...rows.map(r => Math.max(r.bandHi, r.point)));
+  const span = dataHi - dataLo || 1;
+  const lo = dataLo - span * 0.07;
+  const hi = dataHi + span * 0.07;
+  const x = (v: number) => plotL + ((v - lo) / (hi - lo)) * (plotR - plotL);
+  const { values: ticks, step } = niceTicks(lo, hi,
     Math.max(3, Math.min(6, Math.floor((plotR - plotL) / 90))));
   const zeroX = x(0);
   return (
@@ -185,10 +213,16 @@ export function PlaceboRangeChart({ rows, ariaLabel }: { rows: PlaceboRangeRow[]
         {/* Zero line — the anchor of the whole chart. */}
         <line x1={zeroX} y1={padTop} x2={zeroX} y2={h - axisH} className="pev-forest-zero" />
         {rows.map((row, i) => {
-          const cy = padTop + i * rowH + rowH / 2;
+          const rowTop = padTop + i * rowH;
+          const cy = stacked ? rowTop + 32 : rowTop + rowH / 2;
           return (
             <g key={row.key}>
-              <text x={labelW} y={cy} textAnchor="end" className="pev-forest-lbl">{row.label}</text>
+              <text
+                x={stacked ? plotL : labelW}
+                y={stacked ? rowTop + 11 : cy}
+                textAnchor={stacked ? "start" : "end"}
+                className="pev-forest-lbl"
+              >{row.label}</text>
               <rect
                 x={x(row.bandLo)} y={cy - bandH / 2}
                 width={Math.max(x(row.bandHi) - x(row.bandLo), 2)} height={bandH} rx={3}
@@ -205,6 +239,8 @@ export function PlaceboRangeChart({ rows, ariaLabel }: { rows: PlaceboRangeRow[]
             <text x={x(t)} y={h - 8} textAnchor="middle" className="pev-forest-tick">{fmtTickPp(t, step)}</text>
           </g>
         ))}
+        {/* The axis unit, in its own gutter past the last tick. */}
+        <text x={w - 12} y={h - 8} textAnchor="end" className="pev-forest-tick">pp</text>
       </svg>
     </div>
   );

@@ -326,6 +326,14 @@
   flex-wrap: wrap;
 }
 .pev-sens[open] summary { padding-top: 8px; }
+
+/* D12/E4: the two after-the-fact disclosures in the diagnosis card ("Sensitivity:
+   picks outside the S&P 1500", "The independent audit") carry the SAME open
+   marker as "Predeclared criteria" (.pev-criteria) — the flex summary layout
+   above suppresses the browser's disclosure triangle, so these two restore the
+   default list-item marker. Scoped to the diagnosis card: the what-changed
+   sensitivity sub-blocks keep their marker-less flex law. */
+.pev-diagnosis .pev-sens summary { display: list-item; }
 .pev-sens > *:not(summary) { margin-top: 8px; }
 .pev-sens h3 { margin: 10px 0 0; }
 .pev-sens .pev-table { color: var(--muted); }
