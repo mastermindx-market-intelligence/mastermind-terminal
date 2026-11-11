@@ -1,0 +1,16 @@
+{
+  "browserCache": "/Users/chriswong/Library/Caches/ms-playwright",
+  "chromiumRevision": "1228",
+  "installedVersions": {
+    "node_modules/@playwright/test": "1.61.1",
+    "node_modules/next": "16.4.6",
+    "node_modules/vitest": "2.1.9"
+  },
+  "node": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "nodeVersion": "v22.23.4",
+  "observedAt": "2026-11-11T08:28:54.051867+00:00",
+  "packageInstallPerformed": false,
+  "packageLockSha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "state": "MATCHING_DEPENDENCIES_AND_EXISTING_BROWSER_CACHE_READY"
+}

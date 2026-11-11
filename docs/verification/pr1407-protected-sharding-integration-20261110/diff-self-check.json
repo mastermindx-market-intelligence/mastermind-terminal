@@ -1,0 +1,221 @@
+{
+  "ownedSourceAndNewStructuredProofCheckExit": 0,
+  "policy": "Protected and original evidence bytes, plus exact diagnostic logs/generated failure artifacts, are preserved; no unrelated whitespace rewriting.",
+  "recordedAt": "2026-11-10T08:27:27.648001+00:00",
+  "schema": "terminal_pr1407_diff_self_check.v1",
+  "unmerged": "",
+  "whitespaceFindingFiles": [
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "bf11144fb9dd6d34062702a4e48fb4fbc59310df",
+      "path": "docs/pr-crops/terminal-chart-keyboard-20261109/polish2-chart-final-unit.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "0d52e29f7899def50239400acce3694a26533c69",
+      "path": "docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "e0487c8fe9bd44cbd0f6eb18b101a4970e70dc35",
+      "path": "docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "dc182fe1d9700182018d0eff7f182a5513b6ae6f",
+      "path": "docs/pr-crops/terminal-comparison-settings-20261109/unit-before.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "549862189d5a8f47d6d26574e69833ee9bcb1284",
+      "path": "docs/pr-crops/terminal-comparison-settings-20261109/unit-final.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "5f35e72a48d40af14ad6633a5dd1086fa5e157ad",
+      "path": "docs/pr-crops/terminal-discover-focus-20261109/ci-selection-initial-local.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "98a4b37f9fab1e59f4ed8ad981c94dc2b38b210d",
+      "path": "docs/pr-crops/terminal-search-return-focus-20261109/annotation-before.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "0c573f54d0e7a4a2fa805b265ea90e90b2d0e891",
+      "path": "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-before.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "fa2301be758cd6a84739c115e044913a3539d5e5",
+      "path": "docs/pr-crops/terminal-search-return-focus-20261109/qualification.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "dd0782c3560ebe785b024b4c628032b5f2258148",
+      "path": "docs/verification/drawing-control-readiness-20261109/baseline.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "aac5473802f36c06d8e4cddc32eead3ad34137f4",
+      "path": "docs/verification/drawing-control-readiness-20261109/focused.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "0dc6561bb99f16d64346add37d8c8477d1cd093d",
+      "path": "docs/verification/pr768-options-integration-20261109/product-unit-r1.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "4e1a964b02d1919b47bea762ffddd2e8a9562238",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/boundary-compatibility-20261105/original/evidence.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "3b0e1c3a22c1756afa21fb95cc83968fb7bfbe12",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/boundary-compatibility-20261105/original/unit-final.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "5e141032b9e6353630bc34e0b8975075f11d670f",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105/baseline/browser.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "9be85f977333d7aae816a799898ff6d5a7cfcdb5",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105/baseline/playwright-artifacts/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/error-context.md"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "367a42fb0eb467a19417d8e3b24cbba3cd0799a3",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "d63296fead181ad090dbf78e4da85a4c4ae21451",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "1bd6b3eed36d815d149f1362797be9a9cb9b203f",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "f8025dbd8439ceb42d6f566b6056818cd4a7a261",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "136749bf8357872877481cc2e3d50629f8a080f5",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "cc23b0621dcef563743433686454b1e1d9476372",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "dd984a43a24c9b8f138c7922515a594464d12eb7",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "d90698d5ef90c58de1e6721c31874b2267cf07d3",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/composed/final-evidence.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "2afc18a074f3c6775b432152582bf5bc38d0bc73",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/composed/unit.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "a7d6b873be104b5abf6864a39bc28d9b53659b47",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/after-packaging-evidence.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "760fda653fb377251ed0cb4362d5430b37ffc0e5",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "fffc579eb81c20b73fd76ac60cabaebc8945a905",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/final-evidence.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "1fdd277622723d53593e44bd0ebda44f840b00d7",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/unit.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "6def7db956aa72c569bded2771f26029c96a6683",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "0cde1d70de3ee292191d4a655707012d1484c0ff",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/evidence-historical-current-split-20261104.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "e9ae09a4692c26b630fafac88e82ca36dd73b873",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/evidence-reconciled-20261104.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "fcefbe8c7a4a5572bfe5da6c3243175b80ef7bf3",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/ladder-guard-3viewport-20261104.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "e398bb3fb9b79dcd80dbb1654cc7022c058f7615",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/original-carrier-evidence-guards.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "3964610c4530e8d1a2e9af4c2cc8a61a7db8393d",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/unit-qualified.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "41949f257b8c1a3e9b9d3be58eff734a1985e15b",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-evidence.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "94efef8b87d4bfea99de785735bfa6a3846b4e7e",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-lint.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "007c82ca5d5e4fde506e3caab415b09a357b8381",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/focused-unit.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "4c6208201fd0563c62c87b414e210896a5b75107",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/mounted-unit.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "ac84d9d0388129f8086c8ac45ffb7d332ee44343",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/affected-upstream-unit.log"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "754f1e6d8d4050cc12f7c497ccd911b2a5c7cf74",
+      "path": "terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/current-base-acd/protected-runtime-delta.diff"
+    },
+    {
+      "classification": "PROTECTED_BYTES",
+      "indexBlob": "e89180c9cbbf6684f7f6c690df683fa0ad345525",
+      "path": "terminal/docs/verification/pr650-exposure-integration-20261109/final-native.log"
+    }
+  ],
+  "wholeMergeCheckExit": 2,
+  "wholeMergeCheckLogSha256": "c94775d67bfcf6731f547b4649799bdb052c8eacad56135bc7b4813f3eba0461"
+}

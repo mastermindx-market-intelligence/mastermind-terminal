@@ -1,0 +1,302 @@
+{
+  "at": "2026-11-10T05:02:36.557858+00:00",
+  "existingErrors": 54,
+  "existingWarnings": 18,
+  "noNewFindings": false,
+  "rows": [
+    {
+      "errors": 0,
+      "noNewFindings": true,
+      "path": "components/ChartObjectTree.tsx",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "baselineErrors": 0,
+      "baselineInputSha256": "d0f82ca6504577770dca68861b51eaa87d74844c5be84c1b0f560b6b22838cc1",
+      "baselineOutputSha256": "15da80a0631a2eefed718c18e656555bcba46199948afcad147f07eb141f79a0",
+      "baselineWarnings": 0,
+      "currentErrors": 0,
+      "currentInputSha256": "ee79bec876fb74ab352fc8cfed633da22e72ee8e9c4b78694ca8461a586d88e8",
+      "currentWarnings": 0,
+      "newFindings": [],
+      "noNewFindings": true,
+      "path": "components/IndicatorsModal.tsx",
+      "resolvedFindings": [],
+      "sourceIdenticalToHead": false
+    },
+    {
+      "baselineErrors": 1,
+      "baselineInputSha256": "8c3a6459aba740e2a07602bb4962eb37c6777238f374849822923aba68013d17",
+      "baselineOutputSha256": "4eaf391df357647f99d95bda4322f497cff082874f15a8a22ca1428eea1effdd",
+      "baselineWarnings": 0,
+      "currentErrors": 1,
+      "currentInputSha256": "7c1ec57d2cdfb55ac3262184579e4aec5f8cefdde9dc37f1146975e6070a1541",
+      "currentWarnings": 0,
+      "newFindings": [
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/LayoutMenu.tsx:116:43\n  114 |   const [shareTeamId, setShareTeamId] = useState(writableTeams[0]?.id ?? \"\");\n  115 |   useEffect(() => {\n> 116 |     if (!shareTeamId && writableTeams[0]) setShareTeamId(writableTeams[0].id);\n      |                                           ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  117 |   }, [shareTeamId, writableTeams]);\n  118 |   const isGuest = status === \"auth\";\n  119 |   const nameInputRef = useRef<HTMLInputElement | null>(null);",
+          null,
+          null
+        ]
+      ],
+      "noNewFindings": false,
+      "path": "components/LayoutMenu.tsx",
+      "resolvedFindings": [
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/LayoutMenu.tsx:115:43\n  113 |   const [shareTeamId, setShareTeamId] = useState(writableTeams[0]?.id ?? \"\");\n  114 |   useEffect(() => {\n> 115 |     if (!shareTeamId && writableTeams[0]) setShareTeamId(writableTeams[0].id);\n      |                                           ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  116 |   }, [shareTeamId, writableTeams]);\n  117 |   const isGuest = status === \"auth\";\n  118 |   const nameInputRef = useRef<HTMLInputElement | null>(null);",
+          null,
+          null
+        ]
+      ],
+      "sourceIdenticalToHead": false
+    },
+    {
+      "baselineErrors": 53,
+      "baselineInputSha256": "7ec6601d9b00d30230fb889815af257678d08dacd132a3b48e962b82529a38e5",
+      "baselineOutputSha256": "8973f7987a933c492c7eba357c859df0cf85f3b123f98ce34b14eca38bf0686a",
+      "baselineWarnings": 18,
+      "currentErrors": 53,
+      "currentInputSha256": "46fd228a8210266cfb3e8a41d27d6f3b8b1bd3d0fc92ef2b432ace0b6720e25f",
+      "currentWarnings": 18,
+      "newFindings": [
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1176:5\n  1174 |   useEffect(() => {\n  1175 |     if (process.env.NODE_ENV === \"production\") return;\n> 1176 |     setDevTier(normalizeDevTierOverride(localStorage.getItem(\"mm.devTier\")));\n       |     ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1177 |   }, []);\n  1178 |   // ent.tier is already normalized by the store (legacy `insider` \u2192 `essential`).\n  1179 |   const userTier: \"free\" | \"essential\" | \"pro\" = devTier ?? (ent.tier === \"essential\" || ent.tier === \"pro\" ? ent.tier : \"free\");",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1529:38\n  1527 |   const [signalsOpen, setSignalsOpen] = useState(false);\n  1528 |   const [signalsMounted, setSignalsMounted] = useState(false);\n> 1529 |   useEffect(() => { if (signalsOpen) setSignalsMounted(true); }, [signalsOpen]);\n       |                                      ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1530 |   const [magnet, setMagnet] = useState<\"off\" | \"weak\" | \"strong\">(\"off\");\n  1531 |   const [drawingSticky, setDrawingSticky] = useState(false);\n  1532 |   const drawingCreationDisabledReason = replayOn",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1664:5\n  1662 |     // An updater, never a value: it clamps whatever set it is applied to, so it cannot undo another\n  1663 |     // change queued before it.\n> 1664 |     setInds(clamp);\n       |     ^^^^^^^ Avoid calling setState() directly within an effect\n  1665 |   }, [indParams, inds, loggedIn, studiesRestored]);\n  1666 |   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state\n  1667 |   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1772:5\n  1770 |     btMark(\"shell-mount\");  // first useEffect: React has committed the component\n  1771 |     // initialise on mount (no window on server); stay in sync via popstate\n> 1772 |     setUrlSearch(window.location.search);\n       |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1773 |     const h = () => setUrlSearch(window.location.search);\n  1774 |     window.addEventListener(\"popstate\", h);\n  1775 |     return () => window.removeEventListener(\"popstate\", h);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1831:27\n  1829 |   // Optimistic \"seen\" so the \u2022\u2022\u2022 badge cannot flash before localStorage is read on mount.\n  1830 |   const [hubSeen, setHubSeen] = useState(true);\n> 1831 |   useEffect(() => { try { setHubSeen(localStorage.getItem(\"mm.hubSeen\") === \"1\"); } catch {} }, []);\n       |                           ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1832 |   // SSR-consistent default; the persisted width is read after mount (below) so the server- and\n  1833 |   // client-rendered `--rail-w` style always agree on the first paint (no hydration mismatch).\n  1834 |   const [railW, setRailW] = useState<number>(360);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:2352:5\n  2350 |   // enabled qualified module ids so new module-level eyes preserve the old all-hidden appearance.\n  2351 |   useEffect(() => {\n> 2352 |     setHidden((current) => {\n       |     ^^^^^^^^^ Avoid calling setState() directly within an effect\n  2353 |       const legacySuites = [...current].filter(isSuiteKey);\n  2354 |       if (!legacySuites.length) return current;\n  2355 |       const next = new Set(current);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:3088:5\n  3086 |   useEffect(() => {\n  3087 |     let alive = true;\n> 3088 |     setIntel(null); setLivePx(null); setSlice(null); setFund(null); setOpts(null); setBars([]); setFundLoading(true);\n       |     ^^^^^^^^ Avoid calling setState() directly within an effect\n  3089 |     setRailGex(null);\n  3090 |     // immediate: chart-shared OHLC and 6KB slice (signal verdict for the rail badge)\n  3091 |     getJSON(`/data/${active}.slice.json`).then((d) => { if (alive) setSlice(d); });",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:3568:26\n  3566 |   }, [lang]);\n  3567 |   const refreshLayouts = useCallback(async (): Promise<boolean> => (await fetchWorkspaceRows()).ok, [fetchWorkspaceRows]);\n> 3568 |   useEffect(() => { void refreshLayouts(); }, [refreshLayouts]);\n       |                          ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  3569 |   useEffect(() => {\n  3570 |     // Open the Brain widget. The script is deferred + cross-origin, so on early ?ai=1 deep-links\n  3571 |     // window.MMBrain may not exist yet \u2014 retry once after 800ms before giving up.",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:3590:104\n  3588 |   // and strips ?pane= on close). Reactive so clicking ?pane= links while already on /terminal works.\n  3589 |   // Only OPEN when a valid pane is present \u2014 do NOT force-close when absent (MegaPane owns its close).\n> 3590 |   useEffect(() => { const p = new URLSearchParams(urlSearch).get(\"pane\"); if (p && VALID_PANES.has(p)) setPaneOpen(normalizePane(p)); }, [urlSearch]);\n       |                                                                                                        ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  3591 |   // Direct open event \u2014 AppNav dispatches this on every click, so re-opening the SAME pane after a close\n  3592 |   // works even though MegaPane's replaceState strip is invisible to Next's router (searchParams stays stale).\n  3593 |   useEffect(() => { const h = (e: Event) => { const p = (e as CustomEvent).detail as string; if (p && VALID_PANES.has(p)) setPaneOpen(normalizePane(p)); }; window.addEventListener(\"mm:open-pane\", h); return () => window.removeEventListener(\"mm:open-pane\", h); }, []);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/exhaustive-deps",
+          1,
+          "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 4128) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook.",
+          "VariableDeclarator",
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:5022:5\n  5020 |   }, [loggedIn]);\n  5021 |   useEffect(() => {\n> 5022 |     setEnabledIds(enabledScriptIds());\n       |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  5023 |     setPineParamsState(pineParamStore());\n  5024 |     void loadScripts();\n  5025 |   }, [loadScripts]);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:5054:22\n  5052 |     if (!raw) return;\n  5053 |     const keys = raw.split(\",\").map((k) => k.trim()).filter(isIndKey);\n> 5054 |     if (keys.length) setInds((prev) => { const next = new Set(prev); for (const k of keys) next.add(k); return next; });\n       |                      ^^^^^^^ Avoid calling setState() directly within an effect\n  5055 |     // Strip param so this only fires once (mirrors ?addScript= / ?pane= strip pattern)\n  5056 |     try { const u = new URL(window.location.href); u.searchParams.delete(\"ind\"); window.history.replaceState({}, \"\", u.toString()); } catch {}\n  5057 |   }, [urlSearch]);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:6081:11\n  6079 |   const [templates, setTemplates] = useState<TemplateMenuEntry[]>([]);\n  6080 |   useEffect(() => {\n> 6081 |     try { setTemplates(listTemplates()); } catch {}\n       |           ^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  6082 |   }, [paletteOpen]);\n  6083 |   useEffect(() => {\n  6084 |     if (shellMode || paletteOpen) return;",
+          null,
+          null
+        ]
+      ],
+      "noNewFindings": false,
+      "path": "components/TerminalShell.tsx",
+      "resolvedFindings": [
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1175:5\n  1173 |   useEffect(() => {\n  1174 |     if (process.env.NODE_ENV === \"production\") return;\n> 1175 |     setDevTier(normalizeDevTierOverride(localStorage.getItem(\"mm.devTier\")));\n       |     ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1176 |   }, []);\n  1177 |   // ent.tier is already normalized by the store (legacy `insider` \u2192 `essential`).\n  1178 |   const userTier: \"free\" | \"essential\" | \"pro\" = devTier ?? (ent.tier === \"essential\" || ent.tier === \"pro\" ? ent.tier : \"free\");",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1528:38\n  1526 |   const [signalsOpen, setSignalsOpen] = useState(false);\n  1527 |   const [signalsMounted, setSignalsMounted] = useState(false);\n> 1528 |   useEffect(() => { if (signalsOpen) setSignalsMounted(true); }, [signalsOpen]);\n       |                                      ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1529 |   const [magnet, setMagnet] = useState<\"off\" | \"weak\" | \"strong\">(\"off\");\n  1530 |   const [drawingSticky, setDrawingSticky] = useState(false);\n  1531 |   const drawingCreationDisabledReason = replayOn",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1663:5\n  1661 |     // An updater, never a value: it clamps whatever set it is applied to, so it cannot undo another\n  1662 |     // change queued before it.\n> 1663 |     setInds(clamp);\n       |     ^^^^^^^ Avoid calling setState() directly within an effect\n  1664 |   }, [indParams, inds, loggedIn, studiesRestored]);\n  1665 |   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state\n  1666 |   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1771:5\n  1769 |     btMark(\"shell-mount\");  // first useEffect: React has committed the component\n  1770 |     // initialise on mount (no window on server); stay in sync via popstate\n> 1771 |     setUrlSearch(window.location.search);\n       |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1772 |     const h = () => setUrlSearch(window.location.search);\n  1773 |     window.addEventListener(\"popstate\", h);\n  1774 |     return () => window.removeEventListener(\"popstate\", h);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:1830:27\n  1828 |   // Optimistic \"seen\" so the \u2022\u2022\u2022 badge cannot flash before localStorage is read on mount.\n  1829 |   const [hubSeen, setHubSeen] = useState(true);\n> 1830 |   useEffect(() => { try { setHubSeen(localStorage.getItem(\"mm.hubSeen\") === \"1\"); } catch {} }, []);\n       |                           ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1831 |   // SSR-consistent default; the persisted width is read after mount (below) so the server- and\n  1832 |   // client-rendered `--rail-w` style always agree on the first paint (no hydration mismatch).\n  1833 |   const [railW, setRailW] = useState<number>(360);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:2351:5\n  2349 |   // enabled qualified module ids so new module-level eyes preserve the old all-hidden appearance.\n  2350 |   useEffect(() => {\n> 2351 |     setHidden((current) => {\n       |     ^^^^^^^^^ Avoid calling setState() directly within an effect\n  2352 |       const legacySuites = [...current].filter(isSuiteKey);\n  2353 |       if (!legacySuites.length) return current;\n  2354 |       const next = new Set(current);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:3087:5\n  3085 |   useEffect(() => {\n  3086 |     let alive = true;\n> 3087 |     setIntel(null); setLivePx(null); setSlice(null); setFund(null); setOpts(null); setBars([]); setFundLoading(true);\n       |     ^^^^^^^^ Avoid calling setState() directly within an effect\n  3088 |     setRailGex(null);\n  3089 |     // immediate: chart-shared OHLC and 6KB slice (signal verdict for the rail badge)\n  3090 |     getJSON(`/data/${active}.slice.json`).then((d) => { if (alive) setSlice(d); });",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:3567:26\n  3565 |   }, [lang]);\n  3566 |   const refreshLayouts = useCallback(async (): Promise<boolean> => (await fetchWorkspaceRows()).ok, [fetchWorkspaceRows]);\n> 3567 |   useEffect(() => { void refreshLayouts(); }, [refreshLayouts]);\n       |                          ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  3568 |   useEffect(() => {\n  3569 |     // Open the Brain widget. The script is deferred + cross-origin, so on early ?ai=1 deep-links\n  3570 |     // window.MMBrain may not exist yet \u2014 retry once after 800ms before giving up.",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:3589:104\n  3587 |   // and strips ?pane= on close). Reactive so clicking ?pane= links while already on /terminal works.\n  3588 |   // Only OPEN when a valid pane is present \u2014 do NOT force-close when absent (MegaPane owns its close).\n> 3589 |   useEffect(() => { const p = new URLSearchParams(urlSearch).get(\"pane\"); if (p && VALID_PANES.has(p)) setPaneOpen(normalizePane(p)); }, [urlSearch]);\n       |                                                                                                        ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  3590 |   // Direct open event \u2014 AppNav dispatches this on every click, so re-opening the SAME pane after a close\n  3591 |   // works even though MegaPane's replaceState strip is invisible to Next's router (searchParams stays stale).\n  3592 |   useEffect(() => { const h = (e: Event) => { const p = (e as CustomEvent).detail as string; if (p && VALID_PANES.has(p)) setPaneOpen(normalizePane(p)); }; window.addEventListener(\"mm:open-pane\", h); return () => window.removeEventListener(\"mm:open-pane\", h); }, []);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/exhaustive-deps",
+          1,
+          "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 4127) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook.",
+          "VariableDeclarator",
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:5021:5\n  5019 |   }, [loggedIn]);\n  5020 |   useEffect(() => {\n> 5021 |     setEnabledIds(enabledScriptIds());\n       |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  5022 |     setPineParamsState(pineParamStore());\n  5023 |     void loadScripts();\n  5024 |   }, [loadScripts]);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:5053:22\n  5051 |     if (!raw) return;\n  5052 |     const keys = raw.split(\",\").map((k) => k.trim()).filter(isIndKey);\n> 5053 |     if (keys.length) setInds((prev) => { const next = new Set(prev); for (const k of keys) next.add(k); return next; });\n       |                      ^^^^^^^ Avoid calling setState() directly within an effect\n  5054 |     // Strip param so this only fires once (mirrors ?addScript= / ?pane= strip pattern)\n  5055 |     try { const u = new URL(window.location.href); u.searchParams.delete(\"ind\"); window.history.replaceState({}, \"\", u.toString()); } catch {}\n  5056 |   }, [urlSearch]);",
+          null,
+          null
+        ],
+        [
+          "react-hooks/set-state-in-effect",
+          2,
+          "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/components/TerminalShell.tsx:6080:11\n  6078 |   const [templates, setTemplates] = useState<TemplateMenuEntry[]>([]);\n  6079 |   useEffect(() => {\n> 6080 |     try { setTemplates(listTemplates()); } catch {}\n       |           ^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  6081 |   }, [paletteOpen]);\n  6082 |   useEffect(() => {\n  6083 |     if (shellMode || paletteOpen) return;",
+          null,
+          null
+        ]
+      ],
+      "sourceIdenticalToHead": false
+    },
+    {
+      "errors": 0,
+      "noNewFindings": true,
+      "path": "e2e/chart-object-tree.spec.ts",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "noNewFindings": true,
+      "path": "e2e/scripts-library.spec.ts",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "noNewFindings": true,
+      "path": "e2e/workspace-rename-focus.spec.ts",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "noNewFindings": true,
+      "path": "lib/__tests__/chartObjectTree.test.tsx",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "noNewFindings": true,
+      "path": "lib/__tests__/indicatorsScriptRename.test.tsx",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "noNewFindings": true,
+      "path": "lib/__tests__/layoutRenameFocus.test.tsx",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    }
+  ],
+  "schema": "terminal_pr1407_lint_baseline_comparison.v1",
+  "scope": "This does not claim clean lint. Baseline lint findings remain; source-level changes are imports/class names and component-scoped styles.",
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746"
+}

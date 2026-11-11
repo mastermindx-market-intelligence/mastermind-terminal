@@ -1,3 +1,16 @@
+# Current browser proof is the momentum successor; prior native captures retain their identities.
+exposureMomentumBrowser20261110:
+  revision: "exposure-momentum-integration-20261110"
+  selectedFamily: "gex"
+  descriptorSha256: "077a5a84a160e64f340dc326ee834d9408d35b822782df16f8f70125b1b6abf2"
+  retainedEodDescriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  retainedGexDescriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453"
+  branchHead: "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7"
+  protectedMaster: "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185"
+  integratedDependency: "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185"
+  browserQualificationSha256: "fdb68045af826d208615fd3b2d54955961053312ba57d60895fdfa116b394c12"
+  expiryQualificationSha256: "caffdecc46531a7da8f0173f6ccde0b43db30be16c7e91a2b6970e789c2b32e7"
+
 # Current source proof retains the original EOD capture and qualifies fresh expiry-aware GEX and browser journeys.
 exposureExpiryGreeksIntegration20261110:
   selectedFamily: "gex"

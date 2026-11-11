@@ -15,13 +15,13 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f12-b5-2-team-workspaces");
 const LAYOUT_FILES = [
   "terminal/components/LayoutMenu.tsx",
+  "terminal/components/LayoutMenu.module.css",
   "terminal/lib/teamSharedWorkflow.ts",
   "terminal/lib/i18n.tsx",
   "terminal/app/dev/workspaces/page.tsx",
@@ -35,8 +35,6 @@ const VIEWPORTS = {
 const STATES = ["team-grouped", "share-confirm", "member-read-only"];
 const LANGS = ["en", "zh"];
 
-mkdirSync(OUT, { recursive: true });
-
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 }
@@ -45,7 +43,7 @@ function sha256File(rel) {
   return createHash("sha256").update(readFileSync(join(REPO, rel))).digest("hex");
 }
 
-function startServer() {
+function startServer({ spawnProcess = spawn } = {}) {
   const env = {
     ...process.env,
     ANALYSIS_LOCAL_PREVIEW: "1",
@@ -59,12 +57,13 @@ function startServer() {
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
   };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
+  const child = spawnProcess("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
     cwd: ROOT,
     env,
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
   });
+  observeOwnedServer(child);
   child.stdout.on("data", (buf) => {
     const line = String(buf);
     if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
@@ -73,11 +72,120 @@ function startServer() {
   return child;
 }
 
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try { process.kill(-child.pid, "SIGTERM"); } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
+const ownedServers = new WeakMap();
+
+function observeOwnedServer(child) {
+  const state = { pid: child.pid, closed: null, error: null, shutdown: null };
+  state.closePromise = new Promise((resolve) => {
+    child.once("close", (code, signal) => {
+      state.closed = { code, signal };
+      resolve(state.closed);
+    });
+  });
+  state.errorPromise = new Promise((resolve) => {
+    child.on("error", (error) => {
+      if (!state.error) {
+        state.error = error;
+        resolve(error);
+      }
+    });
+  });
+  ownedServers.set(child, state);
+  return child;
+}
+
+function stopServer(child, {
+  signalGroup = (pid, signal) => process.kill(pid, signal),
+  setTimer = setTimeout,
+  clearTimer = clearTimeout,
+  timeoutMs = 10_000,
+} = {}) {
+  const state = ownedServers.get(child);
+  if (!state) return Promise.reject(new Error("Cannot stop an unowned workspace capture server"));
+  if (state.shutdown) return state.shutdown;
+  state.shutdown = (async () => {
+    if (state.error) throw state.error;
+    if (!Number.isSafeInteger(state.pid) || state.pid <= 1 || child.pid !== state.pid) {
+      throw new Error("Owned workspace capture server has no stable process identity");
+    }
+    if (state.closed) return state.closed;
+    try {
+      signalGroup(-state.pid, "SIGTERM");
+    } catch (error) {
+      // ESRCH still needs the observed child close. Every other refusal is final.
+      if (error.code !== "ESRCH") throw error;
+    }
+    let timer;
+    try {
+      const close = await Promise.race([
+        state.closePromise,
+        state.errorPromise.then((error) => { throw error; }),
+        new Promise((_, reject) => {
+          timer = setTimer(() => {
+            const error = new Error("Owned workspace capture server did not close after SIGTERM");
+            error.code = "OWNED_SERVER_CLOSE_TIMEOUT";
+            reject(error);
+          }, timeoutMs);
+        }),
+      ]);
+      if (state.error) throw state.error;
+      return close;
+    } finally {
+      if (timer !== undefined) clearTimer(timer);
+    }
+  })();
+  return state.shutdown;
+}
+
+function assertOwnedServerRunning(child) {
+  const state = ownedServers.get(child);
+  if (!state) throw new Error("Cannot capture with an unowned workspace server");
+  if (state.error) throw state.error;
+  if (!Number.isSafeInteger(state.pid) || state.pid <= 1 || child.pid !== state.pid) {
+    throw new Error("Owned workspace capture server has no stable process identity");
   }
+  if (state.closed) {
+    if (!state.prematureCloseError) {
+      const error = new Error("Owned workspace server closed before the capture shutdown boundary");
+      error.code = "OWNED_SERVER_PREMATURE_CLOSE";
+      error.close = state.closed;
+      state.prematureCloseError = error;
+    }
+    throw state.prematureCloseError;
+  }
+}
+
+async function withCaptureResources(capture, {
+  start = startServer,
+  launch = () => require("@playwright/test").chromium.launch({ headless: true }),
+  stop = stopServer,
+} = {}) {
+  const child = start();
+  let browser;
+  let result;
+  let serverClose;
+  const errors = [];
+  const retainError = (error) => { if (!errors.includes(error)) errors.push(error); };
+  try {
+    assertOwnedServerRunning(child);
+    browser = await launch();
+    assertOwnedServerRunning(child);
+    result = await capture(browser);
+    assertOwnedServerRunning(child);
+  } catch (error) {
+    retainError(error);
+  } finally {
+    if (browser) {
+      try { await browser.close(); } catch (error) { retainError(error); }
+    }
+    try { assertOwnedServerRunning(child); } catch (error) { retainError(error); }
+    try { serverClose = await stop(child); } catch (error) { retainError(error); }
+  }
+  if (errors.length === 1) throw errors[0];
+  if (errors.length > 1) {
+    throw new AggregateError(errors, "Workspace capture or resource cleanup failed");
+  }
+  return { result, serverClose, serverPid: child.pid };
 }
 
 async function waitForServer(timeoutMs) {
@@ -96,15 +204,8 @@ async function waitForServer(timeoutMs) {
   throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
 }
@@ -131,11 +232,10 @@ async function measure(page) {
 }
 
 async function main() {
-  const child = startServer();
-  const browser = await chromium.launch({ headless: true });
+  mkdirSync(OUT, { recursive: true });
   const measurements = {};
   const files = [];
-  try {
+  const lifecycle = await withCaptureResources(async (browser) => {
     await waitForServer(90_000);
     const page = await browser.newPage();
     for (const viewportName of Object.keys(VIEWPORTS)) {
@@ -162,10 +262,8 @@ async function main() {
         }
       }
     }
-    await browser.close();
-  } finally {
-    stopServer(child);
-  }
+  });
+  console.log(JSON.stringify({ event: "owned-server-closed", pid: lifecycle.serverPid, ...lifecycle.serverClose, port: PORT }));
 
   const head = currentGitHead();
   const layoutFiles = LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`).join("\n");
@@ -201,7 +299,11 @@ ${measYaml}
   console.log("wrote EVIDENCE.yml at", head);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
+
+module.exports = { startServer, stopServer, withCaptureResources };

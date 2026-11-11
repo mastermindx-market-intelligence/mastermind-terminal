@@ -37,6 +37,17 @@ describe("sectorJob codec inside the incumbent typed router", () => {
     expect(parseSectorState(url("sectorJob=bogus"), "/sectors").sectorJob).toBeNull();
   });
 
+  it.each([
+    ["sectorBreadthSort=contract", "contract", 5],
+    ["sectorBreadthWindow=1", "strong", 1],
+    ["sectorBreadthSort=bogus", "strong", 5],
+    ["sectorBreadthWindow=bogus", "strong", 5],
+  ] as const)("keeps breadth-only URL %s out of the clean Brief entry", (query, breadthSort, breadthWindow) => {
+    expect(parseSectorState(url(query), "/sectors")).toMatchObject({
+      sectorJob: null, breadthSort, breadthWindow,
+    });
+  });
+
   it.each(["brief", "explore", "research", "watches"] as const)("round-trips the %s job", job => {
     const state = { ...DEFAULT_SECTOR_STATE, sectorJob: job };
     const href = write(state);
@@ -115,8 +126,9 @@ describe("native slot context: source ordinal and binding discipline", () => {
     delete group.current.rank;
     delete group.current.rs_21d;
     delete group.current.rs_63d;
-    const synthetic = { receipt: generation.receipt, core,
-      sectors: generation.sectors, history: generation.history, key: generation.key };
+    // Full generation spread + the mutated core: only the withheld group changes,
+    // every other admitted companion (actionBoard/typedBlocks/historyWire) rides along.
+    const synthetic = { ...generation, core };
     const rows = sectorNativeRankedRows(synthetic);
     expect(rows).toHaveLength(11);
     const unmeasured = rows.filter(row => !row.measured);

@@ -1,0 +1,31 @@
+[warmup] /terminal?symbol=NVDA → 200 in 76ms
+[warmup] /options → 200 in 153ms
+[warmup] /portfolio → 200 in 166ms
+[warmup] /alerts → 200 in 120ms
+[warmup] /analysis → 200 in 156ms
+[warmup] /discover → 200 in 102ms
+[warmup] /admin → 200 in 53ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 48ms
+[warmup] /login → 200 in 62ms
+[warmup] /reset-password → 200 in 70ms
+[warmup] /api/me → 200 in 54ms
+[warmup] /api/watchlist → 200 in 26ms
+[warmup] /api/layouts → 200 in 27ms
+[warmup] /api/watchlist/annotations → 409 in 25ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 134ms
+
+Running 9 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:71:7 › W2-A workspace menu — 1440×900 EN › ready / empty / row-open / renaming / unsupported-rows / name-conflict / stale (16.4s)
+  ✓  2 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:328:7 › W2-A workspace menu — 1440×900 ZH › ready / unavailable / stale, no English leaking through (13.2s)
+  ✓  3 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:400:7 › W2-A workspace menu — 820×1180 (drill-down mount) › stale in zh (10.3s)
+  ✓  4 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:445:7 › W2-A workspace menu — 390×844 › 390-en-stale (13.1s)
+  ✓  5 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:688:9 › W2-A workspace menu — non-screenshot assertions (spec §7) › tap targets are >=44x44 at 820px (18.5s)
+  ✓  6 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:688:9 › W2-A workspace menu — non-screenshot assertions (spec §7) › tap targets are >=44x44 at 390px (20.5s)
+  ✓  7 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:748:7 › W2-A workspace menu — non-screenshot assertions (spec §7) › zero horizontal document overflow at all three widths with the menu open + a row unfolded (15.1s)
+  ✓  8 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:896:7 › W2-A workspace menu — team sharing › 1440 EN/ZH grouped library, share confirm, and member sees the shared workspace as read-only when the role flag is member (33.2s)
+  ✓  9 [w2a-workspaces] › e2e/w2a-workspaces.spec.ts:944:7 › W2-A workspace menu — team sharing › 820 EN grouped library tap targets (11.4s)
+
+  9 passed (2.7m)

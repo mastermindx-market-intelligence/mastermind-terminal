@@ -1,0 +1,3 @@
+.next/dev/types/validator.ts(1160,1): error TS1109: Expression expected.
+.next/dev/types/validator.ts(1160,4): error TS1109: Expression expected.
+.next/dev/types/validator.ts(1165,1): error TS1128: Declaration or statement expected.

@@ -1,0 +1,754 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/playwright-successor.config.cjs",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=1"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/playwright-successor.config.cjs",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "flow-projection.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "flow-projection.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "flow-projection.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 47687",
+      "url": "http://127.0.0.1:47687/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      },
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal"
+    }
+  },
+  "suites": [
+    {
+      "title": "flow-projection.spec.ts",
+      "file": "flow-projection.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "[en] time buckets preserve canonical cards, filters, coverage and inspector",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2278,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:44.432Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "selected-bucket",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/selected-bucket-1fbfa396d7b0f93952856569cba0125c8b047dd8.png"
+                    },
+                    {
+                      "name": "selected-print-inspector",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/selected-print-inspector-c63126c5df4dab858189654b29229423159d5bf4.png"
+                    },
+                    {
+                      "name": "restored-tape",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/restored-tape-3a6735abb5058654f8b31b1e2f5d003d6a789342.png"
+                    },
+                    {
+                      "name": "journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgImZpeHR1cmUiOiAib3B0aW9ucy1yMS13M2EtZmxvdy5qc29uIiwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgImFsbExvYWRlZENvdmVyYWdlIjogIjg4ICUgb2YgZWxpZ2libGUgcHJlbWl1bSBjbGFzc2lmaWVkIMK3IDEyICUgdW5rbm93bkNhbGxzICQyLjNNIMK3IFB1dHMgJDc1MC4wSyDCtyB1bnNpZ25lZCBwcmVtaXVtLCBub3QgYSBkaXJlY3Rpb24iLAogICJleHBlY3RlZFByZW1pdW1zIjogWwogICAgIiQzNTUuMEsiLAogICAgIiQyNTkuMksiLAogICAgIiQzOTUuMEsiLAogICAgIiQyNjYuOEsiLAogICAgIiQ4MC4wSyIsCiAgICAiJDMxNS4wSyIKICBdLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-78a98ffaf2c5f817de6a",
+          "file": "flow-projection.spec.ts",
+          "line": 71,
+          "column": 7
+        },
+        {
+          "title": "[en] a held feed keeps its reason and projection over the last read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1472,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:47.064Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "held-projection",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-desktop/attachments/held-projection-578906e30fd69d0f4ec0acc8b9b2083210d51665.png"
+                    },
+                    {
+                      "name": "held-journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDEsCiAgICAicG9sbCI6IDAKICB9LAogICJyZXRhaW5lZEZlZWRDb3VudCI6IDksCiAgInNlbGVjdGVkQ291bnQiOiA2LAogICJjb3ZlcmFnZSI6ICI4OCAlIG9mIGVsaWdpYmxlIHByZW1pdW0gY2xhc3NpZmllZCDCtyAxMiAlIHVua25vd25DYWxscyAkMi4zTSDCtyBQdXRzICQ3NTAuMEsgwrcgdW5zaWduZWQgcHJlbWl1bSwgbm90IGEgZGlyZWN0aW9uIiwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-748c2c3e0157bc95351f",
+          "file": "flow-projection.spec.ts",
+          "line": 160,
+          "column": 7
+        },
+        {
+          "title": "[zh] time buckets preserve canonical cards, filters, coverage and inspector",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1817,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:48.542Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "selected-bucket",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/selected-bucket-018bc52da20595aeb670b4c3bf34a3fc34b5306d.png"
+                    },
+                    {
+                      "name": "selected-print-inspector",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/selected-print-inspector-e29cbd2d10b46ddb862a33d5cf8ff3da2ef5959b.png"
+                    },
+                    {
+                      "name": "restored-tape",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/restored-tape-a912e0c809c6903c735164ba86c234fb8612ee37.png"
+                    },
+                    {
+                      "name": "journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgImZpeHR1cmUiOiAib3B0aW9ucy1yMS13M2EtZmxvdy5qc29uIiwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgImFsbExvYWRlZENvdmVyYWdlIjogIjg4ICUg5ZCI5qC85p2D5Yip6YeR5bey5YiG57G7IMK3IDEyICUg5pyq55+l6K6k6LStICQyLjNNIMK3IOiupOayvSAkNzUwLjBLIMK3IOaXoOespuWPt+adg+WIqemHke+8jOmdnuaWueWQkeaMh+ekuiIsCiAgImV4cGVjdGVkUHJlbWl1bXMiOiBbCiAgICAiJDM1NS4wSyIsCiAgICAiJDI1OS4ySyIsCiAgICAiJDM5NS4wSyIsCiAgICAiJDI2Ni44SyIsCiAgICAiJDgwLjBLIiwKICAgICIkMzE1LjBLIgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-68ee52fbee8ec4712f48",
+          "file": "flow-projection.spec.ts",
+          "line": 71,
+          "column": 7
+        },
+        {
+          "title": "[zh] a held feed keeps its reason and projection over the last read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1102,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:50.365Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "held-projection",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-desktop/attachments/held-projection-c1d823f2f7ff1666a3eceb3548b835a991f849d2.png"
+                    },
+                    {
+                      "name": "held-journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDEsCiAgICAicG9sbCI6IDAKICB9LAogICJyZXRhaW5lZEZlZWRDb3VudCI6IDksCiAgInNlbGVjdGVkQ291bnQiOiA2LAogICJjb3ZlcmFnZSI6ICI4OCAlIOWQiOagvOadg+WIqemHkeW3suWIhuexuyDCtyAxMiAlIOacquefpeiupOi0rSAkMi4zTSDCtyDorqTmsr0gJDc1MC4wSyDCtyDml6DnrKblj7fmnYPliKnph5HvvIzpnZ7mlrnlkJHmjIfnpLoiLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-15616b9d11693c73e24e",
+          "file": "flow-projection.spec.ts",
+          "line": 160,
+          "column": 7
+        },
+        {
+          "title": "[en] time buckets preserve canonical cards, filters, coverage and inspector",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1811,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:51.893Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "selected-bucket",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/selected-bucket-ed49b20d52a70e5c1f37df56bc5b0f4559d3cd6c.png"
+                    },
+                    {
+                      "name": "selected-print-inspector",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/selected-print-inspector-4f7b37e0d746915af69998419587e66ab62a79f7.png"
+                    },
+                    {
+                      "name": "restored-tape",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/restored-tape-71cc9659e24612d6fc54fac25b289f8f15faa86d.png"
+                    },
+                    {
+                      "name": "journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgImZpeHR1cmUiOiAib3B0aW9ucy1yMS13M2EtZmxvdy5qc29uIiwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgImFsbExvYWRlZENvdmVyYWdlIjogIjg4ICUgb2YgZWxpZ2libGUgcHJlbWl1bSBjbGFzc2lmaWVkIMK3IDEyICUgdW5rbm93bkNhbGxzICQyLjNNIMK3IFB1dHMgJDc1MC4wSyDCtyB1bnNpZ25lZCBwcmVtaXVtLCBub3QgYSBkaXJlY3Rpb24iLAogICJleHBlY3RlZFByZW1pdW1zIjogWwogICAgIiQzNTUuMEsiLAogICAgIiQyNTkuMksiLAogICAgIiQzOTUuMEsiLAogICAgIiQyNjYuOEsiLAogICAgIiQ4MC4wSyIsCiAgICAiJDMxNS4wSyIKICBdLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-83a5a463cfc0d56785ac",
+          "file": "flow-projection.spec.ts",
+          "line": 71,
+          "column": 7
+        },
+        {
+          "title": "[en] a held feed keeps its reason and projection over the last read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 994,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:53.904Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "held-projection",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-tablet/attachments/held-projection-1088d0b806ccf04a31a759cbbe5258b6a2ed48e6.png"
+                    },
+                    {
+                      "name": "held-journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDEsCiAgICAicG9sbCI6IDAKICB9LAogICJyZXRhaW5lZEZlZWRDb3VudCI6IDksCiAgInNlbGVjdGVkQ291bnQiOiA2LAogICJjb3ZlcmFnZSI6ICI4OCAlIG9mIGVsaWdpYmxlIHByZW1pdW0gY2xhc3NpZmllZCDCtyAxMiAlIHVua25vd25DYWxscyAkMi4zTSDCtyBQdXRzICQ3NTAuMEsgwrcgdW5zaWduZWQgcHJlbWl1bSwgbm90IGEgZGlyZWN0aW9uIiwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-1c19fbf8826c17a93209",
+          "file": "flow-projection.spec.ts",
+          "line": 160,
+          "column": 7
+        },
+        {
+          "title": "[zh] time buckets preserve canonical cards, filters, coverage and inspector",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1767,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:54.903Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "selected-bucket",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/selected-bucket-3ac8652c2b69eb1985b2c761dfb8105a9d2c7ff5.png"
+                    },
+                    {
+                      "name": "selected-print-inspector",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/selected-print-inspector-17fcb9ce73f9b2c3869961f611af7eadfc848990.png"
+                    },
+                    {
+                      "name": "restored-tape",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/restored-tape-795951f1de1c04d41e7caf078399b9f767213fbd.png"
+                    },
+                    {
+                      "name": "journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgImZpeHR1cmUiOiAib3B0aW9ucy1yMS13M2EtZmxvdy5qc29uIiwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgImFsbExvYWRlZENvdmVyYWdlIjogIjg4ICUg5ZCI5qC85p2D5Yip6YeR5bey5YiG57G7IMK3IDEyICUg5pyq55+l6K6k6LStICQyLjNNIMK3IOiupOayvSAkNzUwLjBLIMK3IOaXoOespuWPt+adg+WIqemHke+8jOmdnuaWueWQkeaMh+ekuiIsCiAgImV4cGVjdGVkUHJlbWl1bXMiOiBbCiAgICAiJDM1NS4wSyIsCiAgICAiJDI1OS4ySyIsCiAgICAiJDM5NS4wSyIsCiAgICAiJDI2Ni44SyIsCiAgICAiJDgwLjBLIiwKICAgICIkMzE1LjBLIgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-0c3e5ac6a4648ff83afd",
+          "file": "flow-projection.spec.ts",
+          "line": 71,
+          "column": 7
+        },
+        {
+          "title": "[zh] a held feed keeps its reason and projection over the last read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1135,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:56.674Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "held-projection",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-tablet/attachments/held-projection-5d3878419ffdc66a9e2c7898dfa0a308b91e01fd.png"
+                    },
+                    {
+                      "name": "held-journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDEsCiAgICAicG9sbCI6IDAKICB9LAogICJyZXRhaW5lZEZlZWRDb3VudCI6IDksCiAgInNlbGVjdGVkQ291bnQiOiA2LAogICJjb3ZlcmFnZSI6ICI4OCAlIOWQiOagvOadg+WIqemHkeW3suWIhuexuyDCtyAxMiAlIOacquefpeiupOi0rSAkMi4zTSDCtyDorqTmsr0gJDc1MC4wSyDCtyDml6DnrKblj7fmnYPliKnph5HvvIzpnZ7mlrnlkJHmjIfnpLoiLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-499ba6160118e6c47b85",
+          "file": "flow-projection.spec.ts",
+          "line": 160,
+          "column": 7
+        },
+        {
+          "title": "[en] time buckets preserve canonical cards, filters, coverage and inspector",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1958,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:28:58.172Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "selected-bucket",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/selected-bucket-287fdb520169e1cddf896b65f686d2f56b068384.png"
+                    },
+                    {
+                      "name": "selected-print-inspector",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/selected-print-inspector-d611b0e1bdaf672d8b271962458f5db688b9c922.png"
+                    },
+                    {
+                      "name": "restored-tape",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/restored-tape-0d7519e723f4c50d10220ee76f9aa28e6a583c1b.png"
+                    },
+                    {
+                      "name": "journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAiZml4dHVyZSI6ICJvcHRpb25zLXIxLXczYS1mbG93Lmpzb24iLAogICJyZWFkcyI6IHsKICAgICJzdHJlYW0iOiAxLAogICAgInBvbGwiOiAwCiAgfSwKICAiYWxsTG9hZGVkQ292ZXJhZ2UiOiAiODggJSBvZiBlbGlnaWJsZSBwcmVtaXVtIGNsYXNzaWZpZWQgwrcgMTIgJSB1bmtub3duQ2FsbHMgJDIuM00gwrcgUHV0cyAkNzUwLjBLIMK3IHVuc2lnbmVkIHByZW1pdW0sIG5vdCBhIGRpcmVjdGlvbiIsCiAgImV4cGVjdGVkUHJlbWl1bXMiOiBbCiAgICAiJDM1NS4wSyIsCiAgICAiJDI1OS4ySyIsCiAgICAiJDM5NS4wSyIsCiAgICAiJDI2Ni44SyIsCiAgICAiJDgwLjBLIiwKICAgICIkMzE1LjBLIgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-8f8bb8c511646254c499",
+          "file": "flow-projection.spec.ts",
+          "line": 71,
+          "column": 7
+        },
+        {
+          "title": "[en] a held feed keeps its reason and projection over the last read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 954,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:29:00.308Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "held-projection",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-mobile/attachments/held-projection-ed4fcf69a94921ef0eaf1a1a798507c4ebeeb47a.png"
+                    },
+                    {
+                      "name": "held-journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgInJldGFpbmVkRmVlZENvdW50IjogOSwKICAic2VsZWN0ZWRDb3VudCI6IDYsCiAgImNvdmVyYWdlIjogIjg4ICUgb2YgZWxpZ2libGUgcHJlbWl1bSBjbGFzc2lmaWVkIMK3IDEyICUgdW5rbm93bkNhbGxzICQyLjNNIMK3IFB1dHMgJDc1MC4wSyDCtyB1bnNpZ25lZCBwcmVtaXVtLCBub3QgYSBkaXJlY3Rpb24iLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-11c7f1cbd62c45843218",
+          "file": "flow-projection.spec.ts",
+          "line": 160,
+          "column": 7
+        },
+        {
+          "title": "[zh] time buckets preserve canonical cards, filters, coverage and inspector",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1953,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:29:01.268Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "selected-bucket",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/selected-bucket-bacd506f1ec48d2d38008e08711562a30dc209a5.png"
+                    },
+                    {
+                      "name": "selected-print-inspector",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/selected-print-inspector-b60e98cb0a19a0798bc77a85656d225cd141de58.png"
+                    },
+                    {
+                      "name": "restored-tape",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/restored-tape-c186c8af809eb8f60c7bba7127849b75eb81aa8d.png"
+                    },
+                    {
+                      "name": "journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAiZml4dHVyZSI6ICJvcHRpb25zLXIxLXczYS1mbG93Lmpzb24iLAogICJyZWFkcyI6IHsKICAgICJzdHJlYW0iOiAxLAogICAgInBvbGwiOiAwCiAgfSwKICAiYWxsTG9hZGVkQ292ZXJhZ2UiOiAiODggJSDlkIjmoLzmnYPliKnph5Hlt7LliIbnsbsgwrcgMTIgJSDmnKrnn6XorqTotK0gJDIuM00gwrcg6K6k5rK9ICQ3NTAuMEsgwrcg5peg56ym5Y+35p2D5Yip6YeR77yM6Z2e5pa55ZCR5oyH56S6IiwKICAiZXhwZWN0ZWRQcmVtaXVtcyI6IFsKICAgICIkMzU1LjBLIiwKICAgICIkMjU5LjJLIiwKICAgICIkMzk1LjBLIiwKICAgICIkMjY2LjhLIiwKICAgICIkODAuMEsiLAogICAgIiQzMTUuMEsiCiAgXSwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-1c13d60644552298ae99",
+          "file": "flow-projection.spec.ts",
+          "line": 71,
+          "column": 7
+        },
+        {
+          "title": "[zh] a held feed keeps its reason and projection over the last read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 969,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T17:29:03.226Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "held-projection",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-mobile/attachments/held-projection-3613df9abfdc83907a673abdd1849e40895637db.png"
+                    },
+                    {
+                      "name": "held-journey",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgInJldGFpbmVkRmVlZENvdW50IjogOSwKICAic2VsZWN0ZWRDb3VudCI6IDYsCiAgImNvdmVyYWdlIjogIjg4ICUg5ZCI5qC85p2D5Yip6YeR5bey5YiG57G7IMK3IDEyICUg5pyq55+l6K6k6LStICQyLjNNIMK3IOiupOayvSAkNzUwLjBLIMK3IOaXoOespuWPt+adg+WIqemHke+8jOmdnuaWueWQkeaMh+ekuiIsCiAgInBhZ2VFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1535a31abb81aedebb9a-5b8b38594f4a36a7c22d",
+          "file": "flow-projection.spec.ts",
+          "line": 160,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-10T17:28:31.183Z",
+    "duration": 33117.176,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "qualifiedAt": "2026-11-11T07:49:04.812344+00:00",
+  "head": "c6f876e325a7c06160caf61f0d0f335e0c69a951",
+  "status": "SELF_REVIEWED_SOURCE_AND_CAPTURE_QUALIFIED",
+  "sourceHashes": {
+    "terminal/components/LayoutMenu.tsx": "7c1ec57d2cdfb55ac3262184579e4aec5f8cefdde9dc37f1146975e6070a1541",
+    "terminal/components/LayoutMenu.module.css": "82daf23f2da0d25db461cfec7e49f2d4d4eb84f131b63459c957ba646c6f4f87",
+    "terminal/lib/teamSharedWorkflow.ts": "1604fbf4eb28e119211a55acb1f70278339876d30e56ff3cda0cad1de68312df",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/app/dev/workspaces/page.tsx": "320f7983a913e212249dbfc65a18c1807f1fca9f6de9305f595a855ad4b9f1b5"
+  },
+  "pngs": {
+    "desktop-en-member-read-only.png": {
+      "bytes": 38602,
+      "sha256": "43c8da8f27b144d3fe6476b2a0aa4c71a28189e420f6fed234ffdfaac98a6cbc",
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-en-share-confirm.png": {
+      "bytes": 45540,
+      "sha256": "1d917f84518457f2d5f7328e2a269d502a0b40844e8b51cc0950878917de20ca",
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-en-team-grouped.png": {
+      "bytes": 36462,
+      "sha256": "f2c1dd800ba212b8a87d6ab2f447904eea3b473c1d899fcb0248b5d07aa06c3a",
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-zh-member-read-only.png": {
+      "bytes": 39161,
+      "sha256": "46aaecb6a04b29809ac076697733f691e1e2a428b0a0f9c0dd6fbf479b044096",
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-zh-share-confirm.png": {
+      "bytes": 46913,
+      "sha256": "fca95be75049b138a0c2616e87a80a203143863832ff01a416d462a47fffd7e6",
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-zh-team-grouped.png": {
+      "bytes": 35981,
+      "sha256": "12dd5bb709573bb6a8cbc2b1aa7c556debda3410b1db2f873a33655b8df8e332",
+      "width": 1440,
+      "height": 900
+    },
+    "mobile-en-member-read-only.png": {
+      "bytes": 33106,
+      "sha256": "df5d782b8fc1ed2a23f2ae3c5e551ec8c2332717f964a57c9291e41d65cd0683",
+      "width": 390,
+      "height": 844
+    },
+    "mobile-en-share-confirm.png": {
+      "bytes": 38435,
+      "sha256": "691fdb173290a4323065bf99241e1a0623d8aae2ca7b1155332242897e8bcedd",
+      "width": 390,
+      "height": 844
+    },
+    "mobile-en-team-grouped.png": {
+      "bytes": 31389,
+      "sha256": "4181ca08addad4e647ab691259de735b032c3d2095ae90b94a1e0eda6fe81edd",
+      "width": 390,
+      "height": 844
+    },
+    "mobile-zh-member-read-only.png": {
+      "bytes": 34036,
+      "sha256": "b3a5a635728c3ab33e4504dad2f9438592c89fc1df917788ae2c30be3c77649a",
+      "width": 390,
+      "height": 844
+    },
+    "mobile-zh-share-confirm.png": {
+      "bytes": 41571,
+      "sha256": "70346567392ac65d0128e0c1fedcbaec2b92172072ead3cc4d4fc85cd67db39a",
+      "width": 390,
+      "height": 844
+    },
+    "mobile-zh-team-grouped.png": {
+      "bytes": 30949,
+      "sha256": "2a40017bfebd95e4743c240632b1a997ae8a97eb58b705a336c66aa33e7cd485",
+      "width": 390,
+      "height": 844
+    }
+  },
+  "ownedServerClose": {
+    "event": "owned-server-closed",
+    "pid": 98612,
+    "code": 0,
+    "signal": null,
+    "port": 59954
+  },
+  "lifecycleTests": {
+    "passed": 20,
+    "failed": 0
+  },
+  "affectedCheckExits": {
+    "evidence-guards": 0,
+    "guard-eslint": 0
+  },
+  "previousPacketFiles": 14,
+  "preservedBf12PacketFiles": {
+    "b-f12-5-account-polish": 9,
+    "b-f12-4-account-lifecycle": 8,
+    "b-f12-16-team-settings": 9,
+    "b-f12-10-api-keys": 19,
+    "b-f12-7-webhooks": 19,
+    "b-f12-8-team-roles": 18,
+    "b-f12-b5-1-grants": 14,
+    "b-f12-11-signed-webhooks": 9,
+    "b-f12-b5-3-account-completeness": 10,
+    "b-f12-9-team-ownership-transfer": 12
+  },
+  "historyPrefixPreserved": true,
+  "otherTrackedFilesUnchanged": true,
+  "visualSelfReview": {
+    "reviewed": [
+      "desktop-en-member-read-only.png",
+      "desktop-en-share-confirm.png",
+      "desktop-en-team-grouped.png",
+      "desktop-zh-member-read-only.png",
+      "desktop-zh-share-confirm.png",
+      "desktop-zh-team-grouped.png",
+      "mobile-en-member-read-only.png",
+      "mobile-en-share-confirm.png",
+      "mobile-en-team-grouped.png",
+      "mobile-zh-member-read-only.png",
+      "mobile-zh-share-confirm.png",
+      "mobile-zh-team-grouped.png"
+    ],
+    "status": "PASS",
+    "notes": "Complete EN/ZH grouped/actions, confirmation and read-only states; no clipping or Next indicator at either viewport. No production sharing claim."
+  },
+  "trackedChanges": [
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/CAPTURE_HISTORY.md",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-member-read-only.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-share-confirm.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-team-grouped.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-member-read-only.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-share-confirm.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-team-grouped.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-member-read-only.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-share-confirm.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-team-grouped.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-member-read-only.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-share-confirm.png",
+    "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-team-grouped.png",
+    "terminal/e2e/tools/capture_f12_b5_2_team_workspaces.cjs",
+    "terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts"
+  ]
+}

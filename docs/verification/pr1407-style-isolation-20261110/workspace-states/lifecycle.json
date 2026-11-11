@@ -1,0 +1,40 @@
+{
+  "at": "2026-11-10T04:47:00.397317+00:00",
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "89187",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-10T04:47:07.303479+00:00",
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://localhost:47407",
+    "hostname": "localhost",
+    "pid": 89187,
+    "port": 47407,
+    "startedAt": 1794285854713
+  },
+  "lockPresent": true,
+  "lockSha256": "f767da69ea5b5d6ef91de0a32d281efadf47524c71376b30c5cdeb461bf32a5b",
+  "port": 47407,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

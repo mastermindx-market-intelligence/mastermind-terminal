@@ -1,0 +1,18 @@
+[dev] - Local:         http://127.0.0.1:47900
+- Network:       http://127.0.0.1:47900
+✓ Ready in 890ms
+wrote desktop-en-team-grouped.png
+[dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+wrote desktop-en-share-confirm.png
+wrote desktop-en-member-read-only.png
+wrote desktop-zh-team-grouped.png
+wrote desktop-zh-share-confirm.png
+wrote desktop-zh-member-read-only.png
+wrote mobile-en-team-grouped.png
+wrote mobile-en-share-confirm.png
+wrote mobile-en-member-read-only.png
+wrote mobile-zh-team-grouped.png
+wrote mobile-zh-share-confirm.png
+wrote mobile-zh-member-read-only.png
+{"event":"owned-server-closed","pid":3044,"code":0,"signal":null,"port":47900}
+wrote EVIDENCE.yml at 90ed31ba6e5ddbc39d58913b3416159b7c511874

@@ -1,0 +1,36 @@
+{
+  "admission": "HELD_FOR_AUTHORITATIVE_APPROVAL_ENFORCEMENT_READBACK",
+  "at": "2026-11-10T05:06:27.722310+00:00",
+  "browser": {
+    "authoredSkips": 4,
+    "failed": 0,
+    "flaky": 0,
+    "passed": 32,
+    "retries": 0
+  },
+  "canonicalChartPacketSha256": "35dafffb669e0fcf935b6a0d7677e71893ebb3a41391537fb1202a8c726ea0ef",
+  "chartEvidenceAssertionsPassed": 4,
+  "legacyEvidenceAssertionsPassed": 45,
+  "lint": {
+    "clean": false,
+    "comparisonSha256": "a6febb5394217066fc30777ffee99de81c039bc8e61fefaf092b7eae6c07968d",
+    "diagnosticsIdenticalToHead": true,
+    "errors": 54,
+    "warnings": 18
+  },
+  "productUnitPassed": 128,
+  "productionProof": false,
+  "schema": "terminal_pr1407_delivery_readiness.v1",
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "sourcePostimages": {
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/IndicatorsModal.module.css": "c79f33ff2966eff65a756f3026ead5be589e37562ea9d1605c3931567f44d0f1",
+    "terminal/components/IndicatorsModal.tsx": "ee79bec876fb74ab352fc8cfed633da22e72ee8e9c4b78694ca8461a586d88e8",
+    "terminal/components/LayoutMenu.module.css": "82daf23f2da0d25db461cfec7e49f2d4d4eb84f131b63459c957ba646c6f4f87",
+    "terminal/components/LayoutMenu.tsx": "7c1ec57d2cdfb55ac3262184579e4aec5f8cefdde9dc37f1146975e6070a1541",
+    "terminal/components/TerminalShell.tsx": "46fd228a8210266cfb3e8a41d27d6f3b8b1bd3d0fc92ef2b432ace0b6720e25f"
+  },
+  "state": "LOCAL_SOURCE_AND_EVIDENCE_QUALIFIED_WITH_INHERITED_LINT_FINDINGS",
+  "typecheck": true,
+  "typegen": true
+}

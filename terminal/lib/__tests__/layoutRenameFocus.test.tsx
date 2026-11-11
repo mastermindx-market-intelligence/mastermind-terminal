@@ -171,3 +171,43 @@ describe("workspace rename keyboard continuity", () => {
     await render({ feedback: { kind: "renamed", id: beta.id, name: "New Alpha" } }); expect(input()?.value).toBe("New Alpha");
   });
 });
+
+describe("workspace Open and Actions ownership", () => {
+  it("uses sibling native buttons and opens only through Open", async () => {
+    await render({ onLoad: vi.fn(), onPicked: vi.fn() });
+    const more = host.querySelector<HTMLButtonElement>('[data-ws-more="Alpha"]')!;
+    const open = host.querySelector<HTMLButtonElement>('[data-ws-open="Alpha"]')!;
+    expect(more.tagName).toBe("BUTTON"); expect(more.closest("button button")).toBeNull();
+    expect(more.parentElement).toBe(open.parentElement);
+    await act(async () => more.click());
+    expect(props.onLoad).not.toHaveBeenCalled(); expect(props.onPicked).not.toHaveBeenCalled();
+    expect(document.getElementById(more.getAttribute("aria-controls")!)?.contains(document.activeElement)).toBe(true);
+    await act(async () => open.click());
+    expect(props.onLoad).toHaveBeenCalledTimes(1); expect(props.onLoad).toHaveBeenCalledWith(alpha); expect(props.onPicked).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["unsupported_floor", "unsupported_schema"] as const)("keeps %s export available and returns focus after Escape", async rowState => {
+    const blocked = { ...alpha, rowState };
+    await render({ layouts: [blocked], onLoad: vi.fn(), onExport: vi.fn() });
+    const open = host.querySelector<HTMLButtonElement>("[data-ws-open]")!;
+    const more = host.querySelector<HTMLButtonElement>("[data-ws-more]")!;
+    expect(open.disabled).toBe(true); expect(more.disabled).toBe(false);
+    expect(document.getElementById(more.getAttribute("aria-describedby")!)).not.toBeNull();
+    await act(async () => more.click());
+    const exportAction = host.querySelector<HTMLButtonElement>('[data-ws-act="export"]')!;
+    expect(document.activeElement).toBe(exportAction);
+    await act(async () => exportAction.click());
+    expect(props.onExport).toHaveBeenCalledTimes(1); expect(props.onExport).toHaveBeenCalledWith(blocked); expect(props.onLoad).not.toHaveBeenCalled();
+    await key(exportAction, "Escape"); expect(document.activeElement).toBe(more);
+    expect(more.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("preserves team read-only restrictions while leaving export available", async () => {
+    await render({ layouts: [{ ...alpha, sharing: "team", canEdit: false, mine: false }],
+      teams: [{ id: "team", name: "Team", role: "member" }] });
+    await act(async () => host.querySelector<HTMLButtonElement>("[data-ws-more]")!.click());
+    expect(host.querySelector('[data-ws-act="export"]')).not.toBeNull();
+    expect(host.querySelector('[data-ws-act="delete"]')).toBeNull();
+    expect(host.querySelector('[data-ws-act="rename"]')).toBeNull();
+  });
+});

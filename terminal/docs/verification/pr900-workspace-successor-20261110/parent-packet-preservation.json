@@ -1,0 +1,194 @@
+{
+  "files": [
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/CAPTURE_HISTORY.md",
+      "bytes": 587,
+      "sha256": "01fc486b4e6f4b4b9e2ea9b92c85eea38dd5de0d8c313dd37584ef2c42eb2698",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/CAPTURE_HISTORY.md",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/EVIDENCE.yml",
+      "bytes": 4304,
+      "sha256": "2d9c15357dca74d533b07a4055fcebbed90429c4ff9c05664d1bcddc3cbc76e7",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/EVIDENCE.yml",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-en-member-read-only.png",
+      "bytes": 38562,
+      "sha256": "672ba23e3da67f22fa41d45bdf64d4865747ec20f20d81994211c4cd2a4b46d6",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-member-read-only.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-en-share-confirm.png",
+      "bytes": 45236,
+      "sha256": "bdcb2ce5e2f9b01ce8db165a2812e28c99621084090ec59f7a1f71bd02d17e94",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-share-confirm.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-en-team-grouped.png",
+      "bytes": 36531,
+      "sha256": "41d3b5efdeb81ece303fb27d81ee39b3fd91a72d980fe2bd52edaf4cd5dc50e9",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-team-grouped.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-zh-member-read-only.png",
+      "bytes": 39234,
+      "sha256": "8a1b0eac60a71558eb8cd280ea0afef5f61d1d98062954b464873328f1df53d4",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-member-read-only.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-zh-share-confirm.png",
+      "bytes": 46667,
+      "sha256": "939753321bf460df4a9e8076f3f34d73b9acd544f51e4472bf12c22a1d04a5bc",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-share-confirm.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-zh-team-grouped.png",
+      "bytes": 36072,
+      "sha256": "2b8395fb5090fa61b2234b9d2009e7677608267d5b6dbba30e7760b534dd4142",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-team-grouped.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-en-member-read-only.png",
+      "bytes": 33191,
+      "sha256": "aff3e5cc7d79e4e2389521a3913848e394bf88de6a803194c9970a5f5e0ad07b",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-member-read-only.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-en-share-confirm.png",
+      "bytes": 38214,
+      "sha256": "8897e9b0161ae55c99fc16ba1f89d948eb42cd8a643f5ac5ba05e44b8b9c109b",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-share-confirm.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-en-team-grouped.png",
+      "bytes": 31513,
+      "sha256": "b8bc0552bbfa16ae2c5489ce41617b610507926753bb30e568a92897f740ee86",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-team-grouped.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-zh-member-read-only.png",
+      "bytes": 34293,
+      "sha256": "ca44df213e8c080beb32db80a409826c402f00d920f86c7db004cfd995719e52",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-member-read-only.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-zh-share-confirm.png",
+      "bytes": 41569,
+      "sha256": "01fd9e2c2e659871402b7b3b507f08fcb1f864b3740c3b393565f553aab037df",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-share-confirm.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-zh-team-grouped.png",
+      "bytes": 31176,
+      "sha256": "bfb991232832c4878e4fccba023cf8d156db61d4f9ee0583aeeda531c2ad7080",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-team-grouped.png",
+      "sourceRef": "90ed31ba6e5ddbc39d58913b3416159b7c511874"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/EVIDENCE.yml",
+      "bytes": 6830,
+      "sha256": "45d8a9f5f7fd7faa91a8ea7e5ff86c712ee222f14a34c03eda5532182bc71e75",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/EVIDENCE.yml",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-en-member-read-only.png",
+      "bytes": 38562,
+      "sha256": "672ba23e3da67f22fa41d45bdf64d4865747ec20f20d81994211c4cd2a4b46d6",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-member-read-only.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-en-share-confirm.png",
+      "bytes": 45236,
+      "sha256": "bdcb2ce5e2f9b01ce8db165a2812e28c99621084090ec59f7a1f71bd02d17e94",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-share-confirm.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-en-team-grouped.png",
+      "bytes": 36531,
+      "sha256": "41d3b5efdeb81ece303fb27d81ee39b3fd91a72d980fe2bd52edaf4cd5dc50e9",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-en-team-grouped.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-zh-member-read-only.png",
+      "bytes": 38934,
+      "sha256": "c3858b26de4acaa11c28aa98e9218bac0dbcc898d33a42e1e0660b59c28b47d3",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-member-read-only.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-zh-share-confirm.png",
+      "bytes": 45854,
+      "sha256": "d682f6de1d8e5556bc05198daeeeaf007d9ad0b6aecab0cbdc62a07f5aa7310e",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-share-confirm.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-zh-team-grouped.png",
+      "bytes": 35689,
+      "sha256": "8c22735d5898f9ff399bcad19f3e190b4aaebca4b4c8ae24559972b759160b5f",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/desktop-zh-team-grouped.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-en-member-read-only.png",
+      "bytes": 33191,
+      "sha256": "aff3e5cc7d79e4e2389521a3913848e394bf88de6a803194c9970a5f5e0ad07b",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-member-read-only.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-en-share-confirm.png",
+      "bytes": 38214,
+      "sha256": "8897e9b0161ae55c99fc16ba1f89d948eb42cd8a643f5ac5ba05e44b8b9c109b",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-share-confirm.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-en-team-grouped.png",
+      "bytes": 31513,
+      "sha256": "b8bc0552bbfa16ae2c5489ce41617b610507926753bb30e568a92897f740ee86",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-en-team-grouped.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-zh-member-read-only.png",
+      "bytes": 33930,
+      "sha256": "50e05920ad6d7ab5cc715a3a190ee8514706ea2a1304fd81a96b8e9bb7e5f612",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-member-read-only.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-zh-share-confirm.png",
+      "bytes": 40521,
+      "sha256": "28714475a265bcba74a5dc29c6711cfd63e73bbdb1d95d530dbe2cea575d6d74",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-share-confirm.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    },
+    {
+      "archive": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-zh-team-grouped.png",
+      "bytes": 30748,
+      "sha256": "46a9fa29f3e07e6c638b6af6c292c0ebf826477a4d685b576298c01cd19b2755",
+      "sourcePath": "terminal/docs/pr-crops/b-f12-b5-2-team-workspaces/mobile-zh-team-grouped.png",
+      "sourceRef": "d0578d1237a818e554d2ac52dc54e371f02c2770"
+    }
+  ],
+  "schema": "terminal.pr900.workspace-parent-packets.v1"
+}

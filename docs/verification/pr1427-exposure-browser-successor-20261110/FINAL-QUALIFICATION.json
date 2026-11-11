@@ -1,0 +1,57 @@
+{
+  "at": "2026-11-10T16:06:57.279293+00:00",
+  "browser": {
+    "bothOwnedServersStopped": true,
+    "bothSourceWindowsStable": true,
+    "expiryPassed": 9,
+    "failed": 0,
+    "flaky": 0,
+    "jointPassed": 144,
+    "retries": 0,
+    "skipped": 0
+  },
+  "capturedSourceTree": "28755f8133c5208c38ca7af4645e0eaee1610187",
+  "currentApplicability": {
+    "browser": 72,
+    "eod": 32,
+    "expiry": 77,
+    "gex": 29
+  },
+  "fixedProtectedBase": "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185",
+  "historicalPayloadsChanged": false,
+  "laterProtectedObservation": {
+    "laterDependencyRuntimeNotClaimedCaptured": true,
+    "master": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+    "overlaps": {
+      "browser": [],
+      "eod": [],
+      "expiry": [],
+      "gex": []
+    }
+  },
+  "newAutoEnrollment": false,
+  "ownedSourceBlobsPreserved": true,
+  "productionAcceptance": false,
+  "readerChangedAfterCapture": true,
+  "recordHashes": {
+    "browser-validation.json": "d28b90380ee0928d509ead5b1efd72a3ae6820cb772e64bc31c832698b59e99a",
+    "native-applicability.json": "8fc5fe74f95e8479fe6956dedfbb6edb84d742740fc9a10d4c7f82573583f800",
+    "observed-wrapper-exits.json": "df9577675f28e2e227e23c70448720c9c3ccdfeffef7b47fef3cc7d0bb07ca36",
+    "reader-checks.json": "2250db6e94c0cbd2eb8d9b75a651fa4b8e08f1f459ef52a27d6e9099acced385",
+    "reader-installation.json": "b5901ae3df1b39cc35753ca3ffe94d64c1591e62862cf5ae9f14f88387c6ff10",
+    "source-checks.json": "dbfd5c8c561bccf439b961852ad64484535b39c7080a3fc240f9c2f42d6f683f",
+    "visual-review.json": "c041800085dde9cc8370d2a209a3d957e659b8de5c50d82e38fe5065aad048fe"
+  },
+  "schema": "terminal_pr1427_final_qualification.v1",
+  "sourceChecks": {
+    "momentumPassed": 7,
+    "originalLintErrors": 0,
+    "originalLintInheritedWarnings": 1,
+    "readerLintErrors": 0,
+    "readerLintWarnings": 0,
+    "readerPassed": 137,
+    "typeScriptExit": 0
+  },
+  "sourceHead": "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7",
+  "state": "QUALIFIED_FOR_ORIGINAL_BRANCH_SOURCE_PUBLICATION"
+}

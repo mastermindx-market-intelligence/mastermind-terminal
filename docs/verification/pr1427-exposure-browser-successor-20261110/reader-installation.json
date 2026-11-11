@@ -1,0 +1,13 @@
+{
+  "browserInputsRechecked": 72,
+  "capturedSourceTree": "28755f8133c5208c38ca7af4645e0eaee1610187",
+  "descriptorSha256": "077a5a84a160e64f340dc326ee834d9408d35b822782df16f8f70125b1b6abf2",
+  "expiryInputsRechecked": 77,
+  "expiryQualificationSha256": "caffdecc46531a7da8f0173f6ccde0b43db30be16c7e91a2b6970e789c2b32e7",
+  "historicalNativePayloadsRewritten": false,
+  "jointQualificationSha256": "fdb68045af826d208615fd3b2d54955961053312ba57d60895fdfa116b394c12",
+  "originalReaderBlob": "a23786250490290d4bd9ce825a4465c3bbc9ca90",
+  "readerChangedAfterMeasuredCaptureWindow": true,
+  "readerSha256": "cbbe2c00a9b99569f05dc876860d14b1659bd3fa3dd309ab9e86f2a82334e08c",
+  "state": "ADDITIVE_BROWSER_READER_APPLIED"
+}

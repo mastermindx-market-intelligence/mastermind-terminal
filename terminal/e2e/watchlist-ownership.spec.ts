@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { E2E_WLS_KEY, e2eWatchlistOwner, seedOwnerWatchlists } from "./watchlistStore";
 
 // A1 + A3 acceptance, in a real browser.
@@ -162,6 +162,92 @@ test.describe("saved lists survive the mount window", () => {
   });
 });
 
+const A3_MENU_INPUTS = [
+  "pointerdown", "pointerup", "mousedown", "mouseup", "contextmenu", "click", "auxclick",
+  "focusin", "focusout", "scroll", "resize",
+] as const;
+
+type A3MenuEvent = {
+  type: (typeof A3_MENU_INPUTS)[number] | "menu-mounted" | "menu-removed";
+  ms: number;
+  button: number | null;
+  insideMenu: boolean;
+  insideWatchlist: boolean;
+  menuPresent: boolean;
+};
+type A3MenuTrace = {
+  ended: "menu-removed" | "limit" | "window" | "action-finished";
+  events: A3MenuEvent[];
+};
+
+async function recordA3MenuGesture(page: Page, testInfo: TestInfo) {
+  const recorder = await page.evaluateHandle((inputTypes) => {
+    let publish!: (trace: A3MenuTrace) => void;
+    const result = new Promise<A3MenuTrace>((resolve) => { publish = resolve; });
+    const listeners = new AbortController();
+    const started = performance.now();
+    const menu = ".wl-bulk-menu";
+    const events: A3MenuEvent[] = [];
+    let present = !!document.querySelector(menu);
+    let stopped = false;
+    let gestureStarted = false;
+    const stop = (ended: A3MenuTrace["ended"]) => {
+      if (stopped) return;
+      stopped = true;
+      listeners.abort();
+      observer.disconnect();
+      window.clearTimeout(timer);
+      publish({ ended, events });
+    };
+    const record = (type: A3MenuEvent["type"], event?: Event) => {
+      const target = event?.target instanceof Element ? event.target : null;
+      const button = event instanceof MouseEvent ? event.button : null;
+      const insideWatchlist = !!target?.closest(".wl-board");
+      if (!gestureStarted && type === "pointerdown" && button === 2 && insideWatchlist) {
+        gestureStarted = true;
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => void stop("window"), 2_000);
+      }
+      events.push({
+        type, ms: Math.round(performance.now() - started), button,
+        insideMenu: !!target?.closest(menu), insideWatchlist,
+        menuPresent: !!document.querySelector(menu),
+      });
+      if (events.length === 64) void stop("limit");
+    };
+    // The row menu is a direct portal into body. Observe mounting without reading
+    // accessible text, selector payloads, element identifiers or app state.
+    const observer = new MutationObserver(() => {
+      const next = !!document.querySelector(menu);
+      if (next === present) return;
+      present = next;
+      record(next ? "menu-mounted" : "menu-removed");
+      if (!next) void stop("menu-removed");
+    });
+    let timer = window.setTimeout(() => void stop("window"), 10_000);
+    observer.observe(document.body, { childList: true });
+    for (const type of inputTypes) {
+      window.addEventListener(type, (event) => record(type, event), { capture: true, passive: true, signal: listeners.signal });
+    }
+    return { result, stop };
+  }, A3_MENU_INPUTS);
+  // Attach while the locator may still be waiting, so a test timeout does not
+  // require a fresh page read to obtain evidence that was already recorded.
+  let recorded = false;
+  const attachment = recorder.evaluate(({ result }) => result).then((trace) => {
+    recorded = true;
+    return testInfo.attach("watchlist-a3-menu-events", {
+      body: JSON.stringify(trace),
+      contentType: "application/json",
+    });
+  }).catch(() => {});
+  return async () => {
+    if (!recorded) await recorder.evaluate(({ stop }) => stop("action-finished")).catch(() => {});
+    await attachment;
+    await recorder.dispose().catch(() => {});
+  };
+}
+
 test.describe("A3 — a delete survives a failed write", () => {
   test("a symbol deleted while the server is unreachable does not resurrect", async ({ page, baseURL }, testInfo) => {
     // The delete is driven through the rail's RIGHT-CLICK context menu, a pointer affordance the
@@ -194,9 +280,14 @@ test.describe("A3 — a delete survives a failed write", () => {
     await expect(target).toBeVisible({ timeout: 30_000 });
 
     // Delete it through the rail's own context menu.
-    await target.click({ button: "right" });
-    await page.getByRole("menu", { name: "Selected ticker actions" })
-      .getByRole("menuitem", { name: "Delete symbol" }).click();
+    const finishMenuTrace = await recordA3MenuGesture(page, testInfo).catch(() => undefined);
+    try {
+      await target.click({ button: "right" });
+      await page.getByRole("menu", { name: "Selected ticker actions" })
+        .getByRole("menuitem", { name: "Delete symbol" }).click();
+    } finally {
+      await finishMenuTrace?.().catch(() => {});
+    }
     await expect(target).toHaveCount(0);
     await expect.poll(() => blockedRemoves, { timeout: 15_000 }).toBeGreaterThan(0);
 

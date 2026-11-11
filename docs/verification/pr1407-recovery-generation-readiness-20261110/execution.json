@@ -1,0 +1,135 @@
+{
+  "artifacts": {
+    "artifacts/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/trace.zip": "5d6fffa0fb9f33f22680fa444d0c3a71d8bc7afd796a771d1ad5d8a4b7536c75",
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-320x480.png": "cc747e7f7a184762cc9dc1014bbb8b5294e2055b63fbecec25715b10432475b4",
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-568x320.png": "f510c3adfe2f2ad08f44d533690d9cd7fb21f84bb3afb4692d9eef16bf076180",
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-light-zh.png": "96e8bc309b7e21be3bc08d88b13f9d6528db717a5180ec820e2e9ee0932cf925",
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-mobile/trace.zip": "27dc907bb05855299a87530193c3083c3f73b5f48c0d4793c2f06d17ff81bb72",
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-mobile/workspace-recovery-light-zh.png": "d7eeb666cba60a4eb8680ddedf432efb9ecadedca64137600b6bf577d2f49e5e",
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-tablet/trace.zip": "eb4328f0ce1d7a162e09f98e5dea343b98c8191ee6516fd96b639b91586e831c",
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-tablet/workspace-recovery-light-zh.png": "8975f75ee493b67fc67b20afb9256d8b840f3778f58f8b0a86c842ab9007b3c6",
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-desktop/trace.zip": "dbbd4c398868055b1543f617cb709577b2c9f7716af6db433220c20d9b613046",
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-desktop/workspace-recovery-dark-en.png": "34d93f154850ffb70e65a6ab1a13762b670495ba5bf0fbd2b596fcc13021610d",
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-mobile/trace.zip": "8abfad547359cc178e9d0d608677e824ef2c10675492a4909821b8a447b9afdf",
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-mobile/workspace-recovery-dark-en.png": "b7481ca75cb0fc0f8a64e7942c9dc005d2018d621a1591eed82443b437aa8211",
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-tablet/trace.zip": "198fce06585122fee844af1621fb27c8a9a1480a9c456b52c4db8c5c720940f7",
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-tablet/workspace-recovery-dark-en.png": "98779946ed8006b1b9faa59fc98aae4548aa298ef494d91dc2d848cfe2c03e13"
+  },
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "failure stays stable, then explicit retry transfers keyboard focus into the new workspace"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "light Chinese recovery remains usable on short screens and preserves a newer focus choice"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "failure stays stable, then explicit retry transfers keyboard focus into the new workspace"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "light Chinese recovery remains usable on short screens and preserves a newer focus choice"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "failure stays stable, then explicit retry transfers keyboard focus into the new workspace"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "light Chinese recovery remains usable on short screens and preserves a newer focus choice"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/shared-shell-refinement.spec.ts",
+    "--grep",
+    "failure stays stable, then explicit retry transfers keyboard focus into the new workspace|light Chinese recovery remains usable on short screens and preserves a newer focus choice",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1",
+    "--trace=on",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1407-generation-readiness/terminal/test-results/pr1407-recovery-generation-readiness-20261110"
+  ],
+  "completedAt": "2026-11-10T05:49:17.211627+00:00",
+  "errors": [],
+  "exit": 0,
+  "expected": 6,
+  "investorPreview": 0,
+  "lifecycleSha256": "bf52e04f0d4b09c6f80b51b4e1922e6540498182d10519e57e3359e26d556371",
+  "logSha256": "b75bac3b31b31b29c2b28640ac98ad0caad7a348c76bd84eb681d515591a00cf",
+  "ownedServerStopped": true,
+  "port": 47417,
+  "pr": 1407,
+  "publishedParent": "075f470ba78cc35e5dc2279222466835146d970a",
+  "reportSha256": "5eacac66ae7f490100cde82e2149d4f2d60f3c14184f3367ee7abb178441c0ee",
+  "retries": 0,
+  "schema": "terminal_pr_test_readiness_browser.v1",
+  "seconds": 37.85,
+  "sharedShell": 1,
+  "sourceEntries": 2005,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T05:48:39.358471+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 32602.668000000005,
+    "expected": 6,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T05:48:39.679Z",
+    "unexpected": 0
+  },
+  "target": "terminal/e2e/shared-shell-refinement.spec.ts",
+  "targetSha256": "defd7adfc6560a24c5a5ced9277012a587014e30c3a683d32b99a3e71189b5c4",
+  "validationHead": "32dd9f4540046573b0facf8701780d36cc3e3ab7"
+}

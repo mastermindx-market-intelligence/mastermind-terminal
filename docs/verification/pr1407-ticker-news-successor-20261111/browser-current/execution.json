@@ -1,0 +1,382 @@
+{
+  "artifacts": {
+    ".last-run.json": "d888b8e7a915e6cb50d1ac7e2758f549823ff4e786b7892e496a811f89750a50",
+    "ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-mobile/error-context.md": "d405430bc5e3f767416886935020978c5b20bc4afbc71cd78af51a1d736ce941",
+    "ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-mobile/trace.zip": "604b3d1b2b42e931e2082405370d623b6c4370dec94b971f9fb95ca522f5e6b7",
+    "ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-tablet/error-context.md": "d405430bc5e3f767416886935020978c5b20bc4afbc71cd78af51a1d736ce941",
+    "ticker-news-Chinese-and-Ho-c724c--original-Chinese-headlines-tablet/trace.zip": "3ee5ef056fd6064972add2e51f88756c11ac7727946d6c6abc14ba17198e9b91",
+    "ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-mobile/error-context.md": "4507b1c619ab2e74b0bbb676c46934fd32ab4549814e8603b07c78217e81b911",
+    "ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-mobile/trace.zip": "6f21a075dc0abaa4b679a99bda4849c827bfb2df75c8b3afd13b0f649623f352",
+    "ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-tablet/error-context.md": "4507b1c619ab2e74b0bbb676c46934fd32ab4549814e8603b07c78217e81b911",
+    "ticker-news-MSFT-grouped-d-7de4e-tory-response-is-still-held-tablet/trace.zip": "77efe7ed5f896ceb60420e7cb2eabd04d2436100b8d418590ebabbfbd65d3833",
+    "ticker-news-editorial-view-96ac6-ils-in-the-selected-context-mobile/error-context.md": "7cec899bcddd4a578f089949e9cc130bc26f0e694c3f6e938d400f23ef5e3816",
+    "ticker-news-editorial-view-96ac6-ils-in-the-selected-context-mobile/trace.zip": "0e3949d5b19650500e7228408ba226e38383b3db10c4f995b8a5f0968e1fbf93",
+    "ticker-news-editorial-view-96ac6-ils-in-the-selected-context-tablet/error-context.md": "7cec899bcddd4a578f089949e9cc130bc26f0e694c3f6e938d400f23ef5e3816",
+    "ticker-news-editorial-view-96ac6-ils-in-the-selected-context-tablet/trace.zip": "a36fae631aaf6296f0b5255026a4732a56260a2a4f08c04cd8edd5b6da9bba6d",
+    "ticker-news-grouped-report-422c8-hout-leaving-ticker-context-mobile/error-context.md": "96f16e48722f3a3ac809f5164c26d299d734d63c9daa49ec1d91e151cb1284ca",
+    "ticker-news-grouped-report-422c8-hout-leaving-ticker-context-mobile/trace.zip": "99c132a60f1127ca8015c2e6387d91a14c068693a790fc37f804876905044be0",
+    "ticker-news-grouped-report-422c8-hout-leaving-ticker-context-tablet/error-context.md": "96f16e48722f3a3ac809f5164c26d299d734d63c9daa49ec1d91e151cb1284ca",
+    "ticker-news-grouped-report-422c8-hout-leaving-ticker-context-tablet/trace.zip": "13fb6ddc8f8eb2a8200424ead1f5f6b3128596847ea26d2910430e87752c9d61",
+    "ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-mobile/error-context.md": "1ad4bdaab851c39ce42920cce6009a4ccf22e67da59ffc430e62d11060b68a79",
+    "ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-mobile/trace.zip": "a8ae0d4f2c344aea7abb9249631b28cfa4cf2d3c9170b54aeee9368092b32ad1",
+    "ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-tablet/error-context.md": "1ad4bdaab851c39ce42920cce6009a4ccf22e67da59ffc430e62d11060b68a79",
+    "ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-tablet/trace.zip": "cd2eec4b2469d91cb31d956b2b7278d1a8f82c366616d584a362d020913cacb6",
+    "ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-mobile/error-context.md": "7d5e4484c658bfd2bb5ae9a040fdb1be24e5008502a1b7b7f7f11ba1b162d8be",
+    "ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-mobile/trace.zip": "33f2206bc362bba065e20c1569db3461ecf76ede0136a91a5e9887b5fd8b1b21",
+    "ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-tablet/error-context.md": "7d5e4484c658bfd2bb5ae9a040fdb1be24e5008502a1b7b7f7f11ba1b162d8be",
+    "ticker-news-unavailable-sn-65b01-nders-without-rail-overflow-tablet/trace.zip": "0d89a7bfc4f4be7e18e24ebfbdf96d07750d7479c630fa45dfaebf6089c7d746",
+    "ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-mobile/error-context.md": "4723d3bfd0d8e5a1c242b3360f2e1c3c46ff0970159b45c1d3db931f4cecebc5",
+    "ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-mobile/trace.zip": "5d0f05b686ec85bfa25efbadb0a8d24c47e4ae32d052687a0e0f380ad1add317",
+    "ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-tablet/error-context.md": "4723d3bfd0d8e5a1c242b3360f2e1c3c46ff0970159b45c1d3db931f4cecebc5",
+    "ticker-news-unavailable-sn-689cb-s-EN-ZH-and-theme-specimens-tablet/trace.zip": "7be9d3df1ceaeea70b26d24ceb397815ae930ba37cc405e63a951812db244bf8"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/ticker-news.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/test-results/pr1407-ticker-news-successor"
+  ],
+  "completedAt": "2026-11-11T08:38:01.511873+00:00",
+  "compositionParents": [
+    "c6f876e325a7c06160caf61f0d0f335e0c69a951"
+  ],
+  "exit": 1,
+  "expectedExistingSkips": 7,
+  "expectedImages": [
+    "desktop-en-dark.png",
+    "desktop-zh-dark.png",
+    "mobile-en-dark.png",
+    "mobile-zh-dark.png",
+    "tablet-en-dark.png",
+    "tablet-zh-dark.png",
+    "unavailable-desktop-en-dark.png",
+    "unavailable-desktop-zh-dark.png",
+    "unavailable-mobile-en-dark.png",
+    "unavailable-mobile-zh-dark.png"
+  ],
+  "expectedPassed": 14,
+  "generatedPreimages": {
+    "terminal/next-env.d.ts": {
+      "backup": "generated-preimages/next-env.d.ts",
+      "bytes": 296,
+      "present": true,
+      "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+    },
+    "terminal/tsconfig.json": {
+      "backup": "generated-preimages/tsconfig.json",
+      "bytes": 666,
+      "present": true,
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3"
+    }
+  },
+  "head": "5338557e44e2a8b5ca789aac7cd295037db9692d",
+  "invalidSelectorProofSha256": "8ffc8e6dc8a38d4e493ce1836bd8faf604ecd28850a497d20cc3b2b2750574f9",
+  "logSha256": "ee56b2655f4c04b4b199bb966a2019852876c76e1bc931c37486ba7ee23f1509",
+  "newerPacketFiles": 103,
+  "newerPacketsUnchanged": true,
+  "observerPid": 62069,
+  "port": 61981,
+  "priorManifestSha256": "e1b7a5dea4a9b6abde3df3eaac7ee49d3ac34a33987e2f628dae1ea9c5144859",
+  "producerPid": 62627,
+  "protectedMaster": "74c007125129090cc762f2bc4b1b152123326444",
+  "reportErrors": [],
+  "runtimePostProbes": "NOT_RUN: classify actual caller/log before further runtime observation",
+  "schema": "terminal_pr1407_news_full_current_news_capture.v1",
+  "seconds": 499.24,
+  "sourceEntries": 2120,
+  "sourceStable": true,
+  "sourceTree": "df6f2dfeb5587acd42d83847ea8582a9e1da0a39",
+  "startedAt": "2026-11-11T08:29:42.173328+00:00",
+  "state": "CAPTURE_FAILED_NO_REPLAY",
+  "stats": {
+    "duration": 493813.12,
+    "expected": 7,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-11T08:29:44.312Z",
+    "unexpected": 14
+  },
+  "wrapperSha256": "6b98a2eb2a35724848c337f2a7c8735b3674afdf4c835df3bbe6ad32da21769b"
+}

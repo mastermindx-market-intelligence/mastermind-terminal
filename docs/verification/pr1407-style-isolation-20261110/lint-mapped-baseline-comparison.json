@@ -1,0 +1,97 @@
+{
+  "at": "2026-11-10T05:04:45.990518+00:00",
+  "cleanLint": false,
+  "diagnosticsIdenticalToHead": true,
+  "existingErrors": 54,
+  "existingWarnings": 18,
+  "method": "Map only byte-identical source lines with SequenceMatcher; map diagnostic start/end positions plus embedded compiler code-frame/path line numbers and exhaustive-deps line references. Preserve diagnostic rule, severity, message, source snippet, column and endColumn. No lint suppression or source edit. Raw comparison is retained.",
+  "rows": [
+    {
+      "diagnosticsIdentical": true,
+      "errors": 0,
+      "path": "components/ChartObjectTree.tsx",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "allReportedTargetLinesUnchanged": true,
+      "baselineErrors": 0,
+      "baselineWarnings": 0,
+      "diagnosticsIdentical": true,
+      "errors": 0,
+      "missingDiagnostics": [],
+      "newDiagnostics": [],
+      "path": "components/IndicatorsModal.tsx",
+      "sourceIdenticalToHead": false,
+      "warnings": 0
+    },
+    {
+      "allReportedTargetLinesUnchanged": true,
+      "baselineErrors": 1,
+      "baselineWarnings": 0,
+      "diagnosticsIdentical": true,
+      "errors": 1,
+      "missingDiagnostics": [],
+      "newDiagnostics": [],
+      "path": "components/LayoutMenu.tsx",
+      "sourceIdenticalToHead": false,
+      "warnings": 0
+    },
+    {
+      "allReportedTargetLinesUnchanged": true,
+      "baselineErrors": 53,
+      "baselineWarnings": 18,
+      "diagnosticsIdentical": true,
+      "errors": 53,
+      "missingDiagnostics": [],
+      "newDiagnostics": [],
+      "path": "components/TerminalShell.tsx",
+      "sourceIdenticalToHead": false,
+      "warnings": 18
+    },
+    {
+      "diagnosticsIdentical": true,
+      "errors": 0,
+      "path": "e2e/chart-object-tree.spec.ts",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "diagnosticsIdentical": true,
+      "errors": 0,
+      "path": "e2e/scripts-library.spec.ts",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "diagnosticsIdentical": true,
+      "errors": 0,
+      "path": "e2e/workspace-rename-focus.spec.ts",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "diagnosticsIdentical": true,
+      "errors": 0,
+      "path": "lib/__tests__/chartObjectTree.test.tsx",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "diagnosticsIdentical": true,
+      "errors": 0,
+      "path": "lib/__tests__/indicatorsScriptRename.test.tsx",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    },
+    {
+      "diagnosticsIdentical": true,
+      "errors": 0,
+      "path": "lib/__tests__/layoutRenameFocus.test.tsx",
+      "sourceIdenticalToHead": true,
+      "warnings": 0
+    }
+  ],
+  "schema": "terminal_pr1407_lint_mapped_baseline_comparison.v1",
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746"
+}

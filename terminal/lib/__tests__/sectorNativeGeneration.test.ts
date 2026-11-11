@@ -113,3 +113,125 @@ describe("one selected native Sector generation", () => {
     }
   });
 });
+
+// Item 7 (COO 19:56Z): lane 1's next increment grows `typed_blocks` from seven
+// names to twelve. The five new names — all entitled-only — are appended after
+// `theme_table`: confluence_universe_sp500, confluence_universe_nasdaq,
+// confluence_universe_russell, confluence_universe_baskets, theme_rows. Each is
+// {status, reason, value} like the others; a value can be up to 516 KiB
+// encoded; the 4 MiB whole-document bound is unchanged. This round carries no
+// readers for the five — only the parser's tolerance is under test.
+describe("sectorTypedBlocks — item 7 (COO 19:56Z): twelve typed-block names, unknown names tolerated", () => {
+  const INCUMBENT_KEYS = ["r1_rising_priced_share", "r2_display_order", "r2_hazard_qualification",
+    "etf_flows", "confluence", "bottoming_watch", "theme_table"] as const;
+  const NEW_KEYS = ["confluence_universe_sp500", "confluence_universe_nasdaq",
+    "confluence_universe_russell", "confluence_universe_baskets", "theme_rows"] as const;
+  const TWELVE = [...INCUMBENT_KEYS, ...NEW_KEYS];
+  const universe = { members: ["AAPL", "MSFT", "NVDA"], as_of: "2026-11-03" };
+
+  const withBlocks = (blocks: Record<string, unknown>) => {
+    const w = wire();
+    Object.assign(w.projection.data, { typed_blocks: blocks });
+    return w;
+  };
+  type PlantedBlock = { status: string; reason: string | null; value: unknown };
+  /** All twelve present with legal mixed states — the incumbent seven keep
+   * their today shapes; each new name is available with a small value. */
+  const twelveBlocks = (): Record<string, PlantedBlock> => ({
+    r1_rising_priced_share: { status: "unavailable", reason: "not_produced", value: null },
+    r2_display_order: { status: "available", reason: null, value: ["xlk", "xlf"] },
+    r2_hazard_qualification: { status: "unavailable", reason: "not_produced", value: null },
+    etf_flows: { status: "available", reason: null, value: [{ ticker: "SMH", net: 1 }] },
+    confluence: { status: "unavailable", reason: "not_produced", value: null },
+    bottoming_watch: { status: "available", reason: null, value: { as_of: "2026-11-03", rows: [] } },
+    theme_table: { status: "available", reason: null, value: [{ theme: "ai", score: 1 }] },
+    confluence_universe_sp500: { status: "available", reason: null, value: { ...universe } },
+    confluence_universe_nasdaq: { status: "available", reason: null, value: { ...universe, members: ["AAPL"] } },
+    confluence_universe_russell: { status: "available", reason: null, value: { ...universe, members: ["A", "B"] } },
+    confluence_universe_baskets: { status: "available", reason: null, value: { semis: ["SMH"] } },
+    theme_rows: { status: "available", reason: null, value: [{ id: "ai", label: "AI" }] },
+  });
+
+  it("admits a generation carrying all twelve typed-block names and passes the five new ones through untouched", () => {
+    const blocks = twelveBlocks();
+    const read = sectorNativeGeneration(withBlocks(blocks));
+    expect(read).not.toBeNull();
+    expect(Object.keys(read!.typedBlocks)).toEqual(TWELVE);
+    // Passed through untouched: same value reference, verbatim status/reason.
+    expect(read!.typedBlocks.confluence_universe_sp500).toEqual({
+      status: "available", reason: null, value: blocks.confluence_universe_sp500.value });
+    expect(read!.typedBlocks.theme_rows.value).toBe(blocks.theme_rows.value);
+    expect(read!.typedBlocks.etf_flows.value).toBe(blocks.etf_flows.value);
+  });
+
+  it("admits a generation that still carries only the seven incumbent names — the five new ones stay not_produced", () => {
+    const read = sectorNativeGeneration(withBlocks({
+      etf_flows: { status: "available", reason: null, value: [] },
+      confluence: { status: "unavailable", reason: "audience_not_entitled", value: null },
+    }));
+    expect(read).not.toBeNull();
+    expect(Object.keys(read!.typedBlocks)).toEqual(TWELVE);
+    expect(read!.typedBlocks.etf_flows.status).toBe("available");
+    expect(read!.typedBlocks.confluence).toEqual({ status: "unavailable", reason: "audience_not_entitled", value: null });
+    for (const key of NEW_KEYS) {
+      expect(read!.typedBlocks[key]).toEqual({ status: "unavailable", reason: "not_produced", value: null });
+    }
+  });
+
+  it("admits a generation carrying an unknown thirteenth block name — ignored, never refused, never thrown", () => {
+    const blocks = twelveBlocks();
+    Object.assign(blocks, { quarterly_attributions: { status: "available", reason: null, value: [1, 2, 3] } });
+    const read = sectorNativeGeneration(withBlocks(blocks));
+    expect(read).not.toBeNull();
+    expect(Object.keys(read!.typedBlocks)).toEqual(TWELVE);
+    expect(read!.typedBlocks.quarterly_attributions).toBeUndefined();
+  });
+
+  it("admits a new-name block whose value is null with reason block_too_large as its own unavailable state", () => {
+    const blocks = twelveBlocks();
+    blocks.confluence_universe_baskets = { status: "unavailable", reason: "block_too_large", value: null };
+    const read = sectorNativeGeneration(withBlocks(blocks));
+    expect(read).not.toBeNull();
+    expect(read!.typedBlocks.confluence_universe_baskets).toEqual({
+      status: "unavailable", reason: "block_too_large", value: null });
+  });
+
+  it("admits a new-name block whose value is one 516 KiB-encoded string — no per-block cap below 516 KiB", () => {
+    // 516 * 1024 ASCII chars = exactly 516 KiB of UTF-8.
+    const fiveSixteen = "x".repeat(516 * 1024);
+    const blocks = twelveBlocks();
+    blocks.theme_rows = { status: "available", reason: null, value: fiveSixteen };
+    const read = sectorNativeGeneration(withBlocks(blocks));
+    expect(read).not.toBeNull();
+    expect(read!.typedBlocks.theme_rows.status).toBe("available");
+    const carried = read!.typedBlocks.theme_rows.value as string;
+    expect(carried.length).toBe(516 * 1024);
+    expect(carried.startsWith("xxxx")).toBe(true);
+  });
+
+  it("admits a new-name block whose ~516 KiB value is an array of scalars — the walk budget follows the byte bound", () => {
+    // 264,192 minimal two-byte elements ("1,") = 516 KiB encoded; a 10,000-entry
+    // per-container cap smaller than that would refuse a legal value.
+    const rows = Array.from({ length: 264_192 }, () => 1);
+    const blocks = twelveBlocks();
+    blocks.confluence_universe_russell = { status: "available", reason: null, value: rows };
+    const read = sectorNativeGeneration(withBlocks(blocks));
+    expect(read).not.toBeNull();
+    expect((read!.typedBlocks.confluence_universe_russell.value as number[]).length).toBe(264_192);
+  });
+
+  // N-7 (third review): the array path must refuse a monster array BEFORE
+  // enumerating its children. The boolean outcome (refused) is the same either
+  // way, so the law is observed through an ownKeys spy: the pre-check reads
+  // only .length and must never let Object.entries touch the array's keys.
+  it("N-7: an array over the remaining node budget is refused BEFORE its children are enumerated", () => {
+    let enumerated = false;
+    const monster = new Proxy(new Array(600_005).fill(null), {
+      ownKeys: (target: null[]) => { enumerated = true; return Reflect.ownKeys(target); },
+    });
+    const blocks = twelveBlocks();
+    blocks.theme_rows = { status: "available", reason: null, value: monster as unknown as object[] };
+    expect(sectorNativeGeneration(withBlocks(blocks))).toBeNull();
+    expect(enumerated).toBe(false);
+  });
+});
