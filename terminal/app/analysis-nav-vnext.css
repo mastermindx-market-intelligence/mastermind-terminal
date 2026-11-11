@@ -127,6 +127,13 @@
   .analysis-shell .fin-pane--workspace .fin-page-subnav{display:none}
   .analysis-shell .fin-family-sheet-layer{z-index:120}
 }
+@media (max-width:640px){
+  /* The legacy context bar reserves ten grid columns for the ticker. The
+     family picker and the direct research actions share a single flex row. */
+  .analysis-shell .analysis-context-bar:has(> .fin-research-nav--primary){
+    display:flex;
+  }
+}
 @media (max-width:375px){
   /* 320px retains both 44px actions instead of hiding critical research links. */
   .analysis-shell .analysis-context-bar{gap:4px;padding:4px 6px}

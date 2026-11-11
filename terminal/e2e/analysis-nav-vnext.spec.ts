@@ -63,6 +63,7 @@ test("compact: family picker remains reachable and local views remain available"
 test("tablet and narrow phone keep ticker, family picker, and company actions reachable", async ({ page }) => {
   for (const viewport of [
     { width: 820, height: 1180 },
+    { width: 390, height: 844 },
     { width: 320, height: 740 },
   ]) {
     await page.setViewportSize(viewport);
@@ -80,6 +81,8 @@ test("tablet and narrow phone keep ticker, family picker, and company actions re
     const theses = context.getByRole("link", { name: "Your theses on MSFT", exact: true });
     await expect(saved).toBeVisible();
     await expect(theses).toBeVisible();
+    // Visibility alone does not detect an adjacent link intercepting the tap.
+    await context.locator(".fin-family-mobile-trigger").click({ trial: true });
     await expect(context.locator(".analysis-context-more")).toBeHidden();
     const [savedBox, thesesBox] = await Promise.all([saved.boundingBox(), theses.boundingBox()]);
     expect(savedBox?.height).toBeGreaterThanOrEqual(44);
