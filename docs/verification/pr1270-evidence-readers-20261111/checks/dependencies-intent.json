@@ -1,0 +1,13 @@
+{
+  "at": "2026-11-11T18:50:26.530466+00:00",
+  "command": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "source_hashes": {
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  }
+}

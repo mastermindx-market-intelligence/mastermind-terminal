@@ -9,10 +9,11 @@
 // by the hard-coded "Fixture data — not live evidence" line in the harness
 // header below (dev-only page; never rendered in production).
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { notFound } from "next/navigation";
 import { LangProvider, applyLang } from "@/lib/i18n";
 import SectorCycleLens from "@/components/sector-intelligence/SectorCycleLens";
+import "@/components/chrome/shared-shell/shared-shell.css";
 import type { SectorCycleCaptureHandle } from "@/components/sector-intelligence/cycles/cycleProps";
 
 /* ── Deterministic fixture: one deep cycles publication ─────────────────────
@@ -280,6 +281,24 @@ export default function SectorCyclesHarness() {
 
   const [lang, setLang] = useState<"en" | "zh">("en");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const previousTheme = root.getAttribute("data-theme");
+    const previousAppearance = root.getAttribute("data-terminal-appearance");
+    // Use the incumbent light tokens without mounting Shared Shell chrome or account preferences.
+    root.dataset.terminalAppearance = "1";
+    root.dataset.theme = "dark";
+    return () => {
+      for (const [name, value] of [
+        ["data-theme", previousTheme],
+        ["data-terminal-appearance", previousAppearance],
+      ] as const) {
+        if (value === null) root.removeAttribute(name);
+        else root.setAttribute(name, value);
+      }
+    };
+  }, []);
+
   const [generationState, setGenerationState] = useState<"current" | "replaced">("current");
   const [headsState, setHeadsState] = useState<HeadsState>("today");
   const captureRef = useRef<SectorCycleCaptureHandle>(null);

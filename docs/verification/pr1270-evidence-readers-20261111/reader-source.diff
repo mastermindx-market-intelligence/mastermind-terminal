@@ -1,0 +1,326 @@
+diff --git a/terminal/lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts b/terminal/lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts
+index 331f84235..2510bca27 100644
+--- a/terminal/lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts
++++ b/terminal/lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts
+@@ -1,6 +1,7 @@
+ // Git-free evidence lock for the B-F08-6 alert-delivery capture packet.
+ // The lock is the sha256 of the layout sources the crops depend on, recorded in
+ // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
++import { assertD06CapturedLexProjection, assertD06CapturedFile } from "./helpers/d06CaptureDependency";
+ import { describe, expect, it } from "vitest";
+ import { createHash } from "node:crypto";
+ import { existsSync, readFileSync, statSync } from "node:fs";
+@@ -66,7 +67,13 @@ describe("B-F08-6 alert-delivery evidence lock is the sha256 of the layout sourc
+     for (const [rel, expected] of Object.entries(recorded)) {
+       const abs = join(REPO, rel);
+       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      if (rel === "terminal/lib/i18n.tsx") {
++        assertD06CapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
++      } else if (rel === "terminal/app/globals.css") {
++        assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
++      } else {
++        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      }
+     }
+   });
+ 
+diff --git a/terminal/lib/__tests__/b_f08_8InvalidationEvidence.test.ts b/terminal/lib/__tests__/b_f08_8InvalidationEvidence.test.ts
+index e01715701..886880b48 100644
+--- a/terminal/lib/__tests__/b_f08_8InvalidationEvidence.test.ts
++++ b/terminal/lib/__tests__/b_f08_8InvalidationEvidence.test.ts
+@@ -1,6 +1,7 @@
+ // Git-free evidence lock for the B-F08-8 event-impact invalidation packet.
+ // The lock is the sha256 of the layout sources the crops depend on, recorded in
+ // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
++import { assertD06CapturedFile } from "./helpers/d06CaptureDependency";
+ import { describe, expect, it } from "vitest";
+ import { createHash } from "node:crypto";
+ import { existsSync, readFileSync, statSync } from "node:fs";
+@@ -61,7 +62,11 @@ describe("B-F08-8 invalidation evidence lock is the sha256 of the layout sources
+     for (const [rel, expected] of Object.entries(recorded)) {
+       const abs = join(REPO, rel);
+       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      if (rel === "terminal/app/globals.css") {
++        assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
++      } else {
++        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      }
+     }
+   });
+ 
+diff --git a/terminal/lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts b/terminal/lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts
+index b57bfc21f..43d3d2ee0 100644
+--- a/terminal/lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts
++++ b/terminal/lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts
+@@ -1,6 +1,7 @@
+ // Git-free evidence lock for the B-F08-9 historical risk-of-today's-book packet.
+ // The lock is the sha256 of the layout sources the crops depend on, recorded in
+ // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
++import { assertD06CapturedFile } from "./helpers/d06CaptureDependency";
+ import { describe, expect, it } from "vitest";
+ import { createHash } from "node:crypto";
+ import { existsSync, readFileSync, statSync } from "node:fs";
+@@ -66,7 +67,11 @@ describe("B-F08-9 risk-history evidence lock is the sha256 of the layout sources
+     for (const [rel, expected] of Object.entries(recorded)) {
+       const abs = join(REPO, rel);
+       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      if (rel === "terminal/app/globals.css") {
++        assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
++      } else {
++        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      }
+     }
+   });
+ 
+diff --git a/terminal/lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts b/terminal/lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts
+index c424c4431..5dc228b47 100644
+--- a/terminal/lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts
++++ b/terminal/lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts
+@@ -1,6 +1,7 @@
+ // Git-free evidence lock for the B-F08-B5-1 portfolio construction targets packet.
+ // The lock is the sha256 of the layout sources the crops depend on, recorded in
+ // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
++import { assertD06CapturedLexProjection, assertD06CapturedFile } from "./helpers/d06CaptureDependency";
+ import { describe, expect, it } from "vitest";
+ import { createHash } from "node:crypto";
+ import { existsSync, readFileSync, statSync } from "node:fs";
+@@ -76,7 +77,13 @@ describe("B-F08-B5-1 targets evidence lock is the sha256 of the layout sources",
+     for (const [rel, expected] of Object.entries(recorded)) {
+       const abs = join(REPO, rel);
+       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      if (rel === "terminal/lib/i18n.tsx") {
++        assertD06CapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
++      } else if (rel === "terminal/app/globals.css") {
++        assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
++      } else {
++        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      }
+     }
+   });
+ 
+diff --git a/terminal/lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts b/terminal/lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts
+index ce64f707e..53f26a652 100644
+--- a/terminal/lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts
++++ b/terminal/lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts
+@@ -1,6 +1,7 @@
+ // Git-free evidence lock for the B-F12-B5-1 explicit-grants capture packet.
+ // The lock is the sha256 of the layout sources the crops depend on, recorded in
+ // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
++import { assertD06CapturedLexProjection } from "./helpers/d06CaptureDependency";
+ import { describe, expect, it } from "vitest";
+ import { createHash } from "node:crypto";
+ import { existsSync, readFileSync, statSync } from "node:fs";
+@@ -67,7 +68,11 @@ describe("B-F12-B5-1 grants evidence lock is the sha256 of the layout sources",
+     for (const [rel, expected] of Object.entries(recorded)) {
+       const abs = join(REPO, rel);
+       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      if (rel === "terminal/lib/i18n.tsx") {
++        assertD06CapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
++      } else {
++        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      }
+     }
+   });
+ 
+diff --git a/terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts b/terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts
+index 53d78ae97..0d30466e0 100644
+--- a/terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts
++++ b/terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts
+@@ -1,6 +1,7 @@
+ // Git-free evidence lock for the B-F12-B5-2 team-shared workspaces capture packet.
+ // The lock is the sha256 of the layout sources the crops depend on, recorded in
+ // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
++import { assertD06CapturedLexProjection } from "./helpers/d06CaptureDependency";
+ import { describe, expect, it } from "vitest";
+ import { createHash } from "node:crypto";
+ import { existsSync, readFileSync, statSync } from "node:fs";
+@@ -68,7 +69,11 @@ describe("B-F12-B5-2 team workspaces evidence lock is the sha256 of the layout s
+     for (const [rel, expected] of Object.entries(recorded)) {
+       const abs = join(REPO, rel);
+       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      if (rel === "terminal/lib/i18n.tsx") {
++        assertD06CapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
++      } else {
++        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      }
+     }
+   });
+ 
+diff --git a/terminal/lib/__tests__/d06CaptureDependency.test.ts b/terminal/lib/__tests__/d06CaptureDependency.test.ts
+index aa8d762ef..f4838694c 100644
+--- a/terminal/lib/__tests__/d06CaptureDependency.test.ts
++++ b/terminal/lib/__tests__/d06CaptureDependency.test.ts
+@@ -1,6 +1,7 @@
+ import { createHash } from "node:crypto";
+ import { readFileSync } from "node:fs";
+ import { join } from "node:path";
++import { gunzipSync } from "node:zlib";
+ import { describe, expect, it } from "vitest";
+ import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+ import { assertD06CapturedFile, assertD06CapturedLexProjection, restoreD06HistoricalSource } from "./helpers/d06CaptureDependency";
+@@ -9,9 +10,14 @@ const repo = join(__dirname, "../../..");
+ const read = (path: string) => readFileSync(join(repo, path), "utf8");
+ const hash = (source: string) => createHash("sha256").update(source, "utf8").digest("hex");
+ const packet = JSON.parse(read("terminal/lib/__tests__/fixtures/d06CapturedDependencyDelta.json"));
++const fixtureDir = join(__dirname, "fixtures/d06CaptureDependency");
+ const lexPath = "terminal/lib/i18n.tsx";
++const chartPath = "terminal/components/ChartPanel.tsx";
+ const evidence = read("terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml");
+ const lexRaw = evidence.match(/^  terminal\/lib\/i18n\.tsx: "([0-9a-f]{64})"$/m)![1];
++// Original published D06 blob 6d540e007f488f8c753ebead9b7dc0c0fbf107f1.
++// Protected ChartPanel composition now has a separate, fresh axis capture.
++const historicalChart = gunzipSync(readFileSync(join(fixtureDir, "ChartPanel-efafc117.tsx.gz"))).toString("utf8");
+ 
+ describe("exact D06 inverse deltas preserve historical evidence identity", () => {
+   it("chains new LEX properties before unchanged strict v1 verification", () => {
+@@ -23,9 +29,11 @@ describe("exact D06 inverse deltas preserve historical evidence identity", () =>
+     expect(packet.lex_added_properties).toHaveLength(13);
+   });
+ 
+-  it.each(["terminal/app/globals.css", "terminal/components/ChartPanel.tsx"])(
++  it.each(["terminal/app/globals.css", chartPath])(
+     "restores the exact original raw pin for %s and refuses every extra byte", path => {
+-      const source = read(path), pin = packet.entries[path].before_sha256;
++      const source = path === chartPath ? historicalChart : read(path);
++      const pin = packet.entries[path].before_sha256;
++      expect(hash(source)).toBe(packet.entries[path].after_sha256);
+       expect(() => assertD06CapturedFile(path, source, pin)).not.toThrow();
+       expect(hash(restoreD06HistoricalSource(path, source))).toBe(pin);
+       expect(() => assertD06CapturedFile(path, source + "\n", pin)).toThrow(/outside/);
+@@ -33,6 +41,37 @@ describe("exact D06 inverse deltas preserve historical evidence identity", () =>
+     },
+   );
+ 
++  it("accepts the actual current axis pin without extending the historical ChartPanel inverse", () => {
++    const source = read(chartPath);
++    const manifest = JSON.parse(read("terminal/docs/pr-crops/options-level-axis-labels/manifest.json"));
++    const currentPin = manifest.sourceFiles["components/ChartPanel.tsx"];
++    expect(currentPin).toMatch(/^[0-9a-f]{64}$/);
++    expect(hash(source)).toBe(currentPin);
++    expect(currentPin).not.toBe(packet.entries[chartPath].after_sha256);
++    expect(() => restoreD06HistoricalSource(chartPath, source)).toThrow(/outside/);
++    expect(() => assertD06CapturedFile(chartPath, source, packet.entries[chartPath].before_sha256)).toThrow(/outside/);
++    expect(() => assertD06CapturedFile(chartPath, source, currentPin)).not.toThrow();
++    expect(() => assertD06CapturedFile(chartPath, source + "\n", currentPin)).toThrow(/outside/);
++    expect(() => assertD06CapturedFile(chartPath, source, "a".repeat(64))).toThrow();
++  });
++
++  it.each([
++    ["runtime-f11-EVIDENCE.yml", "f1d6d561d5ad594cb31ec3c674a3cf282ace818e8d08c815719c5ae55d468a34"],
++    ["runtime-batch2-EVIDENCE.yml", "2184299734cfa1b699780ca5465073d662936a1014c30075d332aebea03c575a"],
++  ])("accepts exact fresh source bytes before historical projection for %s", (file, digest) => {
++    // Actual failed-run manifests are retained byte-for-byte, including the
++    // older F11 projection and Batch 2's absence of a projection.
++    const manifest = readFileSync(join(fixtureDir, file), "utf8");
++    expect(hash(manifest)).toBe(digest);
++    const rawPin = manifest.match(/^  terminal\/lib\/i18n\.tsx: "([0-9a-f]{64})"$/m)![1];
++    const source = read(lexPath);
++    expect(hash(source)).toBe(rawPin);
++    expect(() => assertCapturedLexProjection(restoreD06HistoricalSource(lexPath, source), rawPin, manifest)).toThrow();
++    expect(() => assertD06CapturedLexProjection(source, rawPin, manifest)).not.toThrow();
++    expect(() => assertD06CapturedLexProjection(source + "\n", rawPin, manifest)).toThrow();
++    expect(() => assertD06CapturedLexProjection(source, "a".repeat(64), manifest)).toThrow();
++  });
++
+   it("rejects a changed new translation, partial delta, duplicate context and unrelated LEX change", () => {
+     const source = read(lexPath);
+     const hunks = packet.entries[lexPath].hunks as { before_text: string; after_text: string }[];
+@@ -53,9 +92,13 @@ describe("exact D06 inverse deltas preserve historical evidence identity", () =>
+     expect(() => assertD06CapturedLexProjection(changed, lexRaw, evidence)).not.toThrow();
+   });
+ 
+-  it("does not grant a generic source-file exemption or replace LEX provenance", () => {
+-    expect(() => restoreD06HistoricalSource("terminal/components/Other.tsx", "anything")).toThrow();
+-    expect(() => assertD06CapturedFile(lexPath, read(lexPath), lexRaw)).toThrow(/provenance/);
++  it("validates the path and pin before direct equality and retains LEX provenance", () => {
++    const other = "anything";
++    expect(() => restoreD06HistoricalSource("terminal/components/Other.tsx", other)).toThrow();
++    expect(() => assertD06CapturedFile("terminal/components/Other.tsx", other, hash(other))).toThrow(/No exact/);
++    expect(() => assertD06CapturedFile(chartPath, read(chartPath), "invalid")).toThrow(/raw source hash/);
++    expect(() => assertD06CapturedFile(lexPath, read(lexPath), hash(read(lexPath)))).toThrow(/provenance/);
++    expect(() => assertD06CapturedLexProjection(read(lexPath), "invalid", evidence)).toThrow();
+     expect(() => assertD06CapturedLexProjection(read(lexPath), lexRaw, "")).toThrow();
+   });
+ });
+diff --git a/terminal/lib/__tests__/helpers/d06CaptureDependency.ts b/terminal/lib/__tests__/helpers/d06CaptureDependency.ts
+index d65608f7f..c8610c110 100644
+--- a/terminal/lib/__tests__/helpers/d06CaptureDependency.ts
++++ b/terminal/lib/__tests__/helpers/d06CaptureDependency.ts
+@@ -59,14 +59,18 @@ export function restoreD06HistoricalSource(path: string, current: string): strin
+   return restored;
+ }
+ 
+-/** Chain to unchanged v1 semantics; never expand its omitted-property contract. */
++/** Fresh raw captures precede the unchanged historical inverse and v1 contract. */
+ export function assertD06CapturedLexProjection(current: string, rawPin: string, manifest: string): void {
++  if (/^[0-9a-f]{64}$/.test(rawPin) && hash(current) === rawPin) return;
+   assertCapturedLexProjection(restoreD06HistoricalSource(LEX_PATH, current), rawPin, manifest);
+ }
+ 
+ export function assertD06CapturedFile(path: string, current: string, rawPin: string): void {
+   if (path === LEX_PATH) throw new Error("LEX requires its original v1 provenance binding");
+-  if (!/^[0-9a-f]{64}$/.test(rawPin) || hash(restoreD06HistoricalSource(path, current)) !== rawPin) {
++  if (!paths.includes(path)) throw new Error("No exact D06 dependency delta for this path");
++  if (!/^[0-9a-f]{64}$/.test(rawPin)) throw new Error("Recorded historical raw source hash does not match");
++  if (hash(current) === rawPin) return;
++  if (hash(restoreD06HistoricalSource(path, current)) !== rawPin) {
+     throw new Error("Recorded historical raw source hash does not match");
+   }
+ }
+diff --git a/terminal/lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts b/terminal/lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts
+index 27f668b13..3698d3fbc 100644
+--- a/terminal/lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts
++++ b/terminal/lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts
+@@ -2,6 +2,7 @@
+ // Its capture script writes EVIDENCE.yml as JSON (layoutFiles is an object), so
+ // this gate parses JSON. The lock is the sha256 of the layout sources the crops
+ // depend on; capturedAtHead stays informational.
++import { assertD06CapturedLexProjection, assertD06CapturedFile } from "./helpers/d06CaptureDependency";
+ import { describe, expect, it } from "vitest";
+ import { createHash } from "node:crypto";
+ import { existsSync, readFileSync, statSync } from "node:fs";
+@@ -68,7 +69,13 @@ describe("W9T-F08-13 Settings targets evidence lock is the sha256 of the layout
+     for (const [rel, expected] of Object.entries(recorded)) {
+       const abs = join(REPO, rel);
+       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      if (rel === "terminal/lib/i18n.tsx") {
++        assertD06CapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
++      } else if (rel === "terminal/app/globals.css") {
++        assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
++      } else {
++        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      }
+     }
+   });
+ 
+diff --git a/terminal/lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts b/terminal/lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts
+index 30ad3cc45..835cb93e3 100644
+--- a/terminal/lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts
++++ b/terminal/lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts
+@@ -1,6 +1,7 @@
+ // Git-free evidence lock for the W9T_F13_9 team-rollup (no cross-team rank) capture packet.
+ // The lock is the sha256 of the layout sources the crops depend on, recorded in
+ // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
++import { assertD06CapturedLexProjection } from "./helpers/d06CaptureDependency";
+ import { describe, expect, it } from "vitest";
+ import { createHash } from "node:crypto";
+ import { existsSync, readFileSync, statSync } from "node:fs";
+@@ -74,7 +75,11 @@ describe("W9T_F13_9 team rollup evidence lock is the sha256 of the layout source
+     for (const [rel, expected] of Object.entries(recorded)) {
+       const abs = join(REPO, rel);
+       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      if (rel === "terminal/lib/i18n.tsx") {
++        assertD06CapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
++      } else {
++        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
++      }
+     }
+   });

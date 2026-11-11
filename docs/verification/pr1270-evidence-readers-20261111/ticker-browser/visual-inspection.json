@@ -1,0 +1,24 @@
+{
+  "all_ten_directly_viewed": true,
+  "findings": [
+    "All six live-feed panel crops show both fixture news items and their controls within the captured panel.",
+    "All four unavailable panels show the unavailable message and Retry control.",
+    "Chinese UI glyphs are readable in all five Chinese crops; fixture English headlines remain the original source text.",
+    "Desktop, tablet and mobile panel widths are truthful native crops; the full specification also passed its overflow and touch-target assertions."
+  ],
+  "images": {
+    "desktop-en-dark.png": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04",
+    "desktop-zh-dark.png": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d",
+    "mobile-en-dark.png": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28",
+    "mobile-zh-dark.png": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585",
+    "tablet-en-dark.png": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69",
+    "tablet-zh-dark.png": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5",
+    "unavailable-desktop-en-dark.png": "d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048",
+    "unavailable-desktop-zh-dark.png": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8",
+    "unavailable-mobile-en-dark.png": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61",
+    "unavailable-mobile-zh-dark.png": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792"
+  },
+  "observed_at": "2026-11-11T19:20:47.795686+00:00",
+  "review_type": "ASSIGNED_SESSION_ROOT_VISUAL_SELF_CHECK",
+  "scope": "Local fixture browser capture on composed D06 source; no authenticated live or physical WebKit acceptance claim."
+}

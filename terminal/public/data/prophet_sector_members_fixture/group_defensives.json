@@ -1,0 +1,484 @@
+{
+ "schema": "prophet.sector_members/v1",
+ "mode": "group",
+ "captured_at": "2026-11-11T04:55:47Z",
+ "sector_ref": {
+  "owner": "sector_generation",
+  "generation_id": "qualify-2026-11-06",
+  "content_id": "973b72736c5fb9a64823a7707ea06baf113657f47b2c9962d5d692865b6c2ffa",
+  "source_session": "2026-11-06",
+  "published_at": "2026-11-06T23:00:00+00:00",
+  "member_sha256": "3e51b31bfbecb8f1b08957b52954e0e192525d68000fe3a095f86a7ac2a5edf6",
+  "qualification": "stale"
+ },
+ "prophet_ref": {
+  "owner": "prophet_index",
+  "schema": "prophet.index/v1",
+  "asof": "2026-11-09",
+  "generated_at": "2026-11-09T09:02:55Z",
+  "index_sha256": "3956748aa58e9a1d4850e3429082f2a4d795da32b1a12667f5b1ce75f3fe2e28",
+  "plan_count": 893,
+  "open_plan_count": 364
+ },
+ "compatibility": {
+  "status": "mixed_basis",
+  "sector_session": "2026-11-06",
+  "prophet_asof": "2026-11-09",
+  "session_gap": 3,
+  "reason": "sessions differ by 3 calendar days and an owner flags a non-accepted basis (sector qualification 'stale')"
+ },
+ "disclosure": {
+  "membership_basis": "current_roster_with_pit_first_known",
+  "taxonomy_basis": "current_gics_industry_not_point_in_time",
+  "join_key": "us_listing_ticker",
+  "descriptive_only": true
+ },
+ "group": {
+  "id": "defensives",
+  "kind": "basket",
+  "name": "Defensives",
+  "name_zh": "\u9632\u5fa1\u677f\u5757",
+  "benchmark": "SPY",
+  "context": {
+   "window_sessions": 20,
+   "group_return_pct": 10.3947,
+   "market_return_pct": -5.5589,
+   "relative_pp": 15.9536,
+   "breadth": null,
+   "state_label": "Expansion",
+   "reasons": {
+    "breadth": "not_produced"
+   },
+   "window": "20d",
+   "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+  }
+ },
+ "counts": {
+  "configured": 18,
+  "served": 17,
+  "accounted_unserved": 1,
+  "unaccounted": 0,
+  "open_plan": 6,
+  "resolved_plan": 3,
+  "early_observation": 0,
+  "none": 8,
+  "unavailable": 0
+ },
+ "members": [
+  {
+   "symbol": "CLX",
+   "name": "Clorox",
+   "industry": "Household Products",
+   "sub_industry": "Household & Personal Products",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "CLX-BULL-20261016",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-10-20",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "GIS",
+   "name": "General Mills",
+   "industry": "Food Products",
+   "sub_industry": "Packaged Foods",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "GIS-BULL-20261029",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-11-02",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "HSY",
+   "name": "Hershey Company (The)",
+   "industry": "Food Products",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "HSY-BULL-20261016",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-10-20",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "JNJ",
+   "name": "Johnson & Johnson",
+   "industry": "Pharmaceuticals",
+   "sub_industry": "Drug Manufacturers - General",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_health",
+    "big_pharma"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "JNJ-BULL-20261103",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-11-05",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 1,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "MKC",
+   "name": "McCormick & Company",
+   "industry": "Food Products",
+   "sub_industry": "Packaged Foods",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "MKC-BULL-20261029",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-10-30",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PG",
+   "name": "Procter & Gamble",
+   "industry": "Household Products",
+   "sub_industry": "Household & Personal Products",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "open_plan",
+    "reason": null,
+    "plan": {
+     "id": "PG-BULL-20260914",
+     "direction": "long",
+     "strategy": null,
+     "phase": "triggered_pre_t1",
+     "opened_on": "2026-10-06",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 1,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "COST",
+   "name": "Costco",
+   "industry": "Consumer Staples Distribution & Retail",
+   "sub_industry": "Discount Stores",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples",
+    "retail"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "COST-BULL-20260930",
+     "direction": "long",
+     "strategy": null,
+     "phase": "between_t1_t2",
+     "opened_on": "2026-10-02",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "KDP",
+   "name": "Keurig Dr Pepper",
+   "industry": "Beverages",
+   "sub_industry": "Beverages - Non-Alcoholic",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "KDP-BULL-20260818",
+     "direction": "long",
+     "strategy": null,
+     "phase": "at_t2",
+     "opened_on": "2026-08-18",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MO",
+   "name": "Altria",
+   "industry": "Tobacco",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "resolved_plan",
+    "reason": null,
+    "plan": {
+     "id": "MO-BULL-20260903",
+     "direction": "long",
+     "strategy": null,
+     "phase": "overtime",
+     "opened_on": "2026-09-04",
+     "resolved_on": null,
+     "outcome": null
+    },
+    "open_plan_count": 0,
+    "resolved_plan_count": 1,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CHD",
+   "name": "Church & Dwight",
+   "industry": "Household Products",
+   "sub_industry": "Household & Personal Products",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "CL",
+   "name": "Colgate-Palmolive",
+   "industry": "Household Products",
+   "sub_industry": "Household & Personal Products",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "KMB",
+   "name": "Kimberly-Clark",
+   "industry": "Household Products",
+   "sub_industry": "Household & Personal Products",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "KO",
+   "name": "Coca-Cola Company (The)",
+   "industry": "Beverages",
+   "sub_industry": "Beverages - Non-Alcoholic",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "MDLZ",
+   "name": "Mondelez International",
+   "industry": "Food Products",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PEP",
+   "name": "PepsiCo",
+   "industry": "Beverages",
+   "sub_industry": "Beverages - Non-Alcoholic",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "PM",
+   "name": "Philip Morris Internationa",
+   "industry": "Tobacco",
+   "sub_industry": null,
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "WMT",
+   "name": "Walmart",
+   "industry": "Consumer Staples Distribution & Retail",
+   "sub_industry": "Discount Stores",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_staples",
+    "retail"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  }
+ ],
+ "unserved": [
+  {
+   "symbol": "KVUE",
+   "reason": "not_observed_at_effective_as_of"
+  }
+ ],
+ "page": {
+  "offset": 0,
+  "limit": 200,
+  "total_matching": 17,
+  "next_offset": null,
+  "q": null,
+  "state": null
+ }
+}

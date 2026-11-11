@@ -59,14 +59,18 @@ export function restoreD06HistoricalSource(path: string, current: string): strin
   return restored;
 }
 
-/** Chain to unchanged v1 semantics; never expand its omitted-property contract. */
+/** Fresh raw captures precede the unchanged historical inverse and v1 contract. */
 export function assertD06CapturedLexProjection(current: string, rawPin: string, manifest: string): void {
+  if (/^[0-9a-f]{64}$/.test(rawPin) && hash(current) === rawPin) return;
   assertCapturedLexProjection(restoreD06HistoricalSource(LEX_PATH, current), rawPin, manifest);
 }
 
 export function assertD06CapturedFile(path: string, current: string, rawPin: string): void {
   if (path === LEX_PATH) throw new Error("LEX requires its original v1 provenance binding");
-  if (!/^[0-9a-f]{64}$/.test(rawPin) || hash(restoreD06HistoricalSource(path, current)) !== rawPin) {
+  if (!paths.includes(path)) throw new Error("No exact D06 dependency delta for this path");
+  if (!/^[0-9a-f]{64}$/.test(rawPin)) throw new Error("Recorded historical raw source hash does not match");
+  if (hash(current) === rawPin) return;
+  if (hash(restoreD06HistoricalSource(path, current)) !== rawPin) {
     throw new Error("Recorded historical raw source hash does not match");
   }
 }

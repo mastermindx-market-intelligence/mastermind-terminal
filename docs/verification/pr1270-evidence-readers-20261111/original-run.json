@@ -1,0 +1,27 @@
+{
+  "actual_checkout": "75a390d6891830a8bfa47a43a804e4dfe8d939df",
+  "actual_parents": [
+    "ed6529da70f124c2790c5ddf3b6d4482d739cb46",
+    "4081b6c0939337b448b4273d2b0b07c0fdb65a03"
+  ],
+  "actual_tree": "23285b247d513b117899259ea684ad057d9268bc",
+  "aggregate_failure": "terminal-unit was the sole failed input; all development and production browser jobs passed.",
+  "artifact_id": 13880074030,
+  "artifact_sha256": "f49ebaf8219befb7d47920740dc2cf69609e593c94876fc192543834616bddc1",
+  "final_jobs": {
+    "failed": 2,
+    "other_primary_failures": 0,
+    "success": 27,
+    "total": 29
+  },
+  "job_id": 130696890535,
+  "run_id": 43070306260,
+  "unit_log_gzip_sha256": "6489c0185a895382324db1a4694563ad4e1edb5e461dba695a6f797d5f8f5363",
+  "unit_log_sha256": "588fdb943e278f11a868a889c020131e380d23ba4053f473de68cf7effcb5737",
+  "unit_result": {
+    "failed": 12,
+    "passed": 23423,
+    "skipped": 50,
+    "todo": 3
+  }
+}

@@ -1,0 +1,631 @@
+{
+  "base": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "captureExecution": {
+    "path": "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/execution.json",
+    "sha256": "b95d216e639a0948b21eae56da5d3d6b713703e000a592f3b328123c3d0215fe"
+  },
+  "operation": "terminal-cycle-width-support-20261111-c3",
+  "productionProof": false,
+  "proof": {
+    "docs/verification/sector-cycle-width-20261111/CycleChartPanel.before.tsx.txt": {
+      "bytes": 17792,
+      "sha256": "3186bc2eedbd1c8a74b9be72e496ac0f5e8539514580e42a0d6ba3774c07a221"
+    },
+    "docs/verification/sector-cycle-width-20261111/README.md": {
+      "bytes": 4334,
+      "sha256": "f74ef3432ca39bdb12cb51e472f41ec9e0f8d0e47612ecdad03a80916bf114d0"
+    },
+    "docs/verification/sector-cycle-width-20261111/cleanup.json": {
+      "bytes": 784,
+      "sha256": "400efe89da13a0b0e372f6a8f3a73a02168dfcda55d29f3e6909dd112f80e479"
+    },
+    "docs/verification/sector-cycle-width-20261111/custody.json": {
+      "bytes": 582,
+      "sha256": "9d682ff0004ffe465b7ca8bb4f3e6b7557aaecb253c05094b043c1d67fc815ad"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/cycles-measurement-empty-zh-desktop.png": {
+      "bytes": 68050,
+      "sha256": "0c497ee27604a0600d004cbb95bdbf585aff636ee2030a43697cbd61471a3942"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/trace.zip": {
+      "bytes": 808032,
+      "sha256": "61bca8d333eeae9fd2929e9fe148faff37444290827045f74352fa29f4343488"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/cycles-measurement-empty-zh-mobile.png": {
+      "bytes": 55742,
+      "sha256": "26efe1d622069b13a146b634f176f406bf501a78a5f3893c5257ea33bac87ef1"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/trace.zip": {
+      "bytes": 670561,
+      "sha256": "3a9f437db8dc210492890ebde4ec52ee598d851513e74f9ff0a75466cf963d0b"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/cycles-measurement-empty-zh-tablet.png": {
+      "bytes": 63925,
+      "sha256": "f3866a51e294716e64c460d4b2ecafa478ce2c3d30f4de5192177b607cbc97f8"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/trace.zip": {
+      "bytes": 1004162,
+      "sha256": "05316abfc0acde277c459b302122c4c2757f9eee9e4e64c829dc6858744ac272"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/cycles-measurement-table-en-desktop.png": {
+      "bytes": 62953,
+      "sha256": "1a70b053148896366a8d4bbf1ed52ca22ce2e004aceee6f644f3e2e880341b8b"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip": {
+      "bytes": 999851,
+      "sha256": "8c8891a66e99c4e2d93bf9f762321e3210aa9a4b0dab192e7284c8fe640890a3"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/cycles-measurement-table-en-mobile.png": {
+      "bytes": 52260,
+      "sha256": "b64a66cb52b78d1a8736eb8a82c3018ba303822b2e086ef234c7281321d78c74"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/trace.zip": {
+      "bytes": 741066,
+      "sha256": "e6bad8e9c537703927571f3b6da9fa6ab11ae23dbe4ee3e4238e00a84555ecb3"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/cycles-measurement-table-en-tablet.png": {
+      "bytes": 58993,
+      "sha256": "b3c2b2ce5e421a1c3de400369baf229d87b2a8854d194baf2216f228af4445f2"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/trace.zip": {
+      "bytes": 853187,
+      "sha256": "fc4e1b924f416ed6948019be03c04448713e7da70274ffe0221e3487a62279a9"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/cycles-measurement-table-zh-desktop.png": {
+      "bytes": 68311,
+      "sha256": "69783ce6ceb471936c3ab2755c7a8a095c0cf21933159c5d86e5a9a05c32298f"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/trace.zip": {
+      "bytes": 994135,
+      "sha256": "a3a9d0e1ebb150ae4f5dd8bde565cc9cc40710baa582780c91faf9d22667d185"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/cycles-measurement-table-zh-mobile.png": {
+      "bytes": 55870,
+      "sha256": "685014902c0a256f583d680c582cb049457967c7b1e9370ed0087e4db90f948d"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/trace.zip": {
+      "bytes": 820731,
+      "sha256": "532a69b198f0dd94171b50688f82dbcce3f6d4c898195807b9a7e7fac34eafdb"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/cycles-measurement-table-zh-tablet.png": {
+      "bytes": 64266,
+      "sha256": "529b5466ed08b370cb49d134d22f703038f76ea37b2c9f1422eed3c87e2f0377"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/trace.zip": {
+      "bytes": 896734,
+      "sha256": "1c06aa8bfbd154784124bbcb3d723bbc4d93915a3fd7b548b07ef4b69d17cf52"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/cycles-measurement-empty-en-desktop.png": {
+      "bytes": 63297,
+      "sha256": "079f81c289327d15e48c2628cf3a1d72e285d5968d801edda3ec5cddb264c72d"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/trace.zip": {
+      "bytes": 710141,
+      "sha256": "41fc3beccd2e65828120f065337b25d9ee616ba2f6af8e05b8f5324576f267fa"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/cycles-measurement-empty-en-mobile.png": {
+      "bytes": 52946,
+      "sha256": "98a225a5b3515ca7832d13060ed14936a5652790daa3e54e1cec4b874d793a43"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/trace.zip": {
+      "bytes": 563379,
+      "sha256": "375a7f775eaa34e03a5964bc4e220f5c6c7169cf58bc5b7952f7383e92031d12"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/cycles-measurement-empty-en-tablet.png": {
+      "bytes": 59279,
+      "sha256": "c8bb0399d5f6c4994bd785d0d2935f23e8e946077491301ea8b566fef67e227c"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/trace.zip": {
+      "bytes": 850199,
+      "sha256": "dd6cb322bb05f494f78774f3be41479c61ed0a5cdc12fc2619f15145a3dc12d1"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/browser.log": {
+      "bytes": 2257,
+      "sha256": "6888c6da2e144a32602594ba084d3144c5c6fcd4b55c6244aeb97a1939316671"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/execution.json": {
+      "bytes": 4472,
+      "sha256": "fa12b72d73410041e43113eb509994ee25c9b7d44e09bbcbaf49f51c5406312b"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/lock-settlement.json": {
+      "bytes": 805,
+      "sha256": "91616e4d33816cf918bfbba62a1eadc77b73842071a4300d8bbdcfe826687cea"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/report.json": {
+      "bytes": 26421,
+      "sha256": "0c36239d00cc2856d7e3483057223ef933954857a25af6a03132721f00f90b77"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/selection.log": {
+      "bytes": 1371,
+      "sha256": "9f09c816ffc97969edcc7b3387eae871d7f95d9a8fdec9c6799debd5fd4b11c0"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/settled-lock.json": {
+      "bytes": 108,
+      "sha256": "1bf911a67e21a11bcadc5fb6cc3758066e8a41437c0cb6dbe67007178b253eed"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/source-after.json": {
+      "bytes": 4513070,
+      "sha256": "4a73144f54f5bb6b7e1fd7923e8e5302d5893da6186947dac867e4c5a53f6cd9"
+    },
+    "docs/verification/sector-cycle-width-20261111/fixed-source/source-before.json": {
+      "bytes": 4513070,
+      "sha256": "4a73144f54f5bb6b7e1fd7923e8e5302d5893da6186947dac867e4c5a53f6cd9"
+    },
+    "docs/verification/sector-cycle-width-20261111/harness.before-theme.tsx.txt": {
+      "bytes": 16874,
+      "sha256": "07d6913065496682926fe6178a0b7188ba3efa8a03a4941c00c038a6e538eff4"
+    },
+    "docs/verification/sector-cycle-width-20261111/lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/sector-cycle-width-20261111/npm-ci.json": {
+      "bytes": 37,
+      "sha256": "f2b23e1d653f46bbf200f83a9f32a754f0658a3a3aa71daf6dd411d0e8a036cc"
+    },
+    "docs/verification/sector-cycle-width-20261111/npm-ci.log": {
+      "bytes": 690,
+      "sha256": "976085229a8ee805bd37f83bc3bc92fbe5ce24894c4b6f3ab5208c4e89750ca8"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source-selection-preflight/selection.log": {
+      "bytes": 150,
+      "sha256": "8d25abdfcc782215ff59430ad2ab30c7d2d26aca95d05c5fec02e12a3a878035"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source-selection-preflight/source-before.json": {
+      "bytes": 4513070,
+      "sha256": "eb077a67f81eefef07fae964b9f2229bcdc692082c2ffb0ff70d16c71482cba3"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/artifacts/.last-run.json": {
+      "bytes": 96,
+      "sha256": "cfe1e2fa50f8aa6e668f54a5e575464eebf6f8c484c068d2b6c287497a4d90c4"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/error-context.md": {
+      "bytes": 27255,
+      "sha256": "7178c23ff84272d61580d2fc7700fded416fb8f8c561fbe7e982cf4420aa072e"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/test-failed-1.png": {
+      "bytes": 125255,
+      "sha256": "d726cdf58cdc4c47ffbc9527a085b9e49ef01be3f70141978866194f1d49e99c"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip": {
+      "bytes": 822597,
+      "sha256": "fdf0bad906de549496cbd9d9c0dedb3213f67386d3fd658b9b662470f261d719"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/browser.log": {
+      "bytes": 3851,
+      "sha256": "e7247bd22cc722bfa2ce78a815c27910f47550b8ac29adc90bf84dcf8c150685"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/execution.json": {
+      "bytes": 2908,
+      "sha256": "876172efb1d2e0a4d15fbe3f28a2c965b017294eede6f11dd006b01c918802cb"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/lock-settlement.json": {
+      "bytes": 806,
+      "sha256": "7f140a17bbab3426ff7722c2a3603ab2cf1c173a89df9d6a4878ef18b1aa4d4d"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/report.json": {
+      "bytes": 15058,
+      "sha256": "52fd884afff9604a2af92da225e8e268a1b23fd1494cb141d04d220d1b0e2b66"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/selection.log": {
+      "bytes": 150,
+      "sha256": "8d25abdfcc782215ff59430ad2ab30c7d2d26aca95d05c5fec02e12a3a878035"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/settled-lock.json": {
+      "bytes": 109,
+      "sha256": "0aeeabdbaf2c04749124ef509e9281491e42a6231230176e5b8e3210160c4b06"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/source-after.json": {
+      "bytes": 4513070,
+      "sha256": "eb077a67f81eefef07fae964b9f2229bcdc692082c2ffb0ff70d16c71482cba3"
+    },
+    "docs/verification/sector-cycle-width-20261111/old-source/source-before.json": {
+      "bytes": 4513070,
+      "sha256": "eb077a67f81eefef07fae964b9f2229bcdc692082c2ffb0ff70d16c71482cba3"
+    },
+    "docs/verification/sector-cycle-width-20261111/regression-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/sector-cycle-width-20261111/regression-source.json": {
+      "bytes": 210,
+      "sha256": "5875415912241faa38077c175c5362f87311ad7a7cdab255b47203b4d427459b"
+    },
+    "docs/verification/sector-cycle-width-20261111/repair-source.json": {
+      "bytes": 336,
+      "sha256": "2d96f55f0b81fea993b1e0d67da686fa44dad722243c36fec1c9387944d3273c"
+    },
+    "docs/verification/sector-cycle-width-20261111/sector-cycle-lens.before.txt": {
+      "bytes": 23230,
+      "sha256": "11c7bd835fcbb4be9be60fc932cc16b45ea5279cbe1ce93fefce29e858684a21"
+    },
+    "docs/verification/sector-cycle-width-20261111/selection-preflight-repair.json": {
+      "bytes": 279,
+      "sha256": "9d3dab4ea4d365278ad448d74b75e37df29a9ea7c6a4e920d778e3ae47e50ca4"
+    },
+    "docs/verification/sector-cycle-width-20261111/source-checks.json": {
+      "bytes": 413,
+      "sha256": "49830b4e174e5336a3f1e794f8b92b3d8e8dcf4c92087e846e701f08e703ec40"
+    },
+    "docs/verification/sector-cycle-width-20261111/spec.before-color-serialization.ts.txt": {
+      "bytes": 29887,
+      "sha256": "7b75db7faf95c5023c36b7108a107e2eb574792f33f52bcec4e823b10d8633b3"
+    },
+    "docs/verification/sector-cycle-width-20261111/spec.before-theme.ts.txt": {
+      "bytes": 28211,
+      "sha256": "7ce3b4688c9039876cc52605f9687178a3d1c88a00b52fd28ece731b1e9a2b83"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-assertion-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-assertion.json": {
+      "bytes": 280,
+      "sha256": "c3123964fc2b2287840952c5dd664942065b4cb5c3b6082df45da4950d454729"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-checks.json": {
+      "bytes": 152,
+      "sha256": "b76783aa0a5d14cb8a67d13e7da0cb40d8a470afd3bd230877b4c4e8bb2a9915"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/cycles-measurement-empty-zh-desktop.png": {
+      "bytes": 66671,
+      "sha256": "fe7dffcaffd04d86b1ddcda8dd847770c1dde605b325a7cf0b85b0971aa08e53"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/trace.zip": {
+      "bytes": 997967,
+      "sha256": "feb0a3e9a3767d29991823c4d8723573239d7335adb1cbb3272ae12c602dfc43"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/cycles-measurement-empty-zh-mobile.png": {
+      "bytes": 54076,
+      "sha256": "dc146d0751e6d8b93889094fa3d70b7f335320a322d88843caac12081107d72a"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/trace.zip": {
+      "bytes": 719176,
+      "sha256": "b934c421a8c3bfd17cc62766fab558bdc0cb024c377a1c16a558894d5ae4a8c0"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/cycles-measurement-empty-zh-tablet.png": {
+      "bytes": 62551,
+      "sha256": "af0168507e225a194d067f97058316507fe2577ba963790c3933e29e1e392424"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/trace.zip": {
+      "bytes": 1055731,
+      "sha256": "c21f43a452ccbb161ea6a5e09505a49f49fac0e7c9288fa19be5ccce132cfe5f"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/cycles-measurement-table-en-desktop.png": {
+      "bytes": 62953,
+      "sha256": "1a70b053148896366a8d4bbf1ed52ca22ce2e004aceee6f644f3e2e880341b8b"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip": {
+      "bytes": 1023532,
+      "sha256": "005d3d9ba186e308df662fa2ff5bc053e3dbb0804ce9330d4246bd3361334ffa"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/cycles-measurement-table-en-mobile.png": {
+      "bytes": 52260,
+      "sha256": "b64a66cb52b78d1a8736eb8a82c3018ba303822b2e086ef234c7281321d78c74"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/trace.zip": {
+      "bytes": 828240,
+      "sha256": "819f08eaf88b3354fb5cd84dd6b36c94b64952dce576074f21310eeed6519175"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/cycles-measurement-table-en-tablet.png": {
+      "bytes": 58993,
+      "sha256": "b3c2b2ce5e421a1c3de400369baf229d87b2a8854d194baf2216f228af4445f2"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/trace.zip": {
+      "bytes": 1014782,
+      "sha256": "4b363ec1a440988e4a95c51161d0244cbae9cbc6b9f47d671dff62c5b69548e6"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/cycles-measurement-table-zh-desktop.png": {
+      "bytes": 66892,
+      "sha256": "f1f3cbcd33973d177d94d899fb79a997c343342e4f9ca7c5bfe6a74494e1cf25"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/trace.zip": {
+      "bytes": 1088674,
+      "sha256": "ca8f5160217d5932fcca2bcc4097ad703a37a30112b89118a98d09155704d5c9"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/cycles-measurement-table-zh-mobile.png": {
+      "bytes": 54109,
+      "sha256": "87056eac62612e70890c46e3f7aa79d47a8abf63be36b44896a403828b116a4f"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/trace.zip": {
+      "bytes": 929059,
+      "sha256": "54aeeba6ef178d2c328e85970759ecede82de631f477fbac686dd0ceb2e50182"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/cycles-measurement-table-zh-tablet.png": {
+      "bytes": 62715,
+      "sha256": "b6c5b9ec3bae656db88e40b21f4b3540ff27f1a88a625b08b26f4d8e90f44c9e"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/trace.zip": {
+      "bytes": 1126394,
+      "sha256": "9a20f7c3a2feac3d65e8509df056cc85572f740002ca8b2348dbb3bb4cb0eacf"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/cycles-measurement-empty-en-desktop.png": {
+      "bytes": 63297,
+      "sha256": "079f81c289327d15e48c2628cf3a1d72e285d5968d801edda3ec5cddb264c72d"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/trace.zip": {
+      "bytes": 905070,
+      "sha256": "23e2302c1e78bf5720c213506857bcdaddf3a430702bbec88e7689982ab507da"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/cycles-measurement-empty-en-mobile.png": {
+      "bytes": 52946,
+      "sha256": "98a225a5b3515ca7832d13060ed14936a5652790daa3e54e1cec4b874d793a43"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/trace.zip": {
+      "bytes": 674290,
+      "sha256": "0171e587d386dd990b623377b4d9c7623968881b90ab970a83b2b82f96712104"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/cycles-measurement-empty-en-tablet.png": {
+      "bytes": 59279,
+      "sha256": "c8bb0399d5f6c4994bd785d0d2935f23e8e946077491301ea8b566fef67e227c"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/trace.zip": {
+      "bytes": 1049688,
+      "sha256": "25ba98bca8dd120fa122ad6c89d4abef2829a699af64cf16b37f2d8b030aef90"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/browser.log": {
+      "bytes": 2252,
+      "sha256": "bb7ebbd7d7b147b041aa71cade2e1e6cd46106f9f0242173a5237f61b91e36a2"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/execution.json": {
+      "bytes": 4483,
+      "sha256": "b95d216e639a0948b21eae56da5d3d6b713703e000a592f3b328123c3d0215fe"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/report.json": {
+      "bytes": 26609,
+      "sha256": "751d86f569090a4a3ba176eef70739e0c71e422cce77c442964f32648cba9009"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/selection.log": {
+      "bytes": 1371,
+      "sha256": "9f09c816ffc97969edcc7b3387eae871d7f95d9a8fdec9c6799debd5fd4b11c0"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/source-after.json": {
+      "bytes": 4513070,
+      "sha256": "7ce211340ff98328ab96e593799db1492083ae11ee8ef71eb5b951d7c4c6e575"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/source-before.json": {
+      "bytes": 4513070,
+      "sha256": "7ce211340ff98328ab96e593799db1492083ae11ee8ef71eb5b951d7c4c6e575"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/.last-run.json": {
+      "bytes": 635,
+      "sha256": "debb55aef9098cd00eebfa6181c396410715ae184bc895be7463bed6dc5bf173"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/error-context.md": {
+      "bytes": 28583,
+      "sha256": "cf6196de6ab27c9c99326fe9fc4657856d60f0b78f5b4878ebd3ec021852e305"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/test-failed-1.png": {
+      "bytes": 146945,
+      "sha256": "56bfa6d271fc025d7d5af10e6d6d4f4aaa05f1f7712802ffe7637a39a9ee6ec0"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/trace.zip": {
+      "bytes": 723413,
+      "sha256": "f79bc867c5ca1d678a518700bad331439e3a0281fabf6a02d339a3a060e84e35"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/error-context.md": {
+      "bytes": 28142,
+      "sha256": "5893309902a531ca49ec8280d63fad0f5a1e245493ff541ebf8faa6e456f52ec"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/test-failed-1.png": {
+      "bytes": 52406,
+      "sha256": "b1c2ab3ade43af6698e9430e2b189b61e92e2af6eb0033d036bc783caf13a111"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/trace.zip": {
+      "bytes": 476756,
+      "sha256": "44a44eeee27e51c4b57e77a243802bcef82d70f6a082c2fda93c6635afbfd677"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/error-context.md": {
+      "bytes": 25921,
+      "sha256": "00af7c4c1d8213fc606b9d95cd28da82602960975dbb1f039cdaa49f2a9f2e53"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/test-failed-1.png": {
+      "bytes": 134189,
+      "sha256": "60740d0b515987897a69cbb307fabd89541833442865ba6b38aadf9051b9b87d"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/trace.zip": {
+      "bytes": 805376,
+      "sha256": "6fad6749955ddef5f28bb5f1fcacf13db7e7f77efc59b575d73724b616482a57"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/error-context.md": {
+      "bytes": 28733,
+      "sha256": "a2005e7eb277c6e52baf292afcd6c2520b66ce8c730e968da0ab13772ab9cacb"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/test-failed-1.png": {
+      "bytes": 145419,
+      "sha256": "7fa32508b50b3dd7f0e230ad087b09e30bca0cd483ce747a31411b12b6c864d1"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip": {
+      "bytes": 688861,
+      "sha256": "0966972ae24176b68c609e0c348359430cbf6ae26a33cfb1553e64adf674dafa"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/error-context.md": {
+      "bytes": 28292,
+      "sha256": "7932ad21f3ee3494d8e2a9fc1cd48527686300091ab84eb4065f64db0f551bbf"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/test-failed-1.png": {
+      "bytes": 52670,
+      "sha256": "a77c9455c0adbe773bc316af3db208be2880c3eddbe7ad0e3b1d0b7cfbfc93d7"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/trace.zip": {
+      "bytes": 446636,
+      "sha256": "53b332126851016bbb43f6a08d20636fa3135ba73659fa4f6aca5c4c7dcc4202"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/error-context.md": {
+      "bytes": 26071,
+      "sha256": "805113a169fb178ca434edcc754c6a335a86953a31e7a9fb98e85110eea7ae6a"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/test-failed-1.png": {
+      "bytes": 124074,
+      "sha256": "3d09fa76ab319366bc270ec05bbf5688a469faab2eef49db3a75f36437e694ca"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/trace.zip": {
+      "bytes": 639598,
+      "sha256": "1b69fa11c69186d5f472aeba800e4e2b820b7db0256814df95fe53b5b28f9dcc"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/error-context.md": {
+      "bytes": 28583,
+      "sha256": "87671a5aa41cdd30fd0dabe772a16a7e072bf050ba14d670eac8ebacedea79c5"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/test-failed-1.png": {
+      "bytes": 146945,
+      "sha256": "56bfa6d271fc025d7d5af10e6d6d4f4aaa05f1f7712802ffe7637a39a9ee6ec0"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/trace.zip": {
+      "bytes": 723541,
+      "sha256": "a2eaf5bf6af7d7259ab5b92f4cadb55831acafe310d515ecc1807376fc947211"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/error-context.md": {
+      "bytes": 28142,
+      "sha256": "2de0dd22b0c26e03cc3a772e359868546ee8520a10f3981286c59ef5404733dd"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/test-failed-1.png": {
+      "bytes": 52406,
+      "sha256": "b1c2ab3ade43af6698e9430e2b189b61e92e2af6eb0033d036bc783caf13a111"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/trace.zip": {
+      "bytes": 476909,
+      "sha256": "9f93165af3e16b881d78880f6fb79c0966ff0765480d8057e2c280b37c327711"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/error-context.md": {
+      "bytes": 25921,
+      "sha256": "3506ec1b3afea45a2b1a7d0817536b2338891f6a05e44a649c806941455aedcc"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/test-failed-1.png": {
+      "bytes": 134189,
+      "sha256": "60740d0b515987897a69cbb307fabd89541833442865ba6b38aadf9051b9b87d"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/trace.zip": {
+      "bytes": 701676,
+      "sha256": "c6800a31bb166848bdbc15f211a7d8e4336c263bcf5e48dc1cdb3bf603e1b8d6"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/error-context.md": {
+      "bytes": 28733,
+      "sha256": "08ed696d287f065638c7b35750cd9a1a944e3d27e66adb130d41966bfc72eb03"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/test-failed-1.png": {
+      "bytes": 145419,
+      "sha256": "7fa32508b50b3dd7f0e230ad087b09e30bca0cd483ce747a31411b12b6c864d1"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/trace.zip": {
+      "bytes": 688685,
+      "sha256": "2871eb1f3103d3a46868dd76a60bbb036ac52972e4dd876e54306612f767761e"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/error-context.md": {
+      "bytes": 28292,
+      "sha256": "c50ce2ebefadcbf4d965b1b480cc53ed1b1030e20c37fd3ed4e0f8caa5bed4c1"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/test-failed-1.png": {
+      "bytes": 52670,
+      "sha256": "a77c9455c0adbe773bc316af3db208be2880c3eddbe7ad0e3b1d0b7cfbfc93d7"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/trace.zip": {
+      "bytes": 447345,
+      "sha256": "1d5acb5070b6c6ce5338e9da77f18aa511cfda69111555d4086895cf33208c54"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/error-context.md": {
+      "bytes": 26071,
+      "sha256": "f4f393ec970bb111eb19e63f4d5c4dc4e6e5422d9ae6e8d41f285a091bba7d5e"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/test-failed-1.png": {
+      "bytes": 124074,
+      "sha256": "3d09fa76ab319366bc270ec05bbf5688a469faab2eef49db3a75f36437e694ca"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/trace.zip": {
+      "bytes": 639382,
+      "sha256": "278491612035be131be219d3d422016cf37a5fb7f3a402539826d5b6ab969bc7"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/browser.log": {
+      "bytes": 40275,
+      "sha256": "b9b254682aaa8cf1b923b21f26237e3e7ca886d01a4983a2317027c3308f6298"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/execution.json": {
+      "bytes": 23245,
+      "sha256": "ad0cdf6ffe9e86ef7f6847ff1509f6d682882054d1d07613f1b3d430a0c7c605"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/lock-settlement.json": {
+      "bytes": 805,
+      "sha256": "a8dc184409583a6c24b814fdc8b7d1fa9214651a4c11616aba24e6946f11f441"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/report.json": {
+      "bytes": 107322,
+      "sha256": "b4db953bffc5e3061c3bcdf1dc76389b0e5fa8b41c7dcd0f877e1fdd6a46c544"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/selection.log": {
+      "bytes": 1371,
+      "sha256": "9f09c816ffc97969edcc7b3387eae871d7f95d9a8fdec9c6799debd5fd4b11c0"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/settled-lock.json": {
+      "bytes": 108,
+      "sha256": "5657c4f90d87e714efbf02dbfc9d1873c0e184a8f0898cdcb11b2c8c73c8aaf5"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/source-after.json": {
+      "bytes": 4513070,
+      "sha256": "360467b87d205b5e2940129b0cd51e8f9aa4142013b3abdbd631cc68604ccba0"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-qualified/source-before.json": {
+      "bytes": 4513070,
+      "sha256": "360467b87d205b5e2940129b0cd51e8f9aa4142013b3abdbd631cc68604ccba0"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-source.json": {
+      "bytes": 524,
+      "sha256": "5390bb36415b46011f66a75e63ea033c0346029ee5ba271a019d9efa47b43903"
+    },
+    "docs/verification/sector-cycle-width-20261111/theme-typescript.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/sector-cycle-width-20261111/typescript.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/sector-cycle-width-20261111/verify-paint-width.py": {
+      "bytes": 6444,
+      "sha256": "54d7d8a679725c03c441bb1b67702afa5fb56cc66297f8837a152af93789afbd"
+    },
+    "docs/verification/sector-cycle-width-20261111/verify-theme-width.py": {
+      "bytes": 6438,
+      "sha256": "2fe7d96ebecf26d11f7a10198f87567dade5bda2f13b4a57d1c5efab4528def6"
+    },
+    "docs/verification/sector-cycle-width-20261111/verify-width.before-selection-fix.py.txt": {
+      "bytes": 6323,
+      "sha256": "c8a1814bcacd0085ab9d8115415713891592ba91959cb0550debb11a19005e0e"
+    },
+    "docs/verification/sector-cycle-width-20261111/verify-width.py": {
+      "bytes": 6356,
+      "sha256": "63e927397926f9fc3366e0479f048cc86efc2b813c25310551dceebbaac87a14"
+    },
+    "docs/verification/sector-cycle-width-20261111/visual-review.json": {
+      "bytes": 2270,
+      "sha256": "6a367acece5f7eb39bfc3e10c6d51a828e284d684d333b90ed6a8a76ca8ddffd"
+    }
+  },
+  "proofBytes": 73880794,
+  "source": {
+    "terminal/app/dev/sector-cycles/page.tsx": {
+      "blob": "1a9c2df6c732698d9b2fd2c14226571aab79ed8f",
+      "sha256": "f24c19fe6f4df20564ac8c46ba97e60e5383fc5fef9c939710a8b6f00d668512"
+    },
+    "terminal/components/sector-intelligence/cycles/CycleChartPanel.tsx": {
+      "blob": "e8365ed513c043b0adea8bc441d464914306d5d8",
+      "sha256": "f7211b83a71591b7d1c8f0ca7b3f265dc5eb8777ec592c73377e039aea68bc03"
+    },
+    "terminal/e2e/sector-cycle-lens.spec.ts": {
+      "blob": "8cf0fbe65cec334a30b65b2b76eeb06d383ee799",
+      "sha256": "33e87cae885620c2dc9ad94a0a5188e942eeeaf196a41225c82f4261542fe9c5"
+    }
+  },
+  "state": "READY_FOR_OWNED_COMMIT"
+}

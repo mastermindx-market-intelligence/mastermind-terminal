@@ -1,0 +1,24 @@
+{
+  "started": "2026-11-11T19:05:44.497090+00:00",
+  "head": "75a390d6891830a8bfa47a43a804e4dfe8d939df",
+  "accepted_protected": "c13976bf86fb066e69cab399200a07ca63431521",
+  "local_reader_preimages": {
+    "terminal/lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts": "ebf106f6e082069e173d184d5ed70903e37a3a00bfdb39ef0384b412c4583190",
+    "terminal/lib/__tests__/b_f08_8InvalidationEvidence.test.ts": "62004ebc088bd0098dd5f20da47a25d6c75e5b3136f8deeea247c6f8e353a26e",
+    "terminal/lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts": "5a9f2e768d7742589e3a416ab5ce01ca445ce03290f359aa92e532d4909c8664",
+    "terminal/lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts": "1b4c671a3b6528502ed074bb83b549a48d56f6d1b29f3cd5ea748fe43733aa52",
+    "terminal/lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts": "7ea9044bdc613708f6e8ce14286c3a827ac67b1efc439541df5eefc43dcc0c13",
+    "terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts": "58555f3e924148aa593268f2173c53c9e877d87d77a5784349cb64394bfb4adc",
+    "terminal/lib/__tests__/d06CaptureDependency.test.ts": "80fe400d710b04158e1e7c860182238a7bb7e8d7045a2c923885392fa3ef9ea8",
+    "terminal/lib/__tests__/helpers/d06CaptureDependency.ts": "a7b177f918c52ba014eaf2bab358035e8371f560954fd695e6f399e3089c3e47",
+    "terminal/lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts": "da49fbfbe8bf04752addec324961827b25584975da0627c4d5d89b4403579c57",
+    "terminal/lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts": "327622c38e17598d592cb5fc4a5c6998509131edb045703cf7d05b042fdf937f"
+  },
+  "command": [
+    "git",
+    "merge",
+    "--no-commit",
+    "--no-ff",
+    "c13976bf86fb066e69cab399200a07ca63431521"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "completed": "2026-11-11T19:05:47.022119+00:00",
+  "rc": 0,
+  "stdout": "Auto-merging .github/workflows/ci.yml\nAuto-merging tests/test_merge_group_fast_lane_contract.py\n",
+  "stderr": "Automatic merge went well; stopped before committing as requested\n",
+  "merge_head": "c13976bf86fb066e69cab399200a07ca63431521",
+  "conflicts": [],
+  "reader_edits_unchanged": true
+}

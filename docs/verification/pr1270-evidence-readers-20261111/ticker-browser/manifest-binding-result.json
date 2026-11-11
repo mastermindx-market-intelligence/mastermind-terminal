@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-11T19:20:47.801880+00:00",
+  "image_count": 10,
+  "manifest_sha256": "3139ade45a02d9b66d0a6e5d911aa7797723a49caa1231782655c75387e52940",
+  "prior_packet_preserved": true,
+  "source_files": {
+    "terminal/components/TerminalShell.tsx": "35832710bd11a1d68fa5086ffe0aa8466b2098a65f0cb50b714596e94d3d601d",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2"
+  },
+  "state": "CURRENT_PACKET_BOUND_AFTER_REAL_CAPTURE_AND_VISUAL_INSPECTION"
+}

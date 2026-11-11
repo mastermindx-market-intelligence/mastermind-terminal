@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "name": "typecheck",
+      "rc": 0,
+      "completed": "2026-11-11T19:23:28.319419+00:00",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lint",
+      "rc": 0,
+      "completed": "2026-11-11T19:23:31.555713+00:00",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_unchanged": true
+}

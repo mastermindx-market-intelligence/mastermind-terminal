@@ -395,10 +395,11 @@ jobs:
       - name: Retain actual checkout and observed event identities
         run: node e2e/tools/capture_ci_evidence.cjs --checkout-only
       - run: npm ci
-      # next-env.d.ts and .next/ route types are gitignored; generate them first
-      # for the full-project CI gate (application, tests and tooling remain checked).
-      - run: npx next typegen
-      - run: npx tsc --noEmit
+      # Typecheck moved to the parallel terminal-typecheck job and the vitest
+      # suite to the terminal-unit-shards matrix: this lane keeps only the
+      # evidence capture chain and the suites that validate what it captured,
+      # so the merge-queue critical path is no longer capture + tsc + the
+      # whole unit suite serialized in one runner.
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
         run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
@@ -429,6 +430,12 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      - name: Capture current-source E18 alert-management evidence
+        timeout-minutes: 8
+        env:
+          TERMINAL_CROP_PORT: "47283"
+          TMPDIR: ${{ runner.temp }}/terminal-ci-evidence
+        run: node e2e/tools/capture_e18_alert_management.cjs
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 85
@@ -438,8 +445,18 @@ jobs:
       - name: Capture provider-closed F11 theses entry on this checkout
         timeout-minutes: 8
         run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
-      - run: npm test
-        timeout-minutes: 20
+      # Fresh-evidence validation through the immutable unit readers. Capture
+      # above exported TERMINAL_EVIDENCE_* to GITHUB_ENV and refreshed this
+      # checkout's evidence locks, so every suite that reads them (listed by
+      # scripts/ci/evidence-lock-suites.sh) runs here, after capture, exactly
+      # where `npm test` ran them before the unit split. The parallel
+      # terminal-unit-shards matrix excludes the same list.
+      - name: Validate fresh evidence through the unit readers
+        run: |
+          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh)
+          [ "${#suites[@]}" -gt 0 ] || { echo "::error::no evidence suites found"; exit 1; }
+          npx vitest run "${suites[@]}"
+        timeout-minutes: 10
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
       # start of the line and GitHub silently drops the annotation.
@@ -578,6 +595,7 @@ jobs:
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
             terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
+            terminal/docs/pr-crops/e18-alert-management/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
@@ -593,6 +611,74 @@ jobs:
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
             terminal/docs/pr-crops/options-level-axis-labels/*.png
           if-no-files-found: warn
+
+  terminal-typecheck:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-typecheck
+      cancel-in-progress: true
+    # Same qualification gate as terminal-unit: the independent browser
+    # selector must succeed, and only a trusted docs-only PR may skip.
+    # Typecheck must also run on native merge groups (no merge_group skip).
+    needs: [pr_scope, e2e-scope]
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    name: Terminal typecheck (shard)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      # next-env.d.ts and .next/ route types are gitignored; generate them first
+      # for the full-project CI gate (application, tests and tooling remain checked).
+      - run: npx next typegen
+      - run: npx tsc --noEmit
+
+  terminal-unit-shards:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-unit-shards-${{ matrix.shard }}
+      cancel-in-progress: true
+    # Same qualification gate as terminal-unit: the independent browser
+    # selector must succeed, and only a trusted docs-only PR may skip.
+    # Unit shards must also run on native merge groups (no merge_group skip).
+    needs: [pr_scope, e2e-scope]
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    name: Terminal unit tests (${{ matrix.shard }}/3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      # vitest's native --shard deterministically splits the matched test-file
+      # set (sha1-ordered contiguous slices). Suites that read capture-produced
+      # evidence are excluded here and run in the terminal-unit evidence lane
+      # after capture (scripts/ci/evidence-lock-suites.sh is the one list).
+      - name: Run unit tests (shard)
+        run: |
+          mapfile -t suites < <(bash scripts/ci/evidence-lock-suites.sh)
+          [ "${#suites[@]}" -gt 0 ] || { echo "::error::no evidence suites found"; exit 1; }
+          excludes=()
+          for suite in "${suites[@]}"; do excludes+=(--exclude "$suite"); done
+          npx vitest run --shard=${{ matrix.shard }}/3 "${excludes[@]}"
+        timeout-minutes: 20
 
   terminal-e2e:
     concurrency:
@@ -968,7 +1054,7 @@ jobs:
     name: Terminal typecheck + tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [pr_scope, e2e-scope, terminal-unit, terminal-e2e, terminal-e2e-build, terminal-e2e-prodbuild]
+    needs: [pr_scope, e2e-scope, terminal-unit, terminal-typecheck, terminal-unit-shards, terminal-e2e, terminal-e2e-build, terminal-e2e-prodbuild]
     if: always()
     steps:
       - name: Refuse cancelled qualification
@@ -983,13 +1069,15 @@ jobs:
           PR_SCOPE: ${{ needs.pr_scope.result }}
           PR_MODE: ${{ needs.pr_scope.outputs.mode }}
           UNIT: ${{ needs.terminal-unit.result }}
+          TYPECHECK: ${{ needs.terminal-typecheck.result }}
+          UNITS: ${{ needs.terminal-unit-shards.result }}
           E2E: ${{ needs.terminal-e2e.result }}
           BUILD: ${{ needs.terminal-e2e-build.result }}
           PRODBUILD: ${{ needs.terminal-e2e-prodbuild.result }}
           PRODBUILD_COUNT: ${{ needs.e2e-scope.outputs.prodbuild_count }}
           EVENT: ${{ github.event_name }}
         run: |
-          echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-e2e:$E2E terminal-e2e-build:$BUILD terminal-e2e-prodbuild:$PRODBUILD (count=$PRODBUILD_COUNT)"
+          echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-typecheck:$TYPECHECK terminal-unit-shards:$UNITS terminal-e2e:$E2E terminal-e2e-build:$BUILD terminal-e2e-prodbuild:$PRODBUILD (count=$PRODBUILD_COUNT)"
           docs_only=0
           if [ "$EVENT" = "pull_request" ] && [ "$PR_SCOPE" = "success" ] && [ "$PR_MODE" = "docs" ]; then
             docs_only=1
@@ -1012,6 +1100,25 @@ jobs:
             echo "terminal-unit skipped: trusted docs-only pull request"
           else
             echo "::error title=terminal-ci::terminal-unit concluded '$UNIT' (expected 'success')"
+            fail=1
+          fi
+          # The split typecheck and unit-shard lanes follow the same rule as the
+          # evidence lane: success, or a skip only a trusted docs-only PR earned.
+          # A skipped or failed matrix result can never qualify a candidate.
+          if [ "$TYPECHECK" = "success" ]; then
+            :
+          elif [ "$docs_only" -eq 1 ] && [ "$TYPECHECK" = "skipped" ]; then
+            echo "terminal-typecheck skipped: trusted docs-only pull request"
+          else
+            echo "::error title=terminal-ci::terminal-typecheck concluded '$TYPECHECK' (expected 'success')"
+            fail=1
+          fi
+          if [ "$UNITS" = "success" ]; then
+            :
+          elif [ "$docs_only" -eq 1 ] && [ "$UNITS" = "skipped" ]; then
+            echo "terminal-unit-shards skipped: trusted docs-only pull request"
+          else
+            echo "::error title=terminal-ci::terminal-unit-shards concluded '$UNITS' (expected 'success')"
             fail=1
           fi
           if [ "$E2E" = "success" ]; then
