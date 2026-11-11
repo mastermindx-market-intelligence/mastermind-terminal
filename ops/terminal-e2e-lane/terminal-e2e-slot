@@ -49,8 +49,8 @@ IFS=: read -r _ _ uid ugid _ home shell <<<"$pw"
 [ "$(getent group "$ugid" | cut -d: -f1,4)" = "$u:" ] || die "$u primary group is not private"
 sudo_l="$(sudo -n -l -U "$u" 2>&1)" || true
 case "$sudo_l" in *"is not allowed to run sudo"*) ;; *) die "$u may have sudo rights" ;; esac
-linger="$(loginctl show-user "$u" -p Linger --value 2>/dev/null)" || linger=no
-[ "$linger" = no ] || die "linger on for $u"
+# Linger is persisted as a file; reading it cannot fail open the way a logind query can.
+[ ! -e "/var/lib/systemd/linger/$u" ] || die "linger on for $u"
 # Timers are denied at the source; an allow file would make cron and at ignore the deny file.
 grep -qx "$u" /etc/cron.deny && grep -qx "$u" /etc/at.deny || die "$u not in cron.deny/at.deny"
 for f in /etc/cron.allow /etc/at.allow; do
@@ -64,7 +64,7 @@ grep -qiE '^denyusers( .*)? ghrunner( |$)' <<<"$sshd_cfg" || die "sshd does not 
 if pw_legacy="$(getent passwd ghrunner)"; then
   [ "${pw_legacy##*:}" = /usr/sbin/nologin ] || die "retired account ghrunner has a login shell"
   [ "$(passwd -S ghrunner | cut -d' ' -f2)" = L ] || die "retired account ghrunner is not locked"
-  [ "$(loginctl show-user ghrunner -p Linger --value 2>/dev/null || echo no)" = no ] || die "linger on for ghrunner"
+  [ ! -e /var/lib/systemd/linger/ghrunner ] || die "linger on for ghrunner"
 fi
 [ -s "$tarball" ] || die "runner tarball missing"
 
@@ -132,7 +132,7 @@ while :; do
   fi
   if [ "$mrc" != 0 ] || [ -z "$jit" ]; then
     unset jit
-    die "mint refused (rc=$mrc); reconcile the $name registration before restarting"
+    die "mint refused (rc=$mrc, reason above); fix it or reconcile the $name registration before restarting"
   fi
   echo "slot $name: runner registered; waiting for one job"
 
@@ -157,7 +157,8 @@ while :; do
     mapfile -t functions < <(compgen -A function) || exit 1
     unset "${exported[@]}" || exit 1
     unset -f "${functions[@]}" || exit 1
-    [ -z "$(compgen -e)$(compgen -A function)" ] || exit 1
+    # Verify without a subshell, so a failed listing above cannot read as "nothing left".
+    if compgen -e >/dev/null || compgen -A function >/dev/null; then exit 1; fi
     export HOME="/home/$u" USER="$u" LOGNAME="$u" LANG="$lang" SHELL="$login_shell" \
       PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin \
       ACTIONS_RUNNER_INPUT_JITCONFIG="$jit" || exit 1

@@ -7,8 +7,10 @@ registration and its exit codes decide whether a slot retries or stops.
 """
 from __future__ import annotations
 
+import email.message
 import importlib.util
 import re
+import shutil
 import subprocess
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
@@ -55,6 +57,12 @@ def test_slot_fails_closed_and_retries_only_api_failures() -> None:
     assert "die \"runner failed to start" in code
     assert "RETRYING_CLEANUP_BLOCKED" in code and "$(seq 300)" in code
     assert "2>/dev/null; pkill" not in code and "pkill -KILL -u \"$u\" || prc=$?" in code
+    # crontab: removed only if present, and its absence verified afterwards
+    assert 'crontab -r -u "$u" || die' in code and 'die "crontab for $u survived"' in code
+    # linger is read from its persisted file, never from a logind query that can fail open
+    assert '[ ! -e "/var/lib/systemd/linger/$u" ] || die' in code
+    assert "[ ! -e /var/lib/systemd/linger/ghrunner ] || die" in code
+    assert "Linger --value" not in code
     # the job cgroup exists before the mint, so nothing local can fail after a registration
     assert code.index('mkdir "$job_cg"') < code.index("mint-jitconfig mint")
     # ipcrm --all is only safe in the unit's private IPC namespace, which is asserted first
@@ -73,6 +81,7 @@ def test_unit_and_slice_carry_the_sandbox_the_slot_asserts() -> None:
         "KillMode=control-group",
         "LimitCORE=0",
         "Restart=no",
+        "ReadOnlyPaths=-/var/crash -/var/metrics -/var/lib/BrlAPI",
     ):
         assert f"\n{line}\n" in unit, line
     slot = SLOT.read_text(encoding="utf-8")
@@ -87,8 +96,104 @@ def test_provision_retires_other_runners_and_the_canary_account() -> None:
     assert "DenyUsers ghrunner ghrunner-*" in text
     assert "systemctl reload ssh || die" in text
     assert "usermod -s /usr/sbin/nologin ghrunner\n" in text
+    assert "  passwd -l ghrunner >/dev/null\n" in text
+    assert "loginctl disable-linger ghrunner" in text
     assert "retirement did not complete" in text
     assert "!log_allowed" not in text
+    # a failed enumeration must stop provisioning, not read as "no runner services"
+    assert 'runner_list="$(systemctl list-unit-files' in text
+    assert '|| die "cannot list actions runner services"' in text
+    assert "mapfile -t runner_units < <(" not in text
+    assert 'cg="$(systemctl show -p ControlGroup --value "$1")" || die' in text
+
+
+DENY_PATTERNS = re.compile(r"grep -qiE '(\^denyusers[^']*)' <<<\"\$sshd_cfg\"")
+SSHD_BOTH = "port 22\ndenyusers ghrunner\ndenyusers ghrunner-*\nallowusers ubuntu0\n"
+
+
+@pytest.mark.parametrize("script", [SLOT, PROVISION])
+@pytest.mark.parametrize(
+    "sshd_t, wildcard_ok, canary_ok",
+    [
+        (SSHD_BOTH, True, True),
+        ("denyusers ghrunner ghrunner-*\n", True, True),
+        ("denyusers ghrunner-*\n", True, False),
+        ("denyusers ghrunner\n", False, True),
+        ("denyusers ghrunner-1\ndenyusers ghrunnerx\n", False, False),
+        ("allowusers ghrunner ghrunner-*\n", False, False),
+        ("# denyusers ghrunner ghrunner-*\n", False, False),
+    ],
+    ids=["both", "one-line", "wildcard-only", "canary-only", "near-misses", "allowusers", "comment"],
+)
+def test_sshd_readback_patterns(script, sshd_t, wildcard_ok, canary_ok) -> None:
+    patterns = DENY_PATTERNS.findall(script.read_text(encoding="utf-8"))
+    assert len(patterns) == 2, patterns
+    wildcard, canary = sorted(patterns, key=lambda p: "\\*" not in p)
+    for pattern, expected in ((wildcard, wildcard_ok), (canary, canary_ok)):
+        found = subprocess.run(["grep", "-qiE", pattern], input=sshd_t, text=True).returncode == 0
+        assert found is expected, (pattern, sshd_t)
+
+
+def _bash4():
+    for candidate in ("bash", "/opt/homebrew/bin/bash", "/usr/local/bin/bash"):
+        path = shutil.which(candidate)
+        if path and subprocess.run([path, "-c", "((BASH_VERSINFO[0] >= 4))"]).returncode == 0:
+            return path
+    return None
+
+
+def _handoff_subshell(exec_line: str) -> str:
+    """The loop's runner subshell, with the host-only lines swapped for test doubles."""
+    text = SLOT.read_text(encoding="utf-8")
+    start = text.index("  (\n    lang=")
+    end = text.index("  ) || rc=$?", start)
+    block = text[start:end] + "  ) || rc=$?\n"
+    swaps = {
+        'login_shell="$(getent passwd "$u" | cut -d: -f7)" || exit 1': "login_shell=/usr/sbin/nologin",
+        'echo "$BASHPID" > "$job_cg/cgroup.procs" || exit 1': ":",
+        'cd "/home/$u" || exit 1': ":",
+        'exec setpriv --reuid="$u" --regid="$u" --init-groups "$slot/run.sh"': exec_line,
+    }
+    for old, new in swaps.items():
+        assert block.count(old) == 1, old
+        block = block.replace(old, new)
+    return block
+
+
+def test_handoff_subshell_passes_only_the_intended_environment() -> None:
+    bash = _bash4()
+    if bash is None:
+        pytest.skip("needs bash >= 4 (mapfile)")
+    script = (
+        "set -euo pipefail\nexport LEAK_VAR=secret-looking OTHER=1\nleak_fn() { :; }\nexport -f leak_fn\n"
+        "u=ghrunner-1; slot=/nonexistent; job_cg=/nonexistent; jit=DUMMY; rc=0\n"
+        + _handoff_subshell("exec env")
+        + 'echo "rc=$rc"\n'
+    )
+    out = subprocess.run([bash, "-c", script], capture_output=True, text=True, check=True).stdout
+    lines = out.splitlines()
+    assert lines[-1] == "rc=0"
+    env = dict(line.split("=", 1) for line in lines[:-1])
+    # bash may add "_" (the command path) to an exec'd command's environment; nothing else
+    assert set(env) - {"_"} == {"HOME", "USER", "LOGNAME", "LANG", "SHELL", "PATH", "ACTIONS_RUNNER_INPUT_JITCONFIG"}
+    assert env["ACTIONS_RUNNER_INPUT_JITCONFIG"] == "DUMMY"
+    assert env["HOME"] == "/home/ghrunner-1" and env["SHELL"] == "/usr/sbin/nologin"
+    assert env["PATH"] == "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+
+
+def test_handoff_subshell_fails_closed_when_the_purge_leaves_a_survivor() -> None:
+    bash = _bash4()
+    if bash is None:
+        pytest.skip("needs bash >= 4 (mapfile)")
+    # a readonly exported variable cannot be unset: the subshell must exit before exec
+    script = (
+        "export STUCK=1; readonly STUCK\nu=ghrunner-1; slot=/x; job_cg=/x; jit=DUMMY; rc=0\n"
+        + _handoff_subshell("exec env")
+        + 'echo "rc=$rc"\n'
+    )
+    out = subprocess.run([bash, "-c", script], capture_output=True, text=True).stdout
+    assert out.splitlines()[-1] == "rc=1"
+    assert "ACTIONS_RUNNER_INPUT_JITCONFIG" not in out
 
 
 def test_runbook_points_at_the_host_files() -> None:
@@ -221,9 +326,47 @@ def test_incomplete_pagination_is_never_used(capsys) -> None:
     assert api.deletes == []
 
 
-@pytest.mark.parametrize("status", [401, 403, 422, 429, 500, 502])
+@pytest.mark.parametrize("status", [429, 500, 502, 503])
 def test_api_failures_are_transient(capsys, status) -> None:
     assert run_mint(FakeAPI([(status, None)]), capsys) == (75, "")
+
+
+@pytest.mark.parametrize("status", [401, 403, 404, 422])
+def test_credential_or_group_refusals_stop_the_slot(capsys, status) -> None:
+    assert run_mint(FakeAPI([(status, None)]), capsys) == (3, "")
+
+
+def test_permanent_refusal_while_listing_stops_the_slot(capsys) -> None:
+    api = FakeAPI([CONFLICT, OK], org=[runner()])
+    real = api.__call__
+
+    def call(method, path, body=None):
+        if method == "GET":
+            api.calls.append((method, path))
+            return 404, None
+        return real(method, path, body)
+
+    assert run_mint(call, capsys) == (3, "")
+    assert api.deletes == []
+
+
+@pytest.mark.parametrize(
+    "headers, expected",
+    [({"Retry-After": "60"}, 429), ({"X-RateLimit-Remaining": "0"}, 429), ({}, 403)],
+    ids=["retry-after", "quota-exhausted", "plain-403"],
+)
+def test_rate_limited_403_is_reported_as_429(monkeypatch, headers, expected) -> None:
+    mint = load_mint()
+    monkeypatch.setattr(mint, "_token", lambda: "t")
+    message = email.message.Message()
+    for key, value in headers.items():
+        message[key] = value
+
+    def refuse(*_args, **_kwargs):
+        raise mint.urllib.error.HTTPError("https://api.github.com/x", 403, "Forbidden", message, None)
+
+    monkeypatch.setattr(mint.urllib.request, "urlopen", refuse)
+    assert mint._call("GET", "/x") == (expected, None)
 
 
 def test_failed_delete_backs_off_without_reminting(capsys) -> None:

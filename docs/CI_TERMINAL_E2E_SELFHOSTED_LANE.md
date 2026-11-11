@@ -276,10 +276,15 @@ edits the workflow file) executes on ubuntu0 inside that boundary.
 
 ### Turning the lane on
 
-1. Install the org credential and group id for `ghmint`, run `provision.sh`, then
-   `systemctl enable --now terminal-e2e-slot@N` for each slot. Confirm with
-   `mint-jitconfig status <group-id>` (as `ghmint`) that each `ubuntu0-e2e-N` shows
-   online and idle with the four labels.
+1. Install the org credential and group id for `ghmint` and run `provision.sh`.
+   Before any slot starts, `mint-jitconfig check <group-id>` (as `ghmint`) must show
+   the group with selected-repository visibility, this repository as its only
+   repository, and public repositories allowed (this repository is public). Then
+   `systemctl enable --now terminal-e2e-slot@N` for each slot and confirm with
+   `mint-jitconfig status <group-id>` that each `ubuntu0-e2e-N` shows online and idle
+   with the four labels. A slot whose runner does not consume the configuration exits
+   at once and stops (step 7 above), so an online, idle runner also proves the
+   environment handoff on that host.
 2. Set the repository variable `TERMINAL_E2E_LANE=ubuntu0` (and optionally
    `TERMINAL_E2E_WORKERS`).
 3. Watch the next same-repository pull request, merge-group or dispatch run: every

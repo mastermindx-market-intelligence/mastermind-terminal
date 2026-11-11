@@ -8,9 +8,10 @@ Runs only as `ghmint`, the one account that can read the org credential at
   check  <group_id>                  -> group name, visibility, public-repo flag, repo list
 Never prints the credential. Errors carry HTTP status codes only.
 
-Exit codes: 0 success; 75 API/network failure (the slot backs off and retries);
-3 a same-name registration an operator must reconcile; 2 bad input. The slot stops on
-anything but 0 and 75.
+Exit codes: 0 success; 75 transient API/network failure (the slot backs off and
+retries); 3 a state an operator must fix: a same-name registration to reconcile, or a
+credential/group the API refuses (401, 403 not rate-limited, 404, 422); 2 bad input. The
+slot stops on anything but 0 and 75.
 """
 import http.client
 import json
@@ -29,11 +30,17 @@ MAX_PAGES = 20
 EX_TEMPFAIL = 75
 EX_RECONCILE = 3
 EX_USAGE = 2
+# The credential, its permissions or the group id are wrong: retrying cannot fix them.
+PERMANENT_HTTP = frozenset({401, 403, 404, 422})
 
 
 def _exit(code, message):
     print("mint: " + message, file=sys.stderr)
     sys.exit(code)
+
+
+def _http_exit(status, what):
+    _exit(EX_RECONCILE if status in PERMANENT_HTTP else EX_TEMPFAIL, f"{what} HTTP {status}")
 
 
 def _token():
@@ -59,6 +66,11 @@ def _call(method, path, body=None):
             raw = resp.read()
             return resp.status, (json.loads(raw) if raw else None)
     except urllib.error.HTTPError as err:
+        # GitHub signals a secondary rate limit as 403 with Retry-After or no remaining
+        # quota: report it as 429 so it stays transient.
+        headers = err.headers or {}
+        if err.code == 403 and (headers.get("Retry-After") or headers.get("X-RateLimit-Remaining") == "0"):
+            return 429, None
         return err.code, None
     except (OSError, http.client.HTTPException) as err:  # URLError, timeouts, TLS, resets
         _exit(EX_TEMPFAIL, f"network error {type(err).__name__}")
@@ -77,7 +89,7 @@ def _list_all(path, key):
         sep = "&" if "?" in path else "?"
         status, data = _call("GET", f"{path}{sep}per_page={PER_PAGE}&page={page}")
         if status != 200:
-            _exit(EX_TEMPFAIL, f"list {key} HTTP {status}")
+            _http_exit(status, f"list {key}")
         batch = data.get(key) if isinstance(data, dict) else None
         total = data.get("total_count") if isinstance(data, dict) else None
         if not isinstance(batch, list) or not isinstance(total, int) or isinstance(total, bool):
@@ -144,10 +156,10 @@ def mint(name, labels, gid):
         if rid is not None:
             del_status, _ = _call("DELETE", f"/orgs/{ORG}/actions/runners/{rid}")
             if del_status not in (204, 404):
-                _exit(EX_TEMPFAIL, f"delete stale runner HTTP {del_status}")
+                _http_exit(del_status, "delete stale runner")
         status, data = _call("POST", f"/orgs/{ORG}/actions/runners/generate-jitconfig", body)
     if status != 201 or not isinstance(data, dict) or not data.get("encoded_jit_config"):
-        _exit(EX_TEMPFAIL, f"generate-jitconfig HTTP {status}")
+        _http_exit(status, "generate-jitconfig")
     sys.stdout.write(data["encoded_jit_config"])
 
 
@@ -160,7 +172,7 @@ def status(gid):
 def check(gid):
     st, group = _call("GET", f"/orgs/{ORG}/actions/runner-groups/{gid}")
     if st != 200 or not isinstance(group, dict):
-        _exit(EX_TEMPFAIL, f"read group HTTP {st}")
+        _http_exit(st, "read group")
     print(f"group={group.get('name')} id={group.get('id')} visibility={group.get('visibility')} "
           f"allows_public_repositories={group.get('allows_public_repositories')} "
           f"restricted_to_workflows={group.get('restricted_to_workflows')}")

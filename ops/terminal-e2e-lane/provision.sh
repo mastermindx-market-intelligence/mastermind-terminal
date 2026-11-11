@@ -25,16 +25,27 @@ log "prerequisites OK (cgroup v2, kernel $(uname -r), systemd $sv, setpriv)"
 
 # 1. dedicate the host: retire every other actions runner service on it. Disable first so
 #    nothing restarts it; refuse while a job runs; stop an idle listener; read both back.
+# Every query is captured by assignment, so a failed one stops provisioning instead of
+# reading as "no runner" or "no job".
 worker_in() {  # does the unit's cgroup hold a Runner.Worker?
-  local cg pid
-  cg="/sys/fs/cgroup$(systemctl show -p ControlGroup --value "$1")"
-  [ "$cg" != /sys/fs/cgroup ] && [ -d "$cg" ] || return 1
-  while read -r pid; do
+  local cg procs pid
+  cg="$(systemctl show -p ControlGroup --value "$1")" || die "systemctl show $1 failed"
+  if [ -z "$cg" ] || [ ! -d "/sys/fs/cgroup$cg" ]; then
+    ! systemctl is-active -q "$1" || die "$1 is active but its control group is unreadable"
+    return 1
+  fi
+  procs="$(find "/sys/fs/cgroup$cg" -name cgroup.procs -exec cat {} +)" || die "cannot read $1's cgroup"
+  for pid in $procs; do
     [ "$(cat "/proc/$pid/comm" 2>/dev/null)" = Runner.Worker ] && return 0
-  done < <(find "$cg" -name cgroup.procs -exec cat {} +)
+  done
   return 1
 }
-mapfile -t runner_units < <(systemctl list-unit-files --no-legend --plain 'actions.runner.*.service' | awk '{print $1}')
+runner_list="$(systemctl list-unit-files --no-legend --plain 'actions.runner.*.service')" \
+  || die "cannot list actions runner services"
+runner_units=()
+while read -r unit _; do
+  [ -z "$unit" ] || runner_units+=("$unit")
+done <<<"$runner_list"
 for s in "${runner_units[@]}"; do
   if systemctl is-enabled -q "$s"; then systemctl disable -q "$s"; log "$s disabled (rollback: systemctl enable $s)"; fi
   if worker_in "$s"; then die "$s is running a job; the host is not eligible until it finishes"; fi
