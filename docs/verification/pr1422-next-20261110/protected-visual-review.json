@@ -1,0 +1,130 @@
+{
+  "schema": "terminal_pr1422_final_visual_review.v1",
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "reviewMethod": "Each of the 17 actual PNGs viewed individually; hashes from actual bytes; no image mutation",
+  "intelligence": [
+    {
+      "file": "overview-1440-dark-en.png",
+      "sha256": "e0bcb2d42a8915c1b4629a72550cff5ebcbd2af0611a38eeb0255c6d75b7c111",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    },
+    {
+      "file": "overview-1440-light-zh.png",
+      "sha256": "3408c2d4e83e6dce4afb7115b2d21bd80f517031ce1005ebd5280867d371e533",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    },
+    {
+      "file": "overview-390-dark-en.png",
+      "sha256": "12f0c89071322bcacdbc7456d7da8357596e032b480504619e6114dd3f3c33f4",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    },
+    {
+      "file": "overview-390-light-zh.png",
+      "sha256": "9145d125226bedf1339b700257cae303d79cb6e97bd5e9b32e77aa1bdda63bf4",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    },
+    {
+      "file": "overview-820-dark-en.png",
+      "sha256": "3b29bcd0d3f11dab4a88814d031fa8ba7301c85319fb60e95a6d391127c9290a",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    },
+    {
+      "file": "overview-820-light-zh.png",
+      "sha256": "7fa0ca5283fd0ad2510679efdfdf2f3e078acb52fb255d2534bb1c1b0007f08a",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    },
+    {
+      "file": "prophet-native-desktop.png",
+      "sha256": "4b7e3b94c58d5b8b657c5f38dce618120e045a825ab222847b9ec8fe405e7e02",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    },
+    {
+      "file": "sectors-native-desktop.png",
+      "sha256": "073e8b1d440a096c9b60446345b3862f4185e5456db5a9b05f8e46c9e772a424",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    },
+    {
+      "file": "sectors-selected-company-after-back.png",
+      "sha256": "f80f8add6206a712894f8f73e546adb893ad3a8c5928e8961fa7584372692182",
+      "conclusion": "PASS_SCOPED_READING_AND_JOURNEY",
+      "limits": [
+        "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+        "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+      ]
+    }
+  ],
+  "portfolio": [
+    {
+      "file": "desktop-en-expansion-retired.png",
+      "sha256": "76467ca9c5f5c7b96db150da696c25e561cfe619726110b8d07b5a8abf99f02c",
+      "conclusion": "BLURRED_DIMMED_NOT_LEGIBLE_VISUAL_PROOF"
+    },
+    {
+      "file": "desktop-en-refreshed.png",
+      "sha256": "408c99a7e08eabfbc8bf47633f4a7e807739bc1d4fbcb499eda7757ad9cc7c2c",
+      "conclusion": "PASS_REFRESHED_25_SHARE_STATE_AND_RESPONSIVE_LAYOUT"
+    },
+    {
+      "file": "desktop-zh-expansion-retired.png",
+      "sha256": "cdfd3bc48f8ba621c7f05fa3454536a9b535b84a57a58d6520aa1707bdea395c",
+      "conclusion": "BLURRED_DIMMED_NOT_LEGIBLE_VISUAL_PROOF"
+    },
+    {
+      "file": "desktop-zh-refreshed.png",
+      "sha256": "3dec35a9b70c0eb730d55fc9b827ba46297e5014688b75ebe00614644119a8ea",
+      "conclusion": "PASS_REFRESHED_25_SHARE_STATE_AND_RESPONSIVE_LAYOUT"
+    },
+    {
+      "file": "mobile-en-refreshed.png",
+      "sha256": "b210b0425d8f6016645092243683fce0a29f394041af5ea37d5b1d41a0fecc2d",
+      "conclusion": "PASS_REFRESHED_25_SHARE_STATE_AND_RESPONSIVE_LAYOUT"
+    },
+    {
+      "file": "mobile-zh-refreshed.png",
+      "sha256": "d0daade479e26bf7a580b762dd5f51b4048efe7ead40e7fc2f9dd0cb6c0e5102",
+      "conclusion": "PASS_REFRESHED_25_SHARE_STATE_AND_RESPONSIVE_LAYOUT"
+    },
+    {
+      "file": "tablet-en-refreshed.png",
+      "sha256": "a99d5a634a5a809faed7786ac73da555f8a151fb5138a1104d388a622d23943a",
+      "conclusion": "PASS_REFRESHED_25_SHARE_STATE_AND_RESPONSIVE_LAYOUT"
+    },
+    {
+      "file": "tablet-zh-refreshed.png",
+      "sha256": "5743bf21b642e2eb7a653b3e322d183c62bf4e8ab5693ba1c1fd0c98c48f52ee",
+      "conclusion": "PASS_REFRESHED_25_SHARE_STATE_AND_RESPONSIVE_LAYOUT"
+    }
+  ]
+}

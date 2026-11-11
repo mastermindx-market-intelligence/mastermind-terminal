@@ -1,0 +1,31 @@
+{
+  "browser": {
+    "exit": 0,
+    "pid": 21121,
+    "runtimeSeconds": 903.54
+  },
+  "readerContinuation": {
+    "exit": 0,
+    "onlyUnexecutedChecks": true,
+    "pid": 29876,
+    "runtimeSeconds": 122.23
+  },
+  "readerInitial": {
+    "exit": 1,
+    "focusedTestsPassed": 137,
+    "pid": 11999,
+    "reason": "Present generated next-env.d.ts after browser run contradicted initial absence assertion",
+    "replayed": false
+  },
+  "sourceContinuation": {
+    "exit": 0,
+    "focusedReplayed": false,
+    "pid": 99380
+  },
+  "sourceInitial": {
+    "exit": 1,
+    "focusedTestsPassed": 7,
+    "pid": 95551,
+    "reason": "Missing generated next-env.d.ts before initial typegen"
+  }
+}

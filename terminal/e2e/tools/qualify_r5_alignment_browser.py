@@ -331,13 +331,13 @@ def main():
         preflight = node("""
           const fs=require('node:fs'), api=require('./terminal/e2e/tools/optionsExposureEvidence.cjs');
           const native=api.verifyExpiryIntegrationNativePrerequisites(process.cwd());
-          const prior=JSON.parse(fs.readFileSync('./terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109/qualification.json'));
+          const prior=JSON.parse(fs.readFileSync('./terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/qualification.json'));
           const historical=JSON.parse(fs.readFileSync('./terminal/docs/verification/exposure-workspace-20261103/ui-copy-integration-20261109/qualification.json'));
           api.requireOptionsIntegrationBrowserCases(prior,historical);
-          console.log(JSON.stringify({native,browser:api.optionsIntegrationBrowserInputs(),expiry:api.expiryGreeksJourneyInputs(),specs:api.OPTIONS_INTEGRATION_BROWSER_SPECS,expectedPassed:prior.expectedPassed}));
+          console.log(JSON.stringify({native,browser:api.momentumBrowserInputs(),expiry:api.momentumExpiryInputs(),specs:api.OPTIONS_INTEGRATION_BROWSER_SPECS,expectedPassed:prior.expectedPassed}));
         """)
         require(preflight["native"]["state"] == "NATIVE_ONLY_VALIDATED" and preflight["native"]["currentBrowserQualified"] is False and
-                len(preflight["browser"]) == 71 and len(preflight["expiry"]) == 76 and len(preflight["specs"]) == 6 and
+                len(preflight["browser"]) == 72 and len(preflight["expiry"]) == 77 and len(preflight["specs"]) == 6 and
                 len(set(preflight["expectedPassed"])) == 144, "native or input contract mismatch")
         put(PROOF / "native-prerequisites.json", preflight)
         tracked = subprocess.run(["git", "-C", str(REPO), "ls-files", "--error-unmatch", "--", *preflight["expiry"]],

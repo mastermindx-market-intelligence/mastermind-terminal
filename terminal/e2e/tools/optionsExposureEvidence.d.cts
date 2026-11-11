@@ -103,3 +103,7 @@ export function verifyExpiryIntegrationNativePrerequisites(repo: string): {
   eod: { revision: string; descriptorSha256: string };
 };
 export function requireIntegrationBrowserReport(report: unknown, proof: { expectedPassed: string[]; expectedSkipped: string[] }): void;
+
+/** Current momentum browser dependency sets; historical sets remain unchanged. */
+export declare const momentumBrowserInputs: () => string[];
+export declare const momentumExpiryInputs: () => string[];

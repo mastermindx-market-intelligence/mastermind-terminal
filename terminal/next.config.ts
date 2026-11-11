@@ -4,9 +4,13 @@ import { readFileSync, readdirSync } from "node:fs";
 import path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
+const isFixtureDevelopment = process.env.NODE_ENV === "development"
+  && process.env.TERMINAL_E2E_FIXTURE === "1";
+// F11 owns a separate compiler namespace only in its exact development recipe.
+const isF11Capture = isFixtureDevelopment
+  && process.env.TERMINAL_F11_PROVIDER_CLOSED === "1";
 // Only the closed canonical fixture transport denies the optional debug WebSocket.
-const isClosedCanonicalTransport = process.env.NODE_ENV === "development"
-  && process.env.TERMINAL_E2E_FIXTURE === "1"
+const isClosedCanonicalTransport = isFixtureDevelopment
   && process.env.TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT === "intl-fixture-v1";
 
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
@@ -170,7 +174,17 @@ const embedChartHeaders = embedHeaders.map((header) =>
 );
 
 const nextConfig: NextConfig = {
-  ...(isClosedCanonicalTransport ? { experimental: { reactDebugChannel: false } } : {}),
+  ...(isF11Capture ? { distDir: ".next/f11" } : {}),
+  ...(isFixtureDevelopment ? {
+    experimental: {
+      // Sequential fixture servers change public environment values. Next 16.4's
+      // persistent dev-cache restoration can restart the shared client entry forever:
+      // https://github.com/vercel/next.js/issues/100251 and /issues/100267.
+      // Keep Turbopack/HMR; each fixture server computes its own development state.
+      turbopackFileSystemCacheForDev: false,
+      ...((isF11Capture || isClosedCanonicalTransport) ? { reactDebugChannel: false } : {}),
+    },
+  } : {}),
   // Internal public-sample diagnostics must never be copied into a deploy artifact.
   // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
   // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
@@ -210,7 +224,9 @@ const nextConfig: NextConfig = {
   // is removed; CI (.github/workflows/ci.yml) also gates PRs on tsc + vitest.
   // Production checks application + generated Next contracts in a bounded project.
   // The unchanged full tsconfig.json remains the required CI typecheck (tests/tools included).
-  typescript: { tsconfigPath: isProd ? "tsconfig.build.json" : "tsconfig.json" },
+  typescript: {
+    tsconfigPath: isProd ? "tsconfig.build.json" : isF11Capture ? "tsconfig.f11.json" : "tsconfig.json",
+  },
   // Note: `eslint` key was removed in Next.js 16 — ESLint is no longer built-in.
   // ── Wave-2 IA redirect contract (permanent 308) ────────────────────────────
   // The old single-purpose route dirs (screener/heatmap/alerts/scripts/flow) were

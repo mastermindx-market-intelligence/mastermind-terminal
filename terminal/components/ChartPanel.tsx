@@ -9312,6 +9312,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       if (indSvgRef.current) { try { indSvgRef.current.remove(); } catch {} indSvgRef.current = null; }
       suiteTablesRef.current = [];
       if (sigRef.current) { try { sigRef.current.remove(); } catch {} sigRef.current = null; }
+      brandBugRef.current?.remove();
+      brandBugRef.current = null;
       if (svgRef.current) { try { svgRef.current.remove(); } catch {} svgRef.current = null; }
       closeMediaSurface(false);
       cancelPendingDrawingRef.current = () => {};

@@ -1,0 +1,31 @@
+{
+  "head": "82e0c46c66dad7c1b2e862884ffbfa8a4dee9d98",
+  "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "sourceTree": "e8651d4d670c12ea6a7a13e8537d508de4b44e43",
+  "files": [
+    {
+      "path": "terminal/e2e/tools/optionsExposureEvidence.cjs",
+      "bytes": 96074,
+      "sha256": "f80acdc11736501d6c534831b85d02b46533b444e9e17bead6f7b9a38929816a",
+      "git_blob": "092683ef8be695f4694fd9d5ec7c5644cb53ec15"
+    },
+    {
+      "path": "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+      "bytes": 6226,
+      "sha256": "1af14a94c149698c13f57cc9152a230ea5dd60f84145cfc9e58b02a4bbb11c4a",
+      "git_blob": "7f05ae72c48ad760e484ea5f400c213eab31d378"
+    },
+    {
+      "path": "terminal/e2e/tools/qualify_r5_alignment_browser.py",
+      "bytes": 22029,
+      "sha256": "51a56f988c76e8db33c6e8ff2e0a2af04c8cc33f3d98a8b929ceea8596c3d44e",
+      "git_blob": "00f0758be894f9f25bb4f3705cbfd2003b1d8cee"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 68987,
+      "sha256": "622fee31fc24c93e9c278c56e2e55838cb160a6ce363992b64c8c722501d93a7",
+      "git_blob": "69e150a5eeff280c5207a7db9a9dd76575557fc1"
+    }
+  ]
+}

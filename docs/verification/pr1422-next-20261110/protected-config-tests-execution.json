@@ -1,0 +1,18 @@
+{
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/nextConfigDevIndicator.test.ts",
+    "lib/__tests__/productionTypeProject.test.ts",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/docs/verification/pr1422-next-20261110/protected-config-tests-report.json"
+  ],
+  "exit": 0,
+  "seconds": 5.247,
+  "logSha256": "c671524ea78c84e474e18ec1e371e3a26f46bb0703b395bf622247a9c3fef845"
+}

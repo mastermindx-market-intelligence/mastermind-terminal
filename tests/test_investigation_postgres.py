@@ -173,15 +173,39 @@ def test_lifecycle_actions_preserve_content_and_have_their_own_receipts(pg):
     assert json.loads(pg("select read_investigation_v2('"+ID+"',5)",A))["lifecycle"]=="removed"
 
 
-def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
+def _assert_paired_manifest_corpus(pg, *, g1_only):
     bundle = json.loads((ROOT / "terminal/lib/__tests__/fixtures/investigation_manifest_vectors.json").read_text())
     for vector in bundle["vectors"]:
         content = vector["manifest"]
-        expected = vector["valid"] and content.get("schema") == "investigation_manifest.v2" and not content.get("thesis_refs")
-        # This private SQL boundary has the fixed G1 adapter admission, while
-        # the language contract also tests the caller's empty admission.
-        if vector["name"] == "owner not implicitly admitted":
-            expected = True
+        # SQL has fixed adapter admission; the language corpus also tests a
+        # caller supplying an empty admission registry.
+        expected = (
+            vector["valid"] or vector["name"] == "owner not implicitly admitted"
+        ) and content.get("schema") == "investigation_manifest.v2"
+        if expected and g1_only:
+            # 0028 predates Thesis, review/scenario, and Sector admission.
+            # Later valid vectors remain executed here and must be rejected.
+            refs = content["evidence_refs"]
+            if "review_baseline_ref" in content:
+                refs = refs + [content["review_baseline_ref"]]
+            expected = (
+                not content.get("thesis_refs")
+                and "review" not in content
+                and "scenario_capture" not in content
+                and all(
+                    (subject["owner"], subject["kind"]) in {
+                        ("terminal.analysis_symbol", "security"),
+                        ("data_os.security_master", "security"),
+                        ("data_os.security_master", "issuer"),
+                    }
+                    for subject in content["intent"]["subjects"]
+                )
+                and all(
+                    (ref["owner"], ref["object_type"])
+                    == ("earnings.workspace_generation", "event_workspace")
+                    for ref in refs
+                )
+            )
         body = json.dumps(content, ensure_ascii=True)
         # PostgreSQL JSONB itself refuses NUL and unpaired surrogate escapes.
         response = pg("select public.valid_investigation_manifest_v2(" + quote(body) + "::jsonb);", check=False)
@@ -190,6 +214,10 @@ def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
             assert "Unicode" in response.stderr or "unicode" in response.stderr, response.stderr
         else:
             assert (response.stdout.strip() == "t") is bool(expected), vector["name"]
+
+
+def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
+    _assert_paired_manifest_corpus(pg, g1_only=True)
 
 
 def test_backup_restore_preserves_owner_rows_receipts_and_read_only_rollback(pg):
@@ -311,3 +339,136 @@ def test_review_migration_applier_qualifies_behavior_and_catalog(pg, tmp_path):
         assert noop["post"][1]["rows"][0]["body_md5"] != catalog[0]["body_md5"]
     finally:
         pg(f"drop database {database};")
+
+
+# --- SP15: account switch during save, late completion, lost response (real PostgreSQL 17) -------------
+# The authenticated actor is auth.uid(); the receipt key is (user_id, operation_id). These tests execute the
+# properties the client journey relies on: another account never reads or mutates the first account's
+# operation or record, a not_found read is inconclusive (never proof of failure), a late commit still lands
+# once, and recovery after a lost response is a READ of the original operation - the replay is never needed.
+
+SP15_ID = "22000000-0000-4000-8000-000000000015"
+SP15_KEY = "42000000-0000-4000-8000-000000000015"
+
+
+def _sp15_counts(pg, actor):
+    return (
+        pg("select count(*) from investigations where id='" + SP15_ID + "'", actor),
+        pg("select count(*) from investigation_revisions where investigation_id='" + SP15_ID + "'", actor),
+        pg("select count(*) from investigation_mutation_receipts where operation_id='" + SP15_KEY + "'", actor),
+    )
+
+
+def test_sp15_lost_response_recovers_by_reading_the_original_operation_without_replay(pg):
+    # Before the commit lands the original operation is not found: inconclusive, NOT proof of failure.
+    assert json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", A)) == {"status": "not_found"}
+    # The save commits, but its HTTP response is lost (nothing here reads the apply return value).
+    pg("select public.apply_investigation_revision_v2('" + SP15_ID + "'::uuid,0,'create','" + SP15_KEY + "'::uuid,"
+       + quote(json.dumps(manifest("lost response"))) + "::jsonb,null);", A)
+    # Recovery is a read of the exact operation, not a second write.
+    recovered = json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", A))
+    assert recovered["status"] == "committed" and recovered["id"] == SP15_ID and recovered["revision"] == 1
+    assert recovered["manifest"]["intent"]["question"] == "lost response"
+    assert _sp15_counts(pg, A) == ("1", "1", "1")  # one record, one revision, one receipt: nothing replayed
+
+
+def test_sp15_account_switch_cannot_read_or_mutate_the_first_accounts_operation(pg):
+    before = _sp15_counts(pg, A)
+    # The session switched to account B while A's save was in flight / just committed.
+    assert json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", B)) == {"status": "not_found"}
+    assert json.loads(pg("select read_investigation_v2('" + SP15_ID + "',1)", B))["status"] == "not_found"
+    listing = json.loads(pg("select list_investigations_v2()", B))
+    assert SP15_ID not in [item["id"] for item in listing["items"]]
+    # B cannot mutate A's record by id, with or without A's expected revision or operation key.
+    for key, expected in ((SP15_KEY, 1), ("42000000-0000-4000-8000-0000000000b1", 1), ("42000000-0000-4000-8000-0000000000b2", 0)):
+        result = apply(pg, key, "revise" if expected else "create", expected, manifest("hijack"), target=SP15_ID, actor=B)
+        assert result["status"] in ("not_found", "version_conflict", "idempotency_conflict", "invalid_transition"), result
+        assert "hijack" not in json.dumps(result)
+    assert _sp15_counts(pg, A) == before
+    assert json.loads(pg("select read_investigation_v2('" + SP15_ID + "',1)", A))["manifest"]["intent"]["question"] == "lost response"
+
+
+def test_sp15_late_completion_lands_once_for_its_own_account_and_never_for_the_new_one(pg):
+    late_id, late_key = "22000000-0000-4000-8000-000000000016", "42000000-0000-4000-8000-000000000016"
+    # B is the active account; A's slow request completes late. It commits for A, only once.
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", B)) == {"status": "not_found"}
+    first = apply(pg, late_key, "create", 0, manifest("late A"), target=late_id, actor=A)
+    assert first["status"] == "committed" and first["revision"] == 1
+    # The late completion is invisible to B: B's own state is unchanged and B cannot see A's operation.
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", B)) == {"status": "not_found"}
+    assert late_id not in [item["id"] for item in json.loads(pg("select list_investigations_v2()", B))["items"]]
+    # A re-delivered copy of the same late request returns the original outcome without a second revision.
+    assert apply(pg, late_key, "create", 0, manifest("late A"), target=late_id, actor=A) == first
+    assert pg("select count(*) from investigation_revisions where investigation_id='" + late_id + "'", A) == "1"
+    # The same key under the other account is its own namespace and cannot collide with or reveal A's receipt.
+    # (A fresh account: B's per-principal record limit is filled by an earlier capacity test in this module.)
+    switched = "10000000-0000-4000-8000-0000000000d1"
+    pg("insert into auth.users values (" + quote(switched) + ") on conflict do nothing;")
+    other = apply(pg, late_key, "create", 0, manifest("switched own"), target="22000000-0000-4000-8000-0000000000bb", actor=switched)
+    assert other["status"] == "committed" and other["id"] == "22000000-0000-4000-8000-0000000000bb"
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", A))["manifest"]["intent"]["question"] == "late A"
+
+# --- Production state: 0021/0028/0040/0041 installed; 0042, 0047, 0052 and 0053 NOT installed ---------
+# (catalog read-only 2026-11-10: validator = the 0040 body, probe functions and scenario validator absent).
+# Reads only migration files already on master. Real engine, disposable cluster, no production state.
+SI_SHA = "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+@pytest.fixture(scope="module")
+def prod_state(tmp_path_factory):
+    import test_pinned_research_handoff_postgres as handoff
+    for binary in ("initdb", "pg_ctl", "psql"):
+        if not shutil.which(binary):
+            pytest.skip(f"PostgreSQL binary missing: {binary}")
+    run, data, socket_root = handoff._spawn_postgres(tmp_path_factory, "uninstalled-migrations-pg", 55495)
+    try:
+        handoff._bootstrap_base_schema(run)
+        for sql_file in handoff.PREVIOUS + (ROOT / "supabase/migrations/0040_investigation_review.sql", handoff.SQL):
+            run(sql_file.read_text())
+        yield run
+    finally:
+        subprocess.run(["pg_ctl", "-D", str(data), "-m", "fast", "-w", "stop"], check=True, capture_output=True)
+        socket_root.cleanup()
+
+
+def _uninstalled_manifest(schema, subjects, evidence, **extra):
+    return {"schema": schema, "intent": {"title": "Reading", "question": "Does it hold?", "subjects": subjects},
+            "layout_refs": [], "thesis_refs": [], "evidence_refs": evidence, "continuation": {}, **extra}
+
+
+def _uninstalled_apply(run, key, content, target):
+    return json.loads(run("select public.apply_investigation_revision_v2(" + quote(target) + "::uuid,0,'create'," + quote(key)
+                          + "::uuid," + quote(json.dumps(content)) + "::jsonb,null);", who=A))
+
+
+SECTOR = [{"kind": "sector", "owner": "macro.sector", "object_id": "xlf"}]
+SECTOR_EV = [{"owner": "macro.sector", "object_type": "sector_observation", "object_id": "xlf", "mode": "pinned", "version_ref": "real-g1", "fingerprint": SI_SHA}]
+PROPHET_EV = [{"owner": "prophet.research", "object_type": "today_selection", "object_id": "o", "mode": "pinned", "version_ref": "v", "fingerprint": SI_SHA}]
+
+
+def test_installed_state_is_the_0040_validator_with_no_probes(prod_state):
+    assert prod_state("select to_regprocedure('public.investigation_evidence_admitted_v2(text,text)') is null, "
+                      "to_regprocedure('public.investigation_subject_admitted_v2(text,text)') is null, "
+                      "to_regprocedure('public.valid_investigation_scenario_reference_v1(jsonb)') is null, "
+                      "to_regprocedure('public.valid_investigation_manifest_v3(jsonb)') is null;") == "t|t|t|t"
+    probe = prod_state("select public.investigation_evidence_admitted_v2('macro.sector','sector_observation');", who=A, check=False)
+    assert probe.returncode != 0 and "does not exist" in probe.stderr
+
+
+def test_sector_prophet_and_v3_shapes_are_refused_and_nothing_is_written(prod_state):
+    before = prod_state("select (select count(*) from investigations)||'/'||(select count(*) from investigation_revisions)||'/'||(select count(*) from investigation_mutation_receipts);")
+    cases = {
+        "sector v2": _uninstalled_manifest("investigation_manifest.v2", SECTOR, SECTOR_EV),
+        "sector evidence only": _uninstalled_manifest("investigation_manifest.v2", [], SECTOR_EV),
+        "prophet evidence": _uninstalled_manifest("investigation_manifest.v2", [], PROPHET_EV),
+        "v3 decision": _uninstalled_manifest("investigation_manifest.v3", [], [], user_decision={"disposition": "watch", "reason": "", "decided_at": "2026-11-10T08:00:00Z", "milestones": []}),
+    }
+    for number, (name, content) in enumerate(cases.items(), start=1):
+        result = _uninstalled_apply(prod_state, f"40000000-0000-4000-8000-{number:012d}", content, f"20000000-0000-4000-8000-{number:012d}")
+        assert result["status"] == "invalid_payload", (name, result)
+    after = prod_state("select (select count(*) from investigations)||'/'||(select count(*) from investigation_revisions)||'/'||(select count(*) from investigation_mutation_receipts);")
+    assert after == before  # an invalid payload leaves no record, revision or receipt
+
+
+def test_an_already_admitted_v2_investigation_still_saves(prod_state):
+    ok = _uninstalled_manifest("investigation_manifest.v2", [{"kind": "security", "owner": "terminal.analysis_symbol", "object_id": "AAPL"}], [])
+    result = _uninstalled_apply(prod_state, "40000000-0000-4000-8000-0000000000a1", ok, "20000000-0000-4000-8000-0000000000a1")
+    assert result["status"] == "committed" and result["revision"] == 1

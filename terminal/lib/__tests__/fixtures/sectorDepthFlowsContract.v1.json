@@ -1,0 +1,152 @@
+{
+  "note": "synthetic contract-shape fixture for tests; not a real generation",
+  "schema": "sector_depth_flows.contract/v1",
+  "cases": {
+    "depth8": {
+      "asof": "2026-11-06",
+      "depth": 8,
+      "rows": [
+        {
+          "ticker": "XLB",
+          "name": "Materials",
+          "name_zh": "材料",
+          "values": { "1d": 38.4, "3d": 96.2, "1w": 141.7, "2w": 210.3, "1m": 210.3 }
+        },
+        {
+          "ticker": "XLE",
+          "name": "Energy",
+          "name_zh": "能源",
+          "values": { "1d": -286.3, "3d": -642.9, "1w": -894.2, "2w": -1150.7, "1m": null }
+        },
+        {
+          "ticker": "XLF",
+          "name": "Financials",
+          "name_zh": "金融",
+          "values": { "1d": 214.8, "3d": 588.1, "1w": 803.9, "2w": 1082.6, "1m": 1082.6 }
+        },
+        {
+          "ticker": "XLI",
+          "name": "Industrials",
+          "name_zh": "工业",
+          "values": { "1d": -74.5, "3d": -131.2, "1w": -98.7, "2w": 42.9, "1m": 42.9 }
+        },
+        {
+          "ticker": "XLK",
+          "name": "Technology",
+          "name_zh": "科技",
+          "values": { "1d": 412.6, "3d": 1180.4, "1w": 1642.8, "2w": 2210.5, "1m": 2210.5 }
+        },
+        {
+          "ticker": "XLV",
+          "name": "Health Care",
+          "name_zh": "医疗保健",
+          "values": { "1d": 156.9, "3d": 342.7, "1w": 291.4, "2w": 388.2, "1m": 388.2 }
+        },
+        {
+          "ticker": "XLU",
+          "name": "Utilities",
+          "name_zh": "公用事业",
+          "values": { "1d": 0, "3d": 64.8, "1w": 121.5, "2w": 176.4, "1m": 176.4 }
+        },
+        {
+          "ticker": "XLY",
+          "name": "Consumer Discretionary",
+          "name_zh": "可选消费",
+          "values": { "1d": -122.9, "3d": -318.5, "1w": -426.7, "2w": -512.8, "1m": -512.8 }
+        },
+        {
+          "ticker": "XLP",
+          "name": "Consumer Staples",
+          "name_zh": "必需消费",
+          "values": { "1d": 88.3, "3d": 154.6, "1w": 203.8, "2w": 247.1, "1m": 247.1 }
+        },
+        {
+          "ticker": "XLC",
+          "name": "Communication Services",
+          "name_zh": "通信服务",
+          "values": { "1d": null, "3d": 276.4, "1w": 448.9, "2w": 596.3, "1m": 596.3 }
+        },
+        {
+          "ticker": "XLRE",
+          "name": "Real Estate",
+          "name_zh": "房地产",
+          "values": { "1d": -58.1, "3d": null, "1w": null, "2w": -143.6, "1m": -143.6 }
+        }
+      ],
+      "net": { "1d": 369.2, "3d": 1610.6, "1w": null, "2w": 3147.2, "1m": 4297.9 }
+    },
+    "depth79": {
+      "asof": "2026-11-05",
+      "depth": 79,
+      "rows": [
+        {
+          "ticker": "XLB",
+          "name": "Materials",
+          "name_zh": "材料",
+          "values": { "1d": 38.4, "3d": 96.2, "1w": 141.7, "2w": 288.9, "1m": 502.3 }
+        },
+        {
+          "ticker": "XLE",
+          "name": "Energy",
+          "name_zh": "能源",
+          "values": { "1d": -286.3, "3d": -642.9, "1w": -894.2, "2w": -1150.7, "1m": null }
+        },
+        {
+          "ticker": "XLF",
+          "name": "Financials",
+          "name_zh": "金融",
+          "values": { "1d": 214.8, "3d": 588.1, "1w": 803.9, "2w": 1092.4, "1m": 1240.8 }
+        },
+        {
+          "ticker": "XLI",
+          "name": "Industrials",
+          "name_zh": "工业",
+          "values": { "1d": -74.5, "3d": -131.2, "1w": -98.7, "2w": 42.9, "1m": 156.3 }
+        },
+        {
+          "ticker": "XLK",
+          "name": "Technology",
+          "name_zh": "科技",
+          "values": { "1d": 412.6, "3d": 1180.4, "1w": 1642.8, "2w": 2301.7, "1m": 2984.6 }
+        },
+        {
+          "ticker": "XLV",
+          "name": "Health Care",
+          "name_zh": "医疗保健",
+          "values": { "1d": 156.9, "3d": 342.7, "1w": 291.4, "2w": 401.5, "1m": 588.9 }
+        },
+        {
+          "ticker": "XLU",
+          "name": "Utilities",
+          "name_zh": "公用事业",
+          "values": { "1d": 0, "3d": 64.8, "1w": 121.5, "2w": 198.2, "1m": 342.7 }
+        },
+        {
+          "ticker": "XLY",
+          "name": "Consumer Discretionary",
+          "name_zh": "可选消费",
+          "values": { "1d": -122.9, "3d": -318.5, "1w": -426.7, "2w": -512.8, "1m": -604.1 }
+        },
+        {
+          "ticker": "XLP",
+          "name": "Consumer Staples",
+          "name_zh": "必需消费",
+          "values": { "1d": 88.3, "3d": 154.6, "1w": 203.8, "2w": 259.4, "1m": 321.8 }
+        },
+        {
+          "ticker": "XLC",
+          "name": "Communication Services",
+          "name_zh": "通信服务",
+          "values": { "1d": null, "3d": 276.4, "1w": 448.9, "2w": 612.5, "1m": 733.9 }
+        },
+        {
+          "ticker": "XLRE",
+          "name": "Real Estate",
+          "name_zh": "房地产",
+          "values": { "1d": -58.1, "3d": null, "1w": null, "2w": -143.6, "1m": -187.2 }
+        }
+      ],
+      "net": { "1d": 369.2, "3d": 1610.6, "1w": 2234.4, "2w": 3495.8, "1m": 4831.5 }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "path": ".github/workflows/ci.yml",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "69e150a5eeff280c5207a7db9a9dd76575557fc1"
+  },
+  {
+    "path": "terminal/e2e/tools/optionsExposureEvidence.cjs",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "092683ef8be695f4694fd9d5ec7c5644cb53ec15"
+  },
+  {
+    "path": "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "7f05ae72c48ad760e484ea5f400c213eab31d378"
+  },
+  {
+    "path": "terminal/e2e/tools/qualify_r5_alignment_browser.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "00f0758be894f9f25bb4f3705cbfd2003b1d8cee"
+  },
+  {
+    "path": "terminal/lib/__tests__/marketStructure.test.ts",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "41576664a7975c77d89fc282986992812a3990d8"
+  },
+  {
+    "path": "terminal/lib/__tests__/optionsExposureBrowserReport.test.ts",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "be353bce95985dc2e9d3b54f8959449bb59e98c4"
+  },
+  {
+    "path": "terminal/lib/marketStructure.ts",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "df86b849ebb13ba69d59ca0782d57922575f0f2c"
+  },
+  {
+    "path": "tests/test_r5_browser_checkout_identity.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "5644eaf1633b27a12ac33cdbc9d5b344fe000172"
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "schema": "terminal_pr726_visual_self_check.v1",
+  "outcome": "SIX_REPRESENTATIVE_IMAGES_INSPECTED",
+  "images": [
+    "browser/desktop-en-light-initial.png",
+    "browser/desktop-zh-dark-initial.png",
+    "browser/tablet-zh-light-initial.png",
+    "browser/tablet-en-dark-scrolled.png",
+    "browser/mobile-zh-light-scrolled.png",
+    "browser/mobile-en-dark-scrolled.png"
+  ],
+  "observations": [
+    "Correct English/Chinese canonical posture and omitted opposite-language-only posture in initial desktop views.",
+    "Unavailable and partial badges are legible within the unchanged compact strip.",
+    "Actual light/dark palettes differ as expected; no vertical text clipping was visible.",
+    "Native horizontal scrolling reveals final location/freshness cells in tablet/phone captures; earlier columns are intentionally outside the scrolled view.",
+    "Long source headlines remain in the native horizontal strip, without page-wide overflow."
+  ],
+  "limits": "Representative manual inspection; automated assertions cover all 12 matrices. Read-only unmounted component with synthetic input; not a mounted route or live-data acceptance."
+}
