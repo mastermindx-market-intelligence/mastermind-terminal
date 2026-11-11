@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { originPending, type DataOrigin, type DataOriginState } from "@/lib/dataOrigin";
+import { pick } from "@/lib/finFormat";
 
 // The popover's <dl> (basis/src/as-of/generation/open) is shown only for states that
 // carried a labelled payload; pending/unavailable/composite have no payload to describe.
@@ -24,6 +25,8 @@ function srcLabel(src: string | null, t: ReturnType<typeof useT>): string {
  */
 export default function DataOriginChip({ symbol, origin }: { symbol?: string; origin: DataOrigin | null }) {
   const t = useT();
+  // B1 — the chart-only source-session label is localized inline (kept out of the central LEX).
+  const { lang } = useLang();
   const [open, setOpen] = useState(false);
   const hostRef = useRef<HTMLDivElement>(null);
   const effective = origin && symbol && origin.symbol === symbol ? origin : originPending(symbol ?? "");
@@ -52,7 +55,11 @@ export default function DataOriginChip({ symbol, origin }: { symbol?: string; or
   const stateKey = `originState${state.charAt(0).toUpperCase()}${state.slice(1)}`;
   const showDl = SHOW_DL.has(state);
   const showNotes = state !== "pending" && state !== "unavailable" && state !== "composite";
-  const showFoot = state !== "pending";
+  // B1: the vendor-adjusted footer is a claim about a LABELLED tradj view, so it shows
+  // only for known/partial states whose basis is actually tradj. Unknown (a legacy file
+  // with no view), refused, unavailable, composite and pending never print it — printing
+  // it off an unlabelled file is exactly the "adjusted for everyone" claim U02 removed.
+  const showFoot = (state === "known" || state === "partial") && effective.basis === "tradj";
 
   return (
     <div className="cfb-origin-host" ref={hostRef}>
@@ -73,6 +80,15 @@ export default function DataOriginChip({ symbol, origin }: { symbol?: string; or
               <dt>{t("originAsOf")}</dt><dd>{effective.asOf != null ? <code>{effective.asOf}</code> : t("originUnknown")}</dd>
               <dt>{t("originGeneration")}</dt><dd>{effective.generation != null ? <code>{effective.generation}</code> : t("originUnknown")}</dd>
               <dt>{t("originOpen")}</dt><dd>{effective.openReconstructed ? t("originOpenRecon") : t("originOpenTraded")}</dd>
+              {/* B1: the document's own last daily session — a separate source clock, never
+                  folded into asOf/generation. Shown only when the derivation actually
+                  qualified one (exact symbol + a valid UTC-calendar last bar). */}
+              {effective.sourceLastSession != null && (
+                <>
+                  <dt>{pick(lang === "zh", "Source last daily session", "来源最近日线交易日")}</dt>
+                  <dd><code>{effective.sourceLastSession}</code></dd>
+                </>
+              )}
             </dl>
           )}
           {showNotes && effective.refusals.map((code) => {

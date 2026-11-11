@@ -1,0 +1,21 @@
+{
+  "cells": 0,
+  "command": [
+    "node",
+    "e2e/tools/qualify_shared_shell_intelligence.cjs"
+  ],
+  "diagnosticOnlyChange": true,
+  "exitCode": 1,
+  "finishedAt": "2026-11-10T10:37:21.471414+00:00",
+  "logSha256": "e66cff6b8395cf81a07c534e651111b386930de5ca0b10e696be78545eaa98cb",
+  "nextLockAbsent": true,
+  "observedInputs": 3516,
+  "port": 34225,
+  "portClosed": true,
+  "qualificationPassed": false,
+  "seconds": 46.852,
+  "source": "a4e40294c7b0a4392a3b3d7f3b7708dc40e995e8",
+  "sourceStable": true,
+  "startedAt": "2026-11-10T10:36:34.618830+00:00",
+  "variant": "pr1422-next-r3"
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "company-search.scoped-source-witness.v1",
+  "candidate_source_head": "030c84c98944a6d4c145695e7aeda5bd32eac015",
+  "protected_base": "81ff9cb82bc90e166746802b83ed9daa0df4a97c",
+  "qualified_source_paths": {
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "8868ab406b9a25d177c10dc6d24427dea07e693a8fa4a191de594f118f4049d7"
+  },
+  "theses_entry_follow_up": {
+    "cause": "Natural CI 42382143589, unit job 128432508350, found the existing AnalysisWorkspace source hash lock after the route-origin context repair; 20,404 other tests passed.",
+    "source_head": "030c84c98944a6d4c145695e7aeda5bd32eac015",
+    "producer": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+    "producer_sha256": "f9dbddc41f49cdfe940c1a9f8f1c8db52245f1bf365b8272c3c7aec15daed798",
+    "rendering_change": "none; incumbent producer OUT declaration redirected only",
+    "wrapper": "terminal/docs/pr-crops/company-origin-context-20261107/theses-entry-20261107/capture.cjs",
+    "wrapper_sha256": "f3a2595291569465740babbef333c17d67b70e6d81a2132a02138ba1bc0349e1",
+    "start": "terminal/docs/pr-crops/company-origin-context-20261107/theses-entry-20261107/start.json",
+    "start_sha256": "c74eed0228d94d83294df6ff32ee2ba0bfbc3a6d6fec184622c7af385226f5b9",
+    "result": "terminal/docs/pr-crops/company-origin-context-20261107/theses-entry-20261107/result.json",
+    "result_sha256": "50b82bd1e4a606dc97bee47593738df1f12432f11c4dd6746c2eb1551643f2eb",
+    "evidence": "terminal/docs/pr-crops/company-origin-context-20261107/theses-entry-20261107/EVIDENCE.yml",
+    "evidence_sha256": "d1fc65066a455fefbd2aa1f7ae2f5e7eb570b466157af0291d3eb421b354a844",
+    "case_count": 6,
+    "source_snapshot_file_count": 1878,
+    "source_unchanged_during_capture": true,
+    "source_files_match_publication_workspace": true,
+    "historical_six_crops_unchanged": true,
+    "historical_manifest_identity_and_lex_projection_retained": true,
+    "actual_images_inspected": 6,
+    "inspection": "NVDA context and localized theses entry visible in all six dark desktop/tablet/mobile EN/ZH images; controls are readable and unclipped. The fixture body accurately reports unavailable fundamentals.",
+    "scope": "Incumbent NVDA context-bar/theses entry at 1440x900, 820x1180 and 390x844, local next-dev fixture with explicit MMX_SHARED_SHELL=0. This record qualifies the changed AnalysisWorkspace source row; the separately recorded full ontology-context journey remains distinct.",
+    "runtime": "Local Node v26.5.0, npm 11.17.0; not the hosted Node v20.20.2 runtime.",
+    "listener_custody": "Port 64146 was unoccupied before the original producer spawned its local server; the private producer log records a fresh Ready message and six successful captures, with no EADDRINUSE, and no listener remained after completion. No runtime listener PID/CWD snapshot was captured."
+  },
+  "historical_payloads_unchanged": true,
+  "production_proof": false
+}

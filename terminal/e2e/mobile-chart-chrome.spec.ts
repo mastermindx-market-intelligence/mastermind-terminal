@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { DRAWING_TOOL_REGISTRY } from "../lib/drawingTools";
 import { settled } from "./settle";
+import { readNativeChartGeometry } from "./helpers/nativeChartGeometry";
 
 // Phone chart chrome (R2.1–R2.4): the bottom roller strip, the TV-anatomy Drawings sheet and the
 // Analysis hub replace the phone's top toolbar row and its floating drawing dock. Everything here
@@ -518,11 +519,14 @@ test("phone: the fullscreen control is the only expansion affordance", async ({ 
   // no amount of waiting would have produced one. `settled` therefore re-issues the tap — and reads
   // the flag rather than the band to decide whether to, because the band lags the toggle by a
   // relayout and a blind retry would hand the maximize straight back.
-  const paneState = () => page.evaluate(() => ({
-    maximized: (window as Window & { __mmPaneMaximized?: () => string | null }).__mmPaneMaximized?.() ?? null,
-    band: Math.max(...Array.from(document.querySelectorAll(".chart-wrap canvas"))
-      .map((c) => c.getBoundingClientRect().height)),
-  }));
+  const paneState = async () => {
+    const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
+    return {
+      maximized: await page.evaluate(() =>
+        (window as Window & { __mmPaneMaximized?: () => string | null }).__mmPaneMaximized?.() ?? null),
+      band: Math.max(...chart.panes.map(p => p.pane.height)),
+    };
+  };
   const restedBand = (a: { band: number }, b: { band: number }) => Math.abs(a.band - b.band) <= 1;
   const wrap = (await page.locator(".chart-wrap").first().boundingBox())!;
   const point = { x: wrap.x + wrap.width * 0.4, y: wrap.y + wrap.height * 0.3 };

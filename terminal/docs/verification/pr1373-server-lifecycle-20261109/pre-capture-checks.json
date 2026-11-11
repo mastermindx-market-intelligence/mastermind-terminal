@@ -1,0 +1,24 @@
+[
+  {
+    "command": [
+      "node",
+      "--check",
+      "e2e/tools/capture_pl6_batch2.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.09,
+    "log": "pre-check-0.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "e2e/tools/capture_ci_evidence.test.cjs"
+    ],
+    "exit": 0,
+    "seconds": 12.18,
+    "log": "pre-check-1.log",
+    "sha256": "a92fb3552ec1caf8bdcbf7ba18375521fb59dfaf3a15721b71f02834e23057b4"
+  }
+]

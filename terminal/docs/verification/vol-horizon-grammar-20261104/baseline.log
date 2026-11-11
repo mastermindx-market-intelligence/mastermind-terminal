@@ -1,0 +1,31 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-vol-horizon-grammar-20261104-c2/terminal
+
+ ❯ lib/__tests__/volCompareHorizonGrammar.test.tsx (4 tests | 1 failed) 61ms
+   × en: 1-day horizon retains the dated move and honest disclosures 37ms
+     → expected '1 trading days · 30 Oct → 2 Nov close…' to be '1 trading day · 30 Oct → 2 Nov close …' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/volCompareHorizonGrammar.test.tsx > en: 1-day horizon retains the dated move and honest disclosures
+AssertionError: expected '1 trading days · 30 Oct → 2 Nov close…' to be '1 trading day · 30 Oct → 2 Nov close …' // Object.is equality
+
+Expected: "1 trading day · 30 Oct → 2 Nov close weekdays, exchange holidays not subtracted"
+Received: "1 trading days · 30 Oct → 2 Nov close weekdays, exchange holidays not subtracted"
+
+ ❯ lib/__tests__/volCompareHorizonGrammar.test.tsx:40:25
+     38|           ? `${days} trading ${days === 1 ? "day" : "days"} · ${days =…
+     39|           : `${days} 个交易日 · 10月${days === 1 ? "30" : "29"}日 → 11…
+     40|         expect(horizon).toBe(expected);
+       |                         ^
+     41|         expect(text).toContain(days === 1 ? "±2.1 %" : "±2.9 %");
+     42|         for (const disclosure of lang === "en"
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  12:35:02
+   Duration  1.19s (transform 75ms, setup 0ms, collect 120ms, tests 61ms, environment 564ms, prepare 65ms)
+

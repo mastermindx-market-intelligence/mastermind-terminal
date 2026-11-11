@@ -60,6 +60,7 @@ describe("Options-level coverage and axis-label browser evidence", () => {
     expect(Object.keys(MANIFEST.sourceFiles).sort()).toEqual([
       "components/ChartPanel.tsx",
       "lib/optionsLevels.ts",
+      "lib/pricePaneSvgScope.ts",
       "lib/priceTagPlacement.ts",
     ]);
     for (const [relative, expected] of Object.entries(MANIFEST.sourceFiles)) {

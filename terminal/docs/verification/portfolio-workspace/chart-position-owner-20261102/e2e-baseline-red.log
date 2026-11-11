@@ -1,0 +1,151 @@
+[warmup] /terminal?symbol=NVDA → 200 in 47ms
+[warmup] /options → 200 in 1209ms
+[warmup] /portfolio → 200 in 387ms
+[warmup] /alerts → 200 in 419ms
+[warmup] /analysis → 200 in 744ms
+[warmup] /discover → 200 in 765ms
+[warmup] /admin → 200 in 290ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 242ms
+[warmup] /login → 200 in 47ms
+[warmup] /reset-password → 200 in 269ms
+[warmup] /api/me → 200 in 220ms
+[warmup] /api/watchlist → 200 in 100ms
+[warmup] /api/layouts → 200 in 101ms
+[warmup] /api/watchlist/annotations → 409 in 80ms
+[warmup] 14 routes compiled in 5s
+
+Running 6 tests using 1 worker
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+F::error file=e2e/portfolio-chart-owner.spec.ts,title=[desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (en) › a stale A form against a B session is refused by the route, and creates nothing,line=120,col=31::  1) [desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (en) › a stale A form against a B session is refused by the route, and creates nothing %0A    Error: expect(received).toBe(expected) // Object.is equality%0A%0A    Expected: 409%0A    Received: 200%0A%0A      118 |     const post = await fillAndSubmit(page, form, "NVDA");%0A      119 |     const response = await post;%0A    > 120 |     expect(response.status()).toBe(409);%0A          |                               ^%0A      121 |     expect(await response.json()).toMatchObject({ error: "owner mismatch" });%0A      122 |%0A      123 |     // The refusal is visible, in the form's own language.%0A        at /home/longr/lanes/tmp/portfolio-chart-owner-20261102-c4-001.workspace/terminal/terminal/e2e/portfolio-chart-owner.spec.ts:120:31
+F::error file=e2e/portfolio-chart-owner.spec.ts,title=[desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (en) › the refused write leaves the shared store with zero rows,line=138,col=35::  2) [desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (en) › the refused write leaves the shared store with zero rows %0A    Error: expect(received).toBe(expected) // Object.is equality%0A%0A    Expected: 409%0A    Received: 200%0A%0A      136 |     await useAccount(page, baseURL, actorB);%0A      137 |     const post = await fillAndSubmit(page, form, "NVDA");%0A    > 138 |     expect((await post).status()).toBe(409);%0A          |                                   ^%0A      139 |%0A      140 |     // B's own book is empty…%0A      141 |     expect(await readBook(page)).toEqual([]);%0A        at /home/longr/lanes/tmp/portfolio-chart-owner-20261102-c4-001.workspace/terminal/terminal/e2e/portfolio-chart-owner.spec.ts:138:35
+·F::error file=e2e/portfolio-chart-owner.spec.ts,title=[desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (zh) › a stale A form against a B session is refused by the route, and creates nothing,line=120,col=31::  3) [desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (zh) › a stale A form against a B session is refused by the route, and creates nothing %0A    Error: expect(received).toBe(expected) // Object.is equality%0A%0A    Expected: 409%0A    Received: 200%0A%0A      118 |     const post = await fillAndSubmit(page, form, "NVDA");%0A      119 |     const response = await post;%0A    > 120 |     expect(response.status()).toBe(409);%0A          |                               ^%0A      121 |     expect(await response.json()).toMatchObject({ error: "owner mismatch" });%0A      122 |%0A      123 |     // The refusal is visible, in the form's own language.%0A        at /home/longr/lanes/tmp/portfolio-chart-owner-20261102-c4-001.workspace/terminal/terminal/e2e/portfolio-chart-owner.spec.ts:120:31
+F::error file=e2e/portfolio-chart-owner.spec.ts,title=[desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (zh) › the refused write leaves the shared store with zero rows,line=138,col=35::  4) [desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (zh) › the refused write leaves the shared store with zero rows %0A    Error: expect(received).toBe(expected) // Object.is equality%0A%0A    Expected: 409%0A    Received: 200%0A%0A      136 |     await useAccount(page, baseURL, actorB);%0A      137 |     const post = await fillAndSubmit(page, form, "NVDA");%0A    > 138 |     expect((await post).status()).toBe(409);%0A          |                                   ^%0A      139 |%0A      140 |     // B's own book is empty…%0A      141 |     expect(await readBook(page)).toEqual([]);%0A        at /home/longr/lanes/tmp/portfolio-chart-owner-20261102-c4-001.workspace/terminal/terminal/e2e/portfolio-chart-owner.spec.ts:138:35
+·
+::notice title=🎭 Playwright Run Summary::  4 failed%0A    [desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (en) › a stale A form against a B session is refused by the route, and creates nothing %0A    [desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (en) › the refused write leaves the shared store with zero rows %0A    [desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (zh) › a stale A form against a B session is refused by the route, and creates nothing %0A    [desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (zh) › the refused write leaves the shared store with zero rows %0A  2 passed (35.6s)
+
+  1) [desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (en) › a stale A form against a B session is refused by the route, and creates nothing 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 200
+
+      118 |     const post = await fillAndSubmit(page, form, "NVDA");
+      119 |     const response = await post;
+    > 120 |     expect(response.status()).toBe(409);
+          |                               ^
+      121 |     expect(await response.json()).toMatchObject({ error: "owner mismatch" });
+      122 |
+      123 |     // The refusal is visible, in the form's own language.
+        at /home/longr/lanes/tmp/portfolio-chart-owner-20261102-c4-001.workspace/terminal/terminal/e2e/portfolio-chart-owner.spec.ts:120:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/portfolio-chart-owner-char-8e191-e-route-and-creates-nothing-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/portfolio-chart-owner-char-8e191-e-route-and-creates-nothing-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/portfolio-chart-owner-char-8e191-e-route-and-creates-nothing-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/portfolio-chart-owner-char-8e191-e-route-and-creates-nothing-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (en) › the refused write leaves the shared store with zero rows 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 200
+
+      136 |     await useAccount(page, baseURL, actorB);
+      137 |     const post = await fillAndSubmit(page, form, "NVDA");
+    > 138 |     expect((await post).status()).toBe(409);
+          |                                   ^
+      139 |
+      140 |     // B's own book is empty…
+      141 |     expect(await readBook(page)).toEqual([]);
+        at /home/longr/lanes/tmp/portfolio-chart-owner-20261102-c4-001.workspace/terminal/terminal/e2e/portfolio-chart-owner.spec.ts:138:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/portfolio-chart-owner-char-d85b1-shared-store-with-zero-rows-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/portfolio-chart-owner-char-d85b1-shared-store-with-zero-rows-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/portfolio-chart-owner-char-d85b1-shared-store-with-zero-rows-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/portfolio-chart-owner-char-d85b1-shared-store-with-zero-rows-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (zh) › a stale A form against a B session is refused by the route, and creates nothing 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 200
+
+      118 |     const post = await fillAndSubmit(page, form, "NVDA");
+      119 |     const response = await post;
+    > 120 |     expect(response.status()).toBe(409);
+          |                               ^
+      121 |     expect(await response.json()).toMatchObject({ error: "owner mismatch" });
+      122 |
+      123 |     // The refusal is visible, in the form's own language.
+        at /home/longr/lanes/tmp/portfolio-chart-owner-20261102-c4-001.workspace/terminal/terminal/e2e/portfolio-chart-owner.spec.ts:120:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/portfolio-chart-owner-char-4a25a-e-route-and-creates-nothing-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/portfolio-chart-owner-char-4a25a-e-route-and-creates-nothing-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/portfolio-chart-owner-char-4a25a-e-route-and-creates-nothing-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/portfolio-chart-owner-char-4a25a-e-route-and-creates-nothing-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (zh) › the refused write leaves the shared store with zero rows 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 200
+
+      136 |     await useAccount(page, baseURL, actorB);
+      137 |     const post = await fillAndSubmit(page, form, "NVDA");
+    > 138 |     expect((await post).status()).toBe(409);
+          |                                   ^
+      139 |
+      140 |     // B's own book is empty…
+      141 |     expect(await readBook(page)).toEqual([]);
+        at /home/longr/lanes/tmp/portfolio-chart-owner-20261102-c4-001.workspace/terminal/terminal/e2e/portfolio-chart-owner.spec.ts:138:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/portfolio-chart-owner-char-c007e-shared-store-with-zero-rows-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/portfolio-chart-owner-char-c007e-shared-store-with-zero-rows-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/portfolio-chart-owner-char-c007e-shared-store-with-zero-rows-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/portfolio-chart-owner-char-c007e-shared-store-with-zero-rows-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (en) › a stale A form against a B session is refused by the route, and creates nothing 
+    [desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (en) › the refused write leaves the shared store with zero rows 
+    [desktop] › e2e/portfolio-chart-owner.spec.ts:103:7 › chart position entry — the account that opened the form (zh) › a stale A form against a B session is refused by the route, and creates nothing 
+    [desktop] › e2e/portfolio-chart-owner.spec.ts:128:7 › chart position entry — the account that opened the form (zh) › the refused write leaves the shared store with zero rows 
+  2 passed (35.6s)

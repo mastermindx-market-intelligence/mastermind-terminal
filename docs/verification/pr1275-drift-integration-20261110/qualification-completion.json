@@ -1,0 +1,14 @@
+{
+  "state": "ALL_EXECUTED_CHECKS_PASSED_VISUAL_REVIEW_PENDING",
+  "head": "8d3a375e6d7cba8f03afc65594d3937857230442",
+  "tree": "f94078ea88979ee1aed630b013f303c6d20bbe0f",
+  "routingTests": 33,
+  "driftContractTests": 22,
+  "readerTests": 5,
+  "captureCases": 6,
+  "sourceInputs": 43,
+  "fixtureBindings": 15,
+  "captureReplayed": false,
+  "originalObserverExit": "NOT_OBSERVED",
+  "at": "2026-11-10T14:21:09.173823+00:00"
+}

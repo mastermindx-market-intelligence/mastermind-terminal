@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mapOutboxToConditionStates } from "@/lib/rmsViews";
+import { conditionLine, mapOutboxToConditionStates } from "@/lib/rmsViews";
 import { isUuid } from "@/lib/theses";
 
 const H = vi.hoisted(() => ({
@@ -26,10 +26,16 @@ const THESIS_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1";
 const THESIS_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1";
 const THESIS_C = "cccccccc-cccc-4ccc-8ccc-ccccccccccc1";
 
+const monitorPayload = (id: string) => ({
+  thesis_id: id,
+  source: "macro.thesis_condition_monitor",
+  category: "thesis_window",
+});
+
 describe("mapOutboxToConditionStates", () => {
   it("maps a payload.thesis_id match with status pending to window_closed", () => {
     const map = mapOutboxToConditionStates([THESIS_A], [{
-      payload: { thesis_id: THESIS_A, title: "closed" },
+      payload: { ...monitorPayload(THESIS_A), title: "closed" },
       status: "pending",
       created_at: "2026-09-01T00:00:00.000Z",
     }]);
@@ -80,6 +86,38 @@ describe("GET /api/thesis-fire-status", () => {
     vi.clearAllMocks();
   });
 
+  it.each(["pending", "deferred", "sent", "failed", "suppressed"])(
+    "preserves the fired condition independently of %s delivery",
+    async (status) => {
+      fixtureStore(H.key).alertOutbox.push({
+        id: "monitor-fire", user_id: H.user!.id, status,
+        payload: monitorPayload(THESIS_A), created_at: "2026-09-01T00:00:00.000Z",
+      });
+      const response = await GET(new Request(`https://x.test/api/thesis-fire-status?id=${THESIS_A}`));
+      expect(response.status).toBe(200);
+      const state = (await response.json()).states[THESIS_A];
+      expect(state).toEqual({ source: "monitor", state: "window_closed", at: "2026-09-01T00:00:00.000Z" });
+      expect(conditionLine(state, "en")).toBe("The window you were watching has closed");
+      expect(conditionLine(state, "zh")).toBe("你关注的观察窗口已结束");
+    },
+  );
+
+  it.each([
+    { name: "foreign owner", user: "another-owner", payload: monitorPayload(THESIS_A), status: "failed" },
+    { name: "wrong source", payload: { ...monitorPayload(THESIS_A), source: "another-producer" }, status: "failed" },
+    { name: "wrong category", payload: { ...monitorPayload(THESIS_A), category: "price" }, status: "suppressed" },
+    { name: "missing producer", payload: { thesis_id: THESIS_A }, status: "pending" },
+    { name: "unknown status", payload: monitorPayload(THESIS_A), status: "unknown" },
+  ])("does not turn $name into a monitor fact", async ({ user, payload, status }) => {
+    fixtureStore(H.key).alertOutbox.push({
+      id: "unqualified-row", user_id: user ?? H.user!.id, status, payload,
+      created_at: "2026-09-01T00:00:00.000Z",
+    });
+    const response = await GET(new Request(`https://x.test/api/thesis-fire-status?id=${THESIS_A}`));
+    expect(response.status).toBe(200);
+    expect((await response.json()).states[THESIS_A]).toEqual({ source: "unavailable" });
+  });
+
   it("requires auth", async () => {
     H.user = null;
     const response = await GET(new Request(`https://x.test/api/thesis-fire-status?id=${THESIS_A}`));
@@ -105,7 +143,7 @@ describe("GET /api/thesis-fire-status", () => {
         id: "out-1",
         user_id: H.user!.id,
         status: "pending",
-        payload: { thesis_id: THESIS_A },
+        payload: monitorPayload(THESIS_A),
         created_at: "2026-09-01T00:00:00.000Z",
       },
       {

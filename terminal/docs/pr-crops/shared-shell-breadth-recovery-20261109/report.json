@@ -1,0 +1,301 @@
+{
+  "sourceHead": "44644f256e8b38a5cfd0a198ede6d9a1b2f36303",
+  "sourceDigests": {
+    "components/workspaces/TodayBreadthReading.tsx": "5109a10ea3763e65b54f3318c6b8b195201802a51ad2dc2cddce768181e818da",
+    "components/workspaces/TodayBreadthReading.module.css": "7b1bae2ce2ee4329b0bb210edfac80c56bc28266c9d673e30d51f00de4d86e10",
+    "lib/shared-shell/marketBreadth.ts": "0680c5fc8fb7e685b01c7e9c3805e73cd5c2047af89e3f8de5d1b2ceab198294",
+    "lib/shared-shell/useReadingScope.ts": "37bc0cc517172ba243a7578cf82940b6ac6c212cb1c8787bcbf789be8aa43f20"
+  },
+  "qualification": "Actual React reader, readingJson and CSS; controlled HTTP and identity. Not deployed or real-account proof.",
+  "cases": [
+    {
+      "width": 1440,
+      "mode": "dark",
+      "lang": "en",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 159.203125,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 1440,
+      "mode": "dark",
+      "lang": "zh",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 144.25,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 1440,
+      "mode": "light",
+      "lang": "en",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 159.203125,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 1440,
+      "mode": "light",
+      "lang": "zh",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 144.25,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 820,
+      "mode": "dark",
+      "lang": "en",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 159.203125,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 820,
+      "mode": "dark",
+      "lang": "zh",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 144.25,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 820,
+      "mode": "light",
+      "lang": "en",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 159.203125,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 820,
+      "mode": "light",
+      "lang": "zh",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 144.25,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 390,
+      "mode": "dark",
+      "lang": "en",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 147,
+        "height": 65.375,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 390,
+      "mode": "dark",
+      "lang": "zh",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 144.25,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 390,
+      "mode": "light",
+      "lang": "en",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 147,
+        "height": 65.375,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 390,
+      "mode": "light",
+      "lang": "zh",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 144.25,
+        "height": 44,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 320,
+      "mode": "dark",
+      "lang": "en",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 112,
+        "height": 87.0625,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 320,
+      "mode": "dark",
+      "lang": "zh",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 112,
+        "height": 65.375,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 320,
+      "mode": "light",
+      "lang": "en",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 112,
+        "height": 87.0625,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    },
+    {
+      "width": 320,
+      "mode": "light",
+      "lang": "zh",
+      "requests": 3,
+      "recovery": true,
+      "keyboard": true,
+      "touchTarget": {
+        "width": 112,
+        "height": 65.375,
+        "hit": true,
+        "focused": true
+      },
+      "overflow": false,
+      "expiryDoesNotFetch": true,
+      "refusalNoRetry": true,
+      "abortClears": true
+    }
+  ],
+  "errors": []
+}

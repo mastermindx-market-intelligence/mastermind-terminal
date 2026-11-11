@@ -783,6 +783,11 @@ export class ChartModel {
     return this.time.widthPx + this.priceAxisWidthPx;
   }
 
+  /** Canvas offset only. Public time/series coordinates remain plot-local. */
+  plotLeftPx(): number {
+    return displayedPriceScaleId(this) === "left" ? this.priceAxisWidthPx : 0;
+  }
+
   setWidth(widthPx: number): void {
     resizeTimeScaleWidth(
       this.time,
@@ -2184,7 +2189,7 @@ function assertPriceScaleModeSupported(opts: Record<string, unknown>): void {
  * "left" and moves the price series with it (ChartPanel.tsx:9735-9736), so paint and gestures
  * must resolve the SAME id or the axis the user sees is not the axis the user drags.
  */
-export function displayedPriceScaleId(model: ChartModel): string {
+export function displayedPriceScaleId(model: ChartModel): "left" | "right" {
   const opts = model.options as {
     leftPriceScale?: { visible?: boolean };
     rightPriceScale?: { visible?: boolean };
@@ -2218,7 +2223,10 @@ class ModelPriceScaleHandle implements PriceScaleHandle {
   options(): Record<string, unknown> {
     if (!this.m.alive) return {};
     const scale = this.m.scale(this.paneIdx, this.id);
+    const display = this.id === "left" ? this.m.options.leftPriceScale
+      : this.id === "right" ? this.m.options.rightPriceScale : undefined;
     return {
+      ...display,
       mode: scale.mode,
       invertScale: scale.inverted,
       autoScale: scale.autoScale,

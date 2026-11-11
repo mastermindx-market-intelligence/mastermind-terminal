@@ -1,0 +1,119 @@
+{
+  "schema": "d08c.implementation_verification.v1",
+  "operation": "d08c-plan-compare-20261104-c3",
+  "base": "f528a219cc5d73e94e058575e3df83d689632bf9",
+  "source_manifest": "SOURCE_MANIFEST.json",
+  "production_status": "BUILT_NOT_PROVEN",
+  "node": "v26.5.0",
+  "local_runtime_option": "--no-experimental-webstorage",
+  "focused_unit": {
+    "passed": 26,
+    "failed": 0,
+    "exit_code": 0,
+    "log": "logs/focused-final.log"
+  },
+  "full_repository_unit": {
+    "passed": 18453,
+    "failed": 0,
+    "skipped": 47,
+    "todo": 4,
+    "total": 18504,
+    "files_passed": 1076,
+    "files_skipped": 5,
+    "files_total": 1081,
+    "exit_code": 0,
+    "log": "logs/d08c-full-unit-final.log.gz"
+  },
+  "source_guard_recheck": {
+    "passed": 28,
+    "failed": 0,
+    "exit_code": 0,
+    "assertion_changed": false,
+    "log": "logs/d08c-account-lifecycle-qualification.log.gz"
+  },
+  "browser": {
+    "legacy_terminal": {
+      "passed": 24,
+      "failed": 0,
+      "retries": 0,
+      "exit_code": 0,
+      "theme": "legacy dark only",
+      "log": "logs/legacy-terminal-final.log",
+      "images": "legacy_terminal_captures/inventory.json"
+    },
+    "shared_shell": {
+      "passed": 12,
+      "failed": 0,
+      "retries": 0,
+      "exit_code": 0,
+      "theme": "actual dark/light owner and computed-color checks",
+      "log": "logs/shared-shell-browser.log",
+      "images": "shared_shell_captures/inventory.json"
+    },
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844",
+      "320x844"
+    ],
+    "reduced_motion": "320px mobile follow-through",
+    "source_auth": "explicit local fixtures; not production entitlement or provider authenticity"
+  },
+  "source_bound_generic_evidence": {
+    "required_cases_validated": 50,
+    "pl6_cases": 24,
+    "vi_cases": 30,
+    "composition": "terminal/docs/pr-crops/b-pl-6-batch-1/d08c-plan-compare-current-20261104-r2.composition.json",
+    "log": "logs/composition-validation.log",
+    "status": "VALIDATED"
+  },
+  "production_build": {
+    "exit_code": 0,
+    "log": "logs/production-build-final.log"
+  },
+  "typecheck": {
+    "exit_code": 0,
+    "log": "logs/typecheck-current.log"
+  },
+  "plain_language": {
+    "exit_code": 0,
+    "new_blocking_findings": 0,
+    "log": "logs/plain-language.log"
+  },
+  "source_effects": {
+    "new_persistence_store": false,
+    "new_source_transport": false,
+    "new_pricing_model": false,
+    "production_save_watch": false,
+    "orders_or_holdings": false,
+    "paper_writes": false,
+    "deployment": false
+  },
+  "limitations": [
+    "Native Save/readback/watch/revisit remain with original #804 and D23",
+    "D22 retains actual holdings",
+    "No production data/authenticated customer proof",
+    "No complete screen-reader/native-400%-zoom or programme RIG claim",
+    "Additional restore-baseline/risk-summary extension refused before dispatch and not applied",
+    "Current-head hosted CI and release are separate from local proof"
+  ],
+  "historical_evidence": [
+    "logs/precision-native-owner-red.log",
+    "logs/calculation-clocks-red.log",
+    "logs/full-unit.log.gz",
+    "logs/full-unit-qualified.log.gz",
+    "logs/current-vi-capture.log"
+  ],
+  "earlier_capture_disposition": "First VI operation was rejected SOURCE_MISMATCH after two known owned source/test changes; no usable final operation was claimed. Frozen r2 independently validates the final bytes.",
+  "all_47_programme_scenarios_passed": false,
+  "eslint": {
+    "exit_code": 0,
+    "errors": 0,
+    "warnings": 0,
+    "log": "logs/scoped-eslint-final.log"
+  }
+}

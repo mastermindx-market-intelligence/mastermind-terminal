@@ -227,7 +227,18 @@ const VOL_LEX = {
     "Basis published ATM IV · Clock {date} nightly · side not stated by source · variance-linear",
     "基准为已发布平值IV · 时钟为 {date} 每晚收盘 · 来源未说明报价口径 · 方差线性插值",
   ],
+  // The strip basis line when the read states no asof: its own copy, never cmpClockUnstated
+  // spliced into the dated template above.
+  cmpStripBasisNoClock: [
+    "Basis published ATM IV · clock not stated by source · side not stated by source · variance-linear",
+    "基准为已发布平值IV · 来源未说明时钟 · 来源未说明报价口径 · 方差线性插值",
+  ],
   cmpClockUnstated:  ["clock not stated by source", "来源未说明时钟"],
+  // AC40 Option B: an interpolated row dated on the producer clock whose date is on or before
+  // the viewer's ET today. True at the boundary (a row dated today is "not ahead of today").
+  cmpRowPastRead:    ["not ahead of today · from the {asof} read", "不晚于今日 · 来自{asof}的读数"],
+  // AC40 point 4: the skew calendar fallback runs from the viewer's today only when asof is absent.
+  cmpSkewDteFromToday: ["days counted from today: clock not stated by source", "天数自今日起算：来源未说明时钟"],
   cmpDeltaAxis: [
     "Delta axis unsupported · no spot or delta published",
     "Delta 轴不支持 · 来源未发布现价或 Delta",
@@ -239,6 +250,9 @@ const VOL_LEX = {
 
   cmpTermTitle:      ["Term structure · ATM IV by expiry", "期限结构 · 按到期日的平值IV"],
   cmpTermSub:        ["{n} supplied · {m} interpolated for this read · nightly EOD {date}", "{n} 个已提供 · 本次读数插值 {m} 个 · 每晚收盘 {date}"],
+  // The term subtitle when the read states no valid asof: its own copy, never cmpTermSub with
+  // cmpClockUnstated spliced into the date slot (that claimed a nightly clock not stated).
+  cmpTermSubNoClock: ["{n} supplied · {m} interpolated for this read · clock not stated by source", "{n} 个已提供 · 本次读数插值 {m} 个 · 来源未说明时钟"],
   cmpColTenor:       ["TENOR", "期限"],
   cmpColExpiry:      ["EXPIRY", "到期日"],
   cmpColIv:          ["ATM IV", "平值IV"],
@@ -289,6 +303,7 @@ const VOL_LEX = {
   cmpMoveEstimatorLabel: ["Estimator", "估计方法"],
   cmpMoveEstimatorValue: ["IV · √T on published ATM IV {iv} % · declared approximation", "IV · √T，基于已发布平值IV {iv} % · 已声明的近似方法"],
   cmpMoveHorizonLabel: ["Horizon", "区间长度"],
+  cmpMoveHorizonValueSingular: ["{n} trading day · {from} → {to} close", "{n} 个交易日 · {from} → {to} 收盘"],
   cmpMoveHorizonValue: ["{n} trading days · {from} → {to} close", "{n} 个交易日 · {from} → {to} 收盘"],
   cmpMoveHorizonNote: ["weekdays, exchange holidays not subtracted", "按工作日计算，未扣除交易所假期"],
   cmpMoveVolClockLabel: ["Volatility clock", "波动率时钟"],

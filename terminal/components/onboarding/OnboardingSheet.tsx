@@ -49,6 +49,13 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   if (stashRef.current === undefined) stashRef.current = props.mode === "signup" ? readWizardStash() : null;
   const stash = stashRef.current;
   const [mode, setMode] = useState<OnboardMode>(props.mode);
+  // The sheet stays mounted between visits. Honor the next entry action before
+  // rendering its children, retaining all wizard progress and in-sheet switches.
+  const [entry, setEntry] = useState({ visible: props.visible, mode: props.mode });
+  if (entry.visible !== props.visible || entry.mode !== props.mode) {
+    setEntry({ visible: props.visible, mode: props.mode });
+    if (props.visible) setMode(props.mode);
+  }
   const [step, setStep] = useState(stash?.step ?? STEP_ACCOUNT);
   const [firstName, setFirstName] = useState(stash?.firstName ?? "");
   const [lastName, setLastName] = useState(stash?.lastName ?? "");

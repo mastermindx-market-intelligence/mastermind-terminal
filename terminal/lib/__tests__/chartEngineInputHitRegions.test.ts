@@ -51,6 +51,72 @@ beforeEach(() => {
 afterEach(() => { vi.restoreAllMocks(); container.remove(); });
 
 describe("I8 price-axis hit strip follows the DRAWN strip", () => {
+  it("price-axis wheel anchors use the same local Y after moving to another pane", () => {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, { width: 300, height: 200, devicePixelRatio: 1, scheduler });
+    engine.addSeries("candles", {}, 0).setData(ROWS);
+    engine.addSeries("candles", {}, 1).setData(ROWS);
+    const panes = engine.panes();
+    panes[0].setHeight(100); panes[1].setHeight(100);
+    for (const pane of panes) pane.priceScale("right").setVisibleRange({ from: 90, to: 160 });
+    scheduler.flush();
+    const time = engine.timeScale().getVisibleLogicalRange();
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]")!;
+    for (const clientY of [30, panes[0].height() + 30]) overlay.dispatchEvent(new WheelEvent("wheel", {
+      clientX: 290, clientY, deltaY: -40, bubbles: true, cancelable: true,
+    }));
+    expect(panes[0].priceScale("right").getVisibleRange()).not.toEqual({ from: 90, to: 160 });
+    expect(panes[1].priceScale("right").getVisibleRange()).toEqual(panes[0].priceScale("right").getVisibleRange());
+    expect(engine.timeScale().getVisibleLogicalRange()).toEqual(time);
+    engine.destroy();
+  });
+
+  it("the left axis owns axis drags while plot wheel anchors stay plot-local", () => {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, {
+      width: 300, height: 160, devicePixelRatio: 1, scheduler,
+      leftPriceScale: { visible: true }, rightPriceScale: { visible: false },
+    });
+    const series = engine.addSeries("candles", { priceScaleId: "left" });
+    series.setData(ROWS);
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    scheduler.flush();
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]")!;
+    const before = engine.timeScale().getVisibleLogicalRange();
+    dispatchPointer(overlay, "pointerdown", 20, 30, 0);
+    dispatchPointer(overlay, "pointermove", 40, 60, 20);
+    dispatchPointer(overlay, "pointerup", 40, 60, 20);
+    expect(engine.timeScale().getVisibleLogicalRange()).toEqual(before);
+    const x = 90, left = engine.priceScale("left").width();
+    const logical = engine.timeScale().coordinateToLogical(x);
+    overlay.dispatchEvent(new WheelEvent("wheel", {
+      clientX: left + x, clientY: 30, deltaY: -40, bubbles: true, cancelable: true,
+    }));
+    expect(engine.timeScale().coordinateToLogical(x)).toBeCloseTo(logical!, 10);
+    engine.destroy();
+  });
+
+  it.each([
+    { scale: true, scroll: false, deltaX: 0, deltaY: 30, consumed: true },
+    { scale: false, scroll: true, deltaX: 0, deltaY: 30, consumed: false },
+    { scale: false, scroll: true, deltaX: 30, deltaY: 0, consumed: true },
+    { scale: true, scroll: false, deltaX: 30, deltaY: 0, consumed: false },
+    { scale: false, scroll: false, deltaX: 30, deltaY: 30, consumed: false },
+  ])("wheel consumption matches enabled directional gesture: %j", ({ scale, scroll, deltaX, deltaY, consumed }) => {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, {
+      width: 200, height: 100, devicePixelRatio: 1, scheduler,
+      handleScale: { mouseWheel: scale }, handleScroll: { mouseWheel: scroll },
+    });
+    engine.addSeries("candles", {}).setData(ROWS);
+    scheduler.flush();
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]")!;
+    const wheel = new WheelEvent("wheel", { clientX: 50, clientY: 20, deltaX, deltaY, bubbles: true, cancelable: true });
+    overlay.dispatchEvent(wheel);
+    expect(wheel.defaultPrevented).toBe(consumed);
+    engine.destroy();
+  });
+
   it("a drag on the drawn price axis zooms price, it does not pan time", () => {
     const scheduler = createManualScheduler();
     const engine = createCanvasEngine(container, {

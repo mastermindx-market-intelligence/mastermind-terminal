@@ -1,0 +1,99 @@
+{
+  "task": "P16.T1",
+  "baseline": "9d54e960e6e048c982d9e455a39e4ea30dfa7f74",
+  "native_root": "01a10340-ddc1-7e41-9b42-9c8543c28c3d",
+  "native_parent": "01a1ae70-25d3-79f2-8adb-fd463e3f463f",
+  "fabric": {
+    "id": "options-watchlist-p16t1-20261105-r1",
+    "state": "TERMINAL",
+    "rc": 75,
+    "worker_start": false,
+    "result_consumed": true,
+    "quality_verdict": "NOT_ESTABLISHED",
+    "reason": "host_temperature_at_or_above_limit",
+    "replayed": false
+  },
+  "baseline_red": {
+    "failed": 2,
+    "passed": 2,
+    "cases": [
+      "switch back loses unknown target",
+      "POST401 becomes unknown rather than signed out"
+    ]
+  },
+  "focused_green": {
+    "passed": 35,
+    "component": 5,
+    "incumbent_watchlist_service": 30
+  },
+  "typecheck": "PASS",
+  "lint": {
+    "candidate_errors": 2,
+    "baseline_errors": 2,
+    "new_findings": 0,
+    "rule": "@next/next/no-html-link-for-pages",
+    "unchanged_links": [
+      "/login",
+      "/terminal"
+    ]
+  },
+  "browser_initial": {
+    "passed": 45,
+    "failed": 3,
+    "failure": "new ZH setup incorrectly looked for Shared Shell language control",
+    "application_source_changed_for_rerun": false
+  },
+  "browser_final": {
+    "affected_rerun_passed": 6,
+    "distinct_qualified_cases": 48,
+    "existing_cases_reused": 42,
+    "widths": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "locale_setup": "existing data-lang + mm:lang fixture seam",
+    "real_settings_control_or_account_persistence": false,
+    "images": [
+      {
+        "file": "desktop-en.png",
+        "sha256": "2917f2523b397ceaba8e131c0b81bbb6b0e53f056c6afd58924f79dda17ac5ed"
+      },
+      {
+        "file": "tablet-en.png",
+        "sha256": "1af2c4b88e09c9365361c07e22f890ed99048b060e1edc224eb4fcfcfc173650"
+      },
+      {
+        "file": "desktop-zh.png",
+        "sha256": "d23e91cf1cacaf0b616943777495f57ce8e320e2acb21e64e8a5d516198278d7"
+      },
+      {
+        "file": "mobile-zh.png",
+        "sha256": "42e6bca05b8a0bfc1adbdb417af64da4ba075d07c010db72c6edf300cd04c37d"
+      },
+      {
+        "file": "mobile-en.png",
+        "sha256": "e92788dcade5856182b1e0ced9a5027d71d201808abe84310102d467a0a2b6e3"
+      },
+      {
+        "file": "tablet-zh.png",
+        "sha256": "75abfebd8fc4e77e93c44a8485a54fe83d346720fa248f4a84854c71181d4dc6"
+      }
+    ]
+  },
+  "scope": "mounted component only; fixture watchlists; no live write or cross-session guarantee",
+  "review": "SELF_REVIEWED"
+}

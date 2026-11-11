@@ -44,7 +44,7 @@ vi.mock("@/components/chrome/AnalysisBrainHost", () => ({
   default: () => <div data-brain-owner="existing" />,
 }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: {
-  getClaims: async () => ({ data: { claims: { sub: "existing-owner", email: "fixture@example.test" } } }),
+  getClaims: async () => ({ data: { claims: { sub: "44444444-4444-4444-8444-444444444444", email: "fixture@example.test" } } }),
 } }) }));
 
 import AppShell, { useShellIdentity } from "@/components/chrome/AppShell";
@@ -221,14 +221,14 @@ describe("server preview switch — no query, cookie or client-storage enrollmen
       vi.stubEnv("MMX_INVESTOR_SHELL_PREVIEW", value);
       const element = await ShellLayout({ children: <span>Page</span> });
       expect(element.props.investorShellPreview).toBe(false);
-      expect(element.props.userId).toBe("existing-owner");
+      expect(element.props.userId).toBe("44444444-4444-4444-8444-444444444444");
     });
 
   it("passes only the exact server opt-in without changing account claims", async () => {
     vi.stubEnv("MMX_INVESTOR_SHELL_PREVIEW", "1");
     const element = await ShellLayout({ children: <span>Page</span> });
     expect(element.props.investorShellPreview).toBe(true);
-    expect(element.props.userId).toBe("existing-owner");
+    expect(element.props.userId).toBe("44444444-4444-4444-8444-444444444444");
     expect(element.props.email).toBe("fixture@example.test");
   });
 

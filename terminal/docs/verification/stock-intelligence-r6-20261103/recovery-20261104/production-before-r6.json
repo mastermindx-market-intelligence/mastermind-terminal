@@ -1,0 +1,113 @@
+{
+  "startedAt": "2026-11-04T06:43:22.987Z",
+  "origin": "https://app.mastermind-x.com",
+  "sourceHead": "da1d713634e7f39ea2ffe5fd1e7a27ac6cbb6c22",
+  "scope": "Fresh unauthenticated browser; live network; no data/auth interception",
+  "cases": [
+    {
+      "name": "desktop-en",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "errors": [],
+      "httpStatus": 200,
+      "launcherVisible": true,
+      "r6OverviewCount": 0,
+      "currentEntryText": "Entry status now: Entry availability not verified\n\nNo qualified current Oracle entry source",
+      "mode": "docked",
+      "tabs": [
+        "Summary",
+        "Oracle",
+        "Research",
+        "Activity"
+      ],
+      "geometry": {
+        "width": 438,
+        "scrollWidth": 438,
+        "viewport": 1440,
+        "rect": {
+          "x": 632,
+          "y": 106,
+          "width": 440,
+          "height": 758,
+          "top": 106,
+          "right": 1072,
+          "bottom": 864,
+          "left": 632
+        }
+      },
+      "activityRows": 31,
+      "searchboxCount": 0,
+      "result": "BASELINE_OBSERVED"
+    },
+    {
+      "name": "mobile-zh",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "errors": [],
+      "httpStatus": 200,
+      "launcherVisible": true,
+      "r6OverviewCount": 0,
+      "currentEntryText": "\u5f53\u524d\u5165\u573a\u72b6\u6001: \u5165\u573a\u673a\u4f1a\u5c1a\u672a\u6838\u5b9e\n\n\u7f3a\u5c11\u9002\u7528\u4e8e\u795e\u8c15\u7684\u5f53\u524d\u5165\u573a\u6570\u636e\u6e90",
+      "mode": "sheet",
+      "tabs": [
+        "\u6982\u89c8",
+        "\u795e\u8c15",
+        "\u7814\u7a76",
+        "\u52a8\u6001"
+      ],
+      "geometry": {
+        "width": 388,
+        "scrollWidth": 388,
+        "viewport": 390,
+        "rect": {
+          "x": 0,
+          "y": 101.265625,
+          "width": 390,
+          "height": 742.71875,
+          "top": 101.265625,
+          "right": 390,
+          "bottom": 843.984375,
+          "left": 0
+        }
+      },
+      "activityRows": 31,
+      "searchboxCount": 0,
+      "result": "BASELINE_OBSERVED"
+    }
+  ],
+  "finishedAt": "2026-11-04T06:43:31.167Z",
+  "liveDeployment": "db06eacd8938cf44588d3906bca95bfd7122b74b",
+  "r6Deployed": false,
+  "captures": [
+    {
+      "file": "production-before-r6-desktop-en-activity.webp",
+      "originalPngSha256": "30ae531bda28516bf79bb0fa2293546147a4119aa4d99d4aad283f47866dff5a",
+      "sha256": "47c49bc4911bd3af42b21b80f2e81fc6924baa71c3d9259b6c80d0976cc628d6",
+      "width": 440,
+      "height": 758
+    },
+    {
+      "file": "production-before-r6-desktop-en-summary.webp",
+      "originalPngSha256": "66e8fdfd5ebb2886e1ee2024000b676cf7a15294dff5ecf0a5165c8b41b25e64",
+      "sha256": "b3f4f0a50674a973ef39af030ef48a2fa14e547520e970129ac91b8c8da7a1f3",
+      "width": 440,
+      "height": 758
+    },
+    {
+      "file": "production-before-r6-mobile-zh-activity.webp",
+      "originalPngSha256": "a312ea90357804ff7506175f4f53f578e16058b22e7646566dacfc9c1d8af61f",
+      "sha256": "2e55bc3f8605829aba14197a5b4a8c427f45ea14b9e6c4f945afa06821a99f88",
+      "width": 390,
+      "height": 743
+    },
+    {
+      "file": "production-before-r6-mobile-zh-summary.webp",
+      "originalPngSha256": "070ce3202f7e9e95c192d091af7a5a50509f7bd3816d141ef2e67772fc221dbb",
+      "sha256": "de87914be439e0b169531d45cc1d9082fb56bd2f1455a6137cd0a8332f6060d0",
+      "width": 390,
+      "height": 743
+    }
+  ]
+}

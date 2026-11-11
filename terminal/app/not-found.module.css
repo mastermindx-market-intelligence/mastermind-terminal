@@ -1,0 +1,98 @@
+.page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(20px, 5vw, 48px) 24px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.card {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 480px;
+  min-width: 0;
+  margin: auto;
+  overflow-wrap: anywhere;
+}
+
+.mark { margin-bottom: 24px; }
+.title { margin: 0; font-size: clamp(24px, 4vw, 32px); line-height: 1.2; font-weight: 700; }
+.body { margin: 18px 0 26px; color: var(--muted); font-size: 16px; line-height: 1.65; }
+.actions { display: flex; flex-direction: column; gap: 12px; }
+
+.action {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.primary { background: var(--brand); color: #fff; }
+.primary:hover { background: var(--brand-hov); }
+.secondary { border-color: var(--line-3); background: var(--panel); color: var(--text); }
+.secondary:hover { background: var(--panel-2); }
+.chart { color: var(--text-2); font-size: 14px; font-weight: 500; }
+.chart:hover { background: var(--panel); color: var(--text); }
+.action:focus-visible, .companyAction:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+
+/* The catch-all route hosts this page in the shell's available content row. */
+:global(.shared-shell) .page { height: 100%; }
+
+:global(.shared-shell) .mark { display: none; }
+
+.companyRecovery { display: none; }
+
+@media (max-width: 600px) {
+  :global(.shared-shell) .companyRecovery {
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid var(--line-3);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .companyRecovery h2 { margin: 0; font-size: 17px; line-height: 25px; font-weight: 600; }
+  .companyRecovery p { margin: 0; color: var(--muted); font-size: 14px; line-height: 23px; }
+  .companyAction {
+    box-sizing: border-box;
+    display: flex;
+    align-items: baseline;
+    justify-self: start;
+    gap: 4px;
+    min-width: 44px;
+    min-height: 44px;
+    max-width: 100%;
+    /* Use the gap above and panel padding below to keep the 18px visual row. */
+    margin-block: -12px -14px;
+    padding: 12px 0 14px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--link);
+    font: inherit;
+    font-size: 14px;
+    line-height: 18px;
+    text-align: start;
+    cursor: pointer;
+  }
+  .companyAction:hover { text-decoration: underline; }
+  .page { padding: 32px 20px; }
+  .card { margin: 0 auto; }
+  .title { font-size: 28px; }
+}

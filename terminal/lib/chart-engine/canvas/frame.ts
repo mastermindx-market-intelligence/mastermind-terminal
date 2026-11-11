@@ -620,6 +620,7 @@ function paintPriceAxisStrip(
   h: number,
   bg: string | null,
   dpr: number,
+  side: "left" | "right" = "right",
 ): void {
   ctx.clearRect(x0, 0, width, h);
   if (!axis.axisVisible || width <= 0) return;
@@ -629,24 +630,27 @@ function paintPriceAxisStrip(
   }
   const { ro } = axis;
   const x0B = Math.round(x0 * dpr);
+  const edgeB = Math.round((x0 + width) * dpr);
+  const left = side === "left";
   if (axis.borderVisible) {
     const borderB = Math.max(1, Math.floor(ro.borderSize * dpr));
     ctx.fillStyle = axis.borderColor;
-    ctx.fillRect(x0B / dpr, 0, borderB / dpr, h);
+    ctx.fillRect((left ? edgeB - borderB : x0B) / dpr, 0, borderB / dpr, h);
     if (axis.ticksVisible) {
       const tickH = Math.max(1, Math.floor(dpr));
       const tickOffset = Math.floor(dpr * 0.5);
       const tickLen = Math.round(ro.tickLength * dpr);
       for (const mark of axis.marks) {
-        ctx.fillRect(x0B / dpr, (Math.round(mark.y * dpr) - tickOffset) / dpr, tickLen / dpr, tickH / dpr);
+        ctx.fillRect((left ? edgeB - tickLen : x0B) / dpr, (Math.round(mark.y * dpr) - tickOffset) / dpr, tickLen / dpr, tickH / dpr);
       }
     }
   }
   ctx.font = ro.font;
   ctx.fillStyle = axis.textColor;
-  ctx.textAlign = "left";
+  ctx.textAlign = left ? "right" : "left";
   ctx.textBaseline = "middle";
-  const textX = x0 + Math.round(ro.tickLength + ro.paddingInner);
+  const inset = Math.round(ro.tickLength + ro.paddingInner);
+  const textX = left ? x0 + width - inset : x0 + inset;
   for (let i = axis.marks.length; i--;) {
     const mark = axis.marks[i];
     ctx.fillText(mark.label, textX, mark.y + yMidCorrection(ctx, mark.label));
@@ -654,7 +658,7 @@ function paintPriceAxisStrip(
   for (const view of axis.views) {
     if (!view.axis.visible) continue;
     drawPriceAxisLabel(ctx, {
-      view, part: "axis", ro, align: "left", x0, mediaWidth: width, dpr,
+      view, part: "axis", ro, align: left ? "right" : "left", x0, mediaWidth: width, dpr,
       ticksVisible: axis.ticksVisible, paneBackground: bg ?? "",
     });
   }
@@ -925,20 +929,35 @@ export type PanePaintArgs = {
   axis?: PaneAxisState;
 };
 
-export function paintPaneFrame(args: PanePaintArgs): void {
+export type PanePaintGeometry = {
+  plot: { x: number; y: number; width: number; height: number };
+  axis: { x: number; y: number; width: number; height: number };
+};
+
+export function paintPaneFrame(args: PanePaintArgs): PanePaintGeometry | null {
   const { ctx: raw, model, paneIndex, primHost } = args;
   const pane = model.panes[paneIndex];
-  if (!pane) return;
+  if (!pane) return null;
   const ctx = ensurePaintCtx(raw);
   const w = model.time.widthPx;
   const h = pane.height;
+  const plotX = model.plotLeftPx();
+  const left = displayedPriceScaleId(model) === "left";
+  const strip = model.chartWidthPx() - w;
+  const geometry: PanePaintGeometry = {
+    plot: { x: plotX, y: 0, width: w, height: h },
+    axis: { x: left ? 0 : w, y: 0, width: strip, height: h },
+  };
   const { bg } = layoutFont(model.options);
   const axis = args.axis ?? paneAxisState(ctx, model, paneIndex);
+  ctx.save();
+  if (plotX) ctx.translate(plotX, 0);
+  // Transparent and translucent fills blend with existing pixels, so every
+  // pane repaint must clear the previous axes and geometry before its background.
+  ctx.clearRect(0, 0, w, h);
   if (bg) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
-  } else {
-    ctx.clearRect(0, 0, w, h);
   }
   paintGrid(ctx, model, axis, w, h);
 
@@ -986,7 +1005,7 @@ export function paintPaneFrame(args: PanePaintArgs): void {
     for (const v of axis.views) {
       if (!v.pane.visible) continue;
       drawPriceAxisLabel(ctx, {
-        view: v, part: "pane", ro: axis.ro, align: "right", x0: 0, mediaWidth: w, dpr: model.dpr,
+        view: v, part: "pane", ro: axis.ro, align: left ? "left" : "right", x0: 0, mediaWidth: w, dpr: model.dpr,
         ticksVisible: axis.ticksVisible, paneBackground: bg ?? "",
       });
     }
@@ -994,8 +1013,10 @@ export function paintPaneFrame(args: PanePaintArgs): void {
 
   withClip(ctx, w, h, () => primHost.paintPane(ctx, paneIndex, paneProj, "top"));
   paintInPaneTimeAxis(ctx, model, w, h, paneIndex === timeAxisOwnerPane(model.panes.map((p) => p.height)));
+  ctx.restore();
   // The strip paints last so series and labels that overflow the plot never show in it.
-  paintPriceAxisStrip(ctx, axis, w, model.chartWidthPx() - w, h, bg, model.dpr);
+  paintPriceAxisStrip(ctx, axis, geometry.axis.x, strip, h, bg, model.dpr, left ? "left" : "right");
+  return geometry;
 }
 
 export type OverlayPaintArgs = {
@@ -1043,8 +1064,10 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
   const ctx = ensurePaintCtx(raw);
   const w = model.time.widthPx;
   const h = model.totalHeight;
+  const plotX = model.plotLeftPx();
+  const left = displayedPriceScaleId(model) === "left";
   ctx.clearRect(0, 0, model.chartWidthPx(), h);
-  if (!point || !(point.x >= 0 && point.x < w && point.y >= 0 && point.y < h)) return;
+  if (!point || !(point.x >= plotX && point.x < plotX + w && point.y >= 0 && point.y < h)) return;
   const ch = (model.options.crosshair && typeof model.options.crosshair === "object" ? model.options.crosshair : {}) as {
     mode?: unknown; vertLine?: unknown; horzLine?: unknown;
   };
@@ -1057,7 +1080,8 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
   }
   const paneH = model.panes[paneIndex]?.height ?? h;
   const dpr = model.dpr || 1;
-  const x = model.xOfLogical(snapLogicalToBar(model.logicalOfX(point.x)));
+  const localX = model.xOfLogical(snapLogicalToBar(model.logicalOfX(point.x - plotX)));
+  const x = localX + plotX;
   const line = (bag: unknown, draw: (crisp: (c: number) => number) => void) => {
     const color = bagColor(bag, LWC_CROSSHAIR.lineColor);
     if (!bagVisible(bag) || color === "") return;
@@ -1075,7 +1099,7 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
     ctx.restore();
   };
   if (Number.isFinite(x)) line(ch.vertLine, (crisp) => { ctx.moveTo(crisp(x), 0); ctx.lineTo(crisp(x), h); });
-  line(ch.horzLine, (crisp) => { ctx.moveTo(0, crisp(point.y)); ctx.lineTo(w, crisp(point.y)); });
+  line(ch.horzLine, (crisp) => { ctx.moveTo(plotX, crisp(point.y)); ctx.lineTo(plotX + w, crisp(point.y)); });
 
   const { font, fontSize: fs } = layoutFont(model.options);
   ctx.font = font;
@@ -1096,22 +1120,23 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
     });
     if (view.axis.visible) {
       drawPriceAxisLabel(ctx, {
-        view, part: "axis", ro: axis.ro, align: "left", x0: w, mediaWidth: model.chartWidthPx() - w, dpr,
+        view, part: "axis", ro: axis.ro, align: left ? "right" : "left", x0: left ? 0 : w, mediaWidth: model.chartWidthPx() - w, dpr,
         ticksVisible: axis.ticksVisible, paneBackground: "",
       });
     }
   }
   const timeColors = labelOf(ch.vertLine);
   const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
-  const time = Number.isFinite(x) ? model.coordinateToTime(x) : null;
+  const time = Number.isFinite(localX) ? model.coordinateToTime(localX) : null;
   const text = timeColors && ts.visible !== false && time != null ? crosshairTimeText(model, time) : null;
   if (!timeColors || !text) return;
   const padH = (9 / 12) * fs;
   const axisH = Math.ceil(1 + 5 + (3 / 12) * fs + fs + (3 / 12) * fs);
   const labelW = Math.round(ctx.measureText(text.replace(/[1-9]/g, "0")).width) + 2 * padH;
-  let x1 = Math.floor(x - labelW / 2) + 0.5;
+  let x1 = Math.floor(localX - labelW / 2) + 0.5;
   if (x1 < 0) x1 = 0;
   else if (x1 + labelW > w) x1 = w - labelW;
+  x1 += plotX;
   // The label sits on the time axis, which lives at the bottom of its owner pane
   // (the last pane, or the maximised one when the rest are squashed away).
   const y1 = timeAxisOwnerBottom(model.panes.map((p) => p.height)) - axisH;

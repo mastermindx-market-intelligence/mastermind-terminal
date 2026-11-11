@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useLang } from "@/lib/i18n";
 import { prepareStudyBarsFrom5m, runRSPivotStudy, type StudyReport, type StudySummary, STUDY_ARMS } from "@/lib/rsPivotStudy";
 import { liveDisplayEpoch } from "@/lib/liveCandle";
 import { usRegularSessionWindow } from "@/lib/usEquitySessionClock";
 import RSPivotChart from "./RSPivotChart";
+import RSPivotRotationMonitor from "./RSPivotRotationMonitor";
 import type { Bar6 } from "@/lib/intradayShared";
 
 type SourceResponse = {
@@ -113,6 +115,7 @@ export default function RSPivotStudy() {
   const zh = lang === "zh";
   const pick = (en: string, cn: string) => zh ? cn : en;
   const request = useRef<AbortController | null>(null);
+  const symbolInput = useRef<HTMLInputElement | null>(null);
   const generation = useRef(0);
   useEffect(() => () => { generation.current++; request.current?.abort(); request.current = null; }, []);
   const [symbol, setSymbol] = useState("NVDA");
@@ -199,10 +202,10 @@ export default function RSPivotStudy() {
           <h1 style={{ fontSize: "clamp(20px, 2vw, 28px)", margin: "7px 0" }}>{t.title}</h1>
           <p style={{ fontSize: 13, color: "var(--muted)", maxWidth: 880 }}>{t.subtitle}</p>
         </header>
-        {identity.kind !== "account" && <div role="note" style={{...container,borderColor:"var(--warn)"}}>{pick("Sign in to load historical research inputs through your existing Terminal access.", "请登录，通过您现有的Terminal访问权限加载历史研究输入。") } <a href="/login" style={{color:"var(--brand-2)"}}>{pick("Sign in", "登录")}</a></div>}
+        {identity.kind !== "account" && <div role="note" style={{...container,borderColor:"var(--warn)"}}>{pick("Sign in to load historical research inputs through your existing Terminal access.", "请登录，通过您现有的Terminal访问权限加载历史研究输入。") } <Link href="/login" style={{color:"var(--brand-2)"}}>{pick("Sign in", "登录")}</Link></div>}
         <section style={container}>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "end" }}>
-            <label style={label}>{t.symbol}<input aria-label={t.symbol} style={field} value={symbol} maxLength={15} disabled={busy} onChange={e => { setSymbol(e.target.value.toUpperCase()); invalidate(); }} /></label>
+            <label style={label}>{t.symbol}<input ref={symbolInput} aria-label={t.symbol} style={field} value={symbol} maxLength={15} disabled={busy} onChange={e => { setSymbol(e.target.value.toUpperCase()); invalidate(); }} /></label>
             <label style={label}>{t.bench}<select aria-label={t.bench} style={field} value={benchmark} disabled={busy} onChange={e => { setBenchmark(e.target.value); invalidate(); }}>
               <option value="SPY">{pick("SPY · S&P 500", "SPY · 标普500")}</option><option value="QQQ">{pick("QQQ · Nasdaq 100", "QQQ · 纳斯达克100")}</option><option value="IWM">{pick("IWM · Russell 2000", "IWM · 罗素2000")}</option>
             </select></label>
@@ -215,6 +218,11 @@ export default function RSPivotStudy() {
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 12 }}>{t.condition}</p>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>{t.pivot}</p>
         </section>
+        <RSPivotRotationMonitor hydrated={hydrated} selectDisabled={busy} onSelectSymbol={ticker => {
+          setSymbol(ticker); setBenchmark("SPY"); invalidate();
+          symbolInput.current?.focus();
+          symbolInput.current?.scrollIntoView?.({ block: "nearest" });
+        }} />
         <div role="note" style={{ padding: "12px 14px", borderLeft: "3px solid var(--warn)", background: "var(--panel)", fontSize: 12 }}>{t.warning}</div>
         {error && <div data-testid="rs-pivot-error" role="alert" style={{ ...container, borderColor: "var(--down)" }}>{error}</div>}
         {!report && !error && !busy && <section style={{ ...container, color: "var(--muted)", fontSize: 13 }}>{t.no}</section>}

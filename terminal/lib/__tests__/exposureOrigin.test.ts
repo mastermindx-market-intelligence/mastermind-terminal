@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  encodeExposureOrigin, exposureOriginForCompany, exposureOriginReturnHref, exposureOriginRosterState, exposureOriginStep,
+  encodeExposureOrigin, exposureOriginForCompany, exposureOriginForStep, exposureOriginReturnHref, exposureOriginRosterState, exposureOriginStep,
   isExposureOrigin, parseExposureOrigin, sectorOriginFromState, stripExposureOrigin, withExposureOrigin,
   type ExposureOrigin,
 } from "@/lib/exposureOrigin";
@@ -167,6 +167,30 @@ describe("Exposure origin envelope", () => {
     expect(exposureOriginForCompany(origin, "nvda", 0)).toEqual(origin);
     expect(exposureOriginForCompany(origin, "MSFT", 9)).toEqual(origin);
   });
+  it("preserves the original sector workspace after an atomic Exposure cohort step", () => {
+    const cohort = ["MU", "NXPI", "ADI"];
+    const selected = { ...DEFAULT_SECTOR_STATE, sector: "xlk", group: "semiconductors", company: "MU" };
+    const opener = { ...DEFAULT_SECTOR_STATE, workspace: "breadth" as const, sector: "xlf", theme: "light" as const };
+    const from = sectorOriginFromState({
+      state: selected, company: "MU", roster: cohort, asOf: "2026-10-30", contentHash: "hash12345678",
+      benchmark: "SPY", depthReturn: opener,
+    });
+    expect(from).not.toBeNull();
+    expect(from!.returnHref).toContain("sectorReturn=");
+    const next = exposureOriginForStep(from!, { company: "NXPI", index: 1 });
+    expect(next).not.toBeNull();
+    expect(next!.company).toBe("NXPI");
+    expect(next!.index).toBe(1);
+    expect(encodeExposureOrigin(next!)).not.toBeNull();
+    expect(next!.returnHref).toContain("sectorCompany=NXPI");
+    const outerBefore = new URLSearchParams(from!.returnHref.split("?")[1]).get("sectorReturn");
+    const outerAfter = new URLSearchParams(next!.returnHref.split("?")[1]).get("sectorReturn");
+    expect(outerBefore).not.toBeNull();
+    expect(outerAfter).toBe(outerBefore);
+    expect(exposureOriginForStep(from!, { company: "NXPI", index: 99 })).toBeNull();
+    expect(exposureOriginForStep(from!, { company: "nvda", index: 1 })).toBeNull();
+  });
+
   it("exposureOriginReturnHref renders an accepted envelope's address byte-identical to returnHref, always under the constant /discover? prefix", () => {
     expect(exposureOriginReturnHref(origin)).toBe(origin.returnHref);
     expect(exposureOriginReturnHref(origin).startsWith("/discover?")).toBe(true);

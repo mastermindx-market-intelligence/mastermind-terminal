@@ -1,0 +1,43 @@
+{
+  "branchHead": "f7276cf077b877a54509cba28ab247b5524d8530",
+  "capturedChildren": [
+    "pl6",
+    "vi",
+    "batch2",
+    "pine"
+  ],
+  "command": [
+    "node",
+    "e2e/tools/capture_ci_evidence.cjs"
+  ],
+  "completedAt": "2026-11-09T17:24:36.325452+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109171268-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "4307c34a4403a2cb0ad25d59e3e7dc2427ae37963ad2b917da370a0c598e687d"
+  },
+  "executionEnvironment": "owned local validation; not a GitHub Actions run",
+  "exit": 0,
+  "indexTreeAtStart": "9e47cd3f595f07410653b0c195add5fb50404c45",
+  "localDiagnosticAttempt": "1",
+  "localDiagnosticRunId": "20261109171268",
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nextLockAbsent": true,
+  "optionsAxisCaptureRequired": true,
+  "ownedPortsClosed": true,
+  "ownerReceipt": "docs/verification/pr1268-source-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109171268-1.json",
+  "ownerReceiptSha256": "9fe70d5f0d0043138ff84556d4cdeb4aa64ee8758c53b51375a8eecb78e78a32",
+  "ownerSharedDeadlineMinutes": 54,
+  "ownerState": "SELECTED",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr1268_complete_ci_owner_validation.v1",
+  "seconds": 685.51,
+  "sourceAfterSha256": "59e04117e5f48c189fcb5ee2fffb5618a0f1ea174c60a8035e4e3a99cb7f3913",
+  "sourceBeforeSha256": "59e04117e5f48c189fcb5ee2fffb5618a0f1ea174c60a8035e4e3a99cb7f3913",
+  "sourceEntries": 1937,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:13:10.810765+00:00",
+  "state": "FULL_OWNER_PATH_QUALIFIED_WITHIN_EXISTING_WORKFLOW_BUDGET",
+  "workflowBlob": "637c518ecf481d9af5224c21e93db83b00593cea",
+  "workflowCaptureMinutes": 55
+}

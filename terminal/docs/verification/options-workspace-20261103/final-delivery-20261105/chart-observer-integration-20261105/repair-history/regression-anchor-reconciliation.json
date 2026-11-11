@@ -1,0 +1,22 @@
+{
+  "at": "2026-11-05T10:46:06.448425+00:00",
+  "cause": "The first exact-diff regression used an assertion line that appears twice in the captured spec. Its immediate following comment uniquely identifies the one actual changed assertion.",
+  "repair": "Add that unchanged context to the exact whole-file comparison; keep the original failed attempt and add a bound-proof corruption negative.",
+  "files": [
+    {
+      "root": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3",
+      "before_sha256": "eda51a1001ff464431c9eab4520e82858b14e5c3d817b1c5d064841cf5fb34f5",
+      "after_sha256": "8cdfbdfa60da0cdbc8978ba4f5bbb2809a8e46e5d6ff87ab264ef01dffe250a9"
+    },
+    {
+      "root": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3",
+      "before_sha256": "eda51a1001ff464431c9eab4520e82858b14e5c3d817b1c5d064841cf5fb34f5",
+      "after_sha256": "8cdfbdfa60da0cdbc8978ba4f5bbb2809a8e46e5d6ff87ab264ef01dffe250a9"
+    },
+    {
+      "root": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree",
+      "before_sha256": "eda51a1001ff464431c9eab4520e82858b14e5c3d817b1c5d064841cf5fb34f5",
+      "after_sha256": "8cdfbdfa60da0cdbc8978ba4f5bbb2809a8e46e5d6ff87ab264ef01dffe250a9"
+    }
+  ]
+}

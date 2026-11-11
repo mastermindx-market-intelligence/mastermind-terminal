@@ -1,0 +1,851 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/options-exposure-workspace.spec.ts",
+      "e2e/options-exposure-surface-journey.spec.ts",
+      "--grep",
+      "(Main chart rejects a book corrected during navigation|synthetic exposure surface journey en|synthetic exposure saved theme cold return en)$",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 47468",
+      "url": "http://127.0.0.1:47468/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-exposure-surface-journey.spec.ts",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "synthetic exposure surface journey en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13410,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "overview: qualified book lands with a painted chart",
+                      "duration": 2628
+                    },
+                    {
+                      "title": "surface: select the 103 × Oct30 cell through the real field",
+                      "duration": 657
+                    },
+                    {
+                      "title": "handoff: the cell's own expiry and Gamma, never the aggregate",
+                      "duration": 359
+                    },
+                    {
+                      "title": "main chart: the exact bounded request requalifies as ready",
+                      "duration": 7837
+                    },
+                    {
+                      "title": "return: the same selection requalifies through the exact context",
+                      "duration": 1466
+                    }
+                  ],
+                  "startTime": "2026-11-10T04:28:06.502Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "synthetic-ma-paint-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-ma-paint-contract-json-03d03d2e50521e03de42e325fc380662f8fc5dc7.json"
+                    },
+                    {
+                      "name": "synthetic-ma-strip-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-ma-strip-contract-json-23e4b380f5f27b35d0ed9e51c7fb5cbf99291461.json"
+                    },
+                    {
+                      "name": "synthetic-surface-screen-geometry.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-surface-screen-geometry-json-65cea03f89b96707f7de8d5005266675582407c8.json"
+                    },
+                    {
+                      "name": "synthetic-main-chart-reveal.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-main-chart-reveal-json-248e89bac8096cd2d518022508134fa5bec40b3b.json"
+                    },
+                    {
+                      "name": "synthetic-main-chart-owner.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-main-chart-owner-json-1b904546527863401106f9677212e8f8a83b1d82.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-reference-badge-contract-json-2318cd5962dd3e926704c741d5e4a8622c2e0c06.json"
+                    },
+                    {
+                      "name": "synthetic-network-isolation.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-network-isolation-json-a98aa29905e1ea9ce64beed63206479c402d0b44.json"
+                    },
+                    {
+                      "name": "synthetic-exposure-surface-context.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-exposure-surface-context-json-670b34b84ec4d4dad15f846718931ab0da0eb200.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "75815a990560dfe307f4-3bd8936d87163e020e8a",
+          "file": "options-exposure-surface-journey.spec.ts",
+          "line": 720,
+          "column": 7
+        },
+        {
+          "title": "synthetic exposure saved theme cold return en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 20455,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T04:28:26.123Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "synthetic-light-control-s14-first-intent.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/synthetic-light-control-s14-first-intent-json-e40a0d6364ccf44deb22fa56191983504b9498c0.json"
+                    },
+                    {
+                      "name": "synthetic-light-control-s14-dark-control.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/synthetic-light-control-s14-dark-control-json-ac2ada89700b7f1641128a14e6d4828c3f1d47a6.json"
+                    },
+                    {
+                      "name": "saved-theme-cold-return.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/saved-theme-cold-return-json-5d38d1d49bd64555969a21cee4f27b9f6678225d.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "75815a990560dfe307f4-f423cd036eb5bd0e2f19",
+          "file": "options-exposure-surface-journey.spec.ts",
+          "line": 1413,
+          "column": 7
+        },
+        {
+          "title": "synthetic exposure surface journey en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9522,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "overview: qualified book lands with a painted chart",
+                      "duration": 1427
+                    },
+                    {
+                      "title": "surface: select the 103 × Oct30 cell through the real field",
+                      "duration": 356
+                    },
+                    {
+                      "title": "handoff: the cell's own expiry and Gamma, never the aggregate",
+                      "duration": 237
+                    },
+                    {
+                      "title": "main chart: the exact bounded request requalifies as ready",
+                      "duration": 6005
+                    },
+                    {
+                      "title": "return: the same selection requalifies through the exact context",
+                      "duration": 1132
+                    }
+                  ],
+                  "startTime": "2026-11-10T04:28:53.464Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "synthetic-ma-paint-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-ma-paint-contract-json-598057eb55310ba112efa0d08cf6660e8ac63213.json"
+                    },
+                    {
+                      "name": "synthetic-ma-strip-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-ma-strip-contract-json-b1b6bbc1df774a87522bb40434a0e6dd2b565db3.json"
+                    },
+                    {
+                      "name": "synthetic-surface-screen-geometry.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-surface-screen-geometry-json-c37542a48d8d05c6dda2df0b46b904afddd9551a.json"
+                    },
+                    {
+                      "name": "synthetic-main-chart-reveal.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-main-chart-reveal-json-8d470b4f81f0e9a12438c55a1714ebde7cdf6c19.json"
+                    },
+                    {
+                      "name": "synthetic-main-chart-owner.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-main-chart-owner-json-fe12f01359e1525fea74ed60f7c5fc3bd7ca4b8b.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-contract-json-f86e40298a2f11d0fcf82f6ee49d9afa4e5f200a.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-chart-reference-fullscreen.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-chart-reference-fullscreen-json-a53f380425fcf8cff794d68217ad1536cf530111.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-chart-reference-exit.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-chart-reference-exit-json-99ffb7ee5fee249e54bcc5a728814abea85eae6d.json"
+                    },
+                    {
+                      "name": "synthetic-network-isolation.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-network-isolation-json-f2cf416cc09fb04eec3c9f02433986ed70062110.json"
+                    },
+                    {
+                      "name": "synthetic-exposure-surface-context.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-exposure-surface-context-json-5688ee923925068ca466c3a0448c68f36845e641.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "75815a990560dfe307f4-cb5f1a62aeb10e3b59f0",
+          "file": "options-exposure-surface-journey.spec.ts",
+          "line": 720,
+          "column": 7
+        },
+        {
+          "title": "synthetic exposure saved theme cold return en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14852,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T04:29:03.291Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "synthetic-light-control-s14-first-intent.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/synthetic-light-control-s14-first-intent-json-f636433dd8001caa3b03b03fdb730deffaecb68c.json"
+                    },
+                    {
+                      "name": "synthetic-light-control-s14-dark-control.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/synthetic-light-control-s14-dark-control-json-bcec19d437cd23edfe56411642a6307814ce03d3.json"
+                    },
+                    {
+                      "name": "saved-theme-cold-return.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/saved-theme-cold-return-json-4835e79fca400e778727d95a85c940f9fa9b8a38.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "75815a990560dfe307f4-9e358ed2b4116e7c6696",
+          "file": "options-exposure-surface-journey.spec.ts",
+          "line": 1413,
+          "column": 7
+        },
+        {
+          "title": "synthetic exposure surface journey en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16950,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "overview: qualified book lands with a painted chart",
+                      "duration": 1861
+                    },
+                    {
+                      "title": "surface: select the 103 × Oct30 cell through the real field",
+                      "duration": 579
+                    },
+                    {
+                      "title": "handoff: the cell's own expiry and Gamma, never the aggregate",
+                      "duration": 504
+                    },
+                    {
+                      "title": "main chart: the exact bounded request requalifies as ready",
+                      "duration": 12241
+                    },
+                    {
+                      "title": "return: the same selection requalifies through the exact context",
+                      "duration": 1370
+                    }
+                  ],
+                  "startTime": "2026-11-10T04:29:26.064Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "synthetic-ma-paint-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-contract-json-f32654ba4b3ae9e09800ed6f4b9ca528bca08b3b.json"
+                    },
+                    {
+                      "name": "synthetic-ma-strip-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-contract-json-1b966676200fe0481794ccf256b62297d629fded.json"
+                    },
+                    {
+                      "name": "synthetic-ma-paint-narrow320.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-narrow320-json-8c729d2d01e2cbe6ba7eab520cbfae64b50399b5.json"
+                    },
+                    {
+                      "name": "synthetic-ma-strip-narrow320.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-narrow320-json-0e714ca3246c490cfc18efd488bcf0d4f28a1b2f.json"
+                    },
+                    {
+                      "name": "synthetic-ma-paint-restored390.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-restored390-json-6600b516c0e87ac4bf8a2c34cbf00e80ce96250e.json"
+                    },
+                    {
+                      "name": "synthetic-ma-strip-restored390.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-restored390-json-abcbcdc90935bc1691864c6e6aacd052d5ff232b.json"
+                    },
+                    {
+                      "name": "synthetic-surface-screen-geometry.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-surface-screen-geometry-json-f72d6f94812adacc822d7e27939573ad8077e042.json"
+                    },
+                    {
+                      "name": "synthetic-surface-320-geometry.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-surface-320-geometry-json-1b5c4cba2066f53b165aa94ae6a4b49eda229529.json"
+                    },
+                    {
+                      "name": "synthetic-main-chart-reveal.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-main-chart-reveal-json-df0dd4d6f2f907cce0c3496a12e5d13eedc93930.json"
+                    },
+                    {
+                      "name": "synthetic-main-chart-owner.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-main-chart-owner-json-d7dd8cda0e5a93e3f6d473bb4e309f1638fc8205.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-contract.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-contract-json-0a4132e34893d1c8d27ad2ddecc9580625ecef29.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-chart-reference-fullscreen.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-fullscreen-json-ece51ae46b5862ca83c0450fab4c5491d3a260a0.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-chart-reference-exit.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-exit-json-64800b569f25f847857f39d825c18e8f5fab0579.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-narrow320.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-narrow320-json-a5a90a4cce06989b244ef66900abc4131f56106d.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-chart-reference-narrow320-fullscreen.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-narrow320-fullscreen-json-7c4d5860cb145e219ed351d238c30fefb5c4fa00.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-chart-reference-narrow320-exit.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-narrow320-exit-json-d63fff493fdf4debc5578ae6b261eb29f7058c02.json"
+                    },
+                    {
+                      "name": "synthetic-reference-badge-restored390.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-restored390-json-a1013e98b1e3d4957771b4f3460069700038d0d8.json"
+                    },
+                    {
+                      "name": "synthetic-network-isolation.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-network-isolation-json-e7835b909f3c05c42e17be316985cae8212520f0.json"
+                    },
+                    {
+                      "name": "synthetic-exposure-surface-context.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-exposure-surface-context-json-c3a977a00df3645bca6da1231eb6185016faf90d.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "75815a990560dfe307f4-8b3a88e7a20e1f136416",
+          "file": "options-exposure-surface-journey.spec.ts",
+          "line": 720,
+          "column": 7
+        },
+        {
+          "title": "synthetic exposure saved theme cold return en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 20535,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T04:29:43.514Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "synthetic-light-control-s14-first-intent.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/synthetic-light-control-s14-first-intent-json-e6c2db755948997ff6fb5bc1bb45b651ded7ca63.json"
+                    },
+                    {
+                      "name": "synthetic-light-control-s14-dark-control.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/synthetic-light-control-s14-dark-control-json-9a0eb3955cf0db717feaae9f26158c9411261a02.json"
+                    },
+                    {
+                      "name": "saved-theme-cold-return.json",
+                      "contentType": "application/json",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/test-results/pr768-protected-owner-browser-supplement/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/saved-theme-cold-return-json-447028211489d8bda9ad26df31003afc9974ff10.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "75815a990560dfe307f4-10d5d8fdf9a021092c0c",
+          "file": "options-exposure-surface-journey.spec.ts",
+          "line": 1413,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "options-exposure-workspace.spec.ts",
+      "file": "options-exposure-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Main chart rejects a book corrected during navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T04:28:46.602Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-aceae79c50e0625a5576",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 12,
+          "column": 5
+        },
+        {
+          "title": "Main chart rejects a book corrected during navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7356,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T04:29:18.169Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-446c0cff0d414cde1c11",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 12,
+          "column": 5
+        },
+        {
+          "title": "Main chart rejects a book corrected during navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9275,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T04:30:04.105Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-e4df888c7e7e833db938",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 12,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-10T04:27:40.448Z",
+    "duration": 153376.578,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

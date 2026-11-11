@@ -1,0 +1,89 @@
+{
+  "schema": "persistent_sector_implementation_evidence/v1",
+  "mission": "https://github.com/mastermindx-market-intelligence/Mastermind/issues/1202",
+  "base_commit": "9dbd250cb273d57d714892602acb0fd7d2df498e",
+  "operation_id": "persistent-sector-leadership-ui-20261107-c4",
+  "sources": {
+    "terminal/lib/sectorDossiers.ts": {
+      "bytes": 45096,
+      "sha256": "712e88e7f72d6601a4f2bddc25186f98e963b50ae443f49be75db6d9b178fcb4"
+    },
+    "terminal/components/sector-intelligence/SectorLeadershipDossier.tsx": {
+      "bytes": 38955,
+      "sha256": "620f5b41c77be88cd7f4a393134c8e0fef27921d144f7fa6f7fb376932e949ce"
+    },
+    "terminal/lib/__tests__/sectorDossiers.test.ts": {
+      "bytes": 71677,
+      "sha256": "6ef61bab84016b6930c630733801c014ea2c9da58ef60694362f42b732152c25"
+    },
+    "terminal/lib/__tests__/sectorLeadershipDossier.test.tsx": {
+      "bytes": 58883,
+      "sha256": "881b52c2579a5f27581c2706e935a2b42e60f04a936cf8a2d0c08776c2df0b53"
+    },
+    "terminal/e2e/sector-leadership-dossier.spec.ts": {
+      "bytes": 47955,
+      "sha256": "2232d0bb0ff35aca7a97667e20948721614f0c197a9bbdfbbda932a04db61b1e"
+    },
+    "terminal/e2e/sector-portfolio-continuity.spec.ts": {
+      "bytes": 50503,
+      "sha256": "686ab632b0e78f2656bc2e911f5955713af94e22d813e581e7ead5aeb8774022"
+    }
+  },
+  "corrections": [
+    "Refuse a relative return without a published benchmark, and an absolute-null/relative-present cell unless absolute percentage publication overflowed.",
+    "Refuse local window-block or insufficient-history reasons in a normal window and refuse year-zero session dates.",
+    "Require two usable endpoint observations for published returns and coherent counts across nested 5/20/63 windows.",
+    "Use actual pure-producer partial packets in parser, component and both browser journeys.",
+    "Render very large finite percentages in scientific notation to retain their exponent without horizontal overflow."
+  ],
+  "qualification": {
+    "initial_semantic_counterexamples": {
+      "failed_before": 6,
+      "log_sha256": "f17275cbccb7969de3c211535106b74c96926f1c29006d9fd3780850cc20e8b5"
+    },
+    "additional_coverage_counterexamples": {
+      "failed_before": 8,
+      "log_sha256": "cab93fa0745b643aeed8d22a7d531433235569e21f8ad6b0fb7b031882b860b5"
+    },
+    "final_focused_unit": {
+      "passed": 157,
+      "failed": 0,
+      "log_sha256": "a2d0c3a93402ef1fa3eb2f2366f55573e532a84301aa268073c31955c28384d5"
+    },
+    "layout_regression": {
+      "failed_before": 3,
+      "passed_before": 3,
+      "fail_log_sha256": "305a7c8cae70fdbb693d9f55e3831f1b772e2a7cc9698f4863b495c87db39fc5",
+      "passed_after": 6,
+      "pass_log_sha256": "454cfbe4895f340a364c38b124643d60bd3b0b79cb5a49ab81d2a650aba5a0fc",
+      "scope": "Actual existing Sector and Portfolio routes, partial producer payload, desktop/tablet/mobile; before the final coverage-only parser rejection addition, which is covered by final unit qualification."
+    },
+    "final_checks": {
+      "typecheck": {
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "lint": {
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "diff_check_exit": 0,
+    "prior_base_qualification": {
+      "unit_passed": 237,
+      "browser_passed": 180,
+      "source_commit": "9dbd250cb273d57d714892602acb0fd7d2df498e",
+      "receipt": "docs/evidence/persistent-sector-exact-windows-20261107.json"
+    },
+    "actual_producer_sha256": "43b1cf3a19d3f73dc6a29a319bcc81f3745cda153c3419e492396b48b9068c61",
+    "ui_oracle_sha256": "30e80601cb182ce2fe64e6105af42ffe665de4cf1f179e53b208469ec1c5d2b3",
+    "generated_type_recovery": "The truncated Next development types were preserved with verified copies and regenerated outside source. Final typecheck passed; no source typing relaxation."
+  },
+  "delivery": {
+    "authenticated_production": false,
+    "deployed": false,
+    "protected_merged": false,
+    "point_in_time_admitted": false,
+    "trade_authority": false
+  }
+}

@@ -194,8 +194,8 @@ export function IntelligenceWorkspaceShell({ open, symbol, zh, tab, onTabChange,
       ><span /></div>}
       <header className={styles.header}>
         <div className={styles.identity}>
-          <div className={styles.kicker}><span className={styles.symbol}>{symbol}</span><span>{pick(zh, "Workspace", "工作区")}</span></div>
-          <h2 id={`${WORKSPACE_ID}-title`}>{pick(zh, "Intelligence", "情报")}<span className={styles.titleDot} /></h2>
+          <div className={styles.kicker}><span className={styles.symbol}>{symbol}</span></div>
+          <h2 id={`${WORKSPACE_ID}-title`}>{pick(zh, "Intelligence", "情报")}</h2>
         </div>
         <div className={styles.headerActions}>
           {!mobile && <button className={styles.iconButton} aria-label={expanded ? (pick(zh, "Compact view", "紧凑视图")) : (pick(zh, "Expand workspace", "展开工作区"))}

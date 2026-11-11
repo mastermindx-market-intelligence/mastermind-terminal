@@ -1,0 +1,43 @@
+{
+  "actualNativeCases": 126,
+  "expectedHead": "f3f5e88b56275afac0363577fe683cc42cb8763d",
+  "files": {
+    "capture-execution.json": "64afae346e3d0744a9f32691a784857b5108ac838d076f3aa35d583b2b9c0ae3",
+    "capture-sources-after.json": "598aa3572f3455417814e17fc4c759cd180525a15f4de13523f9e65bd99163eb",
+    "capture-sources-before.json": "598aa3572f3455417814e17fc4c759cd180525a15f4de13523f9e65bd99163eb",
+    "capture.log": "44e96dce0a060d4855019e6f3dd3d5f339e6f3cc1ec1f2233b95338f11994eb2",
+    "history.json": "add32c4b8d2ba20a6f575785bb61342e5ea5e3acf877c088e926d2b41dfe6dd2",
+    "prior-pr-sha256.json": "bbaf5592ef15e11b328faf5cffdb91567098db583b9865d2e44d20b5d596f94a",
+    "prior-protected-sha256.json": "c726ac1938cc85bf005b71ba01e0cec0a00dc57ae4ca168c1724a6200ea275bf",
+    "source-contract.json": "5ba0410784e6230d84c62f122e7efbbee0685d94f237853ffd1a00dc7b6e7bfa",
+    "validation.json": "d01a40d5ed32db6a3c67866ed6d4dbd0279b61e0cedacc06c130e985a0f162da"
+  },
+  "nativeManifestSha256": "7d6c774af5298ca5b0ee4cfc853ef0df19ac40cf2941675897408b19c1f3682c",
+  "nextLockAbsent": true,
+  "observedSourceFiles": 3389,
+  "portClosed": true,
+  "producerSha256": "55006c80846443c140492cf426861b4a4e8f80c87d4413a435846bc8fb890296",
+  "protectedMaster": "b387616013f38cce9e467cc7da7b87fd2672718c",
+  "qualifiedAt": "2026-11-09T13:23:49.455933+00:00",
+  "retainedNestedHistoricalFiles": 43,
+  "schema": "terminal_pr650_qualification.v1",
+  "sourceFiles": {
+    ".github/workflows/ci.yml": "d619eb24f078014f84edfc800c6edea86aa8de7a1950a9ee1738b5a2c4189660",
+    "terminal/components/eodcontext/eodStrings.ts": "314f8302ba75e220ab0ea920a38aa04ddd456f3285fde060f0b71f7694a62c38",
+    "terminal/components/flowdesk/FlowFreshnessReceipt.tsx": "5dab3ea3ebef1bc310cc652ffa5d3fc133161bb13485cb78dde5fe82c9732b65",
+    "terminal/components/flowdesk/InspectorPane.tsx": "6dbf18a47196cb7090f16f33c6a821767eeb025cef722bbd1704d7c1f425c498",
+    "terminal/components/prophet/prophetStrings.ts": "b346862f2adb654a6c960b491df53fdc2bbaf3edeb7f9d7ee61648cfbc0752fc",
+    "terminal/e2e/flow-freshness-responsive.spec.ts": "8a6206aef3c1185d0db66231c6a43db39ce7c24818eb3c21d7d021e7a2b6e66c",
+    "terminal/e2e/options-ia-responsive.spec.ts": "9d2340c5c5290e5bcd23419b893ab615e6f5320258f7d0ed37a8520f792d86a1",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "e68cbbbd929e26d3d9801295fbc4e250ee9ffe5d64cb2dafeafb2de0ef8330da",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": "f2e2011c51f10b6b8f6f21eb26577b6afb2a9d62c2508a4ac50ba191fd8777af",
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "55006c80846443c140492cf426861b4a4e8f80c87d4413a435846bc8fb890296",
+    "terminal/lib/__tests__/__snapshots__/prophetOriginationDisclosure.test.ts.snap": "11f036eb6731f4613f25d8c82c1a6e4231dbe7cde330b594c0657f1cd87fab49",
+    "terminal/lib/__tests__/eodCaptureIndicatorGate.test.ts": "4b9caa2bbb4c5cf4a704a8b6656ef9f926012837f93a24371720e1e94af16b2b",
+    "terminal/lib/__tests__/eodContextBeltLoadFailureState.test.tsx": "79e16a0629f8bacb78064314050578c816c6d6ddf8f8e8faa2c7e59a9e2683c9",
+    "terminal/lib/__tests__/uiCopyHumanization.test.ts": "1286c4a3730f39f2b800778c680c1a4e65a7096b43baacae55f4c3ee4d1daa43",
+    "terminal/scripts/ci/plan-evidence-capture.cjs": "71bde9152f519c528a555c5f51712af1e79b0b8670b8549dc6d0c83c568493aa",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": "79dd09718f919e2325c2172df942142e0fb297a75ba18ce7f6ab173d387447df"
+  },
+  "sourceStable": true
+}

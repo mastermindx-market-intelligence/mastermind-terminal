@@ -1,0 +1,177 @@
+{
+  "schema": "mastermind.source_qualification.v1",
+  "mission": "Persistent Sector Leadership / Mastermind #1202",
+  "pr": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1333",
+  "source_law_pin": "5f8c13da926011fb5fdc8cea21287b532ac968db",
+  "parent_preimage_head": "d5315cd285d88a1700689e815677b6128cba77a4",
+  "returned_input": {
+    "commit": "57815561e225a8b5a5df486af76be207f46405be",
+    "tree": "7523564a66d6d77095a7b21c4cacd48c77882e39",
+    "response_sha256": "c14b3a2f346519d8126f425e9d0cfa4fa5cf074daa8329ff21b1432fb8cb4bc1",
+    "disposition": "integrated with the parent corrections below; original return not independently accepted as complete"
+  },
+  "source": [
+    {
+      "path": "terminal/components/sector-intelligence/SectorLeadershipDossier.module.css",
+      "bytes": 8404,
+      "sha256": "66ca8eaa25bf9e7e3392a29fcc0a58c4fa2e2b0049c873e930084fc639b460fc"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorLeadershipDossier.tsx",
+      "bytes": 38780,
+      "sha256": "e548e1e1d712c6f10a8eed35c82b4ccb3489590862017570752984c6de196617"
+    },
+    {
+      "path": "terminal/e2e/sector-leadership-dossier.spec.ts",
+      "bytes": 35962,
+      "sha256": "d7cec8da150069d620126413a2e65a3257af19a097bd41b1e09322900cdf0cc3"
+    },
+    {
+      "path": "terminal/e2e/sector-portfolio-continuity.spec.ts",
+      "bytes": 38501,
+      "sha256": "13106acc3f1cccf9ec4284d335f35d59cabea976b968b87250f1dfae6e8cc5c2"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorDossiers.test.ts",
+      "bytes": 44763,
+      "sha256": "a57b6d61da9727a1c0c5060863d98bce04a5f40554e53dcd737c694574702823"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorLeadershipDossier.test.tsx",
+      "bytes": 46699,
+      "sha256": "12edf3200f652c8ebb42f87d50b2c9e81692afb6447e9bef468a725a0830726d"
+    },
+    {
+      "path": "terminal/lib/sectorDossiers.ts",
+      "bytes": 43464,
+      "sha256": "81136d36c36cdea82bb6fe7619647b894d26d48c319078a91e263788a016a2a5"
+    },
+    {
+      "path": "terminal/lib/sectorIntelligenceLex.ts",
+      "bytes": 54465,
+      "sha256": "7dedd1ef5754c35b3b44885fe794ddd2d799338e84ce291d97838cf2326aacdc"
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/sector_window_measurements.complete.v1.json",
+      "bytes": 14961,
+      "sha256": "6b33895711742dee8cb1366baab5572a6aef31d6ca9ca6d0f81e32ab879e6dae"
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/sector_window_measurements.unavailable.v1.json",
+      "bytes": 15421,
+      "sha256": "e4419e3a4d7dabce4ad4fd760c1fc37d05b8fe1111102ac5b0bb13b1a980f17e"
+    }
+  ],
+  "parent_corrections": [
+    "Match accepted Python producer receipt ASCII escaping and default separators before cloning.",
+    "Enforce per-container length <=256 instead of a total container count.",
+    "Use conservative decoded-number byte bounds; exact original Python spelling is not recoverable.",
+    "Refuse array accessors, custom iterators, sparse entries and extra properties without invoking them.",
+    "Clarify ordinary all-null copy as no overall refusal cause, preserving individual causes.",
+    "Exercise the real mounted theme controls after detail/evidence readiness, retaining workspace/sector/group and values in EN/ZH."
+  ],
+  "producer_oracle": {
+    "source_sha256": "43b1cf3a19d3f73dc6a29a319bcc81f3745cda153c3419e492396b48b9068c61",
+    "cases": 17,
+    "method": "Actual accepted Macro _window_receipt with default json.dumps encoding",
+    "examples": [
+      {
+        "case": "ASCII boundary",
+        "accepted_bytes": 16384,
+        "refused_bytes": 16385
+      },
+      {
+        "case": "3000 BMP characters",
+        "refused_bytes": 18009
+      },
+      {
+        "case": "257 nested array or object items",
+        "refused": "per-container length"
+      }
+    ]
+  },
+  "qualification": {
+    "regressions_before": {
+      "failed": 9,
+      "passed": 6,
+      "skipped_unselected": 78,
+      "log_sha256": "a4da4f9fe499bacd723f2d60ecbd86f6fca360cc915a2b4d0dcfbfffe1b29bb7"
+    },
+    "unit": {
+      "passed": 237,
+      "files": 8,
+      "failed": 0,
+      "log_sha256": "56faa36b09b54d522f8d691e87487b1e49837667d5cbe6854c17a1d587ef63ac"
+    },
+    "browser": {
+      "passed": 180,
+      "failed": 0,
+      "projects": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ],
+      "specs": [
+        "sector-leadership-dossier.spec.ts",
+        "sector-portfolio-continuity.spec.ts"
+      ],
+      "actual_theme_control_cases": 6,
+      "log_sha256": "48ebb39b87991b32d2b48062487ca1df3adeeb3eb70156ffb10d356f1f522541",
+      "screenshots_retained": 84,
+      "visual_samples_reviewed": [
+        "desktop-exact-overview-en-light.png",
+        "mobile-exact-narrow-320-zh-dark.png"
+      ]
+    },
+    "static": [
+      {
+        "step": "vitest",
+        "exit_code": 0,
+        "sha256": "56faa36b09b54d522f8d691e87487b1e49837667d5cbe6854c17a1d587ef63ac"
+      },
+      {
+        "step": "typegen",
+        "exit_code": 0,
+        "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+      },
+      {
+        "step": "tsc",
+        "exit_code": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "step": "eslint",
+        "exit_code": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "step": "diff-check",
+        "exit_code": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "retained_evidence": "/Volumes/Mastermind/evidence/persistent-sector-leadership-20261106-c4/returned-source-leaves/terminal-exact-final",
+  "scope": {
+    "canonical_windows": [
+      5,
+      20,
+      63
+    ],
+    "legacy_windows": [
+      21,
+      63
+    ],
+    "authority_flags": false,
+    "producer_fixtures_unchanged": true,
+    "natural_generation": false,
+    "authenticated_production": false,
+    "deployed": false
+  },
+  "remaining": [
+    "Exact-head natural required CI and protected delivery",
+    "Existing production manager-environment/transport gate on its original carrier",
+    "Natural Macro generation and authenticated end-to-end acceptance",
+    "Current membership/mechanism and earlier admissible-cut evidence"
+  ]
+}

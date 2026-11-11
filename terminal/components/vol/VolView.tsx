@@ -304,8 +304,10 @@ export function VolView({ liveSpot }: { liveSpot?: LiveSpotStamp | null } = {}) 
   );
 
   // ── asof chip (the freshness truth on this nightly surface) ────────────────
-  const asofDate = (payload?.asof ?? "").slice(0, 10);
-  const age = asofDate ? sessionsOld(asofDate) : 0;
+  // The chip and the age read the validated day (`volIsoDay`), the same day every other
+  // source-clock render uses: a malformed asof (2026-02-30, 2026-13-45) is no asof.
+  const asofIso = volIsoDay((payload?.asof ?? "").slice(0, 10));
+  const age = asofIso ? sessionsOld(asofIso) : 0;
   const stale = age > STALE_SESSIONS;
 
   // ── Panel A derived bits ───────────────────────────────────────────────────
@@ -419,9 +421,9 @@ export function VolView({ liveSpot }: { liveSpot?: LiveSpotStamp | null } = {}) 
           </datalist>
         </div>
         <div style={CONTROLS_RIGHT}>
-          {asofDate && (
+          {asofIso && (
             <span style={stale ? { ...ASOF_CHIP, color: "var(--warn)", borderColor: "var(--warn)" } : ASOF_CHIP}>
-              {t("asofChip").replace("{date}", asofDate)}
+              {t("asofChip").replace("{date}", asofIso)}
               {stale && (
                 <span style={{ marginLeft: 5, fontWeight: 700 }}>
                   · {t("asofStaleAge").replace("{n}", String(age))}

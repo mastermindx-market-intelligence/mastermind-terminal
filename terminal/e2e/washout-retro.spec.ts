@@ -23,8 +23,8 @@ import { markerTooltipCopy, retroLegendCopy, washoutOverrideCopy } from "../lib/
 // question "would today's rule have entered here?" is an entry question, and the operator ruled
 // the chart face stays clean. That makes the disclosure entirely a CARD responsibility, so the
 // two claims this suite is really defending are:
-//   (a) the card legend (`.sd-sig-legend`) renders whenever a re-marked fire is in the visible
-//       list and NOT otherwise — asserted against `retroLegendCopy` itself so it cannot drift,
+//   (a) the card legend (`.sd-sig-legend`) renders whenever a re-marked fire is in the full source
+//       history, across filters and pages — asserted against `retroLegendCopy` itself so it cannot drift,
 //       with a second fixture as the control. It is the only place a reader is told that a star
 //       on the tape is a counterfactual, so it is pinned harder than anything else here.
 //   (b) #2 never reaches the verdict: the rail card is anchored by #3 alone, and a chart
@@ -294,7 +294,7 @@ async function readMarkers(
   at: { plain: string; retro: string; waived: string },
 ): Promise<Record<"plain" | "retro" | "waived", MarkerRead | null>> {
   return page.locator("[data-sig-layer]").first().evaluate((svg, dates) => {
-    const groups = [...svg.querySelectorAll("g")];
+    const groups = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')];
     const textsOf = (g: Element) => [...g.querySelectorAll("text")].map((t) => t.textContent ?? "");
     const titleOf = (g: Element) => g.querySelector("title")?.textContent ?? "";
     const read = (g: Element | undefined): MarkerRead | null => {
@@ -328,7 +328,7 @@ async function readMarkers(
  *  are legible side by side, so the receipt has to show them side by side. */
 async function cropThreeMarkers(page: Page, path: string) {
   const clip = await page.locator("[data-sig-layer]").first().evaluate((svg, dates) => {
-    const groups = [...svg.querySelectorAll("g")];
+    const groups = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')];
     const titleOf = (g: Element) => g.querySelector("title")?.textContent ?? "";
     const wanted = dates
       .map((d) => groups.find((g) => titleOf(g).startsWith(`${d} ·`)))
@@ -553,6 +553,13 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   // than the row suffix explains nothing
   await expect(legend).toContainText(zh ? "（事后重标）" : "(retro)");
 
+  // The chart disclosure remains visible when a list filter hides the retro rows.
+  await activity.getByRole("button", { name: zh ? "离场" : "Exits", exact: true }).click();
+  await expect(rows).toHaveCount(0);
+  await expect(legend).toBeVisible();
+  await activity.getByRole("button", { name: zh ? "全部" : "All", exact: true }).click();
+  await expect(rows).toHaveCount(3);
+
   // row 2 — the plain refusal, untouched: BLOCKED badge, "not an entry", hollow
   const blockedRow = rows.nth(2);
   await expect(blockedRow.locator(".sd-sig-badge")).toHaveText(zh ? "已拦截" : "BLOCKED");
@@ -639,7 +646,7 @@ test("a slice that lands after the ready edge draws its refusal into the same ge
 
   const wrap = page.locator('.chart-wrap[data-slice-symbol="COST"]').first();
   const refusal = page.locator('[data-sig-layer] circle[fill="none"]');
-  const markerGroups = page.locator("[data-sig-layer] g");
+  const markerGroups = page.locator('[data-sig-layer] [data-price-pane-local="signals"] > g');
   const chip = page.locator(".statusline > .mm").first().locator(":scope > span");
   const readyEvents = () => page.evaluate(() =>
     ((window as Window & { __mmVisualReadyEvents?: VisualReadyDetail[] }).__mmVisualReadyEvents ?? [])

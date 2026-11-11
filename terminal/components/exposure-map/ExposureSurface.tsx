@@ -7,9 +7,9 @@
  */
 import { useMemo, useRef, useState } from "react";
 import { useChartWidth, thinLabels, MIN_CHART_H } from "../charts/svgChart";
-import { buildExposureSurface, daysToExpiry, projectSurfacePoint, tierBoundsMn,
-  SURFACE_ELEVATIONS, SURFACE_EXPIRY_CAPS, SURFACE_WINDOWS,
-  type ExposureSurface, type IsoFrame, type SurfaceCell, type SurfaceMode } from "../../lib/exposureSurface";
+import { applySurfaceCamera, buildExposureSurface, daysToExpiry, fitSurfaceCamera, projectSurfacePoint,
+  surfaceSpotRow, tierBoundsMn, SURFACE_ELEVATIONS, SURFACE_EXPIRY_CAPS, SURFACE_NO_BOX, SURFACE_WINDOWS,
+  type ExposureSurface, type IsoFrame, type SurfaceCell, type SurfaceLabelBox, type SurfaceMode, type SurfaceSceneItem } from "../../lib/exposureSurface";
 import type { ExposureLens, QualifiedProjection } from "../../lib/exposureMapProjection";
 import { exposureSurfaceT } from "./exposureSurfaceStrings";
 import styles from "./ExposureSurface.module.css";
@@ -33,6 +33,18 @@ const tierRanges = (bounds: number[]): string[] => {
   const d = bounds.map((b) => Math.max(1, Math.round(b)));
   return [`≥ ${d[0]}`, ...d.slice(1).map((b, i) => `${b}–${d[i]! - 1}`)];
 };
+/** Conservative pixel boxes for the fixed-size labels the camera fits:
+ * ticks and the spot label render at 10px monospace (padded to 7px advance),
+ * the focus chip keeps its existing width formula. Fonts are never scaled. */
+const TICK_CHAR_PX = 7;
+const strikeBox = (text: string): SurfaceLabelBox => ({ dxMin: 6, dyMin: -7, dxMax: 6 + text.length * TICK_CHAR_PX, dyMax: 5 });
+const expiryBox = (text: string): SurfaceLabelBox => {
+  const half = (text.length * TICK_CHAR_PX) / 2 + 1;
+  return { dxMin: -half, dyMin: 4, dxMax: half, dyMax: 16 };
+};
+const spotBox = (text: string): SurfaceLabelBox => ({ dxMin: 6, dyMin: -16, dxMax: 6 + text.length * TICK_CHAR_PX, dyMax: -4 });
+const focusBox = (w: number): SurfaceLabelBox => ({ dxMin: -w / 2, dyMin: -26, dxMax: w / 2, dyMax: -8 });
+const ABSENT_BOX: SurfaceLabelBox = { dxMin: -3, dyMin: -3, dxMax: 3, dyMax: 3 };
 
 export interface ExposureSurfaceProps {
   projection: QualifiedProjection | null;
@@ -215,7 +227,9 @@ function SurfaceField({ surface, geo, width, t, zh, mode, spotPlane, focus, onSe
 }) {
   const { frame, h, cols, rows } = geo;
   const cx = (cols - 1) / 2, cy = (rows - 1) / 2;
-  const pt = (c: number, r: number, height: number) => projectSurfacePoint(c - cx, r - cy, height, frame);
+  // Raw world points keep the pure projection's own centring; the camera maps
+  // them into the measured viewBox exactly once, for every element.
+  const rawPt = (c: number, r: number, height: number) => projectSurfacePoint(c - cx, r - cy, height, frame);
   const colOf = new Map(surface.expiries.map((e, i) => [e, i] as const));
   const rowOf = new Map(surface.strikes.map((s, i) => [s, i] as const));
   const poly = (ps: { x: number; y: number }[]) => ps.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
@@ -224,27 +238,51 @@ function SurfaceField({ surface, geo, width, t, zh, mode, spotPlane, focus, onSe
   const painted = surface.cells.map((cell) => {
     const c = colOf.get(cell.expiry) ?? 0, r = rowOf.get(cell.strike) ?? 0;
     const hgt = surface.bookMaxAbsMn > 0 && cell.valueMn != null ? Math.abs(cell.valueMn) / surface.bookMaxAbsMn * frame.heightPx : 0;
-    return { cell, c, r, hgt, depth: projectSurfacePoint(c - cx + 0.5, r - cy + 0.5, 0, frame).depth };
+    const sel = !!focus && focus.strike === cell.strike && focus.expiry === cell.expiry;
+    return { cell, c, r, hgt, sel, depth: projectSurfacePoint(c - cx + 0.5, r - cy + 0.5, 0, frame).depth };
   }).sort((a, b) => a.depth - b.depth);
+  // Reference-spot plane at the CELL-CENTRE row coordinate: strike index i
+  // owns centre i+0.5, so the pt() pass below centres it exactly once.
+  const spot = surface.referenceSpot;
+  const rSpot = spot != null && surface.strikes.length ? surfaceSpotRow(surface.strikes, spot) : null;
+  const planeText = spot != null
+    ? t("referenceSpot", { spot: spot.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }) : "";
+  // Focus chip geometry, shared verbatim by the scene bounds and the label.
+  let focusGeo: { c: number; r: number; hgt: number; label: string; w: number } | null = null;
+  if (focus && focus.valueMn != null) {
+    const label = `${strikeLabel(focus.strike)} × ${shortDate(focus.expiry, zh)} · ${mode === "gross" ? unsignedMn(focus.grossMn) : signedMn(focus.netMn)}`;
+    focusGeo = { c: colOf.get(focus.expiry) ?? 0, r: rowOf.get(focus.strike) ?? 0,
+      hgt: surface.bookMaxAbsMn > 0 ? Math.abs(focus.valueMn) / surface.bookMaxAbsMn * frame.heightPx : 0,
+      label, w: label.length * 6.4 + 12 };
+  }
+  // One camera fitted to raw floor corners, every finite column's vertices,
+  // the spot plane, all tick/spot/focus label anchors and their pixel boxes.
+  const scene: SurfaceSceneItem[] = [];
+  const at = (c: number, r: number, height: number, box: SurfaceLabelBox = SURFACE_NO_BOX) =>
+    scene.push({ p: rawPt(c, r, height), box });
+  at(0, 0, 0); at(cols, 0, 0); at(0, rows, 0); at(cols, rows, 0);
+  for (const { cell, c, r, hgt } of painted) {
+    if (cell.valueMn == null) { at(c + 0.5, r + 0.5, 0, ABSENT_BOX); continue; }
+    at(c, r, hgt); at(c + 1, r, hgt); at(c + 1, r + 1, hgt); at(c, r + 1, hgt);
+    at(c, r, 0); at(c + 1, r, 0); at(c + 1, r + 1, 0); at(c, r + 1, 0);
+  }
+  if (rSpot != null) {
+    at(0, rSpot, 0); at(cols, rSpot, 0); at(0, rSpot, frame.heightPx); at(cols, rSpot, frame.heightPx);
+    at(cols, rSpot, frame.heightPx, spotBox(planeText));
+  }
+  for (let i = 0; i < rows; i++) at(cols, i + 0.5, 0, strikeBox(strikeLabel(surface.strikes[i]!)));
+  for (let j = 0; j < cols; j++) at(j + 0.5, rows, 0, expiryBox(shortDate(surface.expiries[j]!, zh)));
+  if (focusGeo) at(focusGeo.c + 0.5, focusGeo.r + 0.5, focusGeo.hgt, focusBox(focusGeo.w));
+  const cam = fitSurfaceCamera(scene, width, h);
+  const pt = (c: number, r: number, height: number) => applySurfaceCamera(rawPt(c, r, height), cam);
   // Grid floor: light lines along both axes.
   const floorLines: { x: number; y: number }[][] = [];
   for (let r = 0; r <= rows; r++) floorLines.push([pt(0, r, 0), pt(cols, r, 0)]);
   for (let c = 0; c <= cols; c++) floorLines.push([pt(c, 0, 0), pt(c, rows, 0)]);
-  // Reference-spot plane between the two surrounding strike rows.
-  const spot = surface.referenceSpot;
-  let rSpot: number | null = null;
-  if (spot != null && surface.strikes.length) {
-    rSpot = spot > surface.strikes[0] ? -0.5 : rows - 0.5;
-    for (let i = 0; i < surface.strikes.length - 1; i++) {
-      const hi = surface.strikes[i]!, lo = surface.strikes[i + 1]!;
-      if (spot <= hi && spot >= lo) { rSpot = i + (hi - spot) / (hi - lo || 1); break; }
-    }
-  }
   const plane = spotPlane && rSpot != null ? (() => {
-    const r = rSpot - cy;
-    const corners = [pt(0, r, 0), pt(cols, r, 0), pt(cols, r, frame.heightPx), pt(0, r, frame.heightPx)];
-    const label = pt(cols, r, frame.heightPx);
-    return { corners, label, text: t("referenceSpot", { spot: spot!.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }) };
+    const corners = [pt(0, rSpot, 0), pt(cols, rSpot, 0), pt(cols, rSpot, frame.heightPx), pt(0, rSpot, frame.heightPx)];
+    const label = pt(cols, rSpot, frame.heightPx);
+    return { corners, label, text: planeText };
   })() : null;
   const strikeTicks = thinLabels(
     surface.strikes.map((strike, i) => ({ strike, p: pt(cols, i + 0.5, 0) })).sort((a, b) => a.p.x - b.p.x),
@@ -252,23 +290,23 @@ function SurfaceField({ surface, geo, width, t, zh, mode, spotPlane, focus, onSe
   const expiryTicks = thinLabels(
     surface.expiries.map((expiry, j) => ({ expiry, p: pt(j + 0.5, rows, 0) })).sort((a, b) => a.p.x - b.p.x),
     (item) => item.p.x, 26);
+  // Localized strike × expiry · value for assistive tech; unknown cells never
+  // reach this (they have no prism), so no label ever claims a zero.
+  const cellAria = (cell: SurfaceCell) =>
+    `${strikeLabel(cell.strike)} × ${shortDate(cell.expiry, zh)} · ${mode === "net" ? signedMn(cell.netMn) : unsignedMn(cell.valueMn)} · ${t(mode === "net" ? "legendNet" : mode === "gross" ? "legendGross" : "legendAbs")}`;
   let focusLabel = null;
-  if (focus && focus.valueMn != null) {
-    const c = colOf.get(focus.expiry) ?? 0, r = rowOf.get(focus.strike) ?? 0;
-    const hgt = surface.bookMaxAbsMn > 0 ? Math.abs(focus.valueMn) / surface.bookMaxAbsMn * frame.heightPx : 0;
-    const p = pt(c + 0.5, r + 0.5, hgt);
-    const label = `${strikeLabel(focus.strike)} × ${shortDate(focus.expiry, zh)} · ${mode === "gross" ? unsignedMn(focus.grossMn) : signedMn(focus.netMn)}`;
-    const w = label.length * 6.4 + 12;
+  if (focusGeo) {
+    const p = pt(focusGeo.c + 0.5, focusGeo.r + 0.5, focusGeo.hgt);
     focusLabel = (
       <g className={styles.focusLabel} data-testid="surface-focus-label">
-        <rect x={p.x - w / 2} y={p.y - 26} width={w} height={18} rx={4} />
-        <text x={p.x} y={p.y - 13} textAnchor="middle">{label}</text>
+        <rect x={p.x - focusGeo.w / 2} y={p.y - 26} width={focusGeo.w} height={18} rx={4} />
+        <text x={p.x} y={p.y - 13} textAnchor="middle">{focusGeo.label}</text>
       </g>
     );
   }
   return (
     <svg viewBox={`0 0 ${width} ${h}`} width={width} height={h} className={styles.field} data-testid="surface-field"
-      role="img" aria-label={mode === "net" ? t("legendNet") : mode === "gross" ? t("legendGross") : t("legendAbs")}>
+      role="group" aria-label={mode === "net" ? t("legendNet") : mode === "gross" ? t("legendGross") : t("legendAbs")}>
       <g className={styles.floor}>
         {floorLines.map((pair, i) => <line key={i} x1={pair[0]!.x} y1={pair[0]!.y} x2={pair[1]!.x} y2={pair[1]!.y} />)}
       </g>
@@ -276,14 +314,21 @@ function SurfaceField({ surface, geo, width, t, zh, mode, spotPlane, focus, onSe
         <polygon points={poly(plane.corners)} />
         <text x={plane.label.x + 6} y={plane.label.y - 6} className={styles.planeLabel}>{plane.text}</text>
       </g>}
-      {painted.map(({ cell, c, r, hgt }) => cell.valueMn == null ? (
+      {painted.map(({ cell, c, r, hgt, sel }) => cell.valueMn == null ? (
         <circle key={`${cell.expiry}|${cell.strike}`} className={styles.absentMark} data-tier="u"
           cx={pt(c + 0.5, r + 0.5, 0).x} cy={pt(c + 0.5, r + 0.5, 0).y} r={2} />
       ) : (
         <g key={`${cell.expiry}|${cell.strike}`} data-surface-cell data-strike={cell.strike} data-expiry={cell.expiry}
-          data-tier={cell.tier} data-sign={signOf(cell)}
-          className={focus && focus.strike === cell.strike && focus.expiry === cell.expiry ? `${styles.prism} ${styles.selected}` : styles.prism}
-          onClick={() => onSelect({ strike: cell.strike, expiry: cell.expiry })}>
+          data-tier={cell.tier} data-sign={signOf(cell)} role="button" tabIndex={0}
+          aria-pressed={sel} aria-label={cellAria(cell)}
+          className={sel ? `${styles.prism} ${styles.selected}` : styles.prism}
+          onClick={() => onSelect({ strike: cell.strike, expiry: cell.expiry })}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+              e.preventDefault();
+              onSelect({ strike: cell.strike, expiry: cell.expiry });
+            }
+          }}>
           <polygon className={styles.faceLeft} points={poly([pt(c, r + 1, hgt), pt(c + 1, r + 1, hgt), pt(c + 1, r + 1, 0), pt(c, r + 1, 0)])} />
           <polygon className={styles.faceRight} points={poly([pt(c + 1, r, hgt), pt(c + 1, r + 1, hgt), pt(c + 1, r + 1, 0), pt(c + 1, r, 0)])} />
           <polygon className={styles.faceTop} points={poly([pt(c, r, hgt), pt(c + 1, r, hgt), pt(c + 1, r + 1, hgt), pt(c, r + 1, hgt)])} />

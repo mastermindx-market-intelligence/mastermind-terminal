@@ -109,7 +109,8 @@ export function placeTip(
 }
 
 export function Tip({ label, side = "top", size = "mini", disabled = false, delay = OPEN_DELAY, shortcut, children }: TipProps) {
-  const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "pending" | "open">("idle");
+  const open = phase === "open";
   const [shown, setShown] = useState(false); // drives the [data-open] enter transition
   const [pos, setPos] = useState<TipPosition>({ left: 0, top: 0, side });
   const anchorRef = useRef<HTMLElement | null>(null);
@@ -123,16 +124,46 @@ export function Tip({ label, side = "top", size = "mini", disabled = false, dela
     if (disabled) return;
     clearTimer();
     const wait = instant || isWarm(Date.now()) ? 0 : Math.max(0, delay);
-    if (wait === 0) { setOpen(true); return; }
-    openTimer.current = setTimeout(() => setOpen(true), wait);
+    if (wait === 0) { setPhase("open"); return; }
+    setPhase("pending");
+    openTimer.current = setTimeout(() => { openTimer.current = null; setPhase("open"); }, wait);
   }, [delay, disabled]);
 
   const close = useCallback(() => {
     clearTimer();
     if (open) lastClose = Date.now();
-    setOpen(false);
+    setPhase("idle");
     setShown(false);
   }, [open]);
+
+  // A fixed label becomes misleading when its anchor moves. Observe only the
+  // active interaction, including its initial delay; idle tooltips add no listeners.
+  useLayoutEffect(() => {
+    if (disabled || phase === "idle") return;
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.isComposing && event.keyCode !== 229) close();
+    };
+    const scroll = (event: Event) => {
+      const anchor = anchorRef.current;
+      const target = event.target;
+      if (target === window || target === document || (target instanceof Element && anchor && target.contains(anchor))) close();
+    };
+    const viewport = window.visualViewport;
+    // Capture observes nested scrollers and Escape even when the trigger has its
+    // own handler. Dismissal does not consume the key or move keyboard focus.
+    window.addEventListener("keydown", key, true);
+    window.addEventListener("scroll", scroll, { capture: true, passive: true });
+    window.addEventListener("resize", close);
+    viewport?.addEventListener("resize", close);
+    viewport?.addEventListener("scroll", close);
+    return () => {
+      window.removeEventListener("keydown", key, true);
+      window.removeEventListener("scroll", scroll, true);
+      window.removeEventListener("resize", close);
+      viewport?.removeEventListener("resize", close);
+      viewport?.removeEventListener("scroll", close);
+    };
+  }, [disabled, phase, close]);
 
   // Position once the tip is in the DOM and measurable; then flip [data-open] on.
   useLayoutEffect(() => {
@@ -153,7 +184,16 @@ export function Tip({ label, side = "top", size = "mini", disabled = false, dela
     return () => cancelAnimationFrame(id);
   }, [disabled, open, side, label]);
 
-  useEffect(() => () => clearTimer(), []);
+  // A responsive suppression ends this interaction, even though the trigger stays mounted.
+  // Retire pending hover work on disable as well as unmount; re-enabling waits for a new trigger.
+  useEffect(() => () => clearTimer(), [disabled]);
+
+  // Close synchronously at the suppression boundary so an old portal/enter transition cannot
+  // reappear when the same trigger returns to desktop. This same-component adjustment converges.
+  if (disabled && (phase !== "idle" || shown)) {
+    setPhase("idle");
+    setShown(false);
+  }
 
   if (!isValidElement(children)) return children;
 

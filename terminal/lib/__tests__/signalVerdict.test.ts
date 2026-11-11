@@ -433,19 +433,40 @@ describe("deskVerdict — entry-timing honesty mapping", () => {
     expect(v.raw).toBe("BEAR");
   });
 
-  it("a stale tape as-of dims the desk half too (symmetric with the oracle threshold)", () => {
+  it("withholds an expired legacy research snapshot and retains an eligible read", () => {
     // 43 days old — would only ship if the intel cron stalled; must not render full-strength.
     const stale = deskVerdict(intel({ dir: "BEAR", band: "low", entry: "bounce_wait" }, "2026-06-01"), false, NOW);
-    expect(stale.label).toBe("No setup");
+    expect(stale.label).toBe("No current reading");
     expect(stale.dim).toBe(true);
+    expect(deskVerdict(intel({ dir: "BEAR" }, "2026-07-09"), false, NOW).raw).toBeNull();
     const fresh = deskVerdict(intel({ dir: "BULL", band: "high", entry: "buy_now" }, "2026-07-13"), false, NOW);
     expect(fresh.dim).toBe(false);
   });
 
-  it("BULL and missing-lean behavior unchanged", () => {
+  it("preserves explicit direction, including a reported neutral and a zero score", () => {
     expect(deskVerdict(intel({ dir: "BULL", band: "high", entry: "buy_now" }), false, NOW).label).toBe("Bullish");
-    expect(deskVerdict(null, false, NOW).label).toBe("Neutral");
-    expect(deskVerdict(null, true, NOW).label).toBe("中性");
+    expect(deskVerdict(intel({ dir: "NEUTRAL", score: 0 }), false, NOW)).toMatchObject({ label: "Neutral", raw: "NEUTRAL", dim: false });
+    expect(deskVerdict(intel({ entry: "wait_pullback" }), false, NOW)).toMatchObject({ label: "Wait for pullback", raw: "POSTURE" });
+    expect(deskVerdict(intel({ dir: "NEUTRAL", band: "", entry: "wait_pullback" }), false, NOW).label).toBe("Wait for pullback");
+  });
+
+  it.each([null, { tape: {} }, intel({ dir: "UNKNOWN" }), intel({ dir: "BULL" }, null),
+    intel({ dir: "BULL" }, "2026-07-15"), intel({ dir: "BULL" }, "2026-02-30"),
+    { tape: { asof: "2026-07-10", stale: true, ai_lean: { dir: "BULL" } } },
+    { tape: { asof: "2026-07-10", ai_lean: { abstain: true, dir: "NEUTRAL" } } },
+    { tape: { asof: "2026-07-10", ai_lean: { dir: "NEUTRAL", band: null, entry: null } } },
+    intel({ dir: "NEUTRAL", band: "", entry: "buy_now" }),
+    intel({ entry: "buy_now" }),
+  ])("withholds a current reading for missing, unqualified or abstained data", source => {
+    expect(deskVerdict(source, false, NOW)).toMatchObject({ label: "No current reading", raw: null, dim: true });
+    expect(deskVerdict(source, true, NOW).label).toBe("暂无当前判断");
+  });
+
+  it("expires a saved reading on the producer's first ineligible calendar day", () => {
+    const source = { tape: { asof: "2026-07-01T19:30:00Z", stale: false, ai_lean: { dir: "BULL", max_age_days: 3 } } };
+    expect(deskVerdict(source, false, Date.parse("2026-07-03T23:59:59Z")).raw).toBe("BULL");
+    expect(deskVerdict(source, false, Date.parse("2026-07-04T00:00:00Z"))).toMatchObject({ raw: null, dim: true });
+    expect(deskVerdict({ tape: { ...source.tape, ai_lean: { dir: "BULL", max_age_days: "3" } } }, false, NOW).raw).toBeNull();
   });
 
   it("NEUTRAL with a known entry posture renders the posture, not a blank Neutral", () => {

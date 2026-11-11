@@ -15,7 +15,8 @@
  * Pure prop-driven; the active-year Set is owned by the parent so the advanced
  * analytics section stays in sync.
  */
-import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from "react";
+import styles from "./SeasonalControls.module.css";
 import { fmtNum, fmtPct, pick } from "../../lib/finFormat";
 import { FinTip, useFinTip } from "./FinCharts";
 import { fmtTick, niceTicks, padDomain, useChartWidth } from "../charts/svgChart";
@@ -352,7 +353,7 @@ export function SeasonalsChart({ years, active, onToggleYear, onSetActive, zh = 
               return (
                 <button
                   key={yd.year}
-                  className={"fin-seas-chip" + (on ? "" : " off") + (yd.isCurrent ? " cur" : "")}
+                  className={styles.toggle + " fin-seas-chip" + (on ? "" : " off") + (yd.isCurrent ? " cur" : "")}
                   onClick={() => onToggleYear(yd.year)}
                   onPointerEnter={() => setHiYear(yd.year)}
                   onPointerLeave={() => setHiYear((h) => (h === yd.year ? null : h))}
@@ -366,8 +367,8 @@ export function SeasonalsChart({ years, active, onToggleYear, onSetActive, zh = 
           )}
         </div>
         <div className="fin-seas-legend-acts">
-          <button className="fin-seas-mini" onClick={() => onSetActive(new Set(years.map((y) => y.year)))}>{pick(zh, "All", "全部")}</button>
-          <button className="fin-seas-mini" onClick={() => onSetActive(new Set())}>{pick(zh, "None", "清空")}</button>
+          <button type="button" className={styles.toggle + " fin-seas-mini"} onClick={() => onSetActive(new Set(years.map((y) => y.year)))}>{pick(zh, "All", "全部")}</button>
+          <button type="button" className={styles.toggle + " fin-seas-mini"} onClick={() => onSetActive(new Set())}>{pick(zh, "None", "清空")}</button>
         </div>
       </div>
 
@@ -395,31 +396,132 @@ function YearPopover({
   zh: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const popupId = useId();
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const popupRef = useRef<HTMLDivElement | null>(null);
+  const close = useCallback(() => {
+    setOpen(false);
+    onHiYear(null);
+  }, [onHiYear]);
+
   useEffect(() => {
     if (!open) return;
-    const onDoc = (e: globalThis.PointerEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    const onDoc = (event: globalThis.PointerEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(event.target as Node)) close();
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("pointerdown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("pointerdown", onDoc); document.removeEventListener("keydown", onKey); };
+    return () => document.removeEventListener("pointerdown", onDoc);
+  }, [open, close]);
+
+  // Keep the existing anchored disclosure inside both the visual viewport and
+  // the pane's actual scroll clips. Year selection never changes or resets.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const wrap = wrapRef.current;
+    const trigger = triggerRef.current;
+    const popup = popupRef.current;
+    if (!wrap || !trigger || !popup) return;
+    const viewport = window.visualViewport;
+    let frame = 0;
+    const position = () => {
+      frame = 0;
+      const left = viewport?.offsetLeft ?? 0;
+      const top = viewport?.offsetTop ?? 0;
+      const bounds = {
+        left, top,
+        right: left + (viewport?.width ?? window.innerWidth),
+        bottom: top + (viewport?.height ?? window.innerHeight),
+      };
+      for (let parent = wrap.parentElement; parent; parent = parent.parentElement) {
+        const css = getComputedStyle(parent);
+        const rect = parent.getBoundingClientRect();
+        if (/(auto|scroll|hidden|clip)/.test(css.overflowX)) {
+          bounds.left = Math.max(bounds.left, rect.left + parent.clientLeft);
+          bounds.right = Math.min(bounds.right, rect.left + parent.clientLeft + parent.clientWidth);
+        }
+        if (/(auto|scroll|hidden|clip)/.test(css.overflowY)) {
+          bounds.top = Math.max(bounds.top, rect.top + parent.clientTop);
+          bounds.bottom = Math.min(bounds.bottom, rect.top + parent.clientTop + parent.clientHeight);
+        }
+        // The phone pane is fixed to the viewport; the chart slot behind it
+        // is not one of its clipping ancestors.
+        if (css.position === "fixed") break;
+      }
+      const tabs = wrap.closest(".fin-pane")?.querySelector<HTMLElement>(".fin-local-tabs-mobile");
+      const tabsRect = tabs?.getBoundingClientRect();
+      if (tabsRect && tabsRect.height > 0) bounds.bottom = Math.min(bounds.bottom, tabsRect.top);
+      const anchor = trigger.getBoundingClientRect();
+      const origin = wrap.getBoundingClientRect();
+      const minX = bounds.left + 8;
+      const maxX = bounds.right - 8;
+      const minY = bounds.top + 8;
+      const maxY = bounds.bottom - 8;
+      const width = Math.min(300, Math.max(0, maxX - minX));
+      popup.style.width = width + "px";
+      const below = Math.max(0, maxY - anchor.bottom - 7);
+      const above = Math.max(0, anchor.top - 7 - minY);
+      const upwards = below < Math.min(240, popup.scrollHeight) && above > below;
+      const clipHeight = Math.max(0, maxY - minY);
+      popup.style.maxHeight = Math.min(240, clipHeight, upwards ? above : below) + "px";
+      const height = popup.getBoundingClientRect().height;
+      const x = Math.max(minX, Math.min(anchor.left, maxX - width));
+      const preferredY = upwards ? anchor.top - 7 - height : anchor.bottom + 7;
+      const y = Math.max(minY, Math.min(preferredY, maxY - height));
+      popup.style.left = x - origin.left + "px";
+      popup.style.top = y - origin.top + "px";
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(position);
+    };
+    position();
+    const observer = new ResizeObserver(schedule);
+    observer.observe(trigger);
+    observer.observe(popup);
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, true);
+    viewport?.addEventListener("resize", schedule);
+    viewport?.addEventListener("scroll", schedule);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule, true);
+      viewport?.removeEventListener("resize", schedule);
+      viewport?.removeEventListener("scroll", schedule);
+    };
   }, [open]);
 
   const nOn = years.filter((y) => active.has(y.year)).length;
   return (
-    <div className="fin-seas-yearpop-wrap" ref={wrapRef}>
+    <div
+      className="fin-seas-yearpop-wrap"
+      ref={wrapRef}
+      data-open={open}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) close();
+      }}
+      onKeyDown={(event) => {
+        if (!open || event.key !== "Escape") return;
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        triggerRef.current?.focus();
+      }}
+    >
       <button
-        className={"fin-seas-chip fin-seas-yearpop-trig" + (open ? " open" : "")}
-        onClick={() => setOpen((o) => !o)}
+        ref={triggerRef}
+        type="button"
+        className={styles.toggle + " fin-seas-chip fin-seas-yearpop-trig" + (open ? " open" : "")}
+        onClick={() => { if (open) close(); else setOpen(true); }}
         aria-expanded={open}
+        aria-controls={open ? popupId : undefined}
       >
         {pick(zh, `${nOn} of ${years.length} years`, `${years.length} 年中的 ${nOn} 年`)}
-        <svg className="fin-seas-yearpop-caret" width="9" height="9" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <svg className="fin-seas-yearpop-caret" width="9" height="9" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       {open && (
-        <div className="fin-seas-yearpop" role="listbox" aria-label={pick(zh, "Toggle years", "切换年份")}>
+        <div ref={popupRef} id={popupId} className={styles.popup + " fin-seas-yearpop"} role="group" aria-label={pick(zh, "Toggle years", "切换年份")}>
           {years
             .slice()
             .reverse()
@@ -429,9 +531,9 @@ function YearPopover({
               return (
                 <button
                   key={yd.year}
-                  role="option"
-                  aria-selected={on}
-                  className={"fin-seas-yearpop-item" + (on ? " on" : "") + (yd.isCurrent ? " cur" : "")}
+                  type="button"
+                  aria-pressed={on}
+                  className={styles.toggle + " fin-seas-yearpop-item" + (on ? " on" : "") + (yd.isCurrent ? " cur" : "")}
                   onClick={() => onToggleYear(yd.year)}
                   onPointerEnter={() => onHiYear(yd.year)}
                   onPointerLeave={() => onHiYear(null)}

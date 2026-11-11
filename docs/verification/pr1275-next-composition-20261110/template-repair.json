@@ -1,0 +1,74 @@
+{
+  "state": "EXACT_TEMPLATE_REPAIR_WRITTEN_ORIGINAL_EFFECTS_RECONCILED",
+  "head": "360c3acf4396384c321df95fc442024ccff58b8e",
+  "cause": "Pinned Next16.4.6 emitter adds exact root-params import; prior exact typeTemplate lacks it.",
+  "nextEmitterSha256": "3973ebf0093b08136059a790442951ba498421627a52bfcf06e1584360e034c9",
+  "generatedSha256": "3cac9467d1e6f797499e259c1ff89305d64013b2716dbe61b908759f829dad7f",
+  "generatedIdentity": [
+    16777247,
+    73351234,
+    33152,
+    501,
+    1,
+    304,
+    1794327773304386027,
+    1794327773304386027
+  ],
+  "originalPreimage": null,
+  "originalCaptureExit": 1,
+  "originalCallerExit": 1,
+  "originalCallerExitEvidence": "Studio Direct PID56647 completed exit1",
+  "positiveSettlementEvidence": "Actual F11_GENERATED_TYPES_UNKNOWN is emitted by restoreGeneratedTypeFile, invoked only after await stopServer(owner) resolves. stopServer delegates to original owner.stop, which requires close and group ESRCH. No server-stop/group failure appears in the sole recorded failure stage.",
+  "runtimeProbeOrSignal": false,
+  "archived": [
+    {
+      "name": "desktop-en.png",
+      "sha256": "5d4665ced5778a21f3da8a8b2c9cf064b85084efd79576470a6b0e0f75eb6de3",
+      "bytes": 72928
+    },
+    {
+      "name": "desktop-zh.png",
+      "sha256": "3db4fb349405caac79ae4fd205ca766f9efcf17e1e747d1059623147adf6bf0d",
+      "bytes": 72865
+    },
+    {
+      "name": "tablet-en.png",
+      "sha256": "185a3840432d2288822bbc8d56f6ac89a1f82cb32a22b9ae9ce49ca62a8bfd13",
+      "bytes": 35568
+    },
+    {
+      "name": "tablet-zh.png",
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833",
+      "bytes": 34375
+    },
+    {
+      "name": "mobile-en.png",
+      "sha256": "f48d6b1bedb2fa5bb808e3ab6dcdb2b128f108c863859f7a3b6a9fb044394b7c",
+      "bytes": 21970
+    },
+    {
+      "name": "mobile-zh.png",
+      "sha256": "51e70e33bb4eb0a7775c8b79086de33a440f918deaf1ddf15321b27370641b9c",
+      "bytes": 22687
+    },
+    {
+      "name": "EVIDENCE.yml",
+      "sha256": "9ad60c9bbc157782f6e0da9edfea3a48601f2137f1fa57d02278e3c699b2b061",
+      "bytes": 4373
+    },
+    {
+      "name": "FAILURE.json",
+      "sha256": "13e662d2504886b12431e360fc37bb546f4ed02eaa7b4d18f3d18db06c4400e9",
+      "bytes": 7262
+    }
+  ],
+  "at": "2026-11-10T16:27:35.520865+00:00",
+  "generatedFileRestoredToAbsent": true,
+  "activePacketRestoredFromOriginalArchive": true,
+  "helperPostimage": "57c6f5242a166e939a811760e9445f8addf13d28",
+  "testPostimage": "686f0430932c01d8366a615e0b540d1a4924939a",
+  "sourceChangedPaths": [
+    "terminal/e2e/tools/f11_owned_server.cjs",
+    "terminal/e2e/tools/f11_owned_server.test.cjs"
+  ]
+}

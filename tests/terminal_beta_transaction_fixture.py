@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Local fixture effects only. Never forwards git/systemctl/curl to a real tool."""
-import fnmatch,hashlib,json,os,pathlib,shutil,signal,stat,sys,tarfile
+import fnmatch,hashlib,json,os,pathlib,shutil,signal,stat,sys,tarfile,time
 R=pathlib.Path(os.environ['TXN_FIXTURE_ROOT']).resolve()
 P=json.loads((R/'paths.json').read_text())
 A='1'*40; B='2'*40; BUILD='build-constant-fixture'
@@ -172,6 +172,13 @@ elif cmd=='node':
 elif cmd=='rsync':
  source=confined(args[-2]);dest=confined(args[-1])
  event('rsync:'+str(source)+'->'+str(dest))
+ if read('hold_stage') and '.stage.' in str(dest):
+  # Park the stage step once, so a case can close the deploy channel under it.
+  (R/'hold_stage').unlink();write('hold_stage.started','1')
+  deadline=time.monotonic()+60
+  while not (R/'hold_stage.release').exists():
+   if time.monotonic()>deadline: die('parked stage step was never released')
+   time.sleep(0.05)
  excludes=[a.split('=',1)[1] for a in args if a.startswith('--exclude=')]
  if dest==path('app') and read('fail_source_sync'):
   (dest/'fixture-source-sha').write_text(B+'\n')

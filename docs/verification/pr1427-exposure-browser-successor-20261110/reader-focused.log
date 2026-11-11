@@ -1,0 +1,47 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal[39m
+
+ [32m✓[39m lib/__tests__/optionsExposureEvidence.test.ts [2m([22m[2m54 tests[22m[2m)[22m[33m 1015[2mms[22m[39m
+ [32m✓[39m lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 307[2mms[22m[39m
+ [32m✓[39m lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 381[2mms[22m[39m
+ [32m✓[39m lib/__tests__/optionsExposureEvidenceOwner.test.ts [2m([22m[2m60 tests[22m[2m)[22m[33m 85994[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mselects the same qualified manifest and preserves its actual capture identity [33m5514[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx [33m1613[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx [33m1703[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses reuse after mounted desk source drift: terminal/components/gexdesk/GexSummaryBar.tsx [33m2353[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses reuse after mounted desk source drift: terminal/lib/dte.ts [33m2428[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses reuse after mounted desk source drift: terminal/e2e/exposure-partial-totals.spec.ts [33m2313[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses reuse after mounted desk source drift: terminal/public/data/gex_fixture.json [33m2354[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses a corrupted selected image through the actual owner [33m5521[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses a changed descriptor rather than recapturing over history [33m2630[2mms[22m[39m
+   [33m[2m✓[22m[39m current EOD owner and native reader[2m > [22mrefuses a removed declaration even when the historical root remains a valid raw manifest [33m395[2mms[22m[39m
+   [33m[2m✓[22m[39m paired Options integration proof[2m > [22mrefuses a mixed current family declaration [33m618[2mms[22m[39m
+   [33m[2m✓[22m[39m paired Options integration proof[2m > [22mrefuses a complete-image receipt with an incomplete frame matrix [33m3756[2mms[22m[39m
+   [33m[2m✓[22m[39m paired Options integration proof[2m > [22mrefuses a current receipt without settled native-server proof [33m3768[2mms[22m[39m
+   [33m[2m✓[22m[39m expiry integration with retained EOD identity[2m > [22mselects the fresh GEX packet through the shared owner without relabeling EOD [33m5312[2mms[22m[39m
+   [33m[2m✓[22m[39m expiry integration with retained EOD identity[2m > [22mrefuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExpiryBars.tsx [33m2093[2mms[22m[39m
+   [33m[2m✓[22m[39m expiry integration with retained EOD identity[2m > [22mrefuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExposureExpiryDrawer.tsx [33m2103[2mms[22m[39m
+   [33m[2m✓[22m[39m expiry integration with retained EOD identity[2m > [22mrefuses retained EOD when expiry consumer proof drifts: terminal/lib/expiryTermStructure.ts [33m2474[2mms[22m[39m
+   [33m[2m✓[22m[39m expiry integration with retained EOD identity[2m > [22mrefuses retained EOD when expiry consumer proof drifts: terminal/e2e/exposure-expiry-greeks.spec.ts [33m2340[2mms[22m[39m
+   [33m[2m✓[22m[39m expiry integration with retained EOD identity[2m > [22mrefuses retained EOD when expiry consumer proof drifts: terminal/e2e/responsive.spec.ts [33m2146[2mms[22m[39m
+   [33m[2m✓[22m[39m expiry integration with retained EOD identity[2m > [22mrefuses to assign the fresh GEX identity to EOD [33m1890[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mrefuses changed momentum runtime source through the eod owner [33m1616[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mrefuses changed momentum runtime source through the gex owner [33m1717[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mrefuses corrupt successor payload: qualification.json [33m1935[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mrefuses corrupt successor payload: expiry-journeys/qualification.json [33m1958[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mrefuses corrupt successor payload: browser-report.json [33m1855[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mrefuses corrupt successor payload: expiry-journeys/browser-report.json [33m2001[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mrefuses corrupt successor payload: lifecycle.json [33m2911[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mrefuses corrupt successor payload: expiry-journeys/lifecycle.json [33m3223[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mbinds actual new screenshot bytes: joint [33m4364[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mbinds actual new screenshot bytes: /expiry-journeys [33m5288[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mstill validates historical browser payload: browser-report.json [33m2309[2mms[22m[39m
+   [33m[2m✓[22m[39m momentum browser successor with retained native evidence[2m > [22mstill validates historical browser payload: expiry-journeys/browser-report.json [33m2882[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m137 passed[39m[22m[90m (137)[39m
+[2m   Start at [22m 08:57:57
+[2m   Duration [22m 87.49s[2m (transform 580ms, setup 0ms, collect 8.26s, tests 87.70s, environment 1ms, prepare 905ms)[22m
+
+JSON report written to /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/docs/verification/pr1427-exposure-browser-successor-20261110/reader-focused-report.json

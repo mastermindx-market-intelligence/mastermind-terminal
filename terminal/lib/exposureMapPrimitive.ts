@@ -1,5 +1,6 @@
 import type { EnginePrimitive, EngineProjection, PrimitiveAttachContext } from "./chart-engine/primitive";
 import type { ExposureNode } from "./marketStructure";
+import { PRICE_TAG_ROW_HEIGHT, layoutPriceAxisBadges, priceTagRowTop } from "./priceTagPlacement";
 
 export interface ExposureMapDrawing {
   nodes: readonly ExposureNode[];
@@ -86,13 +87,46 @@ export function createExposureMapPrimitive(initial: ExposureMapDrawing): EngineP
           ctx.strokeRect(p.widthPx-8-w,y-3,w,6);
         }
       }
-      ctx.globalAlpha = .5; ctx.strokeStyle = ink; ctx.fillStyle = ink; ctx.font = "9px system-ui";
-      ctx.textAlign = "left"; ctx.setLineDash([2,5]);
-      for (const average of drawing.averages ?? []) {
+      // Averages keep their dotted guide pinned at the true projected price, while the shared
+      // price-axis layout packs the names into one legible left lane: clustered prices must
+      // still yield one readable full-ink row per label, never stacked 9px names at alpha .5.
+      const averages = drawing.averages ?? [];
+      const visible = averages.filter((average) => {
         const y = p.yOfPrice(average.price);
-        if (!Number.isFinite(y) || y < 10 || y > p.heightPx-10) continue;
-        ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(Math.max(0,right-width-10),y);ctx.stroke();
-        ctx.fillText(average.label,8,y-4);
+        return Number.isFinite(y) && y >= 10 && y <= p.heightPx - 10;
+      });
+      if (visible.length) {
+        ctx.strokeStyle = ink; ctx.fillStyle = ink; ctx.globalAlpha = .5;
+        ctx.textAlign = "left"; ctx.setLineDash([2,5]);
+        for (const average of visible) {
+          const y = p.yOfPrice(average.price);
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(Math.max(0, right - width - 10), y); ctx.stroke();
+        }
+        const row = PRICE_TAG_ROW_HEIGHT;
+        const placed = layoutPriceAxisBadges({
+          paneHeight: p.heightPx,
+          // The shared price host reserves its top row for the current bar readout.
+          activeTop: 0, activeHeight: 44, rowHeight: row,
+          badges: visible.map((average) => {
+            const y = p.yOfPrice(average.price);
+            return { id: average.label, anchorY: y, naturalTop: priceTagRowTop(y, row) };
+          }),
+        });
+        ctx.globalAlpha = 1; ctx.font = "11px system-ui"; ctx.textBaseline = "middle";
+        for (let index = 0; index < placed.length; index++) {
+          const badge = placed[index], average = visible[index];
+          if (!average) continue;
+          const center = badge.top + row / 2;
+          ctx.fillText(average.label, 8, center);
+          if (badge.docked && Math.abs(center - badge.anchorY) > 1) {
+            // The name moved away from its guide: a small leader keeps the association clear.
+            ctx.globalAlpha = .6; ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(6, center < badge.anchorY ? badge.top + row - 3 : badge.top + 3);
+            ctx.lineTo(6, badge.anchorY); ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
       }
       ctx.restore();
     },

@@ -1,0 +1,28 @@
+{
+  "schema": "owned_capture_cancellation.v1",
+  "at": "2026-11-09T11:42:02.422563+00:00",
+  "producer": {
+    "pid": 85710,
+    "ppid": 85595,
+    "pgid": 57905,
+    "command": "node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  },
+  "server": {
+    "pid": 85729,
+    "ppid": 85710,
+    "pgid": 85729,
+    "command": "npm run dev --hostname 127.0.0.1 --port 3791 --webpack"
+  },
+  "reason": "The full packet is already ineligible: repeated Next webpack manifest/JSON errors plus failed Heatmap waits. Stop this owned attempt to preserve evidence and diagnose; no capture success is claimed.",
+  "failuresObserved": 4,
+  "signals": [
+    {
+      "pid": 85710,
+      "signal": "SIGTERM"
+    },
+    {
+      "pgid": 85729,
+      "signal": "SIGTERM"
+    }
+  ]
+}

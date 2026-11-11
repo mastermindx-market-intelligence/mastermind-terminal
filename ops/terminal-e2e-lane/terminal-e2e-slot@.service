@@ -1,0 +1,29 @@
+[Unit]
+Description=Terminal e2e JIT runner slot ubuntu0-e2e-%i
+Documentation=https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/master/docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/terminal-e2e-slot %i
+# The slot script asserts this slice, the hidden procfs and the private IPC namespace.
+Slice=terminal_e2e.slice
+PrivateTmp=yes
+PrivateIPC=yes
+ProtectProc=invisible
+# The host's other world-writable directories: a job must not leave files where the reset
+# does not look. "-" skips a path the host does not have.
+ReadOnlyPaths=-/var/crash -/var/metrics -/var/lib/BrlAPI
+Delegate=yes
+KillMode=control-group
+MemoryHigh=6G
+MemoryMax=7G
+# The JIT config sits in run.sh's environment until Runner.Listener reads it: no core dumps.
+LimitCORE=0
+# No Restart=: a slot that exits refused to mint beside a survivor, found a broken host
+# prerequisite or an uncertain registration; an operator looks before it runs again.
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

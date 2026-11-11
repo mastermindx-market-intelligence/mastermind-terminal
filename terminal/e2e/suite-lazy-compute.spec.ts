@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { readNativeChartGeometry } from "./helpers/nativeChartGeometry";
 
 /**
  * B7 — premium-suite COMPUTATION arrives only when a suite is active.
@@ -72,7 +73,10 @@ test("with no premium suite active, no suite computation is downloaded", async (
   ).toEqual([]);
 
   // …and the chart is fully alive without it: this is not a chart that failed to boot.
-  expect(await page.locator(".chart-wrap canvas").count()).toBeGreaterThan(3);
+  await expect.poll(async () => {
+    const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
+    return chart.fills && chart.declared === 1 && chart.drawn === 1;
+  }, { timeout: 45_000 }).toBe(true);
 });
 
 test("activating a suite fetches exactly that suite's computation, and it renders", async ({ page }) => {
@@ -109,7 +113,9 @@ test("a pane suite still builds its sub-pane and draws inside its declared range
     .toBe(true);
 
   // A pane suite gets its own sub-pane — the allocation the lazy load must not have skipped.
-  await expect.poll(async () => page.locator(".chart-wrap canvas").count(), { timeout: 45_000 })
-    .toBeGreaterThan(3);
+  await expect.poll(async () => {
+    const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
+    return chart.fills && chart.declared === 1 && chart.drawn === 1;
+  }, { timeout: 45_000 }).toBe(true);
   await expect(page.locator("svg [data-ic-tip]").first()).toBeAttached({ timeout: 45_000 });
 });

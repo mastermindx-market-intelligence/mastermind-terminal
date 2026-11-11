@@ -1,0 +1,16 @@
+{
+  "state": "VALIDATED",
+  "id": "d08c-plan-compare-current-20261104-r2",
+  "cases": 50,
+  "operations": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/d08c-plan-compare-pl6-20261104-r2--operation.json",
+      "sha256": "1654be9d79429b3dadd76e6c759ee4925b4362e777a19a35862c85003a060494"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/d08c-plan-compare-vi-20261104-r2--operation.json",
+      "sha256": "fa3f61415d541408b7481b010764c79e1cbf0f65cef94f58f3f5a4c987e6ed78"
+    }
+  ],
+  "path": "terminal/docs/pr-crops/b-pl-6-batch-1/d08c-plan-compare-current-20261104-r2.composition.json"
+}

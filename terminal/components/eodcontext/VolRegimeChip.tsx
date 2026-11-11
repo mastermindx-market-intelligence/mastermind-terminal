@@ -104,7 +104,6 @@ const CHIP: React.CSSProperties = {
   borderRadius: "var(--r-pill)",
   whiteSpace: "nowrap",
   cursor: "help",
-  outline: "none",
 };
 
 const DOT: React.CSSProperties = {

@@ -168,7 +168,9 @@ export function clampVisibleWindow(inputs: VisibleWindowClampInputs): VisibleWin
     if (nextTo < minTo) nextTo = minTo;
     if (nextTo > maxTo) nextTo = maxTo;
   }
-  const nextFrom = nextTo - span;
+  // Subtracting the requested span again is not a bitwise identity for
+  // fractional endpoints. Keep the original endpoint when neither clamp fired.
+  const nextFrom = nextTo === to && span === spanRequested ? from : nextTo - span;
   return { from: nextFrom, to: nextTo, barSpacing: spacing, rightOffset: nextTo - n };
 }
 

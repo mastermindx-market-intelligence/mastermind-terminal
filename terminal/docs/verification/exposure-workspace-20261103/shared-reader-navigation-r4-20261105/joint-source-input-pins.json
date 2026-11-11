@@ -1,0 +1,24 @@
+{
+  "visual_source_count": 138,
+  "native_source_count": 319,
+  "visual_contract_sha256": "ae18b1cea284e9258e84bcc289939d293f60d80e82b24b6cb6cb029c35a0b9e9",
+  "native_contract_sha256": "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7",
+  "native_driver_sha256": "9126a93f34d6f4fb0bdab4c285dc687b6fb53ca166736a8db34bb55fe56f0881",
+  "visual_driver_sha256": "49236bf187189f7f66a64cb9e38e0d6d0ca6cd00cb4a9bfdcb09840a5cdc7812",
+  "browser_driver_sha256": "d542a372b5c5f04e04de4469a3c9cb606f327f87f3c19ea0e5af4bb8faed3920",
+  "browser_cases_per_profile": 39,
+  "capture_revision": "options-navigation-r4",
+  "schema": "options_navigation_final_source_inputs.v2",
+  "native_reader_sha256": "1a75aa7f5dc2f1ac2ba8c340085a10e53928010a8e84fde52c9bbb2275ebaf13",
+  "visual_reader_sha256": "172eb833904545c54ae383c889677348ae5716def276e7218b9788103584b9d8",
+  "source_sha256": {
+    "terminal/components/workspaces/OptionsWorkspace.tsx": "8cdc0773c3895949b2f6174ed4883a87d2c376d55c37d54c4b2b530a37269b8b",
+    "terminal/components/OptionsHubView.tsx": "120381563ee8e6b5f001f01447cc7dbadf8ff3706e4968999aa066ee0a3489b6",
+    "terminal/components/exposure-map/ExposureMap.module.css": "3e48dfb9a5bf152fc355633be1ef87a4c1d2586ff70462ac312b7e2431364901",
+    "terminal/next.config.ts": "61735ce838f638226a74db791feaa283abd5dbef88dd7a852c1caaf6c235e1c1",
+    "terminal/e2e/options-deeplink.spec.ts": "22cd1f9d796540e074d3d5c27a09bee872907598bfef1da20af8d3ae2b5cc4ed",
+    "terminal/e2e/options-exposure-workspace.spec.ts": "a3de647591e8b75cf70f19460191d9f31cface3b56d6712b8569ad7723e5ff56"
+  },
+  "peer_exposure_browser_spec_sha256": "66e3b3f8f1976d7df28e1a10a0572be71559d6a37499e3c235c009ef937ce68e",
+  "native_profiles_equal": true
+}

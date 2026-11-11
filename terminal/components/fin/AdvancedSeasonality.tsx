@@ -1,4 +1,6 @@
 "use client";
+
+import styles from "./SeasonalControls.module.css";
 /**
  * AdvancedSeasonality — the analytics deck beneath the interactive overlay.
  * Every panel recomputes over the caller-supplied ACTIVE year set:
@@ -72,12 +74,19 @@ export function AdvancedSeasonality({ years, active, win, zh = false }: Props) {
   // never blocks paint. Lifted to the deck root so the SAME verdict reaches both the
   // headline card and the holding matrix — the 66-window search it corrects for lives
   // in the matrix, so the matrix must state it too.
-  const guardKey = years.map((y) => y.year).join(",") + "|" + activeList.map((y) => y.year).join(",");
-  const [guard, setGuard] = useState<ReturnType<typeof overfitGuard> | null>(null);
+  // Year labels alone do not identify the data: another symbol or a corrected
+  // price history can have the same years. Bind the deferred result to the
+  // exact inputs, and hide the prior verdict until this sample is evaluated.
+  const [guardResult, setGuardResult] = useState<{
+    years: YearData[];
+    isActive: typeof isActive;
+    value: ReturnType<typeof overfitGuard>;
+  } | null>(null);
+  const guard = guardResult?.years === years && guardResult.isActive === isActive ? guardResult.value : null;
   useEffect(() => {
-    const id = setTimeout(() => setGuard(overfitGuard(years, isActive, 200)), 0);
+    const id = setTimeout(() => setGuardResult({ years, isActive, value: overfitGuard(years, isActive, 200) }), 0);
     return () => clearTimeout(id);
-  }, [guardKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [years, isActive]);
 
   if (nActive === 0) {
     return (
@@ -409,10 +418,22 @@ function MonthEdgePanel({ years, isActive, zh }: { years: YearData[]; isActive: 
         <table className="fin-adv-table">
           <thead>
             <tr>
-              <th className="l" onClick={() => setSort("month")}>{pick(zh, "Mo", "月")}</th>
-              <th className={"r sortable" + (sort === "mean" ? " on" : "")} onClick={() => setSort("mean")}>{pick(zh, "Avg", "平均")}</th>
+              <th className={"l sortable" + (sort === "month" ? " on" : "")} aria-sort={sort === "month" ? "ascending" : "none"}>
+                <button type="button" className={styles.sortButton + " " + styles.sortStart} onClick={() => setSort("month")}>
+                  {pick(zh, "Mo", "月")}{sort === "month" && <span aria-hidden="true">↑</span>}
+                </button>
+              </th>
+              <th className={"r sortable" + (sort === "mean" ? " on" : "")} aria-sort={sort === "mean" ? "descending" : "none"}>
+                <button type="button" className={styles.sortButton} onClick={() => setSort("mean")}>
+                  {pick(zh, "Avg", "平均")}{sort === "mean" && <span aria-hidden="true">↓</span>}
+                </button>
+              </th>
               <th className="r">{pick(zh, "Med", "中位")}</th>
-              <th className={"wr sortable" + (sort === "wr" ? " on" : "")} onClick={() => setSort("wr")}>{pick(zh, "Win rate", "胜率")}</th>
+              <th className={"wr sortable" + (sort === "wr" ? " on" : "")} aria-sort={sort === "wr" ? "descending" : "none"}>
+                <button type="button" className={styles.sortButton + " " + styles.sortStart} onClick={() => setSort("wr")}>
+                  {pick(zh, "Win rate", "胜率")}{sort === "wr" && <span aria-hidden="true">↓</span>}
+                </button>
+              </th>
               <th className="r">{pick(zh, "Best", "最佳")}</th>
               <th className="r">{pick(zh, "Worst", "最差")}</th>
               <th className="r dim">N</th>

@@ -245,13 +245,45 @@ test("a site-data clear is not an acknowledgement for an open tab or an already-
  try{
   await load(page);await load(old);await old.addScriptTag({content:legacyBundle});
   const owner="account:storage-loss",operationId="11111111-1111-4111-8111-111111111111";
+  await page.evaluate(()=>{
+   const w=window as unknown as StorageLossWindow;
+   // Keep one real instance: an independent IndexedDB read cannot admit it.
+   w.storageLossFence=w.A04Journal.browserDrawingJournalFence(indexedDB,window);
+  });
+  const admissionStarted=Date.now();
+  let admissionFirst:number|null|undefined;
+  let admissionUnavailable=0;
+  let admissionLast:{read:number|null;highest:number;readMs:number;marker:{value:string|null}|{error:string}}|undefined;
+  const observeAdmission=async()=>{
+   admissionLast=await page.evaluate(async()=>{
+    const w=window as unknown as StorageLossWindow,started=performance.now();
+    const read=await w.storageLossFence.read(),readMs=performance.now()-started;
+    let marker:{value:string|null}|{error:string};
+    try{marker={value:localStorage.getItem("mm.drawing.account-outbox.v2.generation")};}
+    catch(error){marker={error:error instanceof Error?error.name:String(error)};}
+    return {read,highest:w.storageLossFence.highest(),readMs,marker};
+   });
+   if(admissionFirst===undefined)admissionFirst=admissionLast.read;
+   if(admissionLast.read===null)admissionUnavailable++;
+   // Wait only for availability. A positive observation must stop and fail,
+   // never be polled away until a later zero appears.
+   return admissionLast.read!==null||admissionLast.highest>0;
+  };
+  const admissionDetails=()=>JSON.stringify({
+   firstRead:admissionFirst,last:admissionLast,unavailableReads:admissionUnavailable,
+   elapsedMs:Date.now()-admissionStarted,
+  });
+  try{
+   // One 2s read deadline + 30s backoff + one fresh read, within the existing
+   // overall test timeout. Production fence defaults are not changed.
+   await expect.poll(observeAdmission,{timeout:35_000,intervals:[250,500,1_000]}).toBe(true);
+  }catch(error){
+   throw new Error("Storage-loss fixture admission failed: "+admissionDetails(),{cause:error});
+  }
+  expect(admissionLast?.read,admissionDetails()).toBe(0);
+  expect(admissionLast?.highest,admissionDetails()).toBe(0);
   expect(await page.evaluate(async({owner,operationId,drawing})=>{
    const w=window as unknown as StorageLossWindow;
-   // Own the real fence this fixture admits. The module default may legitimately
-   // be in backoff after a slow eager read; a separate IndexedDB read cannot
-   // establish that default instance's availability.
-   w.storageLossFence=w.A04Journal.browserDrawingJournalFence(indexedDB,window);
-   if(await w.storageLossFence.read()!==0)throw new Error("Storage-loss fixture requires an admitted empty fence");
    w.journal={NVDA:{drawings:[drawing],revision:null,attempt:{operationId,expectedRevision:null,drawings:[drawing]} as StorageLossCopy["attempt"]}};
    return w.A04Journal.writeDrawingJournal(localStorage,owner,w.journal,undefined,w.storageLossFence);
   },{owner,operationId,drawing:line("unsaved")})).toBe(true);

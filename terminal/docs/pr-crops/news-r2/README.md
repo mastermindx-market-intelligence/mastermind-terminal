@@ -20,6 +20,8 @@ before the cell's assertion block. Fixture snapshot: six R2/R3 stories on NVDA
 | E6 | 1440 | en | `R3-desktop-en-limited.png` |
 | E7 | 1440 | en | `R2-desktop-en-restricted.png` + `R2-desktop-en-unavailable.png` |
 
+The `R2-<project>-en-static.png` crops are screenshots of the static 1-report ROW element, not the whole panel at scroll 0, so they differ from the `-collapsed.png` panel crops at every width.
+
 - E1 — collapsed agree row: 15px/21px headline, ladder sentence underlined, no chip
   border, no row hover fill, no NEXT CHECK on the agree row under live.
 - E2 — the same row in ZH; the meta row may wrap the topic, never the time.
@@ -50,7 +52,7 @@ before the cell's assertion block. Fixture snapshot: six R2/R3 stories on NVDA
 | R1 | 1440 | en | `R2-desktop-en-collapsed.png` |
 | R2 | 1440 | zh | `R2-desktop-zh-collapsed.png` |
 | R3 | 1440 | en | `R2-desktop-en-expanded.png` |
-| R4 | 768 (served by the tablet project at 820 px wide; both sit inside the max-width:860px branch) | en | `R2-tablet-en-collapsed.png` |
+| R4 | 820 (tablet project; inside the max-width:860px branch) | en | `R2-tablet-en-collapsed.png` |
 | R5 | 390 | zh | `R2-mobile-zh-collapsed.png` |
 | R6 | 1440 | en | `R2-desktop-en-static.png` |
 | R7 | 1440 | en | `R2-desktop-en-restricted.png` + `R2-desktop-en-unavailable.png` |

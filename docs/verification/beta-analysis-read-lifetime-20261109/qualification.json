@@ -1,0 +1,101 @@
+{
+  "schema": "beta_analysis_read_evidence.v1",
+  "observed_at": "2026-11-09T09:01:15.084176+00:00",
+  "base": "8390cc4ad41b1c0773e979198c80e742852c01dc",
+  "operation": "beta-analysis-quotes-20261109-astra-01",
+  "source_sha256": {
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "5a368f1161a4a8653d94af2ad26b6577976bc7a74b6ea9c4c534cb63f4745189",
+    "terminal/components/fin/MegaPane.tsx": "ca9fde9afa0517a97f175723f1f627e5e6d113a9a9fec998c71d93c37068f7fe",
+    "terminal/lib/__tests__/analysisCompanyReadLifetime.test.tsx": "8bb1251d479c454d662158582b62cd9522a9e782c43bb848fc1f8a2a1766ce2f",
+    "terminal/lib/__tests__/megaPaneFundamentalLoading.test.tsx": "4523bb51ae88b02bde7a213907cc2ec8ef3c51839bf2cfbbf3e1ad6a5c240afb",
+    "terminal/e2e/analysis-company-read-lifetime.spec.ts": "38a82b92ac78eeef14dcb9e2f16c29a147916364c58397f2e30dc2b6fbec10e5"
+  },
+  "before": {
+    "company_read": {
+      "failed": 5,
+      "passed": 5
+    },
+    "fundamental_loading": {
+      "failed": 7,
+      "passed": 15
+    }
+  },
+  "after": {
+    "unit_files": 5,
+    "unit_passed": 132,
+    "unit_failed": 0,
+    "browser_passed": 6,
+    "browser_failed": 0,
+    "browser_skipped": 0,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "typecheck": "passed",
+    "eslint": "passed"
+  },
+  "consumer_audit": "StatisticsPage has a legacy quote prop but renders fund.ratios.current. Real SSR equality test proves changing quote.last does not change output. Unused Analysis-only quote polling removed; chart quote owner unchanged. Earlier quote request race experiment was not published.",
+  "browser_basis": "local development fixture; real company picker, Analysis and Statistics; no live authentication claim",
+  "log_hashes": {
+    "analysis-before.log": "3d59623f0df96d958546509b6a6216ed710265d34df15fc47e260f377c75f829",
+    "fund-loading-before.log": "cc43d7043b206e28b7c66355f59ce49c5cb1077292809c5f3cb412c322124b07",
+    "analysis-final-unit.log": "5a0b8bf12d56b723af83d0da8000d6fe11608796149e391c22d519960cf9c7c8",
+    "analysis-final-static.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "analysis-browser.log": "4a792120639ea4692097e55de0b6e64583fb1e22d9b9ca6e3276d2cb4d933805"
+  },
+  "screenshots": [
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/company-loading-zh-desktop.png",
+      "sha256": "79d9c1e0c4043d59a6fe788b42120d3e6b773884b742a7380bae977c58fd483c"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/selected-company-statistics-zh-desktop.png",
+      "sha256": "642bfff6429453c6971899c926bd0fdf2e9a8197af9fd45232874aff1a372037"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/company-loading-zh-mobile.png",
+      "sha256": "ad022dc18672ab2ac29d360243a56fdda415ed65c7334fce05c6aafa00e208ee"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/selected-company-statistics-zh-mobile.png",
+      "sha256": "668caeca1d31ef5725842b8675e633768774d9dfd6ae1fa9b5b8d1f561d77852"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/company-loading-zh-tablet.png",
+      "sha256": "83136e6a126d9ff5813c36cb292b15e7c7fb3b09adf936bed80e1b87f499f8ec"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/selected-company-statistics-zh-tablet.png",
+      "sha256": "82a140970fab859b5f9e70ec4c78000959eb8b161bd8646889c76004285cf2b4"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/company-loading-en-desktop.png",
+      "sha256": "0f2fe8951188ef398f468223798b75c2eaf99e9c9e2ace8d83e809635dd66a8d"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/selected-company-statistics-en-desktop.png",
+      "sha256": "bfba9517b85f983a43cfe6bafb7b50d017e3afe5cdfd979df8c7787e0afc1f1b"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/company-loading-en-mobile.png",
+      "sha256": "d55123120a5b75e6e2dd0dab481a83462b9955100e6e79b1a97627ffefcc09fc"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/selected-company-statistics-en-mobile.png",
+      "sha256": "2818d0b0ae07b8e9a565603d6854c5cc30016ba04c907af4f5e415415c358c5f"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/company-loading-en-tablet.png",
+      "sha256": "fe07c4adfcdff91d61c9e90683f764c974a7e76482a33e5b3580233d95f88f44"
+    },
+    {
+      "path": "docs/verification/beta-analysis-read-lifetime-20261109/selected-company-statistics-en-tablet.png",
+      "sha256": "a0590712340eeac2a1eec74303d68d452407ea4c2dc032e2154ab827d3d694af"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1422-next-20261110/ci-recovery/watchlist-repro/watchlist-repro-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-10T13:46:30.088341+00:00",
+    "sha256": "99f2eb8c0fe064f774f3176c79a1fb3f48b3eb9f18520dd9c10d02947a368fe1"
+  },
+  "no_cases_qualified": true,
+  "outcome": "REPRODUCED_ORIGINAL_EXPECTED_RETRYING_BUT_SYNCED",
+  "source_unchanged_during_reproduction": true
+}

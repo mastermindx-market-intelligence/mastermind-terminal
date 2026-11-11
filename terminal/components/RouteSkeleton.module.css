@@ -1,0 +1,60 @@
+.workspace {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex: none; }
+.title { width: min(42%, 240px); height: 24px; }
+.status { flex: none; color: var(--muted); font: 500 var(--fs-label)/1.4 var(--font-ui); }
+.status > [lang="zh-CN"] { display: none; }
+:global([data-lang="zh"]) .status > [lang="en"] { display: none; }
+:global([data-lang="zh"]) .status > [lang="zh-CN"] { display: inline; }
+.body { display: flex; flex: 1; min-width: 0; min-height: 0; gap: 24px; overflow: hidden; }
+.rail { display: flex; flex-direction: column; flex: 0 0 200px; gap: 12px; }
+.railRow { height: 44px; flex: none; }
+.content { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.toolbar { display: flex; justify-content: space-between; gap: 24px; padding: 0 0 18px; flex: none; }
+.toolbar > :first-child { width: min(38%, 280px); height: 32px; }
+.toolbar > :last-child { width: min(22%, 140px); height: 32px; }
+.row { display: grid; grid-template-columns: 1fr 2fr 1fr 1fr; align-items: center; gap: 24px; height: 52px; padding: 0 12px; flex: none; border-top: 1px solid var(--line-2); }
+.row > * { height: 12px; }
+.row > :first-child { max-width: 80px; }
+.row > :nth-child(2) { width: 78%; }
+.row:nth-child(2n) > :nth-child(2) { width: 58%; }
+.row > :nth-child(n + 3) { width: 58%; justify-self: end; }
+.canvas { flex: 1; min-height: 0; }
+
+.block {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-sm, 4px);
+  background: var(--panel-2);
+}
+
+.body, .title {
+  animation: pulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
+
+@media (max-width: 860px) {
+  .workspace { padding: 20px; gap: 18px; }
+  .rail { flex-basis: 160px; }
+  .body { gap: 18px; }
+}
+
+@media (max-width: 640px) {
+  .workspace { padding: 16px; gap: 16px; }
+  .rail { display: none; }
+  .row { grid-template-columns: 1fr 1.7fr 1fr; gap: 16px; padding-inline: 4px; }
+  .row > :last-child { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body, .title { animation: none; }
+}

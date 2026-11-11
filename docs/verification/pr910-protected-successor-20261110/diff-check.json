@@ -1,0 +1,11 @@
+{
+  "base": "bb5b9155d90315b920b6d7d5d30712da176f6524",
+  "fullExit": 0,
+  "fullLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nonRawOwnedDiffExit": 0,
+  "nonRawOwnedDiffOutput": "",
+  "rawLogPaths": [],
+  "rawLogsRetainedByteExact": true,
+  "schema": "terminal.pr910.owned-diff-check.v1",
+  "scope": "Only new qualification and active packet delta from the captured clean composition; inherited protected/original source remains exact."
+}

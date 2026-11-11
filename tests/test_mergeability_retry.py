@@ -96,13 +96,20 @@ def test_changed_green_head_is_fully_requalified_and_only_new_head_is_pinned():
     assert ('merge', 7, 'head-7') not in api.actions
 
 
-def test_first_refresh_stops_before_pending_second_pass():
-    api = ChangingApi([pending(1), pull(2, mergeable_state='behind')], [pull(1), pull(2)])
+def test_pending_candidate_requalifies_before_deferred_refresh():
+    api = ChangingApi(
+        [pending(1), pull(2, mergeable_state='behind')],
+        [pull(1), pull(2, mergeable_state='behind')],
+    )
     _, waits = run(api)
-    # #2's second read is the refresh path finding its new head.
-    assert api.reads == {1: 1, 2: 2}
-    assert waits == []
-    assert [x for x in api.actions if x[0] == 'update'] == [('update', 2, 'head-2')]
+    # Requalify #1 once after the existing shared wait. Only after its ready
+    # merge may #2 spend the sweep's one refresh, with a fresh head read.
+    assert api.reads == {1: 2, 2: 3}
+    assert waits == [2]
+    assert api.actions == [
+        ('merge', 1, 'head-1'), ('delete', 'claude/pr-1'),
+        ('update', 2, 'head-2'), ('rerun', 9101),
+    ]
 
 
 def test_second_pass_refresh_stops_before_other_pending_candidates():

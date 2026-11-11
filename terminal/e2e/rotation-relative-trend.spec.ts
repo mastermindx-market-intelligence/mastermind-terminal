@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { sectorFixture } from "./fixtures/sector-company-v3";
+import { nativeGenerationFixture } from "../lib/__tests__/fixtures/sectorNativeGeneration";
 
 // Options R1 W2A/W2B — the explicit rotation method switch, the relative trend map and the holdings coverage line on
 // fixture feeds. Synthetic presentation fixtures: local UI proof, not market, backtest or auth proof.
@@ -34,6 +35,9 @@ async function prepare(page: Page, lang: Lang, options: { rows?: "inline" | "fix
   }, { lang, now: NOW });
   await page.route("**/api/sector-intelligence?**", route => {
     const source = new URL(route.request().url()).searchParams.get("source") || "";
+    if (source === "generation" && options.rows !== "fixture") return route.fulfill({ json: { data: nativeGenerationFixture(sector), receipt: {
+      source, status: "ready", path: "/api/sector-generation?audience=preview", asOf: sector.as_of,
+      observedAt: "2026-10-17T02:00:00Z", stale: false, contentHash: null } } });
     if (source === "sector" && options.rows !== "fixture") return route.fulfill({ json: { data: sector, receipt: {
       source, status: "ready", path: "/sectordata/sector_central.json", asOf: "2026-10-16", observedAt: "2026-10-17T02:00:00Z", stale: false, contentHash: null } } });
     if (source === "relative_trend" && options.trend === "unavailable") return route.fulfill({ status: 404, json: { data: null, receipt: {

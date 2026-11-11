@@ -1,13 +1,13 @@
-# Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
+# Current Company design recapture is mobileAnalysisRecapture20261109; prior records remain historical.
 # B4 company theme-context empty state (mi-g10-b4t) - capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1799cc87316f298bd5f7c5205e30936142d88a1e
-# capturedAt: 2026-10-12T13:11:41.875Z
+# capturedAtHead: a89cb179c0012d0b08b5e8a654de1706f14ba6fe
+# capturedAt: 2026-11-09T11:01:46.200Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/fin/CompanyThemeContextCard.tsx: "0b8a0e1c252926f11cb1de1ffb885d6a379dc8c8a1fdda4103fc7957143b1555"
-  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+  terminal/app/company-intelligence.css: "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -29,13 +29,14 @@ light_gap: |
   The terminal shell is dark-only: terminal/app/layout.tsx renders the html
   element with data-theme dark. The tool also writes a light-named PNG per crop;
   each one is byte-identical to its dark twin (capture-log.json, darkLightIdentical)
-  and is not committed. Light is an honest GAP here, not a PASS.
+  and is retained only as a comparison in the verification directory.
+  Light remains an honest GAP here, not a PASS.
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
   cd terminal
-  node e2e/tools/capture_mi_g10_b4t_theme_empty.mjs 3197 /tmp/b4t-theme-empty
-  cp /tmp/b4t-theme-empty/*-dark-theme-empty.png /tmp/b4t-theme-empty/capture-log.json docs/pr-crops/b-mi-g10-b4t-theme-empty/
+  node e2e/tools/capture_mi_g10_b4t_theme_empty.mjs 3197 docs/verification/pr1316-evidence-renewal-20261109/b4
+  cp docs/verification/pr1316-evidence-renewal-20261109/b4/*-dark-theme-empty.png docs/verification/pr1316-evidence-renewal-20261109/b4/capture-log.json docs/pr-crops/b-mi-g10-b4t-theme-empty/
 files:
   - 1440x900-en-dark-theme-empty.png
   - 1440x900-zh-dark-theme-empty.png
@@ -48,3 +49,10 @@ sharedShellCompanyDesignRecapture20261022:
   receipt: shared-shell-company-recapture.json
   scope: "1440x900-en-dark-theme-empty.png; 1440x900-zh-dark-theme-empty.png; 390x844-en-dark-theme-empty.png; 390x844-zh-dark-theme-empty.png; capture-log.json; shared-shell-company-recapture/1440x900-en-light-theme-empty.png; shared-shell-company-recapture/1440x900-zh-light-theme-empty.png; shared-shell-company-recapture/390x844-en-light-theme-empty.png; shared-shell-company-recapture/390x844-zh-light-theme-empty.png"
   qualification: "Actual scoped incumbent-profile captures; unchanged surfaces retain earlier qualified evidence."
+
+mobileAnalysisRecapture20261109:
+  sourceHead: a89cb179c0012d0b08b5e8a654de1706f14ba6fe
+  receipt: ../../verification/pr1316-evidence-renewal-20261109/capture-result.json
+  captures: ../../verification/pr1316-evidence-renewal-20261109/b4
+  priorPacket: ../../verification/pr1316-evidence-renewal-20261109/prior/b-mi-g10-b4t-theme-empty
+  qualification: Actual incumbent eight-case local fixture capture; four supported dark crops and four identical unsupported-light comparisons; no production or authenticated claim

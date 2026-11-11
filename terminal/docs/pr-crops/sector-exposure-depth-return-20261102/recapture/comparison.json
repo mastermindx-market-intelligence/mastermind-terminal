@@ -1,0 +1,1915 @@
+[
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-absent-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1020,
+      300
+    ],
+    "newSize": [
+      1020,
+      300
+    ],
+    "oldSha256": "3cbf2e68b41f0fe0a3f4edd46e0cf327fb4146caab2be2bd5b222669d24ce3ea",
+    "newSha256": "3cbf2e68b41f0fe0a3f4edd46e0cf327fb4146caab2be2bd5b222669d24ce3ea"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-absent-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1020,
+      300
+    ],
+    "newSize": [
+      1020,
+      300
+    ],
+    "oldSha256": "69f76a72644e14f435ab677245eb39cbab2917082068444b3dead30874f0577e",
+    "newSha256": "69f76a72644e14f435ab677245eb39cbab2917082068444b3dead30874f0577e"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-absent-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      430
+    ],
+    "newSize": [
+      390,
+      430
+    ],
+    "oldSha256": "e218d88a678bf102c356c2df72e44ca74c9ae53283bf73b1b26d9870a4206282",
+    "newSha256": "e218d88a678bf102c356c2df72e44ca74c9ae53283bf73b1b26d9870a4206282"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-absent-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      430
+    ],
+    "newSize": [
+      390,
+      430
+    ],
+    "oldSha256": "3ac036554a7e7e838eee69edf03cb70505b9b2577f6b606b913b8cf34b0e5ece",
+    "newSha256": "3ac036554a7e7e838eee69edf03cb70505b9b2577f6b606b913b8cf34b0e5ece"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-absent-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      430
+    ],
+    "newSize": [
+      820,
+      430
+    ],
+    "oldSha256": "7b13e26bbfe1bf25d9f0ef6ee243f6a3156937f20c8129ac42f16e0454dfa4f0",
+    "newSha256": "7b13e26bbfe1bf25d9f0ef6ee243f6a3156937f20c8129ac42f16e0454dfa4f0"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-absent-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      430
+    ],
+    "newSize": [
+      820,
+      430
+    ],
+    "oldSha256": "7903b828a6d327fe43ec3c710102f76761b614717bf98ef0e4cc934aebb8db64",
+    "newSha256": "7903b828a6d327fe43ec3c710102f76761b614717bf98ef0e4cc934aebb8db64"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-retried-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1020,
+      166
+    ],
+    "newSize": [
+      1020,
+      166
+    ],
+    "oldSha256": "12efd1e7174120c7076ab4e66be8757abb912c04a8f60733c11ce4ff49454e06",
+    "newSha256": "12efd1e7174120c7076ab4e66be8757abb912c04a8f60733c11ce4ff49454e06"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-retried-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1020,
+      166
+    ],
+    "newSize": [
+      1020,
+      166
+    ],
+    "oldSha256": "dc824f083f73f2cfc9a518ec995661caa7f42efe7a898ef7ab0a2845c05e36a2",
+    "newSha256": "dc824f083f73f2cfc9a518ec995661caa7f42efe7a898ef7ab0a2845c05e36a2"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-retried-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      430
+    ],
+    "newSize": [
+      390,
+      430
+    ],
+    "oldSha256": "991686ac1c920308a85de33275477b619e3011c72c5a4217c142aaa6d356636c",
+    "newSha256": "991686ac1c920308a85de33275477b619e3011c72c5a4217c142aaa6d356636c"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-retried-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      430
+    ],
+    "newSize": [
+      390,
+      430
+    ],
+    "oldSha256": "bb5b0b092f32fe53100e96b4b08a1a1a97ebfba7d184a5e263d75799ab69309d",
+    "newSha256": "bb5b0b092f32fe53100e96b4b08a1a1a97ebfba7d184a5e263d75799ab69309d"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-retried-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      430
+    ],
+    "newSize": [
+      820,
+      430
+    ],
+    "oldSha256": "1cab97de5273e6ffd9e838f709d13278ddb5f21c24e7d9fc61b1b17d21a527e9",
+    "newSha256": "1cab97de5273e6ffd9e838f709d13278ddb5f21c24e7d9fc61b1b17d21a527e9"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-retried-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      430
+    ],
+    "newSize": [
+      820,
+      430
+    ],
+    "oldSha256": "e493849b80052b0d2713b6b0e5072cec98d2fee9748635cf2608e62201f99705",
+    "newSha256": "e493849b80052b0d2713b6b0e5072cec98d2fee9748635cf2608e62201f99705"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-unavailable-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1020,
+      300
+    ],
+    "newSize": [
+      1020,
+      300
+    ],
+    "oldSha256": "fa62dcaf315c4bd17dcc9040c64129079b16c00669a8055c5769e9a3255b26e7",
+    "newSha256": "fa62dcaf315c4bd17dcc9040c64129079b16c00669a8055c5769e9a3255b26e7"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-unavailable-1440.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      1020,
+      364
+    ],
+    "oldSize": [
+      1020,
+      300
+    ],
+    "newSize": [
+      1020,
+      364
+    ],
+    "oldSha256": "9aee73c5d2dfab354dbf12db8712a691438a816e2350231bd0e1bd9e8e8ea6c3",
+    "newSha256": "f9f67fb80e0618a65b68f7fa1d4691c16a7816f1c72ecb08785512c9034d800f"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-unavailable-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      430
+    ],
+    "newSize": [
+      390,
+      430
+    ],
+    "oldSha256": "5861d563faaaef4cf388626ad478b1e731d1da636e0bab3d2b8b7031e99e83f1",
+    "newSha256": "5861d563faaaef4cf388626ad478b1e731d1da636e0bab3d2b8b7031e99e83f1"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-unavailable-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      430
+    ],
+    "newSize": [
+      390,
+      430
+    ],
+    "oldSha256": "178bf2c649c7a85697c624a2355683b4ffcec9d54d6101b1cf8ae487ed8a5b55",
+    "newSha256": "178bf2c649c7a85697c624a2355683b4ffcec9d54d6101b1cf8ae487ed8a5b55"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-unavailable-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      430
+    ],
+    "newSize": [
+      820,
+      430
+    ],
+    "oldSha256": "978c18a96630c3c507a57cfafa21260a01e895300bebcc6fb67ae1336a0bc55e",
+    "newSha256": "978c18a96630c3c507a57cfafa21260a01e895300bebcc6fb67ae1336a0bc55e"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-ladder-unavailable-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      430
+    ],
+    "newSize": [
+      820,
+      430
+    ],
+    "oldSha256": "8075255643fd960290dba0f8cf3bf61235ce75dacffebcf7a66778f87f8093d1",
+    "newSha256": "8075255643fd960290dba0f8cf3bf61235ce75dacffebcf7a66778f87f8093d1"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-refresh-failed-1440-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      1220,
+      23,
+      1226,
+      32
+    ],
+    "oldSize": [
+      1380,
+      222
+    ],
+    "newSize": [
+      1380,
+      222
+    ],
+    "oldSha256": "9dc0cce876860531a778e1693006c62ba8d078e701ffe9c101fbf082f857764a",
+    "newSha256": "594c1b6641c90d5641a1e784f2e23c543ea8546c08b117f3d2e191a7daf02f62"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-refresh-failed-1440.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      1195,
+      23,
+      1201,
+      32
+    ],
+    "oldSize": [
+      1380,
+      222
+    ],
+    "newSize": [
+      1380,
+      222
+    ],
+    "oldSha256": "d847b905197bfff0921e03c5d70e10c63adfebb4542a627aa9e833e12e0afdca",
+    "newSha256": "9dc6e40acc3e9cb9cde0d2a3f8b21728770f60abfba6316ba84a32bc56f3056e"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-refresh-failed-390-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      232,
+      206,
+      238,
+      215
+    ],
+    "oldSize": [
+      390,
+      410
+    ],
+    "newSize": [
+      390,
+      410
+    ],
+    "oldSha256": "aedbe6087f866252639e74a945a617b4741e4b873ba362c9bfa17c893bd499f1",
+    "newSha256": "7b31abe9d2abdea18a9ff533bc149c1cfa6e3963ea4130f63145a06ce599f08c"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-refresh-failed-390.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      207,
+      206,
+      213,
+      215
+    ],
+    "oldSize": [
+      390,
+      410
+    ],
+    "newSize": [
+      390,
+      410
+    ],
+    "oldSha256": "e51c11bcdf5b3315cd3085596957204d9da3620e8c28035e0e76dd108f7b52a4",
+    "newSha256": "4aa4b0b4edac13b64ef24a5f643e834eefe554d547ff8f869fa2eea7b54845bf"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-refresh-failed-820-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      660,
+      74,
+      666,
+      83
+    ],
+    "oldSize": [
+      820,
+      282
+    ],
+    "newSize": [
+      820,
+      282
+    ],
+    "oldSha256": "4c234f1c3b75682c30381b396793dca0ecf7926ccc7a6f97efac0b736f013ea2",
+    "newSha256": "e330e32e8a4d7b8a83af896857114be84dcfbb28c7ab0e20275784f0388ca520"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-refresh-failed-820.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      635,
+      74,
+      641,
+      83
+    ],
+    "oldSize": [
+      820,
+      282
+    ],
+    "newSize": [
+      820,
+      282
+    ],
+    "oldSha256": "ca0bc5e4655e256e76b71087cf722eea931b15ae88405ea008b0531f446ffd97",
+    "newSha256": "1907e819917e31c0ae0d589bc2b5dc432c946ca79b933d1d16044d881a152d1e"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-retried-1440-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      1220,
+      23,
+      1226,
+      32
+    ],
+    "oldSize": [
+      1380,
+      175
+    ],
+    "newSize": [
+      1380,
+      175
+    ],
+    "oldSha256": "571b53ffeb70ab4a81f5c1f4124f4b593604b668e71399001e1ee9bed9daa099",
+    "newSha256": "3043739db7f15ada3f9175b4e6d3b3437e555f119ef6e8615c8ee5e25671e5fc"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-retried-1440.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      1195,
+      23,
+      1201,
+      32
+    ],
+    "oldSize": [
+      1380,
+      175
+    ],
+    "newSize": [
+      1380,
+      175
+    ],
+    "oldSha256": "d0284a0e0106e8fd271746d39e892fe20d545bd2514c46ac11e0aa4d8b5585be",
+    "newSha256": "6cb42184bfb3af126ca6a2873e594e7c4a62c925589b6d0cff014317b32d69a7"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-retried-390-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      232,
+      206,
+      238,
+      215
+    ],
+    "oldSize": [
+      390,
+      357
+    ],
+    "newSize": [
+      390,
+      357
+    ],
+    "oldSha256": "a32d489f11f37a53acdab4ce036c0ab22dc3a94ffaa5bef99cc2d82254174fe2",
+    "newSha256": "1f8e38df6877314818b446811835c25ed3f8d7e01340549a7fee0d8c17adf7bc"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-retried-390.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      207,
+      206,
+      213,
+      215
+    ],
+    "oldSize": [
+      390,
+      357
+    ],
+    "newSize": [
+      390,
+      357
+    ],
+    "oldSha256": "a68a7179dee8d6f51828fa9cc274bf538ff4ee7c0e8500134eb0cd94cbf93cc6",
+    "newSha256": "e22cff8c22941a366a175fb19316cfd8665d227bfb52c5db1c9b7b7ebe9eb56c"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-retried-820-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      660,
+      74,
+      666,
+      83
+    ],
+    "oldSize": [
+      820,
+      229
+    ],
+    "newSize": [
+      820,
+      229
+    ],
+    "oldSha256": "d4150d92f904b940a30fcbf9118a1d83f4a2df7925fe3d7e8c028cf22fb70800",
+    "newSha256": "1d4153217acbfe7d3c73e9cf7e43454b3902ce5c4f3f61ede6016796647d6bc2"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-live-retried-820.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      635,
+      74,
+      641,
+      83
+    ],
+    "oldSize": [
+      820,
+      229
+    ],
+    "newSize": [
+      820,
+      229
+    ],
+    "oldSha256": "375ce0e7856181fc508b486846de3d81eda0d8b359ff0a02b908f43824da58a0",
+    "newSha256": "3a35e29fc246408c330e72411f46398581cba79074b25a2e7f9a49c12ff09520"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-pick-absent-1440-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      2,
+      359,
+      258
+    ],
+    "oldSize": [
+      359,
+      264
+    ],
+    "newSize": [
+      359,
+      264
+    ],
+    "oldSha256": "9475f836c43af0bf9ed679a7b864a1b5514feb33781b246b9194ed1ad1fe2ab3",
+    "newSha256": "50dc1509cc18f9f15e443a81638577d4185f6cbbacb5830f864b732bd0fd80d7"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-pick-absent-1440.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      2,
+      359,
+      264
+    ],
+    "oldSize": [
+      359,
+      264
+    ],
+    "newSize": [
+      359,
+      264
+    ],
+    "oldSha256": "1c8944de7b273d1037c83dca731eadd810be6b2da217040030413bb65062b7d0",
+    "newSha256": "a5081d7c81b0beeffeec277e2032cd3061ae49e124d67ed87c859cbcc282a0eb"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-pick-absent-390-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      325
+    ],
+    "oldSize": [
+      359,
+      325
+    ],
+    "newSize": [
+      359,
+      325
+    ],
+    "oldSha256": "83a861936b5f54891aeb0a22eed290cccf19c05153bd30fe3629e8b6d38c711f",
+    "newSha256": "62e551ad31a8ae4d6886d48e7f27a71f4447abb3b6ba90bee132451fc39c3236"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-pick-absent-390.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      271
+    ],
+    "oldSize": [
+      359,
+      325
+    ],
+    "newSize": [
+      359,
+      325
+    ],
+    "oldSha256": "f60f2c6e0c43572e3b7063c53a6f632b6e5cab9d22fa14373a80dd2f6262950e",
+    "newSha256": "b981a0535d0d8f1407da03850c959808086100554d8808e1d360ab6d83365644"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-pick-absent-820-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      325
+    ],
+    "oldSize": [
+      359,
+      325
+    ],
+    "newSize": [
+      359,
+      325
+    ],
+    "oldSha256": "3718d3782ffbfe2932afa4d8cedf9362ff34f1fbe425ab8cd62c5b001dc2e622",
+    "newSha256": "7cebe248263f6a30040d4a02498ce9b5a164a06dd2e8cfb014aa7d0cb08f099e"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-pick-absent-820.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      2,
+      359,
+      271
+    ],
+    "oldSize": [
+      359,
+      325
+    ],
+    "newSize": [
+      359,
+      325
+    ],
+    "oldSha256": "fbed39a12dfb90cddb7395e32f00552bab1a54628dedac2f73745d081d967436",
+    "newSha256": "66eafabc825b314dea25b53978c1b6a155cfb30b9987d06ba717cbeaa300c1d6"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-retried-1440-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      264
+    ],
+    "oldSize": [
+      359,
+      264
+    ],
+    "newSize": [
+      359,
+      264
+    ],
+    "oldSha256": "b75d79ef1cacaa5cbfa4b1afab4a55a03ba4460ab0693f48b70475119ac23c65",
+    "newSha256": "b7dd117af879ba87e63032cb4598e34a265bcc736a435ee31dccfae4d11fb215"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-retried-1440.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      257
+    ],
+    "oldSize": [
+      359,
+      264
+    ],
+    "newSize": [
+      359,
+      264
+    ],
+    "oldSha256": "6bd52f366393ed5b5a169cb4fbc0841c7afc2bc3bc6a4c5917d7db9f96bbc0bb",
+    "newSha256": "6cdbfaf91db4df60165cd1feaa42c780e276675292d2386eb7c3bf016d890b2d"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-retried-390-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      359,
+      387
+    ],
+    "oldSize": [
+      359,
+      387
+    ],
+    "newSize": [
+      359,
+      387
+    ],
+    "oldSha256": "d4cd1528e0110283889dc3160f2a7d0feb810e138aa3d1347a9733ed3c3f97bb",
+    "newSha256": "a9a35a6a6ac90083b8bb15f66a6608d75138e80ac1b0b30e2eae40ed0ee9e0d1"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-retried-390.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      359,
+      203
+    ],
+    "oldSize": [
+      359,
+      387
+    ],
+    "newSize": [
+      359,
+      387
+    ],
+    "oldSha256": "ff7c5764502f64095440074c43362ad32ca15470672233b7daf0cb1e4d3df5b1",
+    "newSha256": "3f374d2ef927f8a70b77a769b2925455c682709d03d3f960241c79f11211c749"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-retried-820-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      359,
+      387
+    ],
+    "oldSize": [
+      359,
+      387
+    ],
+    "newSize": [
+      359,
+      387
+    ],
+    "oldSha256": "5c42d9a274c158a2a4ea6d3eee3ab6bd898a6351628b09140761647a1c9b5feb",
+    "newSha256": "5900c6af2fe28cee9e1b3c17f7cc5b390d29bd5ea604003e6b3d5960c5170a34"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-retried-820.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      159
+    ],
+    "oldSize": [
+      359,
+      387
+    ],
+    "newSize": [
+      359,
+      387
+    ],
+    "oldSha256": "1802950008aedc2ac519adc5c8f962eb3db4776c409ae231d5849223f3a6dab9",
+    "newSha256": "0a1a5b7cc63325c9f3d156d40e3aec059c7495f73af21ea215f4273d238c8673"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-unavailable-1440-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      207
+    ],
+    "oldSize": [
+      359,
+      214
+    ],
+    "newSize": [
+      359,
+      214
+    ],
+    "oldSha256": "db3c8733acf6db4d7f2764e46d54f15aaa24019dc224692d78f39f337290961e",
+    "newSha256": "093795efebab5f06ddeb44cc25940e852f5318ca12146dbee31c50873f335335"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-unavailable-1440.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      359,
+      218
+    ],
+    "oldSize": [
+      359,
+      219
+    ],
+    "newSize": [
+      359,
+      219
+    ],
+    "oldSha256": "7e353be28702f67da7d69a53b776e6399b985536f5aed0f195b18a7913f61ed2",
+    "newSha256": "59f71a37e4cd4f6f3169184a324747d611efaf4e7c874c951a43eaad79239ef6"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-unavailable-390-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      98
+    ],
+    "oldSize": [
+      359,
+      222
+    ],
+    "newSize": [
+      359,
+      222
+    ],
+    "oldSha256": "ad16ba032d5d07cbea93c4dfaca4cd45f1cd4a0f320d8f51722f43e7a43712bd",
+    "newSha256": "2a440fee2938f8d102911215d413bcf2814bc06d05c2d6945aa3ca43d6c7c35c"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-unavailable-390.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      114
+    ],
+    "oldSize": [
+      359,
+      254
+    ],
+    "newSize": [
+      359,
+      254
+    ],
+    "oldSha256": "8bb4efb14dca5cac3489379685ac00bac11a049f9c6e4bc15f80af446f37848a",
+    "newSha256": "18f52ecf2d03ca02cdb1a9d98b9ca78931fc709be0e2c41ae8f9bd5a34c3ae11"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-unavailable-820-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      359,
+      97
+    ],
+    "oldSize": [
+      359,
+      222
+    ],
+    "newSize": [
+      359,
+      222
+    ],
+    "oldSha256": "bd826ef353be6517617b622181e8e398a924682c7805a629f3abd5dd9c729e6c",
+    "newSha256": "dcc4448a92837917ba1256de2e01aa477259b7da553cd3784f5400fb634f0070"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-rail-unavailable-820.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      221
+    ],
+    "oldSize": [
+      359,
+      254
+    ],
+    "newSize": [
+      359,
+      254
+    ],
+    "oldSha256": "8bb4efb14dca5cac3489379685ac00bac11a049f9c6e4bc15f80af446f37848a",
+    "newSha256": "523be9a60b1fc642af079e293dfc5a96cbe480cf337e832ee1111fdcf575d829"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-state-refresh-failed-1440-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      236
+    ],
+    "oldSize": [
+      359,
+      248
+    ],
+    "newSize": [
+      359,
+      248
+    ],
+    "oldSha256": "0b7901d267417a69f33cc92ef88133ee23bb0c13ca2b4bae72b9a341f0304b81",
+    "newSha256": "e8855162ab80dbdb0ecc2d02a540a2bdf1e187d75d000aef158f2b00b8b0eedc"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-state-refresh-failed-1440.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      236
+    ],
+    "oldSize": [
+      359,
+      248
+    ],
+    "newSize": [
+      359,
+      248
+    ],
+    "oldSha256": "719ff0505a324e5bd1be31f8d4fb4bbca0611c6750ccb65cd283f4540d65a7f5",
+    "newSha256": "8b83deab97294bef94b4c54cbd0817660b4ca2cacf9f4de01006ea57b9cf8e82"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-state-refresh-failed-390-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      359,
+      205
+    ],
+    "oldSize": [
+      359,
+      254
+    ],
+    "newSize": [
+      359,
+      254
+    ],
+    "oldSha256": "8d2b104bee8b8cb477b483909f6821f80806a35a1954a5ebb26ecc5eeefb8550",
+    "newSha256": "25cac2b601cb432c3ee0c12f71f335bd9604e862e3ae53f4d01c6799dc7ab5af"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-state-refresh-failed-390.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      359,
+      203
+    ],
+    "oldSize": [
+      359,
+      254
+    ],
+    "newSize": [
+      359,
+      254
+    ],
+    "oldSha256": "5d3ed82d199a7bc8ad02ee9e90bb936b10d016a47e70e34b9f26b4a4dc352174",
+    "newSha256": "b2615f61b8ea3af6cb3cabe6445557a5a7192c38ec11351dd61c4cc4803d45c3"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-state-refresh-failed-820-zh.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      0,
+      359,
+      158
+    ],
+    "oldSize": [
+      359,
+      254
+    ],
+    "newSize": [
+      359,
+      254
+    ],
+    "oldSha256": "cd51a1e0cc706cbd9518bebe08dbb2e5631c0086cf2fe00f52a81c4bbbf65578",
+    "newSha256": "ce4aca4e45edfc01865c5ba550a4f7352abd3f76f6cc495b691549642c0200db"
+  },
+  {
+    "family": "gex-levels-heatmap-load-failure",
+    "captureFamily": "gex_levels_heatmap",
+    "file": "gex-state-refresh-failed-820.png",
+    "byteEqual": false,
+    "pixelsEqual": false,
+    "changedBounds": [
+      0,
+      1,
+      359,
+      159
+    ],
+    "oldSize": [
+      359,
+      254
+    ],
+    "newSize": [
+      359,
+      254
+    ],
+    "oldSha256": "7f3e9b620ea7d5ec408e73650b7dccafa57847c90c42980532cbb63f15040b1f",
+    "newSha256": "6a3c440283f4befb3052c90ba2ad647d84778f1ffd007273c7c33154f96bfd8c"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-absent-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      74
+    ],
+    "newSize": [
+      316,
+      74
+    ],
+    "oldSha256": "1028cb7205ffbb383c6618a19df5165ecf400084e855fe9fbdc1cc4e02f8ca2f",
+    "newSha256": "1028cb7205ffbb383c6618a19df5165ecf400084e855fe9fbdc1cc4e02f8ca2f"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-absent-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "f7346dd906d8fa815ca4d16cf4f837dd9a9a9c28ff7fa8ad2fd6d9eb9b620321",
+    "newSha256": "f7346dd906d8fa815ca4d16cf4f837dd9a9a9c28ff7fa8ad2fd6d9eb9b620321"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-absent-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      72
+    ],
+    "newSize": [
+      316,
+      72
+    ],
+    "oldSha256": "dd8e56fb0a1ca421a2d5833e79db06ad06f78c877b8721a7c6197a22e005c0a2",
+    "newSha256": "dd8e56fb0a1ca421a2d5833e79db06ad06f78c877b8721a7c6197a22e005c0a2"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-absent-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762",
+    "newSha256": "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-absent-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      72
+    ],
+    "newSize": [
+      316,
+      72
+    ],
+    "oldSha256": "946ca024340110929e863b1d4aa23a8d0ccf8c91ef074be255b60175d3b9f918",
+    "newSha256": "946ca024340110929e863b1d4aa23a8d0ccf8c91ef074be255b60175d3b9f918"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-absent-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762",
+    "newSha256": "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-retried-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "14e0377ebf8ba34e7c0e22a51bfeaa764ab6f63802c652c14fd2d0cc9fd28243",
+    "newSha256": "14e0377ebf8ba34e7c0e22a51bfeaa764ab6f63802c652c14fd2d0cc9fd28243"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-retried-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "098207d0ea1df6a52b9777d30cebee5eeb3e29072f2b9f3c3c47ad86d0b75363",
+    "newSha256": "098207d0ea1df6a52b9777d30cebee5eeb3e29072f2b9f3c3c47ad86d0b75363"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-retried-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "5499aca3a35487cba60c4f5a66951810f1f2a65481926c2ec6253894308dacce",
+    "newSha256": "5499aca3a35487cba60c4f5a66951810f1f2a65481926c2ec6253894308dacce"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-retried-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2",
+    "newSha256": "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-retried-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "14e0377ebf8ba34e7c0e22a51bfeaa764ab6f63802c652c14fd2d0cc9fd28243",
+    "newSha256": "14e0377ebf8ba34e7c0e22a51bfeaa764ab6f63802c652c14fd2d0cc9fd28243"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-retried-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      87
+    ],
+    "newSize": [
+      316,
+      87
+    ],
+    "oldSha256": "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2",
+    "newSha256": "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-unavailable-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      116
+    ],
+    "newSize": [
+      316,
+      116
+    ],
+    "oldSha256": "c67b81d3a16875b0c41e26e3a102f32991fcce786ebc8b3d556d4520fff02438",
+    "newSha256": "c67b81d3a16875b0c41e26e3a102f32991fcce786ebc8b3d556d4520fff02438"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-unavailable-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      131
+    ],
+    "newSize": [
+      316,
+      131
+    ],
+    "oldSha256": "4867f99790bb933734d81c93e22adf5b34e708f5787dedcb7342e7924480f68e",
+    "newSha256": "4867f99790bb933734d81c93e22adf5b34e708f5787dedcb7342e7924480f68e"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-unavailable-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      122
+    ],
+    "newSize": [
+      316,
+      122
+    ],
+    "oldSha256": "6d56469cff7158bc7c7baad1bed9498685f1f611e6d2672c6a476483bd21197d",
+    "newSha256": "6d56469cff7158bc7c7baad1bed9498685f1f611e6d2672c6a476483bd21197d"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-unavailable-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      137
+    ],
+    "newSize": [
+      316,
+      137
+    ],
+    "oldSha256": "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615",
+    "newSha256": "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-unavailable-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      122
+    ],
+    "newSize": [
+      316,
+      122
+    ],
+    "oldSha256": "d4caf1b52d3b877578a946bc413552b8e19842c4f05712d73617440cbdf34c76",
+    "newSha256": "d4caf1b52d3b877578a946bc413552b8e19842c4f05712d73617440cbdf34c76"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-darkpool-unavailable-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      316,
+      137
+    ],
+    "newSize": [
+      316,
+      137
+    ],
+    "oldSha256": "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615",
+    "newSha256": "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-absent-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1380,
+      88
+    ],
+    "newSize": [
+      1380,
+      88
+    ],
+    "oldSha256": "02c97ff364d763e54d20a0389d91a3029c6fe683c8f4de950ba41bd4dcc7803f",
+    "newSha256": "02c97ff364d763e54d20a0389d91a3029c6fe683c8f4de950ba41bd4dcc7803f"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-absent-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1380,
+      88
+    ],
+    "newSize": [
+      1380,
+      88
+    ],
+    "oldSha256": "9b639395ade6e99d88911ab1b5ccf176843959bb5ed20008eb7047bd2c1ed762",
+    "newSha256": "9b639395ade6e99d88911ab1b5ccf176843959bb5ed20008eb7047bd2c1ed762"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-absent-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      327
+    ],
+    "newSize": [
+      390,
+      327
+    ],
+    "oldSha256": "dfe442b647ee2f9795ef1082ac580425349133b5c6af5e94124f0a6626546fef",
+    "newSha256": "dfe442b647ee2f9795ef1082ac580425349133b5c6af5e94124f0a6626546fef"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-absent-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      387
+    ],
+    "newSize": [
+      390,
+      387
+    ],
+    "oldSha256": "f37a423329596df05383e9d3ec0b811330219a0bfbf5d2ea4f8bd7294c99aced",
+    "newSha256": "f37a423329596df05383e9d3ec0b811330219a0bfbf5d2ea4f8bd7294c99aced"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-absent-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      207
+    ],
+    "newSize": [
+      820,
+      207
+    ],
+    "oldSha256": "164308b137507e5ee601713026bec9d14c5be263b014eb69cd6f1bbbbf9cca1d",
+    "newSha256": "164308b137507e5ee601713026bec9d14c5be263b014eb69cd6f1bbbbf9cca1d"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-absent-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      207
+    ],
+    "newSize": [
+      820,
+      207
+    ],
+    "oldSha256": "aac2ac8e8d77e5fe024df84e117f368e918a68cc21a4a8093a82eb8cf5b93565",
+    "newSha256": "aac2ac8e8d77e5fe024df84e117f368e918a68cc21a4a8093a82eb8cf5b93565"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-partial-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1380,
+      108
+    ],
+    "newSize": [
+      1380,
+      108
+    ],
+    "oldSha256": "5d64e8cdfb069c5765743e3f0a4e8a1907615ecf2ac89e2e42fae024cb3f1737",
+    "newSha256": "5d64e8cdfb069c5765743e3f0a4e8a1907615ecf2ac89e2e42fae024cb3f1737"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-partial-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1380,
+      108
+    ],
+    "newSize": [
+      1380,
+      108
+    ],
+    "oldSha256": "4b9352e44ba182da0c6cd7e0adf936fa830dba8971c652a13e9d7fd17a5c9d00",
+    "newSha256": "4b9352e44ba182da0c6cd7e0adf936fa830dba8971c652a13e9d7fd17a5c9d00"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-partial-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      413
+    ],
+    "newSize": [
+      390,
+      413
+    ],
+    "oldSha256": "039fe33b61e6876ab0a0df8bac92dd9b9ec61913e6fb23b8237a5e9b1a423617",
+    "newSha256": "039fe33b61e6876ab0a0df8bac92dd9b9ec61913e6fb23b8237a5e9b1a423617"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-partial-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      488
+    ],
+    "newSize": [
+      390,
+      488
+    ],
+    "oldSha256": "ce1b5787fa6ba4797ef83f66b33ff93f2dabc947615d6ab0bf575e115b34f9b7",
+    "newSha256": "ce1b5787fa6ba4797ef83f66b33ff93f2dabc947615d6ab0bf575e115b34f9b7"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-partial-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      260
+    ],
+    "newSize": [
+      820,
+      260
+    ],
+    "oldSha256": "08f15e1671cfc26092e9e2dba603962633cfaa4cb13c4707f4385b9bf13c940c",
+    "newSha256": "08f15e1671cfc26092e9e2dba603962633cfaa4cb13c4707f4385b9bf13c940c"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-partial-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      260
+    ],
+    "newSize": [
+      820,
+      260
+    ],
+    "oldSha256": "140d3cb775bcbffbc85e658435001ed2762aca7b45802532d2655343f26f12f8",
+    "newSha256": "140d3cb775bcbffbc85e658435001ed2762aca7b45802532d2655343f26f12f8"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-retried-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1380,
+      88
+    ],
+    "newSize": [
+      1380,
+      88
+    ],
+    "oldSha256": "af923aba5f97a44df0571965d46fa7272cce55fe200d75945c68f799bdb17bbc",
+    "newSha256": "af923aba5f97a44df0571965d46fa7272cce55fe200d75945c68f799bdb17bbc"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-retried-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1380,
+      88
+    ],
+    "newSize": [
+      1380,
+      88
+    ],
+    "oldSha256": "ab27e50874c8883fb8a1f6d257d890f98af2c442790f7686228796ff3affa6c4",
+    "newSha256": "ab27e50874c8883fb8a1f6d257d890f98af2c442790f7686228796ff3affa6c4"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-retried-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      352
+    ],
+    "newSize": [
+      390,
+      352
+    ],
+    "oldSha256": "c1b5ce00f44ed7fa8643eb968f7eb5d1cbdef627340fabf08e2db6937429704e",
+    "newSha256": "c1b5ce00f44ed7fa8643eb968f7eb5d1cbdef627340fabf08e2db6937429704e"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-retried-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      472
+    ],
+    "newSize": [
+      390,
+      472
+    ],
+    "oldSha256": "04194b10320b81250b201684e41fdf259b27e8a8ea357a415ed879e86fc18c84",
+    "newSha256": "04194b10320b81250b201684e41fdf259b27e8a8ea357a415ed879e86fc18c84"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-retried-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      221
+    ],
+    "newSize": [
+      820,
+      221
+    ],
+    "oldSha256": "5d6dab7d7eb0846ebe08cc74f34cee22e0a4728a3fc0499625be047ed1d6b433",
+    "newSha256": "5d6dab7d7eb0846ebe08cc74f34cee22e0a4728a3fc0499625be047ed1d6b433"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-retried-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      233
+    ],
+    "newSize": [
+      820,
+      233
+    ],
+    "oldSha256": "0276af2e2f2418f33e8c83adab85ce346afaccc752ffe3908867180a99d8bbfb",
+    "newSha256": "0276af2e2f2418f33e8c83adab85ce346afaccc752ffe3908867180a99d8bbfb"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-unavailable-1440-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1380,
+      88
+    ],
+    "newSize": [
+      1380,
+      88
+    ],
+    "oldSha256": "e5d970436b80aa139a7d494d8bd337827ac048652b864c297b656f6055207040",
+    "newSha256": "e5d970436b80aa139a7d494d8bd337827ac048652b864c297b656f6055207040"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-unavailable-1440.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      1380,
+      88
+    ],
+    "newSize": [
+      1380,
+      88
+    ],
+    "oldSha256": "c6c48415d73b827e944069c59c71f8ed6df6613951dc849155899c7d8b31ed2a",
+    "newSha256": "c6c48415d73b827e944069c59c71f8ed6df6613951dc849155899c7d8b31ed2a"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-unavailable-390-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      201
+    ],
+    "newSize": [
+      390,
+      201
+    ],
+    "oldSha256": "1329d96fc03eeb16b36791ecad611ca1f5f0184de394413680a087ab2b7c160e",
+    "newSha256": "1329d96fc03eeb16b36791ecad611ca1f5f0184de394413680a087ab2b7c160e"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-unavailable-390.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      390,
+      233
+    ],
+    "newSize": [
+      390,
+      233
+    ],
+    "oldSha256": "3cef463f3d4a646ab8a3cd532d38708cf92186b522b36eeefdec962e1beb87e4",
+    "newSha256": "3cef463f3d4a646ab8a3cd532d38708cf92186b522b36eeefdec962e1beb87e4"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-unavailable-820-zh.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      146
+    ],
+    "newSize": [
+      820,
+      146
+    ],
+    "oldSha256": "71e223a097c45db65b40aa97a30c80f97c8d0362ea5ba9ac9a8eceb0db825419",
+    "newSha256": "71e223a097c45db65b40aa97a30c80f97c8d0362ea5ba9ac9a8eceb0db825419"
+  },
+  {
+    "family": "eod-heatmap-flowdesk-load-failure",
+    "captureFamily": "eod_heatmap_flowdesk",
+    "file": "eod-structure-unavailable-820.png",
+    "byteEqual": true,
+    "pixelsEqual": true,
+    "changedBounds": null,
+    "oldSize": [
+      820,
+      146
+    ],
+    "newSize": [
+      820,
+      146
+    ],
+    "oldSha256": "53939bc3550c0beeed70b634ae97bda4b15ff56680aa4265d4fb6f5c808f3167",
+    "newSha256": "53939bc3550c0beeed70b634ae97bda4b15ff56680aa4265d4fb6f5c808f3167"
+  }
+]

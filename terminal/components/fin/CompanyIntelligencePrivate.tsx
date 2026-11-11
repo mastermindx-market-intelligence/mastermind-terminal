@@ -3,6 +3,7 @@
 import { Component, type ReactNode } from 'react';
 import { identityOwnerKey, type AccountIdentity } from '@/lib/accountIdentity';
 import { useLang } from '@/lib/i18n';
+import type { PrivateCompanyViewProps } from '@/lib/companyIntelligencePrivateView';
 import { PRIVATE_COMPANY_LEX } from '@/lib/companyIntelligencePrivateLex';
 import { usePrivateCompanyIntelligence } from '@/lib/usePrivateCompanyIntelligence';
 import CompanyIntelligencePrivatePanel from './CompanyIntelligencePrivatePanel';
@@ -12,6 +13,7 @@ export interface CompanyIntelligencePrivateProps {
   readonly symbol: string | null;
   readonly enabled?: boolean;
   readonly onSignIn?: () => void;
+  readonly presentation?: PrivateCompanyViewProps['presentation'];
 }
 
 /**
@@ -37,9 +39,9 @@ class PrivateRenderBoundary extends Component<
   }
 }
 
-function ConnectedPrivateView({ identity, symbol, onSignIn }: CompanyIntelligencePrivateProps) {
+function ConnectedPrivateView({ identity, symbol, onSignIn, presentation }: CompanyIntelligencePrivateProps) {
   const { state, selectFact } = usePrivateCompanyIntelligence(identity, symbol);
-  return <CompanyIntelligencePrivatePanel state={state} onSelectFact={selectFact} onSignIn={onSignIn} />;
+  return <CompanyIntelligencePrivatePanel state={state} onSelectFact={selectFact} onSignIn={onSignIn} presentation={presentation} />;
 }
 
 /**
@@ -51,6 +53,7 @@ export default function CompanyIntelligencePrivate({
   symbol,
   enabled = true,
   onSignIn,
+  presentation,
 }: CompanyIntelligencePrivateProps) {
   const { lang } = useLang();
   if (!enabled) return null;
@@ -61,7 +64,7 @@ export default function CompanyIntelligencePrivate({
   const fallback = <p role="status">{PRIVATE_COMPANY_LEX.sourceUnavailable[lang === 'zh' ? 1 : 0]}</p>;
   return (
     <PrivateRenderBoundary key={lifetime} fallback={fallback}>
-      <ConnectedPrivateView identity={identity} symbol={symbol} onSignIn={onSignIn} />
+      <ConnectedPrivateView identity={identity} symbol={symbol} onSignIn={onSignIn} presentation={presentation} />
     </PrivateRenderBoundary>
   );
 }

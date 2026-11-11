@@ -16,7 +16,8 @@
  * All copy lives in flowdeskStrings.ts (FD); all math lives in flowPrintInspector.ts.
  */
 
-import { fmtDate } from "@/lib/finFormat";
+import { fmtDate, pick } from "@/lib/finFormat";
+import { gaugeMissingPrints } from "@/lib/flowdeskStrings";
 import type { Lang } from "@/lib/i18n";
 import {
   flowPrintStrings,
@@ -132,14 +133,28 @@ export interface FlowCoverageLineProps {
  * "88 % of eligible premium classified · 12 % unknown" + unsigned call/put totals.
  * Computed over every loaded event BEFORE the user's filters — unknown premium
  * stays in every denominator, and the C/P totals are unsigned (not a direction).
+ * When any loaded print carries no premium or no call/put side, the totals are
+ * replaced by the session gauge's own "n of m prints…" disclosure. A tape with no
+ * eligible premium says "no eligible premium" only when every loaded print is
+ * attributable (in practice: an empty tape); otherwise it carries the disclosure
+ * alone — no split, because the shares are null — so unattributable prints never
+ * read as an empty or waiting tape.
  */
 export function FlowCoverageLine({ coverage, lang }: FlowCoverageLineProps) {
   const s = flowPrintStrings(lang);
+  // A loaded print with no premium or no call/put side would silently drop out of the
+  // C/P totals — the session gauge calls those totals incomplete, so the line says the
+  // same (in the gauge's own words) instead of publishing them.
+  const missing = coverage.missing > 0 ? gaugeMissingPrints(coverage.missing, coverage.rows) : null;
 
   if (coverage.total <= 0) {
     return (
       <div className="obs-print-coverage" data-testid="flow-coverage">
-        {s.coverageEmpty}
+        {missing ? (
+          <span className="obs-print-coverage-totals">{pick(lang === "zh", missing.en, missing.zh)}</span>
+        ) : (
+          s.coverageEmpty
+        )}
       </div>
     );
   }
@@ -154,9 +169,13 @@ export function FlowCoverageLine({ coverage, lang }: FlowCoverageLineProps) {
       <span className="obs-print-coverage-split">
         {`${classifiedPct} % ${s.coverageClassifiedPart} · ${unknownPct} % ${s.coverageUnknownPart}`}
       </span>
-      <span className="obs-print-coverage-totals num">
-        {`${s.coverageCalls} ${formatCoverageUsd(coverage.callPremium)} · ${s.coveragePuts} ${formatCoverageUsd(coverage.putPremium)} · ${s.coverageUnsigned}`}
-      </span>
+      {missing ? (
+        <span className="obs-print-coverage-totals">{pick(lang === "zh", missing.en, missing.zh)}</span>
+      ) : (
+        <span className="obs-print-coverage-totals num">
+          {`${s.coverageCalls} ${formatCoverageUsd(coverage.callPremium)} · ${s.coveragePuts} ${formatCoverageUsd(coverage.putPremium)} · ${s.coverageUnsigned}`}
+        </span>
+      )}
     </div>
   );
 }

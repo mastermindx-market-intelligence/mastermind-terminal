@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ✓ lib/__tests__/marketPrefsOwner.test.ts (32 tests) 96ms
+ ✓ lib/__tests__/accountWriteScope.test.ts (21 tests) 557ms
+   ✓ every user_metadata write site is wrapped by the fence > each updateUser data write sits behind sendScopedAccountWrite or scopeAccountWrite 348ms
+ ✓ components/settings/__tests__/SectionPreferencesContinuity.test.tsx (8 tests) 272ms
+
+ Test Files  3 passed (3)
+      Tests  61 passed (61)
+   Start at  09:09:22
+   Duration  1.38s (transform 559ms, setup 0ms, collect 777ms, tests 926ms, environment 415ms, prepare 246ms)
+

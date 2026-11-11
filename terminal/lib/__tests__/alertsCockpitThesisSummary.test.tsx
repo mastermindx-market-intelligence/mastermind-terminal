@@ -196,7 +196,7 @@ describe("AlertsCockpit — thesis row producer summary (B-F11-11b-pre-2)", () =
     const rows = timelineRows();
     await openDetail(rows[0]);
 
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]');
     expect(dialog, "expected drillback dialog to open").not.toBeNull();
     const leafWithText = (text: string) =>
       Array.from(dialog!.querySelectorAll("*")).find((el) => el.textContent === text && el.children.length === 0);
@@ -251,7 +251,7 @@ describe("AlertsCockpit — thesis row producer summary (B-F11-11b-pre-2)", () =
     const rows = timelineRows();
     await openDetail(rows[0]);
 
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]');
     expect(dialog, "expected drillback dialog to open on ZH screen").not.toBeNull();
     const leafWithText = (text: string) =>
       Array.from(dialog!.querySelectorAll("*")).find((el) => el.textContent === text && el.children.length === 0);

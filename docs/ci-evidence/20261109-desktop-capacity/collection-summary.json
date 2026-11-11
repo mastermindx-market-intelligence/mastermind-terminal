@@ -1,0 +1,219 @@
+{
+  "sourceHead": "3e4ba175e838b56d43c30afe5a04b6753f9ce103",
+  "composedTree": "ac9b25d38f34c6905db6ad0987b4f1d0e4521628",
+  "protectedBase": "9f13ad1226d785524e56a5e03bf5236b231242a6",
+  "whole": 1558,
+  "originalDesktop1": 312,
+  "originalStress": [
+    "chart-ownership-stress.spec.ts > chart lifecycle ownership > 50 symbol/timeframe transitions leave no orphaned chart resources",
+    "chart-ownership-stress.spec.ts > chart lifecycle ownership > compare, indicator, family and replay churn returns to the same ownership",
+    "chart-ownership-stress.spec.ts > chart lifecycle ownership > a dead-ended fetch releases every study owner",
+    "chart-ownership-stress.spec.ts > chart lifecycle ownership > unmounting the chart leaves nothing behind"
+  ],
+  "sixShards": [
+    {
+      "shard": "1/6",
+      "cases": 260,
+      "stress": [
+        "chart-ownership-stress.spec.ts > chart lifecycle ownership > 50 symbol/timeframe transitions leave no orphaned chart resources",
+        "chart-ownership-stress.spec.ts > chart lifecycle ownership > compare, indicator, family and replay churn returns to the same ownership",
+        "chart-ownership-stress.spec.ts > chart lifecycle ownership > a dead-ended fetch releases every study owner",
+        "chart-ownership-stress.spec.ts > chart lifecycle ownership > unmounting the chart leaves nothing behind"
+      ]
+    },
+    {
+      "shard": "2/6",
+      "cases": 260,
+      "stress": []
+    },
+    {
+      "shard": "3/6",
+      "cases": 260,
+      "stress": []
+    },
+    {
+      "shard": "4/6",
+      "cases": 260,
+      "stress": []
+    },
+    {
+      "shard": "5/6",
+      "cases": 259,
+      "stress": []
+    },
+    {
+      "shard": "6/6",
+      "cases": 259,
+      "stress": []
+    }
+  ],
+  "completeDisjointUnion": true,
+  "collectionOnly": true,
+  "browserExecuted": false,
+  "helperOutputUsedAsBrowserProof": false,
+  "receipts": [
+    {
+      "name": "whole",
+      "returncode": 0,
+      "seconds": 13.571,
+      "cases": 1558,
+      "stdoutSha256": "1f7223d0b5aad58a25b60331be6ae408029e4b04c46344918fb68b758c0a3dcf",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trailingOutputBytes": 4845,
+      "commandPrefix": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--project=desktop",
+        "--reporter=json"
+      ]
+    },
+    {
+      "name": "1-of-6",
+      "returncode": 0,
+      "seconds": 2.528,
+      "cases": 260,
+      "stdoutSha256": "95d66dc6a71d33c44af7e53490b64d93c60046a5b9996a2401a42ff6b5c7176a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trailingOutputBytes": 1,
+      "commandPrefix": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--project=desktop",
+        "--reporter=json"
+      ],
+      "fileArguments": "all entries in collection-files.json",
+      "shardArgument": "--shard=1/6"
+    },
+    {
+      "name": "2-of-6",
+      "returncode": 0,
+      "seconds": 2.287,
+      "cases": 260,
+      "stdoutSha256": "dc60d1c0c6a244000961aa9167459caf151120817866c1f9e6c5d74d1b65d54e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trailingOutputBytes": 1,
+      "commandPrefix": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--project=desktop",
+        "--reporter=json"
+      ],
+      "fileArguments": "all entries in collection-files.json",
+      "shardArgument": "--shard=2/6"
+    },
+    {
+      "name": "3-of-6",
+      "returncode": 0,
+      "seconds": 2.33,
+      "cases": 260,
+      "stdoutSha256": "5344f6242bc9b79e01a044faccfba8e0afdff2a1e8ec81bbf699095d36ec64c0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trailingOutputBytes": 1,
+      "commandPrefix": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--project=desktop",
+        "--reporter=json"
+      ],
+      "fileArguments": "all entries in collection-files.json",
+      "shardArgument": "--shard=3/6"
+    },
+    {
+      "name": "4-of-6",
+      "returncode": 0,
+      "seconds": 2.38,
+      "cases": 260,
+      "stdoutSha256": "17359d3e1ed123c556d4105bc7ad532655eae720630a092891853cdbcf714852",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trailingOutputBytes": 1,
+      "commandPrefix": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--project=desktop",
+        "--reporter=json"
+      ],
+      "fileArguments": "all entries in collection-files.json",
+      "shardArgument": "--shard=4/6"
+    },
+    {
+      "name": "5-of-6",
+      "returncode": 0,
+      "seconds": 2.278,
+      "cases": 259,
+      "stdoutSha256": "5a4323c44bbfc449f1bdd7f0aa5d9de863e5c0a37b45459b379c1f79f6a152cf",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trailingOutputBytes": 1,
+      "commandPrefix": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--project=desktop",
+        "--reporter=json"
+      ],
+      "fileArguments": "all entries in collection-files.json",
+      "shardArgument": "--shard=5/6"
+    },
+    {
+      "name": "6-of-6",
+      "returncode": 0,
+      "seconds": 2.284,
+      "cases": 259,
+      "stdoutSha256": "b1f1fa598d11e7f2d4df49a6cb1757832a76e60d0b6b6ca60efe72ae30be78de",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trailingOutputBytes": 1,
+      "commandPrefix": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--project=desktop",
+        "--reporter=json"
+      ],
+      "fileArguments": "all entries in collection-files.json",
+      "shardArgument": "--shard=6/6"
+    },
+    {
+      "name": "desktop1-of-5",
+      "returncode": 0,
+      "seconds": 2.334,
+      "cases": 312,
+      "stdoutSha256": "e569f64fb94572b65872d65fae3c27571b52c8fedae5fe8fed79a530388a2f51",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trailingOutputBytes": 1,
+      "commandPrefix": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--project=desktop",
+        "--reporter=json"
+      ],
+      "fileArguments": "all entries in collection-files.json",
+      "shardArgument": "--shard=1/5"
+    }
+  ],
+  "caseProjection": {
+    "path": "collection-cases.json.gz",
+    "sha256": "eabf10ece6a8ad8d4c1d55c2cfa517353acf256179ca71bf6f33e47fddb78e54",
+    "records": 1558,
+    "columns": [
+      "id",
+      "title",
+      "file",
+      "project",
+      "shard",
+      "oldDesktop1"
+    ]
+  }
+}

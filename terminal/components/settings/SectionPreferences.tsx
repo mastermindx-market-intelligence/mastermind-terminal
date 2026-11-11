@@ -1,11 +1,10 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
-import { isAccountOwner } from "@/lib/accountIdentity";
+import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
 import {
   currentOwnerToken, ownerTokenIsCurrent, persistMetaPrefs, persistTradeTypes, useAccountPrefs,
-  type OwnerToken,
 } from "@/lib/useMarketPrefs";
 import { FOLLOW_IDS, FOLLOW_TKEY, type FollowId } from "@/lib/markets";
 import { DeliveryNote, Group, IconCheck, Row, SectionHead } from "./icons";
@@ -62,6 +61,7 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
   const presentation = useOptionalSharedShellPresentation();
   const { prefs, metaPrefs, setFollowed, setLangPref, sync, owner, retrySync } = useAccountPrefs(identity);
   const guest = !isAccountOwner(owner);
+  const renderToken = currentOwnerToken();
 
   // Which rows have been edited THIS session, per owner. A control the user has not touched says
   // nothing — a shared lane status pinned under every row would report one row's write as if it
@@ -79,17 +79,11 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
   const [pendingTrades, setPendingTrades] = useState<string[] | null>(null);
   const trades = pendingTrades ?? metaTrades;
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); }, []);
-
-  // An owner change cancels this section's outstanding deferred mutation and drops the previous
-  // owner's un-committed answer. Done DURING RENDER, not in an effect: an effect runs after
-  // paint, so the outgoing owner's chips would render for a frame under the incoming owner and
-  // the timer would still be live while they did.
+  // Drop the prior owner's local answer before painting the incoming owner's section.
+  // Delivery itself belongs to the existing owner-bound pump, outside this section's lifetime.
   const renderedFor = useRef(owner);
   if (renderedFor.current !== owner) {
     renderedFor.current = owner;
-    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
     if (pendingTrades) setPendingTrades(null);
     if (touched.follow || touched.trades || touched.theme) {
       setTouched({ follow: false, trades: false, theme: false });
@@ -104,25 +98,18 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
     setFollowed(next);
   }
 
-  // Debounced like macro's `_sdSaveDesk` — a burst of chip taps is one write. The pump would
-  // coalesce them anyway; the debounce keeps the request count down for a fast tapper.
+  // Accept the intent immediately into the existing serialized/coalescing pump. A section
+  // switch must not cancel it; the pump retains its own account-generation boundary.
   function toggleTrade(id: string) {
+    if (renderToken.owner !== owner || owner !== identityOwnerKey(identity) || !ownerTokenIsCurrent(renderToken)) return;
     const next = trades.includes(id) ? trades.filter((v) => v !== id) : [...trades, id];
     setPendingTrades(next);
     setTouched((s) => ({ ...s, trades: true }));
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    if (guest) { saveTimer.current = null; return; }
-    // E5: the owner is captured HERE, when the user expressed the intent — not read at
-    // execution time, when it may name a different account entirely.
-    const token: OwnerToken = currentOwnerToken();
-    saveTimer.current = setTimeout(() => {
-      saveTimer.current = null;
-      if (!ownerTokenIsCurrent(token)) return;   // the intent outlived its owner — discard it
-      persistTradeTypes(next);
-      // Mirror it into the cached profile so the ID card repaints without a second read. This is
-      // a LOCAL cache update, not a claim about the authority — that is what the note reports.
-      onPatchMeta({ trade_types: next });
-    }, 500);
+    if (guest) return;
+    persistTradeTypes(next);
+    // Keep section-to-section presentation current while the existing status note reports
+    // delivery. The local profile update is not an acknowledgement from the authority.
+    onPatchMeta({ trade_types: next });
   }
 
   const themeChoice: ThemeChoice = metaPrefs.themeAuto === "1"

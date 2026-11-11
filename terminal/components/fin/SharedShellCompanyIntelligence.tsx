@@ -9,6 +9,7 @@ import { identityOwnerKey } from "@/lib/accountIdentity";
 import { companyRetainedContextParams, loadCompanyRetainedContext, parseCompanyRetainedContext } from "@/lib/companyRetainedContext";
 import type { TranscriptOpenTarget } from "@/lib/transcriptSearch";
 import CompanyIntelligenceV2Current from "./CompanyIntelligenceV2Current";
+import CompanyIntelligencePage from "./CompanyIntelligencePage";
 import CompanyWatchSave from "./CompanyWatchSave";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
@@ -133,6 +134,27 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
   const authRequired = !current.ok && current.reason === "unauthenticated";
   const accessRestricted = !current.ok && (current.reason === "rights_denied" || current.reason === "http_403");
   const hasRetainedSelection = key.length > 0;
+  // A pinned or denied retained event must never be substituted. An ordinary
+  // unpinned availability failure can show separately published company data.
+  const standardCompanyView = !current.ok && !hasRetainedSelection
+    && (current.reason === "http_503" || current.reason === "current_owner_unavailable");
+  if (standardCompanyView) return <>
+    <div className="ci-state-banner" style={{ flexWrap: "wrap" }} role="status"
+      data-ci-context-state="standard_company_view" data-ci-unavailable-reason={current.reason}>
+      <span aria-hidden>!</span>
+      <p style={{ flex: "1 1 280px", minWidth: 0 }}>
+        <strong>{pick(zh, "Standard company intelligence", "标准公司情报")}</strong>{" "}
+        {pick(zh,
+          "Verified event unavailable. Showing published company research; check source dates.",
+          "已验证事件不可用。改为显示已发布的公司研究，请核对来源日期。")}
+      </p>
+      <button type="button" className="btn btn-ghost" onClick={() => setRetry(value => value + 1)}>
+        {pick(zh, "Recheck verified event", "重新验证事件")}
+      </button>
+    </div>
+    <CompanyIntelligencePage sym={ticker} name={name} onOpenTx={onOpenTx}
+      onEvidenceOpenChange={onEvidenceOpenChange} />
+  </>;
   if (!current.ok) return <section className="ci-page ci-state" role="status" data-ci-context-state="historical_unavailable" data-ci-unavailable-reason={current.reason}>
     <h2>{authRequired
       ? hasRetainedSelection ? (pick(zh, "Sign in to recheck the selected event", "登录以重新验证所选事件")) : (pick(zh, "Sign in to recheck the current event", "登录以重新验证当前事件"))

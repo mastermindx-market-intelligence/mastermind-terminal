@@ -1,0 +1,314 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal[39m
+
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m1. carries verbatim
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m2b. realistic production coverage (MAJOR: case 1 alone is fixture-only)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m2c. realistic production coverage, no held ticker covered (MAJOR)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m2. prints missing (acceptance 2)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m3. never guesses a date
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m4. open positions only
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m5. unsized position still touched
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m6. ordering is date-then-ticker
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m7. no scorer can be added silently
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m8. typed unreadable states
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m8b. a locked upstream is 'upstream_locked', never 'no_events' (BLOCKER 1, review r2)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m8c. heldPositions counts open positions, not distinct tickers (m1, review r2)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m9. empty vs unreadable are distinct
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m10. unjoinable disclosure
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m11. single source of the missing string
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m12. presentPosition pluralizes EN shares, ZH is invariant (major m1, review r3)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m13. zero holdings outranks a locked/unreadable calendar (minor 3, review r3)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m14. ZH register: no panel copy string addresses the user as 您 (RULING r3, item 2)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m15. no unread/locked state's copy claims positions are fine/unaffected, except calendar_unreadable's own sentence (MAJOR COPY RULING, r4)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m16. the three unreadable/locked states carry mutually distinct sentences in EN and ZH (MAJOR 1, review r5)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m17. every joined event carries a required invalidation element (B-F08-8)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m18. compile-time: EventTouch requires invalidation (@ts-expect-error)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m19. runtime guard: typed null and stated rows pass; a missing element fails
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m20. every mapped type carries a condition or the typed null (table-driven)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m21. rendered invalidation strings use plain phrases, never symbols or machine text
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m19b. runtime guard pins typed-null copy to the R2 sentences (MINOR 2, r2)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m24. earnings void names a last close printing on the report date, never a tautological bound (MAJOR r2)
+ [32m✓[39m lib/__tests__/eventImpact.test.ts[2m > [22meventImpact join[2m > [22m25. typed-null capture fixture uses a join-emitted kind, never an unjoinable calendar (MINOR 1, r2)
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m1. upstream unreadable (acceptance 3)
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m2. holdings unreadable
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m3. signed out
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m4. happy path
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m5. GET only / read-only
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m6. cache does not lie
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m7. stale-through-outage is disclosed, never served silently as fresh (MAJOR)
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m8. a 401 body matches the typed EventImpactRead 'unauthenticated' state (MAJOR: UI parity)
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m9. a 401 upstream is 'upstream_locked', never 'no_events' (BLOCKER 1)
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m10. a 403 upstream is also 'upstream_locked'
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m11. a genuine 5xx stays 'calendar_unreadable', not 'upstream_locked'
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m12. reads the artifact from MACRO_DATA_DIR on disk, never touching the HTTP fallback
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m13. MACRO_DATA_DIR missing on this box falls through to the HTTP fetch, not an error
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m16. a corrupt on-disk artifact stays calendar_unreadable even when the HTTP fallback 401s
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m14. stale is never spread onto holdings_unreadable (m3)
+ [32m✓[39m lib/__tests__/eventImpactRoute.test.ts[2m > [22mevent-impact route[2m > [22m15. a cache older than MAX_STALE_MS is not served — disclosed as unreadable instead of an indefinitely stale countdown
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders 'not stated' text for a direction the source never carried
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders 'not stated' text for a direction the source never carried
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the carried verbatim text when the source states it
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the carried verbatim text when the source states it
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders a plain typed sentence, not a blank panel, when the calendar is unreadable
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders a plain typed sentence, not a blank panel, when the calendar is unreadable
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders upstream-locked, never a fine/unaffected claim, on a 429 rate limit
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders upstream-locked, never a fine/unaffected claim, on a 429 rate limit
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders upstream-locked, never a fine/unaffected claim, on a fetch/network failure
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders upstream-locked, never a fine/unaffected claim, on a fetch/network failure
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders a stale disclosure when the route served a cached-past-outage copy
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders a stale disclosure when the route served a cached-past-outage copy
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders a typed sentence, not a blank panel, on a 401 from the route
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders a typed sentence, not a blank panel, on a 401 from the route
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the upstream-locked disclosure, never the no-events claim nor a fine/unaffected claim, when the source is locked out
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mstarts a fresh read when a same-count id changes
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mstarts a fresh read when a same-count ticker changes
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mstarts a fresh read when a same-count shares changes
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mstarts a fresh read when a same-count status changes
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mdoes not reload for an identical semantic copy in a new array
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mdoes not reload for a entry price-only change, which the route never projects
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mdoes not reload for a entry date-only change, which the route never projects
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mdoes not reload for a notes-only change, which the route never projects
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — committed input identity[2m > [22mdoes not reload for a entry currency-only change, which the route never projects
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the upstream-locked disclosure, never the no-events claim nor a fine/unaffected claim, when the source is locked out
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the holdings-unreadable state when holdingsUnreadable is true, never a fetch
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the holdings-unreadable state when holdingsUnreadable is true, never a fetch
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mZH-lang render of the three unreadable/locked states[2m > [22m[2mholdings_unreadable renders its ZH sentence
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mZH-lang render of the three unreadable/locked states[2m > [22m[2mholdings_unreadable renders its ZH sentence
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mZH-lang render of the three unreadable/locked states[2m > [22m[2mcalendar_unreadable renders its ZH sentence
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mZH-lang render of the three unreadable/locked states[2m > [22m[2mupstream_locked renders its ZH sentence, never the ZH 'unaffected' claim
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mZH-lang render of the three unreadable/locked states[2m > [22m[2mupstream_locked renders its ZH sentence, never the ZH 'unaffected' claim
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders a neutral checking state before the fetch resolves, never the no-holdings claim
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mpluralizes the no-events count by open positions, not distinct tickers
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mpluralizes the no-events count by open positions, not distinct tickers
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2muses singular phrasing for exactly one open position, never 'your 1 open positions'
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mpluralizes the held-shares chip text ('1 share', never '1 shares')
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mpluralizes the held-shares chip text ('1 share', never '1 shares')
+[22m[39mThe current testing environment is not configured to support act(...)
+
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — obsolete facts never read as current[2m > [22mremoves the previous read's rows when the committed input changes
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — obsolete facts never read as current[2m > [22mnever shows the previous read's rows between the committed input and the fresh read
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mlabels the 5-day highlight as a display convention, not a source claim
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mlabels the 5-day highlight as a display convention, not a source claim
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the earnings invalidation line in EN under the carry slots
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the earnings invalidation line in EN under the carry slots
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the earnings invalidation line in ZH
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the earnings invalidation line in ZH
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the typed-null invalidation in the same slot in EN
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the typed-null invalidation in the same slot in EN
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the typed-null invalidation in the same slot in ZH
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mrenders the typed-null invalidation in the same slot in ZH
+[22m[39mThe current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mtyped-null slot with unjoinable sources does not claim the ticker is named on those calendars
+[22m[39mThe current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | lib/__tests__/eventImpactPanelRender.test.ts[2m > [22m[2mEventImpactPanel render (acceptance 2)[2m > [22m[2mtyped-null slot with unjoinable sources does not claim the ticker is named on those calendars
+[22m[39mThe current testing environment is not configured to support act(...)
+
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders 'not stated' text for a direction the source never carried
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders the carried verbatim text when the source states it
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders a plain typed sentence, not a blank panel, when the calendar is unreadable
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders upstream-locked, never a fine/unaffected claim, on a 429 rate limit
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders upstream-locked, never a fine/unaffected claim, on a fetch/network failure
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders a stale disclosure when the route served a cached-past-outage copy
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders a typed sentence, not a blank panel, on a 401 from the route
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders the upstream-locked disclosure, never the no-events claim nor a fine/unaffected claim, when the source is locked out
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders the holdings-unreadable state when holdingsUnreadable is true, never a fetch
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mZH-lang render of the three unreadable/locked states[2m > [22mholdings_unreadable renders its ZH sentence
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mZH-lang render of the three unreadable/locked states[2m > [22mcalendar_unreadable renders its ZH sentence
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mZH-lang render of the three unreadable/locked states[2m > [22mupstream_locked renders its ZH sentence, never the ZH 'unaffected' claim
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders a neutral checking state before the fetch resolves, never the no-holdings claim
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mpluralizes the no-events count by open positions, not distinct tickers
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22muses singular phrasing for exactly one open position, never 'your 1 open positions'
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mpluralizes the held-shares chip text ('1 share', never '1 shares')
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mlabels the 5-day highlight as a display convention, not a source claim
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders the earnings invalidation line in EN under the carry slots
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders the earnings invalidation line in ZH
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders the typed-null invalidation in the same slot in EN
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mrenders the typed-null invalidation in the same slot in ZH
+ [32m✓[39m lib/__tests__/eventImpactPanelRender.test.ts[2m > [22mEventImpactPanel render (acceptance 2)[2m > [22mtyped-null slot with unjoinable sources does not claim the ticker is named on those calendars
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — expansion policy[2m > [22mkeeps Show all across a same-count semantic change
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — expansion policy[2m > [22mstill collapses when the open-position count changes
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — expansion policy[2m > [22mstill collapses when the book becomes unreadable
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — expansion policy[2m > [22mdoes not restore the expansion after a committed count round trip
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — expansion policy[2m > [22mdoes not restore the expansion after a committed readability round trip
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22mignores a retired fetch that resolves after the current read
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22mignores a retired JSON body that resolves after the current read
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22mdoes not revive the first read after a committed A to B to A
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22ma retired success (fetch stage) cannot overwrite the current result
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22ma retired 401 (fetch stage) cannot overwrite the current result
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22ma retired 429 (fetch stage) cannot overwrite the current result
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22ma retired network failure (fetch stage) cannot overwrite the current result
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22ma retired success (body stage) cannot overwrite the current result
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22ma retired typed 503 (body stage) cannot overwrite the current result
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22ma retired parse failure (body stage) cannot overwrite the current result
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — request retirement[2m > [22ma retired completion cannot clear the current request's busy state
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — unreadable transitions[2m > [22minvalidates, fetches nothing and settles busy when the book becomes unreadable
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — unreadable transitions[2m > [22mreloads when the book becomes readable again
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — effect lifetime[2m > [22mdoes not publish a result that arrives after unmount
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — effect lifetime[2m > [22madmits one StrictMode read and retires a committed input's body before-current
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — effect lifetime[2m > [22madmits one StrictMode read and retires a committed input's body after-current
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — language register[2m > [22mkeeps the en busy and unreadable copy in its own register
+ [32m✓[39m lib/__tests__/eventImpactPanelRefresh.test.tsx[2m > [22mEventImpactPanel — language register[2m > [22mkeeps the zh busy and unreadable copy in its own register
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped brief[2m > [22mretires the previous account's settled content before the next account's response
+ [32m✓[39m lib/__tests__/eventImpactPanelActualCaller.test.tsx[2m > [22mactual Portfolio caller (en)[2m > [22mrefreshes the event facts after a real position edit and the canonical readback
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped brief[2m > [22mignores the previous account's late fetch completion
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped brief[2m > [22mignores the previous account's late body completion
+ [32m✓[39m lib/__tests__/eventImpactPanelActualCaller.test.tsx[2m > [22mactual Portfolio caller (en)[2m > [22mkeeps Show all across a same-count edit made through the real modal
+ [32m✓[39m lib/__tests__/eventImpactPanelActualCaller.test.tsx[2m > [22mactual Portfolio caller (en)[2m > [22mdoes not reload for a same-owner canonical reread that changed nothing
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped brief[2m > [22mdoes not revive a retired request after A to B to A
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped brief[2m > [22mpreserves a live request through a same-owner seed and email refresh
+ [32m✓[39m lib/__tests__/eventImpactPanelActualCaller.test.tsx[2m > [22mactual Portfolio caller (zh)[2m > [22mrefreshes the event facts after a real position edit and the canonical readback
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped events[2m > [22mretires the previous account's settled content before the next account's response
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped events[2m > [22mignores the previous account's late fetch completion
+ [32m✓[39m lib/__tests__/eventImpactPanelActualCaller.test.tsx[2m > [22mactual Portfolio caller (zh)[2m > [22mkeeps Show all across a same-count edit made through the real modal
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped events[2m > [22mignores the previous account's late body completion
+ [32m✓[39m lib/__tests__/eventImpactPanelActualCaller.test.tsx[2m > [22mactual Portfolio caller (zh)[2m > [22mdoes not reload for a same-owner canonical reread that changed nothing
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped events[2m > [22mdoes not revive a retired request after A to B to A
+ [32m✓[39m lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx[2m > [22mPortfolio owner-scoped events[2m > [22mpreserves a live request through a same-owner seed and email refresh
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m116 passed[39m[22m[90m (116)[39m
+[2m   Start at [22m 03:07:13
+[2m   Duration [22m 3.71s[2m (transform 1.27s, setup 0ms, collect 3.74s, tests 2.62s, environment 1.78s, prepare 1.63s)[22m
+

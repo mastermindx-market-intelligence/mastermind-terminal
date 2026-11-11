@@ -1,0 +1,9 @@
+.ci-evidence-layer{
+  color:var(--text);
+  --rcpt-exact:var(--brand-2);
+  --rcpt-absent:var(--muted);
+  --rcpt-superseded:var(--warn);
+  --rcpt-withheld:var(--text-dim);
+  --rcpt-meta:color-mix(in srgb,var(--muted) 80%,var(--text-2));
+}
+.ci-evidence-layer button,.ci-evidence-layer select,.ci-evidence-layer a{min-height:36px}

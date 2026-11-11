@@ -39,7 +39,7 @@ def test_private_opt_in_is_step_local_and_cannot_succeed_on_skips():
     env = step.get("env", {})
     assert env.get("MMX_INVESTOR_SHELL_PREVIEW") == "1"
     assert env.get("CI") == "1"
-    assert env.get("TERMINAL_E2E_PORT") == "31991"
+    assert env.get("TERMINAL_E2E_PORT") == "${{ steps.lane.outputs.port_investor }}"
     assert "continue-on-error" not in step
     assert not any(k.startswith("NEXT_PUBLIC_") for k in env)
     all_steps, workflow = steps()

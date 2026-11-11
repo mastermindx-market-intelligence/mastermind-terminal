@@ -56,6 +56,21 @@ export function tierBoundsMn(bookMaxAbsMn: number): number[] {
   return SURFACE_TIERS.map((t) => t * bookMaxAbsMn);
 }
 
+/** Cell-centre row coordinate over descending strikes. Interpolate only
+ * between supplied centres; outside their span clamp to the nearest covered
+ * centre. A single strike defines one centre, never a price-to-row slope. */
+export function surfaceSpotRow(strikes: number[], spot: number): number | null {
+  if (!strikes.length || !strikes.every(Number.isFinite) || !Number.isFinite(spot)) return null;
+  const rows = [...strikes].sort((a, b) => b - a);
+  if (spot >= rows[0]!) return 0.5;
+  if (spot <= rows[rows.length - 1]!) return rows.length - 0.5;
+  for (let i = 0; i < rows.length - 1; i++) {
+    const hi = rows[i]!, lo = rows[i + 1]!;
+    if (hi > lo && spot <= hi && spot >= lo) return i + 0.5 + (hi - spot) / (hi - lo);
+  }
+  return 0.5;
+}
+
 /** Whole days between the projection session and an expiry date. */
 export function daysToExpiry(expiry: string, session: string | null): number | null {
   const day = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? Date.parse(v) : NaN);
@@ -79,15 +94,101 @@ export function projectSurfacePoint(col: number, row: number, height: number, fr
   return { x, y: yBase - height * Math.cos(elevation), depth: c + r };
 }
 
+/** Fixed pixel box a label occupies around its mapped anchor. Geometry
+ * vertices carry the zero box; font sizes are never scaled. */
+export interface SurfaceLabelBox { dxMin: number; dyMin: number; dxMax: number; dyMax: number }
+export const SURFACE_NO_BOX: SurfaceLabelBox = { dxMin: 0, dyMin: 0, dxMax: 0, dyMax: 0 };
+export interface SurfaceSceneItem { p: { x: number; y: number }; box: SurfaceLabelBox }
+export interface SurfaceCamera { scale: number; tx: number; ty: number }
+export const SURFACE_SCENE_PAD_PX = 20;
+
+/** One uniform camera for geometry and fixed-pixel labels. Keep the nominal
+ * 20px gutter where feasible; compact fields may use a gutter down to 8px,
+ * preserving readable labels and nonzero geometry before conceding a genuinely
+ * unusable viewport. No font or financial value is scaled by this camera. */
+export function fitSurfaceCamera(items: readonly SurfaceSceneItem[], width: number, height: number,
+  pad: number = SURFACE_SCENE_PAD_PX): SurfaceCamera {
+  const w = Number.isFinite(width) && width > 0 ? width : 720;
+  const h = Number.isFinite(height) && height > 0 ? height : 420;
+  const scene = items.filter((it) => [it.p.x, it.p.y, it.box.dxMin, it.box.dyMin, it.box.dxMax, it.box.dyMax]
+    .every(Number.isFinite));
+  if (!scene.length) return { scale: 0, tx: w / 2, ty: h / 2 };
+  const extent = (scale: number) => {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const it of scene) {
+      minX = Math.min(minX, scale * it.p.x + it.box.dxMin);
+      maxX = Math.max(maxX, scale * it.p.x + it.box.dxMax);
+      minY = Math.min(minY, scale * it.p.y + it.box.dyMin);
+      maxY = Math.max(maxY, scale * it.p.y + it.box.dyMax);
+    }
+    return { minX, maxX, minY, maxY };
+  };
+  let minPx = Infinity, maxPx = -Infinity, minPy = Infinity, maxPy = -Infinity;
+  for (const it of scene) {
+    minPx = Math.min(minPx, it.p.x); maxPx = Math.max(maxPx, it.p.x);
+    minPy = Math.min(minPy, it.p.y); maxPy = Math.max(maxPy, it.p.y);
+  }
+  const nominalPad = Math.max(0, Math.min(Number.isFinite(pad) ? pad : 0, Math.min(w, h) / 2 - 1));
+  const minimumPad = Math.min(8, nominalPad);
+  let scale = 0;
+  for (let gutter = nominalPad; ; gutter = Math.max(minimumPad, gutter * 0.8)) {
+    const availX = Math.max(1, w - 2 * gutter), availY = Math.max(1, h - 2 * gutter);
+    const upper = Math.min(maxPx > minPx ? availX / (maxPx - minPx) : Infinity,
+      maxPy > minPy ? availY / (maxPy - minPy) : Infinity, 4096);
+    const overflow = (s: number) => {
+      const e = extent(s);
+      return Math.max((e.maxX - e.minX) / availX, (e.maxY - e.minY) / availY);
+    };
+    let lo = 0, hi = upper;
+    if (overflow(0) > 1) {
+      // Label boxes can pull apart or overlap as their anchors move. Feasible
+      // scales need not include zero. This convex extent has one minimum;
+      // locate it before searching the upper edge of its feasible interval.
+      let left = 0, right = upper;
+      for (let i = 0; i < 48; i++) {
+        const a = left + (right - left) / 3, b = right - (right - left) / 3;
+        if (overflow(a) <= overflow(b)) right = b; else left = a;
+      }
+      lo = (left + right) / 2;
+    }
+    if (overflow(lo) <= 1) {
+      if (overflow(hi) <= 1) scale = hi;
+      else {
+        for (let i = 0; i < 60; i++) {
+          const mid = (lo + hi) / 2;
+          if (overflow(mid) <= 1) lo = mid; else hi = mid;
+        }
+        scale = lo;
+      }
+      if (scale > 0) break;
+    }
+    if (gutter <= minimumPad) break;
+  }
+  const e = extent(scale);
+  return { scale, tx: (w - (e.maxX - e.minX)) / 2 - e.minX, ty: (h - (e.maxY - e.minY)) / 2 - e.minY };
+}
+
+/** The single mapping every drawn element shares: uniform scale, then one
+ * translation. Depth keys stay raw — the camera moves nothing in z. */
+export function applySurfaceCamera(p: { x: number; y: number }, cam: SurfaceCamera): { x: number; y: number } {
+  return { x: p.x * cam.scale + cam.tx, y: p.y * cam.scale + cam.ty };
+}
+
 /** Select the projection's own cells through the existing lens owner, window
  * and cap them without changing any cell, and compute book-relative tiers. */
 export function buildExposureSurface(p: QualifiedProjection, o: SurfaceOptions): ExposureSurface {
   const lensCells = selectedProjectionCells(p, o.lens, o.now ?? Date.now());
-  // Book max over the WHOLE lens set, before windowing or capping: clipping
-  // the window never changes a surviving cell's value or tier.
+  // Book max over the WHOLE lens set, before windowing or capping, so
+  // clipping the window never changes a surviving cell's value or tier. The
+  // magnitude follows the selected mode — gross normalises against the known
+  // gross gamma, net/abs against |net| — so a cancelled (all-net-zero,
+  // gross-positive) book still draws genuine gross columns and an unknown
+  // member is never a zero.
   let bookMaxAbsMn = 0;
   for (const cell of lensCells) {
-    if (finite(cell.gamma.net) && Math.abs(cell.gamma.net) / MN > bookMaxAbsMn) bookMaxAbsMn = Math.abs(cell.gamma.net) / MN;
+    const magnitude = finite(o.mode === "gross" ? cell.gamma.gross : cell.gamma.net)
+      ? Math.abs((o.mode === "gross" ? cell.gamma.gross : cell.gamma.net)!) / MN : 0;
+    if (magnitude > bookMaxAbsMn) bookMaxAbsMn = magnitude;
   }
   const expiriesInLens = [...new Set(lensCells.map((c) => c.expiry))].sort();
   const shownExpiries = new Set(expiriesInLens.slice(0, Math.max(0, Math.trunc(o.expiryCap))));

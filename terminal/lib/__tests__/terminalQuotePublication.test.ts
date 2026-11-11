@@ -36,6 +36,8 @@ function shellQuotes(initial: Quotes = {}) {
     quotePriorityRef: { current: [{ key: "AAPL", symbols: ["AAPL"] }] },
     quoteRotatingRef: { current: [] }, quoteCursorRef: { current: 0 },
     quoteAliveRef: { current: true }, quoteMissRef: { current: {} },
+    quoteGenerationRef: { current: 0 }, quoteInFlightRef: { current: false },
+    quoteTrailingRef: { current: false }, quoteTrailingTimerRef: { current: null },
     chartQuoteSymsKeyRef: { current: "AAPL" }, chartQuoteAliveRef: { current: true },
     chartQuoteInFlightRef: { current: false }, chartQuoteTrailingRef: { current: false },
     chartQuoteTrailingTimerRef: { current: null }, publishedQuotesRef: { current: initial },

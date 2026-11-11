@@ -1,0 +1,12 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 6 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/discover-focus-continuity.spec.ts:4:7 › Discover chooser keeps keyboard focus with the selected task (en) (10.1s)
+  ✓  2 [desktop] › e2e/discover-focus-continuity.spec.ts:4:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.9s)
+  ✓  3 [tablet] › e2e/discover-focus-continuity.spec.ts:4:7 › Discover chooser keeps keyboard focus with the selected task (en) (2.4s)
+  ✓  4 [tablet] › e2e/discover-focus-continuity.spec.ts:4:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.1s)
+  ✓  5 [mobile] › e2e/discover-focus-continuity.spec.ts:4:7 › Discover chooser keeps keyboard focus with the selected task (en) (2.1s)
+  ✓  6 [mobile] › e2e/discover-focus-continuity.spec.ts:4:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.2s)
+
+  6 passed (33.1s)

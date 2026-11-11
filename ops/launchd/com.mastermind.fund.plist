@@ -23,7 +23,13 @@
   stockdata build. NOTE: launchd uses local wall-clock — in winter (PST) 16:30 local is
   00:30 UTC; adjust to 15:30 if you want to hold 23:30 UTC year-round.
 
-  INSTALL OR REFRESH (as the mac user — not root):
+  HOST: M1 ONLY (LocalHostName m1studio). The lane moved off M2 on 2026-07-25/26; a
+  2026-08-01 bootstrap on M2 ran it on both Macs for ~11 weeks. bootstrap_nightly_fund.sh
+  refuses (exit 3) on any other host before touching LaunchAgents or launchctl. M2 keeps
+  a `launchctl disable` override; roll back to M2 only with
+  ~/dataplane-migration/rollback-groupB-to-M2.sh (then MM_FUND_BOOTSTRAP_ALLOW_HOST=1).
+
+  INSTALL OR REFRESH (on M1, as the mac user — not root):
     /bin/bash /Users/chriswong/fund-ops-wt/ops/bootstrap_nightly_fund.sh --check
     /bin/bash /Users/chriswong/fund-ops-wt/ops/bootstrap_nightly_fund.sh
 

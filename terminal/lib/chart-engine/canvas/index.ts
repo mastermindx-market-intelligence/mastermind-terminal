@@ -51,6 +51,7 @@ import {
 } from "./invalidation";
 import {
   ChartModel,
+  displayedPriceScaleId,
   seriesClose,
   timeToMs,
   type SeriesModel,
@@ -66,7 +67,7 @@ import {
   type CrosshairState,
   type HoverableSeries,
 } from "./crosshair";
-import { attachEngineInput, TIME_AXIS_HIT_HEIGHT_PX, timeAxisOwnerPane, type EngineInputBinding } from "./inputBridge";
+import { attachEngineInput, hitTestEngineInput, TIME_AXIS_HIT_HEIGHT_PX, timeAxisOwnerPane, type EngineInputBinding } from "./inputBridge";
 
 export { ChartModel, priceScaleMath, futureSlotResolver, xOfLogical, logicalOfX } from "./model";
 export type {
@@ -438,9 +439,13 @@ class CanvasEngine implements CanvasChartEngine {
         if (!surface) continue;
         const ctx = surface.canvas.getContext("2d");
         if (!ctx) continue;
-        paintPaneFrame({
+        const geometry = paintPaneFrame({
           ctx, model: this.model, paneIndex: i, primHost: this.primHost, generation, axis: settled.axes[i] ?? undefined,
         });
+        // Readback describes the frame actually painted, including its axis strip.
+        // Update only on geometry changes; consumers never trigger a paint here.
+        const painted = JSON.stringify(geometry);
+        if (surface.canvas.dataset.mmPaintGeometry !== painted) surface.canvas.dataset.mmPaintGeometry = painted;
       }
       if (settled.resized) this.model.emitVisibleRange();
     }
@@ -497,7 +502,7 @@ class CanvasEngine implements CanvasChartEngine {
     if (x == null) return null;
     let y = this.model.projectionFor(s).yOfPrice(xc.price);
     for (let i = 0; i < s.paneIndex; i++) y += this.model.panes[i]?.height ?? 0;
-    return { x, y };
+    return { x: x + this.model.plotLeftPx(), y };
   }
 
   private bindOverlay(): void {
@@ -511,7 +516,15 @@ class CanvasEngine implements CanvasChartEngine {
     const param = (ev: Event) => {
       const p = point(ev);
       this.lastPoint = p;
-      const logical = this.model.logicalOfX(p.x);
+      const paneHeights = this.model.panes.map((pane) => pane.height);
+      const { paneIndex } = hitTestEngineInput(p.x, p.y, {
+        widthPx: this.model.chartWidthPx(), paneHeights,
+        priceAxisWidthPx: this.model.priceAxisStripPx,
+        priceAxisSide: displayedPriceScaleId(this.model),
+      });
+      const paneTop = paneHeights.slice(0, paneIndex).reduce((sum, height) => sum + height, 0);
+      const panePoint = { x: p.x - this.model.plotLeftPx(), y: p.y - paneTop };
+      const logical = this.model.logicalOfX(panePoint.x);
       const snapped = snapLogicalToBar(logical);
       const primary = this.model.primarySeries();
       const series: HoverableSeries[] = [...this.model.series.values()]
@@ -529,9 +542,9 @@ class CanvasEngine implements CanvasChartEngine {
           };
         });
       const resolved = resolveCrosshair({
-        x: p.x,
-        y: p.y,
-        paneIndex: 0,
+        x: panePoint.x,
+        y: panePoint.y,
+        paneIndex,
         mode: "normal",
         proj: {
           logicalOfX: (x) => this.model.logicalOfX(x),
@@ -565,7 +578,7 @@ class CanvasEngine implements CanvasChartEngine {
       // of dropping it: LWC reports the whitespace time alongside an empty
       // seriesData, and a time key is an axis fact, not a fabricated value.
       const params: EngineMouseEventParams =
-        { ...built, point: p, logical, time: time ?? built.time };
+        { ...built, point: panePoint, logical, time: time ?? built.time };
       // RV-1: LWC keys seriesData by the ISeriesApi instance (typings.d.ts:3419) and the
       // consumer reads it that way (ChartPanel.tsx:4642 calls candidate.options() /
       // priceToCoordinate()). Re-key the id-keyed map onto the handles this engine hands
@@ -683,6 +696,10 @@ class CanvasEngine implements CanvasChartEngine {
       empty.height = 1;
       return empty;
     }
+    // Export consumes the same pending generation that the next animation frame would
+    // paint. Callers can then project overlays against the model behind these pixels.
+    const report = this.invalidator.flush();
+    if (report) this.paintFrame(report.mask, report.generation);
     const overlayOn = !!(this.lastPoint ?? this.externalCrosshairPoint());
     return takeDomScreenshot(this.dom, overlayOn);
   }

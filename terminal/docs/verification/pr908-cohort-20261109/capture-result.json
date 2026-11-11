@@ -1,0 +1,31 @@
+{
+  "operationId": "terminal-pr908-cohort-evidence-20261109-2fe663974ce0",
+  "sourceHead": "587b33a5fc66346cc3a223955174b33d012b078a",
+  "sourceTree": "5a691e9a2112dabe0e473875b101dbacea28a90a",
+  "sourceFiles": {
+    "terminal/lib/selectionCohort.ts": "795de709d83958ebf9cb7022969037430203a6a1c9b6091ceade89cecc2c9795",
+    "terminal/components/prophet/SelectionCohortCard.tsx": "b2d4517b7706b9bdc61d15e4ab031a0bfc9b012bf5353f54954b8ccb2c08efb5",
+    "terminal/components/prophet/SelectionCohortCard.module.css": "9dcf3eb272a684a63728e79c5a94ca7efd4ae7474979fcdfdd11be35be86f2ff",
+    "terminal/components/prophet/SelectionCohortCard.global.css": "3b30065deec77b3193737648b3059a53134a5190f3e144fa2aa0edf43a6dc9b4",
+    "terminal/components/prophet/ProphetView.tsx": "8e5bf61af4596e3e3baac3c6b1bdd19db43a8e425e422cbf3e176cf210dbe13f"
+  },
+  "host": "Darwin 25.5.0",
+  "node": "v26.5.0",
+  "playwright": "1.61.1",
+  "startedAt": "2026-11-09T04:43:22Z",
+  "command": [
+    "node",
+    "e2e/tools/capture_gmi_gate8_cohort_card.cjs"
+  ],
+  "producerPid": 99896,
+  "returncode": 0,
+  "finishedAt": "2026-11-09T04:43:48Z",
+  "sourceUnchanged": true,
+  "headUnchanged": true,
+  "portAfter": {
+    "returncode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  "logSha256": "401b201e6d0de28bc999a4eb02386a1e791cccf32070ad0cdbd66ab8dca024c2"
+}

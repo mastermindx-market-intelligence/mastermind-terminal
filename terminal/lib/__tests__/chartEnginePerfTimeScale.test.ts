@@ -212,6 +212,20 @@ describe("PERF-A time scale (T1/T2): LWC clamp on every write", () => {
     m.engine.destroy();
   });
 
+  it("preserves fractional in-bounds endpoints bitwise across repeated no-op range writes", () => {
+    const m = mountPerf();
+    const range = { from: 0.1, to: 2000.7 };
+    const time = m.engine.timeScale();
+    time.setVisibleLogicalRange(range);
+    expect(time.getVisibleLogicalRange()).toEqual(range);
+    const changed = vi.fn();
+    time.subscribeVisibleLogicalRangeChange(changed);
+    for (let i = 0; i < 50; i++) time.setVisibleLogicalRange(range);
+    expect(time.getVisibleLogicalRange()).toEqual(range);
+    expect(changed).not.toHaveBeenCalled();
+    m.engine.destroy();
+  });
+
   it("T2b the always-on correctOffset bounds stop a pan at 2 bars from each end (dev:6574-6603)", () => {
     const m = mountPerf();
     const model = m.model;

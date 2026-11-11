@@ -1,9 +1,10 @@
 /*
  * Provenance: PR697 MobileNav.module.css — commit 0023bffa7c6c0370f15ec1e3a16398d82fe2cf33.
- * Reused unmodified for the Shared Shell beta integration (run
- * shared-shell-mobile-integration-20261018-c1-r1); this advertises delivery only and does
- * not lift PR697's independent release hold. .header/.account hit-area styles are applied
- * by MobileNav ONLY on the sharedShell beta topbar; the default path never receives them.
+ * First integrated for the Shared Shell beta (run
+ * shared-shell-mobile-integration-20261018-c1-r1). PR697's current-base composition
+ * applies the existing .header/.account hit areas to the public topbar too and lets
+ * only the wordmark text shrink alongside the current command-palette control.
+ * Source composition does not establish rendered or production acceptance.
  */
 
 .modal {
@@ -132,6 +133,12 @@
     margin-inline: auto;
     transform: none;
     white-space: nowrap;
+  }
+
+  .header :global(.m-brand) > b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header :global(.m-right) {

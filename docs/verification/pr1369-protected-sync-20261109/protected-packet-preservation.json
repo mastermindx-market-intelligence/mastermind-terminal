@@ -1,0 +1,37 @@
+{
+  "EVIDENCE.yml": {
+    "activeSha256": "f847837ba48b69064e9af89c7e4ec9fa39fac581c6a71b7a72573c76ce1d6332",
+    "archive": "docs/verification/pr1369-analysis-integration-20261109/prior-dependency1316/EVIDENCE.yml",
+    "protectedSha256": "a74c30291df79f9536ae7cae3a537feb6ff1e5a3a8fd31129ea96a623986badb"
+  },
+  "desktop-en.png": {
+    "activeSha256": "1fd2af8bd1365159ba67972d7af30e57f524af4b42d5bae0ae960b99fdf820d0",
+    "archive": "docs/verification/pr1369-analysis-integration-20261109/prior-dependency1316/desktop-en.png",
+    "protectedSha256": "38ae5e7bc7a911e80c45554d3b13aaceb6c6c74c45bb676e3d35a75652178449"
+  },
+  "desktop-zh.png": {
+    "activeSha256": "2e23f182aa171000dc27393d8fa166b3a18e19b4a2ff18c90099a817330f88a9",
+    "archive": "docs/verification/pr1369-analysis-integration-20261109/prior-dependency1316/desktop-zh.png",
+    "protectedSha256": "e94258e0d27c9d03bef9b5c1cf1d167f4279936f06ed0bffc229b4abfe465383"
+  },
+  "mobile-en.png": {
+    "activeSha256": "2588706457839cc101195447a70ebab4fc7e96c98d187079c132206727dbf325",
+    "archive": "docs/verification/pr1369-analysis-integration-20261109/prior-dependency1316/mobile-en.png",
+    "protectedSha256": "c398287d82b9a90da63dc852c29a0af10f243e9c365e4db7d92097ba6e80707c"
+  },
+  "mobile-zh.png": {
+    "activeSha256": "fc5a929620fe3689c490566bb6e7e3705636cbfde2c2e9a55407548878b50de7",
+    "archive": "docs/verification/pr1369-analysis-integration-20261109/prior-dependency1316/mobile-zh.png",
+    "protectedSha256": "4991bb763188bfb6000714e5fc5e9dc4844bf89c6936c7ad6e3f0a8e2e24a4e9"
+  },
+  "tablet-en.png": {
+    "activeSha256": "78c9dc24efe04f3d85b81c73914fe040b7911bfce365ccfbce38bc6eca114d21",
+    "archive": "docs/verification/pr1369-analysis-integration-20261109/prior-dependency1316/tablet-en.png",
+    "protectedSha256": "4a5fb94b7497e8e8770c028bd198e027bdc776c2b1bfcc4f06f070768420ee0a"
+  },
+  "tablet-zh.png": {
+    "activeSha256": "cc275b6a32c20a6d0e322453319837f8b1859291f7077e8bb1e018f00f2828f6",
+    "archive": "docs/verification/pr1369-analysis-integration-20261109/prior-dependency1316/tablet-zh.png",
+    "protectedSha256": "174817e14b86335c65e441f4436e3d6905828d361642bc086bfdb15bd7da8171"
+  }
+}

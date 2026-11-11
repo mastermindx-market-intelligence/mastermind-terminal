@@ -144,6 +144,22 @@ describe("rsi (techRating) — standard Wilder seeding", () => {
   });
 });
 
+// ─── MACD signal warmup ───────────────────────────────────────────────────────
+// A 12/26 MACD line first exists at index 25. Its 9-period signal EMA therefore
+// cannot exist until nine finite MACD observations have accumulated (index 33).
+
+describe("techRating MACD — signal EMA waits for real MACD observations", () => {
+  it("keeps the MACD vote Neutral before the 9-value signal window exists", () => {
+    const closes = Array.from({ length: 30 }, (_, i) => 100 + i * 1.5);
+    const ratings = computeRatings(makeBars(closes));
+    const row = ratings.oscillators.find((r) => r.name === "MACD (12, 26, 9)");
+
+    expect(row).toBeDefined();
+    expect(row!.value).not.toBe(0); // the MACD line itself is already real
+    expect(row!.vote).toBe("Neutral"); // but the signal line is not ready yet
+  });
+});
+
 // ─── Fix 1: SuperTrend band-carry (prior close, not current close) ─────────────
 //
 // Standard Pine SuperTrend:

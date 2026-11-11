@@ -1,0 +1,6 @@
+{
+  "initialPreflight": "Incorrect Pine directory name refused before Pine archive or tests; existing batch-2 archive verified without rewriting. Correct native path pine-boot-pending-state read from the producer.",
+  "batch2Files": 25,
+  "pineFiles": 31,
+  "completedAt": "2026-11-09T13:34:28.029525+00:00"
+}

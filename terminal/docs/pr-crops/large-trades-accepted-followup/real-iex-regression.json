@@ -1,0 +1,767 @@
+{
+  "schema": "mastermind.large_trades.real_data_verification.v1",
+  "status": "PASS",
+  "verifiedAtUtc": "2026-10-17T10:50:48.589Z",
+  "proofScope": "BOUNDED_HISTORICAL_NATIVE_TO_ENGINE_REPLAY",
+  "runtime": {
+    "node": "v26.5.0",
+    "loader": "esbuild in-memory bundle of actual TypeScript source",
+    "esbuild": "0.21.5",
+    "bundledInputs": [
+      "terminal/lib/largeTrades/accounting.ts",
+      "terminal/lib/largeTrades/engine.ts",
+      "terminal/lib/largeTrades/types.ts"
+    ],
+    "bundledModuleSha256": "96d979338712105805cdce7c7a2c123586b93bc164845809d5e0dcc88e705405",
+    "watchersStarted": false
+  },
+  "sourceCode": [
+    {
+      "file": "terminal/lib/largeTrades/engine.ts",
+      "bytes": 27900,
+      "sha256": "e3edcfc728778340bc9eb5c14b627974c85006f8d930d1ad6071a682303ba5c6"
+    },
+    {
+      "file": "terminal/lib/largeTrades/types.ts",
+      "bytes": 5669,
+      "sha256": "46697ecd6f1ab5354c363ec16e1f1d8fce062a5a518c1d1e213c43329c67dcb3"
+    },
+    {
+      "file": "terminal/lib/largeTrades/accounting.ts",
+      "bytes": 2259,
+      "sha256": "4fa4542dc6d50d294837b629e98b4bed1bb5a1335b5da95a6a7f8513e064b48b"
+    },
+    {
+      "file": "ingest/iex_deep_trades.py",
+      "bytes": 41379,
+      "sha256": "9655af3dde9ea225635f6d97be60c6d51a57795c7b7a68bfa91e4d3e18d5a068"
+    },
+    {
+      "file": "docs/LARGE_TRADES_ABSORPTION.md",
+      "bytes": 19377,
+      "sha256": "2e00fdb6563abd00b993130e102536d9f4ecabaf973ab9c9a8c627020b84bf29"
+    },
+    {
+      "file": "terminal/package-lock.json",
+      "bytes": 305732,
+      "sha256": "c8bd178646d6ee83c463c6c8f77a6b277ddfd2e5d80f60395b4b747a9cecd1c1"
+    },
+    {
+      "file": "terminal/scripts/verify-large-trades.mjs",
+      "bytes": 33128,
+      "sha256": "c23dde9cfa4defa49aebc705db43d1ae5027dec955af18eaafc96ccb4654fb79"
+    }
+  ],
+  "inputs": {
+    "decoderReceipt": {
+      "file": "decode-receipt.json",
+      "bytes": 5122,
+      "sha256": "aa952521d29fa6e4aa05f084ac2b6148becd9ed51e5c5d92b2e04fa1c73162d8"
+    },
+    "nativeProvenance": {
+      "file": "native-record-provenance.json",
+      "bytes": 1859607,
+      "sha256": "f157c389a3b2b383764ddbc64528962206c07be02d8876faf380c025223e4536"
+    }
+  },
+  "source": {
+    "provider": "IEX",
+    "dataset": "HIST DEEP+ 1.0",
+    "venue": "IEX",
+    "scope": "venue",
+    "quantityUnit": "shares",
+    "dataMode": "historical",
+    "evidenceMode": "HISTORICAL_REPLAY",
+    "tradingDates": [
+      "2026-10-05"
+    ],
+    "receiptBasis": "archive_acquisition",
+    "recordedArchiveSha256": "2e41ba84c2a24ccd541d079c2bb05a6da38e988790d8e97a19c1527b1195b0dd",
+    "recordedArchiveBytes": 9875890058,
+    "recordedAcquisitionReceiptSha256": "969ad03dd654f30155f78269179fdcdda11bba7b54160f424dc8942927b13f9d",
+    "acquisitionReceiptHashIndependentlyRecomputed": false,
+    "archiveSha256IndependentlyRecomputed": false,
+    "fullArchiveReopenedByThisVerifier": false,
+    "archiveExhausted": false,
+    "gzipFullIntegrityChecked": false,
+    "decoderSourceSha256": "9655af3dde9ea225635f6d97be60c6d51a57795c7b7a68bfa91e4d3e18d5a068",
+    "decoderSourceMatchesWorktree": true,
+    "decompressedPrefixSha256": "3b173fd73113318e5db6ac0d232c19f7a7aaa25b55bd92228b66b17406a9fe5d",
+    "decompressedPrefixRecomputedByThisVerifier": false,
+    "decompressedBytesReadByDecoder": 312182060,
+    "decoderStopReason": "packet_limit",
+    "packetsExaminedByDecoder": 2000000,
+    "uniqueNativeMessagesExaminedByDecoder": 2321530,
+    "coverage": "partial",
+    "observedGapExamples": 0,
+    "completeSessionClaim": false,
+    "originalIntradayMastermindAvailabilityProven": false,
+    "sourceAuthenticationAndNetworkChecksumsVerified": false,
+    "nativeSpecifications": {
+      "deepPlus": "https://www.iex.io/documents/iex-deep-plus-specification",
+      "transport": "https://www.iex.io/documents/iex-tp-v1",
+      "pcapng": "https://www.ietf.org/ietf-ftp/internet-drafts/draft-ietf-opsawg-pcapng-06.html"
+    }
+  },
+  "clocks": {
+    "archiveAcquiredAtNs": "1791353317000000000",
+    "archiveAcquiredAtUtc": "2026-10-07T06:08:37.000000000Z",
+    "envelopesGeneratedAtNs": "1791712347072532000",
+    "marketClock": "Native execution eventNs; original archive event ordering.",
+    "knowledgeClock": "Archive acquisition availableNs; never original intraday Mastermind availability.",
+    "nativeCaptureClock": "Preserved PCAPNG capture clock; independently reconciled to ticks, resolution, and offset.",
+    "nativeTransportSendClock": "Preserved IEX-TP send clock; separate from execution and capture clocks.",
+    "liveOrDelayedFeedProven": false
+  },
+  "settings": {
+    "accounting": {
+      "minQuantity": 1,
+      "aggregate": false,
+      "maxGapMs": 250,
+      "maxSpanTicks": 2,
+      "maxDurationMs": 1000,
+      "adaptive": false,
+      "percentile": 95,
+      "baselineCount": 500,
+      "minBaseline": 30,
+      "responseWindowMs": 30000,
+      "maxResponseTicks": 2,
+      "reversalTicks": 2,
+      "showLabels": true,
+      "maxMarkers": 1000
+    },
+    "display": {
+      "minQuantity": 100,
+      "aggregate": true,
+      "maxGapMs": 250,
+      "maxSpanTicks": 2,
+      "maxDurationMs": 1000,
+      "adaptive": false,
+      "percentile": 95,
+      "baselineCount": 500,
+      "minBaseline": 30,
+      "responseWindowMs": 30000,
+      "maxResponseTicks": 2,
+      "reversalTicks": 2,
+      "showLabels": true,
+      "maxMarkers": 250
+    }
+  },
+  "verification": {
+    "executionReports": 1685,
+    "nativeEvidenceRecordsMatched": 1685,
+    "grossExecutedShares": 141057,
+    "matchedBrokenShares": 0,
+    "netUnbrokenShares": 141057,
+    "nativeExecutions": {
+      "L": {
+        "reports": 275,
+        "shares": 23886
+      },
+      "T": {
+        "reports": 1410,
+        "shares": 117171
+      }
+    },
+    "sideShares": {
+      "buy": 13034,
+      "sell": 10852,
+      "unknown": 117171
+    },
+    "sideMethod": "Opposite of qualified native resting-order chain for L; unqualified L and T remain unknown.",
+    "orderCount": null,
+    "exactIntegerQuantityReconciliation": "PASS",
+    "legacyCorrectionAccounting": {
+      "quantityBasis": "net_of_observed_cancels",
+      "correctionCoverage": "unknown",
+      "correctionEvidence": null,
+      "checkedAtEveryReplayCutoff": true,
+      "beforeAcquisitionChecked": true,
+      "status": "PASS"
+    },
+    "beforeAcquisitionKnowledgeGate": "PASS",
+    "prefixReplay": {
+      "strategy": "Every distinct eventNs, empty prefix, and range end; full input versus explicit filtered prefix at identical market and archive-knowledge cutoffs.",
+      "settingsModes": [
+        "accounting",
+        "display"
+      ],
+      "comparisons": 2966,
+      "status": "PASS",
+      "originalIntradayAsSeenProof": false
+    },
+    "responseEvidence": "unavailable",
+    "qualifiedQuoteObservations": 0,
+    "tickMetadataAvailable": false,
+    "absorptionClaims": 0,
+    "failedContinuationClaims": 0,
+    "predictiveClaims": 0,
+    "evidenceAbstention": "PASS",
+    "realBreakCasesObserved": 0
+  },
+  "bySymbol": [
+    {
+      "symbol": "SPY",
+      "envelope": {
+        "file": "SPY.json",
+        "bytes": 146763,
+        "sha256": "c8f3acd1390bffa145441cb95dedbc5e3dafcbe08deed3a4c11691155b2b5b8b"
+      },
+      "executionReports": 302,
+      "executedShares": 26121,
+      "nativeExecutions": {
+        "L": {
+          "reports": 32,
+          "shares": 1635
+        },
+        "T": {
+          "reports": 270,
+          "shares": 24486
+        }
+      },
+      "sideShares": {
+        "buy": 1106,
+        "sell": 529,
+        "unknown": 24486
+      },
+      "nativeEvidenceRecordsMatched": 302,
+      "nativeRestingOrderInferenceRecords": 32,
+      "exchangeEventClock": {
+        "firstNs": "1791202125849568972",
+        "lastNs": "1791207038259009165",
+        "firstUtc": "2026-10-05T12:08:45.849568972Z",
+        "lastUtc": "2026-10-05T13:30:38.259009165Z"
+      },
+      "nativeCaptureClock": {
+        "firstNs": "1791202162849776000",
+        "lastNs": "1791207075259119000",
+        "firstUtc": "2026-10-05T12:09:22.849776000Z",
+        "lastUtc": "2026-10-05T13:31:15.259119000Z"
+      },
+      "nativeTransportSendClock": {
+        "firstNs": "1791202125849763373",
+        "lastNs": "1791207038259105998",
+        "firstUtc": "2026-10-05T12:08:45.849763373Z",
+        "lastUtc": "2026-10-05T13:30:38.259105998Z"
+      },
+      "preAcquisition": {
+        "knowledgeCutoffNs": "1791353316999999999",
+        "visibleReports": 0,
+        "executedShares": 0,
+        "markers": 0,
+        "status": "PASS"
+      },
+      "accounting": {
+        "markers": 302,
+        "quantityBasis": "net_of_observed_cancels",
+        "correctionCoverage": "unknown",
+        "correctionEvidence": null,
+        "snapshotSha256": "74bd0671cce44ade26f994a09b95bd6b9079fb13dc5746ae37eeee68cc480da8",
+        "quantityReconciled": true
+      },
+      "display": {
+        "retainedMarkers": 61,
+        "qualifyingClusters": 61,
+        "markerLimitApplied": false,
+        "responseStates": {
+          "unobservable": 14,
+          "pending": 47
+        },
+        "snapshotSha256": "8376328d8062e8ab220cf8645c35600404283c81d61de86112783590a98bd792"
+      },
+      "prefixReplay": {
+        "distinctCutoffs": 229,
+        "settingsModes": 2,
+        "comparisons": 458,
+        "comparisonDigestSha256": "8058475426fcbea67ccdca2d70612474ba8a0a09f50f612e33cd4876f6606dc4",
+        "status": "PASS"
+      }
+    },
+    {
+      "symbol": "QQQ",
+      "envelope": {
+        "file": "QQQ.json",
+        "bytes": 56526,
+        "sha256": "e7ce18a18730e3839675616e47c8351421b3fc024282465532785796178f3b47"
+      },
+      "executionReports": 111,
+      "executedShares": 5356,
+      "nativeExecutions": {
+        "L": {
+          "reports": 59,
+          "shares": 3102
+        },
+        "T": {
+          "reports": 52,
+          "shares": 2254
+        }
+      },
+      "sideShares": {
+        "buy": 98,
+        "sell": 3004,
+        "unknown": 2254
+      },
+      "nativeEvidenceRecordsMatched": 111,
+      "nativeRestingOrderInferenceRecords": 59,
+      "exchangeEventClock": {
+        "firstNs": "1791202613636243798",
+        "lastNs": "1791207035103023986",
+        "firstUtc": "2026-10-05T12:16:53.636243798Z",
+        "lastUtc": "2026-10-05T13:30:35.103023986Z"
+      },
+      "nativeCaptureClock": {
+        "firstNs": "1791202650636480000",
+        "lastNs": "1791207072103092000",
+        "firstUtc": "2026-10-05T12:17:30.636480000Z",
+        "lastUtc": "2026-10-05T13:31:12.103092000Z"
+      },
+      "nativeTransportSendClock": {
+        "firstNs": "1791202613636457308",
+        "lastNs": "1791207035103079778",
+        "firstUtc": "2026-10-05T12:16:53.636457308Z",
+        "lastUtc": "2026-10-05T13:30:35.103079778Z"
+      },
+      "preAcquisition": {
+        "knowledgeCutoffNs": "1791353316999999999",
+        "visibleReports": 0,
+        "executedShares": 0,
+        "markers": 0,
+        "status": "PASS"
+      },
+      "accounting": {
+        "markers": 111,
+        "quantityBasis": "net_of_observed_cancels",
+        "correctionCoverage": "unknown",
+        "correctionEvidence": null,
+        "snapshotSha256": "fa7c1eacf5aead6e83c518132178693b53d4abfdc7d2d0f68b2c0b62e45a626c",
+        "quantityReconciled": true
+      },
+      "display": {
+        "retainedMarkers": 11,
+        "qualifyingClusters": 11,
+        "markerLimitApplied": false,
+        "responseStates": {
+          "unobservable": 4,
+          "pending": 7
+        },
+        "snapshotSha256": "954eb64b868728737e3fa13da15c306ce49920d106ad4c481811be90a189d5a6"
+      },
+      "prefixReplay": {
+        "distinctCutoffs": 109,
+        "settingsModes": 2,
+        "comparisons": 218,
+        "comparisonDigestSha256": "93d82e85c089109578fabe44f524cd7f4685be3bd27b213d3ee44f06bca330fd",
+        "status": "PASS"
+      }
+    },
+    {
+      "symbol": "NVDA",
+      "envelope": {
+        "file": "NVDA.json",
+        "bytes": 201204,
+        "sha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+      },
+      "executionReports": 408,
+      "executedShares": 37667,
+      "nativeExecutions": {
+        "L": {
+          "reports": 76,
+          "shares": 10727
+        },
+        "T": {
+          "reports": 332,
+          "shares": 26940
+        }
+      },
+      "sideShares": {
+        "buy": 5391,
+        "sell": 5336,
+        "unknown": 26940
+      },
+      "nativeEvidenceRecordsMatched": 408,
+      "nativeRestingOrderInferenceRecords": 76,
+      "exchangeEventClock": {
+        "firstNs": "1791203397605792370",
+        "lastNs": "1791207038243197232",
+        "firstUtc": "2026-10-05T12:29:57.605792370Z",
+        "lastUtc": "2026-10-05T13:30:38.243197232Z"
+      },
+      "nativeCaptureClock": {
+        "firstNs": "1791203434606069000",
+        "lastNs": "1791207075243256000",
+        "firstUtc": "2026-10-05T12:30:34.606069000Z",
+        "lastUtc": "2026-10-05T13:31:15.243256000Z"
+      },
+      "nativeTransportSendClock": {
+        "firstNs": "1791203397606043416",
+        "lastNs": "1791207038243244283",
+        "firstUtc": "2026-10-05T12:29:57.606043416Z",
+        "lastUtc": "2026-10-05T13:30:38.243244283Z"
+      },
+      "preAcquisition": {
+        "knowledgeCutoffNs": "1791353316999999999",
+        "visibleReports": 0,
+        "executedShares": 0,
+        "markers": 0,
+        "status": "PASS"
+      },
+      "accounting": {
+        "markers": 408,
+        "quantityBasis": "net_of_observed_cancels",
+        "correctionCoverage": "unknown",
+        "correctionEvidence": null,
+        "snapshotSha256": "ae4a4a3699be2c74a1d00f0a56be23c680fa04e7e10379ce3b5d34a4cb637f4e",
+        "quantityReconciled": true
+      },
+      "display": {
+        "retainedMarkers": 153,
+        "qualifyingClusters": 153,
+        "markerLimitApplied": false,
+        "responseStates": {
+          "unobservable": 25,
+          "pending": 128
+        },
+        "snapshotSha256": "913bad895f4a32cdf9aaa446d175826cfb236a18333820ca513309df149a18d3"
+      },
+      "prefixReplay": {
+        "distinctCutoffs": 372,
+        "settingsModes": 2,
+        "comparisons": 744,
+        "comparisonDigestSha256": "21d49f4cd79e2cabf3a61a6f6908f3755dbbea1e6f56c9a8d7f3e02883bfc9d8",
+        "status": "PASS"
+      }
+    },
+    {
+      "symbol": "AMD",
+      "envelope": {
+        "file": "AMD.json",
+        "bytes": 68364,
+        "sha256": "abd7fd0fbdf38f2de220f61d9ac49ef2d76c7c0842948eebb12863ec249ef57c"
+      },
+      "executionReports": 135,
+      "executedShares": 6065,
+      "nativeExecutions": {
+        "L": {
+          "reports": 20,
+          "shares": 1024
+        },
+        "T": {
+          "reports": 115,
+          "shares": 5041
+        }
+      },
+      "sideShares": {
+        "buy": 561,
+        "sell": 463,
+        "unknown": 5041
+      },
+      "nativeEvidenceRecordsMatched": 135,
+      "nativeRestingOrderInferenceRecords": 20,
+      "exchangeEventClock": {
+        "firstNs": "1791201689679484447",
+        "lastNs": "1791207036902664289",
+        "firstUtc": "2026-10-05T12:01:29.679484447Z",
+        "lastUtc": "2026-10-05T13:30:36.902664289Z"
+      },
+      "nativeCaptureClock": {
+        "firstNs": "1791201726679867000",
+        "lastNs": "1791207073902762000",
+        "firstUtc": "2026-10-05T12:02:06.679867000Z",
+        "lastUtc": "2026-10-05T13:31:13.902762000Z"
+      },
+      "nativeTransportSendClock": {
+        "firstNs": "1791201689679809495",
+        "lastNs": "1791207036902734853",
+        "firstUtc": "2026-10-05T12:01:29.679809495Z",
+        "lastUtc": "2026-10-05T13:30:36.902734853Z"
+      },
+      "preAcquisition": {
+        "knowledgeCutoffNs": "1791353316999999999",
+        "visibleReports": 0,
+        "executedShares": 0,
+        "markers": 0,
+        "status": "PASS"
+      },
+      "accounting": {
+        "markers": 135,
+        "quantityBasis": "net_of_observed_cancels",
+        "correctionCoverage": "unknown",
+        "correctionEvidence": null,
+        "snapshotSha256": "555f4283d12f33502e6a0bd0cffde8014d2d7b1c328bf933efa25db1fd839f49",
+        "quantityReconciled": true
+      },
+      "display": {
+        "retainedMarkers": 41,
+        "qualifyingClusters": 41,
+        "markerLimitApplied": false,
+        "responseStates": {
+          "unobservable": 16,
+          "pending": 25
+        },
+        "snapshotSha256": "f5f9ee9639ed39f68ac31ca748cdf2f71c5951715636527cac5de81ba27318dd"
+      },
+      "prefixReplay": {
+        "distinctCutoffs": 126,
+        "settingsModes": 2,
+        "comparisons": 252,
+        "comparisonDigestSha256": "9a3cf88bda46029d5dfa9f2dca8722188570d0bb48f1359173f0a357702c494e",
+        "status": "PASS"
+      }
+    },
+    {
+      "symbol": "INTC",
+      "envelope": {
+        "file": "INTC.json",
+        "bytes": 271802,
+        "sha256": "a67e1f161a6332fa75d5bd6d0b5fcc6b2524ad86c0b1676e138d1812b59e6e4f"
+      },
+      "executionReports": 552,
+      "executedShares": 59478,
+      "nativeExecutions": {
+        "L": {
+          "reports": 72,
+          "shares": 7007
+        },
+        "T": {
+          "reports": 480,
+          "shares": 52471
+        }
+      },
+      "sideShares": {
+        "buy": 5622,
+        "sell": 1385,
+        "unknown": 52471
+      },
+      "nativeEvidenceRecordsMatched": 552,
+      "nativeRestingOrderInferenceRecords": 72,
+      "exchangeEventClock": {
+        "firstNs": "1791202246081912144",
+        "lastNs": "1791207038292458914",
+        "firstUtc": "2026-10-05T12:10:46.081912144Z",
+        "lastUtc": "2026-10-05T13:30:38.292458914Z"
+      },
+      "nativeCaptureClock": {
+        "firstNs": "1791202283082231000",
+        "lastNs": "1791207075294745000",
+        "firstUtc": "2026-10-05T12:11:23.082231000Z",
+        "lastUtc": "2026-10-05T13:31:15.294745000Z"
+      },
+      "nativeTransportSendClock": {
+        "firstNs": "1791202246082203590",
+        "lastNs": "1791207038294177819",
+        "firstUtc": "2026-10-05T12:10:46.082203590Z",
+        "lastUtc": "2026-10-05T13:30:38.294177819Z"
+      },
+      "preAcquisition": {
+        "knowledgeCutoffNs": "1791353316999999999",
+        "visibleReports": 0,
+        "executedShares": 0,
+        "markers": 0,
+        "status": "PASS"
+      },
+      "accounting": {
+        "markers": 552,
+        "quantityBasis": "net_of_observed_cancels",
+        "correctionCoverage": "unknown",
+        "correctionEvidence": null,
+        "snapshotSha256": "68a4ff581f3a0c326c7c0bed32d9a6984f4c8bb5e104490c5f0544f26c1e2e73",
+        "quantityReconciled": true
+      },
+      "display": {
+        "retainedMarkers": 242,
+        "qualifyingClusters": 242,
+        "markerLimitApplied": false,
+        "responseStates": {
+          "unobservable": 118,
+          "pending": 124
+        },
+        "snapshotSha256": "dd2af081d10d461b613de144efcd6035384dd3b9a8c8370e77ae4a358addc309"
+      },
+      "prefixReplay": {
+        "distinctCutoffs": 479,
+        "settingsModes": 2,
+        "comparisons": 958,
+        "comparisonDigestSha256": "774f315a34c76ecc36b5d6024373a23a4f247ee6a6568fa7c4385172d3be4287",
+        "status": "PASS"
+      }
+    },
+    {
+      "symbol": "MU",
+      "envelope": {
+        "file": "MU.json",
+        "bytes": 72182,
+        "sha256": "aac3176e36da21c7d38f5345ab24315bdcd79d3dced71602b47ff3248694959c"
+      },
+      "executionReports": 144,
+      "executedShares": 4471,
+      "nativeExecutions": {
+        "L": {
+          "reports": 14,
+          "shares": 346
+        },
+        "T": {
+          "reports": 130,
+          "shares": 4125
+        }
+      },
+      "sideShares": {
+        "buy": 256,
+        "sell": 90,
+        "unknown": 4125
+      },
+      "nativeEvidenceRecordsMatched": 144,
+      "nativeRestingOrderInferenceRecords": 14,
+      "exchangeEventClock": {
+        "firstNs": "1791202377054549178",
+        "lastNs": "1791207038647173602",
+        "firstUtc": "2026-10-05T12:12:57.054549178Z",
+        "lastUtc": "2026-10-05T13:30:38.647173602Z"
+      },
+      "nativeCaptureClock": {
+        "firstNs": "1791202414054748000",
+        "lastNs": "1791207075647238000",
+        "firstUtc": "2026-10-05T12:13:34.054748000Z",
+        "lastUtc": "2026-10-05T13:31:15.647238000Z"
+      },
+      "nativeTransportSendClock": {
+        "firstNs": "1791202377054717769",
+        "lastNs": "1791207038647226008",
+        "firstUtc": "2026-10-05T12:12:57.054717769Z",
+        "lastUtc": "2026-10-05T13:30:38.647226008Z"
+      },
+      "preAcquisition": {
+        "knowledgeCutoffNs": "1791353316999999999",
+        "visibleReports": 0,
+        "executedShares": 0,
+        "markers": 0,
+        "status": "PASS"
+      },
+      "accounting": {
+        "markers": 144,
+        "quantityBasis": "net_of_observed_cancels",
+        "correctionCoverage": "unknown",
+        "correctionEvidence": null,
+        "snapshotSha256": "aa2dab3d50380df30d3abf4066ba7351e0471b0779555daeb1aed7c037d32cfd",
+        "quantityReconciled": true
+      },
+      "display": {
+        "retainedMarkers": 20,
+        "qualifyingClusters": 20,
+        "markerLimitApplied": false,
+        "responseStates": {
+          "unobservable": 8,
+          "pending": 12
+        },
+        "snapshotSha256": "1b446f93d521327be88f6dffab3c78ebff735077f620e9e3374c7f7fa7b96a03"
+      },
+      "prefixReplay": {
+        "distinctCutoffs": 135,
+        "settingsModes": 2,
+        "comparisons": 270,
+        "comparisonDigestSha256": "8a5372da77c22c1598542c8d9db4951a901adad30ed523873e27228999fede73",
+        "status": "PASS"
+      }
+    },
+    {
+      "symbol": "ARM",
+      "envelope": {
+        "file": "ARM.json",
+        "bytes": 17562,
+        "sha256": "6fb25eee3e62099ea1e76cbc12da71d1cdd84655ca44ba09e30da2b44e42537a"
+      },
+      "executionReports": 33,
+      "executedShares": 1899,
+      "nativeExecutions": {
+        "L": {
+          "reports": 2,
+          "shares": 45
+        },
+        "T": {
+          "reports": 31,
+          "shares": 1854
+        }
+      },
+      "sideShares": {
+        "buy": 0,
+        "sell": 45,
+        "unknown": 1854
+      },
+      "nativeEvidenceRecordsMatched": 33,
+      "nativeRestingOrderInferenceRecords": 2,
+      "exchangeEventClock": {
+        "firstNs": "1791203284400696801",
+        "lastNs": "1791207030547263358",
+        "firstUtc": "2026-10-05T12:28:04.400696801Z",
+        "lastUtc": "2026-10-05T13:30:30.547263358Z"
+      },
+      "nativeCaptureClock": {
+        "firstNs": "1791203321400974000",
+        "lastNs": "1791207067547336000",
+        "firstUtc": "2026-10-05T12:28:41.400974000Z",
+        "lastUtc": "2026-10-05T13:31:07.547336000Z"
+      },
+      "nativeTransportSendClock": {
+        "firstNs": "1791203284400952535",
+        "lastNs": "1791207030547318670",
+        "firstUtc": "2026-10-05T12:28:04.400952535Z",
+        "lastUtc": "2026-10-05T13:30:30.547318670Z"
+      },
+      "preAcquisition": {
+        "knowledgeCutoffNs": "1791353316999999999",
+        "visibleReports": 0,
+        "executedShares": 0,
+        "markers": 0,
+        "status": "PASS"
+      },
+      "accounting": {
+        "markers": 33,
+        "quantityBasis": "net_of_observed_cancels",
+        "correctionCoverage": "unknown",
+        "correctionEvidence": null,
+        "snapshotSha256": "60304fc406e488d135561c9f54dc85526678a968da142891ba115a0d68ea47a1",
+        "quantityReconciled": true
+      },
+      "display": {
+        "retainedMarkers": 9,
+        "qualifyingClusters": 9,
+        "markerLimitApplied": false,
+        "responseStates": {
+          "pending": 9
+        },
+        "snapshotSha256": "3112694da847b8cc9303a20828ad718f7d201658430005adfcdb0b04b30bae62"
+      },
+      "prefixReplay": {
+        "distinctCutoffs": 33,
+        "settingsModes": 2,
+        "comparisons": 66,
+        "comparisonDigestSha256": "5920794e47f8ee52779a883bd53d11d35e0301a3efc1ffcd40d984a4cb46498f",
+        "status": "PASS"
+      }
+    }
+  ],
+  "outOfSampleResearch": {
+    "status": "NOT_ESTIMABLE",
+    "protocol": "docs/LARGE_TRADES_ABSORPTION.md",
+    "protocolSha256": "2e00fdb6563abd00b993130e102536d9f4ecabaf973ab9c9a8c627020b84bf29",
+    "reasons": [
+      "Single partial trading session",
+      "No qualified response quotes",
+      "No verified tick metadata",
+      "No independent held-out sessions or response outcomes"
+    ],
+    "parameterSearchTrials": 0,
+    "fittedParameters": false,
+    "heldOutSessionsEvaluated": 0,
+    "predictiveSuccessRate": null,
+    "predictiveEffectEstimate": null
+  },
+  "limitations": [
+    "Venue-only equity executions; no consolidated market, CME/MNQ contracts, or distinct-order-count claim.",
+    "Packet-limited historical prefix; later corrections and the complete session were not examined.",
+    "Net-of-observed-cancels quantity is not final exchange accounting; correction coverage remains unknown.",
+    "Recorded archive and decompressed-prefix hashes are receipt evidence, not a fresh full-archive verification.",
+    "Native capture timestamps do not establish original intraday Mastermind receipt or latency.",
+    "Unknown side remains unknown. No quote, absorption, trapped-position, alpha, or performance estimate is established.",
+    "This CLI verifies native-to-engine data behavior; it does not establish chart, deployment, or production acceptance."
+  ]
+}

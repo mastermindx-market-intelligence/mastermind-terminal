@@ -1,0 +1,22 @@
+{
+  "head": "2064cc9ed0588d4a27ba40a0b3e150bc76cc0d84",
+  "startedAt": "2026-11-09T06:59:18.277090+00:00",
+  "completedAt": "2026-11-09T06:59:20.184666+00:00",
+  "seconds": 1.907,
+  "evidenceGateExit": 0,
+  "counts": {
+    "b-f08-6-alert-prefs": 16,
+    "b-f08-b5-1-targets": 32,
+    "w9t-f08-13-targets-readout": 8
+  },
+  "imageBytes": 4086125,
+  "uniqueImageHashes": 56,
+  "portfolioGeometryCount": 32,
+  "heightAdjusted": 2,
+  "maxCaptureHeight": 1317,
+  "portsAbsent": {
+    "3602": true,
+    "3603": true,
+    "3604": true
+  }
+}

@@ -33,7 +33,7 @@ function renderAlertDetail(data: AlertDetailData, lang: "en" | "zh"): Element {
     root.render(React.createElement(AlertDetail, { data, lang, onClose: () => {} }));
   });
   act(() => { /* flush */ });
-  const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+  const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
   return dialog;
 }
 
@@ -115,7 +115,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_EN, lang: "en", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "Symbol")).toBeUndefined();
   });
 
@@ -125,7 +125,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_EN, lang: "en", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "What changed")).toBeUndefined();
   });
 
@@ -135,7 +135,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_EN, lang: "en", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "Condition")).not.toBeUndefined();
     expect(dialog.textContent).toContain("Thesis window is closed.");
   });
@@ -146,7 +146,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_EN, lang: "en", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "Delivery")).not.toBeUndefined();
   });
 
@@ -156,7 +156,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_EN, lang: "en", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(dialog.textContent?.toLowerCase()).not.toContain("falsifier");
   });
 
@@ -168,7 +168,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_ZH, lang: "zh", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "代码")).toBeUndefined();
   });
 
@@ -178,7 +178,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_ZH, lang: "zh", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "发生了什么")).toBeUndefined();
   });
 
@@ -188,7 +188,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_ZH, lang: "zh", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "条件")).not.toBeUndefined();
     expect(dialog.textContent).toContain("论点窗口已关闭。");
   });
@@ -199,7 +199,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_ZH, lang: "zh", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "投递结果")).not.toBeUndefined();
   });
 
@@ -209,7 +209,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: THESIS_DATA_ZH, lang: "zh", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(dialog.textContent).not.toContain("证伪");
   });
 
@@ -221,7 +221,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: ALERT_DATA_EN, lang: "en", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "Symbol")).not.toBeUndefined();
   });
 
@@ -231,7 +231,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: ALERT_DATA_EN, lang: "en", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "What changed")).not.toBeUndefined();
   });
 
@@ -241,7 +241,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: ALERT_DATA_ZH, lang: "zh", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "代码")).not.toBeUndefined();
   });
 
@@ -251,7 +251,7 @@ describe("Thesis detail surface: honest rows at every width (m_f119_detail)", ()
       root.render(React.createElement(AlertDetail, { data: ALERT_DATA_ZH, lang: "zh", onClose: () => {} }));
     });
     await act(async () => { /* flush */ });
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]')!;
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]')!;
     expect(leafWithText(dialog, "发生了什么")).not.toBeUndefined();
   });
 });

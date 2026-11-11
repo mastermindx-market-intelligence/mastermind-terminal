@@ -1,0 +1,12 @@
+cleared stale outcome: FIXTURE.json
+[dev] - Local:         http://127.0.0.1:47285
+- Network:       http://127.0.0.1:47285
+✓ Ready in 589ms
+capture desktop-en.png … ok
+Error: F11_GENERATED_TYPES_UNKNOWN
+    at rememberFailure (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs:521:24)
+    at captureInOwnedRuntime (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs:610:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async captureCaseWithFailureArtifact (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs:640:16)
+    at async captureIsolatedCases (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs:626:20)
+    at async runCapture (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs:687:23)

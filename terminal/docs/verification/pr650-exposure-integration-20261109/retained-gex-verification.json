@@ -1,0 +1,39 @@
+{
+  "branchHead": "483554457f302a90305f03c360636ca97ed75fb3",
+  "currentInputs": {
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/gexdesk/ExposureWorkspace.module.css": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+    "terminal/components/gexdesk/GexDeskView.tsx": "770ddedbe67516359a1f8d29f1ce28a7cc89b63e16dba87071b84609fc04b544",
+    "terminal/components/gexdesk/HeatSeekerCard.tsx": "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a",
+    "terminal/components/gexdesk/MarketStateCard.tsx": "67258667b95d40d9d5c97902248381ef8f9b4f286b1666d15c1f22b981ba2740",
+    "terminal/components/gexdesk/StrikeLadder.tsx": "10139efa85d746454477f36dbc0cbcb50bcdbb20aaab2701a4840604fd0575ea",
+    "terminal/components/gexdesk/gexStrings.ts": "76ae4a42bdd91378006315e4c1b972d8548aa771843aae1fcc4aa5ca069b3637",
+    "terminal/components/heatmap/HeatmapView.tsx": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+    "terminal/components/levels/LevelsView.tsx": "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9",
+    "terminal/components/levels/levelsLabels.ts": "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9",
+    "terminal/components/options-companion/GexMarketMemory.tsx": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+    "terminal/components/researchlab/AdmittedOptionsResearchLab.tsx": "34cfaa0c9ae7c6546c4d573cb97788733b2668cfd511d2babab52b4fb6395062",
+    "terminal/components/researchlab/OptionsResearchLab.tsx": "78cdd7a01ca86251ea80bb0be138917936086262316b4910016971c2b8090d3d",
+    "terminal/components/researchlab/ResearchQuestionAction.tsx": "b96e50590ae97ecec74090a46707aade804c6977899c29f9aa5ef0a87dea8a6b",
+    "terminal/components/researchlab/ResearchReportedGammaPanel.tsx": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+    "terminal/components/researchlab/researchReportedGamma.ts": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": "d1a4781a4a8147ccaef7360126dfedb038e8bc14e565853363e562074677888e",
+    "terminal/lib/accountIdentity.ts": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+    "terminal/lib/dataCache.ts": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+    "terminal/lib/heatmapStrings.ts": "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7",
+    "terminal/lib/idbJsonStore.ts": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8",
+    "terminal/lib/investigationEvidenceOptions.ts": "2cf30690827c3df45b92afe3265460beb87ad21d04ffec01208c8ca8a48f5bce",
+    "terminal/lib/investigationEvidenceOptionsSelection.ts": "0a5d1f9e37a121c1db4e960fd8897c3d0d741c407ebeaba84a134448c3504c76",
+    "terminal/lib/investigationOptionsReference.ts": "9debfdb1465fd7817373b00b4b7eed1ea7059f92d830b2d3ec24b53a6fed25ba",
+    "terminal/lib/mastermindBrain.ts": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+    "terminal/lib/matrixAcquisition.ts": "1c8d763f3a1481b703178a7db1c5903c11bf4871f5d441899a3ae0a6b97b32ec",
+    "terminal/lib/optionsQuestionContext.ts": "8623e1984fa0f2a5597de5f3c9adbb73d7a1957c40060a33378feda91a669434"
+  },
+  "descriptorSha256": "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b",
+  "physicalImages": 114,
+  "producerPins": {
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "8c8cd2448ce05a336f40fd020f9d172534c72df834f2b3a6ff2d33d82b6bfc5e",
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": "d1a4781a4a8147ccaef7360126dfedb038e8bc14e565853363e562074677888e"
+  },
+  "recaptured": false
+}

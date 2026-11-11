@@ -1,0 +1,35 @@
+{
+  "state": "TEMPLATE_TESTS_AND_LINT_PASSED",
+  "head": "360c3acf4396384c321df95fc442024ccff58b8e",
+  "steps": [
+    {
+      "name": "owned-server-tests",
+      "command": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "--test",
+        "e2e/tools/f11_owned_server.test.cjs"
+      ],
+      "startedAt": "2026-11-10T16:28:01.411747+00:00",
+      "pid": 90164,
+      "exit": 0,
+      "seconds": 0.737,
+      "logSha256": "cdd4affcebea2ca56ff0e9ebc35b0a55fc543eed31d07530a8bc370e81509c43",
+      "groupAbsent": true
+    },
+    {
+      "name": "owned-server-lint",
+      "command": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/tools/f11_owned_server.cjs",
+        "e2e/tools/f11_owned_server.test.cjs"
+      ],
+      "startedAt": "2026-11-10T16:28:02.149402+00:00",
+      "pid": 90267,
+      "exit": 0,
+      "seconds": 3.301,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "groupAbsent": true
+    }
+  ]
+}

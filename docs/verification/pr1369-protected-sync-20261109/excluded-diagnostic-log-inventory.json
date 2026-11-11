@@ -1,0 +1,17 @@
+{
+  "files": {
+    "docs/verification/pr1369-protected-sync-20261109/qualification-r1/affected-unit-and-evidence-readers.log": {
+      "bytes": 534,
+      "sha256": "c1f1f6c37308f9940ebb657c703025d80bee90fac06909210bda3c6c2120a8d3"
+    },
+    "docs/verification/pr1369-protected-sync-20261109/qualification-r1/beta-company-lifetime.log": {
+      "bytes": 1734,
+      "sha256": "5f03a21c8314075fb86aef7ee9b3417effb4501f064c9cbd363fe2ee6456331c"
+    },
+    "docs/verification/pr1369-protected-sync-20261109/qualification-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "schema": "terminal_pr1369_excluded_raw_logs.v1"
+}

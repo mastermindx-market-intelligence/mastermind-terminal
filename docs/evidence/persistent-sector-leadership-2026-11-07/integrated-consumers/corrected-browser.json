@@ -1,0 +1,121 @@
+{
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "e2e/sector-portfolio-continuity.spec.ts",
+    "e2e/sector-constituent-evidence.spec.ts",
+    "--grep",
+    "object company|rendered journey|listed holding opens|Chinese light board",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=2",
+    "--reporter=list"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 61.4,
+  "completed_at": "2026-11-07T07:33:26.208219+00:00",
+  "base_head": "fa79003d23cc08216ced65935e80b0e95a54a285",
+  "candidate_dirty": true,
+  "log_sha256": "e5605a761dbdaa2df2a33d30508438cc2396c6f5feeeed2c6cc4f440fecaf58b",
+  "scope": "corrected strict distinct private paths, explicit sector themes and representative browser screenshots; Portfolio uses incumbent default appearance",
+  "screenshots": [
+    {
+      "file": "desktop-member-mu-en-dark.png",
+      "sha256": "09878cd100f83309fc93231322a542665adcfcc54991f0430bb2524aa511260d"
+    },
+    {
+      "file": "desktop-member-mu-zh-light.png",
+      "sha256": "a0249cae7ec534270171a502af84478190170b211eea23fa1154387be0b799c3"
+    },
+    {
+      "file": "desktop-narrow-320-en-default.png",
+      "sha256": "66c0bd85519bbca5391e8c48dd2713819caa5737f6bd7e67fde2ac7cd9df4849"
+    },
+    {
+      "file": "desktop-narrow-320-zh-default.png",
+      "sha256": "71595c1079fb3abac3cc4c48b92045efcbca77b5fb6321cb815945c322992856"
+    },
+    {
+      "file": "desktop-risk-en-default.png",
+      "sha256": "23b624679b5533cc6739ad5e4fccf70166a28d6aea8e10759f280988c850bd18"
+    },
+    {
+      "file": "desktop-risk-zh-default.png",
+      "sha256": "90e3edfb3b7b2dc2090e5dbf4a5a97af34dfc3277bd267b88add8ea74adf9df1"
+    },
+    {
+      "file": "desktop-sector-depth-en-dark.png",
+      "sha256": "b425c4534bd39b949871c2a5c2cbcb8d084781ab86a16c4845236e3210d99178"
+    },
+    {
+      "file": "desktop-sector-depth-zh-light.png",
+      "sha256": "ae131fa5dbc95e6f5d602aed1f57d31b72f8dade65d24895d638dc6aed73b78a"
+    },
+    {
+      "file": "mobile-member-mu-en-dark.png",
+      "sha256": "e1715fac9c5d870a0218c1346c360696c92afc6ad9c878106ca3830d24a2f99a"
+    },
+    {
+      "file": "mobile-member-mu-zh-light.png",
+      "sha256": "aec4593522806d15d40df4e3e0360d15441931a2e17030e5ae5d457c366814ee"
+    },
+    {
+      "file": "mobile-narrow-320-en-default.png",
+      "sha256": "66c0bd85519bbca5391e8c48dd2713819caa5737f6bd7e67fde2ac7cd9df4849"
+    },
+    {
+      "file": "mobile-narrow-320-zh-default.png",
+      "sha256": "71595c1079fb3abac3cc4c48b92045efcbca77b5fb6321cb815945c322992856"
+    },
+    {
+      "file": "mobile-risk-en-default.png",
+      "sha256": "8eb5ab1a2ebddf10f0920ab3bd0bbfebd74003d65b4956d3ea3e1c15e59e680d"
+    },
+    {
+      "file": "mobile-risk-zh-default.png",
+      "sha256": "ccdf887d1a812189ce3a8a940cf8f4169c9cfe9cbd30b5e4dd85e7d56193fe5c"
+    },
+    {
+      "file": "mobile-sector-depth-en-dark.png",
+      "sha256": "3760254e950841faef054d438f9fcbd627e1090e4ea8cfa112eedc637a9e88a0"
+    },
+    {
+      "file": "mobile-sector-depth-zh-light.png",
+      "sha256": "cfaeb5e6c6b58bf6abf4527af41f84c669a376a323211e5c21ca86ba5f68f6bc"
+    },
+    {
+      "file": "tablet-member-mu-en-dark.png",
+      "sha256": "c1427b4abd53eab225f89cfa6b5e499460a6e3b821d90cf5382f5411807e5cfd"
+    },
+    {
+      "file": "tablet-member-mu-zh-light.png",
+      "sha256": "62acc64b914eaf484bf824c3d47a05445b093823204f0a1aaee6abf7b4b2a13f"
+    },
+    {
+      "file": "tablet-narrow-320-en-default.png",
+      "sha256": "66c0bd85519bbca5391e8c48dd2713819caa5737f6bd7e67fde2ac7cd9df4849"
+    },
+    {
+      "file": "tablet-narrow-320-zh-default.png",
+      "sha256": "71595c1079fb3abac3cc4c48b92045efcbca77b5fb6321cb815945c322992856"
+    },
+    {
+      "file": "tablet-risk-en-default.png",
+      "sha256": "df62ad53f8ef3cb1f2cce1ad7ea1fd2aef981942e3ec5dcfcfb908cc27810cb0"
+    },
+    {
+      "file": "tablet-risk-zh-default.png",
+      "sha256": "3de7b652b8482706ebaf2a594a9ff8638af3be1be60f974f410ea9c2e88d47af"
+    },
+    {
+      "file": "tablet-sector-depth-en-dark.png",
+      "sha256": "408d41675334e2244fa2fe78352650e8953bf88e3b65ebd8af8d2c3c4d9ea272"
+    },
+    {
+      "file": "tablet-sector-depth-zh-light.png",
+      "sha256": "f93edfe01ada49bfdfeaa02984b7ca0f50d5a57960a7021f70887f2642ad1f0e"
+    }
+  ]
+}

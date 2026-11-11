@@ -1,0 +1,19 @@
+[dev] ✓ Ready in 542ms
+unpromoted capture directory /tmp/mmx-w9t-targets-VoLIy8
+[dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+captured PortfolioTargetsSettings-empty-390-en.png
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.acs-overlay.open .acs-card') to be visible[22m
+
+    at gotoSettings (/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/e2e/tools/capture_w9t_f08_13_targets.cjs:109:53)
+    at async captureOne (/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/e2e/tools/capture_w9t_f08_13_targets.cjs:162:5)
+    at async main (/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/e2e/tools/capture_w9t_f08_13_targets.cjs:180:23) {
+  log: [
+    "  - waiting for locator('.acs-overlay.open .acs-card') to be visible"
+  ],
+  name: 'TimeoutError'
+}
+Error: Settings producer failed: {"code":1,"signal":null}
+    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/docs/verification/pr1353-settings-evidence-20261109/settings-capture-owner.cjs:33:47
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)

@@ -1,0 +1,15 @@
+{
+  "branchHead": "282ea2c40d839fecbe5ae5dc53de9c29a02850f6",
+  "integratedDependency": "663983edd16fc64e86003b420e97d557982b1bf2",
+  "packet": "eod-heatmap-flowdesk-load-failure",
+  "predecessor": {
+    "descriptorSha256": "eb5a4aac927a5bf8f308f1b6536e7992306df2a78e110cc8012099a4dc185ba9",
+    "revision": "indicator-guard-20261109"
+  },
+  "protectedMaster": "b387616013f38cce9e467cc7da7b87fd2672718c",
+  "published650Archive": {
+    "inventory": "terminal/docs/verification/pr650-exposure-integration-20261109/prior-published650-eod-sha256.json",
+    "sha256": "16c19dfdbdf40c78660be968782fd85919550185a5c0490a273458cde2300404"
+  },
+  "schema": "exposure_ui_copy_history.v1"
+}

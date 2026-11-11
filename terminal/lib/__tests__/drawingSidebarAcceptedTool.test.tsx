@@ -2,9 +2,9 @@
  * drawingSidebarAcceptedTool.test.tsx — the dock's group button must follow the tool the
  * parent actually armed, not the one the user merely asked for.
  *
- * TerminalShell refuses a tool whenever the active symbol's drawings are not ready (an
- * account read still pending or failed, or a drawing-owner switch in flight) without
- * setting `creationDisabledReason`. The sidebar used to record the request as its group's
+ * TerminalShell refuses a tool whenever the active symbol's drawings are not ready.
+ * The controls now reflect that readiness; this isolated test also keeps the callback's
+ * refusal contract intact. The sidebar used to record the request as its group's
  * last-used tool before calling `onTool`, so a refused pick still repainted the group
  * button, and a refused double-click still pinned the tool for its next activation.
  *

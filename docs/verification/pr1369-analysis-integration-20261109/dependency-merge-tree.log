@@ -1,0 +1,38 @@
+ae9bff19a3599e7e580d2a81ca490d3eb9c4ac6d
+100644 0bd8c1b472a2a3701f99b404ecac27b3b2d1e215 1	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml
+100644 5c89981c1a0c1228891f648c35de91e0970cba47 2	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml
+100644 59de7884b42c1356bfdc347f4c0317d71ebac310 3	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml
+100644 a5ef015d98b64f2478e2c0ff1009dc155a022b5e 1	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png
+100644 349bd89145a40362cf69547517bf847c4495ed7b 2	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png
+100644 110acad3406aa527e540a062b912cdcd12c4e88e 3	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png
+100644 0e20babd930ee2d6d138ed0cdc7f09b681179fcf 1	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png
+100644 cfec692471681d3e51060596cfc32d576912c2fa 2	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png
+100644 d1ee09a13c6fe0bc381933a948771c17b23c7033 3	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png
+100644 c9f18b5249d959df1fd738c1fbe459e9779f2923 1	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png
+100644 b0e3ed28bac92986ea1e77984cb5f6c47b5f3b97 2	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png
+100644 7a557db678f44bc15aa306f0543ac17bedf9fd5f 3	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png
+100644 6bdb7d5d6a92c06e795888dee18b0df4a6225cb7 1	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png
+100644 abe568389a1ad95c3c37eff487c1e6af78445fd8 2	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png
+100644 3f3477b8835315acdb59f89b589755900dc60133 3	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png
+100644 7f0e9b7b6907210ed1fc5abb5e2c7e4a5b6988e2 1	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png
+100644 19796b853dde064c1bb43cf9e887880d05d8d7ba 2	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png
+100644 cd6f3d3e2690bde8b9804c9403ff0658016ab065 3	terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png
+
+Auto-merging terminal/components/workspaces/AnalysisWorkspace.tsx
+Auto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml
+warning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png (6431c5d04b033929f6319ed456f532f473049ff2 vs. 5b4fe809fa43e164415a71ec0cc129110632e587)
+Auto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png (6431c5d04b033929f6319ed456f532f473049ff2 vs. 5b4fe809fa43e164415a71ec0cc129110632e587)
+Auto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png (6431c5d04b033929f6319ed456f532f473049ff2 vs. 5b4fe809fa43e164415a71ec0cc129110632e587)
+Auto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png (6431c5d04b033929f6319ed456f532f473049ff2 vs. 5b4fe809fa43e164415a71ec0cc129110632e587)
+Auto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png (6431c5d04b033929f6319ed456f532f473049ff2 vs. 5b4fe809fa43e164415a71ec0cc129110632e587)
+Auto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png

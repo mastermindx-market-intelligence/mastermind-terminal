@@ -47,7 +47,7 @@ function firstSourced(
     item.evidence?.receipt_state === "byte_replayed" &&
     !!item.value.trim() &&
     !/^(?:unavailable|no structured range|暂无|无结构化指引)/i.test(item.value.trim()) &&
-    (!numericRange || /^\d+(?:\.\d+)?(?:[–-]\d+(?:\.\d+)?)?%$/.test(item.value.trim()))
+    (!numericRange || /^-?\d+(?:\.\d+)?(?:[–-]-?\d+(?:\.\d+)?)?%$/.test(item.value.trim()))
   )) ?? null;
 }
 

@@ -6,6 +6,7 @@ import { useLang } from "@/lib/i18n";
 import { exposureChartHref, exposureMapHref, parseExposureChartRequest, type ExposureChartRequest } from "@/lib/exposureChartLink";
 import { readExposureChartRequest } from "@/lib/exposureChartRead";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
+import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import { exposureMapT } from "./exposureMapStrings";
 import { exposureOriginReturnHref, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
 import { exposureOriginT } from "./exposureOriginStrings";
@@ -15,7 +16,8 @@ type Result = { request: ExposureChartRequest; readKey: object; state: "unavaila
 
 /** An explicit navigation intent, re-resolved through the incumbent source cache.
  * The URL supplies a selection and comparison digest, never a drawable exposure. */
-export default function ExposureChartReference({ symbol, active, pinned, onPin }: {
+export default function ExposureChartReference({ symbol, active, pinned, onPin, viewport = null }: {
+  viewport?: OptionsPinViewport | null;
   symbol: string; active: boolean; pinned: OptionsChartLevel | null; onPin: (level: OptionsChartLevel | null) => void;
 }) {
   const { lang } = useLang();
@@ -55,7 +57,9 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
   if (!request || request.root !== symbol) return null;
   const current = result?.request === request && result.readKey === readKey ? result : null;
   const state = !active ? "paused" : current?.state ?? "loading";
-  const isPinned = current?.level && pinned?.root === current.level.root && pinned.price === current.level.price && pinned.session === current.level.session;
+  const isPinned = !!current?.level && pinned === current.level;
+  const currentViewport = current?.level && viewport?.level === current.level ? viewport : null;
+  const chartState = state === "ready" && isPinned ? currentViewport?.state ?? "pending" : "unavailable";
   const metric = t(request.metric === "delta" ? "deltaAssumedInventory" : request.metric === "combined" ? "scenarioStress" : request.metric);
   const scope = request.lens.kind === "one" ? request.lens.exp : t(request.lens.kind === "next-live" ? "nextLive" : request.lens.kind === "week" ? "week" : request.lens.kind === "zero" ? "zero" : "all");
   // The sector origin rides beside the request; it never changes what the chart shows.
@@ -77,13 +81,17 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
       .find(element => element.getClientRects().length > 0 && !element.matches(":disabled, [aria-disabled=true]"));
     target?.focus({ preventScroll: true });
   };
-  return createPortal(<section className={styles.reference} data-testid="exposure-chart-reference" data-state={state} aria-label={t("exposureReference")}
+  return createPortal(<section className={styles.reference} data-testid="exposure-chart-reference" data-state={state} data-chart-state={chartState} aria-label={t("exposureReference")}
     onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); dismiss(); } }}>
     <div><strong>{t("exposureReference")} · {request.root} {request.strike}</strong><p role="status">{t(state === "ready" ? "referenceRechecked" : state === "changed" ? "referenceChanged" : state === "unavailable" ? "referenceUnavailable" : state === "paused" ? "referencePaused" : "referenceChecking")}</p><small>{request.session} · {metric} · {scope}<br />{t("referenceNotHistory")}</small>
+      {state === "ready" && isPinned && <p role="status">{t(chartState === "visible" ? "referenceVisible"
+        : chartState === "offscreen" ? "referenceOffscreen" : chartState === "pending" ? "referencePlacementPending" : "referencePlacementUnavailable")}</p>}
       {request.metric === "combined" && <p>{t("spotPercent")} {request.shock.spotPercent} · {t("ivPoints")} {request.shock.ivPoints} · {t("calendarDays")} {request.shock.calendarDays}</p>}
     </div>
     <div className={styles.actions}>
       {state === "ready" && current?.level && <button type="button" aria-pressed={!!isPinned} onClick={() => onPin(isPinned ? null : current.level!)}>{isPinned ? t("unpin") : t("pin")}</button>}
+      {state === "ready" && isPinned && chartState === "offscreen" && currentViewport
+        && <button type="button" onClick={() => currentViewport.reveal()}>{t("revealReference")}</button>}
       {(state === "unavailable" || state === "changed") && <button type="button" onClick={() => setAttempt(value => value + 1)}>{t("retry")}</button>}
       {state === "ready" && researchHref && <a href={researchHref} data-testid="exposure-reference-save">{t("saveToResearch")}</a>}
       <a href={returnHref}>{t("returnToExposure")}</a>

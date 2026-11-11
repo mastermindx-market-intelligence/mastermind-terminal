@@ -1,0 +1,27 @@
+{
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/options-lab-source-state.spec.ts",
+    "e2e/options-lab-reported-gamma.spec.ts",
+    "e2e/exposure-workspace.spec.ts",
+    "e2e/sector-exposure-depth-return.spec.ts",
+    "--grep",
+    "Research Lab|reported Gamma exact host consumer|Exposure opens on usable strikes|stepping and Back preserve",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=.next/options-lab-composed-final-20261104"
+  ],
+  "sourceStableAcrossBrowser": true,
+  "sourceFileCount": 3108,
+  "sourceMapBeforeSha256": "0a66cf420e9538bda0598e3c6bce3653e9bb55e7ccc12c047ca6b0762a5fa98c",
+  "sourceMapAfterSha256": "0a66cf420e9538bda0598e3c6bce3653e9bb55e7ccc12c047ca6b0762a5fa98c",
+  "logSha256": "9f194a7ea3ff1d4ea4fa5ebc8daa439f84952b17c420a47776e378bbecb1ecb9",
+  "gexSourceSha256": "e2b1cea4319f0860321d86d3fc8d8fc133060ce11cd7e1bdc0768207613d0a98",
+  "retry": 0
+}

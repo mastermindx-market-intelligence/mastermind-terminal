@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
 import { toggleToolbarReplay } from "./terminalToolbar";
+import { readNativeChartGeometry } from "./helpers/nativeChartGeometry";
 import { makeLargeTradesFixture } from "../lib/largeTrades/fixtures";
 import tp1NativeEnvelope from "../lib/__tests__/fixtures/tp1LargeTrades.envelope.synthetic.v1.json";
 
@@ -285,40 +286,42 @@ test("settings normalize stored bounds and persist the exact applied criteria", 
 async function settledTradeChart(page: Page, expectedSubpanes = 0) {
   let previous = "";
   await expect.poll(async () => {
+    const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
     const state = await page.locator(".chart-wrap").first().evaluate((wrap) => {
-      const body = wrap.closest<HTMLElement>(".chart-body"), table = wrap.querySelector(".tv-lightweight-charts table");
-      const root = wrap.getBoundingClientRect(), native = table?.getBoundingClientRect();
-      const rows = [...(table?.querySelectorAll("tr") ?? [])].filter((row) => row.querySelector("canvas"));
-      return { declared: Number(getComputedStyle(body!).getPropertyValue("--subpanes")),
-        drawn: rows.length - 2, fills: !!native && Math.abs(root.height - native.height) <= 1,
-        geometry: [root.x, root.y, root.width, root.height,
+      const root = wrap.getBoundingClientRect();
+      return { geometry: [root.x, root.y, root.width, root.height,
           ...[...wrap.querySelectorAll<HTMLElement>('[data-testid="large-trade-marker"]')]
             .map((node) => [node.style.left, node.style.top, node.style.visibility].join(":"))] };
     });
-    const key = JSON.stringify(state.geometry);
-    const ready = state.declared === expectedSubpanes && state.drawn === expectedSubpanes && state.fills;
+    const key = JSON.stringify([chart.panes, state.geometry]);
+    const ready = chart.declared === expectedSubpanes && chart.drawn === expectedSubpanes && chart.fills;
     const stable = ready && key === previous; previous = ready ? key : "";
     return stable;
   }, { timeout: 25_000, intervals: [150, 200, 300, 400] }).toBe(true);
 }
 
 async function nativeTradePanePoint(page: Page, paneIndex: number) {
-  return page.locator(".chart-wrap").first().evaluate((wrap, index) => {
-    const rows = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")]
-      .filter((row) => row.querySelector("canvas") && row.getBoundingClientRect().height > 3);
-    const row = rows[index];
-    if (!row) throw new Error("Requested native pane has no visible row");
-    const canvas = [...row.querySelectorAll("canvas")].sort((a, b) =>
-      b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
-    const r = canvas.getBoundingClientRect();
+  const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
+  return page.locator(".chart-wrap").first().evaluate((wrap, { chart, index }) => {
+    // Callers address visible panes: after maximize, index 0 is the sole
+    // expanded pane even when its stable native index is 1 or later.
+    const selected = chart.panes.map((pane, nativeIndex) => ({ ...pane, nativeIndex }))
+      .filter(pane => pane.plot && pane.plot.height > 3)[index];
+    const r = selected?.plot;
+    if (!r || r.height <= 3) throw new Error("Requested native pane has no visible plot");
+    const mm = wrap.querySelector("[data-mm-chart]");
+    const row = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")]
+      .filter(row => row.querySelector("canvas"))[selected.nativeIndex];
     for (const ry of [0.65, 0.8, 0.45]) for (const rx of [0.42, 0.7, 0.25]) {
       const x = r.x + r.width * rx, y = r.y + r.height * ry;
       const hit = document.elementFromPoint(x, y);
-      if (hit?.tagName === "CANVAS" && row.contains(hit) && x >= 0 && y >= 0
-        && x < innerWidth && y < innerHeight) return { x, y, hit: hit.tagName, pane: r.toJSON() };
+      const owned = mm ? hit?.hasAttribute("data-mm-overlay") && hit.closest("[data-mm-chart]") === mm
+        : !!hit && row?.contains(hit);
+      if (hit?.tagName === "CANVAS" && owned && x >= 0 && y >= 0
+        && x < innerWidth && y < innerHeight) return { x, y, hit: hit.tagName, pane: r };
     }
     throw new Error("No unobstructed native pane touch target");
-  }, paneIndex);
+  }, { chart, index: paneIndex });
 }
 
 async function trustedTradeDoubleTap(page: Page, info: TestInfo, point: { x: number; y: number }, name: string) {
@@ -364,14 +367,12 @@ async function trustedTradeDoubleTap(page: Page, info: TestInfo, point: { x: num
 }
 
 async function boundedTradeDock(page: Page, info: TestInfo, name: string) {
-  const proof = await page.getByTestId("large-trades-dock").evaluate((dock) => {
-    const root = dock.closest(".chart-wrap")!;
-    const row = [...root.querySelectorAll(".tv-lightweight-charts table tr")].find((tr) => tr.querySelector("canvas"))!;
-    const canvas = [...row.querySelectorAll("canvas")].sort((a, b) =>
-      b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
-    const plot = canvas.getBoundingClientRect(), d = dock.getBoundingClientRect();
-    return { plot: plot.toJSON(), dock: d.toJSON(), viewport: { width: innerWidth, height: innerHeight } };
-  });
+  const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
+  const plot = chart.panes[0]?.plot;
+  if (!plot) throw new Error("Price plot has not painted");
+  const proof = await page.getByTestId("large-trades-dock").evaluate((dock, plot) => ({
+    plot, dock: dock.getBoundingClientRect().toJSON(), viewport: { width: innerWidth, height: innerHeight },
+  }), plot);
   expect(proof.dock.x).toBeGreaterThanOrEqual(Math.max(0, proof.plot.x));
   expect(proof.dock.y).toBeGreaterThanOrEqual(Math.max(0, proof.plot.y + 48));
   expect(proof.dock.right).toBeLessThanOrEqual(Math.min(proof.viewport.width, proof.plot.right) + 1);
@@ -466,13 +467,10 @@ test("large trade markers and inspection co-hide in a short price pane and retur
   const count = await visible.count(); expect(count).toBeGreaterThan(0);
   await page.getByTestId("large-trades-inspect").click();
   await expect(page.getByTestId("large-trades-inspector")).toBeVisible();
-  const separator = await page.locator(".chart-wrap").evaluate((wrap) => {
-    const rows = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")];
-    const row = rows.find((tr) => !tr.querySelector("canvas") && tr.getBoundingClientRect().height > 0);
-    if (!row) throw new Error("Native pane separator is absent");
-    const r = row.getBoundingClientRect(), w = wrap.getBoundingClientRect();
-    return { x: r.x + r.width * 0.22, y: r.y + r.height / 2, smallY: w.y + 90 };
-  });
+  const initialGeometry = await page.locator(".chart-wrap").evaluate(readNativeChartGeometry);
+  const r = initialGeometry.separators[0];
+  if (!r) throw new Error("Native pane separator is absent");
+  const separator = { x: r.x + r.width * .22, y: r.y + r.height / 2, smallY: initialGeometry.root.y + 90 };
   await page.mouse.move(separator.x, separator.y); await page.mouse.down();
   await page.mouse.move(separator.x, separator.smallY, { steps: 8 }); await page.mouse.up();
   await expect(page.getByTestId("large-trades-overlay")).toHaveAttribute("data-owner-visible", "false");
@@ -480,11 +478,8 @@ test("large trade markers and inspection co-hide in a short price pane and retur
   await expect(page.getByTestId("large-trades-dock")).toBeHidden();
   await expect(page.getByTestId("large-trades-inspector")).toBeHidden();
   await capture(page, info, "large-trades-short-owner-co-hidden");
-  const current = await page.locator(".chart-wrap").evaluate((wrap) => {
-    const row = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")]
-      .find((tr) => !tr.querySelector("canvas") && tr.getBoundingClientRect().height > 0)!;
-    const r = row.getBoundingClientRect(); return { x: r.x + r.width * 0.22, y: r.y + r.height / 2 };
-  });
+  const resized = (await page.locator(".chart-wrap").evaluate(readNativeChartGeometry)).separators[0];
+  const current = { x: resized.x + resized.width * .22, y: resized.y + resized.height / 2 };
   await page.mouse.move(current.x, current.y); await page.mouse.down();
   await page.mouse.move(current.x, separator.y, { steps: 8 }); await page.mouse.up();
   await settledTradeChart(page, 1);
@@ -552,12 +547,9 @@ async function scrollTradeTarget(page: Page, box: Locator, target: Locator, dire
 }
 async function resizeTradePricePane(page: Page, height: number) {
   for (let attempt = 0; attempt < 4; attempt++) {
-    const geometry = await page.locator(".chart-wrap").first().evaluate((wrap) => {
-      const rows = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")];
-      const price = rows.find((row) => row.querySelector("canvas"))!.getBoundingClientRect();
-      const separator = rows.find((row) => !row.querySelector("canvas") && row.getBoundingClientRect().height > 0)!.getBoundingClientRect();
-      return { height: price.height, x: separator.x + separator.width * .22, y: separator.y + separator.height / 2 };
-    });
+    const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
+    const price = chart.panes[0].pane, separator = chart.separators[0];
+    const geometry = { height: price.height, x: separator.x + separator.width * .22, y: separator.y + separator.height / 2 };
     if (Math.abs(geometry.height - height) < .6) return;
     await page.mouse.move(geometry.x, geometry.y); await page.mouse.down();
     const delta = height - geometry.height;
@@ -590,12 +582,11 @@ test("large trade controls expose full targets and scrollable provenance at thei
       for (let i = 0; i < 5; i++) {
         // Read the actual native plot, even if a responsive height change temporarily
         // co-hides controls and their last admitted style width is intentionally retained.
-        const width = await page.locator(".chart-wrap").first().evaluate((wrap) => {
-          const row = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")].find((row) => row.querySelector("canvas"))!;
-          const canvas = [...row.querySelectorAll("canvas")].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
-          const rect = canvas.getBoundingClientRect();
-          return Math.max(0, Math.min(innerWidth, rect.right) - Math.max(0, rect.left));
-        });
+        const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
+        const plot = chart.panes[0]?.plot;
+        if (!plot) throw new Error("Price plot has not painted");
+        const width = await page.evaluate(rect =>
+          Math.max(0, Math.min(innerWidth, rect.right) - Math.max(0, rect.left)), plot);
         if (Math.abs(width - 199) < .6) break;
         const current = page.viewportSize()!;
         await page.setViewportSize({ width: Math.round(current.width + 199 - width), height: current.height });
@@ -604,14 +595,12 @@ test("large trade controls expose full targets and scrollable provenance at thei
     }
     // Exercise the 88px control contract below the actual painted header. The
     // narrow header wraps, so a fixed 137px pane no longer admits those controls.
-    const boundary = await page.locator(".chart-wrap").first().evaluate((wrap) => {
-      const row = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")]
-        .find((candidate) => candidate.querySelector("canvas"))!;
-      const price = row.getBoundingClientRect();
+    const price = (await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry)).panes[0].pane;
+    const boundary = await page.locator(".chart-wrap").first().evaluate((wrap, price) => {
       const header = wrap.querySelector<HTMLElement>(":scope > .statusline")!.getBoundingClientRect();
       return { priceTop: price.top, headerBottom: header.bottom, headerHeight: header.height,
         reserve: Math.max(48, header.bottom - price.top) };
-    });
+    }, price);
     const admittedPaneHeight = Math.ceil(boundary.reserve) + 89;
     const rejectedPaneHeight = admittedPaneHeight - 2;
     if (137 - boundary.reserve < 88) {
@@ -743,8 +732,18 @@ async function settledTradePng(page: Page, info: TestInfo, name: string, options
 test("native PNG includes visible executions, quantity labels and provenance but excludes inspection controls", async ({ page }, info) => {
   test.setTimeout(120_000);
   await prepare(page); await observeTradePng(page);
+  // Company metadata is intentionally deferred by TerminalShell. Control this
+  // independent fixture and wait for its React commit before comparing PNG bytes.
+  await page.route("**/data/manifest.json*", route => route.fulfill({ json: {
+    as_of: "2026-10-05", symbols: { AAPL: {
+      name: "Apple Inc", zh: "苹果公司", sec: "Technology", col: "#00ff88", mkt: "US",
+      last: 225, chg: 0, open: 225, high: 226, low: 224, vol: 0,
+      hi52: 250, lo52: 150, verdict: null, wr: null, pf: null, cagr: null, regimeBull: null,
+    } },
+  } }));
   await page.clock.setFixedTime(new Date("2026-10-11T11:00:00Z"));
   await openFixture(page);
+  await expect(page.locator(".pane.on > .pane-hd > b")).toHaveText("Apple Inc");
   await expect.poll(() => page.locator('[data-testid="large-trade-marker"]:visible').count()).toBeGreaterThan(0);
   await settledTradeChart(page);
   await capture(page, info, "large-trades-export-visible-chart");
@@ -778,6 +777,7 @@ test("native PNG includes visible executions, quantity labels and provenance but
   expect(proof.height).toBeGreaterThan(104 + proof.cssHeight * 2);
   expect(proof.borderHits.some((mark) => mark.hits >= 12)).toBe(true);
   for (const label of proof.quantities) if (label) expect(proof.text).toContain(label);
+  expect(proof.text).toContain("Apple Inc");
   expect(proof.text.join(" ")).toContain("Test fixture");
   expect(proof.text.join(" ")).toContain("shares");
   expect(proof.text.join(" ")).toContain("Distinct orders: Not available");
@@ -1074,13 +1074,12 @@ test("large trades follow the price owner through an additional RSI instance and
   await remaining.getByRole("button", { name: "Move pane up", exact: true }).click();
   await settledTradeChart(page, 1);
   const reordered = await downloadTradePng(page, info, "large-trades-price-owner-after-rsi-reorder");
-  const restoredProof = await page.evaluate((index) => {
+  const reorderedGeometry = await page.locator(".chart-wrap").evaluate(readNativeChartGeometry);
+  const restoredProof = await page.evaluate(({ index, chart }) => {
     const frame = (window as unknown as { __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame }).__mmLargeTradesSnapshot;
-    const wrap = document.querySelector(".chart-wrap")!, root = wrap.getBoundingClientRect();
-    const rows = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")].filter((row) => row.querySelector("canvas"));
-    const pricePane = rows[1].getBoundingClientRect();
-    return { frame, text: window.__ltPngFrames[index].text, pricePane: { y: pricePane.y - root.y, height: pricePane.height } };
-  }, reordered.index);
+    const pricePane = chart.panes[1].pane;
+    return { frame, text: window.__ltPngFrames[index].text, pricePane: { y: pricePane.y - chart.root.y, height: pricePane.height } };
+  }, { index: reordered.index, chart: reorderedGeometry });
   expect(restoredProof.frame.symbol).toBe("AAPL");
   expect(restoredProof.frame.plot.y).toBeGreaterThan(0);
   expect(Math.abs(restoredProof.frame.plot.y - restoredProof.pricePane.y)).toBeLessThan(1);
@@ -1220,25 +1219,21 @@ test("native PNG refreshes pending pane geometry before freezing its execution f
     frame: import("../lib/largeTrades/snapshot").LargeTradesExportFrame | null; text: string[]; filename: string }[] = [];
   try {
     for (const desired of [220, 100]) {
-      const geometry = await page.locator(".chart-wrap").evaluate((wrap) => {
-        const rows = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")];
-        const price = rows.filter((row) => row.querySelector("canvas"))[1].getBoundingClientRect();
-        const separator = rows.find((row) => !row.querySelector("canvas") && row.getBoundingClientRect().height > 0)!.getBoundingClientRect();
-        return { priceHeight: price.height, x: separator.x + separator.width * .22, y: separator.y + separator.height / 2 };
-      });
+      const chart = await page.locator(".chart-wrap").evaluate(readNativeChartGeometry);
+      const price = chart.panes[1].pane, separator = chart.separators[0];
+      const geometry = { priceHeight: price.height, x: separator.x + separator.width * .22, y: separator.y + separator.height / 2 };
       await page.mouse.move(geometry.x, geometry.y); await page.mouse.down();
       await page.mouse.move(geometry.x, geometry.y + geometry.priceHeight - desired, { steps: 8 }); await page.mouse.up();
       // No layout-settling wait: the native screenshot must flush and synchronously measure.
       const png = await downloadTradePng(page, info, "large-trades-pending-native-price-height-" + desired);
-      const proof = await page.evaluate((index) => {
-        const wrap = document.querySelector(".chart-wrap")!, root = wrap.getBoundingClientRect();
-        const price = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")]
-          .filter((row) => row.querySelector("canvas"))[1].getBoundingClientRect();
+      const captured = await page.locator(".chart-wrap").evaluate(readNativeChartGeometry);
+      const proof = await page.evaluate(({ index, chart }) => {
+        const price = chart.panes[1].pane;
         const w = window as unknown as { __ltHeldRafCount(): number;
           __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame | null };
-        return { actual: { top: price.y - root.y, height: price.height }, heldCallbacks: w.__ltHeldRafCount(),
+        return { actual: { top: price.y - chart.root.y, height: price.height }, heldCallbacks: w.__ltHeldRafCount(),
           frame: w.__mmLargeTradesSnapshot, text: window.__ltPngFrames[index].text };
-      }, png.index);
+      }, { index: png.index, chart: captured });
       proofs.push({ desired, ...proof, filename: png.filename });
     }
   } finally {
@@ -1343,8 +1338,13 @@ for (const lang of ["en", "zh"] as const) {
 // This fixture intercept exercises the consumer; it grants no public admission.
 // The shipped Terminal is dark-only (app/layout.tsx and globals.css). A localStorage
 // light preference does not activate a light shell; this suite verifies shipped behavior.
-for (const variant of [{ lang: "en", theme: "dark" }, { lang: "zh", theme: "dark" }] as const) {
-  test("native TP-1 gross executions " + variant.lang + " " + variant.theme, async ({ page }, info) => {
+for (const variant of [
+  { lang: "en", theme: "dark", engine: "lwc" },
+  { lang: "zh", theme: "dark", engine: "lwc" },
+  { lang: "en", theme: "dark", engine: "mm" },
+] as const) {
+  test("native TP-1 gross executions " + variant.lang + " " + variant.theme
+    + (variant.engine === "mm" ? " MM renderer" : ""), async ({ page }, info) => {
     test.setTimeout(120_000);
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -1354,9 +1354,10 @@ for (const variant of [{ lang: "en", theme: "dark" }, { lang: "zh", theme: "dark
       state: "ready", envelope: tp1NativeEnvelope, artifactSha256: null,
       servedAtNs: tp1NativeEnvelope.provenance.generatedAtNs,
     } }));
-    await page.goto("/terminal?symbol=AAPL");
+    await page.goto("/terminal?symbol=AAPL" + (variant.engine === "mm" ? "&engine=mm" : ""));
     const overlay = page.getByTestId("large-trades-overlay");
     await expect(overlay).toHaveAttribute("data-state", "ready", { timeout: 60_000 });
+    await expect(page.locator(".pane.on [data-chart-engine]")).toHaveAttribute("data-chart-engine", variant.engine);
     await expect(overlay).toHaveAttribute("data-mode", "fixture");
     await expect(overlay).toHaveAttribute("data-quantity-basis", "gross_as_reported");
     await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");

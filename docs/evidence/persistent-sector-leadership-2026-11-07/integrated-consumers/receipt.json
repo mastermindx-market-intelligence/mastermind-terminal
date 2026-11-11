@@ -1,0 +1,239 @@
+{
+  "schema": "persistent_sector_leadership.consumer_integration_evidence/v1",
+  "created_at": "2026-11-07T07:37:52.841112+00:00",
+  "parent_operation": "persistent-sector-leadership-ui-20261107-c4",
+  "base_head": "fa79003d23cc08216ced65935e80b0e95a54a285",
+  "scope_issue": "https://github.com/mastermindx-market-intelligence/Mastermind/issues/1202#issuecomment-6695716256",
+  "workers": [
+    {
+      "run": "psl6-portfolio-continuity-20261107-c4",
+      "commit": "76db6d04b67d98d902ad6c09e81bb3f91ce14f4a",
+      "tree": "0054d1bcf8659f418b228046f6e0b1cd44c09e1f",
+      "response_sha256": "c9495d615129fb905b173362796d0aa479138e91d8645407591591c81bcfc88a"
+    },
+    {
+      "run": "psl-member-evidence-20261107-c4",
+      "commit": "e92b4ce0a8e6fe4fd51800c3653c92f95e77a687",
+      "tree": "d7e762169eae9f77428ecb5ed4d305d1df12c86e",
+      "response_sha256": "dc5197e6f106160fd5ea6cc45e68e5462814817d701f509139a74d6118fc9852"
+    }
+  ],
+  "source": [
+    {
+      "path": "terminal/components/PortfolioWorkspace.tsx",
+      "sha256": "3042610a2af83301639dabc44280279bb6075da051a1c50fc5d110783512f53b"
+    },
+    {
+      "path": "terminal/components/PortfolioSectorContext.tsx",
+      "sha256": "5f169027b1c3295567f3554131d0550935f00c2849f13d60c31aac0975577b8e"
+    },
+    {
+      "path": "terminal/components/PortfolioSectorContext.module.css",
+      "sha256": "4e359ba04f451b17962ed2388712ecaff945e200c30359777cc204201d5f3cde"
+    },
+    {
+      "path": "terminal/components/fin/CompanyIntelligencePrivate.tsx",
+      "sha256": "f32d41e468b33044cae2270bcb0f4ac561b7951df84e7c523e0353cce9f1482f"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "sha256": "d6b924cf87a69a627148a026c8d7aa1d24a812283cae08ecc67a50efa6438b7b"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorConstituentEvidence.tsx",
+      "sha256": "e288a15c1a1fa905b54f4bb72e19d5112ed77ea5b37cf1d495408ed72f795833"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorConstituentEvidence.module.css",
+      "sha256": "3cdcc9795fcfee2fa05a263c3b3d4c26eb90836970125a9b2117e046ee763cc9"
+    },
+    {
+      "path": "terminal/lib/sectorIntelligenceLex.ts",
+      "sha256": "cc5df3631ea7bad06d49baf8b7b3110db0e2f79e43121ad0baa50ce6990c3016"
+    },
+    {
+      "path": "terminal/lib/sectorPortfolioContext.ts",
+      "sha256": "10ae89e3a38a86e670de7dda86c5866c37771f69f5240863a127b7f76b62351d"
+    },
+    {
+      "path": "terminal/lib/__tests__/SectorConstituentEvidence.test.tsx",
+      "sha256": "04c12ec602dd41fbab6895137385c13de81ac6c5a50baf8def79b4005e91fad5"
+    },
+    {
+      "path": "terminal/lib/__tests__/portfolioSectorContext.test.tsx",
+      "sha256": "a49817d3e2bed8039f52397122c3a10e608fe7b1301ea981dee00947a5341a01"
+    },
+    {
+      "path": "terminal/lib/__tests__/portfolioWorkspaceSectorContext.test.tsx",
+      "sha256": "57021433f578db0ec7ea5af885a62c2641cdd2dda427f5e2d8559c56fbf966ca"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorPortfolioContext.test.ts",
+      "sha256": "ad942e5bd68ad52d3bc81d7188cf38020a8d192533970f5247fb5dd63db2e9d8"
+    },
+    {
+      "path": "terminal/e2e/sector-constituent-evidence.spec.ts",
+      "sha256": "32bdfa054f93c2df86bdaa2ddd52a1511fed1d7ff4a53ae283037b52a9c1491e"
+    },
+    {
+      "path": "terminal/e2e/sector-portfolio-continuity.spec.ts",
+      "sha256": "9067045cb73df17585525e3e4ffdda6c5b9f4280db7a15a23b663b611bf15994"
+    }
+  ],
+  "qualification": {
+    "regressions_before": {
+      "expected_failures": 3
+    },
+    "combined_units_initial": {
+      "passed": 250,
+      "failed": 1,
+      "failure": "stale Chinese rank-label assertion"
+    },
+    "private_chain_after_copy_fix": {
+      "passed": 107,
+      "failed": 0
+    },
+    "unique_combined_unit_cases_qualified_across_runs": 251,
+    "additional_private_chain_cases": 95,
+    "combined_browser_initial": {
+      "passed": 111,
+      "failed": 3,
+      "failure": "parent exact total GET count; distinct permitted paths and empty/no-fact semantics were correct"
+    },
+    "corrected_browser": {
+      "passed": 15,
+      "failed": 0
+    },
+    "unique_browser_journey_cases_qualified_across_runs": 114,
+    "desktop_capture_correction": {
+      "passed": 2,
+      "failed": 0
+    },
+    "typegen": "PASS",
+    "typecheck": "PASS",
+    "eslint_changed_files": "PASS",
+    "final_fixture_typecheck": "PASS",
+    "final_fixture_lint": "PASS"
+  },
+  "parent_corrections": [
+    "retire Portfolio evidence by render epoch across A-B-A and account/selection changes",
+    "withhold lossy over-budget return links using existing canonical encoders",
+    "bind Portfolio tab choice to admitted navigation lifetime",
+    "truthful listed-sample position labels in English and Chinese",
+    "forward existing private panel light/dark presentation only",
+    "source-faithful synthetic MU subject vs NVDA empty selection; unknown private inputs404",
+    "exact distinct permitted private paths plus no-pre-open/no-fact checks, compatible with documented development StrictMode lifecycle",
+    "explicit sector theme capture; Portfolio captured only in incumbent default appearance"
+  ],
+  "limits": [
+    "Local Next routes use repository fixture identity and synthetic feeds, not authenticated production serving.",
+    "Fixture MU membership #17/1.51%/2026-10-15 is not the retained legacy #6/3.85%/2026-10-22 or a current issuer capture.",
+    "The planned disclosure fixture preserves 2024-02-26 and context-only/no-magnitude semantics; it does not establish a current sector cause.",
+    "Original full worker-suite failures and original parent failed attempts remain recorded; no whole-suite green claim.",
+    "Initial desktop member capture was wrong-position and rejected; accepted desktop region uses same1440 width with1600 height for capture only; interactions remain1440x900.",
+    "Portfolio has incumbent default appearance; prior worker light filenames did not prove light Portfolio.",
+    "Macro exact5/20/63, mechanism/risk/earlier-cut, live private roots and production deployment remain separate unfinished project scope."
+  ],
+  "artifacts": [
+    {
+      "path": "combined-browser.json",
+      "sha256": "002146eafaa9ce5d2e5c8708ddf3f3286b38edbd7017e27c534d48b03a9db01f",
+      "bytes": 3346
+    },
+    {
+      "path": "combined-browser.log",
+      "sha256": "80cf4e0c6240aea61efd033b0e07f5a199b30eaed21a694884a650db9f331fb4",
+      "bytes": 26428
+    },
+    {
+      "path": "corrected-browser.json",
+      "sha256": "ae618ddd7d04520a5db0a1fb082f998090446093029d7ade7ffc44c88f3d9fee",
+      "bytes": 4272
+    },
+    {
+      "path": "corrected-browser.log",
+      "sha256": "e5605a761dbdaa2df2a33d30508438cc2396c6f5feeeed2c6cc4f440fecaf58b",
+      "bytes": 3031
+    },
+    {
+      "path": "desktop-member-capture.json",
+      "sha256": "51c1ecb2496f5b78c840afcfc7f744cd6220fbbed1123b33a9a0dfea71ba86fe",
+      "bytes": 837
+    },
+    {
+      "path": "desktop-member-capture.log",
+      "sha256": "1a7bfce78e4a6573f9acc72542f8c361592e58f923d2f53cfed9ffdcb04669cb",
+      "bytes": 969
+    },
+    {
+      "path": "final-fixture-source-checks.json",
+      "sha256": "421d8052374bd7109b6aaff97ad02be87746ad7d398ab3dbf31cc3cc0062a632",
+      "bytes": 656
+    },
+    {
+      "path": "focused-after.json",
+      "sha256": "9e75aa6f73e1740b15221055a85ec43310ffb3227d9c0908a8e29e9df7936dd4",
+      "bytes": 775
+    },
+    {
+      "path": "focused-after.log",
+      "sha256": "92205c2264a1859155520b4d8caa7650119555890097c2b4e27e6943932930a1",
+      "bytes": 4373
+    },
+    {
+      "path": "private-chain.log",
+      "sha256": "180838587c36b0b510ff3c8b7e86c82d0df89e3f06c697188cbca0ba2960f91a",
+      "bytes": 1600
+    },
+    {
+      "path": "regressions-before.json",
+      "sha256": "61ea5c9ca38d344c9973f279086abcef73796ad70a1d3e806dd71c45d7ba0d51",
+      "bytes": 417
+    },
+    {
+      "path": "regressions-before.log",
+      "sha256": "cf4cf9661c9d0ec68dd55f45cbb92be85aa7eeda336db1a3650f3acfa82bbb90",
+      "bytes": 3938
+    },
+    {
+      "path": "screenshots/desktop-member-mu-en-dark.png",
+      "sha256": "d28dd52af86fd9659c78c5f3d6798da254d23da6fafea5786a5847118434782c",
+      "bytes": 94191
+    },
+    {
+      "path": "screenshots/desktop-member-mu-zh-light.png",
+      "sha256": "674e5376475c33510710136b08d4f02ea2b32d718c2cec27121905d83efca421",
+      "bytes": 94095
+    },
+    {
+      "path": "screenshots/desktop-risk-en-default.png",
+      "sha256": "23b624679b5533cc6739ad5e4fccf70166a28d6aea8e10759f280988c850bd18",
+      "bytes": 125445
+    },
+    {
+      "path": "screenshots/desktop-sector-depth-zh-light.png",
+      "sha256": "ae131fa5dbc95e6f5d602aed1f57d31b72f8dade65d24895d638dc6aed73b78a",
+      "bytes": 160571
+    },
+    {
+      "path": "screenshots/mobile-member-mu-zh-light.png",
+      "sha256": "aec4593522806d15d40df4e3e0360d15441931a2e17030e5ae5d457c366814ee",
+      "bytes": 89439
+    },
+    {
+      "path": "screenshots/mobile-narrow-320-zh-default.png",
+      "sha256": "71595c1079fb3abac3cc4c48b92045efcbca77b5fb6321cb815945c322992856",
+      "bytes": 76105
+    },
+    {
+      "path": "screenshots/tablet-member-mu-zh-light.png",
+      "sha256": "62acc64b914eaf484bf824c3d47a05445b093823204f0a1aaee6abf7b4b2a13f",
+      "bytes": 90405
+    },
+    {
+      "path": "source-checks.json",
+      "sha256": "4ffad4129c5f5c8fc3e395f8858d2d5fe809bec0e9abfa44416c269f0bd50fb7",
+      "bytes": 2077
+    }
+  ]
+}

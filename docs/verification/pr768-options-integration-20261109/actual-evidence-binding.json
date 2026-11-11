@@ -1,0 +1,17 @@
+{
+  "browserQualification": "48f4d579a9c661e35f51e5070424a53f509ac1a480430ee9fda9afab8bb6df90",
+  "completedAt": "2026-11-09T16:30:47.255495+00:00",
+  "nativeDescriptors": {
+    "eod": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+    "gex": "fd7c4364bcfb3f8b44773792c4f5d16fbc654eb47cf58a142eb169b3bac24ad7"
+  },
+  "priorReaderSha256": "a683cc32124dde3d6062b8734d3e7f19ae48e4e8be49d74baa894ac5413da812",
+  "readerSha256": "afe61815b1e0b49efb6f80b05d95f3f9f3fa0565fd21b70f2bb72f93e4e7d1a8",
+  "roots": {
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": "b7df8447eee8292088f3f6fbe72aed2d24f405eb05e24fc6a7cde8481552d224",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": "33484acc89e8d49dd65ac37715a8eb120fb28c67d8336a93abb6a4df58001969"
+  },
+  "schema": "terminal_pr768_actual_evidence_binding.v1",
+  "startedAt": "2026-11-09T16:30:47.252695+00:00",
+  "state": "BOUND_TO_ACTUAL_240_NATIVE_AND_144_BROWSER_RESULTS"
+}

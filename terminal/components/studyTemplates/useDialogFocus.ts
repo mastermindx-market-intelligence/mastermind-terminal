@@ -3,6 +3,7 @@
 // opens, Tab / Shift+Tab stay inside it, Escape asks to close, and focus returns to whatever opened
 // it (the chart menu, the library button) when it closes.
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
+import { createNewerModalFocusGuard, rememberDialogReturnTarget, restoreDialogFocus, type DialogFocusSession } from "@/lib/dialogFocusReturn";
 
 const FOCUSABLE = [
   "a[href]",
@@ -17,13 +18,7 @@ function focusables(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.offsetParent !== null || el === document.activeElement);
 }
 
-function isVisibleModal(element: HTMLElement): boolean {
-  if (element.closest("[aria-hidden='true'], [inert], [hidden]")) return false;
-  const style = element.ownerDocument.defaultView?.getComputedStyle(element);
-  return style?.display !== "none" && style?.visibility !== "hidden";
-}
-
-export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () => void): void {
+export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () => void, { focusSessionRef }: { focusSessionRef?: RefObject<DialogFocusSession> } = {}): void {
   const escape = useRef(onEscape);
   useLayoutEffect(() => { escape.current = onEscape; });
 
@@ -33,17 +28,15 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () 
     // A later portalled task (for example a watchlist conflict chooser) owns focus until it
     // closes. Remember only already-visible dialogs: a parked/hidden dialog may open later.
     // This is local focus provenance, not another modal stack or global event owner.
-    const predecessors = new Set(Array.from(document.querySelectorAll<HTMLElement>("[aria-modal='true']")).filter(isVisibleModal));
-    const newerModalOwns = (target: Element | null): boolean => {
-      const modal = target?.closest<HTMLElement>("[aria-modal='true']");
-      return !!modal && !root.contains(modal) && !modal.contains(root)
-        && !predecessors.has(modal) && isVisibleModal(modal);
-    };
+    const newerModalOwns = createNewerModalFocusGuard(root, focusSessionRef);
     let opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
     const first = root.querySelector<HTMLElement>("[data-autofocus]") ?? focusables(root)[0] ?? root;
-    first.focus({ preventScroll: true });
-    // A disabled autofocus target refuses focus: fall back to the first usable control, then the dialog.
-    if (!root.contains(document.activeElement)) (focusables(root)[0] ?? root).focus({ preventScroll: true });
+    if (!newerModalOwns(document.activeElement)) {
+      rememberDialogReturnTarget(focusSessionRef, root, opener);
+      first.focus({ preventScroll: true });
+      // A disabled autofocus target refuses focus: fall back to the first usable control, then the dialog.
+      if (!root.contains(document.activeElement)) (focusables(root)[0] ?? root).focus({ preventScroll: true });
+    }
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -78,6 +71,7 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () 
       const target = event.target;
       if (!(target instanceof HTMLElement) || root.contains(target) || newerModalOwns(target)) return;
       if (!opener || !opener.isConnected) opener = target;
+      rememberDialogReturnTarget(focusSessionRef, root, target);
       (focusables(root)[0] ?? root).focus({ preventScroll: true });
     };
     root.addEventListener("keydown", onKey);
@@ -85,7 +79,7 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () 
     return () => {
       root.removeEventListener("keydown", onKey);
       document.removeEventListener("focusin", onFocusIn);
-      if (opener && opener.isConnected && !newerModalOwns(document.activeElement)) opener.focus({ preventScroll: true });
+      restoreDialogFocus(opener, focusSessionRef, newerModalOwns);
     };
-  }, [ref]);
+  }, [ref, focusSessionRef]);
 }

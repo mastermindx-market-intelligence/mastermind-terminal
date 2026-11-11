@@ -20,12 +20,15 @@
 .industryBlock > header { position: absolute; inset: 0 0 auto; z-index: 3; display: flex; height: 28px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 7px; background: color-mix(in srgb, var(--bg) 84%, transparent); border-bottom: 1px solid var(--line); pointer-events: none; }
 .industryBlock > header strong { overflow: hidden; color: var(--text); font-size: 9px; font-weight: 650; letter-spacing: .01em; text-overflow: ellipsis; white-space: nowrap; }
 .industryBlock > header span { flex-shrink: 0; color: var(--text-2); font: 9px var(--font-num); font-variant-numeric: tabular-nums; }
-.tile { position: absolute; display: grid; min-width: 0; min-height: 0; place-content: center; gap: 2px; overflow: hidden; padding: 2px; border: 0; box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--bg) 55%, transparent); color: white; cursor: pointer; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.58); }
+.tile { position: absolute; display: grid; min-width: 0; min-height: 0; place-content: center; overflow: hidden; padding: 2px; border: 0; box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--bg) 55%, transparent); color: var(--text); cursor: pointer; text-align: center; text-shadow: none; }
 .tile:hover { filter: brightness(1.08); z-index: 2; }
 .tile[aria-pressed="true"] { z-index: 4; box-shadow: inset 0 0 0 2px white, 0 0 0 2px var(--brand); }
-.tile strong { overflow: hidden; font: 700 clamp(8px, .9vw, 13px)/1 var(--font-num); text-overflow: ellipsis; }
-.tile span { font: 650 clamp(7px, .75vw, 11px)/1 var(--font-num); font-variant-numeric: tabular-nums; }
-.tile small { overflow: hidden; font: 8px/1 var(--font-num); opacity: .84; text-overflow: ellipsis; white-space: nowrap; }
+/* The workspace's signed-value selector colors the button itself. Keep its
+   performance fill, but give the text its own theme-contrast surface. */
+.tileLabel { display: flex; flex-direction: column; align-items: center; gap: 2px; box-sizing: border-box; min-width: 0; max-width: 100%; padding: 4px 6px; border-radius: 4px; background: color-mix(in srgb, var(--panel) 88%, transparent); color: var(--text); text-shadow: none; }
+.tileLabel strong { overflow: hidden; max-width: 100%; font: 750 clamp(10px, .9vw, 14px)/1.15 var(--font-num); text-overflow: ellipsis; white-space: nowrap; }
+.tileLabel > span { font: 700 clamp(10px, .8vw, 12px)/1.15 var(--font-num); font-variant-numeric: tabular-nums; }
+.tileLabel small { overflow: hidden; max-width: 100%; font: 650 clamp(9px, .7vw, 11px)/1.15 var(--font-num); text-overflow: ellipsis; white-space: nowrap; }
 .inspector { grid-area: inspector; min-width: 0; padding: 19px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); }
 .inspector > span { color: var(--text-2); font-size: 10px; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; }
 .inspector h3 { margin: 10px 0 2px; font: 700 26px/1.15 var(--font-num); letter-spacing: -.5px; }
@@ -70,6 +73,7 @@
   .mapViewport { aspect-ratio: 1 / 1.08; min-height: 0; border-radius: var(--r-ctl); }
   .industryBlock > header { height: 22px; padding: 0 4px; }
   .industryBlock > header strong, .industryBlock > header span { font-size: 6px; }
-  .tile strong { font-size: 7px; }
-  .tile span, .tile small { display: none; }
+  .tileLabel { padding: 2px 3px; border-radius: 3px; }
+  .tileLabel strong { font-size: 8px; }
+  .tileLabel > span, .tileLabel small { display: none; }
 }

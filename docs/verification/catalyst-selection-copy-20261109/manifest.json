@@ -1,0 +1,68 @@
+{
+  "operation_id": "paper-catalyst-selection-copy-20261109",
+  "base_sha": "929e008f689bc834662f52f845d070db3fc8eb00",
+  "proof": "synthetic fixture browser behavior; not live data/auth/deployment",
+  "source_blobs": [
+    {
+      "path": "terminal/components/catalyst-opportunity/CatalystOpportunityView.tsx",
+      "blob": "d38dbd5ec816cd16c54002f564d390ff4a171919"
+    },
+    {
+      "path": "terminal/components/catalyst-opportunity/CatalystOpportunityWorkspace.tsx",
+      "blob": "90d8c4a0e3752933ca074629d719dec548c9db16"
+    },
+    {
+      "path": "terminal/lib/catalystOpportunityLex.ts",
+      "blob": "a2bb3b3728e9be6baaed9c2270e7102eba0de145"
+    },
+    {
+      "path": "terminal/components/catalyst-opportunity/CatalystOpportunity.module.css",
+      "blob": "dad75c5d942577f13af6f1d5dee7d5046227fc68"
+    },
+    {
+      "path": "terminal/lib/__tests__/catalystOpportunityView.test.tsx",
+      "blob": "754f596122973ed2fd8d86742b4512fb9e081e9e"
+    },
+    {
+      "path": "terminal/e2e/catalyst-opportunity.spec.ts",
+      "blob": "dafbcdc3b1d9e7ebe0e065637ab27b4c705595a3"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "catalyst-desktop-en-selection-zero.png",
+      "sha256": "96cea25fb3c7e48ac99e1d995bd992f6b50cbbb4f186b41c0b82f221bc8b581c",
+      "bytes": 168461
+    },
+    {
+      "file": "catalyst-mobile-zh-selection-zero.png",
+      "sha256": "ec5284df1534119d2192804b5bde042de397c22bf2168ddc838fe98b44b4e550",
+      "bytes": 297505
+    },
+    {
+      "file": "catalyst-desktop-en-copy-fallback.png",
+      "sha256": "d3b8c7cbf2d3bb1abf331daee68e167128afd50bc5a7d7e708344fda37a74841",
+      "bytes": 160577
+    },
+    {
+      "file": "catalyst-mobile-zh-copy-fallback.png",
+      "sha256": "53f2f9965b37e0d9255ae8e7ccc5965c05ddd2ff764c35e5eeafda57f4065912",
+      "bytes": 328074
+    },
+    {
+      "file": "catalyst-tablet-zh-selection-zero.png",
+      "sha256": "d421c740cc4db246349ec3a5d582086f939c88b5c987f8b1c9986fbb22019535",
+      "bytes": 310588
+    },
+    {
+      "file": "catalyst-tablet-zh-copy-fallback.png",
+      "sha256": "2de9a2ba9824d04185cad4eee5c739577feb59bb387cbf804b30c866327c9fe7",
+      "bytes": 333185
+    },
+    {
+      "file": "catalyst-mobile-en-copy-fallback.png",
+      "sha256": "59515a04b5e01bbb1337d3464a4ae188c30d28e95b382b5687fabc803d46a984",
+      "bytes": 313092
+    }
+  ]
+}

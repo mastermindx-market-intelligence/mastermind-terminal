@@ -124,7 +124,7 @@ const PANEL_PLAN: PlanSummary = {
 
 /**
  * The disclosure is TWO blocks: the dated clause under the ticker header, and the
- * receipt closing the panel. (They were one until the header-zone version was measured
+ * receipt closing the plan before the opt-in daily evidence drawer. (They were one until the header-zone version was measured
  * costing 106px of a height-locked column and pushing WHAT TO DO NOW to 24 visible
  * pixels — see ORIGINATION_RECEIPT in ProphetView.)
  *
@@ -413,8 +413,11 @@ describe("AnalysisPanel with origination fields shows the row's own disclosure",
     expect(clause).toBeGreaterThan(ticker);
     expect(clause).toBeLessThan(rail);
     expect(receipt).toBeGreaterThan(thesis);
-    // Last thing in the panel — nothing may be appended after the disclosure closes it.
-    expect(html.indexOf("</p></div>", receipt)).toBe(html.length - "</p></div>".length);
+    // The receipt still closes the plan; only the collapsed, opt-in evidence drawer follows.
+    const afterReceipt = html.slice(html.indexOf("</p>", receipt) + "</p>".length);
+    expect(afterReceipt).toMatch(/^<section [^>]*data-testid="bottom-pivot-evidence">/);
+    expect(afterReceipt).toContain('aria-expanded="false"');
+    expect(afterReceipt.endsWith("</button></section></div>")).toBe(true);
   });
 
   it("keeps prose out of the header zone, where it costs the stance block", () => {

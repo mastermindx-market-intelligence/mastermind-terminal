@@ -116,6 +116,7 @@ export function hitTestEngineInput(
     widthPx: number;
     paneHeights: readonly number[];
     priceAxisWidthPx?: number | readonly number[];
+    priceAxisSide?: "left" | "right";
   },
 ): { region: InputRegion; paneIndex: number } {
   const { widthPx, paneHeights: heights } = layout;
@@ -130,6 +131,8 @@ export function hitTestEngineInput(
     const raw = Array.isArray(published) ? published[paneIndex] ?? 0 : published;
     return Math.max(0, raw);
   };
+  const inPriceAxis = (paneIndex: number) => layout.priceAxisSide === "left"
+    ? x < axisPxFor(paneIndex) : x >= widthPx - axisPxFor(paneIndex);
   // The band sits at the bottom of the owner pane (the last pane normally; the
   // maximised pane when the others are squashed to nothing). Below the last pane
   // still counts as the band, as it always did.
@@ -138,7 +141,7 @@ export function hitTestEngineInput(
   if (
     y >= ownerBottom - TIME_AXIS_HIT_HEIGHT_PX
     && (owner === last || y < ownerBottom)
-    && x < widthPx - axisPxFor(owner)
+    && !inPriceAxis(owner)
   ) {
     return { region: "timeAxis", paneIndex: owner };
   }
@@ -149,7 +152,7 @@ export function hitTestEngineInput(
     if (y < bottom || i === last) { paneIndex = i; break; }
     top = bottom;
   }
-  if (x >= widthPx - axisPxFor(paneIndex)) return { region: "priceAxis", paneIndex };
+  if (inPriceAxis(paneIndex)) return { region: "priceAxis", paneIndex };
   return { region: "plot", paneIndex };
 }
 
@@ -177,6 +180,7 @@ export function domEventToInputEvent(
     widthPx: number;
     paneHeights: readonly number[];
     priceAxisWidthPx?: number | readonly number[];
+    priceAxisSide?: "left" | "right";
   },
 ): InputEvent {
   const point = cssPoint(ev, target);
@@ -188,6 +192,7 @@ export function domEventToInputEvent(
     pointerType: pointerTypeOf(ev),
     x: point.x,
     y: point.y,
+    paneY: point.y - layout.paneHeights.slice(0, hit.paneIndex).reduce((sum, height) => sum + height, 0),
     timeStamp: ev.timeStamp,
     deltaX: typeof wheel.deltaX === "number" ? wheel.deltaX : undefined,
     deltaY: typeof wheel.deltaY === "number" ? wheel.deltaY : undefined,
@@ -202,8 +207,8 @@ function wheelWouldConsume(event: InputEvent, options: InputControllerOptions): 
   const delta = (event.deltaY ?? 0) !== 0 ? (event.deltaY as number) : (event.deltaX ?? 0);
   if (delta === 0) return false;
   if (event.region === "priceAxis") return options.handleScale.mouseWheel;
-  if (options.handleScale.mouseWheel && (event.ctrlKey || !options.handleScroll.mouseWheel)) return true;
-  return options.handleScroll.mouseWheel;
+  return (options.handleScale.mouseWheel && (event.deltaY ?? 0) !== 0)
+    || (options.handleScroll.mouseWheel && (event.deltaX ?? 0) !== 0);
 }
 
 function capturePointer(target: HTMLElement, pointerId: number): void {
@@ -220,11 +225,13 @@ function layoutOf(model: ChartModel): {
   widthPx: number;
   paneHeights: number[];
   priceAxisWidthPx: readonly number[];
+  priceAxisSide: "left" | "right";
 } {
   return {
     widthPx: model.chartWidthPx(),
     paneHeights: model.panes.map((p) => p.height),
     priceAxisWidthPx: model.priceAxisStripPx,
+    priceAxisSide: displayedPriceScaleId(model),
   };
 }
 
@@ -305,12 +312,17 @@ export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
     if (!surface) return null;
     return domEventToInputEvent(ev, surface, type, layoutOf(host.model));
   };
+  const dispatchController = (input: InputEvent): void => {
+    // DOM ownership and overlay repaint use chart coordinates. Only the time
+    // gesture anchor is translated to the same plot-local space as the API.
+    controller.handleEvent({ ...input, x: input.x - host.model.plotLeftPx() });
+  };
 
   const dispatchPointer = (type: InputEventType, input: InputEvent): void => {
     if (type === "pointerdown") activePointerIds.add(input.pointerId);
     else if (type === "pointerup" || type === "pointercancel") activePointerIds.delete(input.pointerId);
     host.onPointerPoint?.({ x: input.x, y: input.y });
-    controller.handleEvent(input);
+    dispatchController(input);
   };
 
   const onPointer = (type: InputEventType) => (ev: Event): void => {
@@ -340,7 +352,7 @@ export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
     const input = toEvent(ev, "wheel");
     if (!input) return;
     host.onPointerPoint?.({ x: input.x, y: input.y });
-    controller.handleEvent(input);
+    dispatchController(input);
     if (wheelWouldConsume(input, options) && ev.cancelable) ev.preventDefault();
   };
 
@@ -348,7 +360,7 @@ export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
     if (disposed) return;
     const input = toEvent(ev, "dblclick");
     if (!input) return;
-    controller.handleEvent(input);
+    dispatchController(input);
   };
 
   if (target) {

@@ -146,6 +146,25 @@ class TestStalenessAbstention:
         lean = intel["tape"]["ai_lean"]
         assert "abstain" not in lean
         assert lean["dir"] == "BULL"
+        assert lean["max_age_days"] == 5
+
+    def test_fresh_source_without_direction_inputs_abstains(self):
+        tape = build_intel("X", {"asof": "2026-07-01"}, today=TODAY)["tape"]
+        assert tape["stale"] is False
+        assert tape["ai_lean"] == {"abstain": True, "reason": "missing_direction"}
+
+    def test_preserves_supplied_timing_without_manufacturing_direction(self):
+        src = _src(asof="2026-07-01", band="", entry_status="wait_pullback")
+        lean = build_intel("X", src, today=TODAY)["tape"]["ai_lean"]
+        assert lean == {"entry": "wait_pullback", "max_age_days": 5}
+
+    def test_future_source_withholds_direction_and_live_context(self):
+        src = _src(asof="2026-07-02", band="high", entry_status="buy_now", score=90.0)
+        src["sector_pulse"] = _FULL_PULSE
+        tape = build_intel("X", src, today=TODAY)["tape"]
+        assert tape["stale"] is True
+        assert tape["ai_lean"] == {"abstain": True, "reason": "stale"}
+        assert "sector_pulse" not in tape
 
     def test_missing_asof_abstains(self):
         src = _src(asof="2026-07-01")
@@ -264,6 +283,10 @@ class TestConsistencyGuard:
     (None,         5, True),    # missing
     ("",           5, True),    # empty
     ("invalid",    5, True),    # unparseable
+    ("2026-07-02", 5, True),    # future session
+    ("2026-07-01garbage", 5, True),
+    ("2026-02-30", 5, True),
+    ("2026-06-30T19:30:00Z", 5, False),  # valid timestamp from an earlier session
 ])
 def test_is_stale(asof, max_days, expected):
     from ingest.pull_macro_intel import _is_stale

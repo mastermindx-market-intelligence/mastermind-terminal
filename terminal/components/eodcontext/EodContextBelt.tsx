@@ -42,6 +42,7 @@ import type {
 } from "@/lib/eodContext";
 
 interface EodContextBeltProps {
+  className?: string;
   root: string;
   gexState: StructureGexState | null;
   gex: StructureGex | null;
@@ -71,7 +72,7 @@ async function read<T>(f: string): Promise<Read<T>> {
 
 type PerRoot = { root: string; moves: Read<MovesPayload>; vol: Read<VolPayload> };
 
-export function EodContextBelt({ root, gexState, gex, lang, levelReads, onRetryLevels }: EodContextBeltProps) {
+export function EodContextBelt({ className, root, gexState, gex, lang, levelReads, onRetryLevels }: EodContextBeltProps) {
   const [darkpool, setDarkpool] = useState<Read<DarkPoolEodPayload>>(PENDING);
   const [oiConf, setOiConf] = useState<Read<OiConfPayload | OiConfRow[]>>(PENDING);
   const [perRoot, setPerRoot] = useState<PerRoot | null>(null);
@@ -164,7 +165,7 @@ export function EodContextBelt({ root, gexState, gex, lang, levelReads, onRetryL
   }, [levels.gexstate, levels.gex, onRetryLevels, oiConf.status, moves.status, vol.status, root]);
 
   return (
-    <div style={BELT}>
+    <div className={className} style={className ? undefined : BELT}>
       <StructureStrip
         root={root}
         gexState={gexState}

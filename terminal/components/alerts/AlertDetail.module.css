@@ -1,0 +1,70 @@
+/* Keep the existing detail surface while containing its scroll within the viewport. */
+.scrim.scrim {
+  box-sizing: border-box;
+  padding: clamp(12px, 6dvh, 48px) 16px;
+  overflow: hidden;
+}
+
+.panel.panel {
+  min-width: 0;
+  max-height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+
+.close.close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+
+.fact.fact,
+.fact > span:last-child,
+.panel details {
+  min-width: 0;
+}
+
+.panel details {
+  line-height: 1.5;
+}
+
+.panel summary {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 12px 0;
+  cursor: pointer;
+}
+
+.panel :is(a, button, summary):focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .fact.fact {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  min-width: 0;
+  font: 650 var(--fs-title, 18px)/1.3 var(--font-ui);
+}
+
+.title:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}

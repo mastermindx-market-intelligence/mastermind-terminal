@@ -1,0 +1,138 @@
+{
+  "schema": "github_ci_observation.v1",
+  "observed_at": "2026-11-05T08:18:15Z",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pr": 1243,
+  "run_id": 41985765450,
+  "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41985765450",
+  "head_sha": "faa8f30c27508fad83e9ca2ca82ff28165f89cab",
+  "event": "pull_request",
+  "attempt": 1,
+  "check_suite_id": 113768941430,
+  "status": "completed",
+  "conclusion": "success",
+  "updated_at": "2026-11-05T08:07:49Z",
+  "jobs": [
+    {
+      "name": "Quote Hub tests",
+      "id": 127106007620,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:14:38Z"
+    },
+    {
+      "name": "Investigation PostgreSQL invariants",
+      "id": 127106008005,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:15:51Z"
+    },
+    {
+      "name": "Terminal unit + typecheck",
+      "id": 127106008079,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:25:51Z"
+    },
+    {
+      "name": "Ingest + signal-layer tests",
+      "id": 127106008096,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:25:32Z"
+    },
+    {
+      "name": "Terminal e2e desktop-1",
+      "id": 127106008233,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:43:36Z"
+    },
+    {
+      "name": "Terminal e2e desktop-2",
+      "id": 127106007943,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:48:15Z"
+    },
+    {
+      "name": "Terminal e2e desktop-3",
+      "id": 127106008258,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:47:12Z"
+    },
+    {
+      "name": "Terminal e2e desktop-4",
+      "id": 127106008173,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:47:21Z"
+    },
+    {
+      "name": "Terminal e2e desktop-5",
+      "id": 127106008155,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:57:29Z"
+    },
+    {
+      "name": "Terminal e2e tablet-1",
+      "id": 127106008172,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T08:01:33Z"
+    },
+    {
+      "name": "Terminal e2e tablet-2",
+      "id": 127106008324,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T08:01:00Z"
+    },
+    {
+      "name": "Terminal e2e tablet-3",
+      "id": 127106008267,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:54:41Z"
+    },
+    {
+      "name": "Terminal e2e mobile-1",
+      "id": 127106008282,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T08:01:04Z"
+    },
+    {
+      "name": "Terminal e2e mobile-2",
+      "id": 127106008248,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:51:24Z"
+    },
+    {
+      "name": "Terminal e2e mobile-3",
+      "id": 127106008281,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:55:44Z"
+    },
+    {
+      "name": "Terminal e2e serial",
+      "id": 127106008289,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T07:27:34Z"
+    },
+    {
+      "name": "Terminal typecheck + tests \u2014 aggregate",
+      "id": 127124087444,
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T08:07:48Z"
+    }
+  ],
+  "source": "Actual GitHub run/jobs readback by the read-only publisher analysis child in this root session; this record transcribes that bounded observation.",
+  "applies_to_successor": false
+}

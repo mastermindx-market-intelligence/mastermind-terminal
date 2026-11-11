@@ -11,6 +11,7 @@
 .count{font-family:var(--font-num);font-variant-numeric:tabular-nums;color:var(--text-dim)}
 .chip[aria-pressed="true"] .count{color:var(--text-2)}
 .source{min-height:26px;max-width:100%;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel-2);color:var(--text-2);font:600 10px/1.2 var(--font-ui);color-scheme:dark}
+:global(html[data-theme="light"]) .source{color-scheme:light}
 .receipt{color:var(--text-dim);font:500 9.5px/1.35 var(--font-ui)}
 .note{padding:7px 10px;border-bottom:1px solid var(--line-2);color:var(--muted);font:550 10px/1.35 var(--font-ui)}
 .catchup .note{padding:0;border:0}
@@ -20,7 +21,7 @@
 .tagNew{color:var(--brand-2)}
 .tagUpdated{color:var(--warn)}
 .tagReviewed{color:var(--flow-muted)}
-.change{margin:4px 0 0;color:var(--text-2);font:600 10px/1.35 var(--font-ui)}
+.change{margin:6px 0 0;color:var(--flow-muted);font:450 11px/15px var(--font-ui)}
 .savedBasis{display:flex;flex-direction:column;gap:5px;margin-top:6px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,var(--panel-2) 55%,transparent)}
 .savedBasisRow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .savedBasisNote{color:var(--text);font:650 10px/1.3 var(--font-ui)}
