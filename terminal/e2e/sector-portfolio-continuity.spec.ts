@@ -5,22 +5,11 @@ import dossier from "../lib/__tests__/fixtures/sector_dossiers_v1.json";
 import outage from "../lib/__tests__/fixtures/sector_dossiers_unavailable_v1.json";
 import complete from "../lib/__tests__/fixtures/sector_window_measurements.complete.v1.json";
 import companionUnavailable from "../lib/__tests__/fixtures/sector_window_measurements.unavailable.v1.json";
+import { nativeGenerationFixture, syntheticExactParent as nov5Parent } from "../lib/__tests__/fixtures/sectorNativeGeneration";
 
 /** The clearly labelled synthetic November 5 parent. It carries the producer's own exact-session
  * companion and no legacy dossier, so the companion is proved on its own in the Portfolio. It is
  * NOT the October 9 legacy fixture with its dates moved. */
-const nov5Parent = (read: unknown) => ({
-  schema: "leadership_rotation_context.measured_group_read/v1",
-  status: "available",
-  generation: {
-    benchmark: "SPY", cohort_id: "us_sectors_11", history_as_of: "2026-11-05",
-    history_schema: "sector_cycles.rs_history.v1", id: "2026-11-05|SPY|us_sectors_11",
-    price_basis: "total_return", session_end: "2026-11-05",
-  },
-  groups: [],
-  sector_window_measurements: read,
-});
-
 /**
  * Persistent Sector Leadership → Portfolio continuity.
  *
@@ -94,20 +83,22 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
       asof: "2026-10-09", size_basis: "marketcap", n_tiles: tiles.length, tiles },
       receipt: { source, path: "/marketdata/sp500_heatmap.json", status: "ready", asOf: "2026-10-09",
         observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: null } } });
-    if (source !== "sector") return sectorFixture(route);
-    sectorReads += 1;
-    if (options.denied) return route.fulfill({ status: 401, json: { data: null, receipt: {
-      source, path: "/sectordata/sector_central.json", status: "access", asOf: null,
+    if (source !== "sector" && source !== "generation") return sectorFixture(route);
+    if (source === "generation") sectorReads += 1;
+    const path = source === "generation" ? "/api/sector-generation?audience=preview" : "/sectordata/sector_central.json";
+    if (source === "generation" && options.denied) return route.fulfill({ status: 401, json: { data: null, receipt: {
+      source, path, status: "access", asOf: null,
       observedAt: null, stale: false, contentHash: null } } });
-    if (options.offline) return route.abort("failed");
-    if (options.holdFirst && sectorReads === 1) await new Promise<void>(resolve => { options.holdFirst!.release = resolve; });
+    if (source === "generation" && options.offline) return route.abort("failed");
+    if (source === "generation" && options.holdFirst && sectorReads === 1) await new Promise<void>(resolve => { options.holdFirst!.release = resolve; });
     const read = options.companion !== undefined ? nov5Parent(options.companion)
       : options.read === undefined ? dossier : options.read;
-    const data = read === null ? { as_of: "2026-10-09", sectors }
-      : { as_of: "2026-10-09", sectors, measured_read: read };
+    const session = options.companion !== undefined ? "2026-11-05" : "2026-10-09";
+    const data = read === null ? { as_of: session, sectors }
+      : { as_of: session, sectors, measured_read: read };
     try {
-      return await route.fulfill({ status: 200, json: { data, receipt: {
-        source, path: "/sectordata/sector_central.json", status: "ready", asOf: "2026-10-09",
+      return await route.fulfill({ status: 200, json: { data: source === "generation" ? nativeGenerationFixture(data) : data, receipt: {
+        source, path, status: "ready", asOf: session,
         observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: "sha256:transport" } } });
     } catch {
       // A retired read is aborted by the component that owned it; the answer has nowhere to go.
@@ -216,7 +207,7 @@ test("Discover → Portfolio Risk shows the selected sector, its holding and the
   // The whole journey was read-only. The reads are asserted too, so the empty write list
   // cannot be a listener that never fired.
   expect(writes).toEqual([]);
-  expect(reads.some(url => url.includes("/api/sector-intelligence?source=sector"))).toBe(true);
+  expect(reads.some(url => url.includes("/api/sector-intelligence?source=generation"))).toBe(true);
   expect(reads.some(url => url.includes("/api/portfolio"))).toBe(true);
   expect(reads.every(url => !/\/api\/portfolio\b.*(create|update|close|reopen|delete)/.test(url))).toBe(true);
 });
@@ -381,19 +372,18 @@ test("an overflowing recorded cost withholds the number", async ({ page, baseURL
   await expect(weight(page)).toHaveCount(0);
 });
 
-test("the owner's own dossier states reach the Portfolio unchanged", async ({ page, baseURL }, testInfo) => {
+test("a parent without native generation clocks cannot revive a static Portfolio dossier", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL, { read: outage });
   await page.goto(portfolioAddress("XLK"));
-  await expect(dossierPanel(page)).toContainText("Leadership evidence is unavailable");
-  await expect(page.locator('[data-testid="sector-dossier-metric"][data-window="21"] strong')).toHaveText("—");
+  await expect(dossierPanel(page)).toHaveAttribute("data-state", "invalid");
+  await expect(dossierPanel(page)).toContainText("Leadership evidence could not be verified");
+  await expect(page.locator('[data-testid="sector-dossier-metric"][data-window="21"] strong')).toHaveCount(0);
   await expect(dossierPanel(page)).not.toContainText("-0.50%");
-  await dossierPanel(page).getByTestId("sector-dossier-compare").locator("summary").click();
-  await expect(dossierPanel(page).locator("tbody tr")).toHaveCount(11);
-  await expect(dossierPanel(page).locator("tbody")).not.toContainText("source_session_missing_or_invalid");
+  await expect(dossierPanel(page).getByTestId("sector-dossier-compare")).toHaveCount(0);
 });
 
 test("an absent dossier stays bounded and claims no figure", async ({ page, baseURL }, testInfo) => {
-  await prepare(page, testInfo, baseURL, { read: {} });
+  await prepare(page, testInfo, baseURL, { read: null });
   await page.goto(portfolioAddress("XLK"));
   await expect(dossierPanel(page)).toContainText("Leadership evidence is not available");
   await expect(page.locator('[data-testid="sector-dossier-metric"]')).toHaveCount(0);

@@ -1,0 +1,24 @@
+Listing tests:
+::notice title=🎭 Playwright Run Summary::  21 did not run
+  [desktop] › ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  [desktop] › ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow
+  [desktop] › ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens
+  [desktop] › ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context
+  [desktop] › ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held
+  [desktop] › ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context
+  [desktop] › ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines
+  [tablet] › ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  [tablet] › ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow
+  [tablet] › ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens
+  [tablet] › ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context
+  [tablet] › ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held
+  [tablet] › ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context
+  [tablet] › ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines
+  [mobile] › ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  [mobile] › ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow
+  [mobile] › ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens
+  [mobile] › ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context
+  [mobile] › ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held
+  [mobile] › ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context
+  [mobile] › ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines
+Total: 21 tests in 1 file

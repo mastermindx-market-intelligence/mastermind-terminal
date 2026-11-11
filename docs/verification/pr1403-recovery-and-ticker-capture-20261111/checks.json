@@ -1,0 +1,38 @@
+{
+  "self_review": "SELF_REVIEWED",
+  "source_law_pin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "parent": "e78d405bad6ae5f5acf310cc868dd0289475759c",
+  "protected": "74c007125129090cc762f2bc4b1b152123326444",
+  "composition_before_repair": "668efd5e5e08169bcd77e0bc3441201738bf0431",
+  "original_feature": "All original watchlist feature/proof postimages preserved except the clean TerminalShell integration that retains protected context-menu scroll behavior. Previously repaired routing is already in protected source.",
+  "terminal_shell_sha256": "aa4942305e6a0987c8d4b2e0f8f9aa1b11e6c52c622f191ad2f936c303736662",
+  "passed": {
+    "receipt_and_existing_safe_reporter_tests": 50,
+    "ci_contracts": 382,
+    "watchlist_behavior_tests": 8,
+    "typescript_diagnostics": 0,
+    "repair_eslint_exit_code": 0,
+    "collected_ticker_cases": 21,
+    "collected_recovery_cases": 3
+  },
+  "browser_execution": "No local browser run; hosted proof owed. --list is collection only.",
+  "terminal_shell_lint": {
+    "existing_errors": 45,
+    "existing_warnings": 22,
+    "findings_on_added_lines": 0
+  },
+  "holds": "Existing native auto-merge request and merge-blocked retained; no manual approval, merge, deployment, #1210 release-hold change or #1223 topology change.",
+  "plain_language": {
+    "scanned_files": 497,
+    "blocking": 0,
+    "legacy_reported": 5,
+    "waived": 0
+  },
+  "ticker_gate": {
+    "passed": 3,
+    "failed": 1,
+    "reason": "Retained prior TerminalShell lock differs from composed source; genuine hosted packet and import still required."
+  },
+  "receipt_source_identity": "Every admitted source must match its Git blob at the actual capture checkout, and stay unchanged through capture.",
+  "browser_metadata": "configuredChromium is package revision metadata; no separate browser-version observation is claimed."
+}

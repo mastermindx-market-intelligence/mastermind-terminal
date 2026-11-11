@@ -1,0 +1,38 @@
+{
+  "branchHead": "a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4",
+  "completedAt": "2026-11-10T06:09:15.055288+00:00",
+  "integratedDependency": "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c",
+  "protectedMaster": "dad33e10089c9d51d931a1fe72e7fa1acb37abe1",
+  "results": {
+    "expiry": {
+      "artifacts": 34,
+      "exit": 1,
+      "failed": 3,
+      "flaky": 0,
+      "ownedServerStopped": true,
+      "passed": 6,
+      "seconds": 213.4,
+      "skipped": 0,
+      "sourceStable": true,
+      "state": "FAILED"
+    },
+    "integration": {
+      "artifacts": 374,
+      "currentInputs": 71,
+      "exit": 0,
+      "failed": 0,
+      "flaky": 0,
+      "ownedServerStopped": true,
+      "passed": 144,
+      "qualificationSha256": "fee8ee7eb79e7a1a680c51b2121e94f78708fba5b14551c3ea701a42556f8210",
+      "seconds": 676.39,
+      "skipped": 0,
+      "sourceStable": true,
+      "state": "QUALIFIED"
+    }
+  },
+  "schema": "terminal_pr645_browser_successor_validation.v1",
+  "sourceEntries": 3533,
+  "startedAt": "2026-11-10T05:54:20.346053+00:00",
+  "state": "FAILED"
+}

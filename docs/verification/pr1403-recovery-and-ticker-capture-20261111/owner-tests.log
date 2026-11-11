@@ -1,0 +1,11 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1403/terminal
+
+ ✓ lib/__tests__/watchlistDisplaySettings.test.tsx (8 tests) 178ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  02:43:56
+   Duration  1.54s (transform 361ms, setup 0ms, collect 449ms, tests 178ms, environment 483ms, prepare 115ms)
+

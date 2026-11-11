@@ -4,8 +4,11 @@ on:
   pull_request:
   merge_group:
     types: [checks_requested]
-  # Scheduled default-branch runs retain the complete responsive matrix even
-  # when most routine localized pull requests qualify for the narrow lane.
+  # Scheduled default-branch runs keep full e2e scope even when most routine
+  # localized pull requests qualify for the narrow lane. Scheduled and
+  # dispatch runs use the same two-lane split as a full pull request, so
+  # every spec runs exactly once per event: allowlisted specs against the
+  # production build, every other spec on the dev-server matrix.
   schedule:
     - cron: '17 9 * * *'
   # merge-on-green refreshes stale branches with GITHUB_TOKEN. GitHub records
@@ -137,6 +140,8 @@ jobs:
     outputs:
       mode: ${{ steps.select.outputs.mode }}
       matrix: ${{ steps.select.outputs.matrix }}
+      prodbuild_matrix: ${{ steps.select.outputs.prodbuild_matrix }}
+      prodbuild_count: ${{ steps.select.outputs.prodbuild_count }}
     steps:
       # The pull_request checkout is the immutable synthetic merge commit.
       # Its first parent is exactly the base that this CI candidate received.
@@ -206,6 +211,32 @@ jobs:
                           with output.open("a", encoding="utf-8") as target:
                               target.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
                           print(f"e2e-scope: split protected full {project} {before} into {after}; all cases retained")
+                  # Split only the exact old protected serial row. The source
+                  # selector still owns scope; preserve custom/filtered topology.
+                  projects = (
+                      "company-intelligence-desktop", "company-intelligence-tablet",
+                      "company-intelligence-mobile", "terminal-chrome-intermediate",
+                      "w2a-workspaces",
+                  )
+                  tokens = tuple(f"--project={project}" for project in projects)
+                  legacy_serial = {"shard": "serial", "projects": " ".join(tokens), "specs": ""}
+                  rows = matrix["include"]
+                  if isinstance(rows, list) and all(isinstance(row, dict) for row in rows):
+                      related = [
+                          row for row in rows
+                          if row.get("shard") in ("serial", "serial-standalone")
+                          or any(token in str(row.get("projects", "")).split() for token in tokens)
+                      ]
+                      if related == [legacy_serial]:
+                          first = rows.index(legacy_serial)
+                          replacements = [
+                              {"shard": "serial", "projects": " ".join(tokens[:3]), "specs": ""},
+                              {"shard": "serial-standalone", "projects": " ".join(tokens[3:]), "specs": ""},
+                          ]
+                          matrix["include"] = rows[:first] + replacements + rows[first + 1:]
+                          with output.open("a", encoding="utf-8") as target:
+                              target.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+                          print("e2e-scope: split protected full serial row; dependency chain and all cases retained")
           PY
           else
             python3 - <<'PY'
@@ -219,21 +250,109 @@ jobs:
               for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 5))
               for i in range(1, total + 1)
           ]
-          matrix.append({
-              "shard": "serial",
-              "projects": " ".join(f"--project={project}" for project in (
-                  "company-intelligence-desktop", "company-intelligence-tablet",
-                  "company-intelligence-mobile", "terminal-chrome-intermediate",
-                  "w2a-workspaces",
-              )),
-              "specs": "",
-          })
+          # The Company dependency chain stays atomic. Independent projects run
+          # once in a separate whole-project row under the unchanged hang cap.
+          for label, projects in (
+              ("serial", ("company-intelligence-desktop", "company-intelligence-tablet",
+                          "company-intelligence-mobile")),
+              ("serial-standalone", ("terminal-chrome-intermediate", "w2a-workspaces")),
+          ):
+              matrix.append({
+                  "shard": label,
+                  "projects": " ".join(f"--project={project}" for project in projects),
+                  "specs": "",
+              })
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
               output.write("mode=full\n")
               output.write("matrix=" + json.dumps({"include": matrix}, separators=(",", ":")) + "\n")
           print("e2e-scope: full (immutable protected selector unavailable or non-PR)")
           PY
           fi
+          # Stage 1 lane split for runs whose selector did not emit one: every
+          # non-PR event (the inline matrix above), including the merge-group
+          # production lane, and pull requests whose
+          # protected base selector predates the prod lane. The rule is the one
+          # in scripts/ci_e2e_scope.py split_lanes, held equal by
+          # tests/test_ci_e2e_shards.py. No candidate code executes: the
+          # allowlist and the spec filenames are read as data, the shard shape
+          # is fixed, and a spec moves off the dev rows only together with the
+          # prod shards that run it. Anything that cannot be proven a complete
+          # split leaves the matrix untouched with an empty prod lane.
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          output = Path(os.environ["GITHUB_OUTPUT"])
+          fields = dict(
+              line.split("=", 1)
+              for line in output.read_text().splitlines()
+              if "=" in line
+          )
+          if "prodbuild_count" not in fields:
+              root = Path("terminal/e2e")
+              allowlist_path = root / "prodbuild-allowlist.txt"
+              safe = re.compile(r"[A-Za-z0-9._-]+\.spec\.ts\Z")
+              responsive = ("desktop", "tablet", "mobile")
+
+              def projects(row):
+                  return [token.split("=", 1)[1] for token in str(row.get("projects", "")).split()
+                          if token.startswith("--project=")]
+
+              dev = None
+              prod = []
+              rows = json.loads(fields["matrix"]).get("include")
+              if fields.get("mode") != "full":
+                  reason = "focused scope keeps its explicit dev rows"
+              elif not allowlist_path.is_file():
+                  reason = "no allowlist on this ref"
+              elif not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
+                  reason = "unrecognized dev matrix"
+              else:
+                  moved = {line.strip() for line in allowlist_path.read_text(encoding="utf-8").splitlines()
+                           if line.strip()}
+                  names = sorted(path.name for path in root.glob("*.spec.ts"))
+                  unroutable = sorted(
+                      path.relative_to(root).as_posix() for path in root.rglob("*.spec.*")
+                      if path.parent != root or not safe.fullmatch(path.name)
+                  )
+                  prod_specs = " ".join(f"e2e/{name}" for name in names if name in moved)
+                  dev_specs = " ".join(f"e2e/{name}" for name in names if name not in moved)
+                  split = [
+                      project for project in responsive
+                      if any(project in projects(row) for row in rows)
+                      and all(projects(row) == [project] and row.get("specs") == ""
+                              for row in rows if project in projects(row))
+                  ]
+                  for entry in sorted(moved - set(names)):
+                      print(f"::warning::prodbuild allowlist entry is not a spec on this ref: {entry!r}")
+                  if unroutable:
+                      reason = f"spec files an explicit list cannot route: {unroutable[:5]!r}"
+                  elif not prod_specs or not dev_specs or not split:
+                      reason = "nothing to split"
+                  else:
+                      reason = f"{len(prod_specs.split())} allowlisted, {len(dev_specs.split())} dev spec(s)"
+                      dev = [
+                          {**row, "specs": dev_specs}
+                          if any(project in split for project in projects(row)) else row
+                          for row in rows
+                      ]
+                      prod = [
+                          {"shard": f"prodbuild-{project}-{index}",
+                           "projects": f"--project={project}" + (f" --shard={index}/{count}" if count > 1 else ""),
+                           "specs": prod_specs}
+                          for project, count in (("desktop", 2), ("tablet", 1), ("mobile", 1))
+                          if project in split
+                          for index in range(1, count + 1)
+                      ]
+              with output.open("a", encoding="utf-8") as target:
+                  if dev is not None:
+                      target.write("matrix=" + json.dumps({"include": dev}, separators=(",", ":")) + "\n")
+                  target.write("prodbuild_matrix=" + json.dumps({"include": prod}, separators=(",", ":")) + "\n")
+                  target.write(f"prodbuild_count={len(prod)}\n")
+              print(f"e2e-scope lane split: {len(prod)} prodbuild shard(s) ({reason})")
+          PY
 
   terminal-unit:
     concurrency:
@@ -282,15 +401,32 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
+        run: node --test e2e/tools/ticker_news_capture_receipt.test.cjs e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
+      - name: Record PR-touched paths for the evidence drift gate
+        # The planner below fails a pull request whose OWN diff drifted an
+        # evidence-locked source without a recaptured, committed lock — the
+        # same drift the merge-group backstop discovers only after merge
+        # qualification starts. HEAD^1 of the pull_request synthetic merge
+        # commit is the exact base tip this candidate received (the same
+        # identity the plain-language guard below relies on); the depth-2
+        # checkout already fetches it. Non-PR events skip this step and the
+        # gate stays silent for them.
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          BASE=$(git rev-parse HEAD^1)
+          git diff --name-only --no-renames "${BASE}" HEAD > "${RUNNER_TEMP}/evidence-pr-touched.txt"
+          {
+            echo "EVIDENCE_PR_TOUCHED_FILE<<__mmx-evidence-touched-eof__"
+            cat "${RUNNER_TEMP}/evidence-pr-touched.txt"
+            echo "__mmx-evidence-touched-eof__"
+          } >> "${GITHUB_ENV}"
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
       - name: Prepare Chromium for original mock captures
-        # PRs always capture. Merge groups recapture only when the actual
-        # integrated source no longer matches BOTH checked-in evidence locks.
-        # Missing/malformed source evidence fails closed to capture=true.
-        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        # F11 always qualifies this admitted checkout and needs Chromium even
+        # when the PL6/VI planner can reuse both current-source evidence locks.
         timeout-minutes: 10
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
@@ -299,6 +435,11 @@ jobs:
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 85
         run: node e2e/tools/capture_ci_evidence.cjs
+      # F11 is a separate real-component contract, not an extra case in PL6/VI50.
+      # Business inputs are intercepted as unavailable before reaching API/provider code.
+      - name: Capture provider-closed F11 theses entry on this checkout
+        timeout-minutes: 8
+        run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
       - run: npm test
         timeout-minutes: 20
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
@@ -438,6 +579,7 @@ jobs:
           path: |
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
+            terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
@@ -573,6 +715,19 @@ jobs:
         env:
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
           TERMINAL_E2E_WORKERS: ${{ steps.lane.outputs.workers }}
+      - name: Capture current ticker News evidence
+        if: matrix.shard == 'serial'
+        timeout-minutes: 15
+        env:
+          CI: '1'
+          TERMINAL_CROPS: '1'
+          TERMINAL_TICKER_NEWS_CAPTURE_PACKET: ticker-news
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/ticker-news-current/report.json
+        run: |
+          node e2e/tools/ticker_news_capture_receipt.cjs --prepare
+          npm run test:e2e:responsive -- e2e/ticker-news.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/ticker-news-current/playwright --reporter=github,json
+          node e2e/tools/ticker_news_capture_receipt.cjs --verify
       # This feature is default-off; the ordinary matrix skips its browser tests.
       # Exercise it with the SAME harness, without altering production flags.
       - name: Qualify investor shell opt-in
@@ -648,12 +803,169 @@ jobs:
           path: terminal/test-results
           if-no-files-found: ignore
 
+  terminal-e2e-build:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-e2e-build
+      cancel-in-progress: true
+    name: Terminal e2e production build
+    needs: [pr_scope, e2e-scope]
+    # The dev lane's event shape without its merge-group exclusion, plus a
+    # nonempty prod lane. Trusted docs-only PRs skip the build; native merge
+    # groups run it as their only browser-build qualification.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: terminal
+    env:
+      # Mirrors terminal/playwright.config.ts webServer.env and the canary build
+      # leg exactly. NEXT_PUBLIC_* keys are inlined by next build, so they must
+      # be set here; they are the same fixture literals the dev lane uses.
+      ANALYSIS_LOCAL_PREVIEW: "1"
+      ADMIN_DEV: "1"
+      TERMINAL_E2E_FIXTURE: "1"
+      TERMINAL_E2E_EMAIL: "responsive@example.com"
+      TERMINAL_E2E_ENTITLEMENT: "unlimited"
+      RATE_LIMIT_MAX: "100000"
+      HUB_REALTIME_QUOTES: "1"
+      TICKER_NEWS_RAIL: "1"
+      FLOW_FIXTURE: "1"
+      INVESTIGATION_API_ADMISSION: "open"
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      - run: npx next typegen
+      - name: Production build (npx next build skips the prebuild hook)
+        # NOT `npm run build`: its prebuild writes public/data/coverage.json,
+        # which production mode must not regenerate.
+        run: |
+          t0=$(date +%s)
+          npx next build
+          echo "### Production build" >> "$GITHUB_STEP_SUMMARY"
+          echo "build_seconds=$(( $(date +%s) - t0 )) nproc=$(nproc)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Pack .next (exclude cache/dev/traces)
+        run: |
+          tar -czf ../dot-next.tar.gz \
+            --exclude='.next/cache' \
+            --exclude='.next/dev' \
+            --exclude='.next/trace' \
+            --exclude='.next/BUILD_ID.trace' \
+            -C . .next
+          ls -lh ../dot-next.tar.gz | awk '{print "artifact_size=" $5}' | tee -a "$GITHUB_STEP_SUMMARY"
+      # Run-scoped name, one-day retention: only this run's prod shards consume
+      # the build; no deploy path reads CI artifacts. The name carries no
+      # attempt number on purpose: "Re-run failed jobs" re-runs a prod shard
+      # without re-running this job, and that shard must still find the build.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e2e-prodbuild-${{ github.run_id }}
+          path: dot-next.tar.gz
+          # After one day the build is gone. A prod shard re-run later than
+          # that fails at its download and says so: use "Re-run all jobs",
+          # which rebuilds, not "Re-run failed jobs".
+          retention-days: 1
+
+  terminal-e2e-prodbuild:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-e2e-prodbuild-${{ matrix.shard }}
+      cancel-in-progress: true
+    name: Terminal e2e ${{ matrix.shard }} (prod build)
+    needs: [pr_scope, e2e-scope, terminal-e2e-build]
+    # The build job's own condition plus its success. Without a build these
+    # shards skip instead of failing one by one at the download; the required
+    # aggregate below turns both the failed build and that skip red.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.terminal-e2e-build.result == 'success' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    # Fixed GitHub-hosted image; the variable-gated dev lane is untouched.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.e2e-scope.outputs.prodbuild_matrix) }}
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      - run: npx next typegen
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      # Restore-only: this lane never SAVES a browser cache entry, so nothing a
+      # PR controls can be written into a cache scope other refs restore.
+      - name: Restore Playwright browsers (restore-only)
+        id: pwcache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install Playwright browsers (apt bounded, browser-only fallback)
+        if: steps.pwcache.outputs.cache-hit != 'true'
+        timeout-minutes: 12
+        run: |
+          timeout 480 npx playwright install --with-deps chromium \
+            || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
+                 npx playwright install chromium; }
+      - name: Ensure browser present on cache hit
+        if: steps.pwcache.outputs.cache-hit == 'true'
+        timeout-minutes: 6
+        run: timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium
+      - name: Download production build artifact (this run only)
+        id: prodbuild_artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-prodbuild-${{ github.run_id }}
+          path: terminal
+      - name: Explain a missing production build artifact
+        if: failure() && steps.prodbuild_artifact.outcome == 'failure'
+        run: |
+          echo "::error title=terminal-e2e-prodbuild::The production build artifact e2e-prodbuild-${GITHUB_RUN_ID} is missing or expired. It is kept for 1 day and only the build job of this run creates it. For a stale re-run use 'Re-run all jobs' so the build runs again; 'Re-run failed jobs' cannot recreate it."
+          exit 1
+      - name: Unpack production build
+        run: |
+          rm -rf .next
+          tar -xzf dot-next.tar.gz
+          rm dot-next.tar.gz
+      - name: Run allowlisted specs against next start
+        run: >-
+          npm run test:e2e:responsive -- -c playwright.prodbuild.config.ts
+          ${{ matrix.projects }} ${{ matrix.specs }} --workers=1
+        env:
+          CI: "1"
+          TERMINAL_E2E_PORT: "3108"
+      - name: Upload prod-lane QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # prod shard names are prodbuild-* so they cannot collide with the
+          # dev lane's responsive-qa-<run_id>-<shard> artifact names.
+          name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}
+          path: terminal/test-results
+          if-no-files-found: ignore
+
   terminal:
     # Stable required context: both selectors and every selected shard feed it.
     name: Terminal typecheck + tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [pr_scope, e2e-scope, terminal-unit, terminal-e2e]
+    needs: [pr_scope, e2e-scope, terminal-unit, terminal-e2e, terminal-e2e-build, terminal-e2e-prodbuild]
     if: always()
     steps:
       - name: Refuse cancelled qualification
@@ -669,16 +981,24 @@ jobs:
           PR_MODE: ${{ needs.pr_scope.outputs.mode }}
           UNIT: ${{ needs.terminal-unit.result }}
           E2E: ${{ needs.terminal-e2e.result }}
+          BUILD: ${{ needs.terminal-e2e-build.result }}
+          PRODBUILD: ${{ needs.terminal-e2e-prodbuild.result }}
+          PRODBUILD_COUNT: ${{ needs.e2e-scope.outputs.prodbuild_count }}
           EVENT: ${{ github.event_name }}
         run: |
-          echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-e2e:$E2E"
+          echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-e2e:$E2E terminal-e2e-build:$BUILD terminal-e2e-prodbuild:$PRODBUILD (count=$PRODBUILD_COUNT)"
           docs_only=0
           if [ "$EVENT" = "pull_request" ] && [ "$PR_SCOPE" = "success" ] && [ "$PR_MODE" = "docs" ]; then
             docs_only=1
           fi
           fail=0
-          # The independent browser selector is mandatory for every event,
-          # including docs-only PRs and the native merge-group fast lane.
+          # The independent browser selector is mandatory for every event.
+          # A native merge group runs only the production lane and must select
+          # its four fixed shards; no malformed or empty selection qualifies.
+          if [ "$EVENT" = "merge_group" ] && [ "$PRODBUILD_COUNT" != "4" ]; then
+            echo "::error title=terminal-ci::native merge group selected '$PRODBUILD_COUNT' production shards (expected '4')"
+            fail=1
+          fi
           if [ "$SCOPE" != "success" ]; then
             echo "::error title=terminal-ci::e2e-scope concluded '$SCOPE' (expected 'success')"
             fail=1
@@ -697,6 +1017,26 @@ jobs:
             echo "terminal-e2e skipped: qualified docs-only PR or native merge group"
           else
             echo "::error title=terminal-ci::terminal-e2e concluded '$E2E' (expected 'success')"
+            fail=1
+          fi
+          # The prod lane must FAIL, never silently skip: a failed, cancelled,
+          # skipped or empty build/prod lane turns this required context red on
+          # a native merge group. Skips are lawful for trusted docs-only PRs,
+          # or on other events when the selector emitted no prod shards.
+          if [ "$BUILD" = "success" ]; then
+            :
+          elif [ "$BUILD" = "skipped" ] && { [ "$docs_only" -eq 1 ] || { [ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]; }; }; then
+            echo "terminal-e2e-build skipped: qualified docs-only PR or empty non-merge-group prod lane"
+          else
+            echo "::error title=terminal-ci::terminal-e2e-build concluded '$BUILD' (expected 'success')"
+            fail=1
+          fi
+          if [ "$PRODBUILD" = "success" ]; then
+            :
+          elif [ "$PRODBUILD" = "skipped" ] && { [ "$docs_only" -eq 1 ] || { [ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]; }; }; then
+            echo "terminal-e2e-prodbuild skipped: qualified docs-only PR or empty non-merge-group prod lane"
+          else
+            echo "::error title=terminal-ci::terminal-e2e-prodbuild concluded '$PRODBUILD' (expected 'success')"
             fail=1
           fi
           [ "$fail" -eq 0 ] || exit 1

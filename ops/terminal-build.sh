@@ -142,7 +142,12 @@ BOOTSTRAP_MODE=
 BETA_BOOTSTRAP_SCRATCH=
 BETA_BOOTSTRAP_SCRATCH_IDENTITY=
 RUNTIME_RECORD_PATH=
-log(){ echo "[build] $*"; }
+# A log line must never be what ends a deploy. The automated channel is
+# `ssh … bash -s` with no tty: when the caller is cancelled the channel closes,
+# no HUP arrives, and the next write to stdout fails. With SIGPIPE ignored (see
+# deploy_take_signal_traps and the two recovery holds) that write is a plain
+# error, which is discarded here instead of reaching `set -e`.
+log(){ { echo "[build] $*"; } 2>/dev/null || true; }
 
 # The deploy owner never accepts inherited Git routing or policy. `git -C`
 # does not override GIT_DIR/GIT_WORK_TREE, and replacement/config variables can
@@ -551,7 +556,8 @@ shared_shell_status_verified(){
   # interpreter's stdin is the heredoc carrying the validator itself, so a piped
   # body would read as empty — and an empty body must never be mistaken for a
   # healthy endpoint.
-  python3 -I - "$want_sha" "$url" "$response" "$contracts_file" "$routes_file" <<'PY_STATUS' || rc=$?
+  python3 -I - "$want_sha" "$url" "$response" "$contracts_file" "$routes_file" \
+      >"$temporary/verdict" <<'PY_STATUS' || rc=$?
 import json
 import os
 import re
@@ -655,6 +661,10 @@ print(
     f"registry={admitted['registrySha256'][:12]}... build={build_id[:12]}"
 )
 PY_STATUS
+  # The validator's one success line is written to a file and relayed here: with
+  # PIPE ignored, a closed deploy channel would otherwise fail that write and turn
+  # a verified generation into a refused one. The verdict is the exit status only.
+  { cat "$temporary/verdict"; } 2>/dev/null || true
   rm -rf "$temporary"
   return "$rc"
 }
@@ -870,6 +880,69 @@ build_node_options(){
   esac
 }
 
+# BUILD MEMORY ADMISSION — refuse before the first effect on a host that is
+# plainly too short of memory, instead of being OOM-killed after it. On
+# 2026-11-10 the staged `next build` was "Killed" at 2.7 GB anonymous RSS on this
+# 3.9 GB host with swap exhausted: minutes of work, a mutated live dependency
+# tree and a pre-swap recovery.
+#
+# Honest scope: that build started with roughly 8.8 GB MemAvailable+SwapFree and
+# still died, so this floor would NOT have refused it. It is a cheap early
+# refusal for a badly loaded host, not a fix for the build's own footprint,
+# which is tracked separately.
+#
+# The measure is MemAvailable + SwapFree from /proc/meminfo: what the kernel can
+# still hand a new process before the OOM killer has to choose a victim. The
+# floor is the old-space ceiling this owner grants the build (BUILD_NODE_HEAP_MB)
+# plus 1024 MiB for what that ceiling does not bound: V8 new-space and code,
+# native SWC/Turbopack allocations, and the npm and parent `next build`
+# processes around the worker. The killed build was still BELOW its ceiling, so
+# a floor under the ceiling would admit even a build that cannot reach it.
+#
+# It is a floor, not a reservation: swap counts in full, and memory can still be
+# taken by something else after admission. BUILD_MIN_AVAILABLE_MB overrides the
+# floor for one invocation (plain decimal MiB; 0 disables the check, loudly).
+# The meminfo path is an argument so the parser is exercised against fixtures;
+# the deploy body always passes /proc/meminfo. An unreadable or unparseable
+# source refuses: an unmeasured host is not an admitted one.
+BUILD_MIN_AVAILABLE_MB_DEFAULT=$((BUILD_NODE_HEAP_MB + 1024))
+require_build_memory(){
+  local meminfo=${1:-} required=${BUILD_MIN_AVAILABLE_MB:-$BUILD_MIN_AVAILABLE_MB_DEFAULT}
+  local key value rest mem_available_kb= swap_free_kb= mem_available_mb swap_free_mb available_mb
+  if ! [[ "$required" =~ ^(0|[1-9][0-9]{0,6})$ ]]; then
+    log "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"
+    return 64
+  fi
+  if [ "$required" = 0 ]; then
+    log "WARN: build memory admission DISABLED by BUILD_MIN_AVAILABLE_MB=0"
+    return 0
+  fi
+  if [ ! -f "$meminfo" ] || [ ! -r "$meminfo" ]; then
+    log "FATAL: build memory admission refused: reason=build-memory-unmeasurable source=$meminfo required_mb=$required"
+    return 75
+  fi
+  while read -r key value rest || [ -n "$key" ]; do
+    case "$key" in
+      MemAvailable:) mem_available_kb=$value ;;
+      SwapFree:) swap_free_kb=$value ;;
+    esac
+  done < "$meminfo"
+  if ! [[ "$mem_available_kb" =~ ^[0-9]{1,15}$ ]] || ! [[ "$swap_free_kb" =~ ^[0-9]{1,15}$ ]]; then
+    log "FATAL: build memory admission refused: reason=build-memory-unmeasurable source=$meminfo required_mb=$required (MemAvailable or SwapFree missing)"
+    return 75
+  fi
+  mem_available_mb=$((10#$mem_available_kb / 1024))
+  swap_free_mb=$((10#$swap_free_kb / 1024))
+  available_mb=$((mem_available_mb + swap_free_mb))
+  if [ "$available_mb" -lt "$required" ]; then
+    log "FATAL: build memory admission refused: reason=insufficient-build-memory available_mb=$available_mb (MemAvailable_mb=$mem_available_mb SwapFree_mb=$swap_free_mb) required_mb=$required"
+    log "  nothing was fetched, installed, built or swapped; free memory or swap, then run the same deploy again"
+    return 75
+  fi
+  log "build memory admission OK: available_mb=$available_mb (MemAvailable_mb=$mem_available_mb SwapFree_mb=$swap_free_mb) required_mb=$required"
+  return 0
+}
+
 # First adoption executes the exact protected ops/ artifact from a temporary
 # directory. Later releases use the currently deployed canonical checkout. The
 # script and policy always come from one complete, real, non-symlink directory;
@@ -1071,6 +1144,128 @@ PY_BUNDLE
   done
   log "FATAL: no complete trusted Terminal release-preflight artifact bundle is available (target=$TARGET policy basename=$PREFLIGHT_POLICY_BASENAME)"
   return 66
+}
+
+# A bundle selected from the canonical checkout's own ops/ directory is valid for
+# exactly one generation: the commit that checkout held when it was selected.
+# This owner later moves that checkout (target reset, canonical-head recovery),
+# which rewrites the selected files in place. The pinned policy digest then no
+# longer describes the bytes on disk, and run_release_preflight correctly refuses
+# to execute them. Carrying the old pin forward is not an answer either: the
+# prior generation's policy cannot accept the target generation's tree.
+#
+# So the bundle that audits a generation is taken from THAT generation's commit
+# objects, extracted into a private owner-only directory nothing else can write,
+# admitted by the same selector (owner, modes, stable inodes, canonical digest),
+# and pinned again. The execution-time digest guard is unchanged and now compares
+# a pin against an immutable private copy, so any change between selection and
+# execution is still refused. A bundle selected from the authoring directory is
+# not rewritten by a checkout reset and is left exactly as selected.
+PREFLIGHT_BUNDLE_GENERATION_BOUND=0
+PREFLIGHT_GENERATION_BUNDLE_DIRS=()
+PREFLIGHT_POLICY_RECORD_PATH=
+PREFLIGHT_CURRENT_SCRIPT=
+PREFLIGHT_CURRENT_POLICY=
+PREFLIGHT_CURRENT_RUNTIME_DIR=
+PREFLIGHT_CURRENT_SCRIPT_SHA256=
+PREFLIGHT_CURRENT_POLICY_DIGEST=
+PREFLIGHT_CURRENT_RUNTIME_SHA256=
+
+# bind_preflight_bundle_to_generation <canonical repo> <full sha> <current|target>
+#   current: the checkout was restored to the live accepted generation; replace
+#            the selection with that generation's bundle.
+#   target:  the checkout is about to move to an admitted target; keep the
+#            current generation's selection for a later restoration audit and
+#            select the target generation's bundle for acceptance.
+# Runs before the checkout moves. Any failure leaves no selection and is fatal to
+# the caller; it never falls back to the stale pin.
+bind_preflight_bundle_to_generation(){
+  local repository=$1 generation=$2 role=${3:-} canonical private
+  if ! [[ "$generation" =~ ^[0-9a-f]{40}$ ]]; then
+    log "FATAL: a preflight bundle can only be bound to one full lower-case commit SHA"
+    return 64
+  fi
+  case "$role" in
+    current|target) ;;
+    *)
+      log "FATAL: unknown preflight bundle generation role"
+      return 64
+      ;;
+  esac
+  canonical=$(cd "$repository/ops" 2>/dev/null && pwd -P) || canonical=
+  if [ "$PREFLIGHT_BUNDLE_GENERATION_BOUND" != 1 ]; then
+    if [ -z "$canonical" ] \
+      || [ "$PREFLIGHT_SCRIPT" != "$canonical/terminal_release_preflight.py" ]; then
+      return 0
+    fi
+    # Durable lifecycle records keep naming the canonical policy file, which
+    # their later gates re-read. They never name a private per-run directory.
+    PREFLIGHT_POLICY_RECORD_PATH="$canonical/$PREFLIGHT_POLICY_BASENAME"
+  fi
+  if [ "$role" = target ]; then
+    PREFLIGHT_CURRENT_SCRIPT=$PREFLIGHT_SCRIPT
+    PREFLIGHT_CURRENT_POLICY=$PREFLIGHT_POLICY
+    PREFLIGHT_CURRENT_RUNTIME_DIR=$PREFLIGHT_RUNTIME_DIR
+    PREFLIGHT_CURRENT_SCRIPT_SHA256=$PREFLIGHT_SCRIPT_SHA256
+    PREFLIGHT_CURRENT_POLICY_DIGEST=$PREFLIGHT_POLICY_DIGEST
+    PREFLIGHT_CURRENT_RUNTIME_SHA256=$PREFLIGHT_RUNTIME_SHA256
+  fi
+  PREFLIGHT_BUNDLE_GENERATION_BOUND=1
+  # From here on the previous selection is withdrawn. If the generation's bundle
+  # cannot be produced and admitted, nothing is selected.
+  PREFLIGHT_SCRIPT=
+  PREFLIGHT_POLICY=
+  PREFLIGHT_RUNTIME_DIR=
+  PREFLIGHT_SCRIPT_SHA256=
+  PREFLIGHT_POLICY_DIGEST=
+  PREFLIGHT_RUNTIME_SHA256=
+  sanitize_git_environment
+  if ! private=$(mktemp -d /tmp/terminal-build-generation-bundle.XXXXXX); then
+    log "FATAL: could not allocate a private directory for the $role generation preflight bundle"
+    return 73
+  fi
+  PREFLIGHT_GENERATION_BUNDLE_DIRS+=("$private")
+  if ! git -C "$repository" -c tar.umask=0077 archive --format=tar "$generation" -- \
+    ops/terminal_release_preflight.py "ops/$PREFLIGHT_POLICY_BASENAME" ops/terminal_audit \
+    >"$private/bundle.tar"; then
+    log "FATAL: generation $generation carries no complete release-preflight bundle for target=$TARGET"
+    return 66
+  fi
+  if ! ( umask 077 && tar -xf "$private/bundle.tar" -C "$private" ) \
+    || ! rm -f "$private/bundle.tar"; then
+    log "FATAL: the $role generation preflight bundle could not be extracted into private custody"
+    return 66
+  fi
+  select_preflight_artifacts 0 "$private/ops" || return $?
+  log "preflight bundle bound to $role generation $generation: script_sha256=$PREFLIGHT_SCRIPT_SHA256 policy_digest=$PREFLIGHT_POLICY_DIGEST runtime_sha256=$PREFLIGHT_RUNTIME_SHA256"
+}
+
+# The restoration audit after a failed beta target must judge the PRIOR accepted
+# generation with the bundle that was selected for it, not the target's.
+restore_current_generation_preflight_bundle(){
+  [ -n "$PREFLIGHT_CURRENT_SCRIPT" ] || return 0
+  PREFLIGHT_SCRIPT=$PREFLIGHT_CURRENT_SCRIPT
+  PREFLIGHT_POLICY=$PREFLIGHT_CURRENT_POLICY
+  PREFLIGHT_RUNTIME_DIR=$PREFLIGHT_CURRENT_RUNTIME_DIR
+  PREFLIGHT_SCRIPT_SHA256=$PREFLIGHT_CURRENT_SCRIPT_SHA256
+  PREFLIGHT_POLICY_DIGEST=$PREFLIGHT_CURRENT_POLICY_DIGEST
+  PREFLIGHT_RUNTIME_SHA256=$PREFLIGHT_CURRENT_RUNTIME_SHA256
+}
+
+# Remove only the private directories this process created, by exact recorded
+# name and shape. A symlink or anything else at that name is left alone.
+preflight_generation_bundle_cleanup(){
+  local directory
+  for directory in ${PREFLIGHT_GENERATION_BUNDLE_DIRS[@]+"${PREFLIGHT_GENERATION_BUNDLE_DIRS[@]}"}; do
+    case "$directory" in
+      */terminal-build-generation-bundle.??????) ;;
+      *) continue ;;
+    esac
+    if [ -d "$directory" ] && [ ! -L "$directory" ]; then
+      rm -rf -- "$directory"
+    fi
+  done
+  PREFLIGHT_GENERATION_BUNDLE_DIRS=()
 }
 
 # Receipt publication is the only write admitted before source mutation. Never
@@ -1631,6 +1826,320 @@ admit_target_sha(){
   fi
 }
 
+# ── production dependency rollback snapshot ──────────────────────────────────
+# The production deps step installs into the LIVE app: it copies the target's
+# package.json and package-lock.json over $APP's and lets `npm ci` replace
+# $APP/node_modules. Neither the pre-swap recovery (canonical checkout only) nor
+# deploy_generation_rollback (.next + marker only) ever put those back. On
+# 2026-11-10 an OOM-killed build therefore left the accepted generation's .next
+# and running server beside the TARGET's package files and dependency tree: every
+# later release preflight saw two TRACKED_MODIFIED findings and refused ("recovery
+# requires exactly one source-audit finding") until a human restored the files,
+# and a service restart would have started the old .next on the new dependencies.
+#
+# So the three dependency inputs are part of the generation this owner must be
+# able to return to. Before the install mutates them they are saved to ONE
+# builder-owned directory beside the app (the same parent that already holds
+# .stage.*), never inside it: the source audit maps $APP, not its parent, so a
+# snapshot can never look like source drift. The two files are copied and their
+# sha256 digests recorded; the tree is moved by a same-filesystem rename, which
+# is O(1) and exactly preserves it.
+#
+# Saving costs two small files. Restoring costs NOTHING: the old tree and the new
+# install coexist on the volume, so a failed `npm ci` can be the very thing that
+# filled it, and a restore that had to allocate a single block could then not
+# run. Every restore step is therefore a rename within the one filesystem.
+#
+# DEPS_SNAPSHOT_DIR is non-empty only while THIS attempt owns a snapshot that has
+# not yet been restored or discarded. Three exits, no fourth:
+#   pre-swap failure    -> cleanup_deploy_attempt restores it
+#   post-swap rollback  -> deploy_generation_abort restores it before any restart
+#   acceptance          -> the deploy body discards it after deploy_generation_commit
+#                          (cleanup_deploy_attempt finishes that discard when a
+#                          signal lands between the commit and it)
+# A restore only puts things back. The directory it emptied still holds this
+# attempt's failed tree, and deleting a full node_modules is the slowest step of
+# a recovery, so it never stands ahead of something that matters: a restored
+# snapshot becomes DEPS_SNAPSHOT_RESOLVED_DIR, and deps_snapshot_reap deletes it
+# on the exit path (cleanup_deploy_attempt), after any rollback restart or stop.
+# Production only. Beta's dependency inputs belong to its own transaction
+# (beta_txn_inputs_dirty / beta_txn_abort); no beta path ever opens a snapshot,
+# so every hook below is inert for beta.
+DEPS_SNAPSHOT_DIR=
+DEPS_SNAPSHOT_RESOLVED_DIR=
+DEPS_SNAPSHOT_FILES="package.json package-lock.json"
+
+deps_snapshot_path(){
+  printf '%s/.deps-rollback\n' "$(dirname "$1")"
+}
+
+# The name a snapshot takes once deps_snapshot_restore has put everything back.
+deps_snapshot_resolved_path(){
+  printf '%s.resolved\n' "$(deps_snapshot_path "$1")"
+}
+
+deps_path_identity(){
+  python3 -I -c 'import os,sys; s=os.lstat(sys.argv[1]); print(str(s.st_dev)+":"+str(s.st_ino))' "$1"
+}
+
+deps_file_sha256(){
+  python3 -I -c 'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],"rb").read()).hexdigest())' "$1"
+}
+
+# A snapshot can outlive its attempt only when that attempt was killed without
+# running its EXIT path (SIGKILL, power loss) or ended after live identity began
+# moving. By the time a later deploy reaches its deps step the release preflight
+# has already accepted the live tree as it stands, so the record describes a
+# generation that is no longer the rollback target. Same rule as
+# deploy_generation_reset: purge it, and say so.
+deps_snapshot_purge_stale(){
+  local snap
+  snap=$(deps_snapshot_path "$1")
+  if [ -e "$snap" ] || [ -L "$snap" ]; then
+    log "WARN: discarding a dependency rollback snapshot left by an interrupted earlier attempt: $snap"
+    rm -rf "$snap" || log "WARN: could not remove the stale dependency rollback snapshot $snap"
+  fi
+  return 0
+}
+
+# A RESOLVED snapshot is different: its restore completed, so it holds only the
+# failed attempt's tree and nothing the live app is owed. It outlives its attempt
+# only when the process was killed between the restore and deps_snapshot_reap,
+# and it would then wait for the next lockfile change. Every production deploy
+# deletes it at its start instead. An unresolved snapshot never has this name
+# and is never touched here; deps_snapshot_purge_stale keeps its own rule.
+deps_snapshot_purge_resolved(){
+  local snap
+  snap=$(deps_snapshot_resolved_path "$1")
+  if [ -e "$snap" ] || [ -L "$snap" ]; then
+    log "discarding a resolved dependency rollback snapshot left by an interrupted earlier attempt: $snap"
+    rm -rf "$snap" || log "WARN: could not remove the resolved dependency rollback snapshot $snap"
+  fi
+  return 0
+}
+
+# Save $1's dependency inputs. Nothing in $1 changes until the final rename, so
+# every earlier failure removes the half-made snapshot and leaves the app exactly
+# as it was. Once DEPS_SNAPSHOT_DIR is set the restore owns the cleanup.
+deps_snapshot_begin(){
+  local app=$1 snap name digest identity= app_identity= snap_identity=
+  snap=$(deps_snapshot_path "$app")
+  deps_snapshot_purge_stale "$app"
+  if ! mkdir -m 0700 "$snap"; then
+    log "FATAL: could not create the dependency rollback snapshot $snap"
+    return 73
+  fi
+  # The restore is rename-only, so the snapshot must share the app's filesystem:
+  # across devices `mv` silently degrades into a copy that needs free blocks.
+  app_identity=$(deps_path_identity "$app") || app_identity=
+  snap_identity=$(deps_path_identity "$snap") || snap_identity=
+  if [ -z "$app_identity" ] || [ -z "$snap_identity" ] \
+      || [ "${app_identity%%:*}" != "${snap_identity%%:*}" ]; then
+    log "FATAL: the dependency rollback snapshot $snap is not on the same filesystem as $app"
+    rm -rf "$snap"
+    return 73
+  fi
+  for name in $DEPS_SNAPSHOT_FILES; do
+    if [ -f "$app/$name" ] && [ ! -L "$app/$name" ]; then
+      # The digest is what the restore proves the returned file against; a copy
+      # to compare with would need blocks the restore must not depend on.
+      digest=$(deps_file_sha256 "$app/$name") || digest=
+      if [ -z "$digest" ] || ! cp -p "$app/$name" "$snap/$name" \
+          || [ "$(deps_file_sha256 "$snap/$name" 2>/dev/null)" != "$digest" ] \
+          || ! printf '%s\n' "$digest" > "$snap/$name.sha256"; then
+        log "FATAL: could not snapshot $app/$name for dependency rollback"
+        rm -rf "$snap"
+        return 73
+      fi
+    elif [ -e "$app/$name" ] || [ -L "$app/$name" ]; then
+      log "FATAL: $app/$name is not a regular file; refusing to install dependencies over it"
+      rm -rf "$snap"
+      return 73
+    elif ! : > "$snap/$name.absent"; then
+      log "FATAL: could not record the absence of $app/$name for dependency rollback"
+      rm -rf "$snap"
+      return 73
+    fi
+  done
+  if [ -e "$app/node_modules" ] || [ -L "$app/node_modules" ]; then
+    # rename(2) is the whole point: a cross-device `mv` would silently degrade
+    # into a recursive copy of the live tree. Refuse rather than copy.
+    identity=$(deps_path_identity "$app/node_modules") || identity=
+    if [ -z "$identity" ] \
+        || [ "${identity%%:*}" != "${snap_identity%%:*}" ] \
+        || ! printf '%s\n' "$identity" > "$snap/node_modules.identity"; then
+      log "FATAL: $app/node_modules cannot be moved aside by a same-filesystem rename to $snap"
+      rm -rf "$snap"
+      return 73
+    fi
+    DEPS_SNAPSHOT_DIR=$snap
+    if ! mv "$app/node_modules" "$snap/node_modules"; then
+      log "FATAL: could not move $app/node_modules aside for dependency rollback"
+      return 73
+    fi
+  else
+    if ! : > "$snap/node_modules.absent"; then
+      log "FATAL: could not record the absence of $app/node_modules for dependency rollback"
+      rm -rf "$snap"
+      return 73
+    fi
+    DEPS_SNAPSHOT_DIR=$snap
+  fi
+  log "dependency rollback snapshot taken at $snap (package.json, package-lock.json, node_modules ${identity:-absent})"
+  return 0
+}
+
+# Move $1/node_modules out of the way, to <snapshot>/node_modules.failed. Rename
+# only; an occupied aside name is a refusal, never a delete.
+deps_snapshot_set_tree_aside(){
+  local app=$1 snap=$2
+  if [ ! -e "$app/node_modules" ] && [ ! -L "$app/node_modules" ]; then return 0; fi
+  if [ -e "$snap/node_modules.failed" ] || [ -L "$snap/node_modules.failed" ] \
+      || ! mv "$app/node_modules" "$snap/node_modules.failed"; then
+    log "FATAL: could not move this attempt's $app/node_modules aside to $snap/node_modules.failed"
+    return 1
+  fi
+  return 0
+}
+
+# Put $1's dependency inputs back exactly as the snapshot recorded them. It only
+# puts things back: by same-filesystem rename, so it needs no free block on a
+# volume the failed install may have filled, and without deleting anything, so
+# nothing slow stands between it and the rollback's restart. It is driven by what
+# the snapshot actually holds, so it is correct from every point
+# deps_snapshot_begin could have been interrupted at.
+#
+# Order is the contract. The saved package files are proven against the digests
+# recorded when they were taken BEFORE anything moves. Then the tree. The package
+# files go back only once the tree is proven to be the saved one: accepted
+# package files beside this attempt's tree would let the next release preflight
+# read CLEAN (node_modules is a generated tree to the audit) and let the next
+# deploy skip the install on an equal lockfile and build on the wrong
+# dependencies. Left on the target's bytes they are TRACKED_MODIFIED findings,
+# and every later deploy refuses until a human has looked.
+#
+# Zero marks the snapshot resolved (DEPS_SNAPSHOT_RESOLVED_DIR, for
+# deps_snapshot_reap). Non-zero keeps the snapshot and DEPS_SNAPSHOT_DIR for
+# attended recovery: whatever was not put back is still in it, and this attempt's
+# tree, when it was moved out of the way, is at <snapshot>/node_modules.failed.
+deps_snapshot_restore(){
+  local app=$1 snap=${DEPS_SNAPSHOT_DIR:-} name want got rc=0
+  if [ -z "$snap" ] || [ ! -d "$snap" ] || [ -L "$snap" ]; then
+    log "FATAL: there is no dependency rollback snapshot to restore"
+    return 1
+  fi
+  for name in $DEPS_SNAPSHOT_FILES; do
+    if [ -f "$snap/$name" ] && [ ! -L "$snap/$name" ]; then
+      want=$(cat "$snap/$name.sha256" 2>/dev/null) || want=
+      got=$(deps_file_sha256 "$snap/$name" 2>/dev/null) || got=
+      if [ -z "$want" ] || [ "$got" != "$want" ]; then
+        log "FATAL: the saved $name is not the file that was snapshotted (recorded sha256 ${want:-<unrecorded>} read ${got:-<unreadable>}); nothing was restored"
+        return 1
+      fi
+    elif [ ! -e "$snap/$name.absent" ]; then
+      log "FATAL: the dependency rollback snapshot holds no record for $name; nothing was restored"
+      return 1
+    fi
+  done
+  if [ -e "$snap/node_modules" ] || [ -L "$snap/node_modules" ]; then
+    deps_snapshot_set_tree_aside "$app" "$snap" || rc=1
+    if [ "$rc" -eq 0 ] && ! mv "$snap/node_modules" "$app/node_modules"; then
+      log "FATAL: could not move the saved dependency tree back to $app/node_modules"
+      rc=1
+    fi
+    if [ "$rc" -eq 0 ]; then
+      want=$(cat "$snap/node_modules.identity" 2>/dev/null) || want=
+      got=$(deps_path_identity "$app/node_modules" 2>/dev/null) || got=
+      if [ -z "$want" ] || [ "$got" != "$want" ]; then
+        log "FATAL: restored $app/node_modules is not the saved tree (wanted ${want:-<unrecorded>} got ${got:-<unreadable>})"
+        rc=1
+      fi
+    fi
+  elif [ -e "$snap/node_modules.absent" ]; then
+    # The accepted generation had no dependency tree: this attempt's goes.
+    deps_snapshot_set_tree_aside "$app" "$snap" || rc=1
+  fi
+  # Neither record present: the snapshot was interrupted before the tree moved,
+  # so $app/node_modules is still the accepted one and is left alone.
+  if [ "$rc" -ne 0 ]; then
+    log "FATAL: the dependency tree was not restored; $app's package files are left exactly as this attempt wrote them so the next release preflight refuses"
+    return 1
+  fi
+  for name in $DEPS_SNAPSHOT_FILES; do
+    if [ -f "$snap/$name" ]; then
+      want=$(cat "$snap/$name.sha256" 2>/dev/null) || want=
+      if ! mv -f "$snap/$name" "$app/$name"; then
+        log "FATAL: could not move the saved $name back to $app/$name"
+        rc=1
+        continue
+      fi
+      got=$(deps_file_sha256 "$app/$name" 2>/dev/null) || got=
+      if [ -z "$want" ] || [ "$got" != "$want" ]; then
+        log "FATAL: restored $app/$name is not the file that was snapshotted (recorded sha256 ${want:-<unrecorded>} read ${got:-<unreadable>})"
+        rc=1
+      fi
+    else
+      rm -f "$app/$name" || rc=1
+      if [ -e "$app/$name" ] || [ -L "$app/$name" ]; then
+        log "FATAL: could not remove $app/$name, which the accepted generation did not have"
+        rc=1
+      fi
+    fi
+  done
+  [ "$rc" -eq 0 ] || return 1
+  # Resolved is recorded on disk as well, by one more rename: a process killed
+  # before deps_snapshot_reap then leaves a directory that says it holds nothing
+  # still owed, which deps_snapshot_purge_resolved may delete. When the name
+  # cannot be taken the snapshot keeps its unresolved name and is treated as one.
+  want=$(deps_snapshot_resolved_path "$app")
+  if [ ! -e "$want" ] && [ ! -L "$want" ] && mv "$snap" "$want"; then
+    DEPS_SNAPSHOT_RESOLVED_DIR=$want
+  else
+    DEPS_SNAPSHOT_RESOLVED_DIR=$snap
+  fi
+  DEPS_SNAPSHOT_DIR=
+  return 0
+}
+
+# Delete a snapshot the restore has resolved, with this attempt's failed tree in
+# it. Deliberately separate from the restore and deliberately last; see above.
+deps_snapshot_reap(){
+  local snap=${DEPS_SNAPSHOT_RESOLVED_DIR:-}
+  [ -n "$snap" ] || return 0
+  DEPS_SNAPSHOT_RESOLVED_DIR=
+  rm -rf "$snap" || log "WARN: could not remove the restored dependency rollback snapshot $snap; a later deploy discards it"
+  return 0
+}
+
+# Acceptance: the new generation's dependency inputs are now the accepted ones.
+deps_snapshot_discard(){
+  local snap=${DEPS_SNAPSHOT_DIR:-}
+  [ -n "$snap" ] || return 0
+  DEPS_SNAPSHOT_DIR=
+  if rm -rf "$snap"; then
+    log "dependency rollback snapshot discarded: the new generation is accepted"
+  else
+    log "WARN: could not remove the dependency rollback snapshot $snap; the next dependency install discards it"
+  fi
+  return 0
+}
+
+# Containment for a rollback that could not prove every restoration leg (build,
+# marker, dependency inputs). Nothing may keep serving then: not the prior
+# generation restarted onto a half-restored tree, and not a failed candidate left
+# running because the rollback found no build to return to. It names the
+# SELECTED profile's unit and nothing else, exactly as the reactivation does. A
+# stop that fails is reported as that; it is never read as "nothing is running".
+deploy_generation_contain(){
+  log "rollback activation withheld: a restoration leg (build, marker or dependency inputs) is unresolved"
+  if systemctl stop "$SERVICE_NAME"; then
+    log "containment: $SERVICE_NAME was stopped and stays down until this generation is reconciled by hand"
+  else
+    log "FATAL: containment stop of $SERVICE_NAME FAILED; a process may still be serving an unresolved generation"
+  fi
+  return 0
+}
+
 # ── deploy generation: the identity and the build it names move together ───────
 # .deployment-id and the .next it describes are ONE generation. Installing the
 # marker before the swap and then rolling back only .next leaves the box serving
@@ -1758,9 +2267,35 @@ deploy_identity_verified(){
 # able to cause: the beta profile's rollback is the beta service's business alone.
 deploy_generation_abort(){
   local app=$1 want_sha=$2 swapped=$3 reason=$4 rc=0
+  # A rollback that has begun is finished: a signal taken between the restore and
+  # the restart or stop would leave a process bound to a tree that moved. Held
+  # on every path that reaches here, and PIPE with the rest: a closed deploy
+  # channel arrives as SIGPIPE on the next log line, not as HUP. The exit path
+  # reads the flag so that it never starts this rollback a second time.
+  trap '' HUP INT TERM PIPE
+  DEPLOY_GENERATION_OPEN=0
   log "DEPLOY FAILED: $reason"
   log "rolling back the deploy generation (build + identity)"
   deploy_generation_rollback "$app" "$swapped" || rc=$?
+  # Dependency inputs are part of the generation being returned to: the accepted
+  # ones go back before any process is restarted against the restored build.
+  if [ -n "${DEPS_SNAPSHOT_DIR:-}" ]; then
+    if deps_snapshot_restore "$app"; then
+      log "rollback dependency recovery OK"
+    else
+      log "FATAL: rollback dependency recovery failed; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
+      rc=1
+    fi
+  fi
+  # Containment is cumulative. Reactivation is only for a generation whose every
+  # restoration leg above (build, marker, dependency inputs) is proven complete.
+  # When any leg failed the selected unit is stopped instead, whether or not the
+  # build moved: with no backup to return to the moved flag stays 0 while a
+  # failed candidate may still be serving. The reviewed reactivation block below
+  # keeps its bytes, and so its indentation, inside this else.
+  if [ "$rc" -ne 0 ]; then
+    deploy_generation_contain
+  else
   # A process must never remain pointed at a tree that moved: reactivate a
   # qualified prior generation, or stop the selected unit when prior identity
   # or closed configuration cannot be proved. Restoration itself always runs.
@@ -1789,6 +2324,7 @@ deploy_generation_abort(){
       rc=1
     fi
   fi
+  fi  # cumulative containment: every leg proven, or the selected unit stopped
   if [ "$rc" = 0 ]; then
     log "rolled back — $(deploy_identity_line "$app" "$want_sha")"
   else
@@ -2445,13 +2981,58 @@ def action_attempt_begin(args):
     return 0
 
 
+PRIOR_POLICY_CAPTURE = "prior-generation-policy-capture"
+
+
+def generation_policy_digest(repo, sha, basename):
+    # The canonical digest of the audit policy one generation COMMITTED, read
+    # from that commit's own object. Every failure is None, which matches no
+    # digest: an unreadable, oversized, non-object or duplicate-key policy can
+    # never stand in for a captured or selected one.
+    import subprocess
+    if not isinstance(sha, str) or not SHA_RE.match(sha):
+        return None
+    environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    environment.update({
+        "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_SYSTEM": "/dev/null", "GIT_NO_REPLACE_OBJECTS": "1",
+        "GIT_TERMINAL_PROMPT": "0", "GIT_LITERAL_PATHSPECS": "1"})
+    try:
+        blob = subprocess.run(
+            ["git", "-C", repo, "cat-file", "blob", f"{sha}:ops/{basename}"],
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            env=environment, timeout=60, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if blob.returncode != 0 or not 0 < len(blob.stdout) <= MAX_JSON_BYTES:
+        return None
+
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate JSON key: {key}")
+            result[key] = value
+        return result
+
+    try:
+        payload = json.loads(blob.stdout.decode("utf-8"), object_pairs_hook=unique_object)
+    except (ValueError, UnicodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    return hashlib.sha256(canonical(payload)).hexdigest()
+
 
 def recovery_candidate(args):
     (target_root, state_dir, app_root, repo, sha, policy_digest, production_app,
-     identifier, expected_id) = args
+     identifier, expected_id, policy_basename) = args
     full_sha(sha, "recovery target SHA")
     hex64(expected_id, "expected failed attempt record")
     hex64(policy_digest, "recovery policy digest")
+    if (not policy_basename or "/" in policy_basename or policy_basename in {".", ".."}
+            or TOKEN_RE.fullmatch(policy_basename) is None):
+        fail("recovery policy basename must be one plain file name")
     old_path, attempt = read_attempt(target_root, state_dir, identifier)
     if record_id(attempt) != expected_id:
         fail("pending attempt is not the exact failed record selected for recovery")
@@ -2460,9 +3041,24 @@ def recovery_candidate(args):
             or attempt.get("recovery_from_record_id") is not None):
         fail("only an original failed dirty upgrade may consume one recovery entrance")
     for key, value in (("app_root", norm(app_root)), ("canonical_repo", norm(repo)),
-                       ("target_sha", sha), ("policy_digest", policy_digest)):
+                       ("target_sha", sha)):
         if attempt.get(key) != value:
             fail(f"recovery cannot change the captured {key}")
+    policy_basis = None
+    if attempt.get("policy_digest") != policy_digest:
+        # One exact exception, and only one. An attempt begun by an owner that
+        # pinned its policy before the checkout moved captured the PRIOR
+        # generation's policy digest for a target whose committed policy differs.
+        # That capture is admitted only when it is byte-for-byte the canonical
+        # digest of the policy the captured prior generation committed, AND the
+        # policy selected now is the one the captured target committed. Any other
+        # difference is a changed policy and is refused exactly as before.
+        captured, prior_sha = attempt.get("policy_digest"), attempt.get("prior_sha")
+        if (not isinstance(captured, str) or HEX_RE.match(captured) is None
+                or generation_policy_digest(repo, prior_sha, policy_basename) != captured
+                or generation_policy_digest(repo, sha, policy_basename) != policy_digest):
+            fail("recovery cannot change the captured policy_digest")
+        policy_basis = PRIOR_POLICY_CAPTURE
     current, _ = pointer_destination(target_root, RUNTIME_POINTER)
     if norm(current) != attempt.get("prior_runtime_record"):
         fail("prior accepted pointer changed before recovery")
@@ -2497,23 +3093,29 @@ def recovery_candidate(args):
             fail("retained build evidence does not match the captured generation")
         retained[name] = {"build_id": build, "deployment_id": expected_sha,
                           "server_manifest_sha256": hashlib.sha256(raw).hexdigest()}
-    return old_path, attempt, retained
+    return old_path, attempt, retained, policy_basis
 
 
 def action_attempt_recovery_check(args):
-    _, attempt, _ = recovery_candidate(args)
+    _, attempt, _, _ = recovery_candidate(args)
     print("RECOVERABLE\t" + attempt["attempt_id"])
     return 0
 
 
 def action_attempt_recover(args):
-    old_path, attempt, retained = recovery_candidate(args)
+    old_path, attempt, retained, policy_basis = recovery_candidate(args)
     original_id = record_id(attempt)
     attempt.pop("record_id", None)
     attempt.update({"phase": "recovering", "recovery_from_record": old_path,
                     "recovery_from_record_id": original_id,
                     "recovery_retained_builds": retained,
                     "recovery_build_id": None})
+    if policy_basis:
+        # The captured policy_digest stays as immutable history. The recovering
+        # record names, once, the target generation's committed policy that this
+        # one recovery is bound to; acceptance must present exactly that digest.
+        attempt.update({"recovery_policy_digest": args[5],
+                        "recovery_policy_basis": policy_basis})
     path = publish(args[1], f"attempt-{attempt['attempt_id']}-recovering-{record_id(attempt)[:16]}.json", attempt)
     replace_pointer(args[0], ATTEMPT_POINTER, path, old_path)
     print("RECOVERY\t{}\t{}\t{}\t{}".format(
@@ -2618,8 +3220,16 @@ def action_runtime(args):
     full_sha(sha, "requested target SHA")
     hex64(policy_digest, "selected policy digest")
     _, attempt = read_attempt(target_root, state_dir, attempt_id)
+    # Acceptance presents the attempt's own policy. Only a recovery admitted on
+    # the prior-generation-policy-capture basis is bound to the target policy
+    # digest its recovering record named instead.
+    attempt_policy = attempt.get("policy_digest")
+    if attempt.get("recovery_from_record_id") and "recovery_policy_digest" in attempt:
+        if attempt.get("recovery_policy_basis") != PRIOR_POLICY_CAPTURE:
+            fail("runtime publication is not the validated pending beta transaction")
+        attempt_policy = attempt["recovery_policy_digest"]
     if (attempt.get("phase") != "committing" or attempt.get("target_sha") != sha
-            or (attempt.get("recovery_build_id") if attempt.get("recovery_from_record_id") else attempt.get("build_id")) != build_id or attempt.get("policy_digest") != policy_digest
+            or (attempt.get("recovery_build_id") if attempt.get("recovery_from_record_id") else attempt.get("build_id")) != build_id or attempt_policy != policy_digest
             or attempt.get("app_root") != norm(app_root) or attempt.get("canonical_repo") != norm(repo)):
         fail("runtime publication is not the validated pending beta transaction")
     destination, provenance = provision_anchor(target_root, state_dir, app_root, repo, production_app)
@@ -2660,6 +3270,9 @@ def action_runtime(args):
     if attempt.get("recovery_from_record_id"):
         payload.update({key: attempt[key] for key in (
             "recovery_from_record", "recovery_from_record_id", "recovery_retained_builds")})
+        if "recovery_policy_digest" in attempt:
+            payload.update({"recovery_policy_basis": attempt["recovery_policy_basis"],
+                            "recovery_captured_policy_digest": attempt.get("policy_digest")})
     path = publish(state_dir, runtime_filename(sha, record_id(payload)[:16]), payload)
     replace_pointer(target_root, RUNTIME_POINTER, path, expected_previous)
     print(path)
@@ -2892,7 +3505,8 @@ beta_bootstrap_provision(){
     log "beta bootstrap resume verified: recorded SHA, digest, paths and trees all match"
   else
     if ! observed=$(beta_statectl begin "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
-        "$APP" "$target_sha" "$PREFLIGHT_POLICY_DIGEST" "$SRC" "$PREFLIGHT_POLICY" \
+        "$APP" "$target_sha" "$PREFLIGHT_POLICY_DIGEST" "$SRC" \
+        "${PREFLIGHT_POLICY_RECORD_PATH:-$PREFLIGHT_POLICY}" \
         "$trees_file" "$PRODUCTION_APP_DEFAULT" 2>&1); then
       log "FATAL: could not publish the source-provisioned authorization:"
       printf '%s\n' "$observed" | while IFS= read -r line; do log "  $line"; done
@@ -2984,7 +3598,8 @@ beta_publish_runtime_accepted(){
   local want_sha=$1 build_id=$2 outcome
   [ "$TARGET" = beta ] || return 0
   if ! outcome=$(beta_statectl runtime "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
-      "$APP" "$SRC" "$want_sha" "$PREFLIGHT_POLICY_DIGEST" "$PREFLIGHT_POLICY" \
+      "$APP" "$SRC" "$want_sha" "$PREFLIGHT_POLICY_DIGEST" \
+      "${PREFLIGHT_POLICY_RECORD_PATH:-$PREFLIGHT_POLICY}" \
       "$PRODUCTION_APP_DEFAULT" "${RUNTIME_RECORD_PATH:-}" "${PREFLIGHT_RECEIPT_PATH:-}" \
       "${PREFLIGHT_RECEIPT_ID:-}" "${PREFLIGHT_SOURCE_RECEIPT_ID:-}" "$build_id" "$BETA_TXN_ID" 2>&1); then
     log "FATAL: the beta runtime acceptance record could not be published: $outcome"
@@ -4196,7 +4811,7 @@ beta_recovery_check(){
   }
   beta_statectl attempt-recovery-check "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
     "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
-    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" >/dev/null
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" "$PREFLIGHT_POLICY_BASENAME" >/dev/null
 }
 
 beta_txn_recover(){
@@ -4204,7 +4819,7 @@ beta_txn_recover(){
   beta_recovery_check || return $?
   outcome=$(beta_statectl attempt-recover "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
     "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
-    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID") || return $?
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" "$PREFLIGHT_POLICY_BASENAME") || return $?
   IFS=$'\t' read -r tag BETA_PRIOR_RECORD BETA_PRIOR_RECORD_ID BETA_PRIOR_SHA BETA_PRIOR_BUILD <<<"$outcome"
   [ "$tag" = RECOVERY ] || return 75
   RUNTIME_RECORD_PATH=$BETA_PRIOR_RECORD
@@ -4361,6 +4976,7 @@ beta_txn_abort(){
     fi
     deploy_identity_verified "$APP" "$BETA_PRIOR_SHA" "$BETA_PRIOR_BUILD" || rc=1
     shared_shell_status_verified "$BETA_STATUS_URL" "$BETA_PRIOR_SHA" "$SRC" || rc=1
+    restore_current_generation_preflight_bundle || rc=1
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" || rc=1
     [ "$PREFLIGHT_ACCEPTED_SHA" = "$BETA_PRIOR_SHA" ] || rc=1
   fi
@@ -4498,6 +5114,13 @@ LAUNCH_OVERRIDE_KEYS = frozenset({
     "NODE_OPTIONS", "NODE_PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "LD_LIBRARY_PATH",
     "NPM_CONFIG_SCRIPT_SHELL", "NPM_CONFIG_NODE_OPTIONS", "NPM_CONFIG_USERCONFIG",
     "NPM_CONFIG_GLOBALCONFIG", "NPM_CONFIG_PREFIX"})
+# npm 10 injects its built-in config values (lower-case) into every lifecycle
+# child it spawns; the npm launcher process itself never carries them. Only
+# these three collide with LAUNCH_OVERRIDE_KEYS after upper-casing, and they
+# are admitted solely as exact derived npm defaults on verified descendants
+# of a verified npm launcher (see refuse_serving_launch_overrides).
+NPM_INJECTED_CONFIG_KEYS = frozenset({
+    "npm_config_prefix", "npm_config_globalconfig", "npm_config_userconfig"})
 DOTENV_NAMES = (".env.local", ".env.production.local", ".env.production", ".env")
 REGULAR_TREE_MODES = frozenset({"100644", "100755"})
 MAX_TREE_LIST_BYTES = 16 * 1024 * 1024
@@ -4662,6 +5285,12 @@ def proc_cmdline(pid):
             for item in payload.split(b"\0") if item]
 
 
+def proc_environ_tokens(pid):
+    payload = proc_bytes(pid, "environ", MAX_PROC_ENVIRONMENT_BYTES)
+    return [item.decode("utf-8", "replace")
+            for item in payload.split(b"\0") if item]
+
+
 def proc_comm(pid):
     payload = proc_bytes(pid, "comm", 256)
     return payload.decode("utf-8", "replace").strip("\n")
@@ -4729,6 +5358,54 @@ def refuse_selected_launch_overrides(tokens):
                 or key.startswith("NPM_CONFIG_")):
             raise Refused("unsupported-launch-environment-override")
     refuse_launch_overrides(tokens)
+
+
+def npm_injected_config_defaults(npm_path, launcher_tokens):
+    """Derive npm's built-in lifecycle config values from verified facts.
+
+    npm derives its prefix-family defaults from the installation prefix and
+    the launching user's HOME. Both are bound here to verified launch facts:
+    the exact ExecStart npm path verified by classify_launch_wrapper and the
+    verified launcher's own initial environment. The launcher environment is
+    the unit/manager projection (systemd-set HOME); npm puts none of these
+    keys there itself. Descendant values must equal these derived defaults;
+    any mismatch refuses, and no value is ever emitted.
+    """
+    prefix = os.path.dirname(os.path.dirname(npm_path))
+    home = "/root"
+    for token in launcher_tokens:
+        key, separator, value = token.partition("=")
+        if separator and key == "HOME" and value.startswith("/"):
+            home = value
+    return {
+        "npm_config_prefix": prefix,
+        "npm_config_globalconfig": prefix + "/etc/npmrc",
+        "npm_config_userconfig": home + "/.npmrc",
+    }
+
+
+def refuse_serving_launch_overrides(tokens, npm_injected_defaults=None):
+    """Serving-process variant of refuse_launch_overrides; never used for
+    unit, manager, env-file or dotenv classification.
+
+    The single widening over refuse_launch_overrides: a verified
+    /usr/bin/npm launcher injects npm's three built-in config defaults into
+    each lifecycle child, so a descendant may carry exactly those keys at
+    exactly the derived default values. Every other override key — alternate
+    shells, Node preload and node-options channels, library preloading, or
+    any upper-case spelling — still refuses unconditionally, and a deviating
+    value on an admitted key refuses with its own bounded reason.
+    """
+    for token in tokens:
+        key, separator, value = token.partition("=")
+        if not separator or not value or key.upper() not in LAUNCH_OVERRIDE_KEYS:
+            continue
+        if (npm_injected_defaults is not None
+                and key in npm_injected_defaults):
+            if value != npm_injected_defaults[key]:
+                raise Refused("npm-injected-config-unexpected-value")
+            continue
+        raise Refused("unsupported-launch-environment-override")
 
 
 def normalize_env_export_line(line):
@@ -5490,12 +6167,15 @@ def classify_start_scripts(package):
 
 
 def classify_launch_wrapper(profile, unit, repository, revision, app_root_for_launch):
+    # Returns the verified npm executable path for the production launch
+    # shape (None for beta); callers may bind that verified fact further.
     start = unit_property(unit, "ExecStart")
     if (not start.strip().startswith("{") or not start.strip().endswith("}")
             or start.count("{") != 1 or start.count("}") != 1):
         raise Refused("unsupported-launch-wrapper")
     if profile == "production":
-        if (re.findall(r"path=([^ ;]+) ;", start) != ["/usr/bin/npm"]
+        paths = re.findall(r"path=([^ ;]+) ;", start)
+        if (paths != ["/usr/bin/npm"]
                 or start.count("argv[]=") != 1
                 or "argv[]=/usr/bin/npm run start ;" not in start):
             raise Refused("unsupported-launch-wrapper")
@@ -5507,7 +6187,7 @@ def classify_launch_wrapper(profile, unit, repository, revision, app_root_for_la
         # the installed package before step8 source reflection. Bind that actual
         # npm command too; the candidate Git package alone is insufficient.
         classify_start_scripts(installed_package_json(app_root_for_launch))
-        return
+        return paths[0]
     # systemctl renders ONE argv[]= vector in an ExecStart record, not one
     # repeated field per argument. Accept the source-owned beta unit shape.
     if (not start.strip().startswith("{") or not start.strip().endswith("}")
@@ -5567,7 +6247,7 @@ def classify_project_npm_config(repository, revision, listing, app_root):
             path, MAX_ENV_FILE_BYTES, "project-npm-configuration"))
 
 
-def classify_serving_processes(unit, app_root):
+def classify_serving_processes(unit, app_root, npm_launcher_path=None):
     if unit_property(unit, "ActiveState") != "active":
         raise Refused("service-not-active")
     main_text = unit_property(unit, "MainPID")
@@ -5615,6 +6295,21 @@ def classify_serving_processes(unit, app_root):
             raise Refused("process-identity-changed-during-verification")
         if proc_cgroup_path(pid) != main_cgroup:
             raise Refused("serving-process-outside-target-cgroup")
+    # npm lifecycle-injection baseline, bound to the verified npm launch:
+    # npm 10 injects its built-in config defaults into every lifecycle child,
+    # never into its own launcher environ. If the verified launcher carries
+    # any of those keys, the unit/manager (not npm) supplied them — that is
+    # inheritance, and every descendant keeps the strict refusal. Only a
+    # launcher whose environ proves absence derives the exact defaults its
+    # descendants may carry. Values are compared, never emitted.
+    npm_injected_defaults = None
+    if npm_launcher_path is not None:
+        launcher_tokens = proc_environ_tokens(main_pid)
+        for token in launcher_tokens:
+            if token.partition("=")[0] in NPM_INJECTED_CONFIG_KEYS:
+                raise Refused("npm-injected-config-on-launcher")
+        npm_injected_defaults = npm_injected_config_defaults(
+            npm_launcher_path, launcher_tokens)
     for pid in collected:
         walker, hops = pid, 0
         while walker != main_pid and walker > 1 and hops < MAX_ANCESTRY_DEPTH:
@@ -5626,8 +6321,14 @@ def classify_serving_processes(unit, app_root):
         if (cwd.st_dev, cwd.st_ino) != app_identity:
             raise Refused("serving-process-foreign-working-directory")
         initial_env = proc_bytes(pid, "environ", MAX_PROC_ENVIRONMENT_BYTES)
-        refuse_launch_overrides(item.decode("utf-8", "replace")
-                                for item in initial_env.split(b"\0") if item)
+        environ_tokens = [item.decode("utf-8", "replace")
+                          for item in initial_env.split(b"\0") if item]
+        if pid == main_pid or npm_injected_defaults is None:
+            # The launcher itself, and every process under a non-npm launch
+            # shape (beta's direct next start), keep the strict refusal.
+            refuse_launch_overrides(environ_tokens)
+        else:
+            refuse_serving_launch_overrides(environ_tokens, npm_injected_defaults)
         values = admission_values_in_proc_environ(initial_env)
         if len(values) > 1:
             raise Refused("serving-process-admission-conflict")
@@ -5681,10 +6382,11 @@ def main(argv):
             or primitive[0] not in REGULAR_TREE_MODES):
         raise Refused("primitive-not-a-regular-blob")
     classify_environment_topology(profile, unit, app_root, env_source_dir)
-    classify_launch_wrapper(profile, unit, repository, revision, app_root)
+    npm_launcher_path = classify_launch_wrapper(
+        profile, unit, repository, revision, app_root)
     classify_project_npm_config(repository, revision, listing, app_root)
     if phase == "poststart":
-        classify_serving_processes(unit, app_root)
+        classify_serving_processes(unit, app_root, npm_launcher_path)
         classify_environment_topology(profile, unit, app_root, env_source_dir)
         classify_launch_wrapper(profile, unit, repository, revision, app_root)
         classify_project_npm_config(repository, revision, listing, app_root)
@@ -5777,14 +6479,105 @@ CANONICAL_RECOVERY_SHA=
 DEPLOYMENT_MARKER="$APP/.deployment-id"
 STAGE_ROOT=
 BOOTSTRAP_STATE_RECORD=
+# 1 once a production run has taken its signal traps (deploy_take_signal_traps);
+# the exit path then holds those signals off for the whole recovery.
+DEPLOY_SIGNALS_TRAPPED=0
+# 1 once a production run's deploy_generation_begin has returned, until
+# deploy_generation_abort takes it. Together with the rollback records on disk
+# (which deploy_generation_commit removes) it tells the exit path that a
+# generation is open, uncommitted and has not been rolled back. `opening` while
+# begin itself is running: if it never returns, the exit path decides from the
+# marker and the record on disk (deploy_generation_opening_resolved).
+DEPLOY_GENERATION_OPEN=0
+# deploy_generation_begin and the assignment above must not be separated by a
+# signal: begun-but-unflagged would exit through the pre-swap recovery with the
+# marker already advanced, and flagged-before-begun would roll back from a
+# record that a failed `cp` left half written. While DEPLOY_SIGNAL_DEFER is 1 a
+# trapped signal is only recorded; the deploy body exits on it as soon as the
+# generation is both open and flagged.
+DEPLOY_SIGNAL_DEFER=0
+DEPLOY_SIGNAL_PENDING=
+deploy_signal_exit(){
+  if [ "${DEPLOY_SIGNAL_DEFER:-0}" = 1 ]; then
+    DEPLOY_SIGNAL_PENDING=$1
+    return 0
+  fi
+  exit "$1"
+}
+
+# Production takes these once it has something to put back: before its
+# dependency install, and in every run before its deploy generation opens. From
+# then on an interruption must end as an ordinary recovered failure. A trapped
+# signal is deferred until the foreground command returns and then exits through
+# cleanup_deploy_attempt; untrapped, this shell would be gone with the live
+# generation half moved. HUP/INT/TERM are the three beta holds for its whole run.
+# PIPE is IGNORED rather than trapped: it is raised by this shell's own write to
+# a closed deploy channel, and a trap that exits on it re-enters itself on the
+# next failed write before the exit path can run. Ignored, the write just fails,
+# `log` discards that, and the deploy goes on to its own verdict.
+deploy_take_signal_traps(){
+  DEPLOY_SIGNALS_TRAPPED=1
+  trap 'deploy_signal_exit 129' HUP
+  trap 'deploy_signal_exit 130' INT
+  trap 'deploy_signal_exit 143' TERM
+  trap '' PIPE
+}
+
+# deploy_generation_begin did not return: one of its commands failed under
+# `set -e`. Its last command is the rename that advances the marker, and a
+# signal sent to the whole process group can kill that `mv` after the rename has
+# happened. So the disk decides. The generation is open exactly when the live
+# marker now reads the target AND the record of what it replaced is whole: the
+# prior marker saved as a well-formed, different identity, or the note that
+# there was none. Anything else (the copy or the install failed, the rename
+# never happened) moved nothing live and stays a pre-swap failure; a half
+# written record is never rolled back from.
+deploy_generation_opening_resolved(){
+  local app=$1 want_sha=$2 live prior
+  [ -n "$want_sha" ] || return 1
+  live=$(read_live_deployment_marker "$app/.deployment-id" 2>/dev/null) || return 1
+  [ "$live" = "$want_sha" ] || return 1
+  if [ -e "$app/.deployment-id.absent" ]; then return 0; fi
+  prior=$(read_live_deployment_marker "$app/.deployment-id.bak" 2>/dev/null) || return 1
+  [ "$prior" != "$want_sha" ]
+}
+
 cleanup_deploy_attempt(){
   local rc=$? live_marker restored_head dirty archive_cleanup_failed=0
+  local swapped
   trap - EXIT
-  if [ "$TARGET" = beta ]; then trap '' HUP INT TERM; fi
+  if [ "$TARGET" = beta ] || [ "${DEPLOY_SIGNALS_TRAPPED:-0}" = 1 ]; then trap '' HUP INT TERM PIPE; fi
   set +e
   if [ "$rc" -ne 0 ] && [ "$TARGET" = beta ] && \
       { [ "${BETA_TXN_ACTIVE:-0}" = 1 ] || [ "${DEMOTE_ON_FAILURE:-0}" = 1 ]; }; then
     beta_txn_abort "nonzero exit or trapped interruption (status=$rc)" || true
+  fi
+  if [ "${DEPLOY_GENERATION_OPEN:-0}" = opening ]; then
+    DEPLOY_GENERATION_OPEN=0
+    if deploy_generation_opening_resolved "$APP" "${FULL_SHA:-}"; then
+      DEPLOY_GENERATION_OPEN=1
+      CANONICAL_RECOVERY_ARMED=0
+    fi
+  fi
+  # A production generation that is open here — begun, not committed (its
+  # rollback records are still on disk) and not already rolled back — was
+  # interrupted between deploy_generation_begin and its verdict: by a signal, or
+  # by a bare failing command under `set -e`. It leaves through the same single
+  # abort as every other failure, first, ahead of every slow step below, so the
+  # cumulative containment applies: the prior generation is restarted with every
+  # leg proven, or the selected unit is stopped. Never neither.
+  if [ "$TARGET" = production ] && [ "${DEPLOY_GENERATION_OPEN:-0}" = 1 ] \
+      && { [ -e "$APP/.deployment-id.bak" ] || [ -e "$APP/.deployment-id.absent" ]; }; then
+    swapped=${SWAPPED:-0}
+    # SWAPPED turns 1 only after the forward move of the live build returns, and
+    # a deferred signal exits before that assignment. A vacated live slot beside
+    # the backup this attempt just made IS the swapped state; read as 0 it would
+    # restore the marker over no build at all and touch no service.
+    if [ "$swapped" != 1 ] && [ ! -e "$APP/.next" ] && [ ! -L "$APP/.next" ] && [ -d "$APP/.next.bak" ]; then
+      swapped=1
+    fi
+    [ "$rc" -ne 0 ] || rc=1
+    deploy_generation_abort "$APP" "${FULL_SHA:-}" "$swapped" "interrupted before the deploy generation reached its verdict (status=$rc)" || true
   fi
   if ! beta_bootstrap_archive_cleanup; then
     archive_cleanup_failed=1
@@ -5795,6 +6588,51 @@ cleanup_deploy_attempt(){
   if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
     rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
   fi
+  # An open dependency snapshot at exit means this attempt changed the live app's
+  # dependency inputs and never reached acceptance. That is a failure whatever $?
+  # says, and it is recovered as one. Before live identity began moving, the
+  # inputs this attempt itself saved go straight back: the snapshot is this
+  # process's own record, taken under the build lock, so the restore needs no
+  # second identity proof and must not be skipped when another recovery leg
+  # refuses. After that point deploy_generation_abort owns the restore; a snapshot
+  # still open here was interrupted mid-activation or could not be restored, and
+  # is kept for attended recovery rather than guessed at.
+  #
+  # One snapshot open here is NOT a failure: the generation was accepted and
+  # committed (verdict reached, rollback records removed) and a signal landed
+  # before the acceptance path's own deps_snapshot_discard. The saved inputs are
+  # the replaced generation's; kept under the unresolved name they would report
+  # an accepted deploy as unrecoverable and invite a restore that downgrades the
+  # dependencies under the accepted build. Finish the discard instead.
+  if [ -n "${DEPS_SNAPSHOT_DIR:-}" ] && [ "$TARGET" = production ] \
+      && [ "${DEPLOY_GENERATION_OPEN:-0}" = 1 ] && [ "${DEPLOY_OK:-0}" = 1 ] \
+      && [ ! -e "$APP/.deployment-id.bak" ] && [ ! -e "$APP/.deployment-id.absent" ]; then
+    deps_snapshot_discard
+  fi
+  if [ -n "${DEPS_SNAPSHOT_DIR:-}" ]; then
+    [ "$rc" -ne 0 ] || rc=1
+    if [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
+      log "pre-swap failure: restoring the live app's dependency inputs from $DEPS_SNAPSHOT_DIR"
+      if deps_snapshot_restore "$APP"; then
+        log "pre-swap dependency recovery OK"
+      else
+        log "FATAL: pre-swap dependency recovery failed; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
+        rc=74
+        # The live process is still the accepted build, now beside a dependency
+        # tree that is neither the accepted one nor proven: same containment as
+        # an unresolved rollback leg.
+        deploy_generation_contain
+      fi
+    else
+      log "FATAL: dependency rollback snapshot is unresolved after live identity began moving; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
+      rc=74
+    fi
+  fi
+  # Only now delete a snapshot that a restore resolved (here, or in
+  # deploy_generation_abort), this attempt's failed tree included. It is the slow
+  # step, so every rollback restart or stop is already behind it; it still runs
+  # under the build lock, and before Git needs the space it frees.
+  deps_snapshot_reap
   if [ "$rc" -ne 0 ] && [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
     if live_marker=$(read_live_deployment_marker "$DEPLOYMENT_MARKER") \
       && [ -n "${CANONICAL_RECOVERY_SHA:-}" ] \
@@ -5820,6 +6658,7 @@ cleanup_deploy_attempt(){
       rc=74
     fi
   fi
+  preflight_generation_bundle_cleanup || true
   # Ordinary exits release only this process's verified hold, including guarded
   # failures and a bare set-e abort. Unexplained archive custody instead retains
   # the hold for attended recovery; neither profile may clear another owner.
@@ -5909,6 +6748,18 @@ fi
 # first provisioning archive, the first staging directory, the first Git command
 # and the first service effect, for EITHER profile. The per-target identity and
 # path guards run immediately behind it and stay exactly as strict.
+#
+# PIPE is ignored BEFORE the lock is taken, for EITHER profile: a cancelled caller
+# closes the deploy channel without sending a signal, and the next write raises
+# SIGPIPE. The first such write can be deploy_lock_acquire's own last line, after
+# the hold exists and before the EXIT trap below does: the hold was then left
+# behind and every later deploy refused. Later in the run bash 5.3 dies without
+# its EXIT trap (lock held, canonical checkout on the unaccepted target, stage
+# leaked) and bash 5.2 enters the trap with status 0, skips the recovery and dies
+# again on its own next log line.
+# Ignored (never trapped, see deploy_take_signal_traps) the write just fails,
+# `log` discards that, and the run reaches its own verdict and its cleanup.
+trap '' PIPE
 deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET" || exit $?
 trap cleanup_deploy_attempt EXIT
 if [ "$TARGET" = beta ]; then
@@ -5916,10 +6767,18 @@ if [ "$TARGET" = beta ]; then
   trap 'exit 130' INT
   trap 'exit 143' TERM
 fi
+# 0a') build memory admission — under the shared lock (so no other owner-run build
+# is distorting the reading) and before the first workspace, receipt, Git, source
+# or build effect of either profile. A refusal here leaves nothing to recover.
+require_build_memory /proc/meminfo || exit $?
 if [ "$TARGET" = beta ]; then
   ensure_beta_workspace || exit $?
 fi
 assert_deploy_paths_scoped || exit $?
+# A snapshot an earlier attempt RESOLVED and was killed before deleting holds
+# nothing the live app is owed; it goes now, under the lock, in every production
+# run. An unresolved one is not touched here.
+if [ "$TARGET" = production ]; then deps_snapshot_purge_resolved "$APP"; fi
 
 # 0b) canonical checkout, the trusted preflight bundle, the profile's receipt tree.
 if [ ! -d "$SRC/.git" ]; then
@@ -5948,6 +6807,9 @@ if [ "$BOOTSTRAP_REQUESTED" != 1 ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   if [ "$PREFLIGHT_RECOVERY_REQUIRED" = 1 ]; then
     log "current-generation preflight admitted the sole canonical-head mismatch recovery state"
     recover_canonical_head_mismatch "$SRC" "$DEPLOYMENT_MARKER" || exit $?
+    # The checkout now holds the live accepted generation, so a bundle selected
+    # from the mismatched HEAD no longer describes the files that will execute.
+    bind_preflight_bundle_to_generation "$SRC" "$PREFLIGHT_ACCEPTED_SHA" current || exit $?
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
   fi
 
@@ -5967,6 +6829,12 @@ if [ "$BOOTSTRAP_REQUESTED" != 1 ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   # before any candidate source/build/marker mutation or start. Old targets are
   # decided absent here and keep the incumbent behavior verbatim.
   require_investigation_closed_before_start "$TARGET_SHA" || exit $?
+  if [ "$TARGET" = beta ]; then
+    # Beta acceptance audits the TARGET generation after the checkout moves, so
+    # it must run the target generation's bundle. Production never audits after
+    # the reset and keeps its current-generation selection untouched.
+    bind_preflight_bundle_to_generation "$SRC" "$TARGET_SHA" target || exit $?
+  fi
   CANONICAL_RECOVERY_SHA=$PREFLIGHT_ACCEPTED_SHA
   CANONICAL_RECOVERY_ARMED=1
   git -C "$SRC" reset -q --hard "$TARGET_SHA"
@@ -5986,6 +6854,9 @@ elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
   admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
   require_investigation_closed_before_start "$TARGET_SHA" || exit $?
+  # The provisioned record and every later bootstrap gate are bound to the
+  # TARGET generation's policy, not to whatever the checkout held before it.
+  bind_preflight_bundle_to_generation "$SRC" "$TARGET_SHA" target || exit $?
   sanitize_git_environment
   git -C "$SRC" reset -q --hard "$TARGET_SHA" || exit $?
   git -C "$SRC" clean -qfd || exit $?
@@ -6002,6 +6873,9 @@ elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   if [ "$PREFLIGHT_RECOVERY_REQUIRED" = 1 ]; then
     log "current-generation preflight admitted the sole canonical-head mismatch recovery state"
     recover_canonical_head_mismatch "$SRC" "$DEPLOYMENT_MARKER" || exit $?
+    # The checkout now holds the live accepted generation, so a bundle selected
+    # from the mismatched HEAD no longer describes the files that will execute.
+    bind_preflight_bundle_to_generation "$SRC" "$PREFLIGHT_ACCEPTED_SHA" current || exit $?
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
   fi
 else
@@ -6031,6 +6905,15 @@ log "GIT-GATED: deploying accepted target $FULL_SHA from origin/$BRANCH for targ
 if [ ! -d "$APP/node_modules" ] || ! cmp -s "$TSRC/package-lock.json" "$APP/package-lock.json" 2>/dev/null; then
   log "installing deps (npm ci) — lockfile changed"
   if [ "$TARGET" = beta ]; then beta_txn_inputs_dirty || exit $?; fi
+  if [ "$TARGET" = production ]; then
+    # From here the live app's dependency inputs are about to change, so an
+    # interruption must end as an ordinary recovered failure. A trapped signal is
+    # deferred until the foreground command returns; untrapped, this shell runs
+    # its EXIT recovery at once, while an orphaned `npm ci` is still writing by
+    # path into the very tree being put back.
+    deploy_take_signal_traps
+    deps_snapshot_begin "$APP" || exit $?
+  fi
   cp -f "$TSRC/package.json" "$TSRC/package-lock.json" "$APP/" 2>/dev/null || true
   ( cd "$APP" && npm ci || npm install )
 else
@@ -6053,7 +6936,8 @@ if [ "$TARGET" = beta ]; then
   fi
 fi
 
-# 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env*/public/data — all gitignored)
+# 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env* — gitignored);
+#    production public/data is the git-tracked fixtures only (see below), beta keeps its own
 # The stage is NESTED: $STAGE_ROOT/terminal is the app, and the gated commit's sibling
 # source dirs (ingest/ hub/ signal_layer/ config/ contracts/) sit beside it, so every
 # `../<dir>` the build follows — Next's type-check walks a terminal/ import into
@@ -6121,7 +7005,31 @@ if [ "$TARGET" = beta ]; then
 fi
 printf '%s\n' "$FULL_SHA" > "$STAGE/.deployment-id"
 mkdir -p "$STAGE/public"
-cp -al "$APP/public/data" "$STAGE/public/data" 2>/dev/null || rsync -a "$APP/public/data/" "$STAGE/public/data/" 2>/dev/null || true
+if [ "$TARGET" = beta ]; then
+  cp -al "$APP/public/data" "$STAGE/public/data" 2>/dev/null || rsync -a "$APP/public/data/" "$STAGE/public/data/" 2>/dev/null || true
+else
+  # Production stages ONLY the git-tracked public/data fixtures (the same tree CI
+  # builds with), never the live runtime market data. The Turbopack build walks the
+  # whole project, public/ included, and its memory grows with public/data: on hosted
+  # CI (2 CPUs, this heap ceiling) a same-shape 3.7 GB / 48,713-file tree took the
+  # Next 16.4.6 build from ~2.9 GB to ~8.2 GB peak RSS, and hardlinking the ~6.6 GB
+  # live tree here got the VPS build OOM-killed on 2026-11-10. Neither a tracing
+  # exclude nor turbopackIgnore removed that growth. The build needs none of it: no
+  # route pre-renders from runtime data, the prebuild coverage script writes the live
+  # tree through the scripts/ link above, and step 9 never syncs the stage's
+  # public/data back. The live tree stays in $APP, where the server reads it.
+  # Archived to a file first for the same empty-stream reason as the gated dirs.
+  mkdir -p "$STAGE/public/data"
+  DATA_TAR="$STAGE_ROOT/.public-data.tar"
+  if git -C "$SRC" cat-file -e "HEAD:terminal/public/data" 2>/dev/null; then
+    git -C "$SRC" archive HEAD -- terminal/public/data > "$DATA_TAR"
+  fi
+  if [ -s "$DATA_TAR" ]; then
+    tar -x -f "$DATA_TAR" -C "$STAGE_ROOT/"
+  fi
+  rm -f "$DATA_TAR"
+  log "production stage runtime data: $(find "$STAGE/public/data" -type f | wc -l | tr -d ' ') git-tracked public/data fixture file(s) from $FULL_SHA; live $APP/public/data is not staged"
+fi
 
 # 3) build into the staging tree — the slow part; live site stays up throughout.
 log "next build (staging) ..."
@@ -6182,6 +7090,24 @@ if [ "$RECOVERY_REQUESTED" = 1 ]; then
   [ "$(read_live_deployment_marker "$DEPLOYMENT_MARKER")" = "$FULL_SHA" ] || exit 75
 elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   log "beta bootstrap: no deploy generation is opened; a provisioned source marker is never a rollback baseline"
+elif [ "$TARGET" = production ]; then
+  # Every production run takes the signal traps here, whether or not its
+  # dependencies changed: from this step on the live identity and build move,
+  # and an interruption must reach the one abort (cleanup_deploy_attempt). The
+  # begin and its flag are one step to a signal; see DEPLOY_SIGNAL_DEFER.
+  deploy_take_signal_traps
+  DEPLOY_SIGNAL_DEFER=1
+  # `opening` until begin returns. A begin that fails under `set -e` leaves it
+  # for the exit path to resolve from the disk: a signal sent to the whole
+  # process group can kill the final `mv` after its rename has happened.
+  # (Begin is NOT called in a `||` list: that would switch errexit off inside
+  # it, and a failed `cp` of the rollback record would run on into the move.)
+  DEPLOY_GENERATION_OPEN=opening
+  deploy_generation_begin "$APP" "$STAGE/.deployment-id"
+  DEPLOY_GENERATION_OPEN=1
+  CANONICAL_RECOVERY_ARMED=0
+  DEPLOY_SIGNAL_DEFER=0
+  [ -z "$DEPLOY_SIGNAL_PENDING" ] || exit "$DEPLOY_SIGNAL_PENDING"
 else
   deploy_generation_begin "$APP" "$STAGE/.deployment-id"
 fi
@@ -6302,6 +7228,7 @@ if [ "$DEPLOY_OK" = 1 ] && [ "$PRODUCTION_SHARED_SHELL_ENABLED" = 1 ]; then
 fi
 if [ "$DEPLOY_OK" = 1 ]; then
   deploy_generation_commit "$APP"
+  deps_snapshot_discard
   log "identity verified: $(deploy_identity_line "$APP" "$FULL_SHA")"
 else
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" \

@@ -1,0 +1,14 @@
+{
+  "files": {
+    "EVIDENCE.yml": "8afc067defdfd9955882e0d392f1d2bd34587eb44a8ca310c8b8498b4c4e28ab",
+    "desktop-en-condition.png": "d0308436804fbb9e06bdf92b9a73c53bb5ae904eeb856e79ee72fc5c6e2c55fd",
+    "desktop-en-typed-null.png": "ca6593db5288092d66f010db9209c9393c384d8d104230047e324df80dd9c3f1",
+    "desktop-zh-condition.png": "1de0e5cd47ca319a41f38380cedf5cec3ed5a94ac97b65f71b350c984666ec49",
+    "desktop-zh-typed-null.png": "bc91fc6fcc176ac7fbe7d08807633bc4875019f5b6d32bc6e3652f098ebdf348",
+    "mobile-en-condition.png": "1c5e165c827ad0479eb8c540ab5a1d9e46e2300b154bd0c7674473a84bd8adfe",
+    "mobile-en-typed-null.png": "c7d91384df75a0d196ee7c30b4115cdf5f58c8dcac6c976cab7774eac57d3bb6",
+    "mobile-zh-condition.png": "76b9239b2c7ef2e923e3d4d4b28bb685a1a84298672012d13afc5b82447220e6",
+    "mobile-zh-typed-null.png": "773c75c618a515fe49c1583c177114be5b2704d1c7b15c3ae9c06a02cc985aa4"
+  },
+  "source_packet": "terminal/docs/pr-crops/b-f08-8-invalidation"
+}

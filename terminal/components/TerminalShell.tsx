@@ -554,7 +554,17 @@ function SortableWlRow({ sym, section, selected, dragLabel, className, style, on
   );
 }
 
-type WlContextPoint = { x: number; y: number; symbol: string };
+type WlContextPoint = {
+  x: number;
+  y: number;
+  symbol: string;
+  openingScroll: { owner: HTMLElement; left: number; top: number } | null;
+};
+
+function watchlistContextPoint(symbol: string, x: number, y: number, opener: HTMLElement): WlContextPoint {
+  const owner = opener.closest<HTMLElement>(".wl-scroll");
+  return { symbol, x, y, openingScroll: owner ? { owner, left: owner.scrollLeft, top: owner.scrollTop } : null };
+}
 type WlSectionContextPoint = { x: number; y: number; section: string; initialView?: "main" | "rename" };
 
 function WlBulkContextMenu({
@@ -635,8 +645,14 @@ function WlBulkContextMenu({
   }, [point.x, point.y, view, sections.length]);
 
   useEffect(() => {
-    const close = (event?: Event) => {
-      if (event?.type === "scroll" && event.target instanceof Node && rootRef.current?.contains(event.target)) return;
+    const close = (event: Event) => {
+      if (event.type === "scroll") {
+        if (event.target instanceof Node && rootRef.current?.contains(event.target)) return;
+        const opening = point.openingScroll;
+        // A scroll already reflected when the row opened can be delivered after the menu mounts.
+        if (opening && event.target === opening.owner
+          && opening.owner.scrollLeft === opening.left && opening.owner.scrollTop === opening.top) return;
+      }
       onClose();
     };
     window.addEventListener("scroll", close, true);
@@ -645,7 +661,7 @@ function WlBulkContextMenu({
       window.removeEventListener("scroll", close, true);
       window.removeEventListener("resize", close);
     };
-  }, [onClose]);
+  }, [onClose, point.openingScroll]);
 
   const back = () => { setView("main"); setName(""); };
   const onMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -4050,7 +4066,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setWlSelected((current) => resolveWatchlistContextSelection(current, symbol));
     wlAnchorRef.current = symbol;
     setWlSectionContext(null);
-    setWlContext({ symbol, x: event.clientX, y: event.clientY });
+    setWlContext(watchlistContextPoint(symbol, event.clientX, event.clientY, event.currentTarget));
   }, []);
 
   const openWlSectionContext = useCallback((section: string, point: { x: number; y: number; focus: HTMLElement }, initialView: "main" | "rename" = "main") => {
@@ -7158,7 +7174,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                               wlContextFocusRef.current = event.currentTarget;
                               setWlSelected((current) => resolveWatchlistContextSelection(current, sym));
                               wlAnchorRef.current = sym;
-                              setWlContext({ symbol: sym, x: rect.left + Math.min(36, rect.width / 2), y: rect.top + Math.min(32, rect.height) });
+                              setWlContext(watchlistContextPoint(sym, rect.left + Math.min(36, rect.width / 2),
+                                rect.top + Math.min(32, rect.height), event.currentTarget));
                             }
                           }}
                           onMouseEnter={() => { if (!isCompSym) { prefetch(`/data/${sym}.json`); prefetch(`/data/${sym}.slice.json`); prefetch(`/data/${sym}.intel.json`); } }}

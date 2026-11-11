@@ -1,0 +1,14 @@
+{
+  "all_errors": 45,
+  "all_warnings": 22,
+  "changed_lines": [
+    227,
+    1387,
+    1388,
+    5917,
+    7092,
+    7094,
+    7095
+  ],
+  "findings_on_changed_lines": []
+}

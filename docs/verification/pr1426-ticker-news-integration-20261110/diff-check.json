@@ -1,0 +1,15 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "exit": 0,
+  "scope": "Tracked packet delta; original diagnostic log bytes are retained separately",
+  "stderr": "",
+  "stdout": "",
+  "trackedChangedPaths": [
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png"
+  ]
+}

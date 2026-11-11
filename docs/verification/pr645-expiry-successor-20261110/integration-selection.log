@@ -1,0 +1,146 @@
+Listing tests:
+  [desktop] › exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total
+  [desktop] › exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total
+  [desktop] › exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot
+  [desktop] › exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session
+  [desktop] › exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session
+  [desktop] › exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session
+  [desktop] › exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session
+  [desktop] › exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history
+  [desktop] › exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en)
+  [desktop] › exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh)
+  [desktop] › exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history
+  [desktop] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en
+  [desktop] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh
+  [desktop] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en
+  [desktop] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh
+  [desktop] › options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation
+  [desktop] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary
+  [desktop] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary
+  [desktop] › options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities
+  [desktop] › options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage
+  [desktop] › options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return
+  [desktop] › options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike
+  [desktop] › options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection
+  [desktop] › options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book
+  [desktop] › options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions
+  [desktop] › options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta
+  [desktop] › options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book
+  [desktop] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return
+  [desktop] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary
+  [desktop] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary
+  [desktop] › options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities
+  [desktop] › options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage
+  [desktop] › options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return
+  [desktop] › options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike
+  [desktop] › options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection
+  [desktop] › options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book
+  [desktop] › options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions
+  [desktop] › options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta
+  [desktop] › options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book
+  [desktop] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return
+  [desktop] › options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery
+  [desktop] › options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery
+  [desktop] › options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame
+  [desktop] › options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book
+  [desktop] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark
+  [desktop] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light
+  [desktop] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark
+  [desktop] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light
+  [tablet] › exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total
+  [tablet] › exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total
+  [tablet] › exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot
+  [tablet] › exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session
+  [tablet] › exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session
+  [tablet] › exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session
+  [tablet] › exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session
+  [tablet] › exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history
+  [tablet] › exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en)
+  [tablet] › exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh)
+  [tablet] › exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history
+  [tablet] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en
+  [tablet] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh
+  [tablet] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en
+  [tablet] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh
+  [tablet] › options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation
+  [tablet] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary
+  [tablet] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary
+  [tablet] › options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities
+  [tablet] › options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage
+  [tablet] › options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return
+  [tablet] › options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike
+  [tablet] › options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection
+  [tablet] › options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book
+  [tablet] › options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions
+  [tablet] › options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta
+  [tablet] › options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book
+  [tablet] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return
+  [tablet] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary
+  [tablet] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary
+  [tablet] › options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities
+  [tablet] › options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage
+  [tablet] › options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return
+  [tablet] › options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike
+  [tablet] › options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection
+  [tablet] › options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book
+  [tablet] › options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions
+  [tablet] › options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta
+  [tablet] › options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book
+  [tablet] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return
+  [tablet] › options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery
+  [tablet] › options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery
+  [tablet] › options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame
+  [tablet] › options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book
+  [tablet] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark
+  [tablet] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light
+  [tablet] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark
+  [tablet] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light
+  [mobile] › exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total
+  [mobile] › exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total
+  [mobile] › exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot
+  [mobile] › exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session
+  [mobile] › exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session
+  [mobile] › exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session
+  [mobile] › exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session
+  [mobile] › exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history
+  [mobile] › exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en)
+  [mobile] › exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh)
+  [mobile] › exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history
+  [mobile] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en
+  [mobile] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh
+  [mobile] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en
+  [mobile] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh
+  [mobile] › options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation
+  [mobile] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary
+  [mobile] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary
+  [mobile] › options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities
+  [mobile] › options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage
+  [mobile] › options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return
+  [mobile] › options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike
+  [mobile] › options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection
+  [mobile] › options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book
+  [mobile] › options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions
+  [mobile] › options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta
+  [mobile] › options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book
+  [mobile] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return
+  [mobile] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary
+  [mobile] › options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary
+  [mobile] › options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities
+  [mobile] › options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage
+  [mobile] › options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return
+  [mobile] › options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike
+  [mobile] › options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection
+  [mobile] › options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book
+  [mobile] › options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions
+  [mobile] › options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta
+  [mobile] › options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book
+  [mobile] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return
+  [mobile] › options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery
+  [mobile] › options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery
+  [mobile] › options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame
+  [mobile] › options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book
+  [mobile] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark
+  [mobile] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light
+  [mobile] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark
+  [mobile] › options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light
+Total: 144 tests in 6 files

@@ -1,0 +1,262 @@
+{
+  "run": 42971078823,
+  "artifact": 13834489568,
+  "zip_sha256": "6e04e16fc988166d1262ecd8a577f1b60527c6448077fcbfe9f9f882a344236e",
+  "member": "shared-shell-refinement/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-tablet/trace.zip",
+  "calls": [
+    {
+      "type": "before",
+      "callId": "call@643",
+      "startTime": 68330.357,
+      "class": "Frame",
+      "method": "click",
+      "params": {
+        "selector": ".shared-shell-boundary >> internal:role=button",
+        "strict": true,
+        "timeout": 0
+      },
+      "stepId": "pw:api@53",
+      "pageId": "page@1e6e1b92a48f6fd35ce4c4d35abbef40",
+      "beforeSnapshot": "before@call@643"
+    },
+    {
+      "type": "after",
+      "callId": "call@643",
+      "endTime": 68368.893,
+      "afterSnapshot": "after@call@643"
+    },
+    {
+      "type": "before",
+      "callId": "call@645",
+      "startTime": 68371.079,
+      "title": "Expect \"toHaveAttribute\"",
+      "class": "Frame",
+      "method": "expect",
+      "params": {
+        "selector": "html",
+        "expression": "to.have.attribute.value",
+        "expressionArg": "data-initialized",
+        "expectedText": [
+          {
+            "string": "true"
+          }
+        ],
+        "expectedValue": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        },
+        "isNot": false,
+        "timeout": 5000
+      },
+      "stepId": "expect@54",
+      "pageId": "page@1e6e1b92a48f6fd35ce4c4d35abbef40",
+      "beforeSnapshot": "before@call@645"
+    },
+    {
+      "type": "after",
+      "callId": "call@645",
+      "endTime": 68387.399,
+      "afterSnapshot": "after@call@645"
+    },
+    {
+      "type": "before",
+      "callId": "call@647",
+      "startTime": 68389.483,
+      "class": "Frame",
+      "method": "focus",
+      "params": {
+        "selector": ".topbar button:visible,.mobilebar button:visible >> nth=0",
+        "strict": true,
+        "timeout": 0
+      },
+      "stepId": "pw:api@55",
+      "pageId": "page@1e6e1b92a48f6fd35ce4c4d35abbef40",
+      "beforeSnapshot": "before@call@647"
+    },
+    {
+      "type": "after",
+      "callId": "call@647",
+      "endTime": 68393.812,
+      "afterSnapshot": "after@call@647"
+    },
+    {
+      "type": "before",
+      "callId": "call@649",
+      "startTime": 68395.063,
+      "class": "Frame",
+      "method": "evaluateExpression",
+      "params": {
+        "expression": "() => {\n      window.shellRecoveryFixture.ready();\n    }",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        }
+      },
+      "stepId": "pw:api@56",
+      "pageId": "page@1e6e1b92a48f6fd35ce4c4d35abbef40",
+      "beforeSnapshot": "before@call@649"
+    },
+    {
+      "type": "after",
+      "callId": "call@649",
+      "endTime": 68395.964,
+      "result": {
+        "value": {
+          "v": "undefined"
+        }
+      },
+      "afterSnapshot": "after@call@649"
+    },
+    {
+      "type": "before",
+      "callId": "call@651",
+      "startTime": 68397.312,
+      "title": "Expect \"toBeVisible\"",
+      "class": "Frame",
+      "method": "expect",
+      "params": {
+        "selector": "[data-shared-shell-frame]",
+        "expression": "to.be.visible",
+        "expectedValue": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        },
+        "isNot": false,
+        "timeout": 5000
+      },
+      "stepId": "expect@57",
+      "pageId": "page@1e6e1b92a48f6fd35ce4c4d35abbef40",
+      "beforeSnapshot": "before@call@651"
+    },
+    {
+      "type": "before",
+      "callId": "call@653",
+      "startTime": 68457.144,
+      "class": "Route",
+      "method": "fulfill",
+      "params": {
+        "status": 200,
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "text/html; charset=utf-8"
+          },
+          {
+            "name": "content-length",
+            "value": "1232"
+          }
+        ],
+        "body": "<!doctype html><html><head><meta charset=\"utf-8\"><title>Recovery test workspace</title></head>\n <body><button id=\"workspace-action\">Workspace action</button><script>\n const parentOrigin=\"http://127.0.0.1:32012\";\n const generation=new URL(location.href).searchParams.get(\"mmx_generation\");\n let init=null;\n const send=(body)=>parent.postMessage({protocol:\"mmx.shared-shell.v1\",frameGeneration:generation,...body},parentOrigin);\n const ready=()=>{if(init)send({type:\"READY\",href:new URL(init.canonicalPath,location.origin).href,title:\"Macro\",\n  contextRevision:init.contextRevision,bridgeVersion:\"20261018.1\",documentVersion:\"20261018.1\",responseKind:\"content\"});};\n window.shellRecoveryFixture={ready,fail:()=>send({type:\"ERROR\",code:\"initialization_failed\"}),navigate:(href)=>{\n  history.pushState({},\"\",href);\n  send({type:\"NAVIGATE\",href:new URL(href,location.origin).href,mode:\"push\",sameDocument:true,requestId:crypto.randomUUID()});\n }};\n addEventListener(\"message\",event=>{\n  if(event.source!==parent||event.origin!==parentOrigin||event.data?.type!==\"INIT\"||event.data.frameGeneration!==generation)return;\n  init=event.data;document.documentElement.dataset.initialized=\"true\";\n  if(!true)ready();\n });\n </script></body></html>",
+        "isBase64": false
+      },
+      "stepId": "pw:api@58",
+      "pageId": "page@1e6e1b92a48f6fd35ce4c4d35abbef40"
+    },
+    {
+      "type": "after",
+      "callId": "call@653",
+      "endTime": 68457.549
+    },
+    {
+      "type": "after",
+      "callId": "call@651",
+      "endTime": 73397.632,
+      "error": {
+        "message": "Expect failed",
+        "stack": "ExpectError: Expect failed\n    at _Frame.expect (/opt/actions-runner/slots/ubuntu0-e2e-1/_work/mastermind-terminal/mastermind-terminal/terminal/node_modules/playwright-core/lib/coreBundle.js:23429:17)\n    at _FrameDispatcher.expect (/opt/actions-runner/slots/ubuntu0-e2e-1/_work/mastermind-terminal/mastermind-terminal/terminal/node_modules/playwright-core/lib/coreBundle.js:53562:11)\n    at _ProgressController.run (/opt/actions-runner/slots/ubuntu0-e2e-1/_work/mastermind-terminal/mastermind-terminal/terminal/node_modules/playwright-core/lib/coreBundle.js:11762:27)\n    at _FrameDispatcher._runCommand (/opt/actions-runner/slots/ubuntu0-e2e-1/_work/mastermind-terminal/mastermind-terminal/terminal/node_modules/playwright-core/lib/coreBundle.js:18203:18)\n    at DispatcherConnection.dispatch (/opt/actions-runner/slots/ubuntu0-e2e-1/_work/mastermind-terminal/mastermind-terminal/terminal/node_modules/playwright-core/lib/coreBundle.js:18408:27)",
+        "name": "ExpectError"
+      },
+      "afterSnapshot": "after@call@651"
+    }
+  ],
+  "snapshots": [
+    {
+      "snapshot": "after@call@645",
+      "timestamp": 68388.458,
+      "url": "http://127.0.0.1:32012/macro.html?filter=a%20b&filter=a+b#risk",
+      "generations": [],
+      "initialized": false,
+      "old_generation_present": false,
+      "new_generation_present": false
+    },
+    {
+      "snapshot": "after@call@645",
+      "timestamp": 68388.573,
+      "url": "https://www.mastermind-x.com/macro.html?filter=a%20b&filter=a+b&mmx_shell=1&mmx_generation=6492c94b-e45c-4dd1-a7fd-f2cce309be8f#risk",
+      "generations": [
+        "6492c94b-e45c-4dd1-a7fd-f2cce309be8f"
+      ],
+      "initialized": true,
+      "old_generation_present": true,
+      "new_generation_present": false
+    },
+    {
+      "snapshot": "before@call@649",
+      "timestamp": 68395.547,
+      "url": "http://127.0.0.1:32012/macro.html?filter=a%20b&filter=a+b#risk",
+      "generations": [],
+      "initialized": false,
+      "old_generation_present": false,
+      "new_generation_present": false
+    },
+    {
+      "snapshot": "before@call@649",
+      "timestamp": 68395.582,
+      "url": "https://www.mastermind-x.com/macro.html?filter=a%20b&filter=a+b&mmx_shell=1&mmx_generation=6492c94b-e45c-4dd1-a7fd-f2cce309be8f#risk",
+      "generations": [
+        "6492c94b-e45c-4dd1-a7fd-f2cce309be8f"
+      ],
+      "initialized": false,
+      "old_generation_present": true,
+      "new_generation_present": false
+    },
+    {
+      "snapshot": "after@call@649",
+      "timestamp": 68396.412,
+      "url": "http://127.0.0.1:32012/macro.html?filter=a%20b&filter=a+b#risk",
+      "generations": [],
+      "initialized": false,
+      "old_generation_present": false,
+      "new_generation_present": false
+    },
+    {
+      "snapshot": "after@call@649",
+      "timestamp": 68396.446,
+      "url": "https://www.mastermind-x.com/macro.html?filter=a%20b&filter=a+b&mmx_shell=1&mmx_generation=6492c94b-e45c-4dd1-a7fd-f2cce309be8f#risk",
+      "generations": [
+        "6492c94b-e45c-4dd1-a7fd-f2cce309be8f"
+      ],
+      "initialized": false,
+      "old_generation_present": true,
+      "new_generation_present": false
+    },
+    {
+      "snapshot": "after@call@651",
+      "timestamp": 73399.501,
+      "url": "http://127.0.0.1:32012/macro.html?filter=a%20b&filter=a+b#risk",
+      "generations": [],
+      "initialized": false,
+      "old_generation_present": false,
+      "new_generation_present": false
+    },
+    {
+      "snapshot": "after@call@651",
+      "timestamp": 73399.785,
+      "url": "https://www.mastermind-x.com/macro.html?filter=a%20b&filter=a+b&mmx_shell=1&mmx_generation=c0a65fa6-1a03-4526-a962-297d5424c13e#risk",
+      "generations": [
+        "c0a65fa6-1a03-4526-a962-297d5424c13e"
+      ],
+      "initialized": true,
+      "old_generation_present": false,
+      "new_generation_present": true
+    }
+  ],
+  "finding": "READY was evaluated against the old child generation 61.18ms before the replacement route was fulfilled; wait for a nonempty new generation before initializing and sending READY once."
+}

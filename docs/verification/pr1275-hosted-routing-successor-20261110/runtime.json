@@ -1,0 +1,20 @@
+{
+  "browserStore": "/Users/chriswong/Library/Caches/ms-playwright",
+  "dependencyCopy": "APFS clone",
+  "dependencyDonor": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal",
+  "lockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "node": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-routing-f11-successor/.pr1275-routing-runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "runtimeCopy": "physical owned copy; source preserved",
+  "schema": "terminal.pr1275.scoped-runtime-reuse.v1",
+  "sourceHead": "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+  "sourceRuntime": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64",
+  "sourceTree": "f6b2202bea775cebbd867deccc05bb9c69034412",
+  "versions": {
+    "chromium": "/Users/chriswong/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "chromiumPathProvenance": "Playwright chromium.executablePath() lookup; no independent spawned-binary inspection was performed.",
+    "next": "16.2.9",
+    "node": "v22.23.4",
+    "playwright": "1.61.1"
+  }
+}

@@ -1,0 +1,32 @@
+Listing tests:
+  [desktop] › statistics-basis-controls.spec.ts:78:7 › analysis en: selected statistics basis matches available ratios
+  [desktop] › statistics-basis-controls.spec.ts:78:7 › analysis zh: selected statistics basis matches available ratios
+  [desktop] › statistics-basis-controls.spec.ts:78:7 › terminal en: selected statistics basis matches available ratios
+  [desktop] › statistics-basis-controls.spec.ts:78:7 › terminal zh: selected statistics basis matches available ratios
+  [desktop] › statistics-basis-controls.spec.ts:143:7 › annual-only basis preserves honest availability guidance
+  [desktop] › statistics-basis-controls.spec.ts:143:7 › semiannual-only basis preserves honest availability guidance
+  [desktop] › statistics-current-tables.spec.ts:94:7 › analysis en: current values fit beside their labels
+  [desktop] › statistics-current-tables.spec.ts:94:7 › analysis zh: current values fit beside their labels
+  [desktop] › statistics-current-tables.spec.ts:94:7 › terminal en: current values fit beside their labels
+  [desktop] › statistics-current-tables.spec.ts:94:7 › terminal zh: current values fit beside their labels
+  [tablet] › statistics-basis-controls.spec.ts:78:7 › analysis en: selected statistics basis matches available ratios
+  [tablet] › statistics-basis-controls.spec.ts:78:7 › analysis zh: selected statistics basis matches available ratios
+  [tablet] › statistics-basis-controls.spec.ts:78:7 › terminal en: selected statistics basis matches available ratios
+  [tablet] › statistics-basis-controls.spec.ts:78:7 › terminal zh: selected statistics basis matches available ratios
+  [tablet] › statistics-basis-controls.spec.ts:143:7 › annual-only basis preserves honest availability guidance
+  [tablet] › statistics-basis-controls.spec.ts:143:7 › semiannual-only basis preserves honest availability guidance
+  [tablet] › statistics-current-tables.spec.ts:94:7 › analysis en: current values fit beside their labels
+  [tablet] › statistics-current-tables.spec.ts:94:7 › analysis zh: current values fit beside their labels
+  [tablet] › statistics-current-tables.spec.ts:94:7 › terminal en: current values fit beside their labels
+  [tablet] › statistics-current-tables.spec.ts:94:7 › terminal zh: current values fit beside their labels
+  [mobile] › statistics-basis-controls.spec.ts:78:7 › analysis en: selected statistics basis matches available ratios
+  [mobile] › statistics-basis-controls.spec.ts:78:7 › analysis zh: selected statistics basis matches available ratios
+  [mobile] › statistics-basis-controls.spec.ts:78:7 › terminal en: selected statistics basis matches available ratios
+  [mobile] › statistics-basis-controls.spec.ts:78:7 › terminal zh: selected statistics basis matches available ratios
+  [mobile] › statistics-basis-controls.spec.ts:143:7 › annual-only basis preserves honest availability guidance
+  [mobile] › statistics-basis-controls.spec.ts:143:7 › semiannual-only basis preserves honest availability guidance
+  [mobile] › statistics-current-tables.spec.ts:94:7 › analysis en: current values fit beside their labels
+  [mobile] › statistics-current-tables.spec.ts:94:7 › analysis zh: current values fit beside their labels
+  [mobile] › statistics-current-tables.spec.ts:94:7 › terminal en: current values fit beside their labels
+  [mobile] › statistics-current-tables.spec.ts:94:7 › terminal zh: current values fit beside their labels
+Total: 30 tests in 2 files

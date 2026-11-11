@@ -47,8 +47,19 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     assert steps[capture_index]["timeout-minutes"] == 85
     assert not steps[prepare_index].get("continue-on-error", False)
     assert not steps[capture_index].get("continue-on-error", False)
-    # Preserve any source-qualified merge-group capture condition, not a new skip.
-    assert steps[prepare_index].get("if") == steps[capture_index].get("if")
+    assert "if" not in steps[prepare_index]
+    assert steps[capture_index]["if"] == (
+        "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+    )
+    f11_index = next(i for i, step in enumerate(steps)
+                     if step.get("name") == "Capture provider-closed F11 theses entry on this checkout")
+    unit_index = next(i for i, step in enumerate(steps) if step.get("run") == "npm test")
+    assert prepare_index < capture_index < f11_index < unit_index
+    f11 = steps[f11_index]
+    assert "if" not in f11
+    assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+    assert f11["timeout-minutes"] == 8
+    assert not f11.get("continue-on-error", False)
 
 
 MOCK_INSTALLERS = r'''

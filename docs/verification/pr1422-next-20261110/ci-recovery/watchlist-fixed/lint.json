@@ -1,0 +1,8 @@
+{
+  "command": [
+    "node",
+    "node_modules/eslint/bin/eslint.js",
+    "e2e/watchlist-annotation-sync.spec.ts"
+  ],
+  "exit": 0
+}

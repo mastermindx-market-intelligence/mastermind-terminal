@@ -1,0 +1,55 @@
+{
+  "schema": "terminal.pr1275.cache-composition-test.inventory.v1",
+  "baseHead": "edb979fdf580713052c14297018d0aca0fdb3052",
+  "files": [
+    {
+      "path": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "bytes": 55662,
+      "sha256": "ba73977ebed32b579e8fa8ba74718fa2d9d738e602cfadf62dfcd72eb556b40e",
+      "gitBlob": "8c4642c4883149a736b0194aee52ccf96e4c1ae4"
+    },
+    {
+      "path": "docs/verification/pr1275-cache-composition-test-20261110/QUALIFICATION.json",
+      "bytes": 4407,
+      "sha256": "e0c55b8f9bea65f8f705d45f652799c3b2598daf79f2ebce949070521d8d198e",
+      "gitBlob": "d232c2c05cf47ff0858307d50c0ef255c5d3fb6c"
+    },
+    {
+      "path": "docs/verification/pr1275-cache-composition-test-20261110/README.md",
+      "bytes": 1850,
+      "sha256": "5dab60c7e8b087ab1c9fa66388de034f86562596bb614826db88253830cd3c0b",
+      "gitBlob": "a16f48a6ead3fb85c8831b9328daaba68da1d62a"
+    },
+    {
+      "path": "docs/verification/pr1275-cache-composition-test-20261110/causal-failure.json",
+      "bytes": 7550,
+      "sha256": "dcf56f1b944b3ee23b8dfb7e7e3d1e54702bf1c8bd6b5de8f0f2e12a748f00b2",
+      "gitBlob": "677a469f69575a9cdae5940016dae40a3cc832de"
+    },
+    {
+      "path": "docs/verification/pr1275-cache-composition-test-20261110/execution.json",
+      "bytes": 1396,
+      "sha256": "e69c06afbe35d2b5c7b9ac1b2bfc31f2cc26783c9cdec3b64818a27d95196481",
+      "gitBlob": "5138509d12f3eeb13b012db9bf30ce2597c1b8fd"
+    },
+    {
+      "path": "docs/verification/pr1275-cache-composition-test-20261110/preservation.json",
+      "bytes": 24210,
+      "sha256": "0f0cdb9c43ffcb229044a6900d2728cc7ec922ca58adce4cdebab4ff33ec81e6",
+      "gitBlob": "9fbf0302eac1de9786c9af801f1a9251a0f127bb"
+    },
+    {
+      "path": "docs/verification/pr1275-cache-composition-test-20261110/source.diff",
+      "bytes": 4463,
+      "sha256": "cca89d87393c615228b220013fef80ff0104ca189df01c7e858204132284a6fa",
+      "gitBlob": "5b3131c23c03d2cc53b6ddd74af5c6594265fe45"
+    },
+    {
+      "path": "docs/verification/pr1275-cache-composition-test-20261110/synthetic-gate.log",
+      "bytes": 75826,
+      "sha256": "09e37eabdbf68460d1e5bd880c11bd8c1f30c684f0a291b6729528cd5c567490",
+      "gitBlob": "fa900588207f855e6079df5a550f0fde75322576"
+    }
+  ],
+  "selfExcluded": true
+}

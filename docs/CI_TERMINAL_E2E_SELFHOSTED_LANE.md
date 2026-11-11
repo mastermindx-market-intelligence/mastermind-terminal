@@ -113,8 +113,9 @@ slots alone cannot establish the five-minute architecture's acceptance.
 
 **One OS user per slot, no sudo, no login.** Every slot `ubuntu0-e2e-N` runs as
 its own unprivileged user `ghrunner-N` with its own home, created with
-`useradd -m -s /usr/sbin/nologin ghrunner-N` (locked password, no shell) and
-listed in `DenyUsers ghrunner-*` in `sshd_config`. A slot user that could log in
+`useradd -m -s /usr/sbin/nologin ghrunner-N` (locked password, no shell, its private
+group only, no sudo) and listed in `DenyUsers ghrunner ghrunner-*` in `sshd_config`
+(`ghrunner` is the retired canary account, locked the same way). A slot user that could log in
 (a job can drop its own key into `~/.ssh/authorized_keys` and `ssh` to
 `127.0.0.1`) would get a logind session scope under `user-<uid>.slice`, outside
 the job cgroup described below, and a process started there would survive the
@@ -122,8 +123,12 @@ cgroup kill. Slots must not share a uid: a
 job on slot M running as the same uid as slot N could read slot N's
 `/proc/<pid>/cmdline` and `environ`, its `.credentials` / `.credentials_rsaparams`
 / `.runner` files (the runner's private key and identity) and so impersonate
-slot N's runner or reuse its registration token. Mount `/proc` with `hidepid=2`
-so command lines are hidden across uids as well. Install the Playwright Chromium
+slot N's runner or reuse its registration token. Hide other uids' processes as
+well: mount `/proc` with `hidepid=2` host-wide, or, where that breaks the desktop
+session, run each slot unit with `ProtectProc=invisible` (its private procfs is
+`hidepid=invisible`; the loop asserts it) **and** let no other uid run untrusted code
+on the host: the slot unit is the only place jobs run, and the loop refuses to mint
+while any other actions runner service is active there. Install the Playwright Chromium
 system libraries once as an administrator (`npx playwright install-deps chromium`
 from any checkout of this repository) so the job's bounded `--with-deps` step can
 fail over to its browser-only path without apt.
@@ -181,86 +186,89 @@ survivor. The unit also runs with
 whatever the loop did not. The canary's caveat stands: registration alone does not
 clean the filesystem; this loop is what does.
 
-**Host prerequisites the loop assumes** (verify once per host before enabling a
-slot; none of these has been observed on ubuntu0 yet): unified cgroup v2 only
-(`/proc/self/cgroup` is a single `0::` line; the loop asserts this and exits
-otherwise), kernel 5.14 or later for `cgroup.kill`, every slot user with shell
-`/usr/sbin/nologin` and named in `DenyUsers` in `sshd_config` (no other login
-service enabled for it), `/etc/cron.deny` and `/etc/at.deny` naming every slot
-user and no `/etc/cron.allow` or `/etc/at.allow` naming one (an allow file makes
-cron and `at` ignore the deny file; the loop asserts both), linger off for every
-slot user (`loginctl show-user ghrunner-N` reports `Linger=no`), the `USER` column of
-`loginctl list-sessions --no-legend` being the third (systemd 249 to 256 layout; the
-loop's session check reads it), `/etc/pam.d/sudo` not
-pulling in `pam_systemd` (Ubuntu's `common-session-noninteractive` does not; a
-stack that does would move `run.sh` into a `user-N.slice` session scope outside
-the job cgroup), and no auditd `execve` rule that records argv, which would log the
-JIT config blob.
+**The host files are in [`ops/terminal-e2e-lane/`](../ops/terminal-e2e-lane/)**, and
+the installed copies must be byte-identical to them:
 
-```
-# system unit for slot N (PrivateTmp=yes, Delegate=yes), running as root for the reset;
-# minting runs as ghmint, the only account that can read the org credential. The only
-# sudoers line this needs is
-#   Defaults!/opt/actions-runner/slots/ubuntu0-e2e-N/run.sh !log_allowed
-# so the JIT blob on that command line is not written to the auth log (root runs
-# run.sh as ghrunner-N under the stock `root ALL=(ALL:ALL) ALL` line; nothing grants
-# ghmint or ghrunner-N any sudo). Keep the unit's default KillMode=control-group.
-# Do not replace the sudo with `systemd-run`: a transient unit's ExecStart, JIT blob
-# included, is readable by every user through `systemctl show`.
-u=ghrunner-N; slot=/opt/actions-runner/slots/ubuntu0-e2e-N
-# unified cgroup v2 only: on a hybrid/v1 host /proc/self/cgroup has several lines and
-# the path below would be wrong
-[ "$(wc -l < /proc/self/cgroup)" = 1 ] && grep -q '^0::' /proc/self/cgroup || exit 1
-unit_cg="/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)"; job_cg="$unit_cg/job"
-grep -qx "$u" /etc/cron.deny && grep -qx "$u" /etc/at.deny || exit 1   # timers denied at the source
-! grep -qx "$u" /etc/cron.allow /etc/at.allow 2>/dev/null || exit 1     # an allow file overrides deny
-[ "$(getent passwd "$u" | cut -d: -f7)" = /usr/sbin/nologin ] || exit 1  # no login path for the slot user
-sshd -T -C user="$u",host=localhost,addr=127.0.0.1 | grep -qi '^denyusers .*ghrunner-' || exit 1  # sshd denies it too
-while :; do
-  # 1. no timer may fire as $u after the reset: purge cron/at BEFORE killing anything
-  crontab -r -u "$u" 2>/dev/null; for j in $(atq | awk -v u="$u" '$NF==u{print $1}'); do atrm "$j"; done
-  # 2. dead slot: kill the previous job's cgroup (not a process-list snapshot)
-  if [ -d "$job_cg" ]; then
-    echo 1 > "$job_cg/cgroup.kill" || exit 1   # kernel < 5.14: fail, do not spin
-    until grep -q '^populated 0' "$job_cg/cgroup.events"; do sleep 0.2; done   # cgroup.procs is always size 0
-    rmdir "$job_cg" || exit 1
-  fi
-  loginctl terminate-user "$u" 2>/dev/null   # nothing should be there; a session means a misconfigured host
-  pkill -KILL -u "$u"; sleep 1
-  # 3. fresh home, temp and runner tree, readable by this slot only
-  find /tmp /var/tmp /dev/shm /run/lock /var/crash /dev/mqueue -user "$u" -delete 2>/dev/null
-  rm -rf "/home/$u" "$slot"
-  mkdir -p "/home/$u" && cp -a /etc/skel/. "/home/$u/" && chown -R "$u:$u" "/home/$u" && chmod 0700 "/home/$u"
-  mkdir -p "$slot" && tar xzf /opt/actions-runner/actions-runner-linux-x64.tar.gz -C "$slot"
-  chown -R "$u:$u" "$slot" && chmod 0700 "$slot"
-  # 4. fail closed, as the last statements before the mint
-  if loginctl list-sessions --no-legend | awk '{print $3}' | grep -qx "$u"; then echo "slot $u has a logind session; not minting" >&2; exit 1; fi
-  if pgrep -u "$u" >/dev/null; then echo "slot $u still has a live process; not minting" >&2; exit 1; fi
-  # 5. one-shot JIT config, minted as ghmint, handed only to this run.sh in a fresh job cgroup.
-  #    The shell that writes itself into cgroup.procs is the one that execs run.sh (in a
-  #    `( ... )` subshell `$$` is still the loop shell's pid, so the job would stay outside).
-  jit="$(sudo -u ghmint mint-jitconfig ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)"  # never echoed
-  mkdir "$job_cg" || exit 1
-  sh -c 'echo $$ > "$1/cgroup.procs" && shift && exec "$@"' _ "$job_cg" sudo -u "$u" "$slot/run.sh" --jitconfig "$jit"
-done
-```
+| file | installed as | role |
+| --- | --- | --- |
+| `provision.sh` | run once as root | asserts the host prerequisites, retires every other actions runner service on the host (disable, refuse beside a running job, stop, read back), locks the retired canary account, creates `ghmint` and the slot users, writes and live-reloads the sshd deny, installs the files below |
+| `terminal-e2e-slot` | `/usr/local/sbin/`, 0700 root | the per-slot loop |
+| `terminal-e2e-slot@.service` | `/etc/systemd/system/` | one unit per slot: `PrivateTmp`, `PrivateIPC`, `ProtectProc=invisible`, the host's other world-writable directories read-only, `Delegate=yes`, 6G/7G memory, `LimitCORE=0`, `Restart=no` |
+| `terminal_e2e.slice` | `/etc/systemd/system/` | aggregate memory bound for all slots (22G high / 24G max, an initial value to re-measure) |
+| `mint-jitconfig` | `/usr/local/bin/`, 0755 root | mints a JIT config as `ghmint`; `status` / `check` read the group back |
 
-The unit's `Restart=on-failure` must **not** be used to paper over the fail-closed
-`exit 1`: a slot that refuses to mint has a survivor on it and needs an operator to
-look, not an automatic retry beside it.
+**Host prerequisites the loop asserts on every start** (it exits otherwise): unified
+cgroup v2 only, running as `terminal-e2e-slot@N.service` in `terminal_e2e.slice`
+(run by hand, the job would land in the caller's session cgroup outside the sandbox),
+`/proc` mounted `hidepid=invisible` and an IPC namespace that is not the host's (the
+reset runs `ipcrm --all`), the slot user with shell `/usr/sbin/nologin`, home
+`/home/ghrunner-N`, a uid no other account shares, its private group only and no sudo
+rights, linger off, `/etc/cron.deny` and `/etc/at.deny` naming it and no allow file
+naming it (an allow file makes cron and `at` ignore the deny file), `sshd -T` denying
+`ghrunner` and `ghrunner-*`, the retired canary account locked with no shell and no
+linger, and the pristine runner tarball. Kernel 5.14 or later is needed for
+`cgroup.kill`, and util-linux `setpriv` (the loop drops to the slot user with it rather
+than `sudo`, so no PAM session stack runs for `run.sh` and nothing can move it into a
+`user-N.slice` session scope outside the job cgroup). The JIT config blob is never in
+argv, so an auditd `execve` rule cannot record it.
+
+**One cycle of the loop**, in this order:
+
+1. Purge any crontab (the spool file must be gone afterwards) and `at` entry of the slot
+   user **before** killing anything.
+2. Kill the previous job's cgroup through `cgroup.kill`, wait at most 60 seconds for
+   `cgroup.events` to report `populated 0` (an unkillable task stops the slot with
+   `RETRYING_CLEANUP_BLOCKED` instead of wedging it), and remove it. A slot-user process
+   still alive outside that cgroup is an escape: the loop kills it and stops.
+3. Remove every IPC object in the unit's private namespace, delete the slot user's files
+   under `/tmp`, `/var/tmp` (both private to the unit), `/dev/shm`, `/dev/mqueue` and
+   `/run/lock` and re-scan that none survived, rebuild the home from `/etc/skel` and
+   the runner tree from the tarball (both 0700), and create the fresh job cgroup.
+4. **Fail closed**, as the last statements before the mint: a logind session or
+   `/run/user/<uid>` for the slot user, a live process of the slot user or of the
+   retired canary account, or another active actions runner service stops the slot. A
+   failed query stops it too; it never reads as "none".
+5. Mint one JIT config as `ghmint`. `mint-jitconfig` exits 75 for an API or network
+   failure: the loop backs off (15 s doubling to 300 s) and starts the cycle again. Any
+   other refusal stops the slot.
+6. Hand the config to `run.sh` in the environment variable
+   `ACTIONS_RUNNER_INPUT_JITCONFIG`, never in argv: `/proc/<pid>/cmdline` is readable
+   by every uid outside the unit and `sudo` writes its whole command line to the auth
+   log. A subshell drops every exported variable and function (by name, never printing
+   a value), sets what `sudo -H -u` would give the job (`env_reset`, `secure_path`) plus
+   the config, writes its own `$BASHPID` into the job cgroup and `exec`s
+   `setpriv --reuid --regid --init-groups run.sh`, so no root parent holds the value
+   for the life of the job. Runner.Listener reads the variable and removes it from its
+   own environment; `/proc/<pid>/environ` is readable only by the slot uid and root. Do
+   not use `systemd-run` for this either: a transient unit's ExecStart and Environment
+   are readable by every user through `systemctl show`.
+7. A runner that exits nonzero within 30 seconds never took a job, and its registration
+   may still exist offline: the loop stops rather than minting again over an uncertain
+   start.
+
+**A slot that stops needs an operator, not a restart.** `Restart=no` is deliberate:
+every local failure means a survivor, a broken prerequisite or an uncertain
+registration. Read the unit's journal, fix the cause, and if the runner's registration
+is in doubt run `mint-jitconfig status <group-id>` as `ghmint` before
+`systemctl start terminal-e2e-slot@N`. On the next mint, a 409 (the name is taken)
+deletes the old registration only when it is provably the slot's own stale one: exactly
+one runner of that name in the organization (every page read; a partial list is never
+used), in the lane's group, with an integer id, explicitly not busy, offline, and with
+exactly the lane's four labels. Anything else exits 3 and the slot stays down. The
+recovery never deletes a busy or online runner, so it cannot cancel a live job.
 
 The JIT config must carry **all four labels**; `runs-on` requires every label in
-the array. Never list runner processes with their arguments (`ps -f`, `pgrep -a`)
-in a shared transcript: the JIT config blob on the command line is credential
-material for that one job.
+the array. The JIT config blob is never on a command line, but job processes can
+still carry tokens in theirs (for example `git` given an auth header): never list runner processes with their arguments
+(`ps -f`, `pgrep -a`) or dump a process environment in a shared transcript.
 
 **What this does and does not bound.** With per-slot users that cannot log in,
-`hidepid=2`, JIT configs, 0700 slot and home directories, cron and `at` denied, a
-cgroup kill that fails closed, and a fresh home, runner tree and temp files before
-every job, one approved run cannot
-read another slot's credentials and cannot persist a process, cron entry, dotfile
-or file into a later job on its own slot (a leftover file in some other sticky
-directory is unreachable once no process survives to use it). It can still read anything world-readable on the host, use
+hidden processes across uids, JIT configs handed over outside argv, 0700 slot and home
+directories, cron and `at` denied, a cgroup kill that fails closed, a private IPC
+namespace, the host's other world-writable directories read-only, and a fresh home,
+runner tree and scratch files before every job, one approved run cannot read another
+slot's credentials and cannot persist a process, cron entry, dotfile, IPC object or
+file into a later job on its own slot. It can still read anything world-readable on the host, use
 the host's network position, and exhaust the host; those are the residual trust
 decision. Running this lane is a recorded administrator decision that every
 approved run of this repository (including a maintainer-approved fork run that
@@ -268,8 +276,15 @@ edits the workflow file) executes on ubuntu0 inside that boundary.
 
 ### Turning the lane on
 
-1. Register the slots above and confirm each shows **Idle** under the repository's
-   runners with the four labels.
+1. Install the org credential and group id for `ghmint` and run `provision.sh`.
+   Before any slot starts, `mint-jitconfig check <group-id>` (as `ghmint`) must show
+   the group with selected-repository visibility, this repository as its only
+   repository, and public repositories allowed (this repository is public). Then
+   `systemctl enable --now terminal-e2e-slot@N` for each slot and confirm with
+   `mint-jitconfig status <group-id>` that each `ubuntu0-e2e-N` shows online and idle
+   with the four labels. A slot whose runner does not consume the configuration exits
+   at once and stops (step 7 above), so an online, idle runner also proves the
+   environment handoff on that host.
 2. Set the repository variable `TERMINAL_E2E_LANE=ubuntu0` (and optionally
    `TERMINAL_E2E_WORKERS`).
 3. Watch the next same-repository pull request, merge-group or dispatch run: every
@@ -281,8 +296,8 @@ edits the workflow file) executes on ubuntu0 inside that boundary.
 1. Delete the `TERMINAL_E2E_LANE` repository variable (or set it to anything but
    `ubuntu0`). The next run of this unmodified job is hosted. This restores
    **routing only**.
-2. Stop the slot units (the per-slot system units; `svc.sh stop` for any
-   service-installed runner) so no runner is listening for the four labels. A JIT
+2. Stop the slot units (`systemctl disable --now terminal-e2e-slot@N`; `svc.sh stop`
+   for any service-installed runner) so no runner is listening for the four labels. A JIT
    runner that is mid-job finishes that job and deregisters itself. Until this step
    a workflow that names the labels can still reach the host.
 
