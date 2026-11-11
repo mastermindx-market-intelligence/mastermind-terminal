@@ -1,0 +1,18 @@
+{
+  "imageCount": 12,
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "observed": "All twelve current harness images inspected. Menu, grouped actions, sharing confirmation and read-only explanation fit without observed clipping or overlap; no Next dev indicator is visible. Read-only menus omit rename/delete/share; confirmation and grouped controls are present in their expected states. Fixture workspace names remain their supplied English text. These are controlled dev-harness captures, not authenticated production sharing or the full Terminal workspace.",
+  "reviewedAt": "2026-11-10",
+  "states": [
+    "team-grouped",
+    "share-confirm",
+    "member-read-only"
+  ],
+  "viewports": [
+    "desktop 1440\u00d7900",
+    "mobile 390\u00d7844"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "EVIDENCE.yml": {
+    "bytes": 4657,
+    "gitBlob": "60740f8a7296d2ab0f249b875cf90dfccfb7a46d",
+    "sha256": "5d1cacd4c574aee18de6c536d489c149957b57bf984d3089bde27fb9ba867855"
+  },
+  "desktop-en-empty-members.png": {
+    "bytes": 144398,
+    "gitBlob": "dac70b5ef7e61754cda4cf717dc7aff86f8c2712",
+    "sha256": "d10c85f91ef7c1e665770c5beea2acfbb7b5307a352e172f18fad40ecaa11f3f"
+  },
+  "desktop-en-no-rows.png": {
+    "bytes": 144410,
+    "gitBlob": "ef979c5f590b7f1ec86352e2ca7eca8d3ac76edb",
+    "sha256": "dd25b649ed14fdccd20e3c4fd894bc930beae529959b9d0110cdc65e0444f0fd"
+  },
+  "desktop-en-ok.png": {
+    "bytes": 156937,
+    "gitBlob": "8715f2c107fe5a6b93e9f547308c90b62bc3c8d7",
+    "sha256": "61a85a059dec0b45041705e83b48de592c32906089e7b84b6aed8ff511ab30b2"
+  },
+  "desktop-zh-empty-members.png": {
+    "bytes": 150402,
+    "gitBlob": "d56ba4dd57c00214aa26aff26f563fb798dc1dbf",
+    "sha256": "a8e654c13052c7485688aa5a094c7579f7b6e359d9c232d3de4e81f407841eda"
+  },
+  "desktop-zh-no-rows.png": {
+    "bytes": 149750,
+    "gitBlob": "ac0bd571e7faf647ddc5363f17244b7afefbb3fa",
+    "sha256": "4f06b2618a261e6a7efaee730dd6f09500a9a5557b2c8eafac9cf9b65d727e45"
+  },
+  "desktop-zh-ok.png": {
+    "bytes": 164585,
+    "gitBlob": "f5e589f8e52545f513486ad26c2352c077702d7a",
+    "sha256": "54b92d0c9d2b63f5b070a693c023b11250e85f08d818e482da880233d3794998"
+  },
+  "mobile-en-empty-members.png": {
+    "bytes": 95571,
+    "gitBlob": "9f6ccfc1c781569ad6e6dbeffc9f53d923dde88d",
+    "sha256": "924250be4456aa63ad0a28ea6cc04e0d1baafa5939ad3006a7c1f66f35a47ed5"
+  },
+  "mobile-en-no-rows.png": {
+    "bytes": 96082,
+    "gitBlob": "443d8cb0438e341449223c0745abbdc988649af7",
+    "sha256": "699bb5ef4c90bae9a9849f803cc8f0ed9ad8d9564030281e6ef9d8cdfc7cfa6b"
+  },
+  "mobile-en-ok.png": {
+    "bytes": 107816,
+    "gitBlob": "5f5d0a73f30e7ff1dd11238a8d7cb7b5722b56a0",
+    "sha256": "a88c40e950264ea9bd455cc8e1193c3f71c9e67eff30b4ef7980ec58d33790b9"
+  },
+  "mobile-zh-empty-members.png": {
+    "bytes": 100107,
+    "gitBlob": "31bab78429b1df6b436b51149a3973fc22589af4",
+    "sha256": "d6c3a5aeb7f395c10de5ccb648cd79160058334639201ea4cbd6a84a5c2b0427"
+  },
+  "mobile-zh-no-rows.png": {
+    "bytes": 99626,
+    "gitBlob": "8d6446a51064fca6b78cc9bf239ea818e97c85be",
+    "sha256": "372856e95b78588c416aef079406bc8e51e7c710151711af586ef0ca4a539b52"
+  },
+  "mobile-zh-ok.png": {
+    "bytes": 112496,
+    "gitBlob": "976ea49954702012e6b88c621ee58526a4a0d18d",
+    "sha256": "622073f8fd7e870d17c34becd0b8ff191fa8aa2cc11587ac7e7d55544377f9b9"
+  }
+}

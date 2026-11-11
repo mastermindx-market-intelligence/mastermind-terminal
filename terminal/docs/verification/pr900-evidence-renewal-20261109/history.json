@@ -1,0 +1,33 @@
+{
+  "inventories": {
+    "b-f12-b5-1-grants/prior-pr": {
+      "files": 13,
+      "inventorySha256": "0b0d5403383e535fd4f119a49501c0ad123d557249bf8ed2a4281e57d84d530b"
+    },
+    "b-f12-b5-1-grants/prior-protected": {
+      "files": 13,
+      "inventorySha256": "bc7ba6cf209ff97a93cd318a7b124ff8834ecbda7b2a96a412020796e566e682"
+    },
+    "b-f12-b5-2-team-workspaces/prior-pr": {
+      "files": 13,
+      "inventorySha256": "49231518b30c4785e602920375652c9be26e9f1a473fac8b2b43eb49e95debc4"
+    },
+    "b-f12-b5-2-team-workspaces/prior-protected": {
+      "files": 13,
+      "inventorySha256": "f65eed5d5c35f447ff68e14ba4e393fc8c35f921b69ad21e763a095012253626"
+    },
+    "w9t_f13_9-team-rollup-no-rank/prior-pr": {
+      "files": 13,
+      "inventorySha256": "952d0d5400df4e577702d7a1b195cccf063200bb9e4a1cc7a6f0ca71be25108f"
+    },
+    "w9t_f13_9-team-rollup-no-rank/prior-protected": {
+      "files": 13,
+      "inventorySha256": "e0c5d4aa22822d7c81296ed71b842e88cb3317d4932e658b8daa7c7a574538b5"
+    }
+  },
+  "originalBranch": "claude/evidence-b-f12-team-sharing",
+  "originalHead": "9a3b166921c1dc015be147a99a2e4f42cdaedb18",
+  "protectedMaster": "b387616013f38cce9e467cc7da7b87fd2672718c",
+  "schema": "pr900_evidence_history.v1",
+  "validationOperation": "terminal-pr900-native-validation-20261109"
+}
