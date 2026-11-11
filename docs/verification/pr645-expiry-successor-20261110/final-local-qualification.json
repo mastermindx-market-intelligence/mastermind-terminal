@@ -1,0 +1,33 @@
+{
+  "additiveRootDeclarations": [
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml"
+  ],
+  "checkedAt": "2026-11-10T06:46:30.323441+00:00",
+  "currentOwnerReadbackSha256": "dc725def799e08fd305717cba4cba87648cb0935cd99b05984dda928b50241c4",
+  "expiryBrowserPassed": 9,
+  "expirySuccessScreenshots": 27,
+  "expiryTraces": 9,
+  "focusedDistinctTests": 171,
+  "focusedFiles": {
+    "eodHeatmapFlowdeskLoadFailureEvidence.test.ts": 11,
+    "expirySourceToView.test.tsx": 23,
+    "expiryTermStructure.test.ts": 18,
+    "gexExpiryPopulation.test.tsx": 9,
+    "gexLevelsHeatmapLoadFailureEvidence.test.ts": 12,
+    "optionsExposureEvidence.test.ts": 54,
+    "optionsExposureEvidenceOwner.test.ts": 44
+  },
+  "fullTypecheck": "typescript-final-composition.json",
+  "generalBrowserPassed": 144,
+  "historicalFilesVerified": 4138,
+  "historicalRootTextPreserved": true,
+  "nativeGexImages": 114,
+  "readerNodeTests": 5,
+  "retainedEodImages": 126,
+  "retries": 0,
+  "schema": "terminal_pr645_final_local_qualification.v1",
+  "sourceDeltaReadbackSha256": "b4b244d8511ed0fb091953bdcef449cf6e4d227dd5489459f0f1021378acf51a",
+  "state": "LOCALLY_QUALIFIED_PENDING_PROTECTED_DEPENDENCY_AND_PUBLICATION",
+  "unchangedHistoricalFiles": 4136
+}

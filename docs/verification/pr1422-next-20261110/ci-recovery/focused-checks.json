@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/b_f08_8InvalidationEvidence.test.ts",
+      "--reporter=verbose"
+    ],
+    "exit": 0,
+    "logSha256": "9b1261e977ae5bb7a71010657373ff1db424f2482bedc69484243497563acd18",
+    "name": "bf08-reader",
+    "seconds": 4.997
+  },
+  {
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "e2e/rs-pivot-study.spec.ts"
+    ],
+    "exit": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "name": "rs-lint",
+    "seconds": 8.662
+  }
+]

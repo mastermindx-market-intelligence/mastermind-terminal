@@ -1,0 +1,163 @@
+{
+  "source_head": "975588646ae3d72d79b482c0335901f3c3d86481",
+  "protected_head": "f68936b190ec25670ddc2d0e817d4998b2253d1c",
+  "ci_paths": [
+    {
+      "path": ".github/scripts/selfhosted_canary_inputs.sh",
+      "old_blob": "da6cbe78648ff0e90751f3c15adda92261675b18",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "8241031207d86137318b36689984836244eaca3c"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "old_blob": "05d88e88524d3235f0f916e6aec19b17460fdaac",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c17cd9626970997b3680fc8bac207d3fac0a3a01"
+    },
+    {
+      "path": ".github/workflows/selfhosted-e2e-canary.yml",
+      "old_blob": "729ecc591cf30f699a5482564aa5a7d033923cc0",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "729ecc591cf30f699a5482564aa5a7d033923cc0"
+    },
+    {
+      "path": "scripts/ci_e2e_scope.py",
+      "old_blob": "41b932f4202545a5321f44273dac2339981cca38",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd79920ed41cc1ed44ddb34c8807deefb80c1ab4"
+    },
+    {
+      "path": "tests/test_ci_e2e_scope.py",
+      "old_blob": "6755f1eab54e22c9078388b8e92e6798b01923e0",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "47b843641b766a65969e5889bc979cc25c4c6275"
+    },
+    {
+      "path": "tests/test_ci_e2e_shards.py",
+      "old_blob": "4a273015178467cc1b602b86699155103722a991",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "de85ee9021613609b988e2fa01978e53b906cc5c"
+    },
+    {
+      "path": "tests/test_merge_group_fast_lane_contract.py",
+      "old_blob": "c48025c13301609be89c0841c0af53ff775145c9",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "60708a8a6282681693f5ecb0f36533ce55c56880"
+    },
+    {
+      "path": "tests/test_selfhosted_canary_workflow.py",
+      "old_blob": "d6c1e3f8ac345c874869d79dbd0e2b9a74159c6b",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "181438f8a82727cf7cf695a917f8969101e9d050"
+    }
+  ],
+  "recorded_at": "2026-11-11T06:43:38.079125+00:00",
+  "source_law_pin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "ordered_parents": [
+    "975588646ae3d72d79b482c0335901f3c3d86481",
+    "f68936b190ec25670ddc2d0e817d4998b2253d1c"
+  ],
+  "resolution": "All eight prior #1418 backport postimages matched their accepted donor and were resolved to current protected postimages. ci.yml then received one deliberate E18 capture/artifact addition.",
+  "retained_original_postimages": {
+    "terminal/components/alerts/AlertBulkManager.tsx": "7eec23921f92c243aebfd1e1ff800bc0f90768a0",
+    "terminal/e2e/tools/capture_e18_alert_management.cjs": "fed2f3ef0059308b8905df2313de59feae2f30c2",
+    "terminal/lib/__tests__/alertBulkReviewValidation.test.tsx": "b85d1bb82c02539ef529a9769b252d4a52cd9507",
+    "terminal/lib/__tests__/e18AlertManagementEvidence.test.ts": "c17b9c125092999fac3f6772c07c5f81973a0bce",
+    "docs/verification/pr1346-e18-successor-20261110": "29cc125ae7fe8cd441a06d41d66bea556251ec0c",
+    "terminal/docs/pr-crops/e18-alert-management": "55d614fcb5066195ee6a40aace56ce4a2afe69d7"
+  },
+  "current_e18_source_hashes": {
+    "terminal/components/alerts/AlertBulkManager.tsx": "7ebdb5f4f4918e3b13afe465293288d8a1ce84b58dd6fd29bac6b9b7f58bef27",
+    "terminal/components/alerts/alertBulk.module.css": "204bd08ac5e221aaf5a5a5bb04f4eae7f017d7eafedd90254a1fbfa9608c5ba8",
+    "terminal/lib/alertBulk.ts": "34a6b791f500b217184d7b23ccb9b71cbbc83dd6bc55824d73937008d0f5633c",
+    "terminal/lib/alertBulkLex.ts": "35f1b91b9b331cbce4231ed7d106b8ad0b1524e46fbd0c2b22a872dc336c03dd",
+    "terminal/e2e/tools/capture_e18_alert_management.cjs": "a97f08742f1c664e673b1870f800e4559e1f5a853a1b2186b08042d6bc743e88",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
+  },
+  "historical_manifest_drift": [
+    "terminal/next.config.ts"
+  ],
+  "current_package_lock_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "next_version": "16.4.6",
+  "validation": {
+    "command": "python -m pytest -q tests/test_ci_browser_setup.py tests/test_ci_e2e_scope.py tests/test_ci_e2e_shards.py tests/test_merge_group_fast_lane_contract.py tests/test_selfhosted_canary_workflow.py tests/test_ci_e2e_selfhosted_lane.py",
+    "exit_code": 0,
+    "passed": 476,
+    "warnings": 1,
+    "warning": "Existing anyio pytest CallSpec2 deprecation."
+  },
+  "browser_evidence": "Historical E18 packet retained unchanged. Natural CI must execute the incumbent producer, retain actual checkout identities, all twelve images and staged proof, and pass consumers. No new browser pass is claimed here.",
+  "release": "Auto-merge remains unarmed; existing admission and approval-enforcement holds remain.",
+  "resolved_before_capture_step_tree": "29f2da336fd0e708b10c80bf08527763ba82a86a",
+  "inherited_contribution_paths": [
+    "docs/verification/pr1346-e18-successor-20261110/README.md",
+    "docs/verification/pr1346-e18-successor-20261110/artifact-inventory.json",
+    "docs/verification/pr1346-e18-successor-20261110/capture-e18.py",
+    "docs/verification/pr1346-e18-successor-20261110/composition.json",
+    "docs/verification/pr1346-e18-successor-20261110/driver.log",
+    "docs/verification/pr1346-e18-successor-20261110/final-integration-deltas.json",
+    "docs/verification/pr1346-e18-successor-20261110/focused-tests.json",
+    "docs/verification/pr1346-e18-successor-20261110/focused-tests.log",
+    "docs/verification/pr1346-e18-successor-20261110/legacy-driver.cjs",
+    "docs/verification/pr1346-e18-successor-20261110/legacy-supervision.json",
+    "docs/verification/pr1346-e18-successor-20261110/lifecycle.json",
+    "docs/verification/pr1346-e18-successor-20261110/native-capture.json",
+    "docs/verification/pr1346-e18-successor-20261110/native-capture.log",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/EVIDENCE.yml",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/capture-proof.json",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/results-desktop-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/results-desktop-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/results-mobile-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/results-mobile-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/results-tablet-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/results-tablet-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/review-desktop-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/review-desktop-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/review-mobile-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/review-mobile-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/review-tablet-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/native-stage/review-tablet-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-inventory.json",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/EVIDENCE.yml",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/results-desktop-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/results-desktop-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/results-mobile-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/results-mobile-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/results-tablet-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/results-tablet-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/review-desktop-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/review-desktop-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/review-mobile-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/review-mobile-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/review-tablet-en.png",
+    "docs/verification/pr1346-e18-successor-20261110/prior-e18-packet/review-tablet-zh.png",
+    "docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch",
+    "docs/verification/pr1346-e18-successor-20261110/source-after.json",
+    "docs/verification/pr1346-e18-successor-20261110/source-before.json",
+    "docs/verification/pr1346-e18-successor-20261110/visual-readback.json",
+    "docs/verification/pr1346-mobile-sharding-integration-20261110.json",
+    "terminal/components/alerts/AlertBulkManager.tsx",
+    "terminal/docs/pr-crops/e18-alert-management/EVIDENCE.yml",
+    "terminal/docs/pr-crops/e18-alert-management/results-desktop-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/results-desktop-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/results-mobile-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/results-tablet-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-desktop-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-desktop-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-mobile-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-tablet-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-tablet-zh.png",
+    "terminal/e2e/tools/capture_e18_alert_management.cjs",
+    "terminal/lib/__tests__/alertBulkReviewValidation.test.tsx",
+    "terminal/lib/__tests__/e18AlertManagementEvidence.test.ts"
+  ]
+}

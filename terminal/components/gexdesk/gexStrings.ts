@@ -17,6 +17,14 @@
 import type { Lang } from "@/lib/i18n";
 
 const GEX_LEX = {
+  expiryUnitGamma: ["Gamma · delta-notional sensitivity per +1% spot", "Gamma · 标的上涨 1% 时的 Delta 名义敞口敏感度"],
+  expiryUnitDelta: ["Delta · net delta-notional level", "Delta · 净 Delta 名义敞口水平"],
+  expiryUnitVanna: ["Vanna · delta-notional sensitivity per +1 IV point", "Vanna · 隐含波动率上升 1 个百分点时的 Delta 名义敞口敏感度"],
+  expiryUnitCharm: ["Charm · delta-notional drift per +1 calendar day", "Charm · 每经过 1 个日历日的 Delta 名义敞口变化"],
+  expiryKnownSubtotal: ["Known subtotal", "已知小计"],
+  expiryAdmittedInputs: ["admitted input contracts", "已纳入的输入合约"],
+  expirySupportSummary: ["{known}/{total} source expiry rows have values · {partial} known subtotals. Missing values remain unavailable.", "{known}/{total} 个来源到期日行有数值 · {partial} 项已知小计。缺失数值保持不可用。"],
+  expirySourceBasis: ["Modeled net exposure · assumed holdings · source collection coverage unknown", "模型净敞口 · 持仓方向为假设 · 源采集覆盖范围未知"],
   sourceSessionLabel: ["source session", "源交易日"],
   sumReportedGex: ["Reported GEX", "源报告 GEX"],
   lensReportedBasis: ["Source-reported modeled values · session {date}. Source completeness is unknown.", "源报告的模型值 · 交易日 {date}。源数据完整性未知。"],
@@ -56,8 +64,8 @@ const GEX_LEX = {
   priceChart:     ["Price chart", "价格图表"],
   viewByExpiry:   ["By Expiration", "按到期日"],
   expiryLensNA:   [
-    "Vanna & Charm aren't provided per-expiration yet — gamma & delta only.",
-    "Vanna 与 Charm 暂未提供按到期日数据 — 仅伽马与德尔塔。",
+    "This snapshot does not provide Vanna or Charm by expiration.",
+    "此快照未提供按到期日的 Vanna 或 Charm 数据。",
   ],
   expiryNoData:   ["No expiration breakdown for this ticker yet.", "该品种暂无按到期日数据。"],
   // Column headers for the by-expiration bars (the table shipped without any).
@@ -398,8 +406,8 @@ const GEX_LEX = {
     "仅净值——数据未按到期日提供认购/认沽拆分。收盘结构快照，非盘中。",
   ],
   xdrawerNA:       [
-    "Vanna & Charm aren't provided per-expiration yet — gamma & delta only.",
-    "Vanna 与 Charm 暂未提供按到期日数据 — 仅伽马与德尔塔。",
+    "This snapshot does not provide Vanna or Charm by expiration.",
+    "此快照未提供按到期日的 Vanna 或 Charm 数据。",
   ],
   xdrawerEmpty:    ["No expiration breakdown for this ticker yet.", "该品种暂无按到期日数据。"],
   // The expiration count stays the same across greeks; rows with no value are named here.

@@ -1,0 +1,33 @@
+[
+  {
+    "check": "f11-contracts-ef8e8a8",
+    "head": "ef8e8a8c9d2bf99de13736b025753832ab4b595b",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "--test",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "e2e/tools/f11_owned_server.test.cjs",
+      "e2e/tools/f11_provider_closed_policy.test.cjs",
+      "e2e/tools/f11_script_metadata.test.cjs"
+    ],
+    "exit_code": 0,
+    "seconds": 1.271,
+    "sha256": "c3cf883b871c9181db87996a0debdbe9c6a4cd7f03f761d13cd5d76b010d18f1",
+    "tail": "ength bound is 240 characters\n  ---\n  duration_ms: 0.135292\n  type: 'test'\n  ...\n# Subtest: body must be a Buffer; other typed bodies are rejected\nok 123 - body must be a Buffer; other typed bodies are rejected\n  ---\n  duration_ms: 0.261125\n  type: 'test'\n  ...\n# Subtest: body size bound is 32 MiB inclusive\nok 124 - body size bound is 32 MiB inclusive\n  ---\n  duration_ms: 48.187792\n  type: 'test'\n  ...\n# Subtest: each duration is independently typed and bounded to [0, 600000]\nok 125 - each duration is independently typed and bounded to [0, 600000]\n  ---\n  duration_ms: 3.760875\n  type: 'test'\n  ...\n# Subtest: a valid sibling duration does not rescue an invalid one\nok 126 - a valid sibling duration does not rescue an invalid one\n  ---\n  duration_ms: 0.481625\n  type: 'test'\n  ...\n# Subtest: input must be one plain object of named fields\nok 127 - input must be one plain object of named fields\n  ---\n  duration_ms: 0.318917\n  type: 'test'\n  ...\n# Subtest: byte-0 observable record carries no boot or success signal\nok 128 - byte-0 observable record carries no boot or success signal\n  ---\n  duration_ms: 0.162375\n  type: 'test'\n  ...\n# Subtest: parent: residual nested percent traversal refuses; normal encoded brackets remain valid\nok 129 - parent: residual nested percent traversal refuses; normal encoded brackets remain valid\n  ---\n  duration_ms: 0.193958\n  type: 'test'\n  ...\n1..129\n# tests 129\n# suites 0\n# pass 129\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1100.621625\n"
+  },
+  {
+    "check": "f11-lint-ef8e8a8",
+    "head": "ef8e8a8c9d2bf99de13736b025753832ab4b595b",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/eslint/bin/eslint.js",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "e2e/tools/f11_owned_server.test.cjs"
+    ],
+    "exit_code": 0,
+    "seconds": 5.467,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tail": ""
+  }
+]

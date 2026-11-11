@@ -465,26 +465,47 @@ describe("EventImpactPanel — effect lifetime", () => {
     expect(errors).toHaveLength(0);
   });
 
-  it("rejects a retired result under StrictMode setup-cleanup-setup while the current load works", async () => {
-    const StrictMode = (await import("react")).StrictMode;
-    await act(async () => {
-      root.render(
-        <StrictMode>
-          <EventImpactPanel positions={[{ ...BASE }]} holdingsUnreadable={false} />
-        </StrictMode>
-      );
-    });
-    await flush();
-    // StrictMode mounts, tears down and mounts again: the first setup's read is retired.
-    expect(requests.length).toBeGreaterThanOrEqual(1);
-    const retired = requests[0];
-    const current = requests[requests.length - 1];
-    await respond(retired, true, 200);
-    await complete(current, "CURRENT_FACT", [{ ...BASE }]);
-    await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
-    expect(panelText()).toContain("CURRENT_FACT");
-    expect(panelText()).not.toContain("RETIRED_FACT");
-  });
+  it.each(["before-current", "after-current"] as const)(
+    "admits one StrictMode read and retires a committed input's body %s",
+    async (order) => {
+      const StrictMode = (await import("react")).StrictMode;
+      const render = (positions: Position[]) => act(async () => {
+        root.render(
+          <StrictMode>
+            <EventImpactPanel positions={positions} holdingsUnreadable={false} />
+          </StrictMode>
+        );
+      });
+      await render([{ ...BASE }]);
+      await flush();
+      // The throwaway setup is revoked before admission; only the live setup reads.
+      expect(requests).toHaveLength(1);
+      const retired = requests[0];
+      await respond(retired, true, 200);
+
+      const edited = [{ ...BASE, shares: 25 }];
+      await render(edited);
+      await flush();
+      expect(requests).toHaveLength(2);
+      const current = requests[1];
+      expect(current).not.toBe(retired);
+      expect(checking()).toBeTruthy();
+
+      if (order === "before-current") {
+        await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
+        expect(checking()).toBeTruthy();
+        expect(panelText()).not.toContain("RETIRED_FACT");
+      }
+      await complete(current, "CURRENT_FACT", edited);
+      if (order === "after-current") {
+        await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
+      }
+      expect(panelText()).toContain("CURRENT_FACT");
+      expect(panelText()).not.toContain("RETIRED_FACT");
+      expect(checking()).toBeFalsy();
+      expect(requests).toHaveLength(2);
+    },
+  );
 });
 
 describe("EventImpactPanel — language register", () => {

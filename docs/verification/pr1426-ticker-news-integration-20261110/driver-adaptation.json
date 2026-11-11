@@ -1,0 +1,19 @@
+{
+  "schema": "terminal.pr1426.capture-wrapper-adaptation.v1",
+  "originalWrapperBlob": "aaa413118307363fa6dfd459980a96d64dda59eb",
+  "sourceHead": "139ec0574b57ecbb59d237dc315c8276dd307794",
+  "producerBlob": "09edca20e9d77e26306936f125a73305d67fc71a",
+  "producerUnchanged": true,
+  "wrapperSha256": "2cc00f7ed3711aea204f9844f3dc4af09c5d6c79b3d61dc20f50d8b16569be9d",
+  "changes": [
+    "Bind current committed source and parents rather than historical staged MERGE_HEAD.",
+    "Use owned port47287 and Node22.23.4 with current Next16.4.6 dependencies.",
+    "Re-discover source membership and compare keys and bytes, preserving explicit reader/fixture/specimen inputs.",
+    "Retain actual child PID and separate generated-file pre/post custody.",
+    "On nonzero capture exit, preserve actual result and stop before further runtime observation.",
+    "For absent lock, record actual producer exit, listener closure and no owned-workspace holders; no unobserved server PID claim.",
+    "For an owned stale lock, retain original process/listener/descriptor/workspace absence and identity checks; bind actual current UID.",
+    "Keep full21-case specification,14expectedpasses,7authoredskips,10images,zero retries,prior manifest and103neighboringfiles."
+  ],
+  "noProductSourceChange": true
+}

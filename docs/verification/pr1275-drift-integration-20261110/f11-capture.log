@@ -1,0 +1,23 @@
+cleared stale outcome: FIXTURE.json
+[dev] ▲ Next.js 16.2.9 (webpack)
+- Local:         http://127.0.0.1:47276
+- Network:       http://127.0.0.1:47276
+✓ Ready in 2.0s
+capture desktop-en.png … ok
+[dev] ▲ Next.js 16.2.9 (webpack)
+- Local:         http://127.0.0.1:47276
+- Network:       http://127.0.0.1:47276
+✓ Ready in 1059ms
+capture desktop-zh.png … ok
+[dev] ✓ Ready in 1120ms
+capture tablet-en.png … ok
+[dev] ✓ Ready in 790ms
+capture tablet-zh.png … ok
+[dev] ✓ Ready in 1090ms
+capture mobile-en.png … ok
+[dev] ▲ Next.js 16.2.9 (webpack)
+- Local:         http://127.0.0.1:47276
+- Network:       http://127.0.0.1:47276
+✓ Ready in 1286ms
+capture mobile-zh.png … ok
+wrote 6 crops + EVIDENCE.yml at 8d3a375e6d7cba8f03afc65594d3937857230442

@@ -110,6 +110,8 @@ const COPY = {
   refreshPriceSnapshot: ["Refresh price snapshot", "刷新价格快照"],
   rsi14Wing2MaxSpan60Completed: ["RSI(14) · wing 2 · max span 60 · completed bars only. Weekly confirmation requires at least two subsequent weekly bars. Related timeframes are not independent votes.", "RSI(14) · 两侧各 2 根 K 线 · 最大跨度 60 · 仅已收盘 K 线。周线确认至少滞后两周。相关周期不是独立投票。"],
   timeframesConflictNoCombinedTradingSignalIsImplied: ["Timeframes conflict; no combined trading signal is implied.", "周期间存在方向冲突；未合成为交易信号。"],
+  bullishDivergenceGammaBelow: ["Confirmed bullish divergence conflicts with the leading net Gamma level below the snapshot spot.", "已确认的看涨背离与位于快照标的价格下方的主要净 Gamma 水平冲突。"],
+  bearishDivergenceGammaAbove: ["Confirmed bearish divergence conflicts with the leading net Gamma level above the snapshot spot.", "已确认的看跌背离与位于快照标的价格上方的主要净 Gamma 水平冲突。"],
   timeframe2: ["Timeframe", "周期"],
   state: ["State", "状态"],
   confirmedAtBarsSince: ["Confirmed at / bars since", "确认时间 / 距今 K 线数"],
