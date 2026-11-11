@@ -269,7 +269,8 @@ jobs:
           PY
           fi
           # Stage 1 lane split for runs whose selector did not emit one: every
-          # non-PR event (the inline matrix above) and pull requests whose
+          # non-PR event (the inline matrix above), including the merge-group
+          # production lane, and pull requests whose
           # protected base selector predates the prod lane. The rule is the one
           # in scripts/ci_e2e_scope.py split_lanes, held equal by
           # tests/test_ci_e2e_shards.py. No candidate code executes: the
@@ -302,9 +303,7 @@ jobs:
               dev = None
               prod = []
               rows = json.loads(fields["matrix"]).get("include")
-              if os.environ.get("GITHUB_EVENT_NAME", "") == "merge_group":
-                  reason = "merge_group runs no browser jobs"
-              elif fields.get("mode") != "full":
+              if fields.get("mode") != "full":
                   reason = "focused scope keeps its explicit dev rows"
               elif not allowlist_path.is_file():
                   reason = "no allowlist on this ref"
@@ -797,10 +796,10 @@ jobs:
       cancel-in-progress: true
     name: Terminal e2e production build
     needs: [pr_scope, e2e-scope]
-    # Exactly the dev lane's event shape plus a nonempty prod lane: native merge
-    # groups and trusted docs-only PRs skip the browser work, so they never pay
-    # for a build either. No merge_group run executes this job.
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && github.event_name != 'merge_group' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    # The dev lane's event shape without its merge-group exclusion, plus a
+    # nonempty prod lane. Trusted docs-only PRs skip the build; native merge
+    # groups run it as their only browser-build qualification.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     defaults:
@@ -872,9 +871,8 @@ jobs:
     # The build job's own condition plus its success. Without a build these
     # shards skip instead of failing one by one at the download; the required
     # aggregate below turns both the failed build and that skip red.
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.terminal-e2e-build.result == 'success' && github.event_name != 'merge_group' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
-    # Hosted-only for Stage 1: the prodbuild lane has no self-hosted lane
-    # binding yet; the variable-gated dev lane is untouched.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.terminal-e2e-build.result == 'success' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    # Fixed GitHub-hosted image; the variable-gated dev lane is untouched.
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -981,8 +979,13 @@ jobs:
             docs_only=1
           fi
           fail=0
-          # The independent browser selector is mandatory for every event,
-          # including docs-only PRs and the native merge-group fast lane.
+          # The independent browser selector is mandatory for every event.
+          # A native merge group runs only the production lane and must select
+          # its four fixed shards; no malformed or empty selection qualifies.
+          if [ "$EVENT" = "merge_group" ] && [ "$PRODBUILD_COUNT" != "4" ]; then
+            echo "::error title=terminal-ci::native merge group selected '$PRODBUILD_COUNT' production shards (expected '4')"
+            fail=1
+          fi
           if [ "$SCOPE" != "success" ]; then
             echo "::error title=terminal-ci::e2e-scope concluded '$SCOPE' (expected 'success')"
             fail=1
@@ -1003,22 +1006,22 @@ jobs:
             echo "::error title=terminal-ci::terminal-e2e concluded '$E2E' (expected 'success')"
             fail=1
           fi
-          # The prod lane must FAIL, never silently skip: a failed or cancelled
-          # build/prod shard turns this required context red. Skips are lawful
-          # only where the job itself is allowed to skip (merge_group, trusted
-          # docs-only PR) or the selector emitted no prod shards.
+          # The prod lane must FAIL, never silently skip: a failed, cancelled,
+          # skipped or empty build/prod lane turns this required context red on
+          # a native merge group. Skips are lawful for trusted docs-only PRs,
+          # or on other events when the selector emitted no prod shards.
           if [ "$BUILD" = "success" ]; then
             :
-          elif [ "$BUILD" = "skipped" ] && { [ "$docs_only" -eq 1 ] || [ "$EVENT" = "merge_group" ] || [ "$PRODBUILD_COUNT" = "0" ]; }; then
-            echo "terminal-e2e-build skipped: qualified docs-only PR, native merge group, or empty prod lane"
+          elif [ "$BUILD" = "skipped" ] && { [ "$docs_only" -eq 1 ] || { [ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]; }; }; then
+            echo "terminal-e2e-build skipped: qualified docs-only PR or empty non-merge-group prod lane"
           else
             echo "::error title=terminal-ci::terminal-e2e-build concluded '$BUILD' (expected 'success')"
             fail=1
           fi
           if [ "$PRODBUILD" = "success" ]; then
             :
-          elif [ "$PRODBUILD" = "skipped" ] && { [ "$docs_only" -eq 1 ] || [ "$EVENT" = "merge_group" ] || [ "$PRODBUILD_COUNT" = "0" ]; }; then
-            echo "terminal-e2e-prodbuild skipped: qualified docs-only PR, native merge group, or empty prod lane"
+          elif [ "$PRODBUILD" = "skipped" ] && { [ "$docs_only" -eq 1 ] || { [ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]; }; }; then
+            echo "terminal-e2e-prodbuild skipped: qualified docs-only PR or empty non-merge-group prod lane"
           else
             echo "::error title=terminal-ci::terminal-e2e-prodbuild concluded '$PRODBUILD' (expected 'success')"
             fail=1

@@ -2,8 +2,9 @@
 """Fail-closed, source-bound Terminal browser scope selection.
 
 Only a short, reviewed set of Screener-local presentation/test files earns two
-focused responsive browser projects. Every other path, unknown event, uncertain
-Git observation or merge-group candidate retains the complete existing matrix.
+focused responsive browser projects. Every other path, unknown event or uncertain
+Git observation retains the complete existing matrix. A merge-group candidate
+runs only the production-build lane; the required Terminal aggregate owns its proof.
 This script selects tests only; it never changes the three protected CI contexts.
 """
 from __future__ import annotations
@@ -228,9 +229,10 @@ def main() -> None:
     matrix = FULL_MATRIX if mode == "full" else FOCUSED_MATRIX
     assert matrix and all(m["projects"] and m["shard"] for m in matrix)
     allowlist = read_prodbuild_allowlist() if ALLOWLIST_PATH.is_file() else []
-    # Native merge groups run no browser jobs and focused PRs keep their two
-    # explicit dev rows; only a full run is split across the two lanes.
-    if event != "merge_group" and mode == "full" and allowlist:
+    # Native merge groups run only the production lane; the dev matrix is skipped
+    # by its job condition. Focused PRs keep their two explicit dev rows. An empty
+    # merge-group lane is rejected by the existing required Terminal aggregate.
+    if mode == "full" and allowlist:
         dev_matrix, prodbuild_matrix = split_lanes(matrix, allowlist)
     else:
         dev_matrix, prodbuild_matrix = matrix, []

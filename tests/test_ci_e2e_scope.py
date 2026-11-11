@@ -133,7 +133,14 @@ def test_dynamic_matrix_output_can_be_parsed(monkeypatch, tmp_path):
     scope.main()
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
     assert fields["mode"] == "full"
-    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
+    expected_dev, expected_prod = scope.split_lanes(scope.FULL_MATRIX, scope.read_prodbuild_allowlist())
+    assert json.loads(fields["matrix"]) == {"include": expected_dev}
+    assert json.loads(fields["prodbuild_matrix"]) == {"include": expected_prod}
+    assert fields["prodbuild_count"] == "4"
+    assert [row["shard"] for row in expected_prod] == [
+        "prodbuild-desktop-1", "prodbuild-desktop-2",
+        "prodbuild-tablet-1", "prodbuild-mobile-1",
+    ]
 
 
 def test_required_check_never_launders_skipped_or_failed_scope():
@@ -153,8 +160,8 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     assert '[ "$fail" -eq 0 ] || exit 1' in run
     assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope"]
     assert jobs["terminal-e2e"]["needs"] == ["pr_scope", "e2e-scope"]
-    # Full audited PR matrix or safe focused subset; native merge_group must
-    # not duplicate the separately proven browser work.
+    # Full audited PR matrix or safe focused subset; a native merge group
+    # skips the full dev matrix but requires the production-build browser lane.
     docs = ("github.event_name == 'pull_request' && "
             "needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs'")
     assert jobs["terminal-unit"]["if"] == (
@@ -573,7 +580,10 @@ def test_real_workflow_merge_group_always_bootstraps_full(tmp_path, monkeypatch)
     assert result.returncode == 0, (result.stdout, result.stderr)
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
     assert fields["mode"] == "full"
-    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
+    expected_dev, expected_prod = scope.split_lanes(scope.FULL_MATRIX, scope.read_prodbuild_allowlist())
+    assert json.loads(fields["matrix"]) == {"include": expected_dev}
+    assert json.loads(fields["prodbuild_matrix"]) == {"include": expected_prod}
+    assert fields["prodbuild_count"] == "4"
 
 
 @pytest.mark.parametrize("status", ["A", "D", "T", "R100", "M100"])
@@ -681,12 +691,17 @@ def test_docs_qualification_never_excuses_a_failed_or_cancelled_test(status, job
     assert result.returncode != 0, result.stdout
 
 
-def test_native_merge_group_keeps_only_its_accepted_browser_skip():
+def test_native_merge_group_keeps_only_its_development_matrix_skip():
     result = _execute_required_aggregate(
         EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped",
-        BUILD="skipped", PRODBUILD="skipped", PRODBUILD_COUNT="0",
     )
     assert result.returncode == 0, result.stdout
+    for status in ("failure", "cancelled", "skipped", ""):
+        result = _execute_required_aggregate(
+            EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped",
+            BUILD="skipped", PRODBUILD=status, PRODBUILD_COUNT="4",
+        )
+        assert result.returncode != 0, (status, result.stdout)
     result = _execute_required_aggregate(
         EVENT="merge_group", PR_MODE="docs", UNIT="skipped", E2E="skipped",
     )
