@@ -276,6 +276,10 @@ async function readIncumbent(req: Request): Promise<Response> {
         // body is never read — Macro's verdict is the status alone. Exactly
         // one step down to the fixed preview path follows; no other failure
         // ever reaches this branch, and preview is never asked first.
+        // SF-1: cancelling (never reading) the unread denial body releases its
+        // socket before request 2 — one pending undici body per member per
+        // refresh otherwise. The cancel never throws and never pulls.
+        await response.body?.cancel().catch(() => {});
         continue;
       }
       if (key === "generation" && response.status === 403) {
@@ -283,22 +287,36 @@ async function readIncumbent(req: Request): Promise<Response> {
         // subscription envelope — the ONLY subscription cause. Its receipt
         // path is the fixed preview path this walk ended on (R2), and no
         // owner error body, cookie or token is relayed.
+        await response.body?.cancel().catch(() => {});
         return failure(403, "access", "entitlement_required");
       }
-      if (response.status === 401 || response.status === 403) return failure(response.status, "access", "upstream_unauthorized");
-      if (response.status === 404) return failure(404, "unavailable", "upstream_not_found");
+      if (response.status === 401 || response.status === 403) {
+        await response.body?.cancel().catch(() => {});
+        return failure(response.status, "access", "upstream_unauthorized");
+      }
+      if (response.status === 404) {
+        await response.body?.cancel().catch(() => {});
+        return failure(404, "unavailable", "upstream_not_found");
+      }
       if (response.status === 429) {
         // The owner origin's own limiter, not this gateway's. Its Retry-After is
         // relayed verbatim; none is invented when the origin sent none.
         const retryAfter = response.headers.get("retry-after");
+        await response.body?.cancel().catch(() => {});
         return failure(429, "error", "upstream_rate_limited", retryAfter ? { "Retry-After": retryAfter } : undefined);
       }
       // A 502 from the owner origin is that origin's own upstream failing — it
       // lost ITS upstream. It is a different class from another 5xx and is
       // relayed as the owner sent it. The status does not say which upstream
       // fault it was, so the class stays neutral and no reset is claimed.
-      if (response.status === 502) return failure(502, "error", "upstream_bad_gateway");
-      if (!response.ok) return failure(503, "error", "upstream_unavailable");
+      if (response.status === 502) {
+        await response.body?.cancel().catch(() => {});
+        return failure(502, "error", "upstream_bad_gateway");
+      }
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => {});
+        return failure(503, "error", "upstream_unavailable");
+      }
       let parsed: { data: unknown; hash: string };
       try { parsed = await readJson(response); }
       catch (error) {

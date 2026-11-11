@@ -359,6 +359,32 @@ describe("the entitled-then-preview generation walk (R2/R4, COO rulings 2026-11-
     expect(response.headers.get("vary")).toBe("Cookie");
   });
 
+  it("SF-1: the unread 403 denial body is cancelled, never read, before request 2", async () => {
+    const raw = previewWire();
+    // The denial body is a real, permanently-idle stream (pull never enqueues),
+    // so only a CANCEL can end it — and the spy on the stream's own cancel
+    // method observes the release whatever the runtime wraps around the body.
+    // That the route never READS the denial is proven one test up and in the
+    // both-paths test: their denial bodies throw on any read, and the walk
+    // only completes because nothing ever pulls a byte of them.
+    const body = new ReadableStream({ pull() { /* idle forever: no verdict byte exists */ } });
+    const cancelSpy = vi.spyOn(body, "cancel");
+    upstream.mockResolvedValueOnce(new Response(body, { status: 403 }))
+      .mockResolvedValueOnce(new Response(raw, { headers: { "Content-Type": "application/json" } }));
+    const response = await GET(request("generation"));
+    const result = await response.json();
+    expect(response.status).toBe(200);
+    // The unread denial body was cancelled exactly once, releasing its socket.
+    expect(cancelSpy).toHaveBeenCalledTimes(1);
+    // The walk itself is unchanged: request 2 still goes to the fixed preview
+    // path, and the member still keeps the preview document.
+    expect(upstream).toHaveBeenCalledTimes(2);
+    expect(String(upstream.mock.calls[0][0])).toBe(OWNER + SECTOR_GENERATION_PATH);
+    expect(String(upstream.mock.calls[1][0])).toBe(OWNER + SECTOR_GENERATION_PREVIEW_PATH);
+    expect(result.data).toEqual(capturedGeneration);
+    expect(result.receipt).toMatchObject({ source: "generation", path: SECTOR_GENERATION_PREVIEW_PATH, status: "ready" });
+  });
+
   it("403 on both paths is the only subscription cause", async () => {
     upstream.mockResolvedValueOnce(unreadableDenial()).mockResolvedValueOnce(unreadableDenial());
     const response = await GET(request("generation"));
