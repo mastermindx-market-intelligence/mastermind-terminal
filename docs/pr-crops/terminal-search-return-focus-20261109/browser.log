@@ -1,0 +1,33 @@
+=== ordinary ===
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 3 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/search-return-focus.spec.ts:20:5 › ordinary Search restores its opener across responsive presentations (15.0s)
+  ✓  2 [tablet] › e2e/search-return-focus.spec.ts:20:5 › ordinary Search restores its opener across responsive presentations (12.3s)
+  ✓  3 [mobile] › e2e/search-return-focus.spec.ts:20:5 › ordinary Search restores its opener across responsive presentations (10.2s)
+
+  3 passed (49.1s)
+
+=== shared ===
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 3 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/search-return-focus.spec.ts:29:5 › Shared Search restores its opener across responsive presentations (7.9s)
+  ✓  2 [tablet] › e2e/search-return-focus.spec.ts:29:5 › Shared Search restores its opener across responsive presentations (2.2s)
+  ✓  3 [mobile] › e2e/search-return-focus.spec.ts:29:5 › Shared Search restores its opener across responsive presentations (2.1s)
+
+  3 passed (19.4s)
+
+=== receiver ===
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 2 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [tablet] › e2e/search-return-focus.spec.ts:40:5 › receiving annotation dialog keeps native keyboard ownership through Search resizing (11.8s)
+  ✓  2 [mobile] › e2e/search-return-focus.spec.ts:40:5 › receiving annotation dialog keeps native keyboard ownership through Search resizing (10.1s)
+
+  2 passed (30.4s)

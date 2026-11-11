@@ -6,6 +6,7 @@ import MobileSheet from "@/components/ui/MobileSheet";
 import { useLang } from "@/lib/i18n";
 import { PHONE_QUERY } from "@/lib/useMediaQuery";
 import { type OptionsChartLevel } from "@/lib/optionsCompanion";
+import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { optionsT } from "./optionsStrings";
 import styles from "./OptionsCompanion.module.css";
@@ -25,6 +26,7 @@ interface Props {
   children: ReactNode; symbol: string; enabled: boolean; access: "loading" | "allowed" | "locked";
   contextPlacement?: "rail" | "below"; widthControl?: ReactNode;
   contextOpen?: boolean; contextAvailable?: boolean; onContextChange?: (open: boolean, launcher?: HTMLElement | null) => void; contextHostRef?: (node: HTMLDivElement | null) => void;
+  viewport?: OptionsPinViewport | null;
   pinned: OptionsChartLevel | null; onPin: (level: OptionsChartLevel | null) => void; replayActive: boolean;
 }
 
@@ -33,7 +35,7 @@ interface Props {
  *  hidden) so a newer build that arrives while the chart is visible queues and re-presents
  *  onto the held map. The parked chip returns to the same held state.
  *  Reference: PP2-UI-b / accepted Paper contract #723 falsifiers 4, 5, 9, 10. */
-const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ children, symbol, enabled, access, pinned, onPin, replayActive, contextOpen = false, contextAvailable = true, onContextChange, contextHostRef, contextPlacement = "rail", widthControl }, ref) {
+const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ children, symbol, enabled, access, pinned, onPin, viewport = null, replayActive, contextOpen = false, contextAvailable = true, onContextChange, contextHostRef, contextPlacement = "rail", widthControl }, ref) {
   const { lang } = useLang(); const t = optionsT(lang);
   const small = useSyncExternalStore(subscribeViewport, smallSnapshot, serverSnapshot);
   const [open, setOpen] = useState(false);
@@ -101,7 +103,7 @@ const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ 
   const sheetOpen = showing && small && !parked && !contextOpen;
   const sheetKeepMounted = showing && small && (parked || contextOpen);
   return <>
-    {enabled && hasExposureLink && <ExposureChartReference symbol={symbol} active={access === "allowed" && !replayActive} pinned={pinned} onPin={onPin} />}
+    {enabled && hasExposureLink && <ExposureChartReference symbol={symbol} active={access === "allowed" && !replayActive} pinned={pinned} onPin={onPin} viewport={viewport} />}
     <aside id="terminal-context-rail" className="rail" data-options-rail={showing && !small && !contextOpen ? "open" : "closed"}>
       {enabled && <div className={styles.railSwitch} role="group" aria-label={t("perspectives")}>
         <button type="button" aria-pressed={!showing && !contextOpen} onClick={() => { onContextChange?.(false); close(); }}>{t("overview")}</button>

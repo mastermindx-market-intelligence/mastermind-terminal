@@ -1,0 +1,981 @@
+{
+  "proof": "LOCAL_FIXTURE_BROWSER_NOT_PRODUCTION",
+  "cspProof": "NOT_COVERED: isolated loopback authority fixture uses context-only bypassCSP; production headers unchanged",
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "startedAt": "2026-11-10T11:40:58.997Z",
+  "cells": [
+    {
+      "w": 1440,
+      "h": 900,
+      "theme": "dark",
+      "locale": "en",
+      "screenshot": "overview-1440-dark-en.png",
+      "bounds": {
+        "document": 1440,
+        "viewport": 1440,
+        "main": [
+          {
+            "client": 1216,
+            "scroll": 1216
+          }
+        ]
+      },
+      "documentNavigations": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "w": 1440,
+      "h": 900,
+      "theme": "light",
+      "locale": "zh",
+      "screenshot": "overview-1440-light-zh.png",
+      "bounds": {
+        "document": 1440,
+        "viewport": 1440,
+        "main": [
+          {
+            "client": 1216,
+            "scroll": 1216
+          }
+        ]
+      },
+      "documentNavigations": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "w": 820,
+      "h": 1180,
+      "theme": "dark",
+      "locale": "en",
+      "screenshot": "overview-820-dark-en.png",
+      "bounds": {
+        "document": 820,
+        "viewport": 820,
+        "main": [
+          {
+            "client": 820,
+            "scroll": 820
+          }
+        ]
+      },
+      "documentNavigations": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "w": 820,
+      "h": 1180,
+      "theme": "light",
+      "locale": "zh",
+      "screenshot": "overview-820-light-zh.png",
+      "bounds": {
+        "document": 820,
+        "viewport": 820,
+        "main": [
+          {
+            "client": 820,
+            "scroll": 820
+          }
+        ]
+      },
+      "documentNavigations": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "w": 390,
+      "h": 844,
+      "theme": "dark",
+      "locale": "en",
+      "screenshot": "overview-390-dark-en.png",
+      "bounds": {
+        "document": 390,
+        "viewport": 390,
+        "main": [
+          {
+            "client": 390,
+            "scroll": 390
+          }
+        ]
+      },
+      "documentNavigations": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "w": 390,
+      "h": 844,
+      "theme": "light",
+      "locale": "zh",
+      "screenshot": "overview-390-light-zh.png",
+      "bounds": {
+        "document": 390,
+        "viewport": 390,
+        "main": [
+          {
+            "client": 390,
+            "scroll": 390
+          }
+        ]
+      },
+      "documentNavigations": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    }
+  ],
+  "errors": [],
+  "externalRequests": [],
+  "fixtureWrites": [],
+  "passed": true,
+  "variant": "pr1422-next-r5",
+  "sourceFiles": {
+    "components/AppNav.tsx": "4913754572e028db52ff2f39dd35b333539168ae29d45d91197409065e01ab43",
+    "components/MobileNav.tsx": "fd2281846f9e3073bef347fdd81e1811b60720c72a66bb705b2652144769da7c",
+    "components/intelligence/IntelligenceNav.tsx": "ce0a67d3109aecdfad240ef758a655cadcaff7d32256495215c602454a1fde12",
+    "components/intelligence/SharedShellPrimaryNav.tsx": "9c05c8358cf4db74d17be97d2a36a74752b9d08edf4da145d328057d8f3b6aee",
+    "lib/shared-shell/intelligenceNavigation.ts": "fb44bf69240e01c72d7fdff584d1b5f63b6054d2f4730fc9f402f010a54624e2",
+    "components/intelligence/IntelligenceWorkspace.tsx": "2b057c14f2c68cbf0ef026d51c280e64e3f74b02b653b3dc1eea3a1ca0491d97",
+    "components/intelligence/IntelligenceToolWorkspace.tsx": "1eacf093668e81e9a7788aaefcc6c1c85059e5382015d66f5575255bc1e99b05",
+    "components/sector-intelligence/SectorIntelligenceWorkspace.tsx": "d37a435ab7778bc094fc6a9ef67a28bc43f1821144607859dc33bdafa7feef92",
+    "lib/sectorDepthReturn.ts": "8107c8351cbcaf4e1c41ab04c6bde610cf5cbbd37dc37adf8e6142ab137e3c22",
+    "lib/sharedShellRoutes.generated.json": "f002aab49c28f98014d29ae11710db6a99a01c03b38985e9cb84ba6bba8a699e",
+    "app/(shell)/intelligence/loading.tsx": "18006fc4b583196be170ba539a5a5df65e5c4d483560fb11a412836e0124dbc6",
+    "app/(shell)/prophet/loading.tsx": "18006fc4b583196be170ba539a5a5df65e5c4d483560fb11a412836e0124dbc6",
+    "app/(shell)/sectors/loading.tsx": "18006fc4b583196be170ba539a5a5df65e5c4d483560fb11a412836e0124dbc6",
+    "e2e/tools/qualify_shared_shell_intelligence.cjs": "fc9a4bdd34294db9aa30cd674287461570091766fc95016a531536e7021c9083"
+  },
+  "trackedWorkingChanges": [],
+  "authReads": 80,
+  "authStatuses": {
+    "200": 80,
+    "401": 0
+  },
+  "outputOutsideProject": true,
+  "overviewNavigations": [
+    {
+      "cell": "1440-dark-en",
+      "documents": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "cell": "1440-light-zh",
+      "documents": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "cell": "820-dark-en",
+      "documents": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "cell": "820-light-zh",
+      "documents": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "cell": "390-dark-en",
+      "documents": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    },
+    {
+      "cell": "390-light-zh",
+      "documents": [
+        "http://127.0.0.1:34228/intelligence"
+      ]
+    }
+  ],
+  "reloadDiagnostics": {
+    "counts": {
+      "document:observed": 6,
+      "socket:opened": 6,
+      "framesent:browser-logs": 6,
+      "console:log": 6,
+      "framereceived:isrManifest": 6,
+      "framesent:turbopack-subscribe": 24,
+      "framereceived:turbopack-connected": 6,
+      "framereceived:observed": 12,
+      "framereceived:built": 6,
+      "framesent:client-success": 12,
+      "framereceived:sync": 6,
+      "console:warning": 2
+    },
+    "events": {
+      "document:observed": [
+        {
+          "at": 1794310877128,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "other"
+        },
+        {
+          "at": 1794310878074,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/intelligence",
+          "initiator": "other"
+        },
+        {
+          "at": 1794310878990,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "other"
+        },
+        {
+          "at": 1794310879951,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/intelligence",
+          "initiator": "other"
+        },
+        {
+          "at": 1794310880954,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "other"
+        },
+        {
+          "at": 1794310882413,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/intelligence",
+          "initiator": "other"
+        }
+      ],
+      "socket:opened": [
+        {
+          "at": 1794310877616,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794310878475,
+          "theme": "light",
+          "locale": "zh",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794310879380,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794310880336,
+          "theme": "light",
+          "locale": "zh",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794310881412,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794310882796,
+          "theme": "light",
+          "locale": "zh",
+          "type": "opened",
+          "path": "/_next/hmr"
+        }
+      ],
+      "framesent:browser-logs": [
+        {
+          "at": 1794310877627,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794310878487,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794310879393,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794310880345,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794310881424,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794310882808,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        }
+      ],
+      "console:log": [
+        {
+          "at": 1794310877627,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794310878487,
+          "theme": "light",
+          "locale": "zh",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794310879393,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794310880345,
+          "theme": "light",
+          "locale": "zh",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794310881424,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794310882808,
+          "theme": "light",
+          "locale": "zh",
+          "type": "log",
+          "text": "[HMR] connected"
+        }
+      ],
+      "framereceived:isrManifest": [
+        {
+          "at": 1794310877634,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest",
+          "updates": {}
+        },
+        {
+          "at": 1794310878493,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest",
+          "updates": {}
+        },
+        {
+          "at": 1794310879397,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest",
+          "updates": {}
+        },
+        {
+          "at": 1794310880351,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest",
+          "updates": {}
+        },
+        {
+          "at": 1794310881432,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest",
+          "updates": {}
+        },
+        {
+          "at": 1794310882813,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest",
+          "updates": {}
+        }
+      ],
+      "framesent:turbopack-subscribe": [
+        {
+          "at": 1794310877634,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794310877634,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794310877639,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 105,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794310877639,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 105,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794310878494,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794310878494,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794310878500,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 105,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794310878500,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 105,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794310879397,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794310879397,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794310879403,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 105,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794310879403,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 105,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        }
+      ],
+      "framereceived:turbopack-connected": [
+        {
+          "at": 1794310877639,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "0",
+          "sessionId": 6495599580672289,
+          "updates": {}
+        },
+        {
+          "at": 1794310878499,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "0",
+          "sessionId": 6495599580672289,
+          "updates": {}
+        },
+        {
+          "at": 1794310879403,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "0",
+          "sessionId": 6495599580672289,
+          "updates": {}
+        },
+        {
+          "at": 1794310880355,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "0",
+          "sessionId": 6495599580672289,
+          "updates": {}
+        },
+        {
+          "at": 1794310881439,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "0",
+          "sessionId": 6495599580672289,
+          "updates": {}
+        },
+        {
+          "at": 1794310882818,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "0",
+          "sessionId": 6495599580672289,
+          "updates": {}
+        }
+      ],
+      "framereceived:observed": [
+        {
+          "at": 1794310877653,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49205,
+          "binary": true
+        },
+        {
+          "at": 1794310877653,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794310878516,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 49203,
+          "binary": true
+        },
+        {
+          "at": 1794310878517,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794310879417,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49201,
+          "binary": true
+        },
+        {
+          "at": 1794310879417,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794310880369,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 49206,
+          "binary": true
+        },
+        {
+          "at": 1794310880370,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794310881451,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49208,
+          "binary": true
+        },
+        {
+          "at": 1794310881451,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794310882832,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 49214,
+          "binary": true
+        },
+        {
+          "at": 1794310882832,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        }
+      ],
+      "framereceived:built": [
+        {
+          "at": 1794310877730,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794310878535,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794310879446,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794310880405,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794310881480,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794310882858,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        }
+      ],
+      "framesent:client-success": [
+        {
+          "at": 1794310877731,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310877825,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310878518,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310878535,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310879417,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310879446,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310880370,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310880405,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310881451,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310881480,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310882832,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794310882858,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        }
+      ],
+      "framereceived:sync": [
+        {
+          "at": 1794310877825,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794310878518,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794310879417,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794310880370,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794310881451,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794310882832,
+          "theme": "light",
+          "locale": "zh",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        }
+      ],
+      "console:warning": [
+        {
+          "at": 1794310877892,
+          "theme": "dark",
+          "locale": "en",
+          "type": "warning",
+          "text": "[.WebGL-0x11c005cda00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "at": 1794310878815,
+          "theme": "light",
+          "locale": "zh",
+          "type": "warning",
+          "text": "[.WebGL-0x134005ddc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        }
+      ]
+    },
+    "dropped": {
+      "framesent:turbopack-subscribe": 12
+    }
+  },
+  "prophetWorkspaceHref": "/us_stocks.html",
+  "sectorCompanyHandoff": "/analysis?symbol=MU&page=overview",
+  "sectorReturnJourney": {
+    "selectedHref": "http://127.0.0.1:34228/sectors?sector=xlk&group=semiconductors&sectorTheme=light&tab=sectors&sectorWorkspace=detail&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&sectorCompany=MU&sectorSort=source",
+    "overviewArrived": "http://127.0.0.1:34228/intelligence",
+    "returnedHref": "http://127.0.0.1:34228/sectors?sector=xlk&group=semiconductors&sectorTheme=light&tab=sectors&sectorWorkspace=detail&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&sectorCompany=MU&sectorSort=source",
+    "reloadPreserved": true
+  },
+  "stress320": {
+    "document": 320,
+    "viewport": 320,
+    "main": [
+      {
+        "client": 320,
+        "scroll": 320
+      }
+    ]
+  },
+  "guestGate": true,
+  "ownedChildClosed": true,
+  "childClose": {
+    "code": 0,
+    "signal": null
+  },
+  "fixtureClosed": true,
+  "finishedAt": "2026-11-10T11:41:33.088Z"
+}

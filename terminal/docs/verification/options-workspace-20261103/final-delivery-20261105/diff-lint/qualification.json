@@ -1,0 +1,103 @@
+{
+  "checks": [
+    {
+      "profile": "original",
+      "exit": 0,
+      "files": [
+        "app/login/page.tsx",
+        "components/exposure-map/ExposureMap.tsx",
+        "e2e/options-exposure-workspace.spec.ts",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts",
+        "lib/__tests__/helpers/optionsVisualEvidence.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/sharedShellLoginDefault.test.tsx",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts"
+      ],
+      "issues": [
+        {
+          "file": "components/exposure-map/ExposureMap.tsx",
+          "messages": [
+            {
+              "ruleId": "@typescript-eslint/no-unused-vars",
+              "severity": 1,
+              "message": "'read' is defined but never used.",
+              "line": 383,
+              "column": 38,
+              "nodeType": "Identifier",
+              "messageId": "unusedVar",
+              "endLine": 383,
+              "endColumn": 42
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "exposure",
+      "exit": 0,
+      "files": [
+        "app/login/page.tsx",
+        "components/exposure-map/ExposureMap.tsx",
+        "e2e/options-exposure-workspace.spec.ts",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/sharedShellLoginDefault.test.tsx",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts"
+      ],
+      "issues": [
+        {
+          "file": "components/exposure-map/ExposureMap.tsx",
+          "messages": [
+            {
+              "ruleId": "@typescript-eslint/no-unused-vars",
+              "severity": 1,
+              "message": "'read' is defined but never used.",
+              "line": 383,
+              "column": 38,
+              "nodeType": "Identifier",
+              "messageId": "unusedVar",
+              "endLine": 383,
+              "endColumn": 42
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "preview",
+      "exit": 0,
+      "files": [
+        "app/login/page.tsx",
+        "components/exposure-map/ExposureMap.tsx",
+        "e2e/options-exposure-workspace.spec.ts",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts",
+        "lib/__tests__/helpers/optionsVisualEvidence.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/sharedShellLoginDefault.test.tsx",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts"
+      ],
+      "issues": [
+        {
+          "file": "components/exposure-map/ExposureMap.tsx",
+          "messages": [
+            {
+              "ruleId": "@typescript-eslint/no-unused-vars",
+              "severity": 1,
+              "message": "'read' is defined but never used.",
+              "line": 391,
+              "column": 38,
+              "nodeType": "Identifier",
+              "messageId": "unusedVar",
+              "endLine": 391,
+              "endColumn": 42
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "completed_at": "2026-11-05T10:03:56.789525+00:00"
+}

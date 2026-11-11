@@ -1,0 +1,18 @@
+{
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "command": [
+    "node",
+    "node_modules/eslint/bin/eslint.js",
+    "next.config.ts",
+    "lib/__tests__/nextConfigDevIndicator.test.ts",
+    "lib/__tests__/productionTypeProject.test.ts",
+    "e2e/rs-pivot-study.spec.ts",
+    "e2e/sector-intraday-comparison.spec.ts",
+    "e2e/sector-leadership-dossier.spec.ts",
+    "e2e/watchlist-annotation-sync.spec.ts",
+    "e2e/tools/qualify_shared_shell_intelligence.cjs"
+  ],
+  "exit": 0,
+  "seconds": 4.597,
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

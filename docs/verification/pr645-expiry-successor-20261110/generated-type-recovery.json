@@ -1,0 +1,31 @@
+{
+  "cause": "Corrupt generated development route declaration constrains all routes to slash while its validator covers the complete app. Fresh production typegen output is complete. Historical writer interleaving is not proven.",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "tsc",
+    "--noEmit"
+  ],
+  "completedAt": "2026-11-10T06:37:11.072822+00:00",
+  "exitCode": 0,
+  "files": {
+    "cache-life.d.ts": "d1986184a09a52db8228cb2bb2a61a8c05c9354e5b93cec8e2628d8579c892d7",
+    "routes.d.ts": "6e316f254be320ec3d87e151a293168d01cfbda792372580833325e5399d31f3",
+    "validator.ts": "d9458b03cea0499f41e439fc5b424d073d616a175d781c04d166e87fdd5ea6ea"
+  },
+  "gateChange": false,
+  "listenerClosed": true,
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "movedFrom": "terminal/.next/dev/types",
+  "preservedAt": "docs/verification/pr645-expiry-successor-20261110/generated-dev-types-before-recovery",
+  "priorTypeScriptLog": "typescript.log",
+  "priorValidation": "reader-and-types.json",
+  "retainedProductionRoutesSha256": "e27647133b4d1378866b9a50fb7a37189ec7fe06f56aaa8c3988d08711e4c901",
+  "schema": "terminal_pr645_generated_type_recovery.v1",
+  "seconds": 105.43,
+  "sourceChange": false,
+  "startedAt": "2026-11-10T06:35:25.634930+00:00",
+  "state": "FULL_TYPESCRIPT_PASSED",
+  "workspaceCwdHolders": []
+}

@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal
+
+ ✓ lib/__tests__/finStatements.test.ts (14 tests) 13ms
+ ✓ lib/__tests__/pineBootPendingEvidence.test.ts (6 tests) 21ms
+ ✓ lib/__tests__/finStatementMath.test.ts (79 tests) 289ms
+
+ Test Files  3 passed (3)
+      Tests  99 passed (99)
+   Start at  22:56:34
+   Duration  3.48s (transform 1.15s, setup 0ms, collect 1.69s, tests 323ms, environment 0ms, prepare 935ms)
+

@@ -1,6 +1,9 @@
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TerminalTfDeepLink from "@/components/TerminalTfDeepLink";
+
+export const metadata = workspaceMetadata("Terminal", "Mastermind Terminal");
 
 export default async function TerminalLayout({ children }: { children: React.ReactNode }) {
   // Gate on the env switch FIRST. `auth.getUser()` is a network round-trip to the Supabase

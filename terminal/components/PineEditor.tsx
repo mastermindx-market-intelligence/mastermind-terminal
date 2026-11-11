@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type Bar, type PineError } from "@/lib/pine-engine";
@@ -8,30 +8,32 @@ import { compareExpectedUpdatedAt } from "@/lib/savedScriptStamp";
 import { classifyScriptReadback, parseScriptVersion, sameScriptContent, scriptParamsEqual, verifyScriptSaveReceipt, type ConfirmedScriptSave, type ScriptSaveAttempt, type ScriptVersion } from "@/lib/scriptSaveOutcome";
 import { scriptEditorCopy } from "@/lib/scriptEditorCopy";
 import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
+import { pineEngineFailure } from "@/lib/pineChartRun";
+import { usePineRunT } from "@/lib/pineRunLex";
 
 type Script = { id: string; name: string; source: string; lang: string; params: Record<string, any>; updated_at: string; locked?: boolean };
 
 // lightweight Pine highlighter — single-pass tokenizer (string | comment | namespace.fn | keyword |
-// number), so each token is classified exactly once. Gaps between tokens are HTML-escaped; strings &
+// number), so each token is classified exactly once. Source stays in React text children; strings &
 // comments are matched FIRST so a // or digit inside them is never re-tokenized.
-function esc(s: string) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 const TOKEN = /("(?:[^"\\]|\\.)*"?)|(\/\/.*)|\b(ta|math|request|input|str|array|color|shape|location|plot|syminfo)\.([A-Za-z_]\w*)|\b(indicator|strategy|input|plot|plotshape|and|or|not|true|false|if|else|for|var)\b|\b(\d+\.?\d*)\b/g;
 function hl(line: string) {
-  let out = "", last = 0, m: RegExpExecArray | null;
+  const out: ReactNode[] = [];
+  let last = 0, m: RegExpExecArray | null;
   TOKEN.lastIndex = 0;
   while ((m = TOKEN.exec(line)) !== null) {
-    if (m.index > last) out += esc(line.slice(last, m.index));
+    if (m.index > last) out.push(line.slice(last, m.index));
     const [full, str, com, ns, fn, kw, num] = m;
-    if (str != null) out += `<span class="st">${esc(str)}</span>`;
-    else if (com != null) out += `<span class="cm">${esc(com)}</span>`;
-    else if (ns != null) out += `<span class="fn">${esc(ns)}.${esc(fn)}</span>`;
-    else if (kw != null) out += `<span class="kw">${kw}</span>`;
-    else if (num != null) out += `<span class="nu">${num}</span>`;
-    else out += esc(full);
+    if (str != null) out.push(<span key={m.index} className="st">{str}</span>);
+    else if (com != null) out.push(<span key={m.index} className="cm">{com}</span>);
+    else if (ns != null) out.push(<span key={m.index} className="fn">{ns}.{fn}</span>);
+    else if (kw != null) out.push(<span key={m.index} className="kw">{kw}</span>);
+    else if (num != null) out.push(<span key={m.index} className="nu">{num}</span>);
+    else out.push(full);
     last = m.index + full.length;
     if (full.length === 0) TOKEN.lastIndex++;   // guard against a zero-width match looping
   }
-  if (last < line.length) out += esc(line.slice(last));
+  if (last < line.length) out.push(line.slice(last));
   return out;
 }
 
@@ -49,7 +51,8 @@ const SYNTH_BARS: Bar[] = (() => {
   return out;
 })();
 
-type Diag = { errors: PineError[]; warnings: string[]; cancelled?: boolean };
+// Engine availability and cancellation are distinct from script errors.
+type Diag = { errors: PineError[]; warnings: string[]; cancelled?: boolean; unavailable?: boolean };
 
 // The "edited <date>" stamp in the script list. A bare `toLocaleDateString()` resolves against the
 // SERVER's locale and timezone during SSR and the BROWSER's on hydration, so the two rendered
@@ -69,14 +72,22 @@ export function editedOn(iso: string, lang: "en" | "zh" = "en"): string {
 // "Compiled"). Both go through the same host `slot` so a keystroke supersedes the previous in-flight
 // diagnostics run (terminateable — a mid-type recompile cancels the previous one), and the per-run
 // wall budget preempts a runaway. SSR/no-Worker falls back to a synchronous host transparently.
-async function diagnose(host: PineHost, src: string, params: Record<string, any>): Promise<Diag> {
+// `null` = superseded/disposed: nothing was checked, so the caller keeps what it showed rather than
+// reporting a clean compile. An engine failure (the worker never booted, or crashed) comes back as
+// `unavailable` — not as the script's errors, and not as a clean pass.
+async function diagnose(host: PineHost, src: string, params: Record<string, any>, current: () => boolean): Promise<Diag | null> {
   const c = await host.compile(src);
+  if (!current()) return null;
   if (c.cancelled) return { errors: [], warnings: [], cancelled: true };
-  if (!c.ok) return { errors: c.errors, warnings: [] };
+  if (!c.ok) return pineEngineFailure(c.errors[0]) ? { errors: [], warnings: [], unavailable: true } : { errors: c.errors, warnings: [] };
   const r = await host.run({ slot: DIAG_SLOT, source: src, astId: c.astId ?? undefined, bars: SYNTH_BARS, inputs: params, opts: { timeframe: "1D", symbol: "SYNTH" }, budgetMs: 1000 });
+  if (!current()) return null;
   if (r.cancelled) return { errors: [], warnings: [], cancelled: true };
+  if (!r.ok && pineEngineFailure(r.errors[0])) return { errors: [], warnings: [], unavailable: true };
   return { errors: r.ok ? [] : r.errors, warnings: r.result?.warnings ?? [] };
 }
+// A check that settles inside this window never shows "Checking…", so ordinary typing doesn't flicker.
+const DIAG_PENDING_GRACE_MS = 700;
 const DIAG_SLOT = "@diag";   // shared supersession slot for editor diagnostics (compile + dry-run)
 
 // Code-layer font metrics (must mirror .code / .code-wrap textarea in globals.css: 12.5px/1.65
@@ -92,6 +103,7 @@ const COL_W = 12.5 * 0.6;          // px per mono char (JetBrains Mono advance �
 // data loss.
 export default function PineEditor({ scripts, isPro, email, libraryUnavailable = false }: { scripts: Script[]; isPro: boolean; email: string; libraryUnavailable?: boolean }) {
   const t = useT();
+  const pt = usePineRunT();   // engine-state console copy (feature-local LEX)
   const { lang } = useLang();
   const copy = scriptEditorCopy(lang);
   const router = useRouter();
@@ -197,11 +209,6 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   if (hostRef.current === null) hostRef.current = createPineHost();
   useEffect(() => () => { hostRef.current?.dispose(); hostRef.current = null; }, []);
 
-  // Switching scripts resets the editable buffers to that script's stored source/params. Keyed on
-  // the selected script ID, never on the library's contents or array index — so a save, which
-  // rewrites the active row in `library`, or a server-list reorder of the same identities, does
-  // not reset the buffer the user is still typing in.
-  useEffect(() => { setSrc(active?.source || ""); setParams(active?.params || {}); setPicker(false); setBufferReady(true); }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
   // close the script picker on any outside click
   useEffect(() => { if (!picker) return; const close = () => setPicker(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [picker]);
 
@@ -213,51 +220,88 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
 
   // A result belongs to the exact script/source/inputs that were checked. Editing
   // invalidates the visible success immediately, before the debounce starts.
-  type Diagnostic = { input: string; kind: "running" | "done" | "cancelled" | "failed"; errors: PineError[]; warnings: string[] };
+  type Diagnostic = { input: string; kind: "running" | "done" | "cancelled" | "unavailable"; errors: PineError[]; warnings: string[]; showChecking?: boolean };
+  const diagnosticAllowsAdd = (result: Diagnostic | null, input: string) => result?.input === input
+    && (result.kind === "unavailable" || (result.kind === "done" && result.errors.length === 0));
   const [diagnosticRevision, setDiagnosticRevision] = useState(0);
   const diagnosticInput = JSON.stringify([active?.id, src, params, diagnosticRevision]);
   const diagnosticInputRef = useRef(diagnosticInput);
   useLayoutEffect(() => { diagnosticInputRef.current = diagnosticInput; }, [diagnosticInput]);
   const diagnosticGenerationRef = useRef(0);
   const diagnosticTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const diagnosticGraceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [diagnostic, setDiagnostic] = useState<Diagnostic | null>(null);
   const diagnosticRef = useRef(diagnostic);
   useLayoutEffect(() => { diagnosticRef.current = diagnostic; }, [diagnostic]);
   const invalidateDiagnostics = useCallback(() => {
     diagnosticGenerationRef.current += 1;
+    if (diagnosticTimerRef.current !== null) clearTimeout(diagnosticTimerRef.current);
+    diagnosticTimerRef.current = null;
+    if (diagnosticGraceRef.current !== null) clearTimeout(diagnosticGraceRef.current);
+    diagnosticGraceRef.current = null;
     setDiagnosticRevision((value) => value + 1);
     diagnosticRef.current = null; setDiagnostic(null);
   }, []);
+  // Switching scripts resets the editable buffers to that script's stored source/params. Keyed on
+  // the selected script ID, never on the library's contents or array index — so a save, which
+  // rewrites the active row in `library`, or a server-list reorder of the same identities, does
+  // not reset the buffer the user is still typing in.
+  useEffect(() => {
+    invalidateDiagnostics();
+    // Keep the selected-ID buffer owner and its diagnostic input in agreement.
+    const nextSource = active?.source || "", nextParams = active?.params || {};
+    srcRef.current = nextSource; paramsRef.current = nextParams;
+    setSrc(nextSource); setParams(nextParams); setPicker(false); setBufferReady(true);
+  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
   const startDiagnostics = useCallback(() => {
     // A check cancels pending navigation, but does not change the revision or
     // editor contents covered by an explicit replacement confirmation.
     invalidateNavigation(false);
     if (diagnosticTimerRef.current !== null) clearTimeout(diagnosticTimerRef.current);
     diagnosticTimerRef.current = null;
+    if (diagnosticGraceRef.current !== null) clearTimeout(diagnosticGraceRef.current);
+    diagnosticGraceRef.current = null;
     const host = hostRef.current; if (!host) return;
     const generation = ++diagnosticGenerationRef.current;
     const input = diagnosticInput;
+    const current = () => mountedRef.current && generation === diagnosticGenerationRef.current && input === diagnosticInputRef.current;
     diagnosticRef.current = { input, kind: "running", errors: [], warnings: [] };
     setDiagnostic(diagnosticRef.current);
-    diagnose(host, src, params).then((result) => {
-      if (!mountedRef.current || generation !== diagnosticGenerationRef.current || input !== diagnosticInputRef.current) return;
-      diagnosticRef.current = { input, kind: result.cancelled ? "cancelled" : "done", errors: result.errors, warnings: result.warnings };
+    // This timer only reveals pending presentation; the captured input/generation
+    // remains the authority for both the worker and every publication below.
+    const grace = setTimeout(() => {
+      if (!current()) return;
+      diagnosticRef.current = { input, kind: "running", errors: [], warnings: [], showChecking: true };
+      setDiagnostic(diagnosticRef.current);
+    }, DIAG_PENDING_GRACE_MS);
+    diagnosticGraceRef.current = grace;
+    diagnose(host, src, params, current).then((result) => {
+      if (!current()) return;
+      diagnosticRef.current = { input, kind: !result || result.cancelled ? "cancelled" : result.unavailable ? "unavailable" : "done", errors: result?.errors ?? [], warnings: result?.warnings ?? [] };
       setDiagnostic(diagnosticRef.current);
     }).catch(() => {
-      if (mountedRef.current && generation === diagnosticGenerationRef.current && input === diagnosticInputRef.current) {
-        diagnosticRef.current = { input, kind: "failed", errors: [], warnings: [] }; setDiagnostic(diagnosticRef.current);
+      if (current()) {
+        diagnosticRef.current = { input, kind: "unavailable", errors: [], warnings: [] }; setDiagnostic(diagnosticRef.current);
       }
+    }).finally(() => {
+      clearTimeout(grace);
+      if (diagnosticGraceRef.current === grace) diagnosticGraceRef.current = null;
     });
   }, [diagnosticInput, src, params, invalidateNavigation]);
   useEffect(() => {
     diagnosticTimerRef.current = setTimeout(startDiagnostics, 300);
     return () => {
       if (diagnosticTimerRef.current !== null) clearTimeout(diagnosticTimerRef.current);
+      if (diagnosticGraceRef.current !== null) clearTimeout(diagnosticGraceRef.current);
+      diagnosticGraceRef.current = null;
       diagnosticGenerationRef.current += 1;
     };
   }, [startDiagnostics]);
   const diagnosticsCurrent = diagnostic?.input === diagnosticInput;
   const diagnosticsReady = diagnosticsCurrent && diagnostic?.kind === "done";
+  const diagnosticsUnavailable = diagnosticsCurrent && diagnostic?.kind === "unavailable";
+  const diagnosticsChecking = diagnosticsCurrent && diagnostic?.kind === "running" && diagnostic.showChecking;
+  const diagnosticsCanAdd = diagnosticAllowsAdd(diagnostic, diagnosticInput);
   const diag = diagnosticsReady ? diagnostic.errors : [];
   const warns = diagnosticsReady ? diagnostic.warnings : [];
   const hasErrors = diag.length > 0;
@@ -465,7 +509,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
 
   async function addToChart() {
     const current = activeRef.current;
-    if (!current || !diagnosticsReady || hasErrors || current.locked || navigationBusyRef.current
+    if (!current || !diagnosticsCanAdd || current.locked || navigationBusyRef.current
       || saveInflightRef.current.has(current.id) || saveStatesRef.current[current.id]?.fenced || (dirty && !isPro)) return;
     const ticket = ++navigationRef.current;
     navigationBusyRef.current = true;
@@ -480,8 +524,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
     }
     if (!mountedRef.current || ticket !== navigationRef.current || activeRef.current?.id !== id
       || diagnosticInputRef.current !== diagnosticInput || checkedGeneration !== diagnosticGenerationRef.current
-      || diagnosticRef.current?.input !== diagnosticInput || diagnosticRef.current.kind !== "done"
-      || diagnosticRef.current.errors.length > 0) { navigationBusyRef.current = false; return; }
+      || !diagnosticAllowsAdd(diagnosticRef.current, diagnosticInput)) { navigationBusyRef.current = false; return; }
     navigationRef.current += 1;
     // Keep this intent consumed until the route leaves (or a new edit/selection).
     router.push(`/terminal?addScript=${encodeURIComponent(id)}`);
@@ -518,7 +561,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   const saveBlockedReason = !active ? t("peNoScripts") : isLocked ? copy.lockedReason : !isPro ? copy.proReason
     : needsReadback ? copy.reconcileFirst : saving ? copy.savingReason : !dirty ? copy.noChanges : "";
   const addBlockedReason = !active ? t("peNoScripts") : isLocked ? copy.lockedReason : saving ? copy.savingReason : needsReadback ? copy.reconcileFirst
-    : dirty && !isPro ? copy.proReason : !diagnosticsReady ? copy.diagnosticsPending : hasErrors ? t("peFixErrorsTip") : "";
+    : dirty && !isPro ? copy.proReason : hasErrors ? t("peFixErrorsTip") : !diagnosticsCanAdd ? copy.diagnosticsPending : "";
 
   // Content-only toolbar. The app chrome (BrandLockup / AppNav / MobileNav / lang
   // toggle) is now owned by AppShell (app/(shell)/layout.tsx); this bar keeps the
@@ -635,7 +678,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
                   )}
                 </div>
               )}
-              <div className="code">{lines.map((ln, i) => <div key={i} dangerouslySetInnerHTML={{ __html: hl(ln) || "&nbsp;" }} />)}</div>
+              <div className="code">{lines.map((ln, i) => <div key={i}>{ln === "" ? "\u00a0" : hl(ln)}</div>)}</div>
               <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} ${copy.sourceLabel}`} readOnly={isLocked} disabled={!bufferReady}
                 onChange={(event) => { if (!isLocked) { invalidateNavigation(); invalidateDiagnostics(); srcRef.current = event.target.value; setSrc(event.target.value); } }} onKeyDown={onKeyDown} />
             </div>
@@ -643,8 +686,13 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
           <div className="console" data-diagnostics-state={diagnosticsCurrent ? diagnostic?.kind : "pending"} role="region" aria-label={copy.diagnosticsLabel}>
             <div className="pine-console-heading"><b>{copy.stepChecks}</b>{dirty && <span className="pine-dirty">{t("peUnsavedChanges")}</span>}</div>
             <p className="pine-diagnostic-scope">{copy.diagnosticsScope}</p>
-            {!diagnosticsReady ? (
-              <div role="status"><span className="k">{!diagnosticsCurrent ? copy.diagnosticsPending : diagnostic?.kind === "running" ? copy.diagnosticsRunning : diagnostic?.kind === "cancelled" ? copy.diagnosticsCancelled : copy.diagnosticsFailed}</span></div>
+            {diagnosticsUnavailable ? (
+              <div data-pe-state="engine-unavailable" role="status">
+                <span style={{ color: "var(--warn)" }}>⚠ {pt("peEngineUnavailable")}</span>{" "}
+                <button type="button" className="ai" style={{ marginLeft: 6 }} onClick={compile}>{pt("peRetryCheck")}</button>
+              </div>
+            ) : !diagnosticsReady ? (
+              <div role="status" data-pe-state={diagnosticsChecking ? "checking" : undefined}><span className="k">{diagnosticsChecking ? pt("peChecking", { name: active.name }) : diagnosticsCurrent && diagnostic?.kind === "cancelled" ? copy.diagnosticsCancelled : copy.diagnosticsPending}</span></div>
             ) : hasErrors ? (
               <>
                 <div><span style={{ color: "var(--down)" }}>✗ {diag.length === 1 ? t("peErrorCountOne") : t("peErrorCount").replace("{n}", String(diag.length))}</span> <span className="k">· {t("peLineCount").replace("{n}", String(lines.length))}</span></div>

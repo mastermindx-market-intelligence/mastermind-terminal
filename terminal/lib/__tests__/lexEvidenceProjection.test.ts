@@ -22,6 +22,12 @@ function manifest(projectedSha256 = fingerprintCapturedLex(captured, rawHash)): 
 }
 
 describe("recorded LEX capture dependency projection", () => {
+  it("accepts a fresh exact-byte recapture without historical projection metadata", () => {
+    expect(() => assertCapturedLexProjection(current, hash(current), "")).not.toThrow();
+    expect(() => assertCapturedLexProjection(current + "\n", hash(current), "")).toThrow();
+    expect(() => assertCapturedLexProjection(captured, hash(current), "")).toThrow();
+  });
+
   it("accepts only the excluded tuple delta while preserving the original raw source hash", () => {
     expect(hash(current)).not.toBe(rawHash);
     expect(projectCapturedLex(current)).toBe(projectCapturedLex(captured));

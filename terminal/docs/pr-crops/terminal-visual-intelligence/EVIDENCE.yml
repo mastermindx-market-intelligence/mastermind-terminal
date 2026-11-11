@@ -36,7 +36,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "ffe5771540e577792257c0db27c1062da62c47f914596e7960fcc45e59972498"
+  terminal/components/TerminalShell.tsx: "99d6ea7ae1621e0e368ee0716a1d6dad9defcbbaab9371ded8146159251756fa"
   terminal/components/ChartPositionEntry.tsx: "e8be598623acd0f5af8f574c87eab824c76dcc56a40ada78807b9785c9c08b4c"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
@@ -78,12 +78,12 @@ layoutFiles:
   terminal/components/CompanyListingIdentity.module.css: "29788c51e58e5e972be0335d490685cb8512a3fbd8bdbe35aa4663e2fe2f70a3"
   terminal/lib/companySearchContext.ts: "ee780295ea796509bbfdf92688ddd522144cd38f0fb82925a8ca31acfdaf4b12"
 cropFiles:
-  desktop-context.png: "b736791aa903f615da64ec96d60f3957810b68ca3fae6d1d872a5026842c5f85"
-  desktop-context-zh.png: "ebc4457f93d09a56422c398eec5c1e56f73b0dc1326289e4f9b8eceb7119705a"
-  mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
-  mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
-  tablet-context.png: "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
-  tablet-context-zh.png: "5278387301c027e7e3c0ae0c96f0b6a233ef43243208936437d7bdf84855fd5a"
+  desktop-context.png: "66153da19a3e71b90e6117448c515e3f6e36c2e05168136409f57f34df8bb4e9"
+  desktop-context-zh.png: "9ce0014f57b940c66f9e206ecaced37d9248758a1eac6f89009e74b5c2966090"
+  mobile-context.png: "c592422746c31aa8a0a7f9220fd7cf846b99a6fa770b27ade6a5981b0322ba7f"
+  mobile-context-zh.png: "7491db058f74a494459ddcbd0a2d9e76a4ee9516c0061183a8b0288e53fef8ef"
+  tablet-context.png: "8ed57f68b1e11561d73532f64de5d9daa5515b9004d06aa62de008ec468d3a2b"
+  tablet-context-zh.png: "096d3b4fdda00da5bde7347adee430b6a457337b81d08a771b0baafa2a51f383"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -106,8 +106,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
-  mobileCrosshairReport: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
+  visualReport: "7d7376998464e8e906a6ba1b3bc14446e3368b183f3772f2408561a08d6ccf0e"
+  mobileCrosshairReport: "7d7376998464e8e906a6ba1b3bc14446e3368b183f3772f2408561a08d6ccf0e"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -730,6 +730,21 @@ drawingsSheetAcceptedRecentRecapture20261101:
   cropDelta: "Tablet and mobile EN/ZH are byte-identical to the prior capture. Desktop EN/ZH differ only in the status clock (captured after the US DST change), the ETH session chip's off-hours shade and the movers-ticker scroll offset; the Chart context reader and drawing dock are unchanged"
   productionProof: false
 
+# Current-head real Playwright fixture recapture; earlier evidence remains historical.
+accessFlashRecapture20261101:
+  sourceHead: "5199aef3a6537f7a6dcdc20c2b81d3ddd9992cc9"
+  browserReportPath: "browser-report.json"
+  browserReportSha256: "7d7376998464e8e906a6ba1b3bc14446e3368b183f3772f2408561a08d6ccf0e"
+  actualRunStart: "2026-11-02T05:43:26.584Z"
+  actualRunDurationMs: 143744.557
+  matrix: "30/30 passed; EN/ZH desktop/tablet/mobile, no retries, skips or unexpected"
+  regeneratedCrops: 6
+  changedSource:
+    terminal/components/TerminalShell.tsx: "51c6fa210290ad98ba552e41c3620a9a29dfd4f015224ee288eb0e40695403fe"
+  sourceScope: "Terminal chart shell entitlement presentation, no billing/server grant"
+  productionAccountTested: false
+  historicalEvidencePreserved: true
+
 chartPositionEntryOwnerRecapture20261102:
   baseHead: "558f96faf7a7add8fd9b90ce835754c17dde3bf5"
   reason: "TerminalShell.tsx binds the chart's Add-to-Portfolio form to the account that opened it: the opening now carries the captured immutable owner and is rendered by the new chart-specific controller components/ChartPositionEntry.tsx, which sends that captured owner as expectedOwnerId and retires the opening on an observed account transition. The captured chart-context and ChartChrome surfaces do not render the position form, so their pixels are unaffected — proven by control captures, not asserted."
@@ -783,3 +798,14 @@ ascPineBuildEvidence20261103:
   operationSha256: "2059b401bf0ed609be6d090c39f16428616c71844f06d7dcf8807d45023eb584"
   actualCases: 30
   scope: "Current synthetic fixture captures qualify the Pine build configuration source. Earlier capture timestamps and image files remain historical; current screenshots, execution report and source snapshots are in the immutable operation above. No real-market reference or production acceptance."
+
+
+# Historical Prophet fixture result at its original source; this is not the current composed-source lock.
+prophetForecastPulseRecapture20261102:
+  sourceHead: "6065cc744e081083eeee61bd00cfa8e15442a34d"
+  chartPanelSha256: "09eb4b24955b7e71a4c6c356f1db6ca8876ec2ff3ceaee22318cced06ef5e631"
+  actualBrowserResult: "30 passed; 0 failed, skipped, flaky or retries; EN/ZH desktop/tablet/mobile"
+  actualReportSha256: "bfebb3ca70634498fb96df12b4dad759f893bc08e835365eb8d5af04fc0d2854"
+  evidence: "../../verification/prophet-marker-20261102/README.md"
+  cropDisposition: "Six actual context captures performed. Four tablet/mobile images byte-identical to prior accepted; two desktop captures differ in bytes and are retained as local diagnostics. Accepted PNG and report hashes remain historical and unchanged; only source binding updated. This fixture has no Prophet receipt, so no new icon was claimed visible in these screenshots."
+  productionProof: false

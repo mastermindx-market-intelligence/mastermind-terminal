@@ -1,0 +1,19 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-exposure-integration-20261109/terminal
+
+ ✓ lib/__tests__/optionsExposureEvidence.test.ts (54 tests) 533ms
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (11 tests) 358ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (12 tests) 406ms
+ ✓ lib/__tests__/optionsExposureEvidenceOwner.test.ts (6 tests) 4371ms
+   ✓ current EOD owner and native reader > selects the same qualified manifest and preserves its actual capture identity 1908ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx 367ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx 363ms
+   ✓ current EOD owner and native reader > refuses a corrupted selected image through the actual owner 988ms
+   ✓ current EOD owner and native reader > refuses a changed descriptor rather than recapturing over history 567ms
+
+ Test Files  4 passed (4)
+      Tests  83 passed (83)
+   Start at  06:46:44
+   Duration  5.41s (transform 323ms, setup 0ms, collect 3.31s, tests 5.67s, environment 1ms, prepare 722ms)
+

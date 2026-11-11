@@ -21,6 +21,10 @@ import type { OwnerAlertRow, WatchBuild } from "@/lib/investigationWatch";
 import InvestigationWatchPanel, { type WatchLoadState } from "./InvestigationWatchPanel";
 import InvestigationReviewPanel from "./InvestigationReviewPanel";
 import styles from "./InvestigationWorkspace.module.css";
+import InvestigationEvidenceReview from "./InvestigationEvidenceReview";
+import { reopenCurrent, reopenOriginal, savedSectorCaptures,
+  type SectorPopulationRead, type SectorReopenState, type SectorReopenTransport, type TransportAnswer } from "@/lib/sectorInvestigationReopen";
+import { sectorPopulationPage } from "@/lib/sectorPopulation";
 
 type Props = { ownerKey:string; initialSymbol?:string; initialInvestigationId?:string; initialRevision?:number };
 type Detail = { id:string; revision:number; current_revision:number; lifecycle:"active"|"removed"; manifest:InvestigationManifest; committed_at:string; layouts:Array<{id:string;layout_id:string;digest:string;config:unknown}> };
@@ -31,8 +35,8 @@ const emptyDraft=(symbol=""):Draft=>({title:"",question:"",symbol,next:"",horizo
 const record=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v);
 const clock=(v:string|null|undefined)=>v ? new Date(v).toLocaleString() : "—";
 const COPY={
- en:{title:"Saved research",intro:"Continue your question with retained context.",back:"Company research",start:"Start new research",list:"Saved questions",empty:"No saved questions yet.",unavailable:"Saved research is unavailable. Your draft is unchanged.",retry:"Try again",loading:"Loading…",new:"New research",question:"Research question",name:"Title",symbol:"Security symbol",horizon:"Research horizon (optional)",asOf:"Research as-of date (optional)",next:"Next question (optional)",layout:"Retain a named layout (optional)",none:"No layout selected",baseline:"Earnings evidence",capture:"Choose current Earnings evidence",selected:"Selected generation",missing:"This exact evidence is unavailable. Current data has not replaced it.",save:"Save research",saving:"Saving…",cancel:"Cancel editing",edit:"Edit saved question",revision:"Revision",saved:"Saved",retained:"Retained context",continue:"Continue company research",openLayout:"Open retained layout",remove:"Remove from saved research",restore:"Restore saved research",removed:"Removed",all:"Active",trash:"Removed",uncertain:"The save outcome is not confirmed. Your exact draft and original request are retained.",check:"Check original outcome",retrySave:"Retry original save",checking:"Checking original outcome…",conflict:"The save was not committed. Your draft is retained. Reopen the latest revision before editing again.",storage:"This browser cannot safely retain the pending save. No new request was sent.",auth:"Your account changed or your session ended. Sign in again to open saved research.",signIn:"Sign in",clocks:"Evidence clocks",public:"Publicly known",platform:"Recorded by platform",generated:"Generation emitted",seen:"Viewed in this session",rights:"Current access checked",coverage:"Evidence coverage",contextOnly:"Research context",noBaseline:"No retained Earnings evidence selected.",noLayout:"No retained layout.",readback:"Saved. Verifying the exact revision…",readbackFailed:"Saved, but exact readback is unavailable. Reopen this revision to verify it.",viewLatest:"Open latest revision",titleRequired:"Add a title and question within the displayed limits.",baselineLoading:"Checking source identity and current access…",layoutUnavailable:"Named layouts are unavailable.",invalidLink:"This saved research link is unavailable.",partial:"Coverage is shown separately for each source.",choose:"Select a saved question or start new research.",browse:"Saved research",operation:"Original save request",savedQuestion:"Saved question",viewRevision:"Open revision",previous:"Previous revision",nextRevision:"Next revision",retainedDraft:"Retained draft",options:"Options evidence",optionsIntro:"References and digests only. The exposure read itself is never copied into saved research.",optionsNone:"No Options evidence captured.",optionsChecking:"Comparing the saved source with its current read…",optionsSaved:"Saved digest",optionsCurrent:"Current digest",optionsOpen:"Open this exposure read",typeExposure:"Exposure chart read",typeOrigin:"Sector origin",typeRotation:"Rotation measurement",optionsVersion:"Version"},
- zh:{title:"已保存研究",intro:"结合保留的上下文，继续研究问题。",back:"公司研究",start:"开始新研究",list:"已保存的问题",empty:"暂无已保存的问题。",unavailable:"已保存研究暂不可用。草稿保持不变。",retry:"重试",loading:"加载中…",new:"新研究",question:"研究问题",name:"标题",symbol:"证券代码",horizon:"研究期限（可选）",asOf:"研究截至日期（可选）",next:"下一个问题（可选）",layout:"保留已命名布局（可选）",none:"未选择布局",baseline:"财报证据",capture:"选择当前财报证据",selected:"已选择的版本",missing:"此确切证据暂不可用，未替换为当前数据。",save:"保存研究",saving:"保存中…",cancel:"取消编辑",edit:"编辑问题",revision:"修订",saved:"已保存",retained:"保留的上下文",continue:"继续公司研究",openLayout:"打开保留布局",remove:"移出已保存研究",restore:"恢复研究",removed:"已移除",all:"有效",trash:"已移除",uncertain:"保存结果尚未确认。确切草稿和原请求已保留。",check:"检查原请求结果",retrySave:"重试原保存请求",checking:"正在检查原请求…",conflict:"保存未提交，草稿已保留。请先重新打开最新修订。",storage:"浏览器无法安全保留待确认的保存请求。未发送新请求。",auth:"账户已更改或会话已结束。请重新登录。",signIn:"登录",clocks:"证据时间",public:"公开时间",platform:"平台记录时间",generated:"版本生成时间",seen:"本次查看时间",rights:"当前访问检查时间",coverage:"证据覆盖",contextOnly:"研究上下文",noBaseline:"未选择保留的财报证据。",noLayout:"未保留布局。",readback:"已保存，正在核验确切修订…",readbackFailed:"已保存，但暂时无法回读。请重新打开此修订进行核验。",viewLatest:"打开最新修订",titleRequired:"请填写符合所示长度限制的标题和问题。",baselineLoading:"正在核验来源身份和当前访问权限…",layoutUnavailable:"已命名布局暂不可用。",invalidLink:"此研究链接暂不可用。",partial:"各来源的覆盖状态单独显示。",choose:"选择已保存的问题，或开始新研究。",browse:"已保存研究",operation:"原保存请求",savedQuestion:"已保存问题",viewRevision:"打开修订",previous:"上一修订",nextRevision:"下一修订",retainedDraft:"保留的草稿",options:"期权证据",optionsIntro:"仅保存引用与摘要，敞口读数本身不会复制到已保存研究。",optionsNone:"未捕获期权证据。",optionsChecking:"正在将保存时来源与当前读数比对…",optionsSaved:"保存时摘要",optionsCurrent:"当前摘要",optionsOpen:"打开此敞口读数",typeExposure:"敞口图读数",typeOrigin:"板块来源",typeRotation:"轮动测量",optionsVersion:"版本"},
+ en:{title:"Saved research",intro:"Continue your question with retained context.",back:"Company research",start:"Start new research",list:"Saved questions",empty:"No saved questions yet.",unavailable:"Saved research is unavailable. Your draft is unchanged.",retry:"Try again",loading:"Loading…",new:"New research",question:"Research question",name:"Title",symbol:"Security symbol",horizon:"Research horizon (optional)",asOf:"Research as-of date (optional)",next:"Next question (optional)",layout:"Retain a named layout (optional)",none:"No layout selected",baseline:"Earnings evidence",capture:"Choose current Earnings evidence",selected:"Selected generation",missing:"This exact evidence is unavailable. Current data has not replaced it.",save:"Save research",saving:"Saving…",cancel:"Cancel editing",edit:"Edit saved question",revision:"Revision",saved:"Saved",retained:"Retained context",continue:"Continue company research",openLayout:"Open retained layout",remove:"Remove from saved research",restore:"Restore saved research",removed:"Removed",all:"Active",trash:"Removed",uncertain:"The save outcome is not confirmed. Your exact draft and original request are retained.",check:"Check original outcome",retrySave:"Retry original save",checking:"Checking original outcome…",conflict:"The save was not committed. Your draft is retained. Reopen the latest revision before editing again.",storage:"This browser cannot safely retain the pending save. No new request was sent.",auth:"Your account changed or your session ended. Sign in again to open saved research.",signIn:"Sign in",clocks:"Evidence clocks",public:"Publicly known",platform:"Recorded by platform",generated:"Generation emitted",seen:"Viewed in this session",rights:"Current access checked",coverage:"Evidence coverage",contextOnly:"Research context",noBaseline:"No retained Earnings evidence selected.",noLayout:"No retained layout.",readback:"Saved. Verifying the exact revision…",readbackFailed:"Saved, but exact readback is unavailable. Reopen this revision to verify it.",viewLatest:"Open latest revision",titleRequired:"Add a title and question within the displayed limits.",baselineLoading:"Checking source identity and current access…",layoutUnavailable:"Named layouts are unavailable.",invalidLink:"This saved research link is unavailable.",partial:"Coverage is shown separately for each source.",choose:"Select a saved question or start new research.",browse:"Saved research",operation:"Original save request",savedQuestion:"Saved question",viewRevision:"Open revision",previous:"Previous revision",nextRevision:"Next revision",retainedDraft:"Retained draft",options:"Options evidence",optionsIntro:"References and digests only. The exposure read itself is never copied into saved research.",optionsNone:"No Options evidence captured.",optionsChecking:"Comparing the saved source with its current read…",optionsSaved:"Saved digest",optionsCurrent:"Current digest",optionsOpen:"Open this exposure read",typeExposure:"Exposure chart read",typeOrigin:"Sector origin",typeRotation:"Rotation measurement",optionsVersion:"Version",reviewFailed:"The reviewed evidence could not be reopened. Your saved baseline is unchanged."},
+ zh:{title:"已保存研究",intro:"结合保留的上下文，继续研究问题。",back:"公司研究",start:"开始新研究",list:"已保存的问题",empty:"暂无已保存的问题。",unavailable:"已保存研究暂不可用。草稿保持不变。",retry:"重试",loading:"加载中…",new:"新研究",question:"研究问题",name:"标题",symbol:"证券代码",horizon:"研究期限（可选）",asOf:"研究截至日期（可选）",next:"下一个问题（可选）",layout:"保留已命名布局（可选）",none:"未选择布局",baseline:"财报证据",capture:"选择当前财报证据",selected:"已选择的版本",missing:"此确切证据暂不可用，未替换为当前数据。",save:"保存研究",saving:"保存中…",cancel:"取消编辑",edit:"编辑问题",revision:"修订",saved:"已保存",retained:"保留的上下文",continue:"继续公司研究",openLayout:"打开保留布局",remove:"移出已保存研究",restore:"恢复研究",removed:"已移除",all:"有效",trash:"已移除",uncertain:"保存结果尚未确认。确切草稿和原请求已保留。",check:"检查原请求结果",retrySave:"重试原保存请求",checking:"正在检查原请求…",conflict:"保存未提交，草稿已保留。请先重新打开最新修订。",storage:"浏览器无法安全保留待确认的保存请求。未发送新请求。",auth:"账户已更改或会话已结束。请重新登录。",signIn:"登录",clocks:"证据时间",public:"公开时间",platform:"平台记录时间",generated:"版本生成时间",seen:"本次查看时间",rights:"当前访问检查时间",coverage:"证据覆盖",contextOnly:"研究上下文",noBaseline:"未选择保留的财报证据。",noLayout:"未保留布局。",readback:"已保存，正在核验确切修订…",readbackFailed:"已保存，但暂时无法回读。请重新打开此修订进行核验。",viewLatest:"打开最新修订",titleRequired:"请填写符合所示长度限制的标题和问题。",baselineLoading:"正在核验来源身份和当前访问权限…",layoutUnavailable:"已命名布局暂不可用。",invalidLink:"此研究链接暂不可用。",partial:"各来源的覆盖状态单独显示。",choose:"选择已保存的问题，或开始新研究。",browse:"已保存研究",operation:"原保存请求",savedQuestion:"已保存问题",viewRevision:"打开修订",previous:"上一修订",nextRevision:"下一修订",retainedDraft:"保留的草稿",options:"期权证据",optionsIntro:"仅保存引用与摘要，敞口读数本身不会复制到已保存研究。",optionsNone:"未捕获期权证据。",optionsChecking:"正在将保存时来源与当前读数比对…",optionsSaved:"保存时摘要",optionsCurrent:"当前摘要",optionsOpen:"打开此敞口读数",typeExposure:"敞口图读数",typeOrigin:"板块来源",typeRotation:"轮动测量",optionsVersion:"版本",reviewFailed:"暂时无法重新打开已复核证据。已保存基准保持不变。"},
 } as const;
 const CONTEXT_LABELS: Record<string,readonly [string,string]> = {
  security:["Security","证券"], issuer:["Issuer","发行人"], release:["Issuer release","发行人公告"],
@@ -49,11 +53,57 @@ const SCENARIO_COPY={
  en:{saved:"Saved scenario",boundary:"Reference and inputs recorded with this exact revision — no market values and no current claim.",legacy:"A previously retained scenario save stores protected values this platform no longer accepts. Nothing was sent, checked or changed — start a new research or resolve the retained draft."},
  zh:{saved:"已保存方案",boundary:"随此确切修订版本记录的引用与输入——无市场数值，非当前读数。",legacy:"先前保留的方案保存请求含有本平台不再接受的受保护数值。未发送、未检查、未更改——请开始新研究或处理保留的草稿。"},
 } as const;
+// Sector reopen copy (SP14): the ORIGINAL retained capture is what the record
+// names; it never falls back to the latest, and the current read is a separate
+// labelled action. All words here claim no more than the state machine proves.
+const SECTOR_CONTEXT_COPY={
+ en:{title:"Sector context",original:"Original sector context",unavailable:"Original sector context unavailable",durable:"The saved reference reopens this capture while the owner retains it (durable retention).",processOnly:"The saved reference reopens this capture only while the owner's generation process retains it.",counts:"Measured {served} of {configured} configured members · {unserved} owner-explained unserved",countsNotStated:"Measured {served} members · configured roster not stated · {unserved} owner-explained unserved",currentLabel:"Current",openCurrent:"Open current sector context",openOriginal:"Back to the original sector context",reopening:"Reopening the saved sector context…",signedOut:"Sign in to reopen the saved sector context.",retry:"The saved sector context could not be reopened. Try again.",retryAction:"Retry",asOf:"As of {date}"},
+ zh:{title:"行业上下文",original:"原始行业上下文",unavailable:"原始行业上下文不可用",durable:"保存的引用在所有者保留该捕获期间可重新打开（持久保留）。",processOnly:"保存的引用仅在所有者的生成进程保留该捕获期间可重新打开。",counts:"已测量 {served} / {configured} 名配置成员 · {unserved} 名未测量（所有者已说明）",countsNotStated:"已测量 {served} 名成员 · 未给出配置名单 · {unserved} 名未测量（所有者已说明）",currentLabel:"当前",openCurrent:"打开当前行业上下文",openOriginal:"返回原始行业上下文",reopening:"正在重新打开已保存的行业上下文…",signedOut:"登录后重新打开已保存的行业上下文。",retry:"暂时无法重新打开已保存的行业上下文，请重试。",retryAction:"重试",asOf:"截至 {date}"},
+} as const;
+const fillCopy=(text:string,values:Record<string,string>)=>text.replace(/\{(\w+)\}/g,(_,key:string)=>values[key]??`{${key}}`);
+/** F1 counts line: a null configured roster is "not stated" — never zero, never complete.
+ * B-1/N-4 (third review): the decoder's one stated rule also gates this card. */
+const sectorCountsLine=(copy:{counts:string;countsNotStated:string},counts:{served:number;configuredCurrent:number|null;accountedUnserved:number;countsStated:boolean})=>
+ counts.configuredCurrent===null||!counts.countsStated
+  ?fillCopy(copy.countsNotStated,{served:String(counts.served),unserved:String(counts.accountedUnserved)})
+  :fillCopy(copy.counts,{served:String(counts.served),configured:String(counts.configuredCurrent),unserved:String(counts.accountedUnserved)});
 function contextLabel(value:string,lang:"en"|"zh") {
  const pair=CONTEXT_LABELS[value]??["Not classified","未分类"];
  return pair[lang==="zh"?1:0];
 }
 const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type==="exposure_chart_request"?c.typeExposure:type==="sector_origin"?c.typeOrigin:type==="rotation_measurement"?c.typeRotation:c.options;
+
+/** Lane 6 SP14 transport seam, mounted on the sector-intelligence BFF: the
+ * `?x=` form opens the retained capture the token names; the bare form opens
+ * the CURRENT capture. `openByIdentity` is deliberately unset — no
+ * open-by-identity path exists. Refusals classify by lane 1's table so the
+ * decision module (sectorInvestigationReopen) reads owner semantics.
+ * A rejected fetch or an unreadable body is a transport failure, never an
+ * exception into the caller: it classifies as `error`, which the decision
+ * module renders as the retry state with a Retry control (r2 SF-2) — the
+ * card can never stick on "Reopening…". */
+async function classifyReopenAnswer(response:Response):Promise<TransportAnswer> {
+ if(response.ok) { const body = await response.json().catch(() => null); return body ? { kind: "ok", body: body as SectorPopulationRead } : { kind: "error" }; }
+ let body:unknown=null;
+ try{body=await response.json()}catch{body=null}
+ const code=record(body)&&typeof body.code==="string"?body.code:null;
+ if(response.status===401)return {kind:"signed_out"};
+ if(response.status===404&&code==="ORIGINAL_UNAVAILABLE")return {kind:"original_unavailable"};
+ if(response.status===409&&code==="CURSOR_RESET")return {kind:"cursor_reset"};
+ if(response.status===400&&code==="REQUEST_INVALID")return {kind:"original_unavailable"}; // malformed hint
+ if(response.status===403||response.status===404)return {kind:"denied"};
+ return {kind:"error"};
+}
+export const SECTOR_REOPEN_TRANSPORT: SectorReopenTransport = {
+ openByContextRef: async contextRef => {
+  try { return classifyReopenAnswer(await fetch(`/api/sector-intelligence?x=${encodeURIComponent(contextRef)}`,{cache:"no-store"})); }
+  catch { return {kind:"error"}; }
+ },
+ openCurrent: async () => {
+  try { return classifyReopenAnswer(await fetch("/api/sector-intelligence",{cache:"no-store"})); }
+  catch { return {kind:"error"}; }
+ },
+};
 
 export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision}:Props) {
  const {lang}=useLang(), c=COPY[lang], sc=SCENARIO_COPY[lang];
@@ -63,8 +113,10 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const [baseline,setBaseline]=useState<Baseline|null>(null),[baselineState,setBaselineState]=useState<"none"|"loading"|"ready"|"unavailable">("none"),[seenAt,setSeenAt]=useState<string|null>(null);
  const [layouts,setLayouts]=useState<Layout[]>([]),[layoutError,setLayoutError]=useState(false);
  const [saveState,setSaveState]=useState<InvestigationSaveState>({phase:"idle"}),[message,setMessage]=useState("");
- const [storageBlocked,setStorageBlocked]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
+ const [storageBlocked,setStorageBlockedState]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
  const [optionsRefs,setOptionsRefs]=useState<InvestigationEvidenceRef[]>([]),[optionsStatus,setOptionsStatus]=useState<OptionsEvidenceStatus[]|null>(null),[optionsChecking,setOptionsChecking]=useState(false);
+ const [sectorReopen,setSectorReopen]=useState<SectorReopenState|"none"|"loading">("none");
+ const sectorSeq=useRef(0);
  const [alertRows,setAlertRows]=useState<OwnerAlertRow[]|null>(null),[alertLoad,setAlertLoad]=useState<WatchLoadState>("loading"),[outbox,setOutbox]=useState<readonly unknown[]|null>(null);
  // A typed reference recovered from the pending buffer rides the next draft-built manifest; a
  // fresh start and an owner change both drop it, so it can never leak into new research.
@@ -73,6 +125,9 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  // as-is — never sent, never checked, never downgraded by dropping fields.
  const [legacyScenario,setLegacyScenario]=useState(false);
  const scope=useRef<AbortController|null>(null),detailSeq=useRef(0),baselineSeq=useRef(0),optionsSeq=useRef(0),alertsSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
+ const storageBlockedRef=useRef(false);
+ const setStorageBlocked=(blocked:boolean)=>{storageBlockedRef.current=blocked;setStorageBlockedState(blocked);};
+ const editLocked=()=>stateRef.current.phase==="pending"||stateRef.current.phase==="uncertain"||storageBlockedRef.current||!!scope.current?.signal.aborted;
  const detailTitle=useRef<HTMLHeadingElement>(null),draftTitle=useRef<HTMLInputElement>(null);
  useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail?.id,detail?.revision]);
  const locked=saveState.phase==="pending"||saveState.phase==="uncertain";
@@ -158,13 +213,38 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    if(ticket!==detailSeq.current)return;
    if(record(value)&&value.status==="unauthenticated"){++optionsSeq.current;setOptionsStatus(null);setAuthEnded(true);return;}
    if(!record(value)||value.status!=="found"||value.id!==id||(revision!==undefined&&value.revision!==revision)||!Array.isArray(value.layouts)||!validateInvestigationManifest(value.manifest,INVESTIGATION_ADMISSION).ok)throw Error("unavailable");
-   const found=value as unknown as Detail;setDetail(found);setEditing(false);setMessage("");setLegacyScenario(false);retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();
+   const found=value as unknown as Detail;setDetail(found);setEditing(false);setMessage("");setLegacyScenario(false);retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();void openSectorContext(found);
    window.history.replaceState({},"",`/analysis?view=investigations&investigation=${id}&revision=${found.revision}`);
   } catch {if(ticket===detailSeq.current&&!scope.current?.signal.aborted){setMessage(afterSave?c.readbackFailed:c.invalidLink);if(!afterSave)setDetail(null);}}
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
  }
- async function settle(response:unknown) {
-  const previous=stateRef.current;
+ // SP14 reopen: the saved sector observation reopens through its retained
+ // reference only; identity is verified by the decision module on every answer.
+ // A reply is dropped when a newer open has taken the ticket, or when this
+ // open's scope controller is no longer the live one — an owner change
+ // REPLACES scope.current with a new live controller, and the auth listener
+ // aborts the old one, so both fences are checked against the controller
+ // captured BEFORE the await (r2 N-C): a stale reopen can never paint this
+ // record, and an aborted scope cannot sneak through a replacement.
+ async function openSectorContext(opened:Detail) {
+  const ticket=++sectorSeq.current;
+  const saved=savedSectorCaptures(opened.manifest);
+  if(!saved.length) { if(ticket===sectorSeq.current)setSectorReopen("none"); return; }
+  if(ticket===sectorSeq.current)setSectorReopen("loading");
+  const scopeController=scope.current;
+  const outcome=await reopenOriginal(saved[0].identity,saved[0].contextRef,SECTOR_REOPEN_TRANSPORT);
+  if(ticket!==sectorSeq.current||scopeController!==scope.current||scopeController?.signal.aborted)return;
+  setSectorReopen(outcome);
+ }
+ async function openCurrentSectorContext() {
+  const ticket=++sectorSeq.current;
+  if(ticket===sectorSeq.current)setSectorReopen("loading");
+  const scopeController=scope.current;
+  const outcome=await reopenCurrent(SECTOR_REOPEN_TRANSPORT);
+  if(ticket!==sectorSeq.current||scopeController!==scope.current||scopeController?.signal.aborted)return;
+  setSectorReopen(outcome);
+ }
+ async function settle(response:unknown) {  const previous=stateRef.current;
   const next=settleInvestigationSave(previous,ownerKey,response);setSave(next);
   if(next.phase==="committed") {
    try{if(previous.phase==="pending"||previous.phase==="uncertain")clearCommittedInvestigationJournal(sessionStorage,ownerKey,previous.command);}catch{setStorageBlocked(true);}
@@ -231,14 +311,27 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // eslint-disable-next-line react-hooks/exhaustive-deps
  },[ownerKey,initialInvestigationId,initialRevision]);
  function beginEdit(fresh=false) {
-  if(locked||storageBlocked)return;
+  // Async selection must consult current admission, never the render that
+  // started its GET. The boolean return pairs baseline installation with edit.
+  if(editLocked())return false;
   ++detailSeq.current;++baselineSeq.current;setMessage("");
-  if(fresh){try{clearRejectedInvestigationJournal(sessionStorage,ownerKey);}catch{setStorageBlocked(true);return;}setSave({phase:"idle"});setRetainedScenario(null);setLegacyScenario(false);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);window.history.replaceState({},"","/analysis?view=investigations");}
-  else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:""});}
-  setEditing(true);
+  if(fresh){try{clearRejectedInvestigationJournal(sessionStorage,ownerKey);}catch{setStorageBlocked(true);return false;}setSave({phase:"idle"});setRetainedScenario(null);setLegacyScenario(false);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);window.history.replaceState({},"","/analysis?view=investigations");}
+  else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:""});setBaselineState(baseline?"ready":"unavailable");}
+  setEditing(true);return true;
+ }
+ async function selectReviewedBaseline(receipt:RetainedEventWorkspaceReceipt) {
+  if(!detail||editLocked()||detail.lifecycle!=="active"||detail.revision!==detail.current_revision)return;
+  const ticket=++baselineSeq.current,recordTicket=detailSeq.current;setBaselineState("loading");
+  try {
+   const value=await json(`/api/investigations/baseline?${new URLSearchParams({event_id:receipt.event_id,generation_id:receipt.generation_id,company_id:receipt.company_id,fingerprint:receipt.fingerprint})}`);
+   if(ticket!==baselineSeq.current||recordTicket!==detailSeq.current)return;
+   if(!record(value)||value.ok!==true||!record(value.receipt)||value.receipt.fingerprint!==receipt.fingerprint||!record(value.reference)||!record(value.workspace))throw Error("unavailable");
+   if(!beginEdit()){setBaselineState(baseline?"ready":"unavailable");return;}
+   setBaseline(value as unknown as Baseline);setBaselineState("ready");setSeenAt(new Date().toISOString());
+  } catch {if(ticket===baselineSeq.current&&!scope.current?.signal.aborted){setBaselineState(baseline?"ready":"unavailable");setMessage(c.reviewFailed);}}
  }
  function save(action:InvestigationCommand["action"]=detail?"revise":"create", manifestOverride?:InvestigationManifest) {
-  if(locked||storageBlocked)return;
+  if(editLocked())return;
   // A refused legacy journal is never re-sent in any shape: re-saving stays blocked until the
   // owner starts a deliberate new research (which discards the buffer). Nothing is dropped.
   if(legacyScenario){setMessage(sc.legacy);return;}
@@ -261,6 +354,9 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(next.phase!=="pending"){setMessage(c.titleRequired);return;}
   try {retainInvestigationJournal(sessionStorage,ownerKey,next.command,stateRef.current);}
   catch {setStorageBlocked(true);setMessage(c.storage);return;}
+  // A competing mutation cancels pending evidence selection before taking the
+  // synchronous operation lock. A late GET cannot change this saved baseline.
+  ++baselineSeq.current;setBaselineState(baseline?"ready":baselineState==="loading"?"unavailable":baselineState);
   setSave(next);void send(next.command);
  }
  const symbol=detail?.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??draft.symbol;
@@ -304,11 +400,13 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2 ref={detailTitle} tabIndex={-1}>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
      {detail.manifest.scenario_capture!==undefined&&<section className={styles.card} data-testid="saved-scenario"><h3>{sc.saved}</h3><p className={styles.eyebrow}>{sc.boundary}</p><SavedScenarioRead capture={detail.manifest.scenario_capture} lang={lang} revision={{id:detail.id,revision:detail.revision,grantId:null}} identity={accountIdentity(investigationSubject(ownerKey))}/></section>}
+     {sectorReopen!=="none"&&<SectorContextCard state={sectorReopen} copy={SECTOR_CONTEXT_COPY[lang]} onRetry={()=>void openSectorContext(detail)} onOpenCurrent={()=>void openCurrentSectorContext()}/>}
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
      {detail.lifecycle==="active"&&<InvestigationWatchPanel link={{investigation_id:detail.id,revision:detail.revision}} symbol={symbol} rows={alertRows} current={null} lang={lang} disabled={frozen} loadState={alertLoad} onArm={armWatch} onRearm={rearmWatch} onRetry={()=>void loadAlerts()}/>}
      <section className={styles.card}><h3>{c.retained}</h3>{detail.manifest.layout_refs.length?detail.manifest.layout_refs.map(ref=><p key={ref.layout_revision_id}><Link href={`/terminal?investigation=${detail.id}&revision=${detail.revision}&layout_revision=${ref.layout_revision_id}`}>{c.openLayout} →</Link></p>):<p>{c.noLayout}</p>}{symbol&&<Link href={`/analysis?symbol=${encodeURIComponent(symbol)}`}>{c.continue} →</Link>}</section>
      {detail.manifest.continuation.next_question&&<section className={styles.card}><h3>{c.next}</h3><p className={styles.question}>{detail.manifest.continuation.next_question}</p></section>}
      {detail.lifecycle==="active"&&watchReview&&<InvestigationReviewPanel review={watchReview} receipts={watchReceipts} current={{revision:detail.revision,current_revision:detail.current_revision}} history={reviewHistory} lang={lang} disabled={frozen} onAssess={assess} onOpenRevision={revision=>void openRecord(detail.id,revision)}/>}
+     {baseline&&<InvestigationEvidenceReview key={`${ownerKey}:${detail.id}:${detail.revision}`} id={detail.id} revision={detail.revision} lang={lang} baseline={baseline} canAdvance={!frozen&&baselineState==="ready"&&detail.revision===detail.current_revision&&detail.lifecycle==="active"} onSelect={receipt=>void selectReviewedBaseline(receipt)}/>}
      <div className={styles.actions}><button disabled={frozen||detail.revision!==detail.current_revision} onClick={()=>save(detail.lifecycle==="removed"?"restore":"remove")}>{detail.lifecycle==="removed"?c.restore:c.remove}</button></div>
     </>:<p>{c.choose}</p>}
    </section>
@@ -320,4 +418,41 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    </aside>
   </div>
  </main>;
+}
+
+/** The retained sector-capture card (SP14). The ORIGINAL is what the record
+ * names — it never falls back to the latest; the current read is a separate,
+ * explicitly labelled action. Counts are counts only: nothing here claims the
+ * population complete, and an unavailable original stays unavailable. */
+function SectorContextCard({state,copy,onRetry,onOpenCurrent}:{state:SectorReopenState|"loading";copy:(typeof SECTOR_CONTEXT_COPY)[keyof typeof SECTOR_CONTEXT_COPY];onRetry:()=>void;onOpenCurrent:()=>void}) {
+ if(state==="loading")return <section className={styles.card} data-testid="sector-context-card"><h3>{copy.title}</h3><p role="status">{copy.reopening}</p></section>;
+ if(state.state==="original") {
+  const page=sectorPopulationPage(state.body);
+  // r3 N-8 ruling: the eyebrow dates the capture from the ONE date the decoded
+  // page states — the roster clock's as-of, and only while it agrees. Any other
+  // page (no clock, a clock that does not agree, a page that refuses to decode)
+  // states no date, so no line prints — never a placeholder, never "today",
+  // never a date parsed out of the owner's generation id. That id stays
+  // machine-readable on data-generation-id; it is never visible text.
+  const clock=page?.rosterClock??null;
+  const asOf=clock!==null&&clock.status==="agree"?clock.asOf:null;
+  return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="original" data-generation-id={state.identity.generation_id}>
+   <h3>{copy.original}</h3>
+   {asOf!==null&&<p className={styles.eyebrow}>{fillCopy(copy.asOf,{date:asOf})}</p>}
+   <p>{state.contextRefDurable?copy.durable:copy.processOnly}</p>
+   {page&&<p className={styles.eyebrow}>{sectorCountsLine(copy,page.counts)}</p>}
+   <div className={styles.actions}><button type="button" onClick={onOpenCurrent}>{copy.openCurrent}</button></div>
+  </section>;
+ }
+ if(state.state==="current") {
+  const page=sectorPopulationPage(state.body);
+  return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="current">
+   <h3>{copy.currentLabel}</h3>
+   {page&&<p className={styles.eyebrow}>{sectorCountsLine(copy,page.counts)}</p>}
+   <div className={styles.actions}><button type="button" onClick={onRetry}>{copy.openOriginal}</button></div>
+  </section>;
+ }
+ if(state.state==="signed_out")return <section className={styles.card} data-testid="sector-context-card"><h3>{copy.title}</h3><p>{copy.signedOut}</p></section>;
+ if(state.state==="retry")return <section className={styles.card} data-testid="sector-context-card"><h3>{copy.title}</h3><p>{copy.retry}</p><div className={styles.actions}><button type="button" onClick={onRetry}>{copy.retryAction}</button></div></section>;
+ return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="original_unavailable"><h3>{copy.unavailable}</h3></section>;
 }

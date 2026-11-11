@@ -1,0 +1,77 @@
+{
+  "capture": {
+    "allImagesFresh": true,
+    "allImagesVisuallyReviewed": true,
+    "authoredProjectSkips": 7,
+    "expected": 14,
+    "flaky": 0,
+    "images": 10,
+    "lifecycleState": "STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED",
+    "neighboringFilesUnchanged": 103,
+    "nextLockAbsent": true,
+    "observerPid": 86108,
+    "ownedPortClosed": true,
+    "port": 47287,
+    "producerPid": 86496,
+    "retries": 0,
+    "seconds": 554.38,
+    "sourceEntries": 2051,
+    "sourceMembershipAndBytesStable": true,
+    "state": "QUALIFIED",
+    "unexpected": 0
+  },
+  "captureExecutionSha256": "f1e81797495174235c8eab758193efef88269bba8c85f446bfd8408ad59457bd",
+  "consumerExecutionSha256": "357ef5b922cf36e267c3c7fa762dd62f674cc247c38f1d2733a089a1ffd6c52c",
+  "generatedFiles": {
+    "actualInstalledEmitterVerified": true,
+    "state": "ORIGINAL_NEXT_ENV_ABSENCE_RESTORED",
+    "trackedTsconfigUnchanged": true
+  },
+  "imagesChangedInBytesFromPrior": [
+    "unavailable-desktop-en-dark.png"
+  ],
+  "lint": {
+    "exit": 0,
+    "warningsAllowed": 0
+  },
+  "manifestSha256": "e1b7a5dea4a9b6abde3df3eaac7ee49d3ac34a33987e2f628dae1ea9c5144859",
+  "parents": [
+    "f5a79cafb2ed3776f2919fc49d29babc7445f7e4",
+    "3ba8e1a663a752c7de42c717c3826e722dda416d"
+  ],
+  "priorPacketFilesPreserved": 11,
+  "qualifiedAt": "2026-11-10T17:17:59.828299+00:00",
+  "readers": {
+    "pending": 0,
+    "testsFailed": 0,
+    "testsPassed": 4
+  },
+  "remainingGate": "Natural CI and native merge queue on the published evidence successor",
+  "schema": "terminal.pr1426.current-news-qualification.v1",
+  "scope": "Fixture-backed local responsive News rail, strict evidence consumer and exact-source hosted TypeScript. No installed, signed-in-device, live-provider or production-news acceptance.",
+  "sourceClaim": 6773444666,
+  "sourceHead": "139ec0574b57ecbb59d237dc315c8276dd307794",
+  "sourcePreservation": {
+    "allUnrelatedProtectedPostimagesPreserved": true,
+    "candidatePaths": 6,
+    "unequalOverlaps": 0
+  },
+  "sourceProducerUnchanged": true,
+  "sourceTree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957",
+  "state": "QUALIFIED_FOR_CURRENT_HEAD_CI",
+  "typecheck": {
+    "ciHead": "d41f601c4427c4ff15f3e9f0ccdeb1a51c902e62",
+    "execution": "REUSED_EXACT_SOURCE_TREE_HOSTED_CI",
+    "jobId": 129950555784,
+    "notRerunLocally": true,
+    "runId": 42850341427,
+    "step": {
+      "conclusion": "success",
+      "name": "Run npx tsc --noEmit",
+      "number": 7,
+      "status": "completed"
+    },
+    "tree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957"
+  },
+  "visualReviewSha256": "81066cb608a83aec87fbb1e67fea35fb62f9ef1d357e0aceaa77b0a675e1f1e9"
+}

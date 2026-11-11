@@ -1,0 +1,106 @@
+{
+  "classification": "SYNTHETIC LOCAL — no live account or production claim",
+  "source": "synthetic:options-exposure-surface-journey/v1",
+  "session": "2026-10-19",
+  "expiry": "2026-10-30",
+  "sourceVersion": "existing coherent four-cell fixture",
+  "witness": [
+    {
+      "stage": "initial Settings choice",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "75162fef-f96c-423e-a709-54ce12de19cc"
+    },
+    {
+      "stage": "main-chart handoff without another Settings action",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": "1",
+      "documentId": "5cabd580-6fe0-4954-ab87-92574752dc58"
+    },
+    {
+      "stage": "before main reload",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": "1",
+      "documentId": "5cabd580-6fe0-4954-ab87-92574752dc58"
+    },
+    {
+      "stage": "main-chart document reload",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": "1",
+      "documentId": "dde721a8-0a54-4e73-b879-a0b544d79522"
+    },
+    {
+      "stage": "reload witness",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": "1",
+      "documentId": "dde721a8-0a54-4e73-b879-a0b544d79522"
+    },
+    {
+      "stage": "exact investigation return",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "34f67577-fb25-4d7b-a5fa-bc5ee88ddcb7"
+    },
+    {
+      "stage": "before return reload",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "34f67577-fb25-4d7b-a5fa-bc5ee88ddcb7"
+    },
+    {
+      "stage": "returned investigation document reload",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "fa88f44e-eb3a-4364-810b-5ecb0043da37"
+    },
+    {
+      "stage": "return reload witness",
+      "theme": "light",
+      "bodyBackground": "rgb(247, 248, 250)",
+      "osPrefersDark": true,
+      "appearanceOwner": null,
+      "documentId": "fa88f44e-eb3a-4364-810b-5ecb0043da37"
+    }
+  ],
+  "blockedOutside": [
+    "https://www.mastermind-x.com/mm_brain.js",
+    "https://www.mastermind-x.com/mm_brain.js"
+  ],
+  "authReads": 13,
+  "acknowledgedMetadataWrites": [
+    {
+      "theme": "light",
+      "theme_auto": "0",
+      "prefs": {
+        "theme": "light",
+        "themeAuto": "0",
+        "lang": "zh"
+      }
+    },
+    {
+      "theme": "dark",
+      "theme_auto": "0",
+      "prefs": {
+        "theme": "dark",
+        "themeAuto": "0",
+        "lang": "zh"
+      }
+    }
+  ]
+}

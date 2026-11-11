@@ -1,0 +1,42 @@
+{
+  "files": {
+    "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/owner.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/browser.log": {
+      "bytes": 3703,
+      "sha256": "093e59636e7ce3f8af6a7da12b790b528fedce863e928c7f92034028bd1845a0"
+    },
+    "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r3/browser.log": {
+      "bytes": 940,
+      "sha256": "889f169582920615be98f97f9da58a91bc71c4d5616c50191306702e0c242716"
+    },
+    "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/browser.log": {
+      "bytes": 3806,
+      "sha256": "386d6b64c03947dfd05490a9477febac2ba61524d16aa37712b6fefeba09ba5b"
+    },
+    "docs/verification/pr632-path-finalization-integration-20261109/drawing-regression-r1-continuation/browser.log": {
+      "bytes": 27013,
+      "sha256": "99e5670fe289d22ec3a4ff77a0de4bbba74f7e9a5301d43fbf0d7066e70a1eb1"
+    },
+    "docs/verification/pr632-path-finalization-integration-20261109/drawing-regression-r1/drawing-spec-lint.log": {
+      "bytes": 851,
+      "sha256": "690f2a25dd4f73cbc9ca823456f0f4c5f0fb4e76498aed2c535d6f3c8d973625"
+    },
+    "docs/verification/pr632-path-finalization-integration-20261109/drawing-regression-r1/drawing-units.log": {
+      "bytes": 387,
+      "sha256": "b3f0112c380f6456270244ce0cfd2258908654279b321e6fb72974e226d4efcf"
+    },
+    "docs/verification/pr632-path-finalization-integration-20261109/drawing-regression-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr632-path-finalization-integration-20261109/final-consumers-r1/selected-consumers.log": {
+      "bytes": 391,
+      "sha256": "b1ff301c2be96a1c4e31f8965fa850d493b188df610069993baf52f7b71c5e05"
+    }
+  },
+  "historicalAndDescriptorBoundArtifactsIncluded": true,
+  "schema": "terminal_pr632_excluded_raw_logs.v1"
+}

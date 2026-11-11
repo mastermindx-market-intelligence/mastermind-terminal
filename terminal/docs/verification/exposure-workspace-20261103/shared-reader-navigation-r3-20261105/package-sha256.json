@@ -1,0 +1,9 @@
+{
+  "README.md": "d305ad882a503e623198852911fb85213d9dd4977f7fda941b095f2fe344ce3d",
+  "archives.json": "a6731216bf7f3a95f15e2bee13c61f6f5b8062f15a6d5b0560a84db8b3052862",
+  "lint.log.gz": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+  "local-qualification.json": "637527907c7b9b967355810f14396e57971a8f83a1bbfe4053c66ac1b783f91b",
+  "parent-ci-41973148175.json": "67a13b7dc4f486bbcda655677eaa91b73a5ebe3b6417c4e1303d045dffce2bcf",
+  "unit.log.gz": "3f6ed092a0e616bb600db11f842750b00e3f7b2eafdc7835ec45a7d09b66cc83",
+  "verify-reader-navigation-r3.py": "9f2118a11c1dc9a7b3c82e8b2a3f5f64c6559f67f247585bcbd71032651de977"
+}

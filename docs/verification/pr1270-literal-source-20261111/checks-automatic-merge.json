@@ -1,0 +1,17 @@
+{
+  "name": "automatically-composed-tests",
+  "returncode": 1,
+  "seconds": 18.46,
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "lib/__tests__/lexEvidenceProjection.test.ts",
+    "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+    "lib/__tests__/plainLabelsCallSites.test.ts",
+    "--maxWorkers=1",
+    "--minWorkers=1"
+  ]
+}

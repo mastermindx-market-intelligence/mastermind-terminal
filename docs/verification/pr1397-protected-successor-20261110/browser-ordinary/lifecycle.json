@@ -1,0 +1,40 @@
+{
+  "at": "2026-11-10T07:09:31.159154+00:00",
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "41021",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-10T07:09:37.075138+00:00",
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://localhost:47497",
+    "hostname": "localhost",
+    "pid": 41021,
+    "port": 47497,
+    "startedAt": 1794294328351
+  },
+  "lockPresent": true,
+  "lockSha256": "e8e9c1d75e67f5b7fbe8ba275f87e00a319ec5e106fd40b2356f2c428c925915",
+  "port": 47497,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

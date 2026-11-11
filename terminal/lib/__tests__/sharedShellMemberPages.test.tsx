@@ -3,6 +3,7 @@ import TodayPage from "@/app/(shell)/today/page";
 import ResearchPage from "@/app/(shell)/research/page";
 import MonitorPage from "@/app/(shell)/monitor/page";
 import { readShellMember, MEMBER_READ_TIMEOUT_MS } from "@/lib/shared-shell/memberIdentity";
+import { SHARED_SHELL_DEV_SUBJECT } from "@/lib/shared-shell/devOpen";
 import SignupGate from "@/components/gates/SignupGate";
 import MemberVerificationUnavailable from "@/components/gates/MemberVerificationUnavailable";
 import TodayMount from "@/components/mounts/TodayWorkspaceMount";
@@ -19,7 +20,7 @@ vi.mock("@/components/mounts/ResearchWorkspaceMount",()=>({default:()=>null}));
 vi.mock("@/components/mounts/MonitorWorkspaceMount",()=>({default:()=>null}));
 const subject="11111111-1111-4111-8111-111111111111";
 beforeEach(()=>{edges.getUser.mockReset();});
-afterEach(()=>vi.useRealTimers());
+afterEach(()=>{vi.useRealTimers();vi.unstubAllEnvs();});
 describe("shared-shell server member boundary",()=>{
  it("uses the verified user subject and never user metadata",async()=>{
   edges.getUser.mockResolvedValue({data:{user:{id:subject,user_metadata:{role:"admin"}}},error:null});
@@ -59,5 +60,21 @@ describe.each([
   edges.getUser.mockResolvedValue({data:{user:{id:subject}},error:null});const page=await Page();
   expect(page.type).toBe(Mount);expect(page.key).toBe(subject);
   if(surface!=="monitor")expect(page.props.ownerKey).toBe(subject);
+ });
+});
+describe.each([
+ ["today",TodayPage,TodayMount],["research",ResearchPage,ResearchMount],["monitor",MonitorPage,MonitorMount],
+] as const)("%s native page dev-open",(surface,Page,Mount)=>{
+ it("renders the workspace for signed-out dev sessions with no auth read",async()=>{
+  vi.stubEnv("MMX_SHARED_SHELL","1");vi.stubEnv("MMX_SHARED_SHELL_DEV_OPEN","1");
+  edges.getUser.mockImplementation(()=>{throw Error("dev-open must not read auth");});
+  const page=await Page();
+  expect(page.type).toBe(Mount);expect(page.key).toBe(SHARED_SHELL_DEV_SUBJECT);
+  if(surface!=="monitor")expect(page.props.ownerKey).toBe(SHARED_SHELL_DEV_SUBJECT);
+ });
+ it("keeps the member gate when the dev-open flag lacks the shell flag",async()=>{
+  vi.stubEnv("MMX_SHARED_SHELL_DEV_OPEN","1");
+  edges.getUser.mockResolvedValue({data:{user:null},error:null});
+  expect((await Page()).type).toBe(SignupGate);
  });
 });

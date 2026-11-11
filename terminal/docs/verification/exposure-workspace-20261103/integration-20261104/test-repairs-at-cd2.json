@@ -1,0 +1,18 @@
+{
+  "terminal/e2e/exposure-partial-totals.spec.ts": {
+    "after": "15be383d94284d83c7b893dc9c1a83c3d023528b97b2527891c7801c0f1f9c16",
+    "before": "c4fd340f63a2de532ff75c1f9b1c3cb7c723b0a116649b6083c4ba330e0251b7"
+  },
+  "terminal/e2e/responsive.spec.ts": {
+    "after": "b45e77c6295aacd937dba1d20433339687a4c88b40f33fc2cc060719ac670b1e",
+    "before": "f05dfb4bf3f4d3fd199242b3b7b5925513356ec94d15aaea1fae73c30a862f46"
+  },
+  "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts": {
+    "after": "99bfdfe51e26c994ad59afb99cf622b5a272145bf2ef87ea3b0efada2310a033",
+    "before": "4a36758926903e54aa87ee7d226d9357fbab7895a202ed5b2d7de6cc4f85ce86"
+  },
+  "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts": {
+    "after": "2ca3f8da065106131b2b39f2fd4d2e907790a39de3c874eaf4e45afc45037350",
+    "before": "95ea26e514a8af561c1fe74a61d820055aef98c0ebeb541a8ec9ffc68bada3b7"
+  }
+}

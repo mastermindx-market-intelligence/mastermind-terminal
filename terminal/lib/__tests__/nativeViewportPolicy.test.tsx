@@ -10,6 +10,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => { route.queryReads++; return new URLSearchParams(route.query); },
 }));
 import NativeViewportPolicy from "@/components/NativeViewportPolicy";
+import { applicationViewport } from "@/lib/shared-shell/metadata";
 
 const ordinary = "width=device-width, initial-scale=1, viewport-fit=cover";
 const viewport = () => document.querySelector<HTMLMetaElement>('meta[name="viewport"]')!;
@@ -46,17 +47,24 @@ describe("native viewport policy without a server streaming boundary", () => {
     expect(viewport().content).toBe(ordinary);
   });
 
-  it("retains one zoomable meta and restores it on a same-path query change", async () => {
+  it.each(["0", "1"])("retains server zoom metadata and restores it on a same-path query change, flag %s", async (flag) => {
+    const policy = applicationViewport(flag);
+    expect(policy).not.toHaveProperty("maximumScale");
+    expect(policy).not.toHaveProperty("userScalable");
+    const serverContent = Object.entries(policy).map(([key, value]) =>
+      `${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}=${value}`,
+    ).join(", ");
+    viewport().content = serverContent;
     await paint();
     expect(route.queryReads).toBeGreaterThan(0);
-    expect(viewport().content).toBe(ordinary);
+    expect(viewport().content).toBe(serverContent);
     route.query = "shell=app";
     await paint();
     expect(viewport().content).toContain("user-scalable=no");
     expect(document.querySelectorAll('meta[name="viewport"]')).toHaveLength(1);
     route.query = "";
     await paint();
-    expect(viewport().content).toBe(ordinary);
+    expect(viewport().content).toBe(serverContent);
   });
 
   it("retains the actual-handler branch across path changes and releases only its own value", async () => {

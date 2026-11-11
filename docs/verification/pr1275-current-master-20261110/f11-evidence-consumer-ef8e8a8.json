@@ -1,0 +1,16 @@
+{
+  "head": "ef8e8a8c9d2bf99de13736b025753832ab4b595b",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts"
+  ],
+  "exit_code": 0,
+  "seconds": 2.951,
+  "sha256": "fa43cfa33111cbcd8ba5093f6fb5f4965c411f86093425a6432c652f3303fca1",
+  "historicalAppendixPreserved": true,
+  "eligibleFixturePresent": true,
+  "failureOutcomeAbsent": true,
+  "tail": "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m\n\n\u001b[1m\u001b[7m\u001b[36m RUN \u001b[39m\u001b[27m\u001b[22m \u001b[36mv2.1.9 \u001b[39m\u001b[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/terminal\u001b[39m\n\n \u001b[32m\u2713\u001b[39m lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[90m 18\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m5 passed\u001b[39m\u001b[22m\u001b[90m (5)\u001b[39m\n\u001b[2m   Start at \u001b[22m 02:29:50\n\u001b[2m   Duration \u001b[22m 1.79s\u001b[2m (transform 190ms, setup 0ms, collect 633ms, tests 18ms, environment 0ms, prepare 318ms)\u001b[22m\n\n"
+}
