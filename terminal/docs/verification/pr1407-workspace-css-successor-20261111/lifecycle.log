@@ -1,0 +1,28 @@
+✔ shutdown sends one signal and waits for close, not exit (9.885208ms)
+✔ already closed owned child is not signalled (0.208042ms)
+✔ EPERM preserves the original error and cannot retry after later close (4.55425ms)
+✔ EACCES preserves the original error and cannot retry after later close (0.364792ms)
+✔ EIO preserves the original error and cannot retry after later close (0.169459ms)
+✔ ESRCH still requires close and never falls back (0.730458ms)
+✔ missing close remains failure: signal accepted (0.470334ms)
+✔ missing close remains failure: ESRCH (0.2345ms)
+✔ unowned or changed process identity cannot be signalled (0.40075ms)
+✔ spawn failure preserves the original error without signalling (0.43575ms)
+✔ an owned child error during shutdown remains identifiable (0.343667ms)
+✔ browser launch failure still waits for the owned server close (0.541459ms)
+✔ capture failure closes browser and settles server before returning failure (0.400334ms)
+✔ browser-close failure cannot skip owned-server settlement (0.350916ms)
+✔ capture, browser-close and signal refusal all survive cleanup (0.351958ms)
+✔ successful resource scope returns actual close observation (0.310208ms)
+✔ PID one cannot become a process-group signal target (0.191583ms)
+✔ server closure before capture prevents the callback and still closes browser (0.76975ms)
+✔ server closure during capture cannot become successful proof (0.315541ms)
+✔ server closure during browser close remains before the shutdown boundary (0.237ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 267.325375
