@@ -1,0 +1,34 @@
+{
+  "checks": [
+    {
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/docs/verification/pr1427-exposure-browser-successor-20261110/reader-focused-report.json"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-11-10T15:59:25.520429+00:00",
+      "logSha256": "561d947814f75dd3ef095429c6db7b21b070b66bdab7e6c2784bc0bc31001125",
+      "name": "reader-focused",
+      "pid": 12036,
+      "seconds": 88.783,
+      "startedAt": "2026-11-10T15:57:56.737975+00:00"
+    }
+  ],
+  "schema": "terminal_pr1427_reader_validation.v1",
+  "sourceBefore": {
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": "e15b56f902accfb01d28ac63e7dd2c86ed8956765c0f8e0a6a799dd9c89f6e3e",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": "c112249d1e79ec47b3ae7dbf2996fdc6f7c15727a3dbc540d7d96f0678263929",
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "cbbe2c00a9b99569f05dc876860d14b1659bd3fa3dd309ab9e86f2a82334e08c",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "5a3df55585ff183721639ca9cf91fa26962d647a2dcade59fac8fadc3f63846a"
+  },
+  "startedAt": "2026-11-10T15:57:56.736707+00:00",
+  "state": "RUNNING"
+}

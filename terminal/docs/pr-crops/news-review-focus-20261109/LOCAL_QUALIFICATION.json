@@ -1,0 +1,321 @@
+{
+  "base_ref": "6da72ccd43fd12168887243d708634ccc05d6763",
+  "environment": "isolated exact-source module closure; top-level test versions from Terminal package-lock; not full Next build or browser proof",
+  "runs": {
+    "baseline": {
+      "success": false,
+      "tests": 29,
+      "passed": 22,
+      "failed": 7,
+      "cases": [
+        {
+          "name": "AC-E13-01 — a failed or partial load never marks unseen stories reviewed a failed first load shows no review controls, writes nothing, and the clock moving changes nothing",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-01 — a failed or partial load never marks unseen stories reviewed a failed background refresh hides the rows and their review controls instead of marking them",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-01 — a failed or partial load never marks unseen stories reviewed a partial page (has_more) marks only the presented stories; a later, older arrival is still new",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-01 — a failed or partial load never marks unseen stories reviewed an interrupted review keeps what was marked and leaves the rest new",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-02 — a corrected story is distinguishable from an unchanged read story shows Updated with the kind of change, and Reviewed for the unchanged one",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-02 — a corrected story is distinguishable from an unchanged read story renders the review states in Chinese",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account an account switch shows the new account's own state and never the previous account's",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account never classifies with the previous account's marks, even for one render",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account does not adopt guest marks, and leaves the guest slot byte-identical",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account with no account identity it says marks need an account and offers no mark controls",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account when the device store refuses a write, marks last for the session and the panel says so",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-04 — filters use supplied metadata and keep honest states filters by review state and by the feed's own source field; there is no topic filter",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-04 — filters use supplied metadata and keep honest states shows no source filter when the feed supplies a single source",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-04 — filters use supplied metadata and keep honest states restricted and quiet feeds keep their own messages and show no review controls",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-05 — marking reviewed changes nothing at the source and sends nothing issues no request, opens no stream, sends no beacon or notification, and leaves the story as presented",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position keeps the same linked story in All after its review button disappears",
+          "status": "failed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position keeps the same without a source link story in All after its review button disappears",
+          "status": "failed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position continues forward, then backward through the original New list, then reaches its empty filter",
+          "status": "failed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position uses the still-selected Updated filter when its final corrected story is reviewed",
+          "status": "failed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position returns disabled Mark shown to all and preserves the source filter",
+          "status": "failed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position returns disabled Mark shown to new and preserves the source filter",
+          "status": "failed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position does not take focus when an unfocused review control is activated",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position respects a newer focus choice made before React commits the review",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position does not repair focus for another tab's review update",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position consumes a no-op action before a later storage update can remove its trigger",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position cancels when the review filter changes before the review commits",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position cancels when the source filter changes before the review commits",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position cancels a pending handoff when the account changes in the same commit",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position repairs an accepted session-only review once, without replay on a later render",
+          "status": "failed"
+        }
+      ]
+    },
+    "candidate": {
+      "success": true,
+      "tests": 29,
+      "passed": 29,
+      "failed": 0,
+      "cases": [
+        {
+          "name": "AC-E13-01 — a failed or partial load never marks unseen stories reviewed a failed first load shows no review controls, writes nothing, and the clock moving changes nothing",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-01 — a failed or partial load never marks unseen stories reviewed a failed background refresh hides the rows and their review controls instead of marking them",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-01 — a failed or partial load never marks unseen stories reviewed a partial page (has_more) marks only the presented stories; a later, older arrival is still new",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-01 — a failed or partial load never marks unseen stories reviewed an interrupted review keeps what was marked and leaves the rest new",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-02 — a corrected story is distinguishable from an unchanged read story shows Updated with the kind of change, and Reviewed for the unchanged one",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-02 — a corrected story is distinguishable from an unchanged read story renders the review states in Chinese",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account an account switch shows the new account's own state and never the previous account's",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account never classifies with the previous account's marks, even for one render",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account does not adopt guest marks, and leaves the guest slot byte-identical",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account with no account identity it says marks need an account and offers no mark controls",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-03 — review state is private to the signed-in account when the device store refuses a write, marks last for the session and the panel says so",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-04 — filters use supplied metadata and keep honest states filters by review state and by the feed's own source field; there is no topic filter",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-04 — filters use supplied metadata and keep honest states shows no source filter when the feed supplies a single source",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-04 — filters use supplied metadata and keep honest states restricted and quiet feeds keep their own messages and show no review controls",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-05 — marking reviewed changes nothing at the source and sends nothing issues no request, opens no stream, sends no beacon or notification, and leaves the story as presented",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position keeps the same linked story in All after its review button disappears",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position keeps the same without a source link story in All after its review button disappears",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position continues forward, then backward through the original New list, then reaches its empty filter",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position uses the still-selected Updated filter when its final corrected story is reviewed",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position returns disabled Mark shown to all and preserves the source filter",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position returns disabled Mark shown to new and preserves the source filter",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position does not take focus when an unfocused review control is activated",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position respects a newer focus choice made before React commits the review",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position does not repair focus for another tab's review update",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position consumes a no-op action before a later storage update can remove its trigger",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position cancels when the review filter changes before the review commits",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position cancels when the source filter changes before the review commits",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position cancels a pending handoff when the account changes in the same commit",
+          "status": "passed"
+        },
+        {
+          "name": "AC-E13-06 — explicit review preserves the keyboard reading position repairs an accepted session-only review once, without replay on a later render",
+          "status": "passed"
+        }
+      ]
+    }
+  },
+  "governance_ref": "mastermindx-market-intelligence/Mastermind@5c3d3885234358aefb97ecdbc59be0864df14f8b",
+  "design_ref": "mastermindx-market-intelligence/macro@b5674d8ef898e503d6164922654f5ff89be9981c",
+  "typecheck": {
+    "status": "passed",
+    "command": "tsc --noEmit --incremental false",
+    "scope": "Exact implementation and test module closure using the original tsconfig; a local-only CSS module declaration replaces absent generated Next declarations. Not a full application typecheck or Next build."
+  },
+  "primary_dependency_versions": {
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "vitest": "2.1.9",
+    "jsdom": "26.1.0",
+    "typescript": "5.9.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@types/node": "20.19.43",
+    "@playwright/test": "1.61.1"
+  },
+  "qualification_commands": {
+    "unit": "vitest run lib/__tests__/newsCatchupPanel.test.tsx --reporter=json",
+    "browser": "Existing CI: npm run test:e2e:responsive; two added real-shell cases include static-headline focus/viewport/Tab continuation and retained screenshots.",
+    "browser_status": "authored, not yet executed"
+  },
+  "source_ownership": {
+    "focus": "TickerNewsPanel local interaction state",
+    "review": "useNewsCatchup and newsReviewState unchanged",
+    "network": "useTickerNewsFeed unchanged"
+  },
+  "existing_carriers_preserved": [
+    {
+      "pr": 1207,
+      "head": "228c0e9b60f8b8a5818ea51e715cad12d19c7c0b",
+      "finding": "Reading layout and text decoding; no equivalent focus repair. No mutation."
+    },
+    {
+      "pr": 1210,
+      "head": "4c14600d54bd00711848a73357a66e95a3cf0d30",
+      "finding": "Reading chrome removal, explicitly do-not-merge. No adoption or mutation."
+    }
+  ],
+  "candidate_paths": [
+    {
+      "path": "terminal/components/news/TickerNewsPanel.tsx",
+      "preimage_git_blob": "0b0facb3839e84d54ddbf99937c74283479c120c"
+    },
+    {
+      "path": "terminal/components/news/NewsCatchup.tsx",
+      "preimage_git_blob": "3d5ac82df72a8777d19c30c69cfda794be6d1de6"
+    },
+    {
+      "path": "terminal/components/news/TickerNewsPanel.module.css",
+      "preimage_git_blob": "bb6db5b8c0c2db6807a5f19886ae27d0baed4c3b"
+    },
+    {
+      "path": "terminal/lib/__tests__/newsCatchupPanel.test.tsx",
+      "preimage_git_blob": "fdb1a30c1ed3ded7224a35329453f5aae2b66401"
+    },
+    {
+      "path": "terminal/e2e/news-catchup.spec.ts",
+      "preimage_git_blob": "de74ae3006a680145d09d008a634222069c1e622"
+    }
+  ],
+  "paper_reference": {
+    "file_id": "01M5EXPMQTSBFBAM8KKG83FTZH",
+    "node_id": "424-0",
+    "proof": "paper/VERIFICATION.json"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "at": "2026-11-10T16:32:45.712423+00:00",
+  "captureCases": 6,
+  "head": "17f1e9cf88728b60f7366484dac6799569c50ed3",
+  "observedInputs": 45,
+  "readerTests": 5,
+  "sourceInputsUnchanged": true,
+  "state": "ALL_EXECUTED_CHECKS_PASSED_VISUAL_REVIEW_PENDING",
+  "strictFixtureBindings": 15,
+  "tree": "ebee9a9c9d7d752662f4839d4ec228c0c6f7ca2a"
+}

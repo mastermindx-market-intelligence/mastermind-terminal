@@ -1,0 +1,29 @@
+{
+  "schema": "terminal_pr768_browser_preparation_reconciliation.v1",
+  "state": "PREPARATION_FAILED_NO_CAPTURE",
+  "observedAt": "2026-11-09T16:17:16.279052+00:00",
+  "originalProcess": 93743,
+  "phase": "prior-output inventory before source snapshot/env/log/capture",
+  "originalError": "FileNotFoundError: terminal/test-results absent",
+  "retainedPreparedDirectories": {
+    "terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109": {
+      "device": 16777247,
+      "inode": 67682758,
+      "mtimeNs": 1794241006263324459,
+      "empty": true,
+      "uid": 501
+    },
+    "docs/verification/pr768-options-integration-20261109/prior-browser-root": {
+      "device": 16777247,
+      "inode": 67682759,
+      "mtimeNs": 1794241006263405544,
+      "empty": true,
+      "uid": 501
+    }
+  },
+  "browserOutputAbsent": true,
+  "browserLogAbsent": true,
+  "browserReportAbsent": true,
+  "nextLockAbsent": true,
+  "nextAction": "Continue with the exact empty prepared directories and explicitly create the owned test-results directory before inventory."
+}

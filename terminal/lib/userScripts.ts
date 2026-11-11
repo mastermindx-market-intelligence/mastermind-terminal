@@ -206,14 +206,26 @@ export async function deleteScript(loggedIn: boolean, id: string): Promise<boole
 }
 
 // ── enabled-state helpers (localStorage, both tiers) ─────────────────────────────────────────────
-export function enabledScriptIds(): string[] { return readLS<string[]>(ENABLED_KEY, []); }
+export function enabledScriptIds(): string[] {
+  const raw = readLS<unknown>(ENABLED_KEY, []);
+  // Device preferences are untrusted JSON, not typed library/source records.
+  return Array.isArray(raw) ? raw.filter((id): id is string => typeof id === "string") : [];
+}
 export function setEnabledScriptIds(ids: string[]) { writeLS(ENABLED_KEY, ids); }
 
 // ── per-script param overrides (localStorage, both tiers) ────────────────────────────────────────
 // Shape: { [scriptId]: { [inputVar]: value } }. Only the keys the user actually changed are stored;
 // the render path merges these OVER the script's declared `params`.
 export type PineParamStore = Record<string, Record<string, any>>;
-export function pineParamStore(): PineParamStore { return readLS<PineParamStore>(PARAMS_KEY, {}); }
+export function pineParamStore(): PineParamStore {
+  const raw = readLS<unknown>(PARAMS_KEY, {});
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  // Preserve arbitrary parameter values inside each record; validate only its envelope.
+  // fromEntries retains literal prototype-looking IDs as ordinary own properties.
+  return Object.fromEntries(Object.entries(raw).filter(([, params]) =>
+    params !== null && typeof params === "object" && !Array.isArray(params),
+  ));
+}
 export function setPineParamStore(store: PineParamStore) { writeLS(PARAMS_KEY, store); }
 
 // Merge a script's declared defaults with any stored per-script overrides.

@@ -12,7 +12,7 @@
  * fingerprints and offsets, and "Re-verify" rebuilds the comparison from the
  * receipt alone against the live archive.
  */
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { fmtDate } from "../../lib/finFormat";
 import type { TranscriptIndexCall } from "../../lib/transcripts";
 import {
@@ -61,6 +61,9 @@ export interface TranscriptCompareProps {
 }
 
 type Translate = (key: string, vars?: TranscriptCompareVars) => string;
+
+type CopyContext = { ticker: string; comparisonKey: string; spansKey: string; archiveGeneration: string | null };
+type CopyFeedback = { id: string; ok: boolean; context: CopyContext };
 
 type LoadState =
   | { key: string; status: "loading" }
@@ -233,6 +236,8 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
   const ticker = sym.toUpperCase();
   const baseId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const topicRef = useRef<HTMLInputElement>(null);
+  const copyAttempt = useRef(0);
   const tabRefs = useRef<Record<CompareSide, HTMLButtonElement | null>>({ a: null, b: null });
 
   const appliedLink = initialLink && initialLink.ticker === ticker ? initialLink : null;
@@ -247,7 +252,7 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
   const [retryNonce, setRetryNonce] = useState(0);
   const [load, setLoad] = useState<LoadState>({ key: "", status: "loading" });
   const [spanState, setSpanState] = useState<{ key: string; spans: Map<string, TranscriptSpan> }>({ key: "", spans: new Map() });
-  const [copied, setCopied] = useState<{ id: string; ok: boolean } | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState<CopyFeedback | null>(null);
   const [verify, setVerify] = useState<VerifyState | null>(null);
 
   useEffect(() => {
@@ -331,10 +336,10 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
   const spanOf = (passage: ComparePassage) => spans?.get(spanKey(passage.call_id, passage.body_sha256, passage.segment_index));
 
   useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(null), 1800);
+    if (!copyFeedback) return;
+    const timer = window.setTimeout(() => setCopyFeedback(current => current === copyFeedback ? null : current), 1800);
     return () => window.clearTimeout(timer);
-  }, [copied]);
+  }, [copyFeedback]);
 
   const listed = useMemo(() => new Map(calls.map((call) => [call.id, call])), [calls]);
   const options = useMemo(() => {
@@ -359,6 +364,17 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
   });
 
   const comparisonKey = `${loadKey}|${selection.a}|${selection.b}|${filter.query}|${filter.speaker ?? ""}|${filter.section}|${mode}`;
+  const archiveGeneration = current?.status === "ready" ? current.generated_at : null;
+  const copyContext = useMemo<CopyContext>(() => ({ ticker, comparisonKey, spansKey, archiveGeneration }),
+    [ticker, comparisonKey, spansKey, archiveGeneration]);
+  // A committed context transition (including A -> B -> A) or unmount ends
+  // older attempts. Presentation changes such as language do not change payloads.
+  useLayoutEffect(() => () => { copyAttempt.current += 1; }, [copyContext]);
+  const copied = copyFeedback?.context === copyContext ? copyFeedback : null;
+  const invalidateCopy = () => {
+    copyAttempt.current += 1;
+    setCopyFeedback(null);
+  };
   const verifyNow = verify && verify.key === comparisonKey ? verify : null;
   const trimmedQuery = filter.query.trim();
 
@@ -368,22 +384,29 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
     onDetachLink();
   };
   const changeCall = (side: CompareSide, id: string) => {
+    invalidateCopy();
     detach();
     setSelection((prev) => ({ ...prev, [side]: id }));
   };
   const swap = () => {
+    invalidateCopy();
     detach();
     setSelection((prev) => ({ a: prev.b, b: prev.a }));
   };
   const changeFilter = (patch: Partial<CompareFilter>) => {
+    invalidateCopy();
     detach();
     setFilter((prev) => normalizeCompareFilter({ ...prev, ...patch }));
   };
   const changeMode = (next: CompareMode) => {
+    invalidateCopy();
     detach();
     setMode(next);
   };
-  const retry = () => setRetryNonce((value) => value + 1);
+  const retry = () => {
+    invalidateCopy();
+    setRetryNonce((value) => value + 1);
+  };
 
   const openPassage = (passage: ComparePassage) => {
     onOpenTx({
@@ -393,10 +416,16 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
       query: trimmedQuery || undefined,
     });
   };
-  const copy = async (id: string, value: string) => {
-    const ok = await writeClipboard(value);
-    setCopied({ id, ok });
+  const beginCopy = () => {
+    invalidateCopy();
+    return copyAttempt.current;
   };
+  const finishCopy = async (id: string, value: string, attempt: number) => {
+    if (attempt !== copyAttempt.current) return;
+    const ok = await writeClipboard(value);
+    if (attempt === copyAttempt.current) setCopyFeedback({ id, ok, context: copyContext });
+  };
+  const copy = (id: string, value: string) => finishCopy(id, value, beginCopy());
 
   const comparisonUrl = (): string => {
     const url = new URL(window.location.href);
@@ -435,12 +464,15 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
     return receipt ?? "unavailable";
   };
   const copyReceipt = async () => {
+    // Receipt preparation is part of this click, not a new intent when it finishes.
+    const attempt = beginCopy();
     const receipt = await buildReceipt();
+    if (attempt !== copyAttempt.current) return;
     if (typeof receipt === "string") {
       setVerify({ key: comparisonKey, status: "blocked", reason: receipt });
       return;
     }
-    await copy("receipt", JSON.stringify(receipt, null, 2));
+    await finishCopy("receipt", JSON.stringify(receipt, null, 2), attempt);
   };
   const reverify = async () => {
     const key = comparisonKey;
@@ -587,7 +619,7 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
           <h3 id={`${baseId}-title`} ref={headingRef} tabIndex={-1} className={styles.title}>{t("tcTitle")}</h3>
           <p className={styles.intro}>{t("tcIntro")}</p>
         </div>
-        <button type="button" className={styles.close} onClick={onClose}>{t("tcClose")}</button>
+        <button type="button" className={styles.close} onClick={() => { invalidateCopy(); onClose(); }}>{t("tcClose")}</button>
       </div>
 
       {invalidLinkTicker && (
@@ -618,6 +650,7 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
           <span aria-hidden>⌕</span>
           <span className="fin-skel-sr">{t("tcTopic")}</span>
           <input
+            ref={topicRef}
             value={filter.query}
             maxLength={MAX_COMPARE_QUERY_CHARS}
             onChange={(event) => changeFilter({ query: event.target.value })}
@@ -625,7 +658,7 @@ export default function TranscriptCompare({ sym, calls, initialLink, onOpenTx, o
             aria-label={t("tcTopic")}
           />
           {filter.query && (
-            <button type="button" className={styles.clear} onClick={() => changeFilter({ query: "" })} aria-label={t("tcClearTopic")}>×</button>
+            <button type="button" className={styles.clear} onClick={() => { changeFilter({ query: "" }); topicRef.current?.focus({ preventScroll: true }); }} aria-label={t("tcClearTopic")}>×</button>
           )}
         </label>
         <label className={styles.speakerField}>

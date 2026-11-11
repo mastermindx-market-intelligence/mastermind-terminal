@@ -1,0 +1,36 @@
+{
+  "sourceHead": "696f3c508a6911824e8da897ac253e4fc566771d",
+  "composedProtectedParent": "99be76ef5c8914459f1a821a9af33a0b57a5044e",
+  "archiveFiles": 59,
+  "nodeChecks": [
+    {
+      "file": "capture_f08_6_alert_prefs.cjs",
+      "exit": 0
+    },
+    {
+      "file": "capture_b_f08_b5_1_targets.cjs",
+      "exit": 0
+    },
+    {
+      "file": "capture_w9t_f08_13_targets.cjs",
+      "exit": 0
+    }
+  ],
+  "historicalGateExit": 1,
+  "typecheckExit": 0,
+  "typecheckSeconds": 79.917,
+  "actualCapturePending": true,
+  "historicalGateCounts": {
+    "failed": 10,
+    "passed": 9,
+    "tests": 19
+  },
+  "sourceSha256": {
+    "terminal/e2e/tools/capture_f08_6_alert_prefs.cjs": "f4ab4049606b1f2ad3f0ad13aed6f9ae93619cd60507905695c85c4cf48d4bd9",
+    "terminal/e2e/tools/capture_b_f08_b5_1_targets.cjs": "f68014d7a87c3314957b415535d7c5d2173def62712872a8fb4f280b9931e9f7",
+    "terminal/e2e/tools/capture_w9t_f08_13_targets.cjs": "87a599c415ce3314a282c1fc156e3eff5ec5fbce5a5a1b0bf4e79e243b6bf966",
+    "terminal/lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts": "c1f73f1bfb17905e25398a34c5b878b997c785ef6e5949bf604f41a103b87e37",
+    "terminal/lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts": "60a75d6c54a41da5d465e4cde4dabd752ca2d48069a145049a36e00e821e0685",
+    "terminal/lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts": "f14c264fa773734c21a30ea1640350217852adae7fd7c021ca687d59d11f2440"
+  }
+}

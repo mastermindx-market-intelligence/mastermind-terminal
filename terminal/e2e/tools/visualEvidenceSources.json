@@ -44,6 +44,7 @@
   "terminal/components/ChartContextPlacement.module.css",
   "terminal/components/ChartPane.tsx",
   "terminal/components/ChartPanel.tsx",
+  "terminal/lib/pricePaneSvgScope.ts",
   "terminal/components/ChartSettingsModal.module.css",
   "terminal/components/ChartSettingsModal.tsx",
   "terminal/components/ChartTableView.tsx",
@@ -59,6 +60,7 @@
   "terminal/components/SearchModal.module.css",
   "terminal/components/SearchModal.tsx",
   "terminal/components/StockAnalysis.tsx",
+  "terminal/components/StockAnalysisImpl.tsx",
   "terminal/components/SymbolPicker.tsx",
   "terminal/components/TerminalShell.tsx",
   "terminal/components/VisualIntelligencePanel.module.css",
@@ -67,6 +69,7 @@
   "terminal/components/chrome/investor-shell-preview.css",
   "terminal/components/chrome/shared-shell/ShellSearch.tsx",
   "terminal/components/chrome/shared-shell/shared-shell.css",
+  "terminal/components/fin/FinCharts.tsx",
   "terminal/components/fin/MegaPane.tsx",
   "terminal/components/fin/ResearchWorkspaceNav.tsx",
   "terminal/components/mobile/AnalysisHubSheet.module.css",
@@ -146,6 +149,7 @@
   "terminal/lib/plainLabels.ts",
   "terminal/lib/scriptsFixtureDb.ts",
   "terminal/lib/sharedShellContracts.ts",
+  "terminal/lib/stockVolatility.ts",
   "terminal/lib/suites/trend/candlePainter.ts",
   "terminal/lib/visualIntelligence.ts",
   "terminal/lib/visualIntelligenceCopy.ts",
@@ -156,5 +160,10 @@
   "terminal/package.json",
   "terminal/playwright.config.ts",
   "terminal/postcss.config.mjs",
-  "terminal/tsconfig.json"
+  "terminal/tsconfig.json",
+  "terminal/components/SharedSearchWorkspace.module.css",
+  "terminal/components/SharedSearchWorkspace.tsx",
+  "terminal/components/chrome/shared-shell/ShellDirectory.tsx",
+  "terminal/lib/sharedShellDirectorySearch.ts",
+  "terminal/lib/sharedShellSearchCatalog.ts"
 ]

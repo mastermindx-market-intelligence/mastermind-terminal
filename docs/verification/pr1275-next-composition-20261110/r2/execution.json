@@ -1,0 +1,30 @@
+{
+  "allSixSettled": true,
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+  ],
+  "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal",
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T16:32:42.648692+00:00",
+  "fixtureInputs": 15,
+  "fixtureSha256": "d8941c2a64d19951a1e17d08e294da92d208936a4a889603103ba3127967d730",
+  "logSha256": "a79ff17171bd6f02b77e0e8339317581208896936acb1ec8ed165be1ea9361c4",
+  "nextEnvPostimage": null,
+  "nextEnvPreimage": null,
+  "observer": "Same finite caller path; existing producer owns every browser/server and settlement; only exact generated-type template was repaired.",
+  "port": 47285,
+  "portConnectAfter": 61,
+  "producerPid": 99509,
+  "seconds": 190.098,
+  "sourceHead": "17f1e9cf88728b60f7366484dac6799569c50ed3",
+  "sourceInputsUnchanged": true,
+  "sourceTree": "ebee9a9c9d7d752662f4839d4ec228c0c6f7ca2a",
+  "startedAt": "2026-11-10T16:29:32.551207+00:00",
+  "state": "CAPTURE_QUALIFIED_AWAITING_VISUAL_REVIEW",
+  "trackedChanges": [
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/FIXTURE.json",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png"
+  ]
+}

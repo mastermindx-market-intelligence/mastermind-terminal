@@ -642,6 +642,12 @@ test("a Prophet receipt under Replay shows no return priced after the replay dat
   // Live: the receipt is on the chart with its rank and the return measured through today.
   await expect.poll(() => prophetTitles(page), { timeout: 45_000 }).toEqual([expect.stringContaining("rank #7")]);
   expect((await prophetTitles(page))[0]).toContain("+37.5%");
+  // The Prophet marker is a drawn trajectory in a sapphire lens, not a diamond P.
+  // Its data-source identity and the tooltip above must survive the visual refresh.
+  const prophetMark = page.locator('[data-signal-source="prophet_board"]').first();
+  await expect(prophetMark.locator("circle")).toHaveCount(4);
+  await expect(prophetMark.locator("path")).toHaveCount(1);
+  await expect(prophetMark.locator("text")).toHaveCount(0);
   const liveLast = sessionDate((await witness(page))?.lastBar?.time);
 
   await toggleToolbarReplay(page);

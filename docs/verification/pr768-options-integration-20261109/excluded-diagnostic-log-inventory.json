@@ -1,0 +1,111 @@
+{
+  "files": {
+    "docs/verification/pr768-options-integration-20261109/ci-contract-checks-r1/full-playwright-collection.log": {
+      "bytes": 641844,
+      "sha256": "7daaccffff3fe06bd8e7dfc17d83fa2d06536f98d8f30dfec427a91c395a7f3a"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-contract-checks-r1/node-ci-entrypoints.log": {
+      "bytes": 51209,
+      "sha256": "d4acc7089cedaf999f48f6b07f38d459ff5dc09456524f57eddf14b88e467737"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-contract-checks-r1/python-browser-setup.log": {
+      "bytes": 99,
+      "sha256": "77a33dd1eae4050657fd9b1fe948582d92a3d45214e4019ff78e3058bb71c3b1"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/owner.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1-batch2.stderr.log": {
+      "bytes": 103,
+      "sha256": "9fb940b95b0cb867882902f8bdfef0fb36083879aae240f7ae6ee840746296cc"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1-batch2.stdout.log": {
+      "bytes": 1141,
+      "sha256": "a0569b857fb0d3974a9749ee6534601ec990015995ff94bda1b302b737baa4f4"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1-pine.stderr.log": {
+      "bytes": 103,
+      "sha256": "9fb940b95b0cb867882902f8bdfef0fb36083879aae240f7ae6ee840746296cc"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1-pine.stdout.log": {
+      "bytes": 4203,
+      "sha256": "a10490e5c773ddb5a300c4858910a0b40460496ad3eca2ceaf3d6e1b074a2db1"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1-pl6.stderr.log": {
+      "bytes": 103,
+      "sha256": "9fb940b95b0cb867882902f8bdfef0fb36083879aae240f7ae6ee840746296cc"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1-pl6.stdout.log": {
+      "bytes": 2662,
+      "sha256": "47078f4ba0fc0f87fc05edd4b6c6a7238202711518dc4c868e77921952d4f5f6"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1-vi.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1-vi.stdout.log": {
+      "bytes": 829,
+      "sha256": "154279cc1daf6c568287211a1d2592db7f59a2e62f079b22e1bda47cb0ce1364"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r2/owner.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109160768-2-pl6.stderr.log": {
+      "bytes": 103,
+      "sha256": "9fb940b95b0cb867882902f8bdfef0fb36083879aae240f7ae6ee840746296cc"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109160768-2-pl6.stdout.log": {
+      "bytes": 1789,
+      "sha256": "2b30c9d4e6230a9f2a736ec8e8e73e33dee2bfd43755ab4ea9bbcfdc62237887"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109160768-2-vi.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109160768-2-vi.stdout.log": {
+      "bytes": 832,
+      "sha256": "ff9ae8d8facb20553d01dccab661150035b65956e0f89f0b399e25084e580677"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-synthetic-r1.log": {
+      "bytes": 18876,
+      "sha256": "c65779f7b064d0d9cf77a5137d351f013e344233afdc1d425f8d3bb6f74dc36d"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-synthetic-r2.log": {
+      "bytes": 21341,
+      "sha256": "f497542cdaeb593175e67f0ac2c4f5789e003b6f6845cad63379e9c98770b114"
+    },
+    "docs/verification/pr768-options-integration-20261109/ci-owner-synthetic-r3.log": {
+      "bytes": 20956,
+      "sha256": "91ed5a3ffee2fc5345d17108f603efc83e34a83a04ce8c032071d23f0c85dc5d"
+    },
+    "docs/verification/pr768-options-integration-20261109/consumer-validation-r1/native-readers.log": {
+      "bytes": 371,
+      "sha256": "8105871432cb0e198e7baaf065a85b03d6c3134148d9c65dc4575c153936c4b5"
+    },
+    "docs/verification/pr768-options-integration-20261109/consumer-validation-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr768-options-integration-20261109/final-consumers-r1/selected-consumers.log": {
+      "bytes": 371,
+      "sha256": "b5bd50444c1941471e643d318b4619616019d8fb7e7a549313baad3cf0f7ccb4"
+    },
+    "docs/verification/pr768-options-integration-20261109/final-consumers-r1/visual-owner-tests.log": {
+      "bytes": 733,
+      "sha256": "58ab2dbc58107e8404ce6fe1a33b20e62338a024711a8566adc5c33def0332f5"
+    },
+    "docs/verification/pr768-options-integration-20261109/final-consumers-r2/selected-consumers.log": {
+      "bytes": 371,
+      "sha256": "a105528ce793fae2f9f4b9c1264fd65ea370d35e30a4ec475cd1bb48fa740432"
+    }
+  },
+  "retainedDescriptorBoundLogs": {
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/capture.log": "b2f6e812056bbc3f4835ae82446e786ff53ab6e09e3f3ae3d3ed27ff58e952d8",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/capture.log": "3cf1928d5c63e10eeec8948be8cc10771afb6fc7cfaa6c80c3c26dd290a40aaf",
+    "terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109/browser.log": "09edd96a53e86d1a16f2dcdb30432d687ad9341627aae7350ef2feda9ff4254a"
+  },
+  "retainedProductCountLog": "docs/verification/pr768-options-integration-20261109/product-unit-r1.log",
+  "schema": "terminal_pr768_excluded_raw_diagnostics.v1"
+}

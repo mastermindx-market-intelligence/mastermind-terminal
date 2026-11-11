@@ -1,0 +1,19 @@
+{
+  "phase": "after",
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/options-lab-source-state.spec.ts",
+    "e2e/options-lab-reported-gamma.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=.next/options-lab-source-after-20261104",
+    "--project=tablet",
+    "--project=mobile"
+  ],
+  "logSha256": "fb0c4c86b41c5d582fba4a7c1c9af9c3df334003c359b94c655cb4ab483acf08",
+  "gexSourceSha256": "e2b1cea4319f0860321d86d3fc8d8fc133060ce11cd7e1bdc0768207613d0a98"
+}

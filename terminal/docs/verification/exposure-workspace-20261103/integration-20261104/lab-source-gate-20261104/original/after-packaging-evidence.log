@@ -1,0 +1,12 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal
+
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (10 tests) 118ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (11 tests) 171ms
+
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+   Start at  12:25:28
+   Duration  648ms (transform 68ms, setup 0ms, collect 75ms, tests 289ms, environment 0ms, prepare 118ms)
+

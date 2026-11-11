@@ -31,6 +31,7 @@ export interface LabSetup {
 export interface LabModel {
   status: "ready" | "missing" | "unbound";
   publishedAt: string | null;
+  dataThrough: string | null;
   setups: LabSetup[];
 }
 export type LabSort = "lift" | "recent" | "history";
@@ -70,7 +71,7 @@ function publishedDate(v: unknown): string | null {
 }
 
 export function buildLabModel(sym: string, intel: unknown): LabModel {
-  const empty: LabModel = { status: "missing", publishedAt: null, setups: [] };
+  const empty: LabModel = { status: "missing", publishedAt: null, dataThrough: null, setups: [] };
   const tech = record(record(intel)?.tech);
   const events = record(tech?.events);
   const signals = record(events?.signals);
@@ -80,7 +81,11 @@ export function buildLabModel(sym: string, intel: unknown): LabModel {
   if (!ticker || ticker.toUpperCase() !== sym.trim().toUpperCase()) return { ...empty, status: "unbound" };
   const profiles = record(tech.profiles) ?? {};
   const publishedAt = publishedDate(events.generated_utc) ?? publishedDate(tech.asof);
-  const cutoff = publishedAt?.slice(0, 10);
+  // The producer's final input bar is not its publication time. Fail closed
+  // for malformed, unbound or after-publication bar dates; old snapshots omit it.
+  const reportedBar = labDate(events.data_through);
+  const dataThrough = reportedBar && publishedAt && reportedBar <= publishedAt.slice(0, 10) ? reportedBar : null;
+  const cutoff = dataThrough ?? publishedAt?.slice(0, 10);
   const setups = Object.entries(signals).map(([id, raw]): LabSetup => {
     const state = record(raw) ?? {};
     const profile = record(profiles[id]) ?? {};
@@ -117,7 +122,7 @@ export function buildLabModel(sym: string, intel: unknown): LabModel {
         pre2010: rate(profile.wr_pre2010), post2010: rate(profile.wr_post2010) },
     };
   });
-  return { status: "ready", publishedAt, setups };
+  return { status: "ready", publishedAt, dataThrough, setups };
 }
 
 export function sortLabSetups(setups: LabSetup[], sort: LabSort): LabSetup[] {

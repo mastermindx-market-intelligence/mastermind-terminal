@@ -1,0 +1,167 @@
+{
+  "sourceHead": "a57bd879088d4b35789939935fe932ecbf4a340c",
+  "sourceTree": "578923cf493dd73122149299f98cd326dc4ee9ff",
+  "producerSha256": "d1f04d90ad68bfbf6c0c3d3b83baac2ce24fe36d9ea606a205b6796b59708bbe",
+  "inputs": [
+    {
+      "path": "terminal/app/globals.css",
+      "sha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/shared-shell.css",
+      "sha256": "2b3417366f58b0d25588b6d6bf6a2346f47ad84403885066946c5a2f18b1c116"
+    },
+    {
+      "path": "terminal/components/intelligence/Intelligence.module.css",
+      "sha256": "0981e16e814278971d44e320587cfe089f56f3ba81ff9e306fcc810e9b37e166"
+    },
+    {
+      "path": "terminal/components/intelligence/TodayIntelligenceEntry.tsx",
+      "sha256": "da7135f02c718ed979c89fc8ac00ff9b0a9236497b00d66b4a86079eb1f9d723"
+    },
+    {
+      "path": "terminal/components/workspaces/MonitorEventAttention.module.css",
+      "sha256": "b912bcedc4aefc2b470d3548a6196071fdee1d8378e4a04752c12b8f494e2c7f"
+    },
+    {
+      "path": "terminal/components/workspaces/MonitorEventAttention.tsx",
+      "sha256": "41dfa4ea0d85418f3379ec8eb955bffbac8503dced0e35a0f32e9bf816f78dd1"
+    },
+    {
+      "path": "terminal/components/workspaces/ReadingWorkspace.module.css",
+      "sha256": "1e965bf810af5bcf52a6d9244e30929e6fd35cdbf3adf5328caa9185215e1d63"
+    },
+    {
+      "path": "terminal/components/workspaces/TodayBreadthReading.module.css",
+      "sha256": "7b1bae2ce2ee4329b0bb210edfac80c56bc28266c9d673e30d51f00de4d86e10"
+    },
+    {
+      "path": "terminal/components/workspaces/TodayBreadthReading.tsx",
+      "sha256": "5109a10ea3763e65b54f3318c6b8b195201802a51ad2dc2cddce768181e818da"
+    },
+    {
+      "path": "terminal/components/workspaces/TodayDeskDestinations.tsx",
+      "sha256": "849d1fa91c5d56f374d30ab9b9a8414fca3e00631f55842e13574715e389fd2b"
+    },
+    {
+      "path": "terminal/components/workspaces/TodayResearchAttention.tsx",
+      "sha256": "080afc0a86ab463379bca5d8d8330abffecaf7547d6ac61d0c87ec074ba33c93"
+    },
+    {
+      "path": "terminal/components/workspaces/TodayRiskEvents.tsx",
+      "sha256": "4215c0e8d46d97d430d88af62fa1a144618fce897efcbeecdf07efe14df415f9"
+    },
+    {
+      "path": "terminal/components/workspaces/TodaySinceLastVisit.tsx",
+      "sha256": "5f69c7dbe0fb0650ab9a51a122c46f12b99be7b252394c43888fbbf28f50e50f"
+    },
+    {
+      "path": "terminal/components/workspaces/TodayWatchAttention.tsx",
+      "sha256": "9bb4659eae655e62681b3ae2d7b60c078523515caf48633ba2ba3e9b4158785e"
+    },
+    {
+      "path": "terminal/components/workspaces/TodayWorkspace.module.css",
+      "sha256": "984317debcd96750b0780e14da2c0c40990b6ded91d7a63ba9278f33f7882bba"
+    },
+    {
+      "path": "terminal/components/workspaces/TodayWorkspace.tsx",
+      "sha256": "5211f84eb55217de109c0520414af8f3f1346b48e8eb022b85bf79f2571ffe85"
+    },
+    {
+      "path": "terminal/lib/accountIdentity.ts",
+      "sha256": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c"
+    },
+    {
+      "path": "terminal/lib/chatQuotas.ts",
+      "sha256": "da3ea57cb9c22b5ed7bfb12f2ab85a1a86809a202c720661f481ad7be7967b2f"
+    },
+    {
+      "path": "terminal/lib/companyIntelligence.ts",
+      "sha256": "3712f4f18f03baa03a999aabea87ad438a272ec823b557ff6d3853c9c50cf1d9"
+    },
+    {
+      "path": "terminal/lib/companyRetainedContext.ts",
+      "sha256": "81db88f0eee8cb1bedc1a306c33c6b3b609c54e3dafb32f7d6630e93adcd493b"
+    },
+    {
+      "path": "terminal/lib/eventWorkspace.ts",
+      "sha256": "70f05bcb03c787562cc4aa2fd050023bc2e5c6300d718c50b943927c062a8f2a"
+    },
+    {
+      "path": "terminal/lib/i18n.tsx",
+      "sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+    },
+    {
+      "path": "terminal/lib/ownerStorage.ts",
+      "sha256": "6b1eb941ef6a4f11960d4d20c9bc488ebab6022559f0963bbbd980461a68cb6e"
+    },
+    {
+      "path": "terminal/lib/portfolioBrief.ts",
+      "sha256": "4b5e9cc9f01c3b169e225fc6d279286a415a6522b3e70673a6d06014ad9971ed"
+    },
+    {
+      "path": "terminal/lib/shared-shell/marketBreadth.ts",
+      "sha256": "596ae9ea2319da2f37caed7a2713a81095503783d5104aa23b142f09d37ec476"
+    },
+    {
+      "path": "terminal/lib/shared-shell/readingContracts.ts",
+      "sha256": "48c955087c029ab507d784034c5244ec18d85b6a4cd158d4ded7cd9721b8c91d"
+    },
+    {
+      "path": "terminal/lib/shared-shell/readingFreshness.ts",
+      "sha256": "824a9360d3b1c099bd8d3efa5caaa018f8e36fc13cfca7de962a11f7e7685e22"
+    },
+    {
+      "path": "terminal/lib/shared-shell/readingPayloads.ts",
+      "sha256": "2b9c03c4eb7ff784551d7b65edc87eadcef01199b11ce93f16bae6118d9a716b"
+    },
+    {
+      "path": "terminal/lib/shared-shell/readingProgress.ts",
+      "sha256": "d95fdf3c47c6a1cd2ccdf072ef79098cf4ab94e1820fec2dc784a391ab80488d"
+    },
+    {
+      "path": "terminal/lib/shared-shell/todayBriefContext.ts",
+      "sha256": "eefc60d9f92582fe49addcd6824044014bb5e43eec557364385a9ae8a9be3a26"
+    },
+    {
+      "path": "terminal/lib/shared-shell/useReadingClock.ts",
+      "sha256": "12ae6acb92b42d385e78c19399a2f7010f560f8728c472bb470ea0ef6b72814d"
+    },
+    {
+      "path": "terminal/lib/shared-shell/useReadingScope.ts",
+      "sha256": "37bc0cc517172ba243a7578cf82940b6ac6c212cb1c8787bcbf789be8aa43f20"
+    },
+    {
+      "path": "terminal/lib/sharedShellContracts.ts",
+      "sha256": "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
+    },
+    {
+      "path": "terminal/lib/sharedShellCopy.ts",
+      "sha256": "69c51a929fcc94ffea67e58d74433d345090818b2dc694dea7a8e53c25cc09df"
+    },
+    {
+      "path": "terminal/lib/sharedShellNavigation.ts",
+      "sha256": "459c5f70283f006c4fc35844c3ac51af859e5d3c847e1c99f2741d50cffa73c3"
+    },
+    {
+      "path": "terminal/lib/usEquitySessionClock.ts",
+      "sha256": "de8393b96981b78be48ec01c5737bc690419e276cdbe826a2eec0fcb0667d8e6"
+    },
+    {
+      "path": "terminal/lib/usEquitySessionProjection.json",
+      "sha256": "d803dc85fcf3318bc78392e1d645b7063881b86eec95cf06f51192e1d836de98"
+    },
+    {
+      "path": "terminal/package-lock.json",
+      "sha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+    },
+    {
+      "path": "terminal/package.json",
+      "sha256": "49a5d19c384aa136867ae093093c303aa49c8f5078ac6e59b8a5a3ea88e3f59e"
+    },
+    {
+      "path": "terminal/tsconfig.json",
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3"
+    }
+  ]
+}

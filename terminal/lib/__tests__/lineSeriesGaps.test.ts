@@ -152,4 +152,43 @@ describe("LineSeries preserves source gaps in rendered SVG", () => {
     expect(lines(host)).toHaveLength(0);
     expect(host.querySelector("svg")).toBeNull();
   });
+
+  it("breaks before an existing source slot without shifting any expiry position", () => {
+    const host = renderLine({
+      labels, series: [{ name: "IV", values: [30, 31, 32, 33, 34] }],
+      breakBefore: [false, false, true, false, false],
+    });
+    expectRuns(host, [[0, 1], [2, 3, 4]]);
+    expect(hitCenters(host)).toHaveLength(5);
+    expect(host.querySelectorAll("circle.fin-node")).toHaveLength(0);
+  });
+
+  it("keeps all observations visible when source ambiguity withholds every connection", () => {
+    const host = renderLine({
+      labels, series: [{ name: "IV", values: [30, 31, 32, 33, 34] }],
+      breakBefore: [false, true, true, true, true],
+    });
+    expectRuns(host, [[0], [1], [2], [3], [4]]);
+    expect(hitCenters(host)).toHaveLength(5);
+    expect(host.querySelectorAll("circle.fin-node")).toHaveLength(5);
+  });
+
+  it("combines explicit source boundaries and nonfinite observations", () => {
+    const host = renderLine({
+      labels, series: [{ name: "IV", values: [30, null, 32, 33, 34] }],
+      breakBefore: [false, false, false, true, false],
+    });
+    expectRuns(host, [[0], [2], [3, 4]]);
+    expect(host.querySelectorAll("circle.fin-node")).toHaveLength(2);
+  });
+
+  it("preserves zero-valued isolated points with source boundaries", () => {
+    const host = renderLine({
+      labels: ["2026-11-06", "2026-11-27"], series: [{ name: "IV", values: [0, 0] }],
+      breakBefore: [false, true],
+    });
+    expectRuns(host, [[0], [1]]);
+    expect(host.querySelectorAll("circle.fin-node")).toHaveLength(2);
+    expect(host.innerHTML).not.toMatch(/NaN|Infinity/);
+  });
 });

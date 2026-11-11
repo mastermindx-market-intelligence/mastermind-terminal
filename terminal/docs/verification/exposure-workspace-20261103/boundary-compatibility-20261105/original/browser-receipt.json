@@ -1,0 +1,23 @@
+{
+  "passed": 12,
+  "mode": "original",
+  "protectedBase": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/options-lab-source-state.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=.next/boundary-availability-original-20261105"
+  ],
+  "source_stable": true,
+  "source_count": 3019,
+  "source_map_sha256": "9263e790b0b2fcdb4668c6dc5fac0db2dd8ae6e461b835c4b750bc21e3fa0235",
+  "log_sha256": "46954e95d731f934b5c708c680181cd71287030998a17778bf9dba70f15329f2",
+  "retries": 0
+}

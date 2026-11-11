@@ -35,6 +35,78 @@ const FIXTURE_ARTIFACTS: Record<string, ArtifactState> = {
   EEE: read({ sector: null, marketCap: null, thinlyTraded: null }, "EEE"),
 };
 
+describe("riskCopy unavailable monetary weights", () => {
+  it.each([
+    {
+      reason: "currency_unknown",
+      positions: [{ ...pos("AAA", 1, 100), entryCurrency: null }],
+      explanation: { en: "entry currency is not recorded; cost weights are unavailable", zh: "未记录入场币种，成本权重不可用" },
+    },
+    {
+      reason: "currency_mismatch",
+      positions: [pos("AAA", 1, 100), { ...pos("BBB", 1, 100), entryCurrency: "HKD" }],
+      explanation: { en: "entry currencies differ; cost weights are unavailable", zh: "入场币种不同，成本权重不可用" },
+    },
+    {
+      reason: "amount_overflow",
+      positions: [pos("AAA", Number.MAX_VALUE, 2)],
+      explanation: { en: "cost exceeds the supported numeric range", zh: "成本超出支持的数值范围" },
+    },
+  ])("explains $reason on every withheld weighted card even when security data was read", ({ positions, reason, explanation }) => {
+    const risk = computePortfolioRisk(positions, FIXTURE_ARTIFACTS);
+    expect(risk.counts.sized).toBeGreaterThan(0);
+    expect(risk.counts.read).toBe(risk.counts.sized);
+    expect(risk.totalCost).toBeNull();
+    expect(risk.gaps.some(gap => gap.reason === reason)).toBe(true);
+    const copy = riskCopy(risk);
+    expect(copy.cards.map(card => card.unread)).toEqual(Array(4).fill(explanation));
+    expect(copy.cards.every(card => card.value === null)).toBe(true);
+  });
+
+  it.each([null, 0, -1])("does not claim recorded fields are absent when shares are %s", shares => {
+    const risk = computePortfolioRisk([pos("AAA", shares, 100)], FIXTURE_ARTIFACTS);
+    expect(risk.totalCost).toBeNull();
+    const copy = riskCopy(risk);
+    expect(copy.cards.map(card => card.unread)).toEqual(Array(4).fill({
+      en: "No positive entry cost is available. Check share counts and buy prices.",
+      zh: "暂无可用的正数入场成本，请检查持仓数量和买入价。",
+    }));
+    expect(copy.gapLines[0].text).toEqual({
+      en: "share count and buy price do not give a positive entry cost",
+      zh: "数量和买入价无法得出正数入场成本",
+    });
+  });
+
+  it("finds the monetary reason beyond the visible gap-list limit", () => {
+    const unsized = Array.from({ length: 21 }, (_, i) => pos(`UNSIZED${i}`, null, 100));
+    const risk = computePortfolioRisk([...unsized, { ...pos("AAA", 1, 100), entryCurrency: null }], {});
+    const copy = riskCopy(risk);
+    expect(copy.gapLines).toHaveLength(20);
+    expect(copy.gapLinesOverflow).toBeGreaterThan(0);
+    expect(copy.cards[0].unread).toEqual({
+      en: "entry currency is not recorded; cost weights are unavailable",
+      zh: "未记录入场币种，成本权重不可用",
+    });
+    expect(risk.gaps).toContainEqual({ ticker: "AAA", reason: "no_page" });
+  });
+
+  it("retains artifact-specific absence with a valid common entry currency", () => {
+    const risk = computePortfolioRisk([pos("AAA", 1, 100)], { AAA: { kind: "unreadable" } });
+    expect(risk.totalCost).toBe(100);
+    expect(risk.costCurrency).toBe("USD");
+    const copy = riskCopy(risk);
+    expect(copy.cards[0].unread).toBeNull();
+    expect(copy.cards[0].value).toEqual({ en: "100%", zh: "100%" });
+    expect(copy.cards[1].unread).toEqual({ en: "Nothing readable yet.", zh: "暂时没有可读的数据。" });
+    expect(copy.cards[2].unread).toEqual(copy.cards[1].unread);
+    expect(copy.cards[3].unread).toEqual({
+      en: "We cannot read this yet - none of your holdings data pages say how thinly they trade.",
+      zh: "暂时读不到 - 你的持仓数据页都没有说明成交是否清淡。",
+    });
+    expect(risk.gaps).toContainEqual({ ticker: "AAA", reason: "page_unreadable" });
+  });
+});
+
 describe("computePortfolioRisk", () => {
   it("1: top1 and topNWeightPct exact to 1dp; closed position excluded", () => {
     const risk = computePortfolioRisk(FIXTURE, FIXTURE_ARTIFACTS);

@@ -1,0 +1,62 @@
+# B-F11-10a Analysis context-bar theses entry — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: e13f1dbec0abcb2044a9679d976d17a211bd239a
+# capturedAt: 2026-11-06T02:16:11.470Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "e0f7f4fd913db2bd3502060e8451962a26bb6775571e369db93832ffc8c6b6ef"
+  terminal/app/company-intelligence.css: "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  desktop-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  desktop-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+  tablet-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  tablet-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+  mobile-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  mobile-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
+files:
+  - desktop-en.png
+  - desktop-zh.png
+  - tablet-en.png
+  - tablet-zh.png
+  - mobile-en.png
+  - mobile-zh.png
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
+
+# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}
+
+companyAlternateListingSourceRecapture20261103:
+  sourceHead: 246ae1579e88ff9c7583eff5061a404644bed05a
+  qualification: Fresh incumbent six-case NVDA context-bar capture; OUT declaration redirected only; no runtime, fixture, URL, viewport or assertion change
+  captureDirectory: ../company-alternate-listing-20261103/theses-entry-20261103
+  start: ../company-alternate-listing-20261103/theses-entry-20261103/start.json
+  result: ../company-alternate-listing-20261103/theses-entry-20261103/result.json
+  scope: AnalysisWorkspace source row only; historical six crops, raw capture identity and lexProjection retained unchanged; local dev fixture, no served or authenticated claim
+
+companyOriginContextSourceRecapture20261107:
+  sourceHead: 030c84c98944a6d4c145695e7aeda5bd32eac015
+  qualification: Fresh incumbent six-case NVDA context-bar capture; OUT declaration redirected only; unchanged fixture, URL, viewport and assertions
+  captureDirectory: ../company-origin-context-20261107/theses-entry-20261107
+  start: ../company-origin-context-20261107/theses-entry-20261107/start.json
+  result: ../company-origin-context-20261107/theses-entry-20261107/result.json
+  sourceQualification: ../company-origin-context-20261107/source-qualification.json
+  scope: AnalysisWorkspace source row only; historical six crops, raw capture identity, CSS row and lexProjection retained unchanged; local dev fixture, no served or authenticated claim

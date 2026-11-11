@@ -408,6 +408,20 @@ function CandidateCard({
         <ReasonList reasons={item.current_disposition.reasons} t={t} zh={zh} />
       )}
       <CampaignContextBlock item={item} t={t} />
+      {item.campaign_context ? (
+        <>
+          <a
+            className="obs-chip obs-options-alpha-chart-link"
+            href={`/terminal?symbol=${encodeURIComponent(item.campaign_context.group.ticker)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="options-alpha-candidate-chart-link"
+          >
+            {t("candidateChartLink")}
+          </a>
+          <p className="obs-options-alpha-footnote" data-testid="options-alpha-candidate-chart-caption">{t("candidateChartCaption")}</p>
+        </>
+      ) : null}
       {item.post_formation_outcomes ? (
         <div className="obs-options-alpha-horizons" data-testid="options-alpha-candidate-horizons">
           {OPTIONS_ALPHA_CANDIDATE_HORIZONS.map((horizon) => (

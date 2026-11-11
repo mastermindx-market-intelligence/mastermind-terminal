@@ -34,12 +34,14 @@ const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
   "terminal/components/StockAnalysis.tsx",
+  "terminal/components/StockAnalysisImpl.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
   "terminal/components/fin/ResearchWorkspaceNav.tsx",
   "terminal/components/fin/MegaPane.tsx",
   "terminal/app/analysis-nav-vnext.css",
   "terminal/app/fin.css",
   "terminal/components/ChartPanel.tsx",
+  "terminal/lib/pricePaneSvgScope.ts",
   "terminal/components/DayRange.tsx",
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
@@ -298,14 +300,13 @@ async function captureAnalysis(page, width, lang, outPath) {
   await gotoReady(page, "/analysis?symbol=SPY", lang);
   const shell = page.locator(".analysis-shell").first();
   await shell.waitFor({ state: "visible", timeout: 45_000 });
-  // The server renders English and LangProvider applies mm.lang only after hydration, so a
-  // visible shell can still carry the SSR language for seconds under load. Wait for the
-  // retained company Theses control; the standalone duplicate Back button is retired.
-  const thesesLabel = lang === "zh" ? "你的研究论点：SPY" : "Your theses on SPY";
-  await shell.getByRole("link", { name: thesesLabel, exact: true }).waitFor({ state: "visible", timeout: 45_000 });
-  const bar = page.locator(".analysis-context-bar").first();
-  const target = (await bar.count()) && (await bar.isVisible().catch(() => false)) ? bar : shell;
-  await cropLocator(page, target, outPath, 12);
+  // Wait for the localized control that is actually visible in this viewport.
+  const bar = shell.locator(".analysis-context-bar");
+  const control = width <= 640
+    ? bar.locator(".analysis-context-actions > summary").and(page.getByLabel(lang === "zh" ? "研究操作" : "Research actions", { exact: true }))
+    : bar.getByRole("link", { name: lang === "zh" ? "你的研究论点：SPY" : "Your theses on SPY", exact: true });
+  await control.waitFor({ state: "visible", timeout: 45_000 });
+  await cropLocator(page, bar, outPath, 12);
 }
 
 // Default-on Terminal studies for a fresh SPY chart (see the legend: Moving Averages,
@@ -351,6 +352,7 @@ async function main() {
   if (captureOptionsAxis && (!IMMUTABLE_ID || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_PL6");
   const capturedAtHead = currentGitHead();
   const operation = IMMUTABLE_ID === undefined ? null : evidence.beginOperation({ repoRoot: REPO, packet: "pl6", operationId: IMMUTABLE_ID });
+  if (captureOptionsAxis && (!operation || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_OWNED_CAPTURE");
   const executionRows = [];
   const child = startServer();
   const files = [];

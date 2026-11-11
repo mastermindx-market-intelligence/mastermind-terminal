@@ -8,6 +8,7 @@ import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { hasMarketOntologyContext, parseMarketOntologyContext, serializeMarketOntologyContext, stripMarketOntologyParams, type MarketOntologyContext } from "@/lib/marketOntologyContext";
 import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
 import { installThesisReadSource } from "@/lib/thesisReadContext";
+import { readThesisInspection, withThesisInspection } from "@/lib/thesisInspectionHistory";
 import type {
   ThesisAction,
   ThesisContent,
@@ -584,6 +585,23 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [carrierBlocked, setCarrierBlocked] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [inspectedVersion, setInspectedVersion] = useState<number | null>(null);
+  const inspectionHeading = useRef<HTMLHeadingElement | null>(null);
+  const inspectionReturn = useRef<{ ownerKey: string; thesisId: string; version: number } | null>(null);
+  useLayoutEffect(() => {
+    const returning = inspectionReturn.current;
+    if (!returning) return;
+    if (returning.ownerKey !== ownerKey || returning.thesisId !== selectedId) {
+      inspectionReturn.current = null;
+      return;
+    }
+    if (detailState !== "ready" || detailReadOwner !== ownerKey || !inspectionHeading.current) return;
+    inspectionReturn.current = null;
+    if (returning.version === inspectedVersion) {
+      // Canonical content has now mounted. Native scroll restoration can run
+      // before this asynchronous detail exists and leave the review off-screen.
+      inspectionHeading.current.scrollIntoView({ block: "center", behavior: "instant" });
+    }
+  }, [detailReadOwner, detailState, inspectedVersion, ownerKey, selectedId]);
   const [routeInvalid, setRouteInvalid] = useState(invalidLink);
   const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || initialSymbolKey ? "detail" : "list");
   const [claimFormOpen, setClaimFormOpen] = useState(false);
@@ -640,6 +658,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
+  const listRequest = useRef(0);
   const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
@@ -721,7 +740,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
-    return () => { detailRequest.current += 1; };
+    return () => {
+      detailRequest.current += 1;
+      listRequest.current += 1;
+    };
   }, [ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
@@ -1509,8 +1531,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [copy.confirmDiscard, isDirty, pending]);
 
   const loadList = useCallback(async () => {
+    // Clearing rows on an owner change is insufficient: an earlier request can
+    // finish afterwards. Keep successes, decoding and failures on this read's
+    // generation, including an A→B→A owner change or a newer same-owner refresh.
+    const token = ++listRequest.current;
     try {
       const response = await fetch("/api/theses", { cache: "no-store" });
+      if (token !== listRequest.current) return;
       if (response.status === 401) return setListState("session_expired");
       if (!response.ok) {
         setListState("unavailable");
@@ -1518,6 +1545,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         return;
       }
       const payload = await response.json();
+      if (token !== listRequest.current) return;
       if (!Array.isArray(payload.theses)) {
         setListState("unavailable");
         setMobilePane("list");
@@ -1527,6 +1555,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setTruncated(payload.truncated === true);
       setListState("ready");
     } catch {
+      if (token !== listRequest.current) return;
       setListState("unavailable");
       setMobilePane("list");
     }
@@ -1536,7 +1565,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     if (url.href === window.location.href) return;
     if (mode === "push") {
       const next = historyPositionRef.current + 1;
-      window.history.pushState(historyState(next), "", url.toString());
+      window.history.pushState(withThesisInspection(historyState(next), null), "", url.toString());
       historyPositionRef.current = next;
     } else {
       window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
@@ -1632,7 +1661,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setBaseline({ subject: payload.thesis.subject.key, draft: loadedDraft });
       setEffectiveBaselineUtc(payload.thesis.current.content.effectiveAt);
       setEffectiveEdited(false);
-      setInspectedVersion(null);
+      const restoredInspection = payload.thesis.id === id
+        ? readThesisInspection(window.history.state, ownerKey, id, payload.thesis.history ?? [])
+        : null;
+      inspectionReturn.current = restoredInspection === null ? null : { ownerKey, thesisId: id, version: restoredInspection };
+      setInspectedVersion(restoredInspection);
       setDetailState("ready");
       settleMarketOntologyContext(id, contextCandidate, normalizeAnalysisSymbol(payload.thesis.subject?.key ?? ""));
       void loadProposals(id, token);
@@ -1642,6 +1675,15 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setDetailState("unavailable");
     }
   }, [loadProposals, ownerKey, settleMarketOntologyContext]);
+
+  const inspectVersion = useCallback((version: number | null) => {
+    if (detailState !== "ready" || !detail || detailReadOwner !== ownerKey || detail.id !== selectedId) return;
+    const selection = version === null ? null : { ownerKey, thesisId: detail.id, version };
+    const nextState = withThesisInspection(window.history.state, selection);
+    if (version !== null && readThesisInspection(nextState, ownerKey, detail.id, detail.history) !== version) return;
+    window.history.replaceState(nextState, "", window.location.href);
+    setInspectedVersion(version);
+  }, [detail, detailReadOwner, detailState, ownerKey, selectedId]);
 
   const openDetail = useCallback((id: string, historyMode: "push" | "none" = "push") => {
     const token = ++detailRequest.current;
@@ -2053,6 +2095,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     } else {
       url.searchParams.delete("symbol");
     }
+    // A successful write returns to its new current version, even if the URL
+    // did not change. Do not restore the old inspection on the following read.
+    window.history.replaceState(withThesisInspection(window.history.state, null), "", window.location.href);
+    setInspectedVersion(null);
     writeRoute(url, "replace");
     setSelectedId(id);
     setMobilePane("detail");
@@ -2750,10 +2796,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                             <time dateTime={entry.systemRecordedAt}>{new Date(entry.systemRecordedAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time>
                             <strong>{entry.content.title}</strong>
                             <p>{entry.content.revisionNote || copy.lines}{entry.effectiveAt && <span className={styles.effectiveAt}>{copy.effectiveHistory}: <time dateTime={entry.effectiveAt}>{new Date(entry.effectiveAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time></span>}</p>
-                            <button type="button" aria-label={`${copy.inspectVersion} ${entry.version}`} aria-expanded={open} onClick={() => setInspectedVersion(open ? null : entry.version)}>{copy.inspectVersion}</button>
+                            <button type="button" aria-label={`${copy.inspectVersion} ${entry.version}`} aria-expanded={open} onClick={() => inspectVersion(open ? null : entry.version)}>{copy.inspectVersion}</button>
                           </div>
                           {open && <div className={styles.versionInspector} data-testid="thesis-version-inspector" data-posture={currentEntry ? "current" : "historical"}>
-                            <header><div><small>{copy.version} {entry.version}</small><h3>{currentEntry ? copy.currentSnapshot : copy.historicalSnapshot}</h3></div><span data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</span></header>
+                            <header><div><small>{copy.version} {entry.version}</small><h3 ref={inspectionHeading}>{currentEntry ? copy.currentSnapshot : copy.historicalSnapshot}</h3></div><span data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</span></header>
                             <dl className={styles.versionMeta}>
                               <div><dt>{copy.previousVersion}</dt><dd>{entry.previousVersion === null ? copy.origin : `${copy.version} ${entry.previousVersion}`}</dd></div>
                               <div><dt>{copy.recordedBy}</dt><dd>{copy.you}</dd></div>

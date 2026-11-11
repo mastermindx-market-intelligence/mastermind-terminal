@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useLang } from "@/lib/i18n";
+import styles from "./UnsupportedAnalysisRoute.module.css";
 
 const COPY = {
   en: {
@@ -21,12 +23,12 @@ export default function UnsupportedAnalysisRoute({ reason }: { reason: string })
   const { lang } = useLang();
   const copy = COPY[lang];
   return (
-    <main className="main2 ws-shell" style={{ display: "grid", placeItems: "center", padding: 24 }}>
-      <section role="status" style={{ maxWidth: 560, padding: 28, border: "1px solid var(--line)", borderRadius: 12 }}>
-        <p style={{ color: "var(--muted)", margin: "0 0 8px" }}>{copy.eyebrow}</p>
-        <h1 style={{ fontSize: 24, margin: "0 0 10px" }}>{copy.title}</h1>
-        <p style={{ color: "var(--muted)", margin: "0 0 14px" }}>{copy.body}</p>
-        <a href="/analysis">{copy.return}</a>
+    <main className={`main2 ws-shell ${styles.root}`}>
+      <section role="status" className={styles.card}>
+        <p className={styles.eyebrow}>{copy.eyebrow}</p>
+        <h1 className={styles.title}>{copy.title}</h1>
+        <p className={styles.body}>{copy.body}</p>
+        <Link className={styles.action} href="/analysis" prefetch={false}>{copy.return}</Link>
         <span hidden>{reason}</span>
       </section>
     </main>

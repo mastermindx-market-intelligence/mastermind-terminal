@@ -1,0 +1,51 @@
+{
+  "sourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "implementationSourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "recordedAt": "2026-10-22T09:13:28.977141+00:00",
+  "command": "env -u MMX_SHARED_SHELL -u MMX_INVESTOR_SHELL_PREVIEW TERMINAL_E2E_PORT=3123 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/shared-shell-company-capture-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1 --grep 'default context explains|Chinese context uses' --reporter=list,json",
+  "environment": {
+    "node": "v20.20.2",
+    "MMX_SHARED_SHELL": "unset",
+    "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+    "TERMINAL_E2E_FIXTURE": "1 via harness"
+  },
+  "actualCaptures": 6,
+  "sourceChanges": {
+    "terminal/app/company-intelligence.css": {
+      "before": "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b",
+      "after": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+    },
+    "terminal/components/chrome/shared-shell/shared-shell.css": {
+      "before": "2f1759ba734abcd5cb079fd4af032c9b1f93aea7a575f87e042070b3445b92ce",
+      "after": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+    }
+  },
+  "sourceHashes": {
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  },
+  "outputs": {
+    "desktop-context.png": "8a207de7fec757a880b4196e20580283dd9ae83ad5958405fb230813c2553d9a",
+    "desktop-context-zh.png": "e249ec74bdaafe71827d85fb81bbb950258eb080833b76ff825674f54a94a47a",
+    "tablet-context.png": "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234",
+    "tablet-context-zh.png": "60a4aea2a2b13d527c6ffc0eec5d034d819477b4aafa83334231dc716ae73519",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087",
+    "shared-shell-company-capture-report.json": "81c4d951f518a4accc6bc630f4e04995ba08abcdb52be12256de10ceee6cb39c"
+  },
+  "captureLog": {
+    "path": "shared-shell-company-recapture.log",
+    "sha256": "32b87270859a2375f5671659a8ac8d5181b29b6249aa71ccdba06efd14269301"
+  },
+  "qualification": "Actual scoped local incumbent-profile captures. Existing full reports and older acceptance history remain historical; no live account, current-data or deployment claim. The new light shadow token is Shared Shell opt-in only.",
+  "preservedHistoricalManifestSha256": "e706d0a63120a6b45b46f55bee914c1073939721e0329fb44fb9d69df77b89cb",
+  "browserResults": {
+    "startTime": "2026-10-22T09:07:50.780Z",
+    "duration": 114325.226,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "retainedHistoricalReport": "browser-report.json and browserReportHashes remain the original complete 30-case run."
+}

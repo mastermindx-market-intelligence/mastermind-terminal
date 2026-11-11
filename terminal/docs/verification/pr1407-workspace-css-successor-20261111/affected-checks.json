@@ -1,0 +1,30 @@
+[
+  {
+    "name": "evidence-guards",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts",
+      "lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts",
+      "lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts",
+      "--pool=forks",
+      "--maxWorkers=1",
+      "--minWorkers=1"
+    ],
+    "startedAt": "2026-11-11T07:45:18.079406+00:00",
+    "exitCode": 0,
+    "seconds": 35.084
+  },
+  {
+    "name": "guard-eslint",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts"
+    ],
+    "startedAt": "2026-11-11T07:45:53.163608+00:00",
+    "exitCode": 0,
+    "seconds": 48.989
+  }
+]

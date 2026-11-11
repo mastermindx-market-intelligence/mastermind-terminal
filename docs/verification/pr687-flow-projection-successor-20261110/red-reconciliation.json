@@ -1,0 +1,71 @@
+{
+  "additiveDiagnosticFieldControl": [
+    "canonical flow projection admission preserves distinct canonical IDs even when their contract terms agree"
+  ],
+  "finalCounts": {
+    "numFailedTests": 0,
+    "numPassedTests": 190,
+    "numPendingTests": 0,
+    "numTotalTests": 190
+  },
+  "harnessRepair": "Supply and restore only jsdom-missing HTMLElement.scrollIntoView; preserve actual React state, callbacks and assertions.",
+  "initialCounts": {
+    "numFailedTests": 32,
+    "numPassedTests": 26,
+    "numPendingTests": 0,
+    "numTotalTests": 58
+  },
+  "initialHarnessFailures": [
+    "real FeedPane selection preserves coverage and expansion ownership collapses an expanded card when the interval changes by keyboard activation",
+    "real FeedPane selection preserves coverage and expansion ownership does not revive a hidden expansion after selecting and clearing a different bucket",
+    "real FeedPane selection preserves coverage and expansion ownership clears missing bucket state and expansion when a new feed removes that bucket"
+  ],
+  "initialSourceCounterexamples": [
+    "canonical flow projection admission does not project an invalid wire clock 2026-02-30T15:01:00Z",
+    "canonical flow projection admission does not project an invalid wire clock 2026-11-10",
+    "canonical flow projection admission does not project an invalid wire clock 2026-11-10T15:01:00",
+    "canonical flow projection admission does not project an invalid wire clock 2026-11-10T24:00:00Z",
+    "canonical flow projection admission does not project an invalid wire clock 123",
+    "canonical flow projection admission excludes malformed size=1.5 without coercion or rounding",
+    "canonical flow projection admission excludes malformed n_prints=0.25 without coercion or rounding",
+    "canonical flow projection admission withholds the invalid identity  without manufacturing an ID",
+    "canonical flow projection admission withholds the invalid identity   without manufacturing an ID",
+    "canonical flow projection admission withholds the invalid identity  padded without manufacturing an ID",
+    "canonical flow projection admission withholds the invalid identity padded  without manufacturing an ID",
+    "canonical flow projection admission withholds the invalid identity null without manufacturing an ID",
+    "canonical flow projection admission withholds the invalid identity undefined without manufacturing an ID",
+    "canonical flow projection admission withholds the invalid identity 17 without manufacturing an ID",
+    "canonical flow projection admission withholds every occurrence of a repeated identity (identical)",
+    "canonical flow projection admission withholds every occurrence of a repeated identity (other-bucket)",
+    "canonical flow projection admission withholds every occurrence of a repeated identity (invalid-clock)",
+    "canonical flow projection admission withholds every occurrence of a repeated identity (invalid-value)",
+    "canonical flow projection admission counts each rejected row once, in identity then clock then value order",
+    "canonical flow projection admission keeps unknown right and side premium separate from explicit puts and mixed",
+    "bucket drill-down keeps the current admitted Tape population does not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T15:15:00Z' })",
+    "bucket drill-down keeps the current admitted Tape population does not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T14:59:59.999999Z' })",
+    "bucket drill-down keeps the current admitted Tape population does not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T15:01:00' })",
+    "bucket drill-down keeps the current admitted Tape population does not re-admit an ID whose current row no longer belongs ({ size: 0.5 })",
+    "bucket drill-down keeps the current admitted Tape population does not re-admit an ID whose current row no longer belongs ({ premium: NaN })",
+    "bucket drill-down keeps the current admitted Tape population does not re-admit a valid member when a malformed duplicate shares its identity",
+    "projection controls describe their current state exposes the selected interval and omitted identities (en)",
+    "projection controls describe their current state exposes the selected interval and omitted identities (zh)"
+  ],
+  "originalTestPreimage": "component-test-before-scroll-polyfill.tsx.txt",
+  "recordedAt": "2026-11-10T17:21:40.995243+00:00",
+  "schema": "terminal_pr687_red_reconciliation.v1",
+  "selectionCounterexamples": [
+    "real FeedPane selection preserves coverage and expansion ownership collapses an expanded card when the interval changes by keyboard activation",
+    "real FeedPane selection preserves coverage and expansion ownership does not revive a hidden expansion after selecting and clearing a different bucket",
+    "real FeedPane selection preserves coverage and expansion ownership clears missing bucket state and expansion when a new feed removes that bucket"
+  ],
+  "selectionCounts": {
+    "numFailedTests": 3,
+    "numPassedTests": 0,
+    "numPendingTests": 3,
+    "numTotalTests": 6
+  },
+  "selectionNote": "Three targeted source counterexamples executed after the harness-only repair on unchanged production code; the other three component cases were unselected.",
+  "sourceRepair": "source-repair.json",
+  "sourceStablePerOperation": true,
+  "state": "SOURCE_COUNTEREXAMPLES_AND_HARNESS_FAILURE_DISTINGUISHED"
+}

@@ -1,0 +1,109 @@
+{
+  "completedAt": "2026-11-10T04:26:03.228064+00:00",
+  "head": "20c16787dac0655dc874990e7823e5cba2cef9e6",
+  "preparedTreeAfter": "4a1f3c9161596f8fb520b4acad626315b204d64a",
+  "protectedMaster": "33f9224f2b1e68512e38fab33d32c64a0bef6096",
+  "results": {
+    "native-readers": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapScopedRecapture.test.ts",
+        "lib/__tests__/eodCaptureIndicatorGate.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/docs/verification/pr768-protected-owner-integration-20261110/native-readers.json"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal",
+      "exit": 0,
+      "logSha256": "62e44a8310959dfedf3708aba96607e67a00f1ad50ea5f728e9adb50226fd2fd",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 105,
+        "numPendingTests": 0,
+        "numTotalTests": 105,
+        "success": true
+      },
+      "seconds": 16.69
+    },
+    "node-owners-planners": {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "e2e/tools/capture_ci_evidence.test.cjs",
+        "e2e/tools/capture_visual_evidence.test.cjs",
+        "scripts/ci/plan-evidence-capture.test.cjs",
+        "e2e/tools/sharedShellSafeReporter.test.cjs",
+        "e2e/tools/optionsExposureEvidence.cases.cjs"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal",
+      "exit": 0,
+      "logSha256": "f1c2f51ff3f8f498bfcdc4d1e1b92a5ce719421e87f9061acda2379250145978",
+      "seconds": 57.35,
+      "totals": {
+        "cancelled": 0,
+        "fail": 0,
+        "pass": 250,
+        "skipped": 0,
+        "tests": 250
+      }
+    },
+    "python-ci-contracts": {
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "tests/test_ci_browser_setup.py",
+        "tests/test_ci_scenario_consumer.py",
+        "tests/test_ci_pytest_results.py",
+        "tests/test_ci_e2e_scope.py",
+        "tests/test_ci_pr_scope.py",
+        "-q"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge",
+      "exit": 0,
+      "logSha256": "d6172acaf2e51d3c236a654c8e6971f105e20d7585950b9d64f65161d6976e18",
+      "passed": 231,
+      "seconds": 37.21
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal",
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 64.32
+    },
+    "typegen": {
+      "command": [
+        "node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal",
+      "exit": 0,
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "seconds": 4.52
+    }
+  },
+  "schema": "terminal_pr768_protected_owner_qualification.v1",
+  "sourceEntries": 2008,
+  "sourceStable": true,
+  "sourceTree": "4a1f3c9161596f8fb520b4acad626315b204d64a",
+  "startedAt": "2026-11-10T04:23:01.188550+00:00",
+  "state": "QUALIFIED",
+  "unstagedTracked": ""
+}

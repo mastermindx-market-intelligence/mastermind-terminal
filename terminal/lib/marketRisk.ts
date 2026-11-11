@@ -3,6 +3,8 @@
  * Supports the flat ingest projection plus legacy raw Macro wrappers. It never
  * recalculates a verdict, adds hazard scores, or grants capital authority.
  */
+import { qualifyMultiAssetContext, multiAssetContextCopy } from "./multiAssetContext";
+
 export type MarketRiskRead = {
   verdict: "RISK_ON" | "MIXED" | "RISK_OFF";
   score: number | null;
@@ -252,16 +254,23 @@ export function qualifyRiskEnvelope(
   const confluence = record(source.confluence);
   if (Object.keys(confluence).length && ["statistical_independence_established", "changes_hazard_stage", "changes_policy"]
     .some(key => confluence[key] !== false)) reasons.add("invalid_confluence_authority");
-  if (!finiteJson(source)) reasons.add("invalid_json_values");
+  // A malformed *optional* context cannot poison the canonical risk state.
+  // Keep the existing owner-qualified envelope independently usable.
+  const { multi_asset_context: rawMultiAsset, ...riskCore } = source;
+  if (!finiteJson(riskCore)) reasons.add("invalid_json_values");
+  const multiAsset = qualifyMultiAssetContext(rawMultiAsset, nowMs, text(source.produced_at) ?? undefined);
   const qualified = reasons.size === 0;
-  return {
-    envelope: qualified ? Object.fromEntries(ENVELOPE_FIELDS.filter(key => key in source).map(key => [key, source[key]])) : null,
-    qualified, reasons: Array.from(reasons).sort(),
-  };
+  const envelope = qualified ? Object.fromEntries(
+    ENVELOPE_FIELDS.filter(key => key in source).map(key => [key, source[key]]),
+  ) : null;
+  if (envelope && multiAsset.qualified && multiAsset.context) {
+    envelope.multi_asset_context = multiAsset.context;
+  }
+  return { envelope, qualified, reasons: Array.from(reasons).sort() };
 }
 
 /** Plain-language labels for native values; this does not classify a market. */
-export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: boolean): {
+export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: boolean, nowMs = Date.now()): {
   caption: string; details: string[]; attention: string[]; scope: string | null;
 } {
   const scope = envelope?.market === "US" ? (zh ? "美国市场风险" : "US market risk") : null;
@@ -369,5 +378,9 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
     ? `最近记录的状态变化：${label(before.verdict, verdicts)} → ${label(after.verdict, verdicts)}（${text(before.asof)} → ${text(after.asof)}）。当前快照本身不确定变化发生时间。`
     : `Last recorded state change: ${label(before.verdict, verdicts)} → ${label(after.verdict, verdicts)} (${text(before.asof)} → ${text(after.asof)}). The current snapshot alone does not date the transition.`);
   else details.push(zh ? "现有记录未确立最近一次状态变化的日期。" : "The available record does not establish the date of a latest state change.");
+  const multiAsset = qualifyMultiAssetContext(envelope.multi_asset_context, nowMs, text(envelope.produced_at) ?? undefined);
+  if (multiAsset.qualified && multiAsset.context) {
+    details.push(...multiAssetContextCopy(multiAsset.context, zh));
+  }
   return { caption, details, attention, scope };
 }

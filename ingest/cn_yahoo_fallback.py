@@ -40,6 +40,40 @@ PERIOD_ARRAYS = ("period_start", "source_period_start", "fiscal_year", "period_k
                  "normalization_method", "src_by_period", "comparison_basis", "source_family_by_period",
                  "filed_by_period", "restated_by_period")
 
+# Versioned provider-period integrity quarantine.
+#
+# The qualification above admits exact listing identity, statement currency, fiscal
+# duration, finite values and duplicate agreement. It does not qualify the provider's
+# own arithmetic: a vendor can return a complete, correctly dated period whose subtotals
+# contradict its own components. Those figures are faithfully ingested and still wrong,
+# and displaying them produces false year-over-year growth against the next consistent
+# period. Such a period is therefore withdrawn instead of displayed.
+#
+# The withdrawal is conservative by construction. Period labels, start/end, duration,
+# basis, acquisition and the immutable raw receipt all survive; only the numeric
+# observations become null. No replacement number is ever calculated, because the
+# retained receipt proves faithful ingestion, not accounting consistency.
+QUARANTINE_POLICY = "mastermind.cn-yahoo-integrity-quarantine/v1"
+QUARANTINE_POLICY_VERSION = 1
+QUARANTINE_REASON = "provider_period_internal_contradiction"
+QUARANTINE_KEY = "integrity_quarantine"
+QUARANTINE_ORIGIN = "qualified_coverage_extension"
+QUARANTINE_FAMILY = "industrial"
+NOT_CHECKED = "not_checked"
+# Rule name, statement section, ordered operands, and the coefficients of the identity's
+# right-hand side. `gross_profit = revenue - cogs` has a different shape from the two
+# additive balance identities, so the shape is explicit rather than implied.
+IDENTITY_RULES = (
+    ("gross_profit_equals_revenue_minus_cogs", "income",
+     ("gross_profit", "revenue", "cogs"), (1.0, -1.0)),
+    ("assets_equal_current_plus_noncurrent", "balance",
+     ("assets", "assets_st", "assets_lt"), (1.0, 1.0)),
+    ("liabilities_equal_current_plus_noncurrent", "balance",
+     ("liabilities", "liab_st", "liab_lt"), (1.0, 1.0)),
+)
+IDENTITY_RELATIVE_TOLERANCE = 0.001
+IDENTITY_ABSOLUTE_TOLERANCE = 1.0
+
 
 def valid_symbol(symbol):
     return isinstance(symbol, str) and bool(re.fullmatch(r"[0-9]{6}\.(SS|SZ|BJ)", symbol))
@@ -215,6 +249,186 @@ def _retained_columns(block, basis, prior_source, current_family):
     return columns
 
 
+def _finite(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def yahoo_owned_sections(column):
+    """Sections of one column whose observations this extension actually owns.
+
+    A retained Tushare/legacy column, or a column whose provider never recorded its raw
+    receipt, is not this policy's to withdraw.
+    """
+    owned = {}
+    for section in FIELDS:
+        receipt = (column.get("provenance") or {}).get(section) or {}
+        if (receipt.get("origin") == QUARANTINE_ORIGIN
+                and receipt.get("provider") == PROVIDER and receipt.get("raw_input_sha256")):
+            owned[section] = receipt
+    return owned
+
+
+def acquisition_binding(owned):
+    """One period type and one raw receipt together prove same-source, same-period units.
+
+    A column assembled from more than one acquisition, or from a receipt that never
+    recorded its period type, cannot support a cross-field identity and is NOT_CHECKED.
+    """
+    types = {receipt.get("source_period_type") for receipt in owned.values()}
+    hashes = {receipt.get("raw_input_sha256") for receipt in owned.values()}
+    acquisitions = {receipt.get("acquired_at") for receipt in owned.values()}
+    if (len(types) != 1 or not types <= {"12M", "3M"} or len(hashes) != 1
+            or not all(isinstance(value, str) and re.fullmatch(r"[a-f0-9]{64}", value) for value in hashes)
+            or len(acquisitions) != 1):
+        return None
+    try:
+        source_stamp(next(iter(acquisitions)))
+    except (TypeError, ValueError):
+        return None
+    return types.pop()
+
+
+def evaluate_provider_period(column):
+    """Evaluate the established identities for one provider-period.
+
+    A missing operand, a non-industrial accounting family, a section this extension does
+    not own, or an ambiguous acquisition is NOT_CHECKED. Absence is never a pass, and
+    only an explicit contradiction of a provider's own arithmetic withdraws a period.
+    """
+    owned = yahoo_owned_sections(column)
+    family = (column.get("meta") or {}).get("source_family_by_period")
+    period_type = acquisition_binding(owned) if family == QUARANTINE_FAMILY else None
+    if period_type is None:
+        reason = ("unqualified_source_family" if family != QUARANTINE_FAMILY
+                  else "no_owned_observation" if not owned else "ambiguous_acquisition")
+    else:
+        reason = None
+    findings = []
+    for rule, section, fields, weights in IDENTITY_RULES:
+        values = [(column.get("blocks") or {}).get(section, {}).get(field) for field in fields]
+        if reason is not None or section not in owned or not all(_finite(value) for value in values):
+            findings.append({"rule": rule, "section": section, "operands": list(fields),
+                             "status": NOT_CHECKED, "reason": reason or "operand_absent"})
+            continue
+        residual = values[0] - (weights[0] * values[1] + weights[1] * values[2])
+        tolerance = max(IDENTITY_ABSOLUTE_TOLERANCE,
+                        IDENTITY_RELATIVE_TOLERANCE * max(abs(value) for value in values))
+        findings.append({"rule": rule, "section": section, "operands": list(fields),
+                         "residual": residual, "tolerance": tolerance,
+                         "status": "pass" if abs(residual) <= tolerance else "contradicted"})
+    return findings
+
+
+def quarantine_provider_period(column):
+    """Withdraw an internally contradicted provider-period's numeric observations.
+
+    Returns the deterministic marker, or None when nothing is contradicted. The marker is
+    sticky: once provenance records it, later refreshes keep the withdrawal instead of
+    re-evaluating values that are no longer present, so ordinary ingestion can never
+    restore numbers this policy has withdrawn.
+    """
+    owned = yahoo_owned_sections(column)
+    existing = [receipt[QUARANTINE_KEY] for receipt in owned.values() if QUARANTINE_KEY in receipt]
+    if existing:
+        if (len(existing) != len(owned) or any(not isinstance(marker, dict)
+                or marker.get("policy") != QUARANTINE_POLICY
+                or marker.get("status") != "quarantined" for marker in existing)
+                or any(json.dumps(marker, sort_keys=True) != json.dumps(existing[0], sort_keys=True)
+                       for marker in existing)
+                or any(_finite(value) for section in owned
+                       for value in column["blocks"].get(section, {}).values())):
+            raise ValueError("retained quarantine is incomplete or contains restored observations")
+        return copy.deepcopy(existing[0])
+    findings = evaluate_provider_period(column)
+    contradicted = sorted((item for item in findings if item["status"] == "contradicted"),
+                          key=lambda item: item["rule"])
+    if not contradicted:
+        return None
+    withdrawn = 0
+    for section in owned:
+        for field, value in list(column["blocks"][section].items()):
+            if _finite(value):
+                column["blocks"][section][field] = None
+                withdrawn += 1
+    marker = {"policy": QUARANTINE_POLICY, "policy_version": QUARANTINE_POLICY_VERSION,
+              "status": "quarantined", "reason": QUARANTINE_REASON,
+              "source_period_type": acquisition_binding(owned),
+              "rules": [item["rule"] for item in contradicted],
+              "findings": [{"rule": item["rule"], "section": item["section"],
+                            "operands": item["operands"], "residual": item["residual"],
+                            "tolerance": item["tolerance"]} for item in contradicted],
+              "withdrawn_observations": withdrawn}
+    for section in owned:
+        column["provenance"][section][QUARANTINE_KEY] = copy.deepcopy(marker)
+    return marker
+
+
+def statement_column(block, index):
+    """One published period projected into the internal column shape."""
+    def at(values):
+        return values[index] if isinstance(values, list) and index < len(values) else None
+    receipts = (block.get("period_provenance") or {})
+    column = {"meta": {key: at(block.get(key)) for key in ("source_family_by_period", "src_by_period")},
+              "blocks": {}, "provenance": {}}
+    for section in FIELDS:
+        column["blocks"][section] = {field: at(series)
+                                     for field, series in (block.get(section) or {}).items()}
+        receipt = at(receipts.get(section) or [])
+        column["provenance"][section] = copy.deepcopy(receipt) if isinstance(receipt, dict) else {}
+    return column
+
+
+def withdraw_block_periods(block):
+    """Apply this policy across one published statement block, in place.
+
+    The append-only extension never revisits a period it already admitted, so an
+    already-published period is withdrawn here rather than silently retained.
+    """
+    withdrawn = {}
+    for index, end in enumerate(block.get("period_end") or []):
+        column = statement_column(block, index)
+        settled = any(isinstance(receipt.get(QUARANTINE_KEY), dict)
+                      and receipt[QUARANTINE_KEY].get("policy") == QUARANTINE_POLICY
+                      for receipt in yahoo_owned_sections(column).values())
+        marker = quarantine_provider_period(column)
+        if marker is None:
+            continue
+        # A sticky withdrawal is re-asserted, but only a newly applied one counts as work done.
+        if not settled:
+            withdrawn[end] = marker
+        for section in yahoo_owned_sections(column):
+            for field, series in (block.get(section) or {}).items():
+                if isinstance(series, list) and index < len(series):
+                    series[index] = column["blocks"][section][field]
+            receipts = (block.get("period_provenance") or {}).get(section) or []
+            if index < len(receipts):
+                receipts[index] = copy.deepcopy(column["provenance"][section])
+    return withdrawn
+
+
+def quarantined_periods(statements):
+    """Period ends whose Yahoo-owned observations this policy has withdrawn."""
+    found = {}
+    for basis in ("annual", "quarterly"):
+        block = (statements or {}).get(basis)
+        if not block:
+            continue
+        receipts = block.get("period_provenance") or {}
+        ends = block.get("period_end") or []
+        marked = []
+        for index, end in enumerate(ends):
+            for section in FIELDS:
+                entry = (receipts.get(section) or [])
+                if not (index < len(entry) and isinstance(entry[index], dict)):
+                    continue
+                if (entry[index].get(QUARANTINE_KEY) or {}).get("policy") == QUARANTINE_POLICY:
+                    marked.append(end)
+                    break
+        if marked:
+            found[basis] = marked
+    return found
+
+
 def extend_statements(previous, observations, payload, raw_hash):
     previous = previous or {}
     prior_source = (previous.get("src") or {}).get("statements")
@@ -243,6 +457,13 @@ def extend_statements(previous, observations, payload, raw_hash):
         if not columns:
             output[basis] = None
             continue
+        # New columns are bound to this invocation's fully qualified source. Historical
+        # columns are repaired by the emission path using their own immutable receipts;
+        # a newer acquisition must never stand in for that historical evidence.
+        for end, column in columns.items():
+            if end in additions[basis] or any(QUARANTINE_KEY in receipt
+                                             for receipt in yahoo_owned_sections(column).values()):
+                quarantine_provider_period(column)
         ordered = [columns[end] for end in sorted(columns)]
         block = {key: [column["meta"][key] for column in ordered] for key in ("periods", "period_end", *PERIOD_ARRAYS)}
         block.update(flow_basis="mixed_period", source_market="cn",
@@ -258,38 +479,14 @@ def extend_statements(previous, observations, payload, raw_hash):
     return output, additions
 
 
-def build_fund(raw, ticker, previous=None):
-    from ingest.gen_fund_us import build_fund as empty_fund, build_profile, build_stats
-    payload, observations, raw_hash = qualify_source(raw, ticker)
-    if previous is not None and (previous.get("ticker") != ticker or previous.get("schema") != "mastermind.fund/v1"
-                                 or previous.get("stmt_currency") != "CNY" or previous.get("quote_currency") != "CNY"):
-        raise ValueError("previous fund identity or currency differs")
-    statements, additions = extend_statements(previous, observations, payload, raw_hash)
-    cache = {"info": payload["info"]}
-    fund = copy.deepcopy(previous) if previous else empty_fund(ticker, cache, {}, None)
-    fund["statements"] = statements
-    fund["asof"] = dt.datetime.now(dt.timezone.utc).date().isoformat()
-    fund["asof_semantics"] = "build_date"
-    src = fund.setdefault("src", {})
-    providers = sorted({provider for block in statements.values() if block for provider in block["src_by_period"]})
-    src.update(statements="+".join(providers),
-               statement_coverage_policy=SOURCE_MODE, fallback_acquired_at=payload["fetched_at"],
-               fallback_raw_input_sha256=raw_hash)
-    # No global source clock: existing annual observations have not been reacquired.
-    src.pop("cache_fetched_at", None)
-    for section, fresh in (("profile", build_profile(cache, {})), ("stats", build_stats(cache))):
-        current = fund.setdefault(section, {})
-        for field, value in fresh.items():
-            if value is not None and value != "":
-                current[field] = value
-        # Some legacy CN profiles carry NaN in website. It is not a URL and must
-        # not prevent otherwise qualified financials from being strict JSON.
-        if section == "profile" and current.get("website") is not None and not isinstance(current["website"], str):
-            current["website"] = None
-        src[section + "_acquired_at"] = payload["fetched_at"]
-    earnings = fund.setdefault("earnings", {})
-    # Rebuild actuals from the qualified statement observations. Legacy earnings.q
-    # can contain old subtraction-derived EPS; copying it would re-publish that defect.
+def rebuild_earnings(statements, earnings):
+    """Reconcile earnings actuals from the qualified statement observations.
+
+    Legacy `earnings.q` can contain old subtraction-derived EPS; copying it would
+    re-publish that defect. A withdrawn statement observation yields a withheld actual,
+    never a substituted one, while independent estimates keep their original provenance.
+    """
+    earnings = earnings if earnings is not None else {}
     for basis, key in (("annual", "fy"), ("quarterly", "q")):
         block = statements[basis]
         old_rows = {row.get("end") if key == "q" else row.get("period"): row
@@ -322,6 +519,40 @@ def build_fund(raw, ticker, previous=None):
                            rev_basis="reported_discrete" if direct else "qualified_ytd_bridge" if qualified_bridge else "unqualified_discrete_period")
             rows.append(row)
         earnings[key] = rows
+    return earnings
+
+
+def build_fund(raw, ticker, previous=None):
+    from ingest.gen_fund_us import build_fund as empty_fund, build_profile, build_stats
+    payload, observations, raw_hash = qualify_source(raw, ticker)
+    if previous is not None and (previous.get("ticker") != ticker or previous.get("schema") != "mastermind.fund/v1"
+                                 or previous.get("stmt_currency") != "CNY" or previous.get("quote_currency") != "CNY"):
+        raise ValueError("previous fund identity or currency differs")
+    statements, additions = extend_statements(previous, observations, payload, raw_hash)
+    cache = {"info": payload["info"]}
+    fund = copy.deepcopy(previous) if previous else empty_fund(ticker, cache, {}, None)
+    fund["statements"] = statements
+    fund["asof"] = dt.datetime.now(dt.timezone.utc).date().isoformat()
+    fund["asof_semantics"] = "build_date"
+    src = fund.setdefault("src", {})
+    providers = sorted({provider for block in statements.values() if block for provider in block["src_by_period"]})
+    src.update(statements="+".join(providers),
+               statement_coverage_policy=SOURCE_MODE, fallback_acquired_at=payload["fetched_at"],
+               fallback_raw_input_sha256=raw_hash)
+    # No global source clock: existing annual observations have not been reacquired.
+    src.pop("cache_fetched_at", None)
+    for section, fresh in (("profile", build_profile(cache, {})), ("stats", build_stats(cache))):
+        current = fund.setdefault(section, {})
+        for field, value in fresh.items():
+            if value is not None and value != "":
+                current[field] = value
+        # Some legacy CN profiles carry NaN in website. It is not a URL and must
+        # not prevent otherwise qualified financials from being strict JSON.
+        if section == "profile" and current.get("website") is not None and not isinstance(current["website"], str):
+            current["website"] = None
+        src[section + "_acquired_at"] = payload["fetched_at"]
+    earnings = rebuild_earnings(statements, fund.get("earnings"))
+    fund["earnings"] = earnings
     ends = [end for block in statements.values() if block for end in block["period_end"]]
     fund["data_freshness"] = {
         "latest_report_period": max(ends) if ends else None,

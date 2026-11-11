@@ -7,6 +7,8 @@ import { OptionsResearchLab } from "@/components/researchlab/OptionsResearchLab"
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import { formatExposureMn, readCompanionGexSnapshot } from "@/lib/optionsCompanion";
 import { flowGetResult } from "@/lib/flowClientCache";
+import type { MastermindBrainHost } from "@/lib/mastermindBrain";
+import type { OptionsQuestionReference } from "@/lib/optionsQuestionContext";
 import { reportedGammaBook } from "./fixtures/reportedGammaBooks";
 
 vi.mock("next/dynamic", () => ({ default: () => () => <span>3D renderer</span> }));
@@ -235,4 +237,38 @@ it("keeps the incumbent refusal fences: session mismatch, foreign root and inval
   expect(memoryStatus()).toBeUndefined();
   expect(panel()).toBeNull();
   expect(host.textContent).toContain("Matrix unavailable");
+});
+
+
+it("composes the same exact pin with account-bound staging and reported-Gamma navigation", async () => {
+  wire(archive(2));
+  const brainHost = window as unknown as MastermindBrainHost;
+  const submit = vi.fn<(ref: OptionsQuestionReference) => boolean>().mockReturnValue(true);
+  const clear = vi.fn();
+  brainHost.MM_BRAIN_CFG = { principal: "one" };
+  brainHost.MMBrain = { submitOptionsQuestion: submit, clearOptionsQuestion: clear };
+  try {
+    await act(async () => root.render(<OptionsResearchLab root="SPY" matrix={{ ...matrix,
+      _matrix_source_identity: { schema: "options_structure.acquired_bytes/v1", kind: "matrix", root: "SPY",
+        session: SESSION, sha256: "a".repeat(64), byte_length: 1234 } }}
+      lang="en" onClose={() => {}} currentGexSnapshot={reportedGammaBook(SESSION)} questionOwnerKey="account:one" />));
+    await click("100 Call · 2026-10-23");
+    const stage = () => host.querySelector<HTMLButtonElement>('[data-testid="research-question-action"] button')!;
+    expect(stage().disabled).toBe(false);
+    await act(async () => stage().click());
+    expect(submit).toHaveBeenCalledTimes(1);
+    const ref = submit.mock.calls[0][0];
+    expect(JSON.parse(ref.selection).primary).toEqual({ expiry: EXPIRY, side: "call", strike: "100" });
+    await openReplay("en");
+    expect(clear).toHaveBeenCalledWith(ref);
+    expect(pin()!.getAttribute("data-pin-state")).toBe("pinned");
+    expect(pin()!.textContent).toContain(`100 Call · ${EXPIRY}`);
+    await click("Chain landscape");
+    expect(stage().disabled).toBe(false);
+    expect(submit).toHaveBeenCalledTimes(1);
+    expect([...host.querySelectorAll("button")].find(b => b.textContent === "Save investigation")!.disabled).toBe(true);
+  } finally {
+    delete brainHost.MMBrain;
+    delete brainHost.MM_BRAIN_CFG;
+  }
 });

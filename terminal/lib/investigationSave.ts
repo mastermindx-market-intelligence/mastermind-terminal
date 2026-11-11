@@ -19,6 +19,8 @@ function matchesCommand(result: InvestigationCommitted, command: InvestigationCo
     && refs[0].layout_revision_id === command.layout_capture.revision_id && refs[0].role === "primary"
     && sameJson({...result.manifest,layout_refs:[]},command.manifest);
 }
+// Definitive save failures ONLY. owner_mismatch (expected-actor fence refusal) is
+// deliberately absent: it proves no database I/O for that attempt, never a save failure.
 const definitive = new Set(["invalid_payload", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
 /** Local recovery is a draft buffer; only an owner receipt establishes a commit. */
 export function recoverInvestigationSave(principal: string, raw: unknown): InvestigationSaveState | null {
@@ -48,6 +50,10 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
     && matchesCommand(response,state.command)) return { phase: "committed", principal, result: response };
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
   if (typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
+  // owner_mismatch (packet §3.3) means THIS attempt performed no database I/O and does not
+  // prove an earlier uncertain operation failed. It never joins the definitive set above:
+  // the operation stays uncertain here, the original actor's journal is retained, and the
+  // surface retires its visible scope (partitionInvestigationSave) until that actor returns.
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
   return { phase: "uncertain", principal, command: state.command };
 }

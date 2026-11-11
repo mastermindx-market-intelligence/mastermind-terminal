@@ -1,0 +1,524 @@
+{
+  "fileCount": 103,
+  "files": [
+    {
+      "bytes": 8288,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/README.md",
+      "sha256": "35ca050fc14c40a07eef3212a705785fb4759a0c2b09899dd9764c4a6caf25c0"
+    },
+    {
+      "bytes": 0,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/affected-eslint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3657,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/apply-source-repair.py",
+      "sha256": "321f485308095089744ce76fc6a8e671c922f67f9eb2e594c8729b53b98776e9"
+    },
+    {
+      "bytes": 45,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "bytes": 306256,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-desktop/attachments/held-projection-578906e30fd69d0f4ec0acc8b9b2083210d51665.png",
+      "sha256": "bc0ec294500eb39de8bdfada1adfa8a85c398d199a6c1010bd6e1bccff758552"
+    },
+    {
+      "bytes": 306256,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-desktop/held-projection.png",
+      "sha256": "bc0ec294500eb39de8bdfada1adfa8a85c398d199a6c1010bd6e1bccff758552"
+    },
+    {
+      "bytes": 118973,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-mobile/attachments/held-projection-ed4fcf69a94921ef0eaf1a1a798507c4ebeeb47a.png",
+      "sha256": "8d6697263653345d82a0632eae3565c4915db75ae224f8f80b5c2b275e27c475"
+    },
+    {
+      "bytes": 118973,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-mobile/held-projection.png",
+      "sha256": "8d6697263653345d82a0632eae3565c4915db75ae224f8f80b5c2b275e27c475"
+    },
+    {
+      "bytes": 210426,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-tablet/attachments/held-projection-1088d0b806ccf04a31a759cbbe5258b6a2ed48e6.png",
+      "sha256": "c47a8e8dd69724d03a7f9fa1410f486c04324fb338eb2fbd7ef042c13f605205"
+    },
+    {
+      "bytes": 210426,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-tablet/held-projection.png",
+      "sha256": "c47a8e8dd69724d03a7f9fa1410f486c04324fb338eb2fbd7ef042c13f605205"
+    },
+    {
+      "bytes": 314757,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/restored-tape-3a6735abb5058654f8b31b1e2f5d003d6a789342.png",
+      "sha256": "133b03b8a437f11d20f714e2479082b75ab04998365809be6aa18cc36f792179"
+    },
+    {
+      "bytes": 305693,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/selected-bucket-1fbfa396d7b0f93952856569cba0125c8b047dd8.png",
+      "sha256": "99dc8add50ff8c1af92c08bac97716e9fe3d8cd4fa8bbaae07e2c429c43bf772"
+    },
+    {
+      "bytes": 290379,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/selected-print-inspector-c63126c5df4dab858189654b29229423159d5bf4.png",
+      "sha256": "2d301ae27fcdfcc983eca1eb00160ff9b2af60f764d90503ce378c4c7192b5df"
+    },
+    {
+      "bytes": 314757,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/restored-tape.png",
+      "sha256": "133b03b8a437f11d20f714e2479082b75ab04998365809be6aa18cc36f792179"
+    },
+    {
+      "bytes": 305693,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/selected-bucket.png",
+      "sha256": "99dc8add50ff8c1af92c08bac97716e9fe3d8cd4fa8bbaae07e2c429c43bf772"
+    },
+    {
+      "bytes": 290379,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/selected-print-inspector.png",
+      "sha256": "2d301ae27fcdfcc983eca1eb00160ff9b2af60f764d90503ce378c4c7192b5df"
+    },
+    {
+      "bytes": 115414,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/restored-tape-0d7519e723f4c50d10220ee76f9aa28e6a583c1b.png",
+      "sha256": "7eec0454347699c8e48ca062e55739a31e6e947d92c1b035258d938c9eed2de4"
+    },
+    {
+      "bytes": 116697,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/selected-bucket-287fdb520169e1cddf896b65f686d2f56b068384.png",
+      "sha256": "6844c1a096b5c89cdee650b65cfc17ad29ceb7eb34476d34fcb36ac9cbb4d73d"
+    },
+    {
+      "bytes": 123981,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/selected-print-inspector-d611b0e1bdaf672d8b271962458f5db688b9c922.png",
+      "sha256": "8b2f2c714c483b7477ac9ed898ba6240dd2e318ebb2c9f0a0c520a11367eaa7f"
+    },
+    {
+      "bytes": 115414,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/restored-tape.png",
+      "sha256": "7eec0454347699c8e48ca062e55739a31e6e947d92c1b035258d938c9eed2de4"
+    },
+    {
+      "bytes": 116697,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/selected-bucket.png",
+      "sha256": "6844c1a096b5c89cdee650b65cfc17ad29ceb7eb34476d34fcb36ac9cbb4d73d"
+    },
+    {
+      "bytes": 123981,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/selected-print-inspector.png",
+      "sha256": "8b2f2c714c483b7477ac9ed898ba6240dd2e318ebb2c9f0a0c520a11367eaa7f"
+    },
+    {
+      "bytes": 211356,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/restored-tape-71cc9659e24612d6fc54fac25b289f8f15faa86d.png",
+      "sha256": "9fc5a86870ea7b5685cbbdf0612b0b20ed79ccdeaa9609403a0968c2c775f010"
+    },
+    {
+      "bytes": 209967,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/selected-bucket-ed49b20d52a70e5c1f37df56bc5b0f4559d3cd6c.png",
+      "sha256": "d51fa06e554632269cf91242c071c24f609af00dc26d7d92f399c44b224c093b"
+    },
+    {
+      "bytes": 254684,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/selected-print-inspector-4f7b37e0d746915af69998419587e66ab62a79f7.png",
+      "sha256": "6567360e0828b6d81f55be92357d950156bce87d54c4e6ef15d8b4f141b2d3f9"
+    },
+    {
+      "bytes": 211356,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/restored-tape.png",
+      "sha256": "9fc5a86870ea7b5685cbbdf0612b0b20ed79ccdeaa9609403a0968c2c775f010"
+    },
+    {
+      "bytes": 209967,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/selected-bucket.png",
+      "sha256": "d51fa06e554632269cf91242c071c24f609af00dc26d7d92f399c44b224c093b"
+    },
+    {
+      "bytes": 254684,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/selected-print-inspector.png",
+      "sha256": "6567360e0828b6d81f55be92357d950156bce87d54c4e6ef15d8b4f141b2d3f9"
+    },
+    {
+      "bytes": 312881,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-desktop/attachments/held-projection-c1d823f2f7ff1666a3eceb3548b835a991f849d2.png",
+      "sha256": "4c5f019718640141aa1ed8b04767895672d5a1c928d266219ccdb580af92f8d7"
+    },
+    {
+      "bytes": 312881,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-desktop/held-projection.png",
+      "sha256": "4c5f019718640141aa1ed8b04767895672d5a1c928d266219ccdb580af92f8d7"
+    },
+    {
+      "bytes": 119799,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-mobile/attachments/held-projection-3613df9abfdc83907a673abdd1849e40895637db.png",
+      "sha256": "ed2446d882c1f5957f461426a6aa65e183a9994140c1df14d0274135a4be87df"
+    },
+    {
+      "bytes": 119799,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-mobile/held-projection.png",
+      "sha256": "ed2446d882c1f5957f461426a6aa65e183a9994140c1df14d0274135a4be87df"
+    },
+    {
+      "bytes": 211810,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-tablet/attachments/held-projection-5d3878419ffdc66a9e2c7898dfa0a308b91e01fd.png",
+      "sha256": "2fff454a7361c29d6ec77ad8b2f3a8f5a67213641c5fdd602804823cb06d0bca"
+    },
+    {
+      "bytes": 211810,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-tablet/held-projection.png",
+      "sha256": "2fff454a7361c29d6ec77ad8b2f3a8f5a67213641c5fdd602804823cb06d0bca"
+    },
+    {
+      "bytes": 323515,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/restored-tape-a912e0c809c6903c735164ba86c234fb8612ee37.png",
+      "sha256": "43a7650629c207affbddbefb1bad3b99e0f782a125b5813c7ad28508c4cda9d5"
+    },
+    {
+      "bytes": 310698,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/selected-bucket-018bc52da20595aeb670b4c3bf34a3fc34b5306d.png",
+      "sha256": "950f8fe7e1493a798f2006c011eb505f6c9ce26a4cd3d4d5b7b282520db23eed"
+    },
+    {
+      "bytes": 298965,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/selected-print-inspector-e29cbd2d10b46ddb862a33d5cf8ff3da2ef5959b.png",
+      "sha256": "69028b5f8f5e02ec5b5e67c7d2df079607302b2ff792f47148bc11ef0dfb6766"
+    },
+    {
+      "bytes": 323515,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/restored-tape.png",
+      "sha256": "43a7650629c207affbddbefb1bad3b99e0f782a125b5813c7ad28508c4cda9d5"
+    },
+    {
+      "bytes": 310698,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/selected-bucket.png",
+      "sha256": "950f8fe7e1493a798f2006c011eb505f6c9ce26a4cd3d4d5b7b282520db23eed"
+    },
+    {
+      "bytes": 298965,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/selected-print-inspector.png",
+      "sha256": "69028b5f8f5e02ec5b5e67c7d2df079607302b2ff792f47148bc11ef0dfb6766"
+    },
+    {
+      "bytes": 122789,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/restored-tape-c186c8af809eb8f60c7bba7127849b75eb81aa8d.png",
+      "sha256": "4c7ee6a4b7b1e43c52f0a9bd2006a82f87cda2af07dd436ec39e3d22f4f712c9"
+    },
+    {
+      "bytes": 116430,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/selected-bucket-bacd506f1ec48d2d38008e08711562a30dc209a5.png",
+      "sha256": "2eaf446996929ebf0f21ad5240f2c44f01f0369193a2590dea72fbdc384372a1"
+    },
+    {
+      "bytes": 134942,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/selected-print-inspector-b60e98cb0a19a0798bc77a85656d225cd141de58.png",
+      "sha256": "52b3d55b3af17d153cc4c5cb2fe7c3898f40726ddc6e73f6ab7dc504f84e4a81"
+    },
+    {
+      "bytes": 122789,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/restored-tape.png",
+      "sha256": "4c7ee6a4b7b1e43c52f0a9bd2006a82f87cda2af07dd436ec39e3d22f4f712c9"
+    },
+    {
+      "bytes": 116430,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/selected-bucket.png",
+      "sha256": "2eaf446996929ebf0f21ad5240f2c44f01f0369193a2590dea72fbdc384372a1"
+    },
+    {
+      "bytes": 134942,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/selected-print-inspector.png",
+      "sha256": "52b3d55b3af17d153cc4c5cb2fe7c3898f40726ddc6e73f6ab7dc504f84e4a81"
+    },
+    {
+      "bytes": 208005,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/restored-tape-795951f1de1c04d41e7caf078399b9f767213fbd.png",
+      "sha256": "78f7a65eeace83f49f2c0e1adc6ab92465328dd31b533971708923ec04618403"
+    },
+    {
+      "bytes": 207388,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/selected-bucket-3ac8652c2b69eb1985b2c761dfb8105a9d2c7ff5.png",
+      "sha256": "1c6d908d87090a6cc423b8298199681407c41b457aefc8d3714bc7b6633dff86"
+    },
+    {
+      "bytes": 267191,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/selected-print-inspector-17fcb9ce73f9b2c3869961f611af7eadfc848990.png",
+      "sha256": "441608e45fc881d577163e232c1e11822b7d33ba75875d7bbc3662ec4f14655d"
+    },
+    {
+      "bytes": 208005,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/restored-tape.png",
+      "sha256": "78f7a65eeace83f49f2c0e1adc6ab92465328dd31b533971708923ec04618403"
+    },
+    {
+      "bytes": 207388,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/selected-bucket.png",
+      "sha256": "1c6d908d87090a6cc423b8298199681407c41b457aefc8d3714bc7b6633dff86"
+    },
+    {
+      "bytes": 267191,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/selected-print-inspector.png",
+      "sha256": "441608e45fc881d577163e232c1e11822b7d33ba75875d7bbc3662ec4f14655d"
+    },
+    {
+      "bytes": 41325,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/execution.json",
+      "sha256": "3d0722cd8a1f1d5b7864c367c76c927b0fb63678a77a6d41800a826207f8dcc5"
+    },
+    {
+      "bytes": 2369,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/execution.log",
+      "sha256": "edde0b88fbbf657d48db2583c2071360983b9607431aa6f617b17003a3985582"
+    },
+    {
+      "bytes": 296,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/next-env.generated.d.ts.txt",
+      "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+    },
+    {
+      "bytes": 1439,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/protected-owners-after.json",
+      "sha256": "c127321b155b0931f8a00d70c6fe2a10682c2b5440d70cc894c1f024eb0dccf3"
+    },
+    {
+      "bytes": 1439,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/protected-owners-before.json",
+      "sha256": "c127321b155b0931f8a00d70c6fe2a10682c2b5440d70cc894c1f024eb0dccf3"
+    },
+    {
+      "bytes": 39552,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/report.json",
+      "sha256": "de5e14424c6b6d9a492bcb0bf47ad1c156eb8b762150cfc251425a59c69654f6"
+    },
+    {
+      "bytes": 412913,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/source-after.json",
+      "sha256": "2046ea6c6192c7f4de3676bcb8e63ab8aaec924e0faaba20a737764f9e26a620"
+    },
+    {
+      "bytes": 412913,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/source-before.json",
+      "sha256": "2046ea6c6192c7f4de3676bcb8e63ab8aaec924e0faaba20a737764f9e26a620"
+    },
+    {
+      "bytes": 6405,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/candidate-flowProjection.ts.txt",
+      "sha256": "f1fb153466bbf7da5ca84f11e844497c2baf97aa0aa817cb4bae02d6168d3249"
+    },
+    {
+      "bytes": 6140,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/component-test-before-scroll-polyfill.tsx.txt",
+      "sha256": "2c1ac07ba8715bce35510c78b06767b3b04265100f2498e9e61798f8b38ebcaf"
+    },
+    {
+      "bytes": 652,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/composition-initial.json",
+      "sha256": "61de89e80eba2c085c547d7f1d10d8cf82bc58c8c77fa8df90212937a5cd9aab"
+    },
+    {
+      "bytes": 596,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/composition-owner-resolution.json",
+      "sha256": "b90fd13c51c0e930ea2eed654e83124986b928314be31de6348c84d5df3acd17"
+    },
+    {
+      "bytes": 1643,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/green-execution.json",
+      "sha256": "b4b74b3b505671f9cc04ce9e472ccf5bc8870dd86cdc114dea50a417cbd28b28"
+    },
+    {
+      "bytes": 71042,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/green-report.json",
+      "sha256": "c3bda09ee04764574a5a6df79ff35dd0ef4b9c4e955703e3b45b748eb3495c7b"
+    },
+    {
+      "bytes": 2068,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/green.log",
+      "sha256": "633088ac3b3929cd656c2c9ad64767cc91e6f2f979a3e3de512d427c4cced56e"
+    },
+    {
+      "bytes": 629,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/lint-disposition.json",
+      "sha256": "76c2cf30ce7cd303c8bae0148f6de18012c33fb93553b8129b1df04c40e952b1"
+    },
+    {
+      "bytes": 49265,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/lint-report.json",
+      "sha256": "99e2024643bd000ec86f7e831007740bc1b5927590561066afb15688f427344c"
+    },
+    {
+      "bytes": 288,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/next-env.generated.d.ts.txt",
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "bytes": 149,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/npm-ci.log",
+      "sha256": "87f465bde5cdfb86e1bb6888d15abb75f3af02e3f6bc342b05a63e7af7d625e2"
+    },
+    {
+      "bytes": 10038,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/package-proof.py",
+      "sha256": "f5360b917f9f0e2e988622659a3ea512fe50e6616a840e0b3da31842ff1c8bb8"
+    },
+    {
+      "bytes": 1511,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/playwright-successor.config.cjs",
+      "sha256": "1238a88e747cd70fce975672049529b8af8236fd02a9af4547e7bb63a8491e37"
+    },
+    {
+      "bytes": 39729,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/pre-repair-FeedPane.tsx.txt",
+      "sha256": "a1ac83419d2c36b79e65a3ce43a79d6db58ae4ccb8819abd8111f2008c28f0b8"
+    },
+    {
+      "bytes": 2696,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/pre-repair-FlowProjectionStrip.tsx.txt",
+      "sha256": "dfc7918c7779472784a3a51f1ec63b49fb26518173352caaa1fd384a3bb4f521"
+    },
+    {
+      "bytes": 4259,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/pre-repair-flowProjection.ts.txt",
+      "sha256": "015bfb662daf9abeaea5df94d21a82757dc61c13aedf0a847abe0847c28591e6"
+    },
+    {
+      "bytes": 12585,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/pre-repair-optionsAlphaMeasuredEvidence.ts.txt",
+      "sha256": "111e596f2823b57c3cf4c34840ff02e42a226d9aec8080a0dfbd58f4a9fc942c"
+    },
+    {
+      "bytes": 0,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/protected-merge.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 201,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/protected-merge.stdout",
+      "sha256": "0148e85b61759a02c4a9006ea2a354e02138d519df567c8a35130a9373bda19d"
+    },
+    {
+      "bytes": 75880,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/red-execution.json",
+      "sha256": "60a13c02d7fc8da8b8d938406b89f2c0685c94d53380a3e92ecb37e8ca57d8d8"
+    },
+    {
+      "bytes": 5477,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/red-reconciliation.json",
+      "sha256": "c3a36c2978c4f7b4bb76d4bc07218967a0a3d9a349ac5686b8cbfa61a2732d39"
+    },
+    {
+      "bytes": 83068,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/red-report.json",
+      "sha256": "56aa6c05688d0528628813d9be827007f461da92245e7752aab7bcce903c2a1b"
+    },
+    {
+      "bytes": 36424,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/red.log",
+      "sha256": "6a99715c48a690a6832760ed6eb37410ddc19e1073151595575fcb7220f0dd73"
+    },
+    {
+      "bytes": 6755,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/run-browser.py",
+      "sha256": "6d9a37e9cb35d9a6a6383ad193bbc0a44ffa41bc259f5e67dc232d51d2e48535"
+    },
+    {
+      "bytes": 4474,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/run-focused.py",
+      "sha256": "aca24a8014ad626d6ffe2c401b075276e9261caf177c7e7626397bece0b5e41b"
+    },
+    {
+      "bytes": 2290,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/run-runtime.py",
+      "sha256": "2ebd966e8f16e7cd36302442bd81c8638bd0920f6d4baeecc9d581d4a6c50b9a"
+    },
+    {
+      "bytes": 4165,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/run-source-checks.py",
+      "sha256": "4637802bbc5d2b6b2e01dc10b5622ee93fe6930eb5cdff08c4257ef539111ea6"
+    },
+    {
+      "bytes": 1364,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/runtime.json",
+      "sha256": "37725590f63fdda239c6584f7d8c5ef81394a31c60b5c6e498e071bc11e3aec2"
+    },
+    {
+      "bytes": 8612,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/selection-red-execution.json",
+      "sha256": "5bc83bea795208acfd48728e5fcca05d0c5441485dbc7121773e841d1e51a7f1"
+    },
+    {
+      "bytes": 9068,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/selection-red-report.json",
+      "sha256": "6f63672ea93f2e8b4268aeaf244415a2181f4cd142053185f29793daa8254879"
+    },
+    {
+      "bytes": 5750,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/selection-red.log",
+      "sha256": "334abcd270abcf9839b4211607efc11e53d3db574d54d24c52283226937013b5"
+    },
+    {
+      "bytes": 335712,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-after-green.json",
+      "sha256": "d796aac96e3567b9bb37dcce19c65712f7fcc76bf65764f2473a20d94b74ea9d"
+    },
+    {
+      "bytes": 335712,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-after-red.json",
+      "sha256": "406fc73a285fb32920cd7024162c76fbf5286dee8956fdeb872c491854f9186e"
+    },
+    {
+      "bytes": 335712,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-after-selection-red.json",
+      "sha256": "b931d822be1ea83f7ce71ec31657d66c57230cc6da8fbd5a857413f63f8a607b"
+    },
+    {
+      "bytes": 335712,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-before-green.json",
+      "sha256": "d796aac96e3567b9bb37dcce19c65712f7fcc76bf65764f2473a20d94b74ea9d"
+    },
+    {
+      "bytes": 335712,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-before-red.json",
+      "sha256": "406fc73a285fb32920cd7024162c76fbf5286dee8956fdeb872c491854f9186e"
+    },
+    {
+      "bytes": 335712,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-before-selection-red.json",
+      "sha256": "b931d822be1ea83f7ce71ec31657d66c57230cc6da8fbd5a857413f63f8a607b"
+    },
+    {
+      "bytes": 840326,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-checks.json",
+      "sha256": "8e7c17d7622471f592c4953daf59eb584270989fc06cced5c9425d5b92fdca34"
+    },
+    {
+      "bytes": 1798,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-repair.json",
+      "sha256": "a30fc1366bc04c953a3a766cf8918582230ab884c24e244962efb775d1f4cc28"
+    },
+    {
+      "bytes": 5760,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/source-review.json",
+      "sha256": "668beca4c7b69338c6e6c46ae51963b13b60f47fac5ec9e85e74c3723e6141ec"
+    },
+    {
+      "bytes": 59,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/typegen.log",
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    {
+      "bytes": 0,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/typescript.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3782,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/visual-review.json",
+      "sha256": "49da004ee41f914fb070224d0970cd18d311682647d26a59661c7f0fee8a6185"
+    }
+  ],
+  "fixedProtectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "originalHead": "34ffd6b5e93162e63b812869ecce011f6357782d",
+  "schema": "terminal_pr687_proof_inventory.v1",
+  "totalBytes": 14669448
+}

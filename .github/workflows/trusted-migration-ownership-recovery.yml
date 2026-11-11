@@ -1,0 +1,121 @@
+name: Protected migration ownership recovery
+run-name: Migration owner recovery ${{ inputs.ci_run_id }} ${{ github.sha }}
+
+# Dormant manual recovery entry of the SAME ownership publisher. This is a
+# separate workflow so a broken default-branch trusted-migration-ownership.yml
+# cannot disable recovery; no switch inside that mutable workflow qualifies.
+# SOURCE PROPOSAL ONLY: dispatch/credential enrollment and App activation are
+# separate administrator effects. Recovery executes exactly the dispatch-time
+# default-branch bytes (github.sha), like the automatic issuer: there is NO
+# caller-selected revision input, and a dispatch whose executing protected
+# modules no longer match current master is refused as stale before any mint.
+# Unless BOTH repository selectors are strict positive integers — 0, empty,
+# missing and non-numeric are all dormant/invalid — the guard job fails
+# loudly BEFORE any environment allocation (no silent skip).
+on:
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: 'Completed original CI run id whose candidate head needs the ownership check'
+        required: true
+
+permissions: {}
+concurrency:
+  group: protected-migration-owner-recovery-${{ inputs.ci_run_id }}
+  cancel-in-progress: false
+
+jobs:
+  dormancy-guard:
+    # Refuse loudly unless BOTH selectors are strict positive integers: 0,
+    # empty, missing and non-numeric values are all dormant/invalid. The
+    # selectors reach the shell only through env: (never interpolated into
+    # the run body), and the recover job needs this guard's success. This
+    # job has NO environment, so a dormant or misconfigured dispatch can
+    # never allocate the credential environment or its key.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Refuse recovery while the ownership publisher is dormant or misconfigured
+        env:
+          APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          INSTALLATION_ID: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
+        run: |
+          for selector in APP_ID INSTALLATION_ID; do
+            # [[ =~ ]] anchors to the whole value; a line-wise matcher would accept
+            # a multi-line or trailing-newline value with one numeric line.
+            if ! [[ ${!selector} =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::Migration owner recovery is dormant: $selector is 0, empty, missing or non-numeric; the ownership publisher is not configured. Nothing to recover; refusing before any environment allocation."
+              exit 1
+            fi
+          done
+  recover:
+    needs: dormancy-guard
+    if: >-
+      github.repository == 'mastermindx-market-intelligence/mastermind-terminal' &&
+      github.ref == 'refs/heads/master' &&
+      github.event.repository.default_branch == 'master' &&
+      vars.MIGRATION_OWNER_APP_ID != '0' && vars.MIGRATION_OWNER_INSTALLATION_ID != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Same restricted environment and key as the automatic issuer. The
+    # environment MUST keep a selected BRANCH rule for master only, no tag
+    # rule, and no administrator bypass: workflow_dispatch can target any ref
+    # carrying this file, and only that branch policy keeps a hostile-ref
+    # dispatch away from the key. The dispatch actor and their repository
+    # permission are recorded on every publication.
+    environment: terminal-migration-owner
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check out the dispatch-time protected master revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          path: trusted
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/trusted_migration_ownership.py
+            scripts/migration_merge_group.py
+            scripts/check_supabase_migration_namespace.py
+      - name: Recovery preflight before key mint
+        working-directory: trusted
+        env:
+          OWNERSHIP_RUN_TOKEN: ${{ github.token }}
+          OWNERSHIP_APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          EXPECTED_INSTALLATION: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
+          RECOVERY_TARGET_RUN: ${{ inputs.ci_run_id }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export TRUSTED_CHECKOUT_SHA="$GITHUB_SHA"
+          python3 -I -S -c 'import sys; sys.path.append("."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --recover-preflight
+      - name: Mint repository-scoped installation token
+        id: installation
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+        with:
+          # Same expected numeric App issuer and grant set as the automatic
+          # issuer: checks:write on this repository only, nothing wider.
+          app-id: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          private-key: ${{ secrets.MIGRATION_OWNER_PRIVATE_KEY }}
+          owner: mastermindx-market-intelligence
+          repositories: mastermind-terminal
+          permission-merge-queues: read
+          permission-contents: read
+          permission-pull-requests: read
+          permission-checks: write
+      - name: Recover namespace ownership publication
+        working-directory: trusted
+        env:
+          OWNERSHIP_RUN_TOKEN: ${{ github.token }}
+          OWNERSHIP_TOKEN: ${{ steps.installation.outputs.token }}
+          OWNERSHIP_APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          EXPECTED_INSTALLATION: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
+          ACTUAL_INSTALLATION: ${{ steps.installation.outputs.installation-id }}
+          RECOVERY_TARGET_RUN: ${{ inputs.ci_run_id }}
+        run: |
+          test -n "$EXPECTED_INSTALLATION"
+          test "$ACTUAL_INSTALLATION" = "$EXPECTED_INSTALLATION"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export TRUSTED_CHECKOUT_SHA="$GITHUB_SHA"
+          python3 -I -S -c 'import sys; sys.path.append("."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --recover

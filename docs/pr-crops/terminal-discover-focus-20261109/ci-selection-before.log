@@ -1,0 +1,22 @@
+✖ Discover focus journeys retain bounded case identity and validated outcomes (1.850016ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.979206
+
+✖ failing tests:
+
+test at terminal/e2e/tools/sharedShellSafeReporter.test.cjs:77:1
+✖ Discover focus journeys retain bounded case identity and validated outcomes (1.850016ms)
+  Error: SAFE_REPORT_CASE
+      at caseIdentity (/workspace/scratch/a2c76c60e583/discover-ci-source/terminal/e2e/tools/sharedShellSafeReporter.cjs:41:131)
+      at Recorder.begin (/workspace/scratch/a2c76c60e583/discover-ci-source/terminal/e2e/tools/sharedShellSafeReporter.cjs:74:18)
+      at TestContext.<anonymous> (/workspace/scratch/a2c76c60e583/discover-ci-source/terminal/e2e/tools/sharedShellSafeReporter.test.cjs:80:66)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)

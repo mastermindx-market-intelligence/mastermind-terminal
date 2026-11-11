@@ -19,7 +19,7 @@ export function sharedShellActiveKey(path: string): string {
   if (path === "/today") return "shellToday";
   if (path.startsWith("/analysis") || /^\/(?:stock|china_lookup|hk_lookup|canada_stock|intl_stock)\.html$/.test(path))
     return "analysis";
-  if (path.startsWith("/discover")) return "discover";
+  if (path === "/discover" || path.startsWith("/discover/")) return "discover";
   if (path === "/monitor") return "shellMonitor";
   if (path.startsWith("/portfolio")) return "portfolio";
   if (path.includes("watchlist") || path.startsWith("/alerts")) return "shellMonitor";

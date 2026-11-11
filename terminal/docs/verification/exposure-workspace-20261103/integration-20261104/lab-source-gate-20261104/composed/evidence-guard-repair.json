@@ -1,0 +1,16 @@
+[
+  {
+    "mode": "preview",
+    "file": "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "beforeSha256": "2ca3f8da065106131b2b39f2fd4d2e907790a39de3c874eaf4e45afc45037350",
+    "afterSha256": "3f67ff61c7735bfa93bbb75e7ea55d03971f723cafb4a72a980894181b06a871",
+    "priorManifestSha256": "a7201f679c379df0f5b391c353c1dbd41186928c00b92a283441171a3822d54c"
+  },
+  {
+    "mode": "preview",
+    "file": "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "beforeSha256": "99bfdfe51e26c994ad59afb99cf622b5a272145bf2ef87ea3b0efada2310a033",
+    "afterSha256": "a5389f7a47822ba52bfa9143b459981e0ad581b2f898db4d5cfc9a8d727a928d",
+    "priorManifestSha256": "8ec95b3ad047c55537f2630446777981d4fb8c3ebf4a95f74f4607003685587c"
+  }
+]

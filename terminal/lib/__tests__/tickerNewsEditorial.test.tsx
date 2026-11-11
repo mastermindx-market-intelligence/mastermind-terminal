@@ -346,7 +346,8 @@ it.each(["view", "ticker"] as const)("requires a fresh acknowledgement when retu
   vi.stubGlobal("fetch", fetcher);
   await mount();
   expect(host.querySelector("[data-news-headline]")).not.toBeNull();
-  expect(host.querySelector('[data-flow-state]')).not.toBeNull();
+  // The mounted panel carries no flow strip: the reading slice owns the column.
+  expect(host.querySelector('[data-flow-state]')).toBeNull();
   const oldStream = Events.instances[0];
   if (transition === "view") {
     await select("company");

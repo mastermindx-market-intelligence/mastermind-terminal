@@ -1,0 +1,560 @@
+(
+    <div id="1TK8-0" style={{ backgroundColor: '#F7F8FA', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSize: '12px', fontSynthesis: 'none', lineHeight: '16px', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', WebkitFontSmoothing: 'antialiased' }}>
+      <div id="1TK9-0" style={{ backgroundColor: '#F7F8FA', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', minHeight: '0px', width: '390px' }}>
+        <div id="1TQZ-0" style={{ alignItems: 'center', backgroundColor: '#FFFFFF', borderBottomColor: '#C9CCD1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '60px', paddingInline: '16px' }}>
+          <div id="1TR3-0" style={{ alignItems: 'center', backgroundColor: '#2758E6', borderRadius: '7px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '28px', justifyContent: 'center', width: '28px' }}>
+            <div id="1TR4-0" style={{ boxSizing: 'border-box', color: '#F7F8FA', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '17px', fontWeight: 700, lineHeight: '22px' }}>
+              M
+            </div>
+          </div>
+          <div id="1TR2-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: '0', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 700, letterSpacing: '1.8px', lineHeight: '16px', width: 'max-content' }}>
+            MASTERMIND
+          </div>
+          <div id="1TR1-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px', marginLeft: '12px', width: 'max-content' }}>
+            期权
+          </div>
+          <div id="1TR0-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px', marginLeft: 'auto' }}>
+            &nbsp;
+          </div>
+        </div>
+        <div id="1TQK-0" style={{ alignItems: 'center', borderBottomColor: '#C9CCD1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'row-reverse', gap: '6px', paddingBlock: '8px', paddingInline: '16px' }}>
+          <div id="1TQX-0" style={{ alignItems: 'center', backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TQY-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              3D 研究室
+            </div>
+          </div>
+          <div id="1TQV-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TQW-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Flow
+            </div>
+          </div>
+          <div id="1TQT-0" style={{ alignItems: 'center', backgroundColor: '#1C2430', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', flexGrow: '1', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TQU-0" style={{ boxSizing: 'border-box', color: '#F7F8FA', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px', width: 'max-content' }}>
+              敞口 ▾
+            </div>
+          </div>
+          <div id="1TQR-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TQS-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Structure
+            </div>
+          </div>
+          <div id="1TQP-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TQQ-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Volatility
+            </div>
+          </div>
+          <div id="1TQN-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TQO-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Statistics
+            </div>
+          </div>
+          <div id="1TQL-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TQM-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Prophet
+            </div>
+          </div>
+        </div>
+        <div id="1TQ1-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '16px', paddingInline: '16px', paddingTop: '22px' }}>
+          <div id="1TQ5-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
+            <div id="1TQJ-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '28px', fontWeight: 700, lineHeight: '34px' }}>
+              SPY
+            </div>
+            <div id="1TQI-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '23px', fontWeight: 500, lineHeight: '28px' }}>
+              751.71
+            </div>
+            <div id="1TQH-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              代码 ▾
+            </div>
+            <div id="1TQ6-0" style={{ boxSizing: 'border-box', display: 'flex', gap: '6px', width: '100%' }}>
+              <div id="1TQF-0" style={{ alignItems: 'center', backgroundColor: '#1C2430', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', flexGrow: '1', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TQG-0" style={{ boxSizing: 'border-box', color: '#F7F8FA', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px', width: 'max-content' }}>
+                  GEX
+                </div>
+              </div>
+              <div id="1TQD-0" style={{ alignItems: 'center', backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', flexGrow: '1', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TQE-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  DEX
+                </div>
+              </div>
+              <div id="1TQB-0" style={{ alignItems: 'center', backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', flexGrow: '1', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TQC-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  VEX
+                </div>
+              </div>
+              <div id="1TQ9-0" style={{ alignItems: 'center', backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', flexGrow: '1', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TQA-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  CHEX
+                </div>
+              </div>
+              <div id="1TQ7-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TQ8-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  3D 研究室
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="1TQ2-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '10px' }}>
+            <div id="1TQ4-0" style={{ backgroundColor: '#7D5922', borderRadius: '50%', boxSizing: 'border-box', flexShrink: 0, height: '6px', width: '6px' }} />
+            <div id="1TQ3-0" style={{ boxSizing: 'border-box', color: '#7D5922', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              已发布快照 · 2026-07-10 · 16:15 ET
+            </div>
+          </div>
+        </div>
+        <div id="1TKK-0" style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '16px', paddingInline: '16px' }}>
+          <div id="1TLP-0" style={{ backgroundColor: '#FFFFFF', borderColor: '#C9CCD1', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', minWidth: '0px', overflow: 'clip', width: '358px' }}>
+            <div id="1TPP-0" style={{ alignItems: 'center', borderBottomColor: '#C9CCD1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexWrap: 'wrap', gap: '8px', paddingBlock: '8px', paddingInline: '12px' }}>
+              <div id="1TPZ-0" style={{ alignItems: 'center', backgroundColor: '#1C2430', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TQ0-0" style={{ boxSizing: 'border-box', color: '#F7F8FA', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px', width: 'max-content' }}>
+                  按行权价 ▾
+                </div>
+              </div>
+              <div id="1TPX-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TPY-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  By expiry
+                </div>
+              </div>
+              <div id="1TPV-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TPW-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  Matrix
+                </div>
+              </div>
+              <div id="1TPT-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'none', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TPU-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  Price chart
+                </div>
+              </div>
+              <div id="1TPQ-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '12px', marginLeft: 'auto', minHeight: '44px' }}>
+                <div id="1TPS-0" style={{ boxSizing: 'border-box', color: '#2758E6', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  市场状态
+                </div>
+                <div id="1TPR-0" style={{ boxSizing: 'border-box', color: '#2758E6', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  历史
+                </div>
+              </div>
+            </div>
+            <div id="1TPI-0" style={{ alignItems: 'center', borderBottomColor: '#C9CCD1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', gap: '8px', paddingBlock: '10px', paddingInline: '14px' }}>
+              <div id="1TPN-0" style={{ alignItems: 'center', backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TPO-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  全部到期日 ▾
+                </div>
+              </div>
+              <div id="1TPL-0" style={{ alignItems: 'center', backgroundColor: '#1C2430', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TPM-0" style={{ boxSizing: 'border-box', color: '#F7F8FA', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px', width: 'max-content' }}>
+                  净值
+                </div>
+              </div>
+              <div id="1TPJ-0" style={{ alignItems: 'center', backgroundColor: '#EEF1F6', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '10px' }}>
+                <div id="1TPK-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  看涨 / 看跌
+                </div>
+              </div>
+            </div>
+            <div id="1TP5-0" style={{ borderBottomColor: '#C9CCD1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'none', paddingBlock: '18px', paddingInline: '16px' }}>
+              <div id="1TPF-0" style={{ boxSizing: 'border-box' }}>
+                <div id="1TPH-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                  净 GEX
+                </div>
+                <div id="1TPG-0" style={{ boxSizing: 'border-box', color: '#1E6D47', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '24px', fontWeight: 600, lineHeight: '30px', marginTop: '4px' }}>
+                  +4.67B
+                </div>
+              </div>
+              <div id="1TPC-0" style={{ boxSizing: 'border-box' }}>
+                <div id="1TPE-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                  FLIP
+                </div>
+                <div id="1TPD-0" style={{ boxSizing: 'border-box', color: '#2758E6', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '24px', fontWeight: 600, lineHeight: '30px', marginTop: '4px' }}>
+                  748.3
+                </div>
+              </div>
+              <div id="1TP9-0" style={{ boxSizing: 'border-box' }}>
+                <div id="1TPB-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                  CALL WALL
+                </div>
+                <div id="1TPA-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '24px', fontWeight: 600, lineHeight: '30px', marginTop: '4px' }}>
+                  760
+                </div>
+              </div>
+              <div id="1TP6-0" style={{ boxSizing: 'border-box' }}>
+                <div id="1TP8-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                  PUT SUPPORT
+                </div>
+                <div id="1TP7-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '24px', fontWeight: 600, lineHeight: '30px', marginTop: '4px' }}>
+                  740
+                </div>
+              </div>
+            </div>
+            <div id="1TOX-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', paddingBlock: '12px', paddingInline: '14px' }}>
+              <div id="1TP4-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                行权价
+              </div>
+              <div id="1TOZ-0" style={{ boxSizing: 'border-box', display: 'flex', gap: '7px' }}>
+                <div id="1TP3-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  ±2%
+                </div>
+                <div id="1TP2-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  ±5%
+                </div>
+                <div id="1TP1-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  ±10%
+                </div>
+                <div id="1TP0-0" style={{ boxSizing: 'border-box', color: '#1C2430', display: 'inline-block', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 700, lineHeight: '14px' }}>
+                  全部
+                </div>
+              </div>
+              <div id="1TOY-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                净 GEX
+              </div>
+            </div>
+            <div id="1TOP-0" style={{ borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'none', flexShrink: 0, height: '38px', paddingInline: '12px' }}>
+              <div id="1TOW-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                760
+              </div>
+              <div id="1TOS-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TOV-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TOT-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TOU-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(92%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TOR-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '10px', lineHeight: '12px', width: '70px' }}>
+                CALL WALL
+              </div>
+              <div id="1TOQ-0" style={{ boxSizing: 'border-box', color: '#1E6D47', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +1.42B
+              </div>
+            </div>
+            <div id="1TOH-0" style={{ borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'none', flexShrink: 0, height: '38px', paddingInline: '12px' }}>
+              <div id="1TOO-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                759
+              </div>
+              <div id="1TOK-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TON-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TOL-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TOM-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(87.4%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TOJ-0" style={{ boxSizing: 'border-box', display: 'none', width: '70px' }} />
+              <div id="1TOI-0" style={{ boxSizing: 'border-box', color: '#1E6D47', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +1.35B
+              </div>
+            </div>
+            <div id="1TO9-0" style={{ borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'none', flexShrink: 0, height: '38px', paddingInline: '12px' }}>
+              <div id="1TOG-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                758
+              </div>
+              <div id="1TOC-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TOF-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TOD-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TOE-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(82.8%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TOB-0" style={{ boxSizing: 'border-box', display: 'none', width: '70px' }} />
+              <div id="1TOA-0" style={{ boxSizing: 'border-box', color: '#1E6D47', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +1.28B
+              </div>
+            </div>
+            <div id="1TO1-0" style={{ borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'none', flexShrink: 0, height: '38px', paddingInline: '12px' }}>
+              <div id="1TO8-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                757
+              </div>
+              <div id="1TO4-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TO7-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TO5-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TO6-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(73.6%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TO3-0" style={{ boxSizing: 'border-box', display: 'none', width: '70px' }} />
+              <div id="1TO2-0" style={{ boxSizing: 'border-box', color: '#1E6D47', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +1.13B
+              </div>
+            </div>
+            <div id="1TNT-0" style={{ borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'none', flexShrink: 0, height: '38px', paddingInline: '12px' }}>
+              <div id="1TO0-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                756
+              </div>
+              <div id="1TNW-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TNZ-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TNX-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TNY-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(65.32%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TNV-0" style={{ boxSizing: 'border-box', display: 'none', width: '70px' }} />
+              <div id="1TNU-0" style={{ boxSizing: 'border-box', color: '#1E6D47', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +1.01B
+              </div>
+            </div>
+            <div id="1TNL-0" style={{ alignItems: 'center', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TNS-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                755
+              </div>
+              <div id="1TNO-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TNR-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TNP-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TNQ-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(57.96%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TNN-0" style={{ boxSizing: 'border-box', display: 'none', flexShrink: 0, width: '70px' }} />
+              <div id="1TNM-0" style={{ boxSizing: 'border-box', color: '#1E6D47', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +898.8M
+              </div>
+            </div>
+            <div id="1TND-0" style={{ alignItems: 'center', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TNK-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                754
+              </div>
+              <div id="1TNG-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TNJ-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TNH-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TNI-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(53.36%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TNF-0" style={{ boxSizing: 'border-box', display: 'none', flexShrink: 0, width: '70px' }} />
+              <div id="1TNE-0" style={{ boxSizing: 'border-box', color: '#1E6D47', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +823.2M
+              </div>
+            </div>
+            <div id="1TN5-0" style={{ alignItems: 'center', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TNC-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                753
+              </div>
+              <div id="1TN8-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TNB-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TN9-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TNA-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(47.84%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TN7-0" style={{ boxSizing: 'border-box', display: 'none', flexShrink: 0, width: '70px' }} />
+              <div id="1TN6-0" style={{ boxSizing: 'border-box', color: '#1E6D47', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +743.1M
+              </div>
+            </div>
+            <div id="1TMX-0" style={{ alignItems: 'center', backgroundColor: '#FFF3D9', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderTopColor: '#7D5922', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TN4-0" style={{ boxSizing: 'border-box', color: '#7D5922', flexShrink: 0, fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 700, lineHeight: '16px', width: '47px' }}>
+                752 ◂
+              </div>
+              <div id="1TN0-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TN3-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TN1-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TN2-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(46%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TMZ-0" style={{ boxSizing: 'border-box', display: 'none', flexShrink: 0, width: '70px' }} />
+              <div id="1TMY-0" style={{ boxSizing: 'border-box', color: '#1E6D47', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +710.5M
+              </div>
+            </div>
+            <div id="1TMP-0" style={{ alignItems: 'center', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TMW-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                751
+              </div>
+              <div id="1TMS-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TMV-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TMT-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TMU-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(44.16%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TMR-0" style={{ boxSizing: 'border-box', display: 'none', flexShrink: 0, width: '70px' }} />
+              <div id="1TMQ-0" style={{ boxSizing: 'border-box', color: '#1E6D47', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +686.9M
+              </div>
+            </div>
+            <div id="1TMH-0" style={{ alignItems: 'center', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TMO-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                750
+              </div>
+              <div id="1TMK-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TMN-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TML-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TMM-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(44.16%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TMJ-0" style={{ boxSizing: 'border-box', display: 'none', flexShrink: 0, width: '70px' }} />
+              <div id="1TMI-0" style={{ boxSizing: 'border-box', color: '#1E6D47', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +687.8M
+              </div>
+            </div>
+            <div id="1TM9-0" style={{ alignItems: 'center', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TMG-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                749
+              </div>
+              <div id="1TMC-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TMF-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TMD-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TME-0" style={{ backgroundColor: '#2C9C79', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(38.64%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TMB-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', flexShrink: 0, fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '10px', lineHeight: '12px', width: '70px' }}>
+                &nbsp;
+              </div>
+              <div id="1TMA-0" style={{ boxSizing: 'border-box', color: '#1E6D47', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                +597.4M
+              </div>
+            </div>
+            <div id="1TM1-0" style={{ alignItems: 'center', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TM8-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                748
+              </div>
+              <div id="1TM4-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TM6-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }}>
+                  <div id="1TM7-0" style={{ backgroundColor: '#CF596F', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(43.24%, 1px)' }} />
+                </div>
+                <div id="1TM5-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }} />
+              </div>
+              <div id="1TM3-0" style={{ boxSizing: 'border-box', display: 'none', flexShrink: 0, width: '70px' }} />
+              <div id="1TM2-0" style={{ boxSizing: 'border-box', color: '#B23C3D', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                −666.9M
+              </div>
+            </div>
+            <div id="1TLT-0" style={{ alignItems: 'center', borderBottomColor: '#E5E9EF', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '38px', paddingInline: '12px' }}>
+              <div id="1TM0-0" style={{ boxSizing: 'border-box', color: '#1C2430', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '47px' }}>
+                747
+              </div>
+              <div id="1TLW-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TLY-0" style={{ alignItems: 'center', borderRightColor: '#8992A1', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }}>
+                  <div id="1TLZ-0" style={{ backgroundColor: '#CF596F', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(41.4%, 1px)' }} />
+                </div>
+                <div id="1TLX-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }} />
+              </div>
+              <div id="1TLV-0" style={{ boxSizing: 'border-box', display: 'none', flexShrink: 0, width: '70px' }} />
+              <div id="1TLU-0" style={{ boxSizing: 'border-box', color: '#B23C3D', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '72px' }}>
+                −637.8M
+              </div>
+            </div>
+            <div id="1TLQ-0" style={{ alignItems: 'center', borderTopColor: '#C9CCD1', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', gap: '10px', justifyContent: 'space-between', padding: '14px' }}>
+              <div id="1TLS-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                46 个行权价 · 全部到期日
+              </div>
+              <div id="1TLR-0" style={{ boxSizing: 'border-box', color: '#2758E6', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                到期明细 ▾
+              </div>
+            </div>
+          </div>
+          <div id="1TKL-0" style={{ backgroundColor: '#FFFFFF', borderColor: '#C9CCD1', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', gap: '20px', padding: '22px', width: '358px' }}>
+            <div id="1TLM-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+              <div id="1TLO-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                市场状态
+              </div>
+              <div id="1TLN-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                2026-07-10
+              </div>
+            </div>
+            <div id="1TLI-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+              <div id="1TLL-0" style={{ boxSizing: 'border-box', color: '#1E6D47', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '28px', fontWeight: 700, lineHeight: '34px' }}>
+                锁定
+              </div>
+              <div id="1TLJ-0" style={{ borderColor: '#2C9C79', borderRadius: '20px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', paddingBlock: '6px', paddingInline: '9px' }}>
+                <div id="1TLK-0" style={{ boxSizing: 'border-box', color: '#1E6D47', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  净 γ 为正
+                </div>
+              </div>
+            </div>
+            <div id="1TLH-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '160%' }}>
+              仓位集中于关键价位附近。
+            </div>
+            <div id="1TLB-0" style={{ alignItems: 'center', borderBottomColor: '#C9CCD1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', gap: '18px', paddingBottom: '20px' }}>
+              <div id="1TLF-0" style={{ alignItems: 'center', borderColor: '#2C9C79', borderRadius: '50%', borderStyle: 'solid', borderWidth: '5px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '64px', justifyContent: 'center', width: '64px' }}>
+                <div id="1TLG-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '23px', fontWeight: 700, lineHeight: '28px' }}>
+                  69
+                </div>
+              </div>
+              <div id="1TLC-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                <div id="1TLE-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  稳定度 <span style={{ fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontWeight: 700 }}>69%</span>
+                </div>
+                <div id="1TLD-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  高于翻转位 0.46%
+                </div>
+              </div>
+            </div>
+            <div id="1TL0-0" style={{ boxSizing: 'border-box' }}>
+              <div id="1TLA-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                结构区间
+              </div>
+              <div id="1TL7-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', marginTop: '13px' }}>
+                <div id="1TL9-0" style={{ boxSizing: 'border-box', color: '#1C2430', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  740
+                </div>
+                <div id="1TL8-0" style={{ boxSizing: 'border-box', color: '#1C2430', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  760
+                </div>
+              </div>
+              <div id="1TL4-0" style={{ backgroundColor: '#EEF1F6', borderRadius: '4px', boxSizing: 'border-box', height: '8px', marginBottom: '9px', marginTop: '10px', position: 'relative' }}>
+                <div id="1TL6-0" style={{ backgroundColor: '#2758E6', boxSizing: 'border-box', height: '16px', left: '41.5%', position: 'absolute', top: '-4px', width: '3px' }} />
+                <div id="1TL5-0" style={{ backgroundColor: '#7D5922', boxSizing: 'border-box', height: '16px', left: '58.55%', position: 'absolute', top: '-4px', width: '3px' }} />
+              </div>
+              <div id="1TL1-0" style={{ boxSizing: 'border-box', display: 'flex', gap: '16px' }}>
+                <div id="1TL3-0" style={{ boxSizing: 'border-box', color: '#2758E6', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  翻转 748.3
+                </div>
+                <div id="1TL2-0" style={{ boxSizing: 'border-box', color: '#7D5922', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  现价 751.71
+                </div>
+              </div>
+            </div>
+            <div id="1TKQ-0" style={{ borderBottomColor: '#C9CCD1', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderTopColor: '#C9CCD1', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '15px', paddingBlock: '14px' }}>
+              <div id="1TKX-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+                <div id="1TKZ-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  Gamma 占比
+                </div>
+                <div id="1TKY-0" style={{ boxSizing: 'border-box', color: '#1E6D47', display: 'inline-block', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+                  多头 59%
+                </div>
+              </div>
+              <div id="1TKU-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+                <div id="1TKW-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  对冲压力
+                </div>
+                <div id="1TKV-0" style={{ boxSizing: 'border-box', color: '#7D5922', display: 'inline-block', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+                  高
+                </div>
+              </div>
+              <div id="1TKR-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+                <div id="1TKT-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  锁定目标
+                </div>
+                <div id="1TKS-0" style={{ boxSizing: 'border-box', color: '#1C2430', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  —
+                </div>
+              </div>
+            </div>
+            <div id="1TKM-0" style={{ alignItems: 'center', borderTopColor: '#C9CCD1', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', minHeight: '44px' }}>
+              <div id="1TKO-0" style={{ boxSizing: 'border-box', color: '#2758E6', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                详情与来源
+              </div>
+              <div id="1TKN-0" style={{ boxSizing: 'border-box', color: '#2758E6', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                ▾
+              </div>
+            </div>
+            <div id="1TKP-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '160%', whiteSpace: 'pre-wrap' }}>
+              水平图 — 假定做市商符号；仅供展示<br />前向波动率验证中：~2026年9月前仅供展示
+            </div>
+          </div>
+        </div>
+        <div id="1TKA-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px', paddingBlock: '18px', paddingInline: '16px' }}>
+          <div id="1TKH-0" style={{ alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#C9CCD1', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', minHeight: '52px', paddingInline: '16px' }}>
+            <div id="1TKJ-0" style={{ boxSizing: 'border-box', color: '#1C2430', display: 'inline-block', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+              快照关键位 ▸
+            </div>
+            <div id="1TKI-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+              完整快照
+            </div>
+          </div>
+          <div id="1TKC-0" style={{ alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#C9CCD1', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', minHeight: '64px', paddingInline: '16px' }}>
+            <div id="1TKE-0" style={{ boxSizing: 'border-box' }}>
+              <div id="1TKG-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                历史
+              </div>
+              <div id="1TKF-0" style={{ boxSizing: 'border-box', color: '#1C2430', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', marginTop: '6px' }}>
+                最新可用快照
+              </div>
+            </div>
+            <div id="1TKD-0" style={{ boxSizing: 'border-box', color: '#2758E6', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+              选择交易日 ▾
+            </div>
+          </div>
+          <div id="1TKB-0" style={{ boxSizing: 'border-box', color: '#5D6B7E', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '150%' }}>
+            示例数据。历史快照保留自身数据日期；部分合计与缺失值明确标注。
+          </div>
+        </div>
+      </div>
+    </div>
+  )

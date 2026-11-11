@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { reportSourceLabel, sourceLabel } from "@/lib/newsDisplay";
 
 import {
   parseTickerNewsChange,
@@ -158,11 +161,58 @@ describe("ticker news contract", () => {
     })).toThrow(/story_member_id/);
   });
 
+
+  it("keeps Chinese headlines and qualified CN/HK listing symbols unchanged", () => {
+    for (const [ticker, securityId, source, title] of [
+      ["0700.HK", "SEC:HK-XHKG-00700", "finlight:etnet.com.hk", "騰訊控股公布季度業績"],
+      ["600519.SS", "SEC:CN-XSHG-600519", "finlight:cls.cn", "贵州茅台发布经营数据"],
+    ]) {
+      const parsed = parseTickerNewsSnapshot({
+        schema: "ticker_news.snapshot.v1", ticker, security_id: securityId,
+        state: "degraded", rows: [{ ...row, source, title, teaser: "", updated_at: null }],
+        next_cursor: 7, has_more: false, source_health: { state: "degraded" },
+      });
+      expect(parsed.rows[0].title).toBe(title);
+      expect(parsed.rows[0].source).toBe(source);
+      expect(parsed.security_id).toBe(securityId);
+      expect(normalizeTickerNewsSymbol(ticker)).toBe(ticker);
+    }
+  });
+
   it("normalizes ordinary ticker symbols without accepting path syntax", () => {
     expect(normalizeTickerNewsSymbol(" nvda ")).toBe("NVDA");
     expect(normalizeTickerNewsSymbol("BRK.B")).toBe("BRK.B");
     expect(normalizeTickerNewsSymbol("RDS-A")).toBe("RDS-A");
     expect(() => normalizeTickerNewsSymbol("../NVDA")).toThrow(/symbol/);
     expect(() => normalizeTickerNewsSymbol("NVDA%2Fetc")).toThrow(/symbol/);
+  });
+});
+
+
+describe("ticker news publisher display boundaries", () => {
+  it.each([
+    ["__proto__", "__proto__"], ["constructor", "Constructor"],
+    ["massive:__proto__", "__proto__"], ["massive:constructor", "constructor"],
+    ["finlight:__proto__", "__proto__"], ["finlight:constructor", "constructor"],
+  ])("renders accepted source %s as a string", (source, expected) => {
+    const parsed = parseTickerNewsSnapshot({
+      schema: "ticker_news.snapshot.v1", ticker: "NVDA", security_id: "SEC:US-XNAS-NVDA",
+      state: "live", rows: [{ ...row, source }], next_cursor: 7, has_more: false,
+      source_health: { state: "live" },
+    });
+    const label = sourceLabel(parsed.rows[0].source);
+    expect(label).toBe(expected);
+    expect(renderToStaticMarkup(createElement("span", null, label))).toBe(`<span>${expected}</span>`);
+    expect(reportSourceLabel(source, "press_release", "en")).toBe(`${expected} · Press release`);
+    expect(reportSourceLabel(source, "press_release", "zh")).toBe(`${expected} · 公司公告`);
+  });
+
+  it.each([
+    [" FINLIGHT:WWW.ETNET.COM.HK. ", "經濟通"], ["finlight:cls.cn", "财联社"],
+    ["massive:REUTERS.COM", "Reuters"], ["benzinga", "Benzinga"],
+    ["finlight:unknown.example", "unknown.example"], ["custom desk", "Custom desk"],
+    [" ", "Source"],
+  ])("preserves publisher normalization and fallback for %s", (source, expected) => {
+    expect(sourceLabel(source)).toBe(expected);
   });
 });

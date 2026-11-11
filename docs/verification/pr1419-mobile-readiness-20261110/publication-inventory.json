@@ -1,0 +1,123 @@
+{
+  "base": "ceab6184a492911b1dd224430b1c6a0e66f9b0a2",
+  "specPostimage": "66a0c8bbf7492c57c5fa81386a867db1d4591b1e",
+  "fileCount": 23,
+  "totalBytes": 3067716,
+  "files": [
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/QUALIFICATION.json",
+      "size": 4137,
+      "sha256": "326b9ca41f5d954a118f9892f86aec2221c03237b90426376862c289edf512c5"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/README.md",
+      "size": 4806,
+      "sha256": "c8fba228bb39497392daa6542afb7143a192772d734d59a20a379fec88c3360b"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/browser-artifacts/.last-run.json",
+      "size": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/browser-report.json",
+      "size": 18684,
+      "sha256": "a5439c13c88211da14d7738bd73ef452814099b3672dcbf65a1262556ffcdf34"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/browser.log",
+      "size": 709,
+      "sha256": "cfcd5d1174f2bace68b654f0d734a462ab169dd0f9d3b3fe94429e4e820feec5"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/dependencies.json",
+      "size": 590,
+      "sha256": "d43efaef3cc948001d8debbee9dcbdfd9a36690422e0cbdf614cd65e38372a7b"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/dependencies.log",
+      "size": 149,
+      "sha256": "5094f845ea4805d3bff82537026f4b4c16c8b1520d78e3b2ad18a17c8f316560"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/diff-check.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/execution.json",
+      "size": 1414,
+      "sha256": "c9da820de10f744361c6674cd3470fbc1793a1d30bdaf414b2508733c687c184"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/generated-preimages.json",
+      "size": 1081,
+      "sha256": "c59c3a0b8ae624c697c5fbe187831ce467977541b71f6f214683ea52946546b9"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/generated-restoration.json",
+      "size": 168,
+      "sha256": "8fd13fc9bec489a693bd5af7122248fb0b7f4ae63a94536906910f349e702116"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/lifecycle.json",
+      "size": 537,
+      "sha256": "bfd4a4ce46fe75109822243d47b2e7f4a32e75b740a30779a6c353cd70eaff60"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/lint.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/prepare.py",
+      "size": 4145,
+      "sha256": "0bc6d0cea5afae862be2800301ca1731dbf4ee8bc2370e15ac43a6846a1f6d67"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/proof-after.json",
+      "size": 1492,
+      "sha256": "dcad151eef6c54831c5bb89ac7747637db2583cbe8811e306a24bad27b90fb95"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/proof-before.json",
+      "size": 1492,
+      "sha256": "dcad151eef6c54831c5bb89ac7747637db2583cbe8811e306a24bad27b90fb95"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/qualify.py",
+      "size": 7891,
+      "sha256": "80e210a7ac26010283022475d63094b8a8e541d3611bf938b79aebb78dec1bcd"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/source-after-before-generated-restoration.json",
+      "size": 1005628,
+      "sha256": "f680383231ce648217fd8c9c99fe20ce3a9c3192c6ca91e93d6557dbd87721e9"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/source-after.json",
+      "size": 1005628,
+      "sha256": "f680383231ce648217fd8c9c99fe20ce3a9c3192c6ca91e93d6557dbd87721e9"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/source-before.json",
+      "size": 1005628,
+      "sha256": "f680383231ce648217fd8c9c99fe20ce3a9c3192c6ca91e93d6557dbd87721e9"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/source-edit.json",
+      "size": 464,
+      "sha256": "6f5202e39322efbe9051666a2be7fd44bf9fdb2c494a1375b5815cce2eddd68b"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/source.patch",
+      "size": 2318,
+      "sha256": "e1a7eed121c18ad56ad056edc091472a7da10f75cbd9e2f1de01435b1dbb13bd"
+    },
+    {
+      "path": "docs/verification/pr1419-mobile-readiness-20261110/visual-review.json",
+      "size": 710,
+      "sha256": "888879aea505e72f1ab8483650ab24f3bb0486f580660b7e9edcbeedbc470f8b"
+    }
+  ]
+}

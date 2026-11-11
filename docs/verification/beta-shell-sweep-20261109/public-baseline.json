@@ -1,0 +1,308 @@
+{
+  "observedAt": "2026-11-09T08:23:11.094Z",
+  "status": {
+    "enabled": true,
+    "protocol": "mmx.shared-shell.v1",
+    "buildId": "e4329a7d265e1d2405cad4e87ead9b7797d60e61",
+    "bridgeVersion": "20261018.1",
+    "documentVersion": "20261018.1",
+    "registrySha256": "8d6346856bf24eb42525cfd0a7cbb6de3ff00092a907874012d8187e44623fbe"
+  },
+  "results": [
+    {
+      "route": "/today",
+      "httpStatus": 200,
+      "elapsedMs": 4385,
+      "title": "Today \u00b7 Mastermind Terminal",
+      "headings": [
+        "Sign in to open Today"
+      ],
+      "gate": true,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/discover",
+      "httpStatus": 200,
+      "elapsedMs": 4387,
+      "title": "Discover \u00b7 Mastermind Terminal",
+      "headings": [
+        "Sign up to open Discover"
+      ],
+      "gate": true,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/analysis?symbol=NVDA&page=intelligence",
+      "httpStatus": 200,
+      "elapsedMs": 2389,
+      "title": "Analysis \u00b7 Mastermind Terminal",
+      "headings": [
+        "Sign up to open the Analysis desk"
+      ],
+      "gate": true,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/monitor",
+      "httpStatus": 200,
+      "elapsedMs": 2388,
+      "title": "Monitor \u00b7 Mastermind Terminal",
+      "headings": [
+        "Sign in to open Monitor"
+      ],
+      "gate": true,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/research",
+      "httpStatus": 200,
+      "elapsedMs": 2245,
+      "title": "Research \u00b7 Mastermind Terminal",
+      "headings": [
+        "Sign in to open Research"
+      ],
+      "gate": true,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/portfolio",
+      "httpStatus": 200,
+      "elapsedMs": 2332,
+      "title": "Mastermind Terminal",
+      "headings": [
+        "Sign up to track your book"
+      ],
+      "gate": true,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/options",
+      "httpStatus": 200,
+      "elapsedMs": 2921,
+      "title": "Options \u00b7 Mastermind Terminal",
+      "headings": [],
+      "gate": false,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/alerts",
+      "httpStatus": 200,
+      "elapsedMs": 2579,
+      "title": "Alerts \u00b7 Mastermind Terminal",
+      "headings": [
+        "Sign up to set alerts"
+      ],
+      "gate": true,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/macro.html",
+      "httpStatus": 200,
+      "elapsedMs": 5144,
+      "title": "United States \u00b7 Mastermind",
+      "headings": [],
+      "gate": false,
+      "boundary": "ready",
+      "boundaryFailure": "none",
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/us_stocks.html",
+      "httpStatus": 200,
+      "elapsedMs": 4863,
+      "title": "Stock Dashboard \u00b7 Mastermind",
+      "headings": [],
+      "gate": false,
+      "boundary": "ready",
+      "boundaryFailure": "none",
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/terminal?symbol=NVDA",
+      "httpStatus": 200,
+      "elapsedMs": 16611,
+      "title": "Mastermind Terminal",
+      "headings": [],
+      "gate": false,
+      "boundary": null,
+      "boundaryFailure": null,
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [
+        {
+          "path": "/api/layouts",
+          "status": 401
+        },
+        {
+          "path": "/api/flow",
+          "status": 403
+        },
+        {
+          "path": "/api/flow",
+          "status": 403
+        },
+        {
+          "path": "/api/brain/chart/state",
+          "status": 401
+        },
+        {
+          "path": "/api/brain/chart/state",
+          "status": 401
+        },
+        {
+          "path": "/api/brain/chart/state",
+          "status": 401
+        }
+      ],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/china.html",
+      "httpStatus": 200,
+      "elapsedMs": 5159,
+      "title": "China \u00b7 Mastermind",
+      "headings": [],
+      "gate": false,
+      "boundary": "ready",
+      "boundaryFailure": "none",
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/hk.html",
+      "httpStatus": 200,
+      "elapsedMs": 5106,
+      "title": "Hong Kong \u00b7 Mastermind",
+      "headings": [],
+      "gate": false,
+      "boundary": "ready",
+      "boundaryFailure": "none",
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/sector_central.html#overview",
+      "httpStatus": 200,
+      "elapsedMs": 5485,
+      "title": "Sector Intelligence \u00b7 Mastermind",
+      "headings": [],
+      "gate": false,
+      "boundary": "ready",
+      "boundaryFailure": "none",
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/news.html",
+      "httpStatus": 200,
+      "elapsedMs": 5357,
+      "title": "News Feed \u00b7 Mastermind",
+      "headings": [],
+      "gate": false,
+      "boundary": "ready",
+      "boundaryFailure": "none",
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    },
+    {
+      "route": "/research_screener.html",
+      "httpStatus": 200,
+      "elapsedMs": 2833,
+      "title": "Research Screener \u00b7 Mastermind",
+      "headings": [],
+      "gate": false,
+      "boundary": "ready",
+      "boundaryFailure": "none",
+      "overflow": false,
+      "globalError": false,
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "exception": null
+    }
+  ]
+}

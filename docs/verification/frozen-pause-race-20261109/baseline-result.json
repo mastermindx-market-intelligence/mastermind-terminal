@@ -1,0 +1,29 @@
+{
+  "head": "f57c6c7f4b601999a7e1c3dde29d6687bb473f10",
+  "expectedRed": true,
+  "pytestReturncode": 1,
+  "oracle": "old (0,0) assertion rejects actual (1,0) prepared intent",
+  "ordering": "real prepare ACK -> authenticated owner pause -> one real commit RPC",
+  "result": {
+    "kind": "unavailable",
+    "reason": "inactive"
+  },
+  "effects": [
+    1,
+    0
+  ],
+  "exactFullPreparedRowVerified": true,
+  "modes": [
+    "prepare",
+    "commit"
+  ],
+  "listenAddresses": "",
+  "postgresVersion": 170011,
+  "fixtureStopped": true,
+  "fixtureRoot": "/tmp/mmx-pr973-baseline-jwwi5b62",
+  "sourceReceipts": {
+    "fixture-source.json": "ec4245739e9de7300756a1c02a5c5ce7b07dcd0d43ab0481bc1f8aaed207c0a1",
+    "hit-fixture-source.json": "5ec0995190854b93dd26b88425d353ab3b5098d846e00955d956c694bc9f1caf"
+  },
+  "logSha256": "6e7ae99346ea0b47ea75da26ae451fc4808d70194080ea1001eb824078804870"
+}

@@ -1,0 +1,324 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/drawing-system.spec.ts",
+      "--project=desktop",
+      "--workers=1",
+      "--retries=0",
+      "--grep",
+      "a desktop Path finishes exactly once when its closing double-click has no native dblclick",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3902",
+      "url": "http://127.0.0.1:3902/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "drawing-system.spec.ts",
+      "file": "drawing-system.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a desktop Path finishes exactly once when its closing double-click has no native dblclick",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts",
+                    "line": 2968,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 12746,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.settings-open')\nExpected: \u001b[32m0\u001b[39m\nReceived: \u001b[31m1\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.settings-open')\u001b[22m\n\u001b[2m    14 × locator resolved to 1 element\u001b[22m\n\u001b[2m       - unexpected value \"1\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.settings-open')\nExpected: \u001b[32m0\u001b[39m\nReceived: \u001b[31m1\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.settings-open')\u001b[22m\n\u001b[2m    14 × locator resolved to 1 element\u001b[22m\n\u001b[2m       - unexpected value \"1\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts:3054:48",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts",
+                      "column": 48,
+                      "line": 3054
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 3052 |\u001b[39m   \u001b[36mawait\u001b[39m committedPaths\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mdispatchEvent(\u001b[32m\"dblclick\"\u001b[39m\u001b[33m,\u001b[39m { bubbles\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m\u001b[33m,\u001b[39m cancelable\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m\u001b[33m,\u001b[39m detail\u001b[33m:\u001b[39m \u001b[35m2\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 3053 |\u001b[39m   \u001b[36mawait\u001b[39m expect(committedPaths)\u001b[33m.\u001b[39mtoHaveCount(\u001b[35m1\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 3054 |\u001b[39m   \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m\".settings-open\"\u001b[39m))\u001b[33m.\u001b[39mtoHaveCount(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m      |\u001b[39m                                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 3055 |\u001b[39m   \u001b[36mawait\u001b[39m expect(preview)\u001b[33m.\u001b[39mtoHaveCount(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 3056 |\u001b[39m\n \u001b[90m 3057 |\u001b[39m   \u001b[90m// ── Phase 2: magnet off, the unsnapped price path, closing over the seeded drawing again ──\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts",
+                        "column": 48,
+                        "line": 3054
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.settings-open')\nExpected: \u001b[32m0\u001b[39m\nReceived: \u001b[31m1\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.settings-open')\u001b[22m\n\u001b[2m    14 × locator resolved to 1 element\u001b[22m\n\u001b[2m       - unexpected value \"1\"\u001b[22m\n\n\n  3052 |   await committedPaths.first().dispatchEvent(\"dblclick\", { bubbles: true, cancelable: true, detail: 2 });\n  3053 |   await expect(committedPaths).toHaveCount(1);\n> 3054 |   await expect(page.locator(\".settings-open\")).toHaveCount(0);\n       |                                                ^\n  3055 |   await expect(preview).toHaveCount(0);\n  3056 |\n  3057 |   // ── Phase 2: magnet off, the unsnapped price path, closing over the seeded drawing again ──\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts:3054:48"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T18:34:02.604Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts",
+                        "line": 2968,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-red-r1/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts",
+                    "column": 48,
+                    "line": 3054
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "2de9b50e3befc3c5a90d-1d24ec5c0225f67e28bc",
+          "file": "drawing-system.spec.ts",
+          "line": 2967,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-09T18:33:43.430Z",
+    "duration": 37617.886,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

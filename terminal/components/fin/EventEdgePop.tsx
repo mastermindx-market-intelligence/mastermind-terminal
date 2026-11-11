@@ -13,8 +13,9 @@
  * Props: {anchor: DOMRect, intel, zh?, onClose}
  * FE3 wires the click trigger on the trust badge; FE2d owns this file.
  */
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
 import { pick, nextDateCountdown, fmtDate } from "../../lib/finFormat"
+import styles from "./EventEdgePop.module.css"
 
 /* ── types ────────────────────────────────────────────────────────────── */
 
@@ -71,6 +72,18 @@ function tierColor(tier?: string | null): string {
 export default function EventEdgePop({ anchor, intel, zh = false, onClose }: EventEdgePopProps) {
   const popRef = useRef<HTMLDivElement>(null)
 
+  // The nonmodal reader is a normal Tab stop. Return to its opener when dismissal
+  // leaves focus in the reader or on the body; preserve a focused outside action.
+  useEffect(() => {
+    const origin = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const pop = popRef.current
+    return () => {
+      if (origin?.isConnected && (pop?.contains(document.activeElement) || document.activeElement === document.body)) {
+        origin.focus({ preventScroll: true })
+      }
+    }
+  }, [])
+
   // Esc to close — capture phase (z-95 > other Esc handlers)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -106,15 +119,49 @@ export default function EventEdgePop({ anchor, intel, zh = false, onClose }: Eve
   const prose = pick(zh, trustEn, trustZh) || ""
   const tier = dec?.trust_tier
 
-  // Compute position: prefer below the anchor, flip up if insufficient space
-  const POP_W = 320
-  const POP_H_EST = 280
-  const vw = typeof window !== "undefined" ? window.innerWidth : 1200
-  const vh = typeof window !== "undefined" ? window.innerHeight : 800
-  let left = anchor.left
-  let top = anchor.bottom + 8
-  if (left + POP_W > vw - 8) left = Math.max(8, vw - POP_W - 8)
-  if (top + POP_H_EST > vh - 8) top = Math.max(8, anchor.top - POP_H_EST - 8)
+  // Measure the rendered content: translated prose and drivers can be much taller
+  // than the old fixed estimate. Keep the nonmodal popover inside the visible
+  // viewport, including after a resize or a mobile visual-viewport change.
+  useLayoutEffect(() => {
+    const pop = popRef.current
+    if (!pop) return
+    let frame = 0
+    const viewport = window.visualViewport
+    const position = () => {
+      const width = viewport?.width ?? window.innerWidth
+      const height = viewport?.height ?? window.innerHeight
+      const minLeft = (viewport?.offsetLeft ?? 0) + 8
+      const minTop = (viewport?.offsetTop ?? 0) + 8
+      const popWidth = Math.max(0, Math.min(320, width - 16))
+      pop.style.width = `${popWidth}px`
+      pop.style.maxHeight = `${Math.max(0, Math.min(420, height * 0.8, height - 16))}px`
+
+      const popHeight = pop.offsetHeight
+      const maxTop = minTop + Math.max(0, height - 16 - popHeight)
+      const below = anchor.bottom + 8
+      const above = anchor.top - 8 - popHeight
+      const preferredTop = below <= maxTop ? below : above >= minTop ? above : below
+      pop.style.left = `${Math.max(minLeft, Math.min(anchor.left, minLeft + width - 16 - popWidth))}px`
+      pop.style.top = `${Math.max(minTop, Math.min(preferredTop, maxTop))}px`
+    }
+    const schedule = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(position)
+    }
+    position()
+    const observer = new ResizeObserver(schedule)
+    observer.observe(pop)
+    window.addEventListener("resize", schedule)
+    viewport?.addEventListener("resize", schedule)
+    viewport?.addEventListener("scroll", schedule)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+      window.removeEventListener("resize", schedule)
+      viewport?.removeEventListener("resize", schedule)
+      viewport?.removeEventListener("scroll", schedule)
+    }
+  }, [anchor])
 
   // earnings context
   const rawNextDate = ae?.next_date ?? null
@@ -129,11 +176,11 @@ export default function EventEdgePop({ anchor, intel, zh = false, onClose }: Eve
   return (
     <div
       ref={popRef}
-      className="eep-pop"
+      className={`eep-pop ${styles.popover}`}
+      tabIndex={0}
       role="dialog"
       aria-modal="false"
       aria-label={pick(zh, "Event edge details", "事件驱动详情")}
-      style={{ left, top, width: POP_W }}
     >
       {/* trust tier pill — tint formula: one --c drives text, fill and ring */}
       {tier && (

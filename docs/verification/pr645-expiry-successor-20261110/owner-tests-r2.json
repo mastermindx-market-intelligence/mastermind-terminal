@@ -1,0 +1,15 @@
+{
+  "schema": "terminal_pr645_owner_tests_r2.v1",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "vitest",
+    "run",
+    "lib/__tests__/optionsExposureEvidenceOwner.test.ts"
+  ],
+  "exitCode": 0,
+  "seconds": 80.02,
+  "logSha256": "991ff3d2fcb7a6ebafbedb7a33339b855c09dc53bdb6cdf7ee610d5c8c959f7b",
+  "retainedOtherFiles": "focused-tests-r1.log: six other files,127 tests passed"
+}

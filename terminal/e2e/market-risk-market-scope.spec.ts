@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { MARKET_RISK_NOW, marketRiskSourceFixture, riskEnvelopeFixture } from "../lib/__tests__/marketRiskFixture";
+import { selectAppearance } from "./presentationControls";
 
 // Existing local fixture server and actual Oracle overlay. No production/auth proof.
 test.setTimeout(90_000);
@@ -15,9 +16,7 @@ for (const lang of ["en", "zh"] as const) {
         ...marketRiskSourceFixture(), schema: "market_risk/v1", risk_envelope: { ...riskEnvelopeFixture(), market },
       } }));
       await page.goto("/terminal?symbol=NVDA");
-      // This fixture tests the existing CSS theme root, not saved-preference delivery.
-      // Storage alone leaves layout.tsx's server dark attribute unchanged.
-      await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+      await selectAppearance(page, lang, theme);
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       await page.locator(".sig-btn").click();
       const chip = page.getByTestId("market-risk-chip"), summary = chip.locator("summary");

@@ -1,0 +1,64 @@
+{
+  "schema": "terminal.pr1275.prior-packet-preservation.v1",
+  "publishedSource": "3609a9710a09c7ccc8c9fc80c3cc29fedaa3a432",
+  "priorCaptureHead": "ef8e8a8c9d2bf99de13736b025753832ab4b595b",
+  "files": [
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+      "archive": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/desktop-en.png",
+      "bytes": 72928,
+      "sha256": "5d4665ced5778a21f3da8a8b2c9cf064b85084efd79576470a6b0e0f75eb6de3",
+      "gitBlob": "dc4b4972fcbb16132ddd06b304910faa2f6c57f7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png",
+      "archive": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/desktop-zh.png",
+      "bytes": 72865,
+      "sha256": "3db4fb349405caac79ae4fd205ca766f9efcf17e1e747d1059623147adf6bf0d",
+      "gitBlob": "e33505e525d33207a8c8f9af05876a02d23e788c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png",
+      "archive": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/tablet-en.png",
+      "bytes": 35568,
+      "sha256": "185a3840432d2288822bbc8d56f6ac89a1f82cb32a22b9ae9ce49ca62a8bfd13",
+      "gitBlob": "71d1e677afaaa7b14afe71c61a927cabc93d1580"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png",
+      "archive": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/tablet-zh.png",
+      "bytes": 34375,
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833",
+      "gitBlob": "06b076e3edd05cdf949202efb3aa3809c95df6a4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png",
+      "archive": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/mobile-en.png",
+      "bytes": 21970,
+      "sha256": "f48d6b1bedb2fa5bb808e3ab6dcdb2b128f108c863859f7a3b6a9fb044394b7c",
+      "gitBlob": "b2cfe3686a8483fa138be62c277a1b360e927e17"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+      "archive": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/mobile-zh.png",
+      "bytes": 22687,
+      "sha256": "51e70e33bb4eb0a7775c8b79086de33a440f918deaf1ddf15321b27370641b9c",
+      "gitBlob": "19e07a3dc9fce6d780c1e48fef20ef13b6d42456"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+      "archive": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/EVIDENCE.yml",
+      "bytes": 4373,
+      "sha256": "6c4ce259c59bf138592821d92f0500f95eb72a78353b01b4d064ba83174bf652",
+      "gitBlob": "26c391e0d0e22f9a7d4704d510f310dc2701c7d6"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/FIXTURE.json",
+      "archive": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/FIXTURE.json",
+      "bytes": 66679,
+      "sha256": "777ef9eb32d83780ecdb74bbc97a811263c6c51e53fa3ba9c7426af9d7a33728",
+      "gitBlob": "c734d88c4fea6c8b1a8eba5d30797dee899b73b4"
+    }
+  ],
+  "existingHistoryUnchanged": true
+}

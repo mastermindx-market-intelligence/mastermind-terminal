@@ -144,7 +144,10 @@ test("directory transfers once to the real company picker and respects composing
   await input.dispatchEvent("compositionend", { data: "期权" });
   await directory(page).locator(".shared-directory-footer button").click();
   await expect(directory(page)).toHaveCount(0); await expect(page.getByRole("dialog")).toHaveCount(1);
-  await expect(page.getByRole("dialog")).toHaveAccessibleName("Search companies");
+  // The accepted shared search now contains Companies and Tools. Keep the
+  // handoff's Companies scope explicit instead of asserting its retired title.
+  await expect(page.getByRole("dialog")).toHaveAccessibleName("Search companies and tools");
+  await expect(page.getByRole("dialog").getByRole("button", { name: /^Companies/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("dialog").getByRole("combobox")).toBeFocused();
   await page.keyboard.press("Escape"); await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");

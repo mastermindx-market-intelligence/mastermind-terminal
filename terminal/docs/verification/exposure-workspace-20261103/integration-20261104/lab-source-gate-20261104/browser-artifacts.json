@@ -1,0 +1,1082 @@
+[
+  {
+    "set": "original-red",
+    "path": ".last-run.json",
+    "sha256": "253498565b3c7987b7164ec0671cddb01920d7dd1ba8fbedb8e443cdf6313387",
+    "bytes": 145,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-before-20261104/.last-run.json"
+  },
+  {
+    "set": "original-red",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md",
+    "sha256": "f88def23f2999c73ad00ae57e86012f4c2ebcb9f4421f2fe9e9fa1e95f8727fa",
+    "bytes": 17516,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-before-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md"
+  },
+  {
+    "set": "original-red",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/test-failed-1.png",
+    "sha256": "2056814af1535a631f69320dbcec98926d04cf07d77cd9b62093924c1ea19d76",
+    "bytes": 169143,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-before-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/test-failed-1.png"
+  },
+  {
+    "set": "original-red",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "15413b724b3d73bfa96e0761ab924906936146c82717680452b9aa30a3d47bde",
+    "bytes": 1056074,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-before-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip"
+  },
+  {
+    "set": "original-red",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md",
+    "sha256": "c93d1b233bb67b51f92fc4510e9b1e62042cd468f5ae44e6270fe1735efe57c7",
+    "bytes": 17511,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-before-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md"
+  },
+  {
+    "set": "original-red",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/test-failed-1.png",
+    "sha256": "611fb4074282fffb3930de3d958fb9490f0b76aa18fac602468ee41429c0b4df",
+    "bytes": 169149,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-before-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/test-failed-1.png"
+  },
+  {
+    "set": "original-red",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "32b91c4e3761c6072da0c96d6e61e36ced2ea672aff611be21049b2f7085f610",
+    "bytes": 958761,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-before-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": ".last-run.json",
+    "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "bytes": 45,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/.last-run.json"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-desktop/gamma-en-dark.png",
+    "sha256": "79fd09e5cecec24de3af89cb296fb3218add8b2c843d7b5139bf3ce450c9ba38",
+    "bytes": 76944,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-desktop/gamma-en-dark.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-desktop/trace.zip",
+    "sha256": "e48e44bfe5b1211207fd2a79a15b0fb9bc6d10b6c16d8740bde9dbf32a47487b",
+    "bytes": 927467,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/gamma-en-dark.png",
+    "sha256": "b8304ddcab11eba5d52b6e2684d0d3436fd01cedd24c3ed6d713071896cade38",
+    "bytes": 74279,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/gamma-en-dark.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/trace.zip",
+    "sha256": "fe4648a6811142cb86ea89385dde5bc98a1abd73a2eb11144be609eede506ebc",
+    "bytes": 993844,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-tablet/gamma-en-dark.png",
+    "sha256": "7e7d2d788c831155c938eb687231502096b785077726950446989e082903c74a",
+    "bytes": 77335,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-tablet/gamma-en-dark.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-tablet/trace.zip",
+    "sha256": "319a5c3192640a3584c6a7b06e5b9d33ee7548be049a5bf0a9186e2ee8dfd87b",
+    "bytes": 1048002,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-tablet/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-desktop/gamma-zh-light.png",
+    "sha256": "d3f084262bcd1cd25bfc6f50d5fed384408343b90a2641567e8f6ff5754f4e32",
+    "bytes": 82490,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-desktop/gamma-zh-light.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-desktop/trace.zip",
+    "sha256": "62259532e8843749e06d9c53b73e2534187eedb385cd995a7fa413030cc6f03c",
+    "bytes": 1257688,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/gamma-zh-light.png",
+    "sha256": "1b69f2c0cdb17fc5a51738d89992f9ef9979673f8ddc40b6b97c6ecf3c9f79ff",
+    "bytes": 81885,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/gamma-zh-light.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/trace.zip",
+    "sha256": "cb60368283a026968038f7593df6860935538f28f5cfc6087723f9317f738f94",
+    "bytes": 1215692,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-tablet/gamma-zh-light.png",
+    "sha256": "80b97df84063098ab973db22813fbb4d9aea91718482f1637d844eb00210a337",
+    "bytes": 85887,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-tablet/gamma-zh-light.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-tablet/trace.zip",
+    "sha256": "91f95d05b36a99829b1d8f2fd945f0f0f7377c347f44868999f02f4a8fa09ba7",
+    "bytes": 1192607,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-tablet/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-desktop/gamma-en-light.png",
+    "sha256": "31b44534d4dcd0dab927b02a66e9ef5cee3f148968f71254023a1d499b6c2c49",
+    "bytes": 76430,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-desktop/gamma-en-light.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-desktop/trace.zip",
+    "sha256": "805ba81a0c3afa909abcd7d4a3f1b37d272695f2350d530f656853b5db54e634",
+    "bytes": 1297175,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-mobile/gamma-en-light.png",
+    "sha256": "e0a62b317eb05c093febb8619c4882eeb44e0cb5cce377685c23a3804381547d",
+    "bytes": 73122,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-mobile/gamma-en-light.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-mobile/trace.zip",
+    "sha256": "e554fddd78e52168288b500ca0f10aef44881121b72a48f913ef605e37f3a5ef",
+    "bytes": 1778144,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-mobile/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-tablet/gamma-en-light.png",
+    "sha256": "9ddcfcf730191d9d788edee4ab291efd45dfcfe1d422a967c9af778c20e203a5",
+    "bytes": 76727,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-tablet/gamma-en-light.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-tablet/trace.zip",
+    "sha256": "0b68f00832ff5279a0a48be16a4c7d3c3fb10d36ecd4e82d33494d1f77f310d7",
+    "bytes": 1222696,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-tablet/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-desktop/gamma-zh-dark.png",
+    "sha256": "e8851460a2d4a2f47bd914a59be1e7ada3db55725450fc2af0696d90181f6c8e",
+    "bytes": 83013,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-desktop/gamma-zh-dark.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-desktop/trace.zip",
+    "sha256": "2e8fe66640cb4d5ec412b670d0ab14f15c1851f13fdebbf1199e220d1c79c989",
+    "bytes": 829176,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-mobile/gamma-zh-dark.png",
+    "sha256": "d82e042c657e781d90361505fc20fb7704b912a79c5f03363737110fdfce47e3",
+    "bytes": 81831,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-mobile/gamma-zh-dark.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-mobile/trace.zip",
+    "sha256": "af3e3bc00518d36ecf66bab8cefb529640c59eefbd85d72b60ce5c7f874a4b07",
+    "bytes": 1061290,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-mobile/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-tablet/gamma-zh-dark.png",
+    "sha256": "b73e634e40af8c906bf51eca1232d83064ae5376eb02153e946cdb0e07b83b80",
+    "bytes": 86361,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-tablet/gamma-zh-dark.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-tablet/trace.zip",
+    "sha256": "4416175513f3f6dce76e84debdddd85a56ffca45ab56dd5c09c91bdb30f9397b",
+    "bytes": 978508,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-tablet/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "b6580c9b2c2d34084ee4a55cea78c450f57dc30e7d902d57cab4a884ccd9976e",
+    "bytes": 1009080,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png",
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png",
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip",
+    "sha256": "65f07aab77a2b9e5b85e65fbb7dcbad1929e0c0542e1db66f9260412450cc9ce",
+    "bytes": 1062320,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png",
+    "sha256": "b9864092209e6779d9a0b9d1d256f7bad9b7d8af5fb6a371cd61bb3194b9ba4c",
+    "bytes": 40043,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png",
+    "sha256": "b10a5ed5ac69190dcf778fd989583d48f1ac25b42513fd8b68b3e7a3ba035e77",
+    "bytes": 139687,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip",
+    "sha256": "3e34876abfaa0a8aa10e0ae1bcb5d4a0a04d91a55885ce0e13309a67e9a47ceb",
+    "bytes": 1038627,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png",
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png",
+    "sha256": "25325d218bd897e33fa984da538be87db7a96561b384e057648892e87d6c8bbe",
+    "bytes": 145455,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png",
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png",
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "36199c30fc3f6066295b983fc879d1e0b7f644467e2f15ee10073b47136248dd",
+    "bytes": 930898,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png",
+    "sha256": "b9864092209e6779d9a0b9d1d256f7bad9b7d8af5fb6a371cd61bb3194b9ba4c",
+    "bytes": 40043,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png",
+    "sha256": "b10a5ed5ac69190dcf778fd989583d48f1ac25b42513fd8b68b3e7a3ba035e77",
+    "bytes": 139687,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip",
+    "sha256": "4bbdd1b00a4e551dd24b13417fb44527455e255d29e7c7c411303447e81a447c",
+    "bytes": 1017177,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png",
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png",
+    "sha256": "25325d218bd897e33fa984da538be87db7a96561b384e057648892e87d6c8bbe",
+    "bytes": 145455,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip",
+    "sha256": "2fd31b295e5220544223e4152bd9c6cc265ce7954489915bb7c40b3ceff72575",
+    "bytes": 1038870,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png",
+    "sha256": "1ce56c8f79cd5bade3c5bb7b8ac5610121ba15d7f3fab5c5070961440e910a7f",
+    "bytes": 88535,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip",
+    "sha256": "dc7f7ecef2d8af47e3f98a3eb1cfe050083aef157b3f963c2c950f94f4842975",
+    "bytes": 1013821,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png",
+    "sha256": "5b76c191f55c1ed844f963f29f2221164f1f06da9628abc3239485e0b3cfd090",
+    "bytes": 103727,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip",
+    "sha256": "87cc4cd0e588772945e10e7b2e95032e77cc167b70836ae6f3bc91c4bb22b0eb",
+    "bytes": 1140415,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png",
+    "sha256": "a36fe641e5f9b311d9b08816d66256f82dc8eb566a05cb6668b5586264dddbcc",
+    "bytes": 103098,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip",
+    "sha256": "1e4e945ff3153eae3c5365809185aabdb7e5f6be38bed00e7286e73975553f6b",
+    "bytes": 1012601,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png",
+    "sha256": "92cf822a357e3a91f7f39786eb35939b12bef6d14b0c41917213739b5da0106d",
+    "bytes": 39780,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip",
+    "sha256": "3ff41097a19a90baae956b5d41e82ce62f88d4b71bc2c251fce184cf2615de45",
+    "bytes": 772960,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png",
+    "sha256": "ccb53a7e00b21b607ca5f6ea27586920e6adc8b726db5ff6f157ecaa3a8ed5c9",
+    "bytes": 39868,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip",
+    "sha256": "5e7ead261d5359d711560bb465947185e2dbe7203bb2a0e6b81090ee67e3e0f6",
+    "bytes": 815221,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png",
+    "sha256": "ddd7a6ef30d769fa67a027ce367d84b0f91d2c9fcfca5e749e739fa5f260bdc7",
+    "bytes": 40218,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png"
+  },
+  {
+    "set": "original-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip",
+    "sha256": "dc76171987554396ff4b95411a5b0d19f9c10031c306876bf67cb558d9017fe9",
+    "bytes": 801208,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-lab-source-after-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": ".last-run.json",
+    "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "bytes": 45,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/.last-run.json"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/exposure-entry.png",
+    "sha256": "c620079aae55785af12b0da1532942a3ee0583f6b741afb4911fbcb68be66cd2",
+    "bytes": 264830,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/exposure-entry.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/history-controls.png",
+    "sha256": "01e1c5da12534a0ac2d33745a5aac7762ce3c189a89b5f54c8584b7cc83370dd",
+    "bytes": 236474,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/history-controls.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-details.png",
+    "sha256": "1fae26ff003244e805aec5c32d2626f77c1e3ea7a7d4c4a2cd63f5d2e1b6e773",
+    "bytes": 273449,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-details.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-passport.png",
+    "sha256": "a3fe86673735bc00c1bdaa6de61c5254a934e31be2383048ef81b8f96fcfa4b2",
+    "bytes": 220821,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-passport.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/trace.zip",
+    "sha256": "0d58e9c8298930b2706ae951ec1585678316c4838bb3b719c8bbfa850500acc1",
+    "bytes": 3523606,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/exposure-entry.png",
+    "sha256": "aa1afeec5caad0bb176ab618badc0823a02e9018e2a2771e94cf362771a1ec54",
+    "bytes": 105884,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/exposure-entry.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/history-controls.png",
+    "sha256": "5ffffdcfdaaa4719ff23b9b9c8654dcbe6a634ddd12ac5dde51b475dd5d5d929",
+    "bytes": 108913,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/history-controls.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-details.png",
+    "sha256": "6189ee7699786b7569fda9bf7054afffc20303fb81a865282dbb57db47cfe084",
+    "bytes": 116281,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-details.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-passport.png",
+    "sha256": "fd2b151c618fda3027901250815b4b64bb5a6e247de6ee0b0f312bd13329790a",
+    "bytes": 111708,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-passport.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/trace.zip",
+    "sha256": "b4c6ea08c2318de3a0f5a0d0140769dab3243be2f8299338c72f8f1f4ae0b60a",
+    "bytes": 3033965,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/exposure-entry.png",
+    "sha256": "c0b586f5e5614dd6711e2631ddcae4f5e99082c073da7b152a8c01a6da6c02fe",
+    "bytes": 214459,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/exposure-entry.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/history-controls.png",
+    "sha256": "fc49f24121afce3e7db10f509af7fd62cbb17e52feac61dbd054cabf476b644b",
+    "bytes": 186977,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/history-controls.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-details.png",
+    "sha256": "3f76db0cfe3f0b4d377359b679cc1f8b2b2f8d773eec1d8de1c2dbe5d84ebca3",
+    "bytes": 184542,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-details.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-passport.png",
+    "sha256": "fc128e91f0b7de11b8c458916f4371abc4f2ce3066b49214e289b8500a698d85",
+    "bytes": 184508,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-passport.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/trace.zip",
+    "sha256": "be8dd496c39c07037329d776aa1bb036eb5aae42c26f9e5e6598db6460457e58",
+    "bytes": 2329201,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-desktop/gamma-en-dark.png",
+    "sha256": "79fd09e5cecec24de3af89cb296fb3218add8b2c843d7b5139bf3ce450c9ba38",
+    "bytes": 76944,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-desktop/gamma-en-dark.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-desktop/trace.zip",
+    "sha256": "00ef00729f7d1c56b3f9f4b80ce537a90e7beb2b7f5921f210a0b0a79827abdf",
+    "bytes": 943701,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/gamma-en-dark.png",
+    "sha256": "dc65350d1d27ada42d07ce6e8d67c390b270b327a64a5001fd50943c4166f12f",
+    "bytes": 70355,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/gamma-en-dark.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/trace.zip",
+    "sha256": "135e8b6b6a36ff3f44ff958b37d07bca9f4fa7d6150235043990fe5a0757d21b",
+    "bytes": 978904,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-tablet/gamma-en-dark.png",
+    "sha256": "7e7d2d788c831155c938eb687231502096b785077726950446989e082903c74a",
+    "bytes": 77335,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-tablet/gamma-en-dark.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-tablet/trace.zip",
+    "sha256": "6faa6ee95dfe2368725291c41db6eadb0212c49683255d08b5491f21d562393c",
+    "bytes": 1070846,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-desktop/gamma-zh-light.png",
+    "sha256": "d3f084262bcd1cd25bfc6f50d5fed384408343b90a2641567e8f6ff5754f4e32",
+    "bytes": 82490,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-desktop/gamma-zh-light.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-desktop/trace.zip",
+    "sha256": "451316149a54312ead1c72620a473caf76657d2f45636709343ff72685c728b6",
+    "bytes": 1165516,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/gamma-zh-light.png",
+    "sha256": "576985cb088570ca6282cb27c32df98d125779b2e283d2d06a535d85c31824eb",
+    "bytes": 79306,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/gamma-zh-light.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/trace.zip",
+    "sha256": "1c4ca6c4022c072e7b5c2a752796c922e84ea5d18359df50d8a5c88b2147ad0d",
+    "bytes": 1243192,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-tablet/gamma-zh-light.png",
+    "sha256": "80b97df84063098ab973db22813fbb4d9aea91718482f1637d844eb00210a337",
+    "bytes": 85887,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-tablet/gamma-zh-light.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-tablet/trace.zip",
+    "sha256": "438013bf50885a3dd4530f383c785865dbb3e6bf697ecff834c16218445c2380",
+    "bytes": 1506093,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-desktop/gamma-en-light.png",
+    "sha256": "31b44534d4dcd0dab927b02a66e9ef5cee3f148968f71254023a1d499b6c2c49",
+    "bytes": 76430,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-desktop/gamma-en-light.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-desktop/trace.zip",
+    "sha256": "fda52b2aa09e689f480c47db3d1bda3847534b0951bd3d0af221005a2e3f4e08",
+    "bytes": 1153463,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-mobile/gamma-en-light.png",
+    "sha256": "92084897f3a8bb30c17939a3d3b3a7a3c6ddd4b62ee6e6954444086c9fcb8a39",
+    "bytes": 67246,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-mobile/gamma-en-light.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-mobile/trace.zip",
+    "sha256": "27783ca1541948ecc2f72002ada9b12611a3444e8899cabcf45f0091ea8dcc08",
+    "bytes": 1172794,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-tablet/gamma-en-light.png",
+    "sha256": "9ddcfcf730191d9d788edee4ab291efd45dfcfe1d422a967c9af778c20e203a5",
+    "bytes": 76727,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-tablet/gamma-en-light.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-9756a-xact-host-consumer-en-light-tablet/trace.zip",
+    "sha256": "a2ce78693c3ad4fbe0775630b7679a61cfd3ffbcd023b703da2a4d045e4c4cc4",
+    "bytes": 1468080,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-9756a-xact-host-consumer-en-light-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-desktop/gamma-zh-dark.png",
+    "sha256": "e8851460a2d4a2f47bd914a59be1e7ada3db55725450fc2af0696d90181f6c8e",
+    "bytes": 83013,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-desktop/gamma-zh-dark.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-desktop/trace.zip",
+    "sha256": "794a04d196cb790cd46c59d891b79a41c992934a74d03dc591db3b0feb13a6db",
+    "bytes": 802889,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-mobile/gamma-zh-dark.png",
+    "sha256": "ae1b2f665f5d804dfb9d57a9fe6fea56720f677ac907703b8e88f9e94d07b47e",
+    "bytes": 81827,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-mobile/gamma-zh-dark.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-mobile/trace.zip",
+    "sha256": "b653b1e623bc99560145d6afc5bcb20e34f9fd111dcacba84fddc0df89b1e0ef",
+    "bytes": 1066590,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-tablet/gamma-zh-dark.png",
+    "sha256": "b73e634e40af8c906bf51eca1232d83064ae5376eb02153e946cdb0e07b83b80",
+    "bytes": 86361,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-tablet/gamma-zh-dark.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-tablet/trace.zip",
+    "sha256": "6f56ab042025fe4cec44cec4fe9d9a55445fdb4ba33dd389ff6da947827ed05d",
+    "bytes": 891818,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-reported-gamma-e6130-exact-host-consumer-zh-dark-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "5ca8a296a3586d63b9343089215d899d26c55dce6c946416f42a97313ed81bb1",
+    "bytes": 944370,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png",
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png",
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip",
+    "sha256": "15eb32154930e8c1f6b8955cbce3890a2dd287de41474b42fecde2c774d00575",
+    "bytes": 1007055,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png",
+    "sha256": "0386eb85003c31bcebd1ddf56be47245932f766cb271304b4d737b856c274d46",
+    "bytes": 40033,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png",
+    "sha256": "69f7ac621eb123a5d34baa6b3b184539cfe9c9211a40586fad02144d9f67e777",
+    "bytes": 42331,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip",
+    "sha256": "4d0f90a874ea1410ba4bf286960454e9fb233ca3dccd7317315075cca008b0ec",
+    "bytes": 1124719,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png",
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png",
+    "sha256": "5ec84ce24f45a4c212a8d50d1c7411790cf0614a33cdf173d4f8af12ac85ad37",
+    "bytes": 86437,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png",
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png",
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "a59cf9a7e246db33db5a2ea204b7dcf88c387198fb5ce7656a9c348b47685846",
+    "bytes": 994206,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png",
+    "sha256": "0386eb85003c31bcebd1ddf56be47245932f766cb271304b4d737b856c274d46",
+    "bytes": 40033,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png",
+    "sha256": "69f7ac621eb123a5d34baa6b3b184539cfe9c9211a40586fad02144d9f67e777",
+    "bytes": 42331,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip",
+    "sha256": "c598db4428e5a1e478d9ca0342c1ec396a19b81e7a43dcc013997c5cdf77d453",
+    "bytes": 1020493,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png",
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png",
+    "sha256": "5ec84ce24f45a4c212a8d50d1c7411790cf0614a33cdf173d4f8af12ac85ad37",
+    "bytes": 86437,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip",
+    "sha256": "606ee64a6af9765e8d297924a95bddaa942595eee8409b8551350504a16f26f0",
+    "bytes": 1064367,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png",
+    "sha256": "1ce56c8f79cd5bade3c5bb7b8ac5610121ba15d7f3fab5c5070961440e910a7f",
+    "bytes": 88535,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip",
+    "sha256": "609b3e33369f0f4382221e6c41913becf1ca0a1808e52c4fb94b81b9c1105775",
+    "bytes": 1119894,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png",
+    "sha256": "ad4ca288dec696445f30ec73039acdc3e44ba70d0dbe536a64383e1673077a88",
+    "bytes": 42953,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip",
+    "sha256": "e55dbfc0882839785216ea7c769add3c6665060fc4bb7af4555e31871d2bf7fb",
+    "bytes": 1121279,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png",
+    "sha256": "10fd463611114e7015a101e9de602855beabdfc3cb51e740fad1a8b5a0553bfd",
+    "bytes": 93534,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip",
+    "sha256": "68ab13b31b57e63624d7fc876814f7eb607e14fed74ef5a78248fc599a876ab2",
+    "bytes": 1066652,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png",
+    "sha256": "92cf822a357e3a91f7f39786eb35939b12bef6d14b0c41917213739b5da0106d",
+    "bytes": 39780,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip",
+    "sha256": "a580b5c0db8053a28d484f6677690c55763204a92eae19984b77f0b65654fb5f",
+    "bytes": 697099,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png",
+    "sha256": "471affc361925c8fd47b39c8c1eb887176524cae55e6b77be4f422031d99ad7a",
+    "bytes": 39858,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip",
+    "sha256": "9d5350face51582af4ac2ced835acd77b215e7a29a6feaa45690f33b30d68578",
+    "bytes": 749201,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png",
+    "sha256": "ddd7a6ef30d769fa67a027ce367d84b0f91d2c9fcfca5e749e739fa5f260bdc7",
+    "bytes": 40218,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png"
+  },
+  {
+    "set": "composed-green",
+    "path": "options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip",
+    "sha256": "511e8608020f05b83f50653c70cc94bb81f7e87474d779e98bc06065254edc48",
+    "bytes": 804326,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "sector-exposure-depth-retu-6e21f-ting-appearance-preferences-desktop/trace.zip",
+    "sha256": "c88057a45e2d2e5e5a7ff7c71ea9b89e3aeef939de2e40568068623ff88881cf",
+    "bytes": 1115880,
+    "committed": true,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-desktop/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "sector-exposure-depth-retu-6e21f-ting-appearance-preferences-mobile/trace.zip",
+    "sha256": "8ae2f8b26dc068e0e4ecd3a28adb342eebb7b04620a1a34655084ad2c855c2b0",
+    "bytes": 1194311,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-mobile/trace.zip"
+  },
+  {
+    "set": "composed-green",
+    "path": "sector-exposure-depth-retu-6e21f-ting-appearance-preferences-tablet/trace.zip",
+    "sha256": "132341f464becc082cb88037230d211ac1d6682be6c8ee6702a86f5531977633",
+    "bytes": 1195982,
+    "committed": false,
+    "retainedNativePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-lab-composed-final-20261104/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-tablet/trace.zip"
+  }
+]

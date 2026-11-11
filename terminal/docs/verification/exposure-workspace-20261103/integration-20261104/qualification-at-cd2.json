@@ -1,0 +1,69 @@
+{
+  "applicationSourcesUnchangedSinceFirstBrowserRun": true,
+  "browser": {
+    "desktopRecovery": {
+      "failed": 0,
+      "passed": 12,
+      "retries": 0,
+      "workers": 1
+    },
+    "first": {
+      "failed": 5,
+      "passed": 166,
+      "retries": 0,
+      "total": 171
+    },
+    "ladderGuard": {
+      "chartPrewarm": false,
+      "failed": 0,
+      "passed": 3
+    }
+  },
+  "executionReason": "PRINCIPAL_JUDGMENT and UNIQUE_APPROVED_ACCESS for source/evidence integration; separable read-only recovery adjudicated.",
+  "inputs": {
+    "exposure": "6d6cdc727b9e8d0d70af23d8b0caa239c6304b5b",
+    "options": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+    "protected": "cd2a335f8f8fcf4fa947aa8a47f7dbf5748b2fdc"
+  },
+  "nextProtectedBase": "4df7aad16ea775ad8112858a5095210c076efe08",
+  "packets": [
+    {
+      "cases": 114,
+      "packet": "gex-levels-heatmap-load-failure",
+      "receipt": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/options-combined-cd2-20261104/capture-receipt.json",
+      "sha256": "6e40cbfa32db76aecd15eda6c8b2b117f1863356239feb5c2e651aa9d5ea6fea"
+    },
+    {
+      "cases": 126,
+      "packet": "eod-heatmap-flowdesk-load-failure",
+      "receipt": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/options-combined-cd2-20261104/capture-receipt.json",
+      "sha256": "bff35e1f15f3ef3d007a6387b7a150aa12af30bde030a9197daf937843365319"
+    }
+  ],
+  "remaining": "Qualify later Research Lab source; integrated Git candidate, required hosted CI and release/production remain distinct.",
+  "schema": "terminal.options_integration_qualification.v1",
+  "sourceEntries": 2963,
+  "sourceLaw": "700eef54bca4a2dc4e30d94a6b30dcfa733ad57c",
+  "takeover": "Current Chairman-assigned session resumed original operation after process census found no live preview writer; inherited edits retained.",
+  "typescript": {
+    "default": "FAIL: existing generated login PageProps validator",
+    "sourceOnly": "PASS"
+  },
+  "unit": {
+    "evidenceRecovery": {
+      "failed": 0,
+      "passed": 31
+    },
+    "focusedState": {
+      "failed": 0,
+      "passed": 264
+    },
+    "initialFull": {
+      "failed": 7,
+      "passed": 18581,
+      "skipped": 47,
+      "todo": 4
+    }
+  },
+  "vi": "Historical sealed operation restored; 58 declared dependencies unchanged; not a new composed-base run"
+}

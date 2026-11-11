@@ -1,0 +1,158 @@
+{
+  "schema": "catalyst_opportunity.evidence_inspection_receipt.v1",
+  "observed_at": "2026-10-18T06:24:50.844216+00:00",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pr": 1038,
+  "workspace_operation": "catalyst-opportunity-terminal-e2e-20261017",
+  "capability": "BUILT_NOT_PROVEN",
+  "source_publication": "LOCAL_UNCOMMITTED",
+  "law_pin": "mastermindx-market-intelligence/Mastermind@ef4be2f5c9b0b82fc11be83f03cf7bcdb8cea6f2",
+  "local_source_files": [
+    {
+      "path": "terminal/components/catalyst-opportunity/CatalystOpportunity.module.css",
+      "sha256": "dc5602475dd9750ddbbaf6c12900afcdeff965de6db2231b5332e0a888e52817",
+      "bytes": 13682
+    },
+    {
+      "path": "terminal/components/catalyst-opportunity/DefenseFactEvidence.tsx",
+      "sha256": "38f005e96f836dc96b871de47c9eabaea3d65d12718e29c8eeff549ca2b7201f",
+      "bytes": 3072
+    },
+    {
+      "path": "terminal/components/catalyst-opportunity/DefenseResearchPanel.tsx",
+      "sha256": "d62576fedcf923670a2ba0ac9c4b0f34a3c9204d64883a1fec5627de564840d6",
+      "bytes": 6870
+    },
+    {
+      "path": "terminal/components/catalyst-opportunity/CatalystOpportunityWorkspace.tsx",
+      "sha256": "4497e198e190727e7ff10d8e813b1b08c211dd753b581f333652486e103cba22",
+      "bytes": 3466
+    },
+    {
+      "path": "terminal/components/catalyst-opportunity/DefenseContextWorkspace.tsx",
+      "sha256": "4d33ccabe9d7622c46d8ea185f0eab3fe0f7d90ce01e39b9f2ed5f7429ec59a1",
+      "bytes": 2321
+    },
+    {
+      "path": "terminal/lib/catalystDefenseEvidence.ts",
+      "sha256": "b68c4e03d0b49e43ea52bfe216a9377d20db04285dcc546b0d7c977025a7787c",
+      "bytes": 12132
+    },
+    {
+      "path": "terminal/lib/catalystDefenseLex.ts",
+      "sha256": "a542816ef2007c20e5a509f4cd61c306d2524e893a3041bfb70c441c7361879b",
+      "bytes": 6522
+    },
+    {
+      "path": "terminal/lib/__tests__/catalystDefenseEvidence.test.ts",
+      "sha256": "4be9ef62ffef36ede730bb25d729ac3d50f7fe4d0a6b0d7a217b06b2fdb5e6aa",
+      "bytes": 6761
+    },
+    {
+      "path": "terminal/lib/__tests__/catalystDefenseView.test.tsx",
+      "sha256": "1f42e56e0bf80ac22597c6dc0ce3e41600cedf20dd3534a3c1e73b2592af51c1",
+      "bytes": 11423
+    },
+    {
+      "path": "terminal/e2e/catalyst-opportunity.spec.ts",
+      "sha256": "eed17a8376286915784b3addb83352729f64f928f4d4260a7c846a1a4a8a3261",
+      "bytes": 13930
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-unit-final.log",
+      "sha256": "3db598112cc39c123986684cad5c889e2acf03b478b545a63b16f48345b38242",
+      "bytes": 855
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-browser.log",
+      "sha256": "a74a4ccb34b5ff06a9857f8038f9ab8ff4a870e147c68308506776e3841cdf36",
+      "bytes": 5085
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-final-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-final-eslint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-plain-language.log",
+      "sha256": "7982ffb60b119a7dc5ee3554a6eea9f09285797255f5a0248c9fa10d14332fe8",
+      "bytes": 4202
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log",
+      "sha256": "5c4f47c0f50ae2bd649bd7aa0251766d49369d53a1a610ce8761ac1644304d63",
+      "bytes": 5176
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-revocation-red.log",
+      "sha256": "c2adf48149c686dd21d095659f6c64be9aca646f36537579222e4a9063030530",
+      "bytes": 12002
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-desktop-en-margin.png",
+      "sha256": "cd736caf2705488a851dcd7c80037aa725006d06029590ea6f110ceb5646b828",
+      "bytes": 156457
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-mobile-zh-margin.png",
+      "sha256": "f6666483e398550914f595de43ad50bc7b8d8ec32e397a66f924140191d72f31",
+      "bytes": 74583
+    }
+  ],
+  "owner_fixture_sha256": "7004d843ac28cdc29fc0fa1117823a8e1e2c2bd05ed22dffb9fa49909474a072",
+  "reported_owner_facts": 95,
+  "checks": {
+    "focused_tests": {
+      "passed": 137,
+      "failed": 0
+    },
+    "browser": {
+      "passed": 33,
+      "failed": 0,
+      "sizes": [
+        "1440x900",
+        "820x1180",
+        "390x844"
+      ],
+      "languages": [
+        "en",
+        "zh"
+      ],
+      "proof_scope": "local Chromium, native dark theme, intercepted owner responses and explicit replay clock"
+    },
+    "typecheck_exit": 0,
+    "focused_eslint_exit": 0,
+    "plain_language_exit": 0,
+    "production_build_exit": 0,
+    "whitespace_exit": 0,
+    "initial_security_regression": {
+      "failed": 3,
+      "repaired": true,
+      "signature": "Defense 401/403 left market observations visible"
+    }
+  },
+  "completed_processes": [
+    72772,
+    76630,
+    74146
+  ],
+  "no_duplicate_worker": true,
+  "new_independent_review": "NOT_PERFORMED",
+  "not_proven": [
+    "source publication",
+    "GitHub CI for recovery changes",
+    "deployment",
+    "live entitlement",
+    "wire-level header acceptance",
+    "current market-source freshness",
+    "predictive performance"
+  ],
+  "prior_receipt_scope": "Previous receipts remain historical evidence; touched-file hashes and previous Terminal build/browser claims are superseded by this exact local-source receipt, not retrospectively rewritten."
+}

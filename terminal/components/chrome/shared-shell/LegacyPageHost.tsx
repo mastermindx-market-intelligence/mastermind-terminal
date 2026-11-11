@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import styles from "./legacy-workspace-boundary.module.css";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useSettings } from "@/components/settings/SettingsProvider";
@@ -47,10 +48,15 @@ export default function LegacyPageHost({
   const [retry, setRetry] = useState(0);
   const [status, setStatus] = useState<"loading" | "ready" | "restricted" | "failed" | "changed">("loading");
   const frame = useRef<HTMLIFrameElement>(null);
+  const boundary = useRef<HTMLElement>(null);
+  const boundaryHeading = useRef<HTMLHeadingElement>(null);
+  const recoveryFocus = useRef<HTMLElement | null>(null);
+  const readyFocus = useRef<HTMLElement | null>(null);
   const live = useRef<LiveFrame | null>(null);
   const contextRef = useRef(context);
   const timeout = useRef<number | null>(null);
   const bootstrap = useRef<number | null>(null);
+  const statusRecheck = useRef<{ controller: AbortController; deadline: number } | null>(null);
   const views = useRef(new Map<string, ShellViewState>());
   const previousEntry = useRef<{ key: string; canonical: string } | null>(null);
   const traversal = useRef(false);
@@ -72,6 +78,41 @@ export default function LegacyPageHost({
     timeout.current = null;
     bootstrap.current = null;
   }, []);
+  const cancelStatusRecheck = useCallback(() => {
+    const pending = statusRecheck.current;
+    statusRecheck.current = null;
+    if (!pending) return;
+    window.clearTimeout(pending.deadline);
+    pending.controller.abort();
+  }, []);
+  const finishAttempt = useCallback((current: LiveFrame, next: "failed" | "changed", patch: Partial<FrameDiagnostic>) => {
+    if (live.current !== current) return;
+    // Recovery ends this attempt. A late READY or action from this document
+    // must not replace the recovery screen or act before a fresh admission.
+    current.admitted = false;
+    current.initialized = false;
+    cancelStatusRecheck();
+    clearDeadline();
+    if (document.activeElement === frame.current) recoveryFocus.current = frame.current;
+    diagnose(patch);
+    setStatus(next);
+  }, [cancelStatusRecheck, clearDeadline, diagnose]);
+
+  useLayoutEffect(() => {
+    const pending = status === "ready" || status === "restricted" ? readyFocus : recoveryFocus;
+    const previous = pending.current;
+    pending.current = null;
+    if (!previous) return;
+    const active = document.activeElement;
+    // Only follow focus owned by the disappearing boundary/frame. A newer
+    // focus choice in the shell always wins over an asynchronous response.
+    // Browsers can move focus to body when a still-mounted frame becomes inert.
+    const lostWithFrame = previous === frame.current && previous.inert;
+    if (active !== previous && !(active === document.body && (!previous.isConnected || lostWithFrame))) return;
+    if (status === "ready" || status === "restricted") frame.current?.focus({ preventScroll: true });
+    else boundaryHeading.current?.focus({ preventScroll: true });
+  }, [status]);
+
   const post = useCallback((message: ShellParentMessage) => {
     frame.current?.contentWindow?.postMessage(message, legacyOrigin);
   }, [legacyOrigin]);
@@ -103,7 +144,12 @@ export default function LegacyPageHost({
 
   useEffect(() => {
     const changed = () => setRevision(value => value + 1);
-    const back = () => { traversal.current = true; changed(); };
+    const back = () => {
+      // Next can commit the target entry before this popstate listener runs.
+      // A late event must not arm an unrelated subsequent push.
+      traversal.current = previousEntry.current?.key !== window.history.state?.[ENTRY_KEY];
+      changed();
+    };
     window.addEventListener("popstate", back);
     window.addEventListener("hashchange", changed);
     window.addEventListener(LOCATION_EVENT, changed);
@@ -131,6 +177,7 @@ export default function LegacyPageHost({
   }, [path, params, revision]);
 
   useEffect(() => {
+    cancelStatusRecheck();
     clearDeadline();
     // A new route can render before the committed-location state update lands.
     // Retire the previous transaction without admitting its old document again.
@@ -154,7 +201,10 @@ export default function LegacyPageHost({
       key = crypto.randomUUID();
       window.history.replaceState({ ...(state || {}), [ENTRY_KEY]: key }, "", window.location.href);
     }
-    const restoring = traversal.current;
+    // Next can render the traversed route before its popstate callback runs.
+    // A saved, distinct history-entry ID independently establishes a return.
+    // A fresh push has no saved ID and must not inherit prior scroll or focus.
+    const restoring = traversal.current || (!!previous && previous.key !== key && views.current.has(key));
     traversal.current = false;
     previousEntry.current = { key, canonical };
     if (sameDocument.current === canonical && live.current) {
@@ -178,9 +228,11 @@ export default function LegacyPageHost({
     let gateHttpFailed = false;
     let frameRequested = false;
     timeout.current = window.setTimeout(() => {
-      if (live.current === current) { expired = true; clearDeadline();
-        setDiagnostic(previous => previous.failure === "none" ? { ...previous, failure: "deadline" } : previous);
-        setStatus("failed"); }
+      if (live.current === current) {
+        expired = true;
+        abort.abort();
+        finishAttempt(current, "failed", { failure: "deadline" });
+      }
     }, 15000);
 
     // Check the actual running sibling service on every document navigation.
@@ -193,7 +245,7 @@ export default function LegacyPageHost({
         if (gate.buildId !== SHARED_SHELL_BUILD || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
           || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION
           || gate.registrySha256 !== sharedShellSource.registrySha256 || gate.enabled !== true) {
-          if (live.current === current) { clearDeadline(); diagnose({ failure: "gate-mismatch" }); setStatus("changed"); }
+          finishAttempt(current, "changed", { failure: "gate-mismatch" });
           return;
         }
         if (live.current !== current || !frame.current?.contentWindow) return;
@@ -212,12 +264,11 @@ export default function LegacyPageHost({
       })
       .catch(error => {
         if (error?.name !== "AbortError" && live.current === current) {
-          diagnose({ failure: gateHttpFailed ? "gate-http" : frameRequested ? "frame-navigation" : "gate-network" });
-          setStatus("failed");
+          finishAttempt(current, "failed", { failure: gateHttpFailed ? "gate-http" : frameRequested ? "frame-navigation" : "gate-network" });
         }
       });
-    return () => { abort.abort(); clearDeadline(); };
-  }, [active, canonical, retry, identityKey, legacyOrigin, path, onTitle, clearDeadline, initialize, diagnose]);
+    return () => { abort.abort(); clearDeadline(); cancelStatusRecheck(); };
+  }, [active, canonical, retry, identityKey, legacyOrigin, path, onTitle, clearDeadline, initialize, diagnose, finishAttempt, cancelStatusRecheck]);
 
   useEffect(() => {
     const receive = (event: MessageEvent) => {
@@ -232,15 +283,17 @@ export default function LegacyPageHost({
         const target = resolveSharedShellLink(message.href, current.canonical, window.location.origin, legacyOrigin);
         if (message.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
           || message.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION) {
-          clearDeadline(); diagnose({ failure: "ready-version" }); setStatus("changed"); return;
+          finishAttempt(current, "changed", { failure: "ready-version" }); return;
         }
         if (target.kind !== "legacy" || target.href !== current.canonical) {
-          clearDeadline(); diagnose({ failure: "ready-canonical" }); setStatus("failed"); return;
+          finishAttempt(current, "failed", { failure: "ready-canonical" }); return;
         }
         if (message.contextRevision !== contextRef.current.contextRevision) { initialize(); return; }
         clearDeadline();
         onTitle(message.title || shellPageLabel(path, contextRef.current.locale));
         diagnose({ phase: message.responseKind === "content" ? "ready" : "restricted", failure: "none", childError: "none" });
+        const focused = document.activeElement;
+        readyFocus.current = focused instanceof HTMLElement && boundary.current?.contains(focused) ? focused : null;
         setStatus(message.responseKind === "content" ? "ready" : "restricted");
       } else if (message.type === "VIEW_STATE") {
         views.current.set(current.entry, message.view);
@@ -250,10 +303,10 @@ export default function LegacyPageHost({
         current.requests.add(message.requestId);
         if (current.requests.size > 128) current.requests.delete(current.requests.values().next().value!);
         const target = resolveSharedShellLink(message.href, current.canonical, window.location.origin, legacyOrigin);
-        if (target.kind !== "legacy" && target.kind !== "native") { diagnose({ failure: "navigation-target" }); setStatus("failed"); return; }
+        if (target.kind !== "legacy" && target.kind !== "native") { finishAttempt(current, "failed", { failure: "navigation-target" }); return; }
         if (message.sameDocument) {
           if (target.kind !== "legacy" || new URL(target.href, legacyOrigin).pathname !== path) {
-            diagnose({ failure: "navigation-target" }); setStatus("failed"); return;
+            finishAttempt(current, "failed", { failure: "navigation-target" }); return;
           }
           sameDocument.current = target.href;
           const key = message.mode === "push" ? crypto.randomUUID() : current.entry;
@@ -277,32 +330,55 @@ export default function LegacyPageHost({
           settings.open(message.intent === "billing" ? "billing" : "account");
         else onboarding.open(message.intent);
       } else if (message.type === "ERROR") {
-        clearDeadline(); diagnose({ failure: "child-error", childError: message.code }); setStatus("failed");
+        finishAttempt(current, "failed", { failure: "child-error", childError: message.code });
       }
     };
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, [legacyOrigin, path, router, post, clearDeadline, initialize, onTitle, onContextRequest, settings, onboarding, diagnose]);
+  }, [legacyOrigin, path, router, post, clearDeadline, initialize, onTitle, onContextRequest, settings, onboarding, diagnose, finishAttempt]);
 
   useEffect(() => {
     const visibility = () => {
+      // A new visibility edge supersedes only this frame's outstanding check.
+      // Native navigation and attempt retirement use the same cancellation owner.
+      cancelStatusRecheck();
       const current = live.current;
-      if (!current?.initialized) return;
+      if (!current?.initialized || !current.admitted) return;
       post({ protocol: SHARED_SHELL_PROTOCOL, frameGeneration: current.generation,
         type: "VISIBILITY", visible: document.visibilityState === "visible" });
-      if (document.visibilityState === "visible") {
-        fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin" })
-          .then(async r => r.ok ? r.json() : null)
-          .then(gate => {
-            if (live.current === current && (!gate?.enabled || gate.buildId !== SHARED_SHELL_BUILD || gate.registrySha256 !== sharedShellSource.registrySha256
-              || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
-              || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION)) { clearDeadline(); diagnose({ failure: "gate-mismatch" }); setStatus("changed"); }
-          }).catch(() => { /* The next navigation performs the required admission check. */ });
-      }
+      if (document.visibilityState !== "visible") return;
+      const controller = new AbortController();
+      const ownsCheck = () => statusRecheck.current?.controller === controller
+        && live.current === current && current.admitted && !controller.signal.aborted;
+      const deadline = window.setTimeout(() => {
+        if (ownsCheck()) finishAttempt(current, "failed", { failure: "deadline" });
+      }, 15000);
+      statusRecheck.current = { controller, deadline };
+      let httpFailed = false;
+      fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin", signal: controller.signal })
+        .then(async response => {
+          if (!response.ok) { httpFailed = true; throw new Error("Shared Shell unavailable"); }
+          return response.json();
+        })
+        .then(gate => {
+          if (!ownsCheck()) return;
+          if (gate?.enabled !== true || gate.buildId !== SHARED_SHELL_BUILD || gate.registrySha256 !== sharedShellSource.registrySha256
+            || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
+            || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION) finishAttempt(current, "changed", { failure: "gate-mismatch" });
+        })
+        .catch(error => {
+          if (ownsCheck() && error?.name !== "AbortError")
+            finishAttempt(current, "failed", { failure: httpFailed ? "gate-http" : "gate-network" });
+        })
+        .finally(() => {
+          if (statusRecheck.current?.controller !== controller) return;
+          window.clearTimeout(deadline);
+          statusRecheck.current = null;
+        });
     };
     document.addEventListener("visibilitychange", visibility);
-    return () => document.removeEventListener("visibilitychange", visibility);
-  }, [post, clearDeadline, diagnose]);
+    return () => { document.removeEventListener("visibilitychange", visibility); cancelStatusRecheck(); };
+  }, [post, finishAttempt, cancelStatusRecheck]);
 
   if (!active) return null;
   const title = shellPageLabel(path, context.locale);
@@ -313,18 +389,26 @@ export default function LegacyPageHost({
       data-shared-shell-phase={diagnostic.phase} data-shared-shell-failure={diagnostic.failure}
       data-shared-shell-load={diagnostic.load} data-shared-shell-child-error={diagnostic.childError}>
       {!visible && (
-        <section className="shared-shell-boundary" role={failed ? "alert" : "status"} aria-live="polite">
+        <section ref={boundary} className={`shared-shell-boundary ${styles.boundary}`} role={failed ? "alert" : "status"} aria-live="polite">
+          <div className={styles.surface}>
           <span className="shared-shell-boundary-mark" aria-hidden="true">{failed ? "↗" : "M"}</span>
-          <h1>{status === "changed" ? t("shellRefreshTitle") : failed ? t("shellUnavailableTitle") : t("shellOpening")}</h1>
+          <h1 ref={boundaryHeading} tabIndex={-1}>{status === "changed" ? t("shellRefreshTitle") : failed ? t("shellUnavailableTitle") : t("shellOpening")}</h1>
           <p>{status === "changed" ? t("shellRefreshBody") : failed ? t("shellUnavailableBody") : title}</p>
           {failed ? (
             <div className="shared-shell-boundary-actions">
-              <button type="button" onClick={() => status === "changed" ? window.location.reload() : setRetry(v => v + 1)}>
-                {status === "changed" ? t("shellRefresh") : t("retry")}
+              <button type="button" onClick={event => {
+                if (status === "changed") { window.location.reload(); return; }
+                if (document.activeElement === event.currentTarget) recoveryFocus.current = event.currentTarget;
+                setRetry(v => v + 1);
+              }}>
+                {status === "changed" ? t("shellRefresh") : t("shellRetry")}
               </button>
-              <a href={legacyOrigin + (canonical !== null && isPresentationHref(canonical) ? canonical : path)} target="_blank" rel="noopener noreferrer">{t("shellOpenOriginal")}</a>
+              <a href={legacyOrigin + (canonical !== null && isPresentationHref(canonical) ? canonical : path)} target="_blank" rel="noopener noreferrer">
+                {t("shellOpenOriginal")}<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4 10 14M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5" /></svg>
+              </a>
             </div>
           ) : <span className="shared-shell-progress" aria-hidden="true" />}
+          </div>
         </section>
       )}
       <iframe

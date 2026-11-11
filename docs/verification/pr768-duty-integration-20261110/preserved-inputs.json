@@ -1,0 +1,19 @@
+{
+  "browser": {
+    "changed": [],
+    "inputs": 71
+  },
+  "eod": {
+    "changed": [],
+    "inputs": 32
+  },
+  "gex": {
+    "changed": [],
+    "inputs": 29
+  },
+  "specs": {
+    "changed": [],
+    "inputs": 6
+  },
+  "wholePacketsUnchanged": true
+}

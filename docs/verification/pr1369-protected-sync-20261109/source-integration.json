@@ -1,0 +1,53 @@
+{
+  "head": "230b0f9db6f37f5b37e260d5ce2a1108918fca3e",
+  "mergeExit": 1,
+  "mergeOutput": "Auto-merging terminal/components/workspaces/AnalysisWorkspace.tsx\nAuto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png (HEAD vs. 156c4b3ecfa27b9137c64068b3ed969e07efbe49)\nAuto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png (HEAD vs. 156c4b3ecfa27b9137c64068b3ed969e07efbe49)\nAuto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png (HEAD vs. 156c4b3ecfa27b9137c64068b3ed969e07efbe49)\nAuto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png (HEAD vs. 156c4b3ecfa27b9137c64068b3ed969e07efbe49)\nAuto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png (HEAD vs. 156c4b3ecfa27b9137c64068b3ed969e07efbe49)\nAuto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png (HEAD vs. 156c4b3ecfa27b9137c64068b3ed969e07efbe49)\nAuto-merging terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png\nAuto-merging terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs\nCONFLICT (content): Merge conflict in terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+  "nativeRecapturePerformed": false,
+  "observedConflicts": [
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png",
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+  ],
+  "parents": [
+    "230b0f9db6f37f5b37e260d5ce2a1108918fca3e",
+    "156c4b3ecfa27b9137c64068b3ed969e07efbe49"
+  ],
+  "preparedAt": "2026-11-09T18:42:56.059522+00:00",
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "protectedMetadataFilesUnchanged": [
+    "terminal/app/(shell)/alerts/page.tsx",
+    "terminal/app/(shell)/analysis/page.tsx",
+    "terminal/app/(shell)/discover/page.tsx",
+    "terminal/app/(shell)/monitor/page.tsx",
+    "terminal/app/(shell)/options/page.tsx",
+    "terminal/app/(shell)/portfolio/page.tsx",
+    "terminal/app/(shell)/research-assistant/page.tsx",
+    "terminal/app/(shell)/research/page.tsx",
+    "terminal/app/(shell)/scripts/page.tsx",
+    "terminal/app/(shell)/today/page.tsx",
+    "terminal/app/layout.tsx",
+    "terminal/app/terminal/layout.tsx",
+    "terminal/lib/shared-shell/metadata.ts",
+    "terminal/lib/__tests__/sharedShellMetadata.test.ts"
+  ],
+  "protectedPacketArchiveVerified": true,
+  "qualifiedBranchFilesUnchanged": [
+    "terminal/components/workspaces/AnalysisWorkspace.tsx",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png",
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+  ],
+  "resolution": "Retain complete qualified branch B-F11 packet and source; protected metadata paths retain exact incoming bytes.",
+  "schema": "terminal_pr1369_protected_source_integration.v1",
+  "state": "SOURCE_COMPOSED_PENDING_CURRENT_CHECKS"
+}

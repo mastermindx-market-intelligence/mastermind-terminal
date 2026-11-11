@@ -1,0 +1,43 @@
+diff --git a/terminal/e2e/sector-retained-depth.spec.ts b/terminal/e2e/sector-retained-depth.spec.ts
+index ec7c915f0..66a0c8bbf 100644
+--- a/terminal/e2e/sector-retained-depth.spec.ts
++++ b/terminal/e2e/sector-retained-depth.spec.ts
+@@ -90,12 +90,15 @@ test("calls contract board: keyboard show-more and trace disclosure", async ({ p
+   // Keyboard-only: focus moves through real buttons. On the phone the
+   // non-primary columns start collapsed (R5 C03), so open one by keyboard.
+   const showMore = section.getByRole("button", { name: /Show more/i }).first();
+-  if (!(await showMore.isVisible())) {
+-    const soonHead = section
+-      .locator('[data-lane="buy_soon"]')
+-      .getByRole("button", { name: /Almost ready|接近就绪/i });
++  if (mobile(page)) {
++    // Initial server markup keeps every column open. Wait for the real
++    // phone state before deciding which control to open or focus.
++    const soon = section.locator('[data-lane="buy_soon"]');
++    await expect(soon).toHaveAttribute("data-open", "false");
++    const soonHead = soon.getByRole("button", { name: /Almost ready|接近就绪/i });
+     await soonHead.focus();
+     await page.keyboard.press("Enter");
++    await expect(soon).toHaveAttribute("data-open", "true");
+   }
+   await expect(showMore).toBeVisible();
+   await showMore.focus();
+@@ -156,11 +159,13 @@ test("emergence mark: owner-carried flag renders the R6-09 chip, copy and eviden
+   // (flag only — its mark must render the copy with NO link). The phone
+   // accordion starts Stand aside collapsed; open it first (same control the
+   // navigation test drives).
+-  if ((await blocks.count()) < 2) {
+-    await section
+-      .locator('[data-lane="stand_aside"]')
+-      .getByRole("button", { name: /Stand aside|观望/i })
+-      .click();
++  if (mobile(page)) {
++    // Both blocks exist in the initial markup; the non-primary one then
++    // unmounts when the phone layout settles. Observe that transition first.
++    const aside = section.locator('[data-lane="stand_aside"]');
++    await expect(aside).toHaveAttribute("data-open", "false");
++    await aside.getByRole("button", { name: /Stand aside|观望/i }).click();
++    await expect(aside).toHaveAttribute("data-open", "true");
+   }
+   await expect(blocks).toHaveCount(2);
+   const first = blocks.first();

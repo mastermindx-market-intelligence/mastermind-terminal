@@ -1,0 +1,29 @@
+[warmup] /terminal?symbol=NVDA → 200 in 451ms
+[warmup] /options → 200 in 193ms
+[warmup] /portfolio → 200 in 2597ms
+[warmup] /alerts → 200 in 2547ms
+[warmup] /analysis → 200 in 4203ms
+[warmup] /discover → 200 in 3590ms
+[warmup] /admin → 200 in 2346ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 2268ms
+[warmup] /login → 200 in 394ms
+[warmup] /reset-password → 200 in 3923ms
+[warmup] /api/me → 200 in 2703ms
+[warmup] /api/watchlist → 200 in 1980ms
+[warmup] /api/layouts → 200 in 1802ms
+[warmup] /api/watchlist/annotations → 409 in 1909ms
+[warmup] 14 routes compiled in 31s
+Error: EXPOSURE_PREWARM_BROWSER_ERRORS: Internal Next.js error: Router action dispatched before initialization.
+
+   at globalSetup.ts:95
+
+  93 |     await page.getByTestId("exposure-node-inspector").getByRole("button", { name: "Open on main chart", exact: true }).click({ timeout: 90_000 });
+  94 |     await expect(page.getByTestId("exposure-chart-reference")).toHaveAttribute("data-state", "ready", { timeout: 90_000 });
+> 95 |     if (errors.length) throw new Error("EXPOSURE_PREWARM_BROWSER_ERRORS: " + errors.join(" | ").slice(0, 500));
+     |                              ^
+  96 |     console.log("[exposure-module-prewarm] actual Options → chart entry ready; disposable context closed before scored tests");
+  97 |   } finally {
+  98 |     await browser.close();
+    at warmExposureEntry (/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e/globalSetup.ts:95:30)
+    at globalSetup (/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e/globalSetup.ts:43:62)
+

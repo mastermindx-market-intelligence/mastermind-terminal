@@ -1,0 +1,98 @@
+{
+  "schema": "mastermind.terminal.pr739.preflight.v1",
+  "operation_id": "terminal-pr-duty-20261110-739-market-proof-web4",
+  "utc": "2026-11-10T08:25:45.367762+00:00",
+  "head": "5ba9085a123ae93759e8cf24de3b73487bf38525",
+  "tree": "63edb98f25f3a9d7e4d087de7b5c7774a687bb6c",
+  "node": "v26.5.0",
+  "npm": "11.17.0",
+  "port": 34739,
+  "port_preflight": "no listener",
+  "runtime_dependencies": [
+    {
+      "path": "terminal/components/fin/TechnicalsPage.tsx",
+      "git_blob": "ab1d19ebade74c1ba586808701b6f1315405363a",
+      "sha256": "d15fe17b802806c0eaf9fec2f165d6a08bebc7b4165f6e12c168aa4c5852883b"
+    },
+    {
+      "path": "terminal/app/fin.css",
+      "git_blob": "7ae26b89d179c9fd81841fd01f17669aa58b27c2",
+      "sha256": "7e64f68fc411daee9d223126ed9541654ae2b670fd50f5a8c03e94c27ec328cf"
+    },
+    {
+      "path": "terminal/e2e/research-workspace-nav.spec.ts",
+      "git_blob": "785c335a77e5a1a8a00ed5f677fa47d9baf2d233",
+      "sha256": "fe2557c98d596c7f65aed3c945bf1a4cb71fdfea7b35b4ad7637570d9dfecdd2"
+    },
+    {
+      "path": "terminal/lib/__tests__/technicalsUnavailableRows.test.tsx",
+      "git_blob": "894bc41582987cbc192a3c96410b43ad35cea449",
+      "sha256": "0b31c942a5554f0016d64c3bf6d37326fb3aaf74f2d17df070f2e5ce3366f988"
+    },
+    {
+      "path": "terminal/components/fin/BottomPivotContextCard.tsx",
+      "git_blob": "1b7ec2582b107a577e4c749a627afe7f504fcf98",
+      "sha256": "4ea875ee5536ea703a0309d0643ba4893ab01ff7243fdbde41ef93758f861e23"
+    },
+    {
+      "path": "terminal/components/fin/BottomPivotContextCard.module.css",
+      "git_blob": "a2548b824d68a067c5d765aa7de8fa1826fced45",
+      "sha256": "2eb8a98e1fc252d40e741dcc198350954b5dc1f95bac25a6afadc550a3be9886"
+    },
+    {
+      "path": "terminal/components/fin/MegaPane.tsx",
+      "git_blob": "ae17ed96fa28c73cb2aa7cd872b02cb32145554c",
+      "sha256": "83e5c38fb13780bf28c45f2f4f679fe3df1d9a130bbc2f87fe0e524192a38638"
+    },
+    {
+      "path": "terminal/components/workspaces/AnalysisWorkspace.tsx",
+      "git_blob": "4335eebeb616138a55b1724b74e18d117e2e0586",
+      "sha256": "1ad3e2a627a91f12d7fdd9f95b2d59e06e4f3ea89c43cdd1f6e6f493c4c35036"
+    },
+    {
+      "path": "terminal/components/ui/ArcGauge.tsx",
+      "git_blob": "8daa7605f9aaf2ab9ff8fa38a03eb1ccd7fb9359",
+      "sha256": "c76c159fd61e8b716a788722c25b041b4507f57dc24e13265627b2dfc93edbd9"
+    },
+    {
+      "path": "terminal/components/fin/ForecastPage.tsx",
+      "git_blob": "8f6816ccd2fca40109de24793580dee2488814d3",
+      "sha256": "876cf21b13fd902422b8d2f97ac81fe494497f975407e38c6f69778e8d659c73"
+    },
+    {
+      "path": "terminal/lib/techRating.ts",
+      "git_blob": "397ec41ec8cd220593aec67ce98203fa2c92ef70",
+      "sha256": "b17e9dd8ac2f01d05b1b6eb9c4a78267e26df29ebe268a30c7b6fadc8edbc793"
+    },
+    {
+      "path": "terminal/lib/seasonal.ts",
+      "git_blob": "cee198d1c05e90ce3e1b5ed74b46f60b78cb43ca",
+      "sha256": "a4b365a39aa483b4c7f087f746bde893718b62dd843941aec72b25fd1baacc97"
+    },
+    {
+      "path": "terminal/app/globals.css",
+      "git_blob": "10f2df3f3e04f291f028c345b50a1967ba158cb2",
+      "sha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+    },
+    {
+      "path": "terminal/e2e/bottom-pivot-context.spec.ts",
+      "git_blob": "ca8a5d454a6df22afc3ce31d448297fd7ce0e0bc",
+      "sha256": "1679c14dfac3f6188612a69bb5872b4126244ea913279076718a1196f7e20c2e"
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "git_blob": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+      "sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525"
+    },
+    {
+      "path": "terminal/e2e/globalSetup.ts",
+      "git_blob": "fa4bf9cecb5c7012e6279df59e19d38ca1303f93",
+      "sha256": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+    },
+    {
+      "path": "terminal/lib/analystRating.ts",
+      "git_blob": "cd1d35029ff60123e4ab13acade9b8eccd53ce82",
+      "sha256": "001f68ca616af01f9e4800d0f9a22ab815412a1c10d3db4389212a72ab911fd6"
+    }
+  ]
+}

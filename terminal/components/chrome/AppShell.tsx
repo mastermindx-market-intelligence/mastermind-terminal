@@ -1,4 +1,5 @@
 "use client";
+import "../../app/observatory.css";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 import "./investor-shell-preview.css";
@@ -62,6 +63,9 @@ export function useShellEmail(): string {
 // pathname prefix → [i18n key, english fallback]. Order matters: first match wins.
 // Chart (/terminal) has its own shell and is intentionally absent.
 const TITLE_MAP: Array<[string, string, string]> = [
+  ["/intelligence", "shellIntelligence", "Market Intelligence"],
+  ["/prophet", "shellProphet", "Model plans & options"],
+  ["/sectors", "shellSectors", "Sector Intelligence"],
   ["/today", "shellToday", "Today"],
   ["/research", "shellResearch", "Research"],
   ["/monitor", "shellMonitor", "Monitor"],

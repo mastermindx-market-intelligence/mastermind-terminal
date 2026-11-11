@@ -1,6 +1,7 @@
 import React from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import ShellLayout from "@/app/(shell)/layout";
+import { fixtureUserId } from "@/lib/watchlistsFixtureDb";
 
 const auth = vi.hoisted(() => ({ claims: vi.fn(), guest: false, signedFixture: false }));
 vi.mock("@/components/chrome/AppShell", () => ({ default: () => null }));
@@ -57,7 +58,7 @@ it.each([false, true])("accepts the existing development-only fixture opt-in and
   const result = await ShellLayout({ children: <div /> });
   expect(result.props).toMatchObject({
     email: guest ? "" : "fixture@example.test",
-    userId: guest ? "" : "terminal-responsive-fixture",
+    userId: guest ? "" : fixtureUserId("default"),
   });
   expect(auth.claims).not.toHaveBeenCalled();
 });

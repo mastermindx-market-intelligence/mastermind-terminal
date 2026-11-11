@@ -236,14 +236,9 @@ function estimateStep(strikes: StrikeRow[]): number {
   return diffs[Math.floor(diffs.length / 2)];
 }
 
-/**
- * Flip violet. `--cat-2` is referenced across this desk but defined nowhere in the token
- * set, so `color:var(--cat-2)` was silently dropped and every flip surface rendered in the
- * inherited text colour. `--ai` IS defined and is the identical hue (#9d86ff) — the same
- * one this file hardcodes as rgba(157,134,255,…) two hundred lines down. Kept behind
- * --cat-2 so a real definition would still win.
- */
-const FLIP_VIOLET = "var(--cat-2, var(--ai))";
+// The gamma flip is a structural level, not locked content. Its explicit label,
+// row placement and neutral contrast carry that meaning in both theme families.
+const STRUCTURAL_LEVEL_INK = "var(--text-2)";
 
 /**
  * Badge hue by tone. This single value now drives the whole level tag — text, fill and
@@ -257,7 +252,7 @@ function toneColor(tone: BadgeTone): string {
     case "cyan":   return "var(--brand-2)";
     case "red":    return "var(--down)";
     case "amber":  return "var(--signal)";
-    case "purple": return FLIP_VIOLET;
+    case "purple": return STRUCTURAL_LEVEL_INK;
   }
 }
 
@@ -463,6 +458,10 @@ export function StrikeLadder({
       const spotIdx = findSpotRowIndex(rows);
       const spotRow: Element | null = spotIdx >= 0 ? rows[spotIdx] : null;
       if (!spotRow) return false;
+      // A sparse book already fits in this desk's bounded list. Scrolling its ancestors
+      // would move the entire page away from the ticker on first paint or a lens change.
+      if (container.clientHeight > 0 && container.scrollHeight <= container.clientHeight &&
+          container.closest(".obs-gexdesk-ladder-region")) return true;
       (spotRow as HTMLElement).scrollIntoView({ block: "center", inline: "nearest" });
       const r = (spotRow as HTMLElement).getBoundingClientRect();
       // Success = the spot row is actually on screen (non-degenerate rect).
@@ -814,12 +813,12 @@ export function StrikeLadder({
                 lens's own sum ($mn) when scoped — with the lens named on the label so the
                 two can never be mistaken for each other. */}
             <WallChip
-              label={lens.kind === "all" ? t("ladderWallsNet") : `${t("ladderWallsNet")} · ${lensTag}`}
+              label={lens.kind === "all" ? t("ladderWallsNet") : `${t("sumReportedGex")} · ${lensTag}`}
               value={lens.kind === "all" ? fmtBn(netGexBn) : fmtMn(lensValues.totalMn)}
               color={(lens.kind === "all" ? (netGexBn ?? 0) : (lensValues.totalMn ?? 0)) >= 0 ? "var(--up)" : "var(--down)"}
               show={lens.kind === "all" ? netGexBn != null : lensValues.totalMn != null} />
             <WallChip label={t("ladderWallsFlip")} value={levels.gammaFlip != null ? fmtStrike(levels.gammaFlip) : "—"}
-              color={FLIP_VIOLET} show={levels.gammaFlip != null} />
+              color={STRUCTURAL_LEVEL_INK} show={levels.gammaFlip != null} />
             <WallChip label={t("ladderWallsCall")} value={levels.callWall != null ? fmtStrike(levels.callWall) : "—"}
               color="var(--brand-2)" show={levels.callWall != null} />
             <WallChip label={t("ladderWallsPut")} value={levels.putWall != null ? fmtStrike(levels.putWall) : "—"}
@@ -844,7 +843,7 @@ export function StrikeLadder({
       <div style={{ ...COL_HEADER_ROW, gridTemplateColumns: gridTemplate }}>
         <span className="obs-lbl">{t("ladderStrike")}</span>
         <span className="obs-lbl" style={COL_BAR_HDR}>
-          {effSide === "split" ? `${t("ladderPutGex")} · ${t("ladderCallGex")}` : netLabel}
+          {effSide === "split" ? `${t("ladderPutGex")} · ${t("ladderCallGex")}` : t("ladderRelative")}
         </span>
         <span style={COL_TAG_HDR}>{/* level tag column — no header */}</span>
         <span className="obs-lbl" style={COL_VAL_HDR}>
@@ -885,7 +884,7 @@ export function StrikeLadder({
             : badge?.tone === "amber"
             ? "var(--signal)"
             : badge?.tone === "purple"
-            ? FLIP_VIOLET
+            ? STRUCTURAL_LEVEL_INK
             : "var(--text-2)";
 
           return (
@@ -900,6 +899,7 @@ export function StrikeLadder({
               )}
 
               <div
+                data-strike={s.strike}
                 ref={isCurrent ? spotRowRef : undefined}
                 {...(isCurrent ? { [SPOT_ROW_ATTR]: SPOT_ROW_VAL } : {})}
                 style={{
@@ -1515,16 +1515,16 @@ const FLIP_LINE: React.CSSProperties = {
   gap: "var(--sp-2)",
   padding: "var(--sp-1) var(--sp-2)",
   height: 24,
-  background: "color-mix(in srgb, var(--ai) 8%, transparent)",
-  borderTop: "1px solid color-mix(in srgb, var(--ai) 32%, transparent)",
-  borderBottom: "1px solid color-mix(in srgb, var(--ai) 32%, transparent)",
+  background: "var(--inset)",
+  borderTop: "1px solid var(--line-2)",
+  borderBottom: "1px solid var(--line-2)",
   zIndex: 2,
 };
 
 const FLIP_LABEL: React.CSSProperties = {
   fontSize: "var(--fs-micro)",
   fontWeight: 900,
-  color: FLIP_VIOLET,
+  color: STRUCTURAL_LEVEL_INK,
   letterSpacing: "0.18em",
   textTransform: "uppercase",
   flexShrink: 0,
@@ -1533,13 +1533,12 @@ const FLIP_LABEL: React.CSSProperties = {
 const FLIP_GRADIENT: React.CSSProperties = {
   flex: 1,
   height: 1,
-  background:
-    "linear-gradient(90deg, rgba(var(--ai-rgb),0.6) 0%, rgba(var(--ai-rgb),0.05) 100%)",
+  background: "var(--hairline-strong)",
 };
 
 const FLIP_PRICE: React.CSSProperties = {
   fontSize: "var(--fs-micro)",
-  color: FLIP_VIOLET,
+  color: STRUCTURAL_LEVEL_INK,
   fontFamily: "var(--font-num)",
   fontVariantNumeric: "tabular-nums",
   flexShrink: 0,

@@ -1,0 +1,28 @@
+.popover {
+  box-sizing: border-box;
+  max-width: calc(100dvw - 16px);
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+
+.popover > * {
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.popover :global(.eep-chip-v) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.popover:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: -3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover {
+    animation: none;
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "note": "Exact original failed-attempt diagnostic bytes. Reconstruct trace.zip from ordered parts; source and test outcomes are unchanged.",
+  "originalBytes": 38227374,
+  "originalGitBlob": "673d294a8d491a93822087d73d359cb926668dba",
+  "originalPath": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip",
+  "originalSha256": "7ca290ad9786d80e99e938e5da06f4d33c936e0de7391af9bff0cdaa40aeb4b2",
+  "partBytes": 4194304,
+  "parts": [
+    {
+      "bytes": 4194304,
+      "file": "part-000.bin",
+      "offset": 0,
+      "sha256": "73abf1f6a1900c5ad76e3db301560f588edcaff64c3169e220f67283e4281e55"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-001.bin",
+      "offset": 4194304,
+      "sha256": "aad9e681f1933ee6719bcfb996b2970468c5df926b2de87026b63706317725db"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-002.bin",
+      "offset": 8388608,
+      "sha256": "798133d8e9a887bcbc8259edcb9d192764aaa5b491b3811174c3cc5a9b1ea8e9"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-003.bin",
+      "offset": 12582912,
+      "sha256": "bf27d811961ffac5bee8b24f7ec8f18bdab56584efd034f1d83176e7ce06f674"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-004.bin",
+      "offset": 16777216,
+      "sha256": "82b744c1c10d1f081ddbcd8e84181ed5ee3ed443d38e77ec700582f9b3324f0a"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-005.bin",
+      "offset": 20971520,
+      "sha256": "df2c7cd7e4322690ab191b005f03705dc598231db50ac140eafc6923fadd1834"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-006.bin",
+      "offset": 25165824,
+      "sha256": "f31ac5b3c98d1643461e6765781e6e16ff66ff8b3aca9741b1e4f05bf6bb534e"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-007.bin",
+      "offset": 29360128,
+      "sha256": "92e18f7b2b5b2e034a2d0123bd87fd4ac6aad7969fbd42b0e1afb96ebdefca56"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-008.bin",
+      "offset": 33554432,
+      "sha256": "dba7318375cc1cc664a574e1a26be6a81073b594f16a43144d78a507e9231747"
+    },
+    {
+      "bytes": 478638,
+      "file": "part-009.bin",
+      "offset": 37748736,
+      "sha256": "8b7b10eb2c47c769c5d470ec787b8015d066d69a5d4ce37afd4b9e9d3fa0fc70"
+    }
+  ],
+  "schema": "terminal_exact_diagnostic_trace_parts.v1"
+}

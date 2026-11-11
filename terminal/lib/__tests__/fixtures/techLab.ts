@@ -11,7 +11,7 @@ export function techLabFixture(ticker = "EL") {
   });
   return { tech: {
     asof: "2026-10-16T18:42:15Z",
-    events: { ticker, generated_utc: "2026-10-16T18:42:15Z", window_start: "2023-10-16", signals: {
+    events: { ticker, generated_utc: "2026-10-16T18:42:15Z", data_through: "2026-10-15", window_start: "2023-10-16", signals: {
       weak: state(1, "state", 1, ["2026-10-09"]),
       strongest: state(-1, "state", 1, ["2026-09-21", "2026-10-12"]),
       tied: state(1, "event", 1, ["2026-10-15"]),

@@ -127,6 +127,26 @@ describe("curatePriceSummary", () => {
 });
 
 describe("curateTechnicals", () => {
+  it.each([
+    { direction: 1, position: "above_upper_band", pct_b: 1.01 },
+    { direction: -1, position: "below_lower_band", pct_b: -0.01 },
+  ])("uses charted population bands at the $position boundary", ({ direction, position, pct_b }) => {
+    // The last close lies outside population bands but inside sample bands.
+    // For the upper case, population upper=102.26524998579707; sample upper=102.32240885460345.
+    const closes = [
+      ...Array<number>(10).fill(100),
+      ...Array.from({ length: 19 }, (_, i) => 100 + direction * (i % 2 === 0 ? -1 : 1)),
+      100 + direction * 2.3,
+    ];
+    const ohlc = { bars: closes.map((c, i) => [`2025-01-${String(i + 1).padStart(2, "0")}`, c, c + 1, c - 1, c, 1000]) };
+    expect(curateTechnicals(ohlc).bollinger).toEqual({ position, pct_b });
+  });
+
+  it("keeps a zero-width Bollinger range unknown instead of inventing a fraction", () => {
+    const ohlc = { bars: Array.from({ length: 30 }, (_, i) => [`2025-01-${String(i + 1).padStart(2, "0")}`, 100, 101, 99, 100, 1000]) };
+    expect(curateTechnicals(ohlc).bollinger).toBeNull();
+  });
+
   it("needs ≥30 bars", () => {
     expect(curateTechnicals(mkOhlc(20)).no_data).toBe(true);
   });

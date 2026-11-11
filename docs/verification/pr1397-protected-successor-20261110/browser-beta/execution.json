@@ -1,0 +1,402 @@
+{
+  "actualCases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|analysis en: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|analysis zh: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|terminal en: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|terminal zh: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|annual-only basis preserves honest availability guidance"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|semiannual-only basis preserves honest availability guidance"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|analysis en: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|analysis zh: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|terminal en: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|terminal zh: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|annual-only basis preserves honest availability guidance"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|semiannual-only basis preserves honest availability guidance"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|analysis en: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|analysis zh: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|terminal en: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|terminal zh: selected statistics basis matches available ratios"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|annual-only basis preserves honest availability guidance"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|semiannual-only basis preserves honest availability guidance"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|analysis en: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|analysis zh: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|terminal en: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "desktop|terminal zh: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|analysis en: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|analysis zh: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|terminal en: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "tablet|terminal zh: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|analysis en: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|analysis zh: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|terminal en: current values fit beside their labels"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "key": "mobile|terminal zh: current values fit beside their labels"
+    }
+  ],
+  "artifactFiles": {
+    "artifacts/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "artifacts/statistics-basis-controls--27cfe-onest-availability-guidance-desktop/trace.zip": "a630af61ed272639c3dd5b5df2669571465a07fdfceed5ccdf376534033c2638",
+    "artifacts/statistics-basis-controls--27cfe-onest-availability-guidance-mobile/trace.zip": "e0dd50d1653acaf6351a9e85f9d2f143ad709b3d97a25e4265ca59362cf582d7",
+    "artifacts/statistics-basis-controls--27cfe-onest-availability-guidance-tablet/trace.zip": "b98d1057e6d9834f8de8f3b5ba1c3658d733fb2ff66207184ed4f7de6e988ebb",
+    "artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-desktop/analysis-en-initial.png": "1c12238e45b8ecff04575e2edad33153ce5e01b371b331e3fb1d34c21bf83405",
+    "artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-desktop/analysis-en-interim.png": "c5147fb5f4316781afeac39db3dcda9d1a00dc52319816021a2916c933a8f02b",
+    "artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-desktop/trace.zip": "a0a6899830439d9090cdd8866dd7aa2a67ae12a052397cfa7dc25c1afbda6662",
+    "artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-mobile/trace.zip": "e2092f1876cb99e21c41080ec3881f9d20df52330bc9923cf794564b8f5b5a17",
+    "artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-tablet/trace.zip": "e52d733b92824a80409d466cd8e978d81ebb47442fb2e71d94ae1dbcb80ec77f",
+    "artifacts/statistics-basis-controls--ab2f6-is-matches-available-ratios-desktop/trace.zip": "029bf8ed5c995e59556f423552fb04a9d56d21073217d9a9eedf5fd7e0d8e469",
+    "artifacts/statistics-basis-controls--ab2f6-is-matches-available-ratios-mobile/analysis-zh-initial.png": "5d8441b4da8153dd35f7b9dab83de1173cf4932753089c2f3be9e5f9375afa6a",
+    "artifacts/statistics-basis-controls--ab2f6-is-matches-available-ratios-mobile/analysis-zh-interim.png": "8bfd52b548e7946b98b29da1b4c459360b9a379fead2c6f6c6b56e965078e7a3",
+    "artifacts/statistics-basis-controls--ab2f6-is-matches-available-ratios-mobile/trace.zip": "20731d9f59ae8cd43c080a4ae0da3322c17884f7a3bf9121406bc5df6f0c68f2",
+    "artifacts/statistics-basis-controls--ab2f6-is-matches-available-ratios-tablet/trace.zip": "9744de91f2b350b8175d8ba472db4a66eea23fc29f0b5474d2ce519ff49bc8c9",
+    "artifacts/statistics-basis-controls--b4aec-onest-availability-guidance-desktop/trace.zip": "8b15cab922dedd68fca0d389084e97ea05600b50bdccf23bb0c432cad86da0c0",
+    "artifacts/statistics-basis-controls--b4aec-onest-availability-guidance-mobile/analysis-zh-semiannual.png": "647251064dfb26989ab59470911c985d490e1ca49e301a4d5f69634fbac18265",
+    "artifacts/statistics-basis-controls--b4aec-onest-availability-guidance-mobile/trace.zip": "dad7eada155ecaa5414dafc4bcabdf8b2b1014b5447efd090014e1400b99a194",
+    "artifacts/statistics-basis-controls--b4aec-onest-availability-guidance-tablet/trace.zip": "3fcd2a987713ed0079854c101f9e80dfe6d5b2c1bb17325dcc3af6d1cbd121bc",
+    "artifacts/statistics-basis-controls--caa36-is-matches-available-ratios-desktop/terminal-en-initial.png": "97ddcf69f9bc2b891594682b2439aca9ffc04fd7333b72a0bffae61f3115832b",
+    "artifacts/statistics-basis-controls--caa36-is-matches-available-ratios-desktop/terminal-en-interim.png": "58f87564535e9a2c9812f81efc721b22548e0a66481e0c173eddbce44b62706a",
+    "artifacts/statistics-basis-controls--caa36-is-matches-available-ratios-desktop/trace.zip": "8e9394b92aad8be0861eda48ddcbbaca5215df1ba548578082bfedb1aa61edbe",
+    "artifacts/statistics-basis-controls--caa36-is-matches-available-ratios-mobile/trace.zip": "e85f3f44f4f47b860dc95349eca58e16192eaa54d8feeed22b633646a1859c98",
+    "artifacts/statistics-basis-controls--caa36-is-matches-available-ratios-tablet/trace.zip": "875be1b0ab3c7743ccfba01b3799c830fccc90a65179435856eaa30812963f35",
+    "artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-desktop/trace.zip": "139f7c0a5d245bff7c4124ccb85fe0ea95ce569f7fc5dd90740be8ff2324da57",
+    "artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-mobile/terminal-zh-initial.png": "2d8d10b460bbbbbf1a0fa8d968170e8a780f4840568baacd757760e174e94f60",
+    "artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-mobile/terminal-zh-interim.png": "67df88386979e0ffdbf20d07ad36243fadd01675a60f9b87f90ad1de4ae4f3b5",
+    "artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-mobile/trace.zip": "2df345ff25bc42addc3a3b3d5af5e9c5241444e27b62e3cb8600955bd767ed91",
+    "artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-tablet/trace.zip": "33e30181a7950f34cda1d1c95cc2e89d3658d8d9d95764055d205a63f8d687ff",
+    "artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-desktop/terminal-en-key-stats.png": "7d9c430a83ffa99b01a07f534787ac19c2e250a7254fe3caa09c73460aef607e",
+    "artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-desktop/terminal-en-profitability.png": "edba991fa2033d6ff70fcc90daafbf47e59a9f56feafec073c3eca3c3af4903b",
+    "artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-desktop/trace.zip": "f6c15b4493dfd155dbc669fb71112c5210a21d389909b6288c5fc13f77638bb2",
+    "artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-mobile/terminal-en-key-stats.png": "abe04bc31460bd06a1e0f80a3863021f860c280235461586cd71e7c9f8125635",
+    "artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-mobile/terminal-en-profitability.png": "a225b7bb8e0e7b8489b1b6d63c6208103b617388146660450f0fdd5e8ef1c1dc",
+    "artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-mobile/trace.zip": "6e25530fe454f7eedc50affd9c0c110fa55443e09069b557b46ce18682a673bf",
+    "artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-tablet/trace.zip": "962c87cf2cc1fa71182b818e8a433968e8d65d8b1738483ae002b21cf502ed24",
+    "artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-desktop/analysis-en-key-stats.png": "bf87842c47972bd4e5a7f16642ec47ebf37f1894b3b62a794c5fba302c10f87c",
+    "artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-desktop/analysis-en-profitability.png": "713e5a54aae7364ea0a1aeb1266ff9b983892015582e2646fc2ca0632956f773",
+    "artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-desktop/trace.zip": "2ae93ddc9ffa70d01ca8fa6db1addb69046c4bfc934f7dc862888f17f42e6687",
+    "artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-mobile/analysis-en-key-stats.png": "c214d827ceee63925108d5b82d02c031bf5b4bf00146a4fc93c7f1dba3d01ed7",
+    "artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-mobile/analysis-en-profitability.png": "6b80a80b9c8f8ef1c62993e8c3d725838c0f33f91c14a6ecdcdcd7097c7f42d7",
+    "artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-mobile/trace.zip": "be5783aaffd7b86df5c280ce39c4c55bf02d880c97d0674d8ca9fbc77243d2de",
+    "artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-tablet/trace.zip": "f27168600704f5ada33077e17f25c2179bfd44bf488a653f81bd3f6ac8e024d2",
+    "artifacts/statistics-current-tables--d0531-ues-fit-beside-their-labels-desktop/trace.zip": "62f066df2775e27013f9bbec785a2255f8ae376f46caceaa226a2ba529f3ce9e",
+    "artifacts/statistics-current-tables--d0531-ues-fit-beside-their-labels-mobile/analysis-zh-key-stats.png": "921e7866ccc6341272bcc93add1366d79a7eec44bf7b80af08053de8fd51c7ad",
+    "artifacts/statistics-current-tables--d0531-ues-fit-beside-their-labels-mobile/analysis-zh-profitability.png": "b60fc65ad1a304459a1896736204b6896fe29037b740517d524ff48ecdd24e99",
+    "artifacts/statistics-current-tables--d0531-ues-fit-beside-their-labels-mobile/trace.zip": "7490fc32a25324147aaa19185c763e83ee40a182bd57ceddbd5654f9acf4b073",
+    "artifacts/statistics-current-tables--d0531-ues-fit-beside-their-labels-tablet/trace.zip": "e122ca2cbd797c229834857de35855a5f3c673db515d18f8db40db813f2fa30a",
+    "artifacts/statistics-current-tables--d99b4-ues-fit-beside-their-labels-desktop/trace.zip": "7f5afcf2f956d23bca7e842c54fdc116bad7bbb0b6089509556b653574dd4d12",
+    "artifacts/statistics-current-tables--d99b4-ues-fit-beside-their-labels-mobile/terminal-zh-key-stats.png": "3f6a516f528b868399136409a6af773adeccef7b8e4f4c83f13849097a6a2caa",
+    "artifacts/statistics-current-tables--d99b4-ues-fit-beside-their-labels-mobile/terminal-zh-profitability.png": "0761f03e1e5a970ae04978f081d85bfa827ae5d5b45400c86c55da4a6992279c",
+    "artifacts/statistics-current-tables--d99b4-ues-fit-beside-their-labels-mobile/trace.zip": "56d0284b4dce294da8ec7a0d5290801191c48544fa5e092ed72f996c340639c4",
+    "artifacts/statistics-current-tables--d99b4-ues-fit-beside-their-labels-tablet/trace.zip": "2fecad73473184980dd92afc4eb85af5e7b7a1538616eb9dff0d46806725dcb2"
+  },
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/statistics-basis-controls.spec.ts",
+    "e2e/statistics-current-tables.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts"
+  ],
+  "completedAt": "2026-11-10T07:05:19.965414+00:00",
+  "exit": 0,
+  "expectedCases": [
+    "desktop|analysis en: current values fit beside their labels",
+    "desktop|analysis en: selected statistics basis matches available ratios",
+    "desktop|analysis zh: current values fit beside their labels",
+    "desktop|analysis zh: selected statistics basis matches available ratios",
+    "desktop|annual-only basis preserves honest availability guidance",
+    "desktop|semiannual-only basis preserves honest availability guidance",
+    "desktop|terminal en: current values fit beside their labels",
+    "desktop|terminal en: selected statistics basis matches available ratios",
+    "desktop|terminal zh: current values fit beside their labels",
+    "desktop|terminal zh: selected statistics basis matches available ratios",
+    "mobile|analysis en: current values fit beside their labels",
+    "mobile|analysis en: selected statistics basis matches available ratios",
+    "mobile|analysis zh: current values fit beside their labels",
+    "mobile|analysis zh: selected statistics basis matches available ratios",
+    "mobile|annual-only basis preserves honest availability guidance",
+    "mobile|semiannual-only basis preserves honest availability guidance",
+    "mobile|terminal en: current values fit beside their labels",
+    "mobile|terminal en: selected statistics basis matches available ratios",
+    "mobile|terminal zh: current values fit beside their labels",
+    "mobile|terminal zh: selected statistics basis matches available ratios",
+    "tablet|analysis en: current values fit beside their labels",
+    "tablet|analysis en: selected statistics basis matches available ratios",
+    "tablet|analysis zh: current values fit beside their labels",
+    "tablet|analysis zh: selected statistics basis matches available ratios",
+    "tablet|annual-only basis preserves honest availability guidance",
+    "tablet|semiannual-only basis preserves honest availability guidance",
+    "tablet|terminal en: current values fit beside their labels",
+    "tablet|terminal en: selected statistics basis matches available ratios",
+    "tablet|terminal zh: current values fit beside their labels",
+    "tablet|terminal zh: selected statistics basis matches available ratios"
+  ],
+  "failed": 0,
+  "fixtureOverrides": {
+    "EXPOSURE_NATIVE_WITNESS": null,
+    "EXPOSURE_P09_CURRENT_WITNESS": null,
+    "EXPOSURE_P09_PREVIOUS_WITNESS": null,
+    "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE": null,
+    "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE": null,
+    "TERMINAL_EXPOSURE_PAINT_PROBE": null
+  },
+  "flaky": 0,
+  "head": "e5a11c73e05809ea84c84464ce5a14f9b4f483d4",
+  "lifecycleSha256": "4a10a3b77b408fadd1a2f4923b13c93f9d46668f980a3f8febeaa550fbdd17a7",
+  "logSha256": "4867e7847c066ef482813bf657e9a96f7a783ba50c9d6411d8cf6a2ae2355cd7",
+  "mode": "beta",
+  "ownedServerStopped": true,
+  "passed": 30,
+  "protectedMaster": "d15741d452403594a4ddb540a97b9a981c2a62ca",
+  "retries": 0,
+  "schema": "terminal_pr1397_composed_browser_execution.v1",
+  "seconds": 288.55,
+  "sharedShell": "1",
+  "skipped": 0,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T07:00:31.413307+00:00",
+  "state": "QUALIFIED"
+}

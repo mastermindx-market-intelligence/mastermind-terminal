@@ -46,6 +46,7 @@ import type {
 } from "@/lib/indicator-canvas/types";
 import { findPivotsHL, type Pivot } from "./pivots";
 import { SMART_SR_META } from "./smartSR.meta";
+import { smartSrContextTables, smartSrEventMarks } from "./smartSRContext";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -200,7 +201,7 @@ function meanReaction(lv: Level): number {
 function compute(ctx: ModuleCtx): ModuleResult {
   const { bars, colors, lang } = ctx;
   const n = bars.length;
-  const empty: ModuleResult = { prims: [], tooltips: [], events: [] };
+  const empty: ModuleResult = { prims: [], tooltips: [], events: [], tables: smartSrContextTables(ctx, [], true) };
   if (n < 3) return empty;
 
   const s = ctx.s || {};
@@ -383,7 +384,7 @@ function compute(ctx: ModuleCtx): ModuleResult {
       break;
     }
   }
-  if (!Number.isFinite(px)) return { prims, tooltips, events: [] };
+  if (!Number.isFinite(px)) return { prims, tooltips, events: [], tables: smartSrContextTables(ctx, []) };
 
   const scored = levels
     .filter((l) => !l.dead && l.createdAt >= 0)
@@ -500,7 +501,9 @@ function compute(ctx: ModuleCtx): ModuleResult {
   }
 
   const tape = events.length > MAX_EVENTS ? events.slice(events.length - MAX_EVENTS) : events;
-  return { prims, tooltips, events: tape };
+  const marks = smartSrEventMarks(ctx, tape, atr);
+  return { prims: [...prims, ...marks.prims], tooltips: [...tooltips, ...marks.tooltips], events: tape,
+    tables: smartSrContextTables(ctx, published.map(({ lv }) => lv)) };
 }
 
 // --------------------------------------------------------------------------------- module def

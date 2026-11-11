@@ -1,0 +1,180 @@
+{
+  "branchHead": "8470d4c5bba5848aca0f25fda439af55047e86d6",
+  "cases": [
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|Risk explains unavailable currency weights \u2014 en dark",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|Risk explains unavailable currency weights \u2014 en light",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|Risk explains unavailable currency weights \u2014 zh dark",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|Risk explains unavailable currency weights \u2014 zh light",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|Risk explains unavailable currency weights \u2014 en dark",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|Risk explains unavailable currency weights \u2014 en light",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|Risk explains unavailable currency weights \u2014 zh dark",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|Risk explains unavailable currency weights \u2014 zh light",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|Risk explains unavailable currency weights \u2014 en dark",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|Risk explains unavailable currency weights \u2014 en light",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|Risk explains unavailable currency weights \u2014 zh dark",
+      "status": "expected"
+    },
+    {
+      "attempts": [
+        {
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|Risk explains unavailable currency weights \u2014 zh light",
+      "status": "expected"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/portfolio-risk-reasons.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1207-route-lifecycle-validation-20261109/terminal/test-results/pr1207-route-lifecycle-20261109/browser-raw"
+  ],
+  "completedAt": "2026-11-09T12:37:51.381686+00:00",
+  "existingAssertionsPreserved": true,
+  "exit": 0,
+  "logSha256": "beb3758cf3aa3622605598bc2e1326377f3e1b9ff79a8102135075f14b4b8bb3",
+  "nextLockPresent": false,
+  "node": "v26.5.0",
+  "portClosed": true,
+  "reportErrors": [],
+  "reportSha256": "957f36b9ba60aaa42532254d7e8b4afe2af34674c25444b005869efba171857d",
+  "schema": "pr1207_route_lifecycle_browser.v1",
+  "seconds": 35.69,
+  "serverReconciliation": "lifecycle/server-reconciliation.json",
+  "settledAt": "2026-11-09T12:39:14.344702+00:00",
+  "sourceAfterSha256": "94d409cd737c41b3d495120b81c5a7334ad20da313a61f36bdf8b539cab44afa",
+  "sourceBeforeSha256": "94d409cd737c41b3d495120b81c5a7334ad20da313a61f36bdf8b539cab44afa",
+  "sourceStable": true,
+  "startedAt": "2026-11-09T12:37:15.689097+00:00",
+  "validationOperation": "terminal-pr1207-route-lifecycle-validation-20261109"
+}

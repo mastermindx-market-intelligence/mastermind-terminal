@@ -1,0 +1,42 @@
+{
+  "files": [
+    "OptionsFlowBoard-1440.png",
+    "FlowDesk-1440.png",
+    "AlertDetail-1440.png",
+    "HeatmapTreemap-1440.png",
+    "PineLibrary-1440.png",
+    "OptionsFlowBoard-1440-zh.png",
+    "FlowDesk-1440-zh.png",
+    "AlertDetail-1440-zh.png",
+    "HeatmapTreemap-1440-zh.png",
+    "PineLibrary-1440-zh.png",
+    "OptionsFlowBoard-390.png",
+    "FlowDesk-390.png",
+    "AlertDetail-390.png",
+    "HeatmapTreemap-390.png",
+    "PineLibrary-390.png",
+    "OptionsFlowBoard-390-zh.png",
+    "FlowDesk-390-zh.png",
+    "AlertDetail-390-zh.png",
+    "HeatmapTreemap-390-zh.png",
+    "PineLibrary-390-zh.png"
+  ],
+  "sources": [
+    "terminal/components/options/OptionsFlowBoardView.tsx",
+    "terminal/components/flowdesk/FiltersPanel.tsx",
+    "terminal/components/flowdesk/FlowCard.tsx",
+    "terminal/components/alerts/AlertDetail.tsx",
+    "terminal/components/alerts/alerts.module.css",
+    "terminal/components/heatmap/HeatmapView.tsx",
+    "terminal/components/heatmap/Treemap.tsx",
+    "terminal/lib/heatmapStrings.ts",
+    "terminal/lib/flowdeskStrings.ts",
+    "terminal/lib/plainLabels.ts",
+    "terminal/lib/i18n.tsx",
+    "terminal/components/PineEditor.tsx",
+    "terminal/e2e/tools/capture_ci_evidence.cjs",
+    "terminal/e2e/tools/capture_pl6_batch3.cjs",
+    "terminal/next.config.ts",
+    "terminal/e2e/fixtures/heatmap-price-only-tile.json"
+  ]
+}

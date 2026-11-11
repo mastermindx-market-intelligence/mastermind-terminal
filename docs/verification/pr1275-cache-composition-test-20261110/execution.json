@@ -1,0 +1,35 @@
+{
+  "state": "PASSED",
+  "baseHead": "edb979fdf580713052c14297018d0aca0fdb3052",
+  "testPostimage": "8c4642c4883149a736b0194aee52ccf96e4c1ae4",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "--test",
+    "e2e/tools/capture_ci_evidence.test.cjs",
+    "e2e/tools/capture_visual_evidence.test.cjs",
+    "scripts/ci/plan-evidence-capture.test.cjs",
+    "e2e/tools/sharedShellSafeReporter.test.cjs",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+    "e2e/tools/f11_provider_closed_policy.test.cjs"
+  ],
+  "cwd": "terminal",
+  "pid": 88812,
+  "startedAt": "2026-11-10T17:33:55.980628+00:00",
+  "finishedAt": "2026-11-10T17:34:16.705598+00:00",
+  "exitCode": 0,
+  "seconds": 20.715,
+  "nodeVersion": "v22.23.4",
+  "nodeBinarySha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "counts": {
+    "tests": 337,
+    "suites": 0,
+    "pass": 337,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "processGroupAbsent": true,
+  "logSha256": "09e37eabdbf68460d1e5bd880c11bd8c1f30c684f0a291b6729528cd5c567490",
+  "hostedRuntimeDifference": "Original hosted negative baseline used Node20.20.2 on Ubuntu24.04.5; this local run uses Node22.23.4 on Darwin arm64. Natural successor CI remains owed."
+}

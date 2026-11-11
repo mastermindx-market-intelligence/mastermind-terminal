@@ -1,0 +1,37 @@
+[
+  {
+    "case": "exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop",
+    "traceSha256": "be82f4afbef25230f09c6fee34c86e15251b1f2cdfbbc9c0398fe5decda31583",
+    "traceBytes": 594902,
+    "retainedTrace": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/paper6d6-combined-20261104/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop/trace.zip",
+    "disposition": "First run preserved; targeted run recorded separately"
+  },
+  {
+    "case": "exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop",
+    "traceSha256": "4ac13d4d5b1323b5299d5a2ee3a19d8709c726f4f67e4296f8aa2403a7dbbfc2",
+    "traceBytes": 569068,
+    "retainedTrace": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/paper6d6-combined-20261104/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop/trace.zip",
+    "disposition": "First run preserved; targeted run recorded separately"
+  },
+  {
+    "case": "options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop",
+    "traceSha256": "70e6576be3a7bf4bb70d8a93826c1c993665c2712ad68f135ab179371319dbae",
+    "traceBytes": 76638116,
+    "retainedTrace": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/paper6d6-combined-20261104/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop/trace.zip",
+    "disposition": "First run preserved; targeted run recorded separately"
+  },
+  {
+    "case": "sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop",
+    "traceSha256": "98a18b53531859334506f3501976fe8c71a50d1850941f8a2ab9c46c7636f770",
+    "traceBytes": 812448,
+    "retainedTrace": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/paper6d6-combined-20261104/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop/trace.zip",
+    "disposition": "First run preserved; targeted run recorded separately"
+  },
+  {
+    "case": "sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop",
+    "traceSha256": "988fff5db5d380c00cf1578449ae2cafcae64c66156928a3a4f49421f06bb131",
+    "traceBytes": 20201530,
+    "retainedTrace": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/paper6d6-combined-20261104/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop/trace.zip",
+    "disposition": "First run preserved; targeted run recorded separately"
+  }
+]

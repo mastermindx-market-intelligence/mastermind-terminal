@@ -1,0 +1,51 @@
+[
+  {
+    "project": "mobile",
+    "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance-initial",
+    "value": [
+      {
+        "strike": 756,
+        "gap": -11.2469140624994,
+        "paint": 19,
+        "labelTop": 711.8937109375006,
+        "headerBottom": 723.140625
+      },
+      {
+        "strike": 757,
+        "gap": -28.198085937499286,
+        "paint": 20,
+        "labelTop": 694.9425390625007,
+        "headerBottom": 723.140625
+      },
+      {
+        "strike": 755,
+        "gap": 5.801914062500487,
+        "paint": 21,
+        "labelTop": 728.9425390625005,
+        "headerBottom": 723.140625
+      },
+      {
+        "strike": 747,
+        "gap": 141.91910156249946,
+        "paint": 22,
+        "labelTop": 865.0597265624995,
+        "headerBottom": 723.140625
+      },
+      {
+        "strike": 746,
+        "gap": 158.75308593749935,
+        "paint": 23,
+        "labelTop": 881.8937109374993,
+        "headerBottom": 723.140625
+      },
+      {
+        "strike": 748,
+        "gap": 124.75308593749958,
+        "paint": 24,
+        "labelTop": 847.8937109374996,
+        "headerBottom": 723.140625
+      }
+    ]
+  }
+]

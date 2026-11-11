@@ -78,7 +78,7 @@ const UNSTATED = { en: "clock not stated by source", zh: "来源未说明时钟"
 const FALLBACK = { en: "days counted from today: clock not stated by source", zh: "天数自今日起算：来源未说明时钟" };
 
 const MOVE_MASTER = {
-  en: "Expected move to the 2 Nov close no confidence level is attached±2.1 % · price range not shown · no spot supplied to this viewEstimatorIV · √T on published ATM IV 33.0 % · declared approximationHorizon1 trading days · 30 Oct → 2 Nov close weekdays, exchange holidays not subtractedVolatility clock23 Oct nightly EODSpot clockno spot supplied",
+  en: "Expected move to the 2 Nov close no confidence level is attached±2.1 % · price range not shown · no spot supplied to this viewEstimatorIV · √T on published ATM IV 33.0 % · declared approximationHorizon1 trading day · 30 Oct → 2 Nov close weekdays, exchange holidays not subtractedVolatility clock23 Oct nightly EODSpot clockno spot supplied",
   zh: "到 11月2日 收盘的预期波动区间 不附带任何置信水平±2.1 % · 未显示价格区间 · 该视图未提供现价估计方法IV · √T，基于已发布平值IV 33.0 % · 已声明的近似方法区间长度1 个交易日 · 10月30日 → 11月2日 收盘 按工作日计算，未扣除交易所假期波动率时钟10月23日 每晚收盘现价时钟未提供现价",
 };
 const FIXED_MASTER = {

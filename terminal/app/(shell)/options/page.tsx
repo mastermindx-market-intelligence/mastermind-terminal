@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import OptionsWorkspaceMount from "@/components/mounts/OptionsWorkspaceMount";
 import OptionsPaywall from "@/components/OptionsPaywall";
 import OptionsServiceUnavailable from "@/components/OptionsServiceUnavailable";
-import { getLiveOptionsAccess } from "@/lib/entitlement";
+import { getLiveOptionsAccessDetail } from "@/lib/entitlement";
 
 // Options workspace (Wave-3 IA) — the options-intelligence hub, renamed from the
 // former Research page. Serves /options under the (shell) route group (route groups
@@ -15,7 +16,7 @@ import { getLiveOptionsAccess } from "@/lib/entitlement";
 // server payload to cache — the page is a thin server shell. The (shell) layout
 // reads auth cookies (auto-dynamic); this page adds nothing server-side.
 
-export const metadata: Metadata = { title: "Options · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Options");
 
 // Options research must support magnification. Explicitly clear the root chart
 // viewport's maximum scale while inheriting its width and safe-area settings.
@@ -32,9 +33,11 @@ export default async function OptionsPage() {
   // FLOW_FIXTURE=1 (dev/CI) is exempt, mirroring /api/flow — fixture sessions
   // preview the workspace without auth; the var is never set in prod.
   if (process.env.FLOW_FIXTURE !== "1") {
-    const access = await getLiveOptionsAccess();
-    if (access === "denied") return <OptionsPaywall />;
-    if (access === "unavailable") return <OptionsServiceUnavailable />;
+    const access = await getLiveOptionsAccessDetail();
+    // A verified Free plan has a real upgrade path. Auth refusal may instead
+    // be a recoverable session/cookie race, so verify it before showing plans.
+    if (access.access === "denied") return <OptionsPaywall verifySession={access.reason === "authentication_denied"} />;
+    if (access.access === "unavailable") return <OptionsServiceUnavailable />;
   }
   // Suspense: OptionsWorkspace reads useSearchParams (?tab= deep-link seeding).
   // This route is always dynamically rendered today (force-dynamic (shell)

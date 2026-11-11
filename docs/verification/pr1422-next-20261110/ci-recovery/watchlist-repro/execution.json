@@ -1,0 +1,35 @@
+{
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/watchlist-annotation-sync.spec.ts",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--trace=on",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+    "--grep",
+    "a failed save never shows Synced and never overwrites the local edit$"
+  ],
+  "completedAt": "2026-11-10T13:37:48.798307+00:00",
+  "errors": [],
+  "exit": 1,
+  "logSha256": "4f7dd5f4db45e9924952b2f549d26e305b6b15bb2d312002933c15ce25f73d64",
+  "port": 34234,
+  "qualification": "REPRODUCED_OR_FAILED_INSPECT_ORIGINAL_RESULT_BEFORE_RUNTIME_ACTION",
+  "seconds": 83.711,
+  "sourceBase": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+  "sourceCount": 2016,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T13:36:25.088674+00:00",
+  "stats": {
+    "duration": 78506.875,
+    "expected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T13:36:26.225Z",
+    "unexpected": 1
+  }
+}

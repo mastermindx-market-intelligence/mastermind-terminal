@@ -52,9 +52,12 @@ test("compact: family picker remains reachable and local views remain available"
   await expect(page).toHaveURL(/[?&]page=statements\b/);
   await expect(page.locator(".fin-local-tabs-mobile .fin-local-mobile-tab")).toHaveCount(5);
 
+  const actions = context.locator(".analysis-context-actions > summary");
+  await actions.click();
   await expect(context.getByRole("link", { name: "Saved research", exact: true })).toBeVisible();
   await expect(context.getByRole("link", { name: "Your theses on NVDA", exact: true })).toBeVisible();
-  await expect(context.locator(".analysis-context-more")).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(actions).toBeFocused();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
@@ -76,14 +79,15 @@ test("tablet and narrow phone keep ticker, family picker, and company actions re
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `viewport ${viewport.width}px must not create horizontal overflow`).toBeLessThanOrEqual(1);
 
-    // Both destinations are always direct 44px targets, including at 320px.
+    // Hit testing catches adjacent controls intercepting the tap even when the picker is visible.
+    await context.locator(".fin-family-mobile-trigger").click({ trial: true });
+    const actions = context.locator(".analysis-context-actions > summary");
+    if (viewport.width <= 640) await actions.click();
+    else await expect(actions).toBeHidden();
     const saved = context.getByRole("link", { name: "Saved research", exact: true });
     const theses = context.getByRole("link", { name: "Your theses on MSFT", exact: true });
     await expect(saved).toBeVisible();
     await expect(theses).toBeVisible();
-    // Visibility alone does not detect an adjacent link intercepting the tap.
-    await context.locator(".fin-family-mobile-trigger").click({ trial: true });
-    await expect(context.locator(".analysis-context-more")).toBeHidden();
     const [savedBox, thesesBox] = await Promise.all([saved.boundingBox(), theses.boundingBox()]);
     expect(savedBox?.height).toBeGreaterThanOrEqual(44);
     expect(thesesBox?.height).toBeGreaterThanOrEqual(44);
@@ -134,6 +138,16 @@ for (const lang of ["en", "zh"] as const) for (const width of [390, 820]) {
     await expect(sheet).toBeVisible();
     await expect(sheet.locator('[data-fin-family-sheet="earnings"]')).toBeFocused();
     await expect(page.locator(".fin-family-sheet-scrim")).toHaveAttribute("tabindex", "-1");
+    const workspace = await page.locator(".analysis-shell").boundingBox();
+    const scrim = await page.locator(".fin-family-sheet-scrim").boundingBox();
+    expect(scrim!.height).toBeGreaterThanOrEqual(workspace!.height - 2);
+    expect(scrim!.width).toBeGreaterThanOrEqual(workspace!.width - 2);
+    const shieldsWorkspace = await page.locator(".fin-family-sheet-scrim").evaluate(node => {
+      const box = node.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + 3);
+      return hit === node || Boolean(hit?.closest(".fin-family-sheet"));
+    });
+    expect(shieldsWorkspace).toBe(true);
 
     const first = sheet.locator(".fin-family-sheet-close");
     const last = sheet.locator('[data-fin-family-sheet="lab"]');

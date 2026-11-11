@@ -1,0 +1,22 @@
+{
+  "mode": "original",
+  "protectedBase": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/options-lab-source-state.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=.next/source-availability-original-20261105"
+  ],
+  "source_stable": true,
+  "source_count": 3018,
+  "source_map_sha256": "f1c54ada9ecc0da40ed379c8c622483f602915d9eaf2f7967258e5b9081bc6db",
+  "log_sha256": "df9ebdea47110e4d19d440babd12997d159b5d239d28f721260732677ad14404",
+  "retries": 0
+}

@@ -1,46 +1,196 @@
 {
-  "base": "3b0340bf831f3112575129f3c2f649ced0e00e78",
-  "capturedAt": "2026-09-22T03:09:04.967361+00:00",
-  "fixture": true,
-  "productionProof": false,
-  "theme": "Terminal dark-only",
-  "viewports": {
-    "desktop": "1440x900",
-    "tablet": "820x1180",
-    "mobile": "390x844"
+  "base": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "capturedAt": "2026-11-10T04:48:50.261547+00:00",
+  "commands": {
+    "browser": [
+      "node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/chart-object-tree.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--trace=on",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=1",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/test-results/pr1407-style-chart-layers"
+    ],
+    "browserEnvironment": {
+      "CI": "1",
+      "MMX_INVESTOR_SHELL_PREVIEW": "0",
+      "MMX_SHARED_SHELL": "0",
+      "TERMINAL_E2E_PORT": "47407",
+      "evidenceOverrides": "ABSENT"
+    },
+    "otherQualification": "docs/verification/pr1407-style-isolation-20261110/qualification.json"
   },
+  "cropSha256": {
+    "desktop-before.png": "176c85f217f248e6d3e69f028940c6176cf66707cd5747aef4a5861d1bc9fecc",
+    "desktop-open.png": "a4fbde06cb17002bab697277ed1d0014c166f5f2d517bb1c4fa0f45fa2bc05e2",
+    "desktop-zh.png": "decce7c9789f2ac0f0f3892e6894ccf5a2832d956e7b8e80715e7f06863e5138",
+    "mobile-open.png": "22e888b194c81b580d981b4b115a188402710267e5d652239258591f776a9273",
+    "mobile-zh.png": "4bbc429596f2a56312c249026d9dae4da4aea0d8fed81f95f15f87320425c052",
+    "tablet-open.png": "4f02c6c0dda7ce4612edd258c2392a58f2f78e8b1b676382ca4f6b830559d7ca",
+    "tablet-zh.png": "9d386d4186ede0fc44d026ad24925afd42c7a38eb20776af8ff3a7cb1ff207df"
+  },
+  "fileSha256": {
+    "terminal/components/ChartObjectTree.module.css": "150cf4318435b24e0ccbdc0fc1188f8ad808052916d0d8ea926c42e27a8a4c6d",
+    "terminal/components/ChartObjectTree.tsx": "e560476ee7a4d8c51ba59722644b4bbb3bc5e116b74f1f878122ac421edb03de",
+    "terminal/e2e/chart-object-tree.spec.ts": "0018de3857b3550c3aec1b8532e74db75bfa021200177008620b156ab4b94ab5",
+    "terminal/lib/__tests__/chartObjectTree.test.tsx": "a64b5ca58339618c2b2d87a7c63bffb5bdf16b572eb513c8bffd140a173b644c"
+  },
+  "fixture": true,
   "languages": [
     "en",
     "zh"
   ],
-  "fileSha256": {
-    "terminal/components/ChartObjectTree.tsx": "bf3f4165d93cca6ef5a26bfb087820308bff741bfcecd02c8b08f7dae81bdb77",
-    "terminal/components/ChartObjectTree.module.css": "150cf4318435b24e0ccbdc0fc1188f8ad808052916d0d8ea926c42e27a8a4c6d",
-    "terminal/lib/__tests__/chartObjectTree.test.tsx": "189b99b4deeb885c688f4d0368b96d3eb77bacd84661d9a1d29ca75abfdebd11",
-    "terminal/e2e/chart-object-tree.spec.ts": "2ec77ad0832c50cffe6296eeb020a061cf04769fdd096d00e557eb69f22e4539"
-  },
-  "cropSha256": {
-    "tablet-open.png": "bd34983046c6b27ad7df9208899a48b26a4de5243b83125d8d293a59204185ba",
-    "desktop-open.png": "352ce20b41c55e429e9906233cf9991a2108c20e4e796e499cf8691f01f804b8",
-    "mobile-zh.png": "a05932ca49641d1b22227aeb8c4d00271483262db0a5479cda27d83a81feaf3a",
-    "desktop-zh.png": "54cedc6c78a3fa4328c4a7911821906ce9a511df7b8a8a1fa9358a6b51d478cc",
-    "mobile-open.png": "2be387b846381e8371db03f81f8a45d5e5fa2187e65d920ad07872346e73df99",
-    "tablet-zh.png": "287ed403c3951a95cd592f41f3d4264cd1f11d93bdb0163569fed8d1f8e9e1fd",
-    "desktop-before.png": "176c85f217f248e6d3e69f028940c6176cf66707cd5747aef4a5861d1bc9fecc"
+  "productionProof": false,
+  "recapture": {
+    "captureArtifacts": {
+      "desktop-open.png": {
+        "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-desktop/desktop-layers-open.png",
+        "frameSnapshots": 62,
+        "height": 900,
+        "sha256": "a4fbde06cb17002bab697277ed1d0014c166f5f2d517bb1c4fa0f45fa2bc05e2",
+        "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-desktop/trace.zip",
+        "traceSha256": "25d52f819ad2e685a22e5298be9facc27eb8cb7f39be023347b26f7cf64cda63",
+        "traceTheme": "dark",
+        "width": 1440
+      },
+      "desktop-zh.png": {
+        "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-desktop/desktop-layers-zh.png",
+        "frameSnapshots": 29,
+        "height": 900,
+        "sha256": "decce7c9789f2ac0f0f3892e6894ccf5a2832d956e7b8e80715e7f06863e5138",
+        "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-desktop/trace.zip",
+        "traceSha256": "cd654ce5a06339d305f9762ba5ce3e4612d86a089cbefd4922f9894c23f79bda",
+        "traceTheme": "dark",
+        "width": 1440
+      },
+      "mobile-open.png": {
+        "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/mobile-layers-open.png",
+        "frameSnapshots": 62,
+        "height": 844,
+        "sha256": "22e888b194c81b580d981b4b115a188402710267e5d652239258591f776a9273",
+        "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/trace.zip",
+        "traceSha256": "8f31ca691c819f1558221bba194c81fa4babb522a29281ab0e4f1e82ee7a5b7a",
+        "traceTheme": "dark",
+        "width": 390
+      },
+      "mobile-zh.png": {
+        "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-mobile/mobile-layers-zh.png",
+        "frameSnapshots": 119,
+        "height": 844,
+        "sha256": "4bbc429596f2a56312c249026d9dae4da4aea0d8fed81f95f15f87320425c052",
+        "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-mobile/trace.zip",
+        "traceSha256": "eaa65fe1576941748c8100495241775d41282d37872fca500c8558b4b5d197dd",
+        "traceTheme": "dark",
+        "width": 390
+      },
+      "tablet-open.png": {
+        "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-tablet/tablet-layers-open.png",
+        "frameSnapshots": 62,
+        "height": 1180,
+        "sha256": "4f02c6c0dda7ce4612edd258c2392a58f2f78e8b1b676382ca4f6b830559d7ca",
+        "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-tablet/trace.zip",
+        "traceSha256": "1012a437cf3c63ef8426b327b92790c1619590bdc99ca6555b1728919bcf5c5a",
+        "traceTheme": "dark",
+        "width": 820
+      },
+      "tablet-zh.png": {
+        "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/tablet-layers-zh.png",
+        "frameSnapshots": 119,
+        "height": 1180,
+        "sha256": "9d386d4186ede0fc44d026ad24925afd42c7a38eb20776af8ff3a7cb1ff207df",
+        "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/trace.zip",
+        "traceSha256": "63d92777d644a83ee97713a0904a7f9b27bed8bca6d29d2b6e24e0f54cff6e49",
+        "traceTheme": "dark",
+        "width": 820
+      }
+    },
+    "capturedAt": "2026-11-10T04:48:50.261547+00:00",
+    "command": [
+      "node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/chart-object-tree.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--trace=on",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=1",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/test-results/pr1407-style-chart-layers"
+    ],
+    "date": "2026-11-10",
+    "executionReceipt": "docs/verification/pr1407-style-isolation-20261110/chart-layers/execution.json",
+    "executionReceiptSha256": "708f71aa084a1aa1cf0a2c860cc214ca6a575f2624a5756e3b6393cf76cd212e",
+    "head": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+    "notRecaptured": {
+      "desktop-before.png": "Historical 2026-09-22 crop retained byte-for-byte; no current producer writes it. It is not current UI proof."
+    },
+    "previousPacket": "docs/verification/pr1407-style-isolation-20261110/chart-layers-history/",
+    "producerChangedSinceHistoricalPacket": true,
+    "producerModifiedDuringCapture": false,
+    "producerSha256": "0018de3857b3550c3aec1b8532e74db75bfa021200177008620b156ab4b94ab5",
+    "recapturedCrops": [
+      "desktop-open.png",
+      "desktop-zh.png",
+      "mobile-open.png",
+      "mobile-zh.png",
+      "tablet-open.png",
+      "tablet-zh.png"
+    ],
+    "sourceEntries": 1981,
+    "sourceSnapshot": "docs/verification/pr1407-style-isolation-20261110/chart-layers/source-before.json",
+    "sourceSnapshotAfterSha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c",
+    "sourceSnapshotSha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c",
+    "sourcesStable": true,
+    "startedAt": "2026-11-10T04:47:11.912132+00:00",
+    "visualReview": {
+      "framing": "The English phone screenshot has a scrolled chart behind the fixed panel. Panel controls remain fully visible; this frame is retained as captured.",
+      "imagesInspected": [
+        "desktop-open.png",
+        "desktop-zh.png",
+        "mobile-open.png",
+        "mobile-zh.png",
+        "tablet-open.png",
+        "tablet-zh.png"
+      ],
+      "result": "All six actual outputs inspected; layer names, grouped counts, search, visibility and remove controls are visible at desktop, tablet and phone widths in EN/ZH.",
+      "reviewerRole": "Assigned root self-check",
+      "scope": "Local fixture proof only. Required exact-head CI and post-merge deployed browser acceptance remain separate.",
+      "themeProof": "Each of the six corresponding Playwright traces contains HTML frame snapshots with data-theme=dark."
+    },
+    "workingTreeState": "Uncommitted component-isolation repair atop sourceHead; exact full working-source hashes bind this capture. This is not a claim of a clean HEAD capture."
   },
   "results": {
-    "unit": "379 files; 6088 passed; 4 existing todo",
-    "component": "7 passed",
-    "browser": "14 passed; 10 intentional viewport skips; 0 failed; retries 0",
-    "layerCases": "7 passed; all target centers reachable; canonical preferences changed by real controls",
+    "browser": {
+      "authoredProjectSkips": 2,
+      "failed": 0,
+      "flaky": 0,
+      "passed": 7,
+      "retries": 0
+    },
+    "legacyGlobalEvidenceGuards": {
+      "files": 8,
+      "passed": 45
+    },
+    "productUnit": {
+      "files": 6,
+      "passed": 128
+    },
     "typecheck": "PASS",
-    "scopedLint": "PASS",
-    "mutation": "Initial mobile clipping failed target-center hit test; native top-layer repair passed"
+    "typegen": "PASS"
   },
-  "commands": [
-    "npx next typegen && npx tsc --noEmit",
-    "npx eslint components/ChartObjectTree.tsx lib/__tests__/chartObjectTree.test.tsx e2e/chart-object-tree.spec.ts",
-    "npm test -- --maxWorkers=2 --minWorkers=2",
-    "TERMINAL_E2E_PORT=3229 npm run test:e2e:responsive -- e2e/chart-object-tree.spec.ts e2e/chart-view-reset.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1"
-  ]
+  "theme": "Terminal dark-only",
+  "viewports": {
+    "desktop": "1440x900",
+    "mobile": "390x844",
+    "tablet": "820x1180"
+  }
 }

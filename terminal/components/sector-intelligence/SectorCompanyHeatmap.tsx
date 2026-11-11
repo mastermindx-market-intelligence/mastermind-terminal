@@ -101,6 +101,10 @@ const COPY = {
   access: ["The company heatmap requires access.", "公司热图需要访问权限。"],
   unavailable: ["Company heatmap data is unavailable.", "公司热图数据暂不可用。"],
   invalid: ["The exact heatmap population could not be read safely.", "无法安全读取精确热图样本。"],
+  // A transport failure is NOT a population that could not be read safely. The owner
+  // feed was never reached, so blaming the population sent the reader looking for a
+  // data defect instead of an unreachable or rate-limited owner origin.
+  unreachable: ["The company heatmap feed could not be reached.", "无法连接公司热图数据源。"],
   empty: ["No exact names match this scope.", "此范围没有精确匹配的公司。"],
   noRead: ["Performance observations are unavailable for this exact scope and window.", "此精确范围与周期暂无表现观察。"],
   exactScope: ["Exact owner labels only. Filters never rescale color; the smallest industry blocks receive a visibility floor so no source name disappears.", "仅使用精确来源标签。筛选不会重设颜色；最小行业区块采用可见性下限，确保来源公司不会消失。"],
@@ -292,7 +296,8 @@ export default function SectorCompanyHeatmap(props: SectorCompanyHeatmapProps) {
   const bandLabel = (band: SectorCapBand) => t(band);
   const statusCopy = props.status === "loading" ? t("loading") : props.status === "access" ? t("access")
     : props.status === "unavailable" ? t("unavailable")
-      : props.status !== "ready" || population.status === "invalid" ? t("invalid") : t("empty");
+      : props.status === "error" ? t("unreachable")
+        : props.status !== "ready" || population.status === "invalid" ? t("invalid") : t("empty");
   const companyCount = population.status === "ready" ? population.tiles.length : 0;
 
   return <section className={styles.root} data-testid="sector-company-heatmap" data-domain={layout.domain}>

@@ -1,0 +1,162 @@
+[
+  {
+    "file": "desktop-en-condition.png",
+    "requestedViewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "clip": {
+      "x": 91,
+      "y": 489,
+      "width": 883,
+      "height": 400
+    },
+    "panel": {
+      "x": 107,
+      "y": 505.53125,
+      "width": 850.6875,
+      "height": 366.9375
+    },
+    "clippedBy": []
+  },
+  {
+    "file": "desktop-en-typed-null.png",
+    "requestedViewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "clip": {
+      "x": 91,
+      "y": 489,
+      "width": 883,
+      "height": 400
+    },
+    "panel": {
+      "x": 107,
+      "y": 505.53125,
+      "width": 850.6875,
+      "height": 366.9375
+    },
+    "clippedBy": []
+  },
+  {
+    "file": "desktop-zh-condition.png",
+    "requestedViewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "clip": {
+      "x": 91,
+      "y": 538,
+      "width": 883,
+      "height": 351
+    },
+    "panel": {
+      "x": 107,
+      "y": 554.03125,
+      "width": 850.6875,
+      "height": 318.4375
+    },
+    "clippedBy": []
+  },
+  {
+    "file": "desktop-zh-typed-null.png",
+    "requestedViewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "clip": {
+      "x": 91,
+      "y": 538,
+      "width": 883,
+      "height": 351
+    },
+    "panel": {
+      "x": 107,
+      "y": 554.03125,
+      "width": 850.6875,
+      "height": 318.4375
+    },
+    "clippedBy": []
+  },
+  {
+    "file": "mobile-en-condition.png",
+    "requestedViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "clip": {
+      "x": 23,
+      "y": 976,
+      "width": 344,
+      "height": 547
+    },
+    "panel": {
+      "x": 33,
+      "y": 986.59375,
+      "width": 324,
+      "height": 525.9375
+    },
+    "clippedBy": []
+  },
+  {
+    "file": "mobile-en-typed-null.png",
+    "requestedViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "clip": {
+      "x": 23,
+      "y": 976,
+      "width": 344,
+      "height": 547
+    },
+    "panel": {
+      "x": 33,
+      "y": 986.59375,
+      "width": 324,
+      "height": 525.9375
+    },
+    "clippedBy": []
+  },
+  {
+    "file": "mobile-zh-condition.png",
+    "requestedViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "clip": {
+      "x": 23,
+      "y": 976,
+      "width": 344,
+      "height": 478
+    },
+    "panel": {
+      "x": 33,
+      "y": 986.59375,
+      "width": 324,
+      "height": 456.8125
+    },
+    "clippedBy": []
+  },
+  {
+    "file": "mobile-zh-typed-null.png",
+    "requestedViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "clip": {
+      "x": 23,
+      "y": 976,
+      "width": 344,
+      "height": 494
+    },
+    "panel": {
+      "x": 33,
+      "y": 986.59375,
+      "width": 324,
+      "height": 473.3125
+    },
+    "clippedBy": []
+  }
+]

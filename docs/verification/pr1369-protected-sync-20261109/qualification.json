@@ -1,0 +1,31 @@
+{
+  "branchPacketUnchanged": true,
+  "browserPassed": 6,
+  "browserSkipped": 0,
+  "nativeRecapturePerformed": false,
+  "novelProductSource": false,
+  "parents": [
+    "230b0f9db6f37f5b37e260d5ce2a1108918fca3e",
+    "156c4b3ecfa27b9137c64068b3ed969e07efbe49"
+  ],
+  "preparedAt": "2026-11-09T18:50:31.188075+00:00",
+  "productionAccepted": false,
+  "protectedMetadataFilesExact": 14,
+  "protectedPacketArchived": true,
+  "records": {
+    "dependencies.json": "cbcee6830923f8a943639dd7a5f224740c46fa1805a0411fb2875941a1de972a",
+    "protected-packet-preservation.json": "be64033f38937b0bc090373f620e61c9df0d6838b5cfad4dddd497cd569024ed",
+    "qualification-r1/browser-report.json": "0ccab10d06b46d56c2c9b8b476203aee3d46cbef735604f99aec4799c9e35db0",
+    "qualification-r1/execution.json": "a99cf8cefcd5c497bdcb84563d250f6323b1de0db915ee8f439413399798d6d5",
+    "qualification-r1/retained-packets.json": "4fcce4a2c4925fbb9aefe8a1566daefbd2f1b86075a6af15198ec2ab39705f53",
+    "qualification-r1/source-after.json": "82d0f575d3fec899331a9cb37c307f96d2236ec6946c4f65f87bc3d9c22492bb",
+    "qualification-r1/source-before.json": "82d0f575d3fec899331a9cb37c307f96d2236ec6946c4f65f87bc3d9c22492bb",
+    "qualification-r1/unit-report.json": "e86f894b6c6020a4d5c194acde4052e8be0c4abf96044f0e1a60a859005ff40c",
+    "source-integration.json": "b8f64697f824a04a0f54b1e3abc7e743730aac611fdb1df14553c9e64abf7636"
+  },
+  "schema": "terminal_pr1369_protected_sync_qualification.v1",
+  "sourceEntries": 1937,
+  "state": "CURRENT_SOURCE_AND_CONSUMERS_QUALIFIED",
+  "typecheckSeconds": 41.41,
+  "unitTestsPassed": 76
+}

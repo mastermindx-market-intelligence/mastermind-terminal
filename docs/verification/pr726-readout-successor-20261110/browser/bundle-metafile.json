@@ -1,0 +1,224 @@
+{
+  "inputs": {
+    "node_modules/react/cjs/react.production.js": {
+      "bytes": 17217,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/react/index.js": {
+      "bytes": 186,
+      "imports": [
+        {
+          "path": "node_modules/react/cjs/react.production.js",
+          "kind": "require-call",
+          "original": "./cjs/react.production.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/scheduler/cjs/scheduler.production.js": {
+      "bytes": 10181,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/scheduler/index.js": {
+      "bytes": 194,
+      "imports": [
+        {
+          "path": "node_modules/scheduler/cjs/scheduler.production.js",
+          "kind": "require-call",
+          "original": "./cjs/scheduler.production.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/react-dom/cjs/react-dom.production.js": {
+      "bytes": 6655,
+      "imports": [
+        {
+          "path": "node_modules/react/index.js",
+          "kind": "require-call",
+          "original": "react"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/react-dom/index.js": {
+      "bytes": 1359,
+      "imports": [
+        {
+          "path": "node_modules/react-dom/cjs/react-dom.production.js",
+          "kind": "require-call",
+          "original": "./cjs/react-dom.production.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/react-dom/cjs/react-dom-client.production.js": {
+      "bytes": 536016,
+      "imports": [
+        {
+          "path": "node_modules/scheduler/index.js",
+          "kind": "require-call",
+          "original": "scheduler"
+        },
+        {
+          "path": "node_modules/react/index.js",
+          "kind": "require-call",
+          "original": "react"
+        },
+        {
+          "path": "node_modules/react-dom/index.js",
+          "kind": "require-call",
+          "original": "react-dom"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/react-dom/client.js": {
+      "bytes": 1373,
+      "imports": [
+        {
+          "path": "node_modules/react-dom/cjs/react-dom-client.production.js",
+          "kind": "require-call",
+          "original": "./cjs/react-dom-client.production.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    "components/PrecisionEntryStrip.module.css": {
+      "bytes": 2467,
+      "imports": []
+    },
+    "node_modules/react/cjs/react-jsx-runtime.production.js": {
+      "bytes": 976,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/react/jsx-runtime.js": {
+      "bytes": 210,
+      "imports": [
+        {
+          "path": "node_modules/react/cjs/react-jsx-runtime.production.js",
+          "kind": "require-call",
+          "original": "./cjs/react-jsx-runtime.production.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    "components/PrecisionEntryStrip.tsx": {
+      "bytes": 6509,
+      "imports": [
+        {
+          "path": "components/PrecisionEntryStrip.module.css",
+          "kind": "import-statement",
+          "original": "./PrecisionEntryStrip.module.css"
+        },
+        {
+          "path": "node_modules/react/jsx-runtime.js",
+          "kind": "import-statement",
+          "original": "react/jsx-runtime"
+        }
+      ],
+      "format": "esm"
+    },
+    "lib/precisionEntryReadout.ts": {
+      "bytes": 5917,
+      "imports": [],
+      "format": "esm"
+    },
+    "../docs/verification/pr726-readout-successor-20261110/fixture.tsx": {
+      "bytes": 3855,
+      "imports": [
+        {
+          "path": "node_modules/react/index.js",
+          "kind": "import-statement",
+          "original": "react"
+        },
+        {
+          "path": "node_modules/react-dom/client.js",
+          "kind": "import-statement",
+          "original": "react-dom/client"
+        },
+        {
+          "path": "components/PrecisionEntryStrip.tsx",
+          "kind": "import-statement",
+          "original": "../../../terminal/components/PrecisionEntryStrip"
+        },
+        {
+          "path": "lib/precisionEntryReadout.ts",
+          "kind": "import-statement",
+          "original": "../../../terminal/lib/precisionEntryReadout"
+        },
+        {
+          "path": "node_modules/react/jsx-runtime.js",
+          "kind": "import-statement",
+          "original": "react/jsx-runtime"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "../docs/verification/pr726-readout-successor-20261110/browser/public/fixture.js": {
+      "imports": [],
+      "exports": [],
+      "entryPoint": "../docs/verification/pr726-readout-successor-20261110/fixture.tsx",
+      "cssBundle": "../docs/verification/pr726-readout-successor-20261110/browser/public/fixture.css",
+      "inputs": {
+        "node_modules/react/cjs/react.production.js": {
+          "bytesInOutput": 18393
+        },
+        "node_modules/react/index.js": {
+          "bytesInOutput": 245
+        },
+        "node_modules/scheduler/cjs/scheduler.production.js": {
+          "bytesInOutput": 11179
+        },
+        "node_modules/scheduler/index.js": {
+          "bytesInOutput": 257
+        },
+        "node_modules/react-dom/cjs/react-dom.production.js": {
+          "bytesInOutput": 6730
+        },
+        "node_modules/react-dom/index.js": {
+          "bytesInOutput": 679
+        },
+        "node_modules/react-dom/cjs/react-dom-client.production.js": {
+          "bytesInOutput": 565406
+        },
+        "node_modules/react-dom/client.js": {
+          "bytesInOutput": 684
+        },
+        "node_modules/react/cjs/react-jsx-runtime.production.js": {
+          "bytesInOutput": 1005
+        },
+        "node_modules/react/jsx-runtime.js": {
+          "bytesInOutput": 269
+        },
+        "../docs/verification/pr726-readout-successor-20261110/fixture.tsx": {
+          "bytesInOutput": 4480
+        },
+        "components/PrecisionEntryStrip.module.css": {
+          "bytesInOutput": 514
+        },
+        "components/PrecisionEntryStrip.tsx": {
+          "bytesInOutput": 7222
+        },
+        "lib/precisionEntryReadout.ts": {
+          "bytesInOutput": 4146
+        }
+      },
+      "bytes": 624874
+    },
+    "../docs/verification/pr726-readout-successor-20261110/browser/public/fixture.css": {
+      "imports": [],
+      "inputs": {
+        "components/PrecisionEntryStrip.module.css": {
+          "bytesInOutput": 2772
+        }
+      },
+      "bytes": 2820
+    }
+  }
+}

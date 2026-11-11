@@ -1,0 +1,47 @@
+{
+  "branchHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "capturedChildren": [
+    "pl6",
+    "vi",
+    "batch2",
+    "pine"
+  ],
+  "command": [
+    "node",
+    "e2e/tools/capture_ci_evidence.cjs"
+  ],
+  "completedAt": "2026-11-09T16:45:25.076561+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109160768-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "c7770fb72f7ef495af0a9a5a52ff521843deb7f0ef1e8117e0b14c9a1f395dea"
+  },
+  "executionEnvironment": "owned local validation; not a GitHub Actions run",
+  "exit": 0,
+  "indexTreeAtStart": "d81875d25869596977472b39186627b4da15fbcb",
+  "localDiagnosticAttempt": "1",
+  "localDiagnosticRunId": "20261109160768",
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nativeReusedQualifiedCurrentSource": true,
+  "nativeSelectedImages": {
+    "eod": 126,
+    "gex": 114
+  },
+  "nextLockAbsent": true,
+  "ownedPortsClosed": true,
+  "ownerReceipt": "docs/verification/pr768-options-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109160768-1.json",
+  "ownerReceiptSha256": "9550cc19939b5012cdf6f721b178f1f75313e82670c4a7ffc0c9993fe296ba52",
+  "ownerSharedDeadlineMinutes": 84,
+  "ownerState": "SELECTED",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr768_complete_ci_owner_validation.v1",
+  "seconds": 697.34,
+  "sourceAfterSha256": "7e5d33024a0aa39a0915126568f010b9401ee6086d73a41d2c4b23347920cd8b",
+  "sourceBeforeSha256": "7e5d33024a0aa39a0915126568f010b9401ee6086d73a41d2c4b23347920cd8b",
+  "sourceEntries": 1940,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T16:33:47.750939+00:00",
+  "state": "FULL_OWNER_PATH_QUALIFIED_WITHIN_EXISTING_WORKFLOW_BUDGET",
+  "workflowBlob": "fc38b261161535f0cca571be91c51aa3e0ea87fe",
+  "workflowCaptureMinutes": 85
+}

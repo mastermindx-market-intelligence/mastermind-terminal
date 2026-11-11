@@ -1,0 +1,53 @@
+{
+  "schema": "options_current_master_final_gates.v1",
+  "base": "acd173eae60e1559c87603aee8fa70e35e661b65",
+  "combined_tree": "76427bdc7a98c00f0936eca9641ac444a040b8ab",
+  "completed_at": "2026-11-05T10:21:36.721169+00:00",
+  "checks": [
+    {
+      "check": "unit",
+      "exit": 1,
+      "seconds": 12.769,
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+        "lib/__tests__/exposureMapPrimitive.test.ts",
+        "lib/__tests__/exposureMap.test.ts",
+        "lib/__tests__/exposureWorkspace.test.ts",
+        "lib/__tests__/sharedShellLoginDefault.test.tsx",
+        "lib/__tests__/frozenNodeEntryView.test.tsx",
+        "lib/__tests__/researchLabSourceAvailability.test.tsx",
+        "lib/__tests__/researchLabAdmission.test.tsx",
+        "lib/__tests__/marketRiskMarketScope.test.tsx",
+        "lib/__tests__/marketRisk.test.ts",
+        "lib/__tests__/earningsExpectationBoundary.test.tsx",
+        "lib/__tests__/eventWorkspace.test.ts",
+        "--maxWorkers=4",
+        "--minWorkers=2",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/current-master-final-gates-r4/unit-report.json"
+      ],
+      "raw_log_sha256": "afa54b456f4b592e9e430406895e6ea1682ca54ac6dec304a0018b6178e36f67",
+      "compressed_log_sha256": "d5a5af8f9536a70a8e6f66e5cfacd1d01fc94c6ed8bd114985590a8885250137",
+      "summary": {
+        "numTotalTests": 276,
+        "numPassedTests": 265,
+        "numFailedTests": 11,
+        "numPendingTests": 0,
+        "numTodoTests": 0,
+        "success": false
+      }
+    }
+  ],
+  "source_count": 3134,
+  "source_stable": true,
+  "all_passed": false,
+  "scope": "Exact current protected delta plus existing affected Options/Exposure suites; historical captures remain unchanged."
+}

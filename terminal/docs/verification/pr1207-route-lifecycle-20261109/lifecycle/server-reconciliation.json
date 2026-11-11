@@ -1,0 +1,19 @@
+{
+  "actualBrowserExit": 0,
+  "lockHadNoOpenFileOwner": true,
+  "lockOwner": {
+    "appUrl": "http://localhost:3798",
+    "hostname": "localhost",
+    "pid": 18943,
+    "port": 3798,
+    "startedAt": 1794227842211
+  },
+  "lockSha256": "c15e3f815457c31880b3e55e78c4d209804a01c2e1b0544f535fdd63ba64462b",
+  "originalReceiptSha256": "c6315687f8bac40a713224c175db2bd709b58be91ec35c64d462fc40424c3b80",
+  "originalWrapperExit": 1,
+  "pidAbsent": true,
+  "portClosed": true,
+  "preservedLock": "lifecycle/stale-next-lock.json",
+  "schema": "pr1207_stale_next_lock_reconciliation.v1",
+  "settledAt": "2026-11-09T12:39:14.344702+00:00"
+}

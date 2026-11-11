@@ -7,6 +7,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parseExpectedUpdatedAtMs } from "@/lib/savedScriptStamp";
 
 let searchId: string | null = "script-a";
+let compileImpl: (source: string) => Promise<any>;
+let runImpl: (request: any) => Promise<any>;
+const compiledSources: string[] = [];
+const runRequests: any[] = [];
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -20,8 +24,8 @@ vi.mock("@/lib/i18n", () => ({
 
 vi.mock("@/lib/pine-engine/host", () => ({
   createPineHost: () => ({
-    compile: async () => ({ ok: true, errors: [], astId: "ast" }),
-    run: async () => ({ ok: true, errors: [], result: { warnings: [] } }),
+    compile: (source: string) => { compiledSources.push(source); return compileImpl(source); },
+    run: (request: any) => { runRequests.push(request); return runImpl(request); },
     dispose: () => {},
     evict: () => {},
     clear: () => {},
@@ -88,6 +92,9 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
 
   beforeEach(() => {
     searchId = "script-a";
+    compiledSources.length = 0; runRequests.length = 0;
+    compileImpl = async () => ({ ok: true, errors: [], astId: "ast" });
+    runImpl = async () => ({ ok: true, errors: [], result: { warnings: [] } });
     fetches.length = 0;
     host = document.createElement("div");
     document.body.appendChild(host);
@@ -108,6 +115,7 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
     host.remove();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   async function render(scripts: Script[] = [A, B]) {
@@ -117,6 +125,107 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
       }));
     });
   }
+
+  async function tick(ms: number) {
+    await act(async () => { await vi.advanceTimersByTimeAsync(ms); });
+  }
+
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>(done => { resolve = done; });
+    return { promise, resolve };
+  }
+
+  const engineFailure = { ok: false, errors: [{ phase: "runtime", line: 0, col: 0, message: "Pine engine failed to start" }] };
+
+  it("retires checking and its grace when typing, and a late compile cannot launch a stale dry-run", async () => {
+    vi.useFakeTimers();
+    const first = deferred<any>(), second = deferred<any>();
+    compileImpl = () => compiledSources.length === 1 ? first.promise : second.promise;
+    await render();
+    await tick(1000);
+    expect(host.querySelector('[data-pe-state="checking"]')).not.toBeNull();
+    await act(async () => { setTextarea(editor(host), A.source + "// B\n"); });
+    expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
+    await act(async () => { first.resolve({ ok: true, errors: [], astId: "retired" }); });
+    expect(runRequests).toHaveLength(0);
+    await tick(200);
+    await act(async () => { setTextarea(editor(host), A.source + "// C\n"); });
+    await tick(299);
+    expect(compiledSources).toHaveLength(1);
+    expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
+    await tick(1);
+    expect(compiledSources[1]).toContain("// C");
+    await tick(699);
+    expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
+    await tick(1);
+    expect(host.querySelector('[data-pe-state="checking"]')).not.toBeNull();
+    await act(async () => { second.resolve({ ok: true, errors: [], astId: "current" }); });
+    expect(runRequests).toHaveLength(1);
+    expect(runRequests[0].source).toContain("// C");
+    expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
+    expect(host.querySelector('[data-pe-state="engine-unavailable"]')).toBeNull();
+  });
+
+  it("rechecks an equal buffer under a different ID and ignores the preceding script's late engine failure", async () => {
+    vi.useFakeTimers();
+    const first = deferred<any>(), second = deferred<any>();
+    compileImpl = () => compiledSources.length === 1 ? first.promise : second.promise;
+    const sameBufferB = { ...B, source: A.source, params: A.params };
+    await render([A, sameBufferB]);
+    await tick(1000);
+    await act(async () => { row(host, B.name).click(); });
+    expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
+    expect(editor(host).getAttribute("aria-label")).toBe(B.name + " source");
+    await act(async () => { first.resolve(engineFailure); });
+    expect(host.querySelector('[data-pe-state="engine-unavailable"]')).toBeNull();
+    await tick(300);
+    expect(compiledSources).toEqual([A.source, A.source]);
+    await tick(700);
+    expect(host.querySelector('[data-pe-state="checking"]')?.textContent).toContain(B.name);
+    await act(async () => { second.resolve({ ok: true, errors: [], astId: "b" }); });
+    expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
+    expect(host.querySelector('[data-pe-state="engine-unavailable"]')).toBeNull();
+  });
+
+  it("A to B to A lets only the newest ID generation publish diagnostics", async () => {
+    vi.useFakeTimers();
+    const checks = [deferred<any>(), deferred<any>(), deferred<any>()];
+    compileImpl = () => checks[compiledSources.length - 1].promise;
+    await render(); await tick(300);
+    await act(async () => { row(host, B.name).click(); }); await tick(300);
+    await act(async () => { row(host, A.name).click(); }); await tick(300);
+    expect(compiledSources).toEqual([A.source, B.source, A.source]);
+    await act(async () => { checks[2].resolve(engineFailure); });
+    expect(host.querySelector('[data-pe-state="engine-unavailable"]')).not.toBeNull();
+    await act(async () => {
+      checks[0].resolve({ ok: true, errors: [], astId: "old-a" });
+      checks[1].resolve({ ok: true, errors: [], astId: "old-b" });
+    });
+    expect(runRequests).toHaveLength(0);
+    expect(host.querySelector('[data-pe-state="engine-unavailable"]')).not.toBeNull();
+    expect(editor(host).value).toBe(A.source);
+  });
+
+  it("a same-ID list reorder and save receipt preserve the buffer without restarting its current diagnosis", async () => {
+    vi.useFakeTimers();
+    const check = deferred<any>(); compileImpl = () => check.promise;
+    await render();
+    const edited = A.source + "// KEEP-CURRENT-DIAG\n";
+    await act(async () => { setTextarea(editor(host), edited); });
+    await tick(300);
+    expect(compiledSources).toEqual([edited]);
+    await render([B, A]);
+    await act(async () => { saveButton(host).click(); });
+    await tick(1000);
+    expect(compiledSources).toEqual([edited]);
+    expect(editor(host).value).toBe(edited);
+    expect(fetches).toHaveLength(1);
+    await act(async () => { check.resolve({ ok: true, errors: [], astId: "retained" }); });
+    expect(runRequests).toHaveLength(1);
+    expect(runRequests[0].source).toBe(edited);
+    expect(host.querySelector('[data-pe-state="checking"]')).toBeNull();
+  });
 
   it("Cancel closes a dirty-switch dialog and preserves the selected script buffer", async () => {
     await render([A,B]);

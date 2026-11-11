@@ -1,5 +1,5 @@
-capturedAtHead: ce103e71c9eb395e631c0aa3da70782f629382ab
-capturedAtHeadSource: git rev-parse HEAD
+capturedAtHead: 0f03615e86ed63f00ad9b294c7a5c909bad7b70a
+capturedAtHeadSource: CAPTURE_HEAD (the commit the captured working tree is built on)
 command: "OPTIONS_R1_CROPS=1 npx playwright test e2e/options-r1-w3-crops.spec.ts --project=desktop --workers=1"
 theme: Terminal and Options routes are dark-only.
 sources: synthetic (e2e/fixtures/options-r1-w3a-flow.json, e2e/fixtures/options-r1-w3b-vol.json, e2e/fixtures/options-r1-w3-moves.json, mocked /data/AAPL.fund.json); not provider evidence.
@@ -21,11 +21,11 @@ layoutFiles:
   - path: terminal/lib/flowPrintInspector.ts
     sha256: 0a49d78882d4d84b195bd3d264029d0b8f2c842448d7fd6b758a898d6a7413b0
   - path: terminal/components/vol/VolComparePanel.tsx
-    sha256: 328fae04ab780530e2f7af18ce23dbb033e30885b197b42d8413ad39cba4e772
+    sha256: d63aa4113c3ea361195e7b087de3b5090ea9bab03a941320103a418bbd54e5ee
   - path: terminal/components/vol/volStrings.ts
-    sha256: 23f9b84cd166fd28155eee15122ff0774744e445208a6345bdaabe270c9a33ff
+    sha256: 19615ec660380f750066188249e6271163eafb0f99d770869c06890da87f6572
   - path: terminal/lib/volTenorComparison.ts
-    sha256: ba5e924630df32cf91c5e8c64880e91a2e5e4a241f19a0451f514283c180c3ac
+    sha256: f17d28146e1ac70f735d8c56d865780ea719300290c25a56612c45c56facc68a
   - path: terminal/components/ChartPanel.tsx
     sha256: 56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871
   - path: terminal/components/eodcontext/StructureStrip.tsx
@@ -120,15 +120,15 @@ crops:
     state: flow-desk-inspector-print-end
     sha256: 6e3c84011cc1a492b6950f1dcb0218826771da88836513ad2bc4e8756ad1503c
   - file: flow-desk-inspector-820-zh.png
-    viewport: 820x2179
+    viewport: 820x2161
     lang: zh
     state: flow-desk-inspector
-    sha256: 237e996a9bf95d5342c3edd265bc808d71f9fcf44f1d05b7490e855f75ade167
+    sha256: 4c31e7c0c6d0c3760a5aeedd4f4f9bdc9f95817c8e3f03c56766bfe540eed636
   - file: flow-desk-inspector-print-end-820-zh.png
-    viewport: 820x2179
+    viewport: 820x2161
     lang: zh
     state: flow-desk-inspector-print-end
-    sha256: 83002b78427837949f32cd915e08fbc18c5acc92694920817be28579394d0603
+    sha256: 13af1ee0effe1d1827b7a939867c8a9585013dd169186bc33f0232dab91d9dd2
   - file: flow-desk-inspector-390-zh.png
     viewport: 390x2838
     lang: zh

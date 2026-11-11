@@ -1,0 +1,18 @@
+[
+  {
+    "original": "full-unit.log",
+    "archive": "full-unit.log.gz",
+    "original_bytes": 295312,
+    "original_sha256": "319e4d777f64d7699b667e8a2e661245f0ae4ad666544fa672034a447007ede8",
+    "archive_sha256": "8d793d24e5a831b13a343846037aa78854d3a265bec2eed1c6a11b85ac3f3668",
+    "roundtrip_verified": true
+  },
+  {
+    "original": "full-unit-qualified.log",
+    "archive": "full-unit-qualified.log.gz",
+    "original_bytes": 210035,
+    "original_sha256": "856a8fe19b02c47ec265ed8ff218382f10c3cb196cce24f7a561b8531fca0009",
+    "archive_sha256": "0737d4918827ed042aa6eeee87477bb4f5087f54422507de3752a98ea1355b33",
+    "roundtrip_verified": true
+  }
+]

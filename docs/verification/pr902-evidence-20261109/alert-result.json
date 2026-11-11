@@ -1,0 +1,10 @@
+{
+  "script": "capture_f08_6_alert_prefs.cjs",
+  "sourceHead": "5983026f1643e053a40bdc8ca66a61d08a12d66d",
+  "port": 3602,
+  "startedAt": "2026-11-09T06:50:06.324858+00:00",
+  "completedAt": "2026-11-09T06:50:35.983426+00:00",
+  "seconds": 29.659,
+  "exit": 0,
+  "portAbsent": true
+}

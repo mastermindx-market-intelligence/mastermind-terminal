@@ -1,19 +1,18 @@
-# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-F08-6 Alert delivery — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: bfe98ed4f82f30506af69e9ada13811343e386fe
-# capturedAt: 2026-09-27T10:11:01.698Z
+# capturedAtHead: 80e69c39e00b6c16c5fc32b5ca1e9146d31b264d
+# capturedAt: 2026-11-09T14:14:39.780Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-10-04 #808 dislocations screen: hash-only restamp of plainLabels.ts — +18 added lines (EPISODE_STATE_WORDS / episodeStateLabel) imported only by components/dislocations/DislocationsView.tsx, which no surface in this capture renders; crops unchanged
 layoutFiles:
-  terminal/components/settings/SectionAlertDelivery.tsx: "9c770be9ef78bc2bb9f1fa3c0b21824632ba63bc061f852264e3bc412d719aa0"
-  terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/components/settings/SectionAlertDelivery.tsx: "e00be6ea3da63540441608366b08bbedad325f4aa25990e8075e61650d6f1142"
+  terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/app/settings.css: "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837"
-  terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
+  terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
+  terminal/components/settings/SettingsProvider.tsx: "fb717b94d3074bf3e7866cd399088bb0203d8e1fea0b6c18bfff46546972402b"
   terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
 theme: dark
 languages: [en, zh]
@@ -26,6 +25,23 @@ capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_F
 command: |
   cd terminal
   node e2e/tools/capture_f08_6_alert_prefs.cjs
+captureFiles:
+  SectionAlertDelivery-field-error-1440-zh.png: "3a1daf04e9bc0ed8c7589d12745b3b4b41471dd821ff958fb62e4151964054e4"
+  SectionAlertDelivery-field-error-1440.png: "e9a08c6b0205e077b439236d104ab5a702c60e2cbf66dd4e11503d204ff9c2f0"
+  SectionAlertDelivery-field-error-390-zh.png: "038a2ce49bf04fbf25e05756cadf0bfd9a94bb6b58c8e6beead76ec2c1ee8a08"
+  SectionAlertDelivery-field-error-390.png: "19d76cfbfd66d29b1363c6887044fd52390f1e971354f4e6760b0bc2a0e8e512"
+  SectionAlertDelivery-populated-1440-zh.png: "f419639beba053036e1ef3a84f76df7bf0b746482bb776b986cf7c84c8c7278c"
+  SectionAlertDelivery-populated-1440.png: "9c40e9e5b128d37be84cb346c0810aae23759c90432064edbf274e915055f95c"
+  SectionAlertDelivery-populated-390-zh.png: "d867012efc487dbd71f01e5c69c0dd1a6c7cbeddbf9123683677578964fdc754"
+  SectionAlertDelivery-populated-390.png: "0e43a29cec91e6c4092fb5be214fd91212f352105c22aac2a4b25bda34a5b4f3"
+  SectionAlertDelivery-quiet-hours-1440-zh.png: "3c11a6fab3e2b01ba1d3805f5adc0c8f788f76da31b396a2be69a4e671a80ce9"
+  SectionAlertDelivery-quiet-hours-1440.png: "47f8657135b7249304ecfb793678f6583bd250e80d52b5ed7a053d61d557e245"
+  SectionAlertDelivery-quiet-hours-390-zh.png: "894e215ca3fd5df4775460fb3a7145019ba4d743da269b502868041e9145fcc1"
+  SectionAlertDelivery-quiet-hours-390.png: "8ed39562f67671e18be1bd3636d073c4f8301888fa07d70a523b076aa37b91c1"
+  SectionAlertDelivery-unavailable-1440-zh.png: "d463095e9df41447c9a7696ef8dd8a362e1038f25124752810f76b63e6d798bb"
+  SectionAlertDelivery-unavailable-1440.png: "68ef824357f02176bcb68be199f4699e6da16125c453a84474d11c397db6696d"
+  SectionAlertDelivery-unavailable-390-zh.png: "4f9212e72a92753f48be0343fa700ec496480aaa50bffa0eaa2bd36c6d3285e8"
+  SectionAlertDelivery-unavailable-390.png: "6a1801a97be1c84faf0afeaa7f37b1af8b207399754ac40307ea99beb58636da"
 files:
   - SectionAlertDelivery-field-error-1440-zh.png
   - SectionAlertDelivery-field-error-1440.png
