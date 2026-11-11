@@ -1,0 +1,19 @@
+{
+  "id": 13844777393,
+  "name": "unit-evidence-42994409429-1",
+  "size_in_bytes": 40588132,
+  "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13844777393",
+  "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13844777393/zip",
+  "expired": false,
+  "created_at": "2026-11-11T09:51:21Z",
+  "expires_at": "2027-02-09T09:20:52Z",
+  "updated_at": "2026-11-11T09:51:21Z",
+  "digest": "sha256:410fc20fd0611948eaf508e75fe40846313a1bf64e111180fd657cb3fc334362",
+  "workflow_run": {
+    "id": 42994409429,
+    "repository_id": 1290596392,
+    "head_repository_id": 1290596392,
+    "head_branch": "sol/web-gmi-brief-language-contract-20261017-astra-01a1468f",
+    "head_sha": "74f8239d4a47b81d5a36e2170eb909d3ce98e275"
+  }
+}
