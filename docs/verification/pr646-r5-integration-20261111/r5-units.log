@@ -1,0 +1,12 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr646-stage0-integration-20261109-c4/terminal
+
+ ✓ lib/__tests__/marketStructure.test.ts (77 tests) 41ms
+ ✓ lib/__tests__/optionsExposureBrowserReport.test.ts (11 tests) 22ms
+
+ Test Files  2 passed (2)
+      Tests  88 passed (88)
+   Start at  02:01:38
+   Duration  3.05s (transform 187ms, setup 0ms, collect 403ms, tests 63ms, environment 1ms, prepare 302ms)
+
