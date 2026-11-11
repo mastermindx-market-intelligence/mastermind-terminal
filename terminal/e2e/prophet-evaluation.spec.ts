@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   decodeBetaEvaluation, findComparator, INCUMBENT_COMPARATOR_ID, intervalIncludesZero,
+  perPlanHorizonMarks,
 } from "../lib/prophetBetaEvaluation";
 import {
   fmtCi95, fmtCount, fmtCriterionObserved, fmtDate, fmtPercent, fmtP, fmtRatio,
@@ -75,6 +76,18 @@ const OLD_EXCESS = oldC6?.excessTotalVsSpy ?? null;
 const populationDeviation = ART.deviations.find(d => d.kind === "population_correction") ?? null;
 const correctionDate = populationDeviation?.when.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? null;
 const h63 = ART.eventStudy.horizons.find(h => h.horizon === "63") ?? null;
+
+// The verdict's plan-by-plan companion: which forward horizons the verdict may
+// cite, derived with the production selector so the spec pins no figure. When
+// the artifact offers none (every interval spans zero), the sentence must be
+// absent — the tests below assert both directions from this one derivation.
+const perPlan = perPlanHorizonMarks(ART.eventStudy.horizons);
+const perPlanUniform = perPlan.length > 0 && perPlan.every(m => m.direction === perPlan[0].direction);
+const perPlanMarkEn = (m: { horizon: string; n: number; mean: number }): string =>
+  `${fmtPercent(Math.abs(m.mean))} after ${m.horizon} sessions (${fmtCount(m.n)} plans)`;
+const perPlanLegEn = (m: { horizon: string; legMean: number | null }): string | null =>
+  m.legMean === null ? null : `${fmtSignedPercent(m.legMean)} after ${m.horizon} sessions`;
+const perPlanGapKey = perPlan.length === 1 ? "perPlanGapOne" : perPlan.length === 2 ? "perPlanGapBoth" : "perPlanGapAll";
 
 const EN = getEvaluationStr.bind(null, "en") as (key: Parameters<typeof getEvaluationStr>[1]) => string;
 const chipEn = evaluationLevelLabel("en", ART.release.overallLevel);
@@ -228,6 +241,37 @@ test("cold reader: verdict, correction, participation, comparison and caveats (E
     .replace("{sessions}", fmtCount(ART.window.sessions))
     .replace("{benchmark}", benchmarkName);
   await expect(distinguishable).toContainText(distinguishSentence);
+  // The plan-by-plan companion follows the book-level sentences in the same
+  // verdict area — same glance, different measurement. Only matured horizons
+  // whose own excess interval excludes zero may be cited (today: 21 and 42;
+  // 10 spans zero and 63 is unmatured, so neither may appear).
+  const perPlanSentence = page.getByTestId("pev-verdict-perplan");
+  if (perPlan.length > 0) {
+    await expect(perPlanSentence).toBeVisible();
+    // Ordering carries the distinction: per-plan AFTER the distinguishable
+    // sentence, never above it.
+    await expect(
+      page.locator('[data-testid="pev-verdict-distinguishable"] ~ [data-testid="pev-verdict-perplan"]'),
+    ).toBeVisible();
+    if (perPlanUniform) {
+      await expect(perPlanSentence).toContainText(
+        EN(perPlan[0].direction === "behind" ? "perPlanBehind" : "perPlanAhead"),
+      );
+    }
+    for (const m of perPlan) {
+      await expect(perPlanSentence).toContainText(perPlanMarkEn(m));
+      const leg = perPlanLegEn(m);
+      if (leg !== null) await expect(perPlanSentence).toContainText(leg);
+    }
+    await expect(perPlanSentence).toContainText(EN(perPlanGapKey));
+    for (const h of ART.eventStudy.horizons) {
+      if (!perPlan.some(m => m.horizon === h.horizon)) {
+        await expect(perPlanSentence).not.toContainText(`after ${h.horizon} sessions`);
+      }
+    }
+  } else {
+    await expect(perPlanSentence).toHaveCount(0);
+  }
   await expect(verdict).toContainText("not established");
   const minimum = page.getByTestId("pev-minimum");
   for (const c of globalMin) {
@@ -295,6 +339,11 @@ test("cold reader: verdict, correction, participation, comparison and caveats (E
 
   await expectNoHorizontalOverflow(page);
   await shot(page, "main-1440.png");
+
+  // The ?from seam is same-app by construction: a protocol-relative host (or
+  // any foreign URL) never reaches the href — the link falls back to /prophet.
+  await page.goto("/prophet/evaluation?from=//evil.example");
+  await expect(page.locator(".pev-back")).toHaveAttribute("href", "/prophet");
 });
 
 test("what changed: the D5 correction disclosure and its two sensitivity blocks (EN 1440)", async ({ page, baseURL }) => {
@@ -522,6 +571,22 @@ test("phone width 390: the cold reader learns the correction in one screen (EN)"
   await expect(page.getByTestId("pev-what-changed-summary")).toBeVisible();
   expect(firstScreen).toContain(EN("whatChangedTitle"));
   if (OLD_EXCESS !== null) expect(firstScreen).toContain(fmtSignedPp(OLD_EXCESS));
+
+  // The plan-by-plan verdict companion carries the same artifact figures at
+  // phone width and never breaks the 390px layout.
+  const perPlan390 = page.getByTestId("pev-verdict-perplan");
+  if (perPlan.length > 0) {
+    await expect(perPlan390).toBeVisible();
+    for (const m of perPlan) {
+      await expect(perPlan390).toContainText(perPlanMarkEn(m));
+      const leg = perPlanLegEn(m);
+      if (leg !== null) await expect(perPlan390).toContainText(leg);
+    }
+    await perPlan390.scrollIntoViewIfNeeded();
+    await expectNoHorizontalOverflow(page);
+  } else {
+    await expect(perPlan390).toHaveCount(0);
+  }
 
   await page.getByTestId("pev-what-changed-summary").click();
   await expectNoHorizontalOverflow(page);

@@ -973,6 +973,57 @@ export function intervalIncludesZero(ci95: Ci95): boolean {
   return ci95[0] <= 0 && ci95[1] >= 0;
 }
 
+/** One matured fixed-horizon per-plan mark a verdict sentence may quote: the
+ * horizon's date-cluster interval on `excess_vs_spy` excludes zero. The leg
+ * value is the stock-minus-own-sector-ETF mean at the SAME horizon, carried
+ * only when that leg's own interval also excludes zero. */
+export type PerPlanHorizonMark = {
+  horizon: string;
+  n: number;
+  mean: number;
+  direction: "behind" | "ahead";
+  legMean: number | null;
+};
+
+/** The per-plan forward marks the verdict may cite. Unmatured horizons carry
+ * no metrics and are never cited; a horizon whose interval spans zero is not
+ * distinguishable from chance and stays in the coverage panel only. */
+export function perPlanHorizonMarks(horizons: readonly EventStudyHorizon[]): PerPlanHorizonMark[] {
+  const marks: PerPlanHorizonMark[] = [];
+  for (const h of horizons) {
+    if (h.status !== "matured_subset" || h.excessVsSpy === null) continue;
+    if (intervalIncludesZero(h.excessVsSpy.ci95DateCluster)) continue;
+    const leg = h.stockMinusSectorEtf;
+    marks.push({
+      horizon: h.horizon,
+      n: h.excessVsSpy.n,
+      mean: h.excessVsSpy.mean,
+      direction: h.excessVsSpy.mean < 0 ? "behind" : "ahead",
+      legMean: leg !== null && !intervalIncludesZero(leg.ci95DateCluster) ? leg.mean : null,
+    });
+  }
+  return marks.sort((a, b) => Number(a.horizon) - Number(b.horizon));
+}
+
+// ── The ?from seam (verdict back link) ──────────────────────────────────────
+
+/** Budget for a ?from value, mirroring the sector surface's carrier budget. */
+export const EVALUATION_FROM_MAX = 1800;
+
+/** The back link accepts only a rooted same-app path: a leading "/" followed
+ * by URL-path characters — no scheme, no protocol-relative "//", no
+ * backslash, no hash, no control characters. The constant pattern is the gate
+ * (same contract as the sector surface's `prophetFromHrefAdmissible`);
+ * anything else falls back to /prophet. Pure: no window access. */
+const EVALUATION_FROM_PATTERN = /^\/[A-Za-z0-9][A-Za-z0-9._~!$&'()*+,;=:@%/?-]*$/;
+
+export function safeEvaluationFromHref(raw: string | null): string {
+  if (!raw || raw.length > EVALUATION_FROM_MAX) return "/prophet";
+  if (!EVALUATION_FROM_PATTERN.test(raw)) return "/prophet";
+  if (raw.includes("//") || raw.includes("\\") || raw.includes("#")) return "/prophet";
+  return raw;
+}
+
 /** Release levels are ordered L0…L3 by the artifact's own `levels_defined`;
  * the rank is used only for ordering chips, never to mint a new claim. */
 export function evaluationLevelRank(level: string, levelsDefined: readonly string[]): number {

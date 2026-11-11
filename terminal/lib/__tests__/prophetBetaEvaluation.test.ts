@@ -3,8 +3,9 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
   BENCHMARK_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID, COMPARATOR_ORDER,
-  decodeBetaEvaluation, evaluationLevelRank, findComparator, intervalIncludesZero,
-  orderedComparators,
+  decodeBetaEvaluation, EVALUATION_FROM_MAX, evaluationLevelRank, findComparator,
+  intervalIncludesZero, orderedComparators, perPlanHorizonMarks, safeEvaluationFromHref,
+  type EventStudyHorizon,
 } from "@/lib/prophetBetaEvaluation";
 
 /** The REAL engine artifact, byte-identical to the committed fixture. */
@@ -280,5 +281,99 @@ describe("a future artifact at L1 renders without code change", () => {
     expect(ids[0]).toBe(BENCHMARK_COMPARATOR_ID);
     expect(ids.indexOf("C9_future_book")).toBe(COMPARATOR_ORDER.length);
     expect(ids).toHaveLength(10);
+  });
+});
+
+describe("perPlanHorizonMarks — which forward marks a verdict may cite", () => {
+  type Metric = { mean: number; median: number; n: number; ci95DateCluster: readonly [number, number] };
+  const metric = (mean: number, ci: readonly [number, number], n = 100): Metric =>
+    ({ mean, median: mean, n, ci95DateCluster: ci });
+  const horizon = (
+    h: string, status: "matured_subset" | "unmatured",
+    excess: Metric | null, leg: Metric | null,
+  ): EventStudyHorizon => ({
+    horizon: h, n: excess?.n ?? 0, nDates: excess === null ? null : 5, status,
+    excessVsSpy: excess, sectorEtfMinusSpy: leg, stockMinusSectorEtf: leg, shareBeatingSpy: null,
+  });
+
+  it("cites a negative-significant horizon as behind, with its leg when the leg is significant", () => {
+    const marks = perPlanHorizonMarks([
+      horizon("21", "matured_subset", metric(-0.03, [-0.05, -0.01], 414), metric(-0.03, [-0.04, -0.02])),
+    ]);
+    expect(marks).toHaveLength(1);
+    expect(marks[0]).toEqual({ horizon: "21", n: 414, mean: -0.03, direction: "behind", legMean: -0.03 });
+  });
+
+  it("cites a positive-significant horizon as ahead", () => {
+    const marks = perPlanHorizonMarks([
+      horizon("21", "matured_subset", metric(0.04, [0.01, 0.07], 90), null),
+    ]);
+    expect(marks[0].direction).toBe("ahead");
+    expect(marks[0].legMean).toBeNull();
+  });
+
+  it("never cites a horizon whose interval spans zero", () => {
+    const marks = perPlanHorizonMarks([
+      horizon("10", "matured_subset", metric(0.004, [-0.01, 0.017], 609), metric(-0.003, [-0.012, 0.005])),
+    ]);
+    expect(marks).toHaveLength(0);
+  });
+
+  it("renders nothing at all when only unmatured horizons exist", () => {
+    const marks = perPlanHorizonMarks([horizon("63", "unmatured", null, null)]);
+    expect(marks).toHaveLength(0);
+  });
+
+  it("drops the leg when the leg's own interval spans zero, keeping the excess mark", () => {
+    const marks = perPlanHorizonMarks([
+      horizon("42", "matured_subset", metric(-0.066, [-0.098, -0.032], 242), metric(-0.01, [-0.03, 0.01])),
+    ]);
+    expect(marks).toHaveLength(1);
+    expect(marks[0].legMean).toBeNull();
+  });
+
+  it("orders by horizon and skips a significant mark's unmatured sibling", () => {
+    const marks = perPlanHorizonMarks([
+      horizon("63", "unmatured", null, null),
+      horizon("42", "matured_subset", metric(-0.066, [-0.098, -0.032], 242), null),
+      horizon("21", "matured_subset", metric(-0.03, [-0.05, -0.01], 414), null),
+    ]);
+    expect(marks.map(m => m.horizon)).toEqual(["21", "42"]);
+  });
+
+  it("on the committed fixture: 21 and 42 behind with legs, 10 spans zero, 63 unmatured", () => {
+    const es = decodeBetaEvaluation(wire())!.eventStudy;
+    const marks = perPlanHorizonMarks(es.horizons);
+    expect(marks.map(m => m.horizon)).toEqual(["21", "42"]);
+    expect(marks.every(m => m.direction === "behind")).toBe(true);
+    expect(marks[0].n).toBe(414);
+    expect(marks[1].n).toBe(242);
+    expect(marks.every(m => m.legMean !== null && m.legMean < 0)).toBe(true);
+  });
+});
+
+describe("safeEvaluationFromHref — the verdict back link's same-app gate", () => {
+  it.each([
+    ["accepts a rooted same-app path", "/today", "/today"],
+    ["keeps a path with its own query", "/discover?tab=sectors&sectorJob=research", "/discover?tab=sectors&sectorJob=research"],
+    ["keeps deeper path segments", "/prophet/evaluation?panel=coverage", "/prophet/evaluation?panel=coverage"],
+  ])("%s", (_name, input, expected) => {
+    expect(safeEvaluationFromHref(input)).toBe(expected);
+  });
+
+  it.each([
+    ["null", null],
+    ["empty", ""],
+    ["protocol-relative host", "//evil.example"],
+    ["backslash scheme-confusion", "/\\evil.example"],
+    ["absolute foreign URL", "https://evil.example/x"],
+    ["script scheme", "javascript:alert(1)"],
+    ["hash fragment", "/today#frag"],
+    ["embedded double slash", "/a//b"],
+    ["control character", "/a\u0000b"],
+    ["space", "/a b"],
+    ["over the budget", `/a${"b".repeat(EVALUATION_FROM_MAX)}`],
+  ])("falls back to /prophet for %s", (_name, input) => {
+    expect(safeEvaluationFromHref(input)).toBe("/prophet");
   });
 });

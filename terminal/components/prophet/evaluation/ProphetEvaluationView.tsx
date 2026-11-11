@@ -27,8 +27,9 @@ import {
 } from "@/lib/prophetBetaEvaluationFormat";
 import {
   BENCHMARK_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID, decodeBetaEvaluation,
-  findComparator, intervalIncludesZero, orderedComparators, type BetaEvaluation,
-  type ComparatorRow, type SensitivityVariantRow,
+  findComparator, intervalIncludesZero, orderedComparators, perPlanHorizonMarks,
+  safeEvaluationFromHref,
+  type BetaEvaluation, type ComparatorRow, type SensitivityVariantRow,
 } from "@/lib/prophetBetaEvaluation";
 import "./prophetEvaluation.css";
 import { ForestPlot, type ForestRow } from "./evaluationCharts";
@@ -38,13 +39,6 @@ type LoadStatus = "loading" | "ready" | "unavailable" | "unauthenticated" | "for
 
 function isPanelKey(value: string | null): value is PanelKey {
   return value === "details" || value === "attribution" || value === "coverage" || value === "portfolio";
-}
-
-/** Validated same-origin return path: a leading single slash only, never a
- * protocol-relative or absolute URL. */
-function safeFromParam(raw: string | null): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return "/prophet";
-  return raw;
 }
 
 /** The shared `<tr>` body for one sensitivity-variant row (both sub-blocks use
@@ -149,7 +143,7 @@ export default function ProphetEvaluationView() {
     setPanel(readPanel());
     const onPop = () => { pushedRef.current = false; setPanel(readPanel()); };
     window.addEventListener("popstate", onPop);
-    setFromHref(safeFromParam(new URLSearchParams(window.location.search).get("from")));
+    setFromHref(safeEvaluationFromHref(new URLSearchParams(window.location.search).get("from")));
     return () => window.removeEventListener("popstate", onPop);
   }, []);
   const openPanel = useCallback((key: PanelKey) => {
@@ -285,6 +279,54 @@ export default function ProphetEvaluationView() {
             )}
           </p>
         )}
+        {/* Per-plan forward marks, AFTER the book-level sentences so the two
+            read as different measurements at a glance: the book above stays
+            "not distinguishable"; this is what measuring plan by plan shows.
+            Every figure is interpolated from the fixed-horizon study, and the
+            sentence renders only when a matured horizon's date-cluster
+            interval on excess_vs_spy excludes zero — no qualifying horizon,
+            no sentence. Unmatured horizons are never cited. */}
+        {(() => {
+          const marks = perPlanHorizonMarks(data.eventStudy.horizons);
+          if (marks.length === 0) return null;
+          const uniform = marks.every(m => m.direction === marks[0].direction);
+          const joinMarks = (parts: string[]) => lang === "zh"
+            ? parts.join("，")
+            : parts.length === 2 ? `${parts[0]} and ${parts[1]}`
+              : parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
+          const markTexts = marks.map(m => fillTemplate(t("perPlanMark"), {
+            // EN: the direction word carries the sign, so the magnitude is
+            // unsigned ("behind SPY by 3.0%"). ZH: the figure is signed.
+            mag: fmtPercent(Math.abs(m.mean)),
+            size: fmtSignedPercent(m.mean),
+            h: m.horizon, n: fmtCount(m.n),
+          }));
+          const gapClause = t(
+            marks.length === 1 ? "perPlanGapOne" : marks.length === 2 ? "perPlanGapBoth" : "perPlanGapAll",
+          );
+          const sentence = fillTemplate(
+            t(uniform ? "verdictPerPlanSentence" : "verdictPerPlanSentenceMixed"),
+            uniform
+              ? {
+                  direction: t(marks[0].direction === "behind" ? "perPlanBehind" : "perPlanAhead"),
+                  benchmark: benchmarkName, marks: joinMarks(markTexts), gapClause,
+                }
+              : { benchmark: benchmarkName, marks: joinMarks(markTexts), gapClause },
+          );
+          const legMarks = marks.filter(m => m.legMean !== null);
+          const legSentence = legMarks.length > 0
+            ? fillTemplate(t("verdictPerPlanLegSentence"), {
+                legMarks: legMarks.map(m => fillTemplate(t("perPlanLegMark"), {
+                  size: fmtSignedPercent(m.legMean!), h: m.horizon,
+                })).join(lang === "zh" ? "；" : "; "),
+              })
+            : "";
+          return (
+            <p className="pev-sentence pev-dim" data-testid="pev-verdict-perplan">
+              {sentence}{legSentence}
+            </p>
+          );
+        })()}
         {/* The correction rides WITH the verdict: a cold reader at phone width
             sees both the honest interval and the fact of the correction in the
             first screen, without opening anything. */}

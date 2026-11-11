@@ -458,7 +458,7 @@ test.describe("Sector → Prophet entry (needs the isolated sector-side commit)"
     const back = page.getByTestId("prophet-sector-return");
     await expect(back).toBeVisible();
     await back.click();
-    await expect(page).toHaveURL(new RegExp(origin.replace(/[?&]/g, "\\$&")));
+    await expect(page).toHaveURL(new RegExp(origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     await expect(page.getByRole("row", { name: /CARR/ }).first()).toBeVisible({ timeout: 20_000 });
   });
 });

@@ -58,6 +58,43 @@ const PROPHET_EVALUATION_LEX = {
     "The interval does not include zero; this remains descriptive and not validated.",
     "该区间不含零；结果仍为描述性、未经验证。",
   ],
+  // Per-plan forward marks, a companion to the book-level sentence above it
+  // (the book stays "not distinguishable"; this is what plan-by-plan forward
+  // measurement shows). Words only — every figure arrives interpolated from
+  // the fixed-horizon study, and the sentence renders only when a matured
+  // horizon's date-cluster interval on excess_vs_spy excludes zero.
+  verdictPerPlanSentence: [
+    "Measured plan by plan, the average published plan was {direction} {benchmark} by {marks}; {gapClause}.",
+    "逐个计划衡量，已发布计划的平均表现{direction}{benchmark}：{marks}；{gapClause}。",
+  ],
+  // Mixed-direction fallback (horizons pointing opposite ways): signed marks,
+  // no single direction word.
+  verdictPerPlanSentenceMixed: [
+    "Measured plan by plan against {benchmark}: {marks}; {gapClause}.",
+    "逐个计划衡量，与 {benchmark} 相比：{marks}；{gapClause}。",
+  ],
+  perPlanBehind: ["behind", "落后于"],
+  perPlanAhead: ["ahead of", "领先于"],
+  perPlanMark: ["{mag} after {h} sessions ({n} plans)", "{h} 个交易日后 {size}（{n} 个计划）"],
+  perPlanGapOne: [
+    "that gap is larger than chance alone would explain",
+    "该差距超出了仅凭运气能解释的范围",
+  ],
+  perPlanGapBoth: [
+    "both gaps are larger than chance alone would explain",
+    "这两个差距都超出了仅凭运气能解释的范围",
+  ],
+  perPlanGapAll: [
+    "all of these gaps are larger than chance alone would explain",
+    "这些差距都超出了仅凭运气能解释的范围",
+  ],
+  // The stock-versus-own-sector clause: only horizons whose own leg interval
+  // excludes zero are listed, and the signed figures speak for themselves.
+  verdictPerPlanLegSentence: [
+    " Comparing each stock with its own sector ETF over the same horizons gives {legMarks}.",
+    "在相同持有期上，将每只个股与其自身行业 ETF 相比：{legMarks}。",
+  ],
+  perPlanLegMark: ["{size} after {h} sessions", "{h} 个交易日后 {size}"],
   verdictClaimSentence: [
     "Nothing in this window shows value beyond market participation: sector context and member selection are not established by this evaluation.",
     "本窗口内没有任何证据显示超越市场参与的额外价值：本次评估未能确立行业环境或成分股选择的价值。",
