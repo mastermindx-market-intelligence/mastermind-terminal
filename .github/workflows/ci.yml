@@ -701,7 +701,9 @@ jobs:
           timeout 480 npx playwright install --with-deps chromium \
             || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
                  npx playwright install chromium; }
-      # Browser caches do not include system fonts on fresh hosted runners.
+      # Browser caches do not include system fonts/libraries on fresh hosted runners, so
+      # try --with-deps first; if apt is unreachable, keep the cached browser and let a
+      # missing library fail the tests visibly (no visual baselines depend on fonts).
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         timeout-minutes: 6

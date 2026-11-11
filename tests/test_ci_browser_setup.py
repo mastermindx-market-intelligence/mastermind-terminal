@@ -124,8 +124,8 @@ timeout() {
 '''
 
 
-def _cache_hit_step(job):
-    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+def _cache_hit_step(job, workflow_file="ci.yml"):
+    workflow = yaml.safe_load((ROOT / ".github/workflows" / workflow_file).read_text(encoding="utf-8"))
     steps = [s for s in workflow["jobs"][job]["steps"] if s.get("name") == CACHE_HIT]
     assert len(steps) == 1, job
     return steps[0]
@@ -179,3 +179,16 @@ def test_self_hosted_cache_hit_path_is_unchanged():
     assert result.returncode == 0, result.stdout + result.stderr
     assert "UNBOUNDED_NPX playwright install chromium" in result.stdout
     assert "TIMEOUT " not in result.stdout
+
+
+def test_prodbuild_canary_cache_hit_step_matches_ci_exactly():
+    # The canary documents that it mirrors the hosted e2e lane's browser steps.
+    canary = yaml.safe_load(
+        (ROOT / ".github/workflows/e2e-prodbuild-canary.yml").read_text(encoding="utf-8"))
+    steps = [s for body in canary["jobs"].values() for s in body.get("steps", [])
+             if s.get("name") == CACHE_HIT]
+    assert len(steps) == 1
+    ci_step = _cache_hit_step("terminal-e2e-prodbuild")
+    assert steps[0]["run"] == ci_step["run"]
+    assert steps[0]["timeout-minutes"] == ci_step["timeout-minutes"]
+    assert steps[0]["if"] == ci_step["if"]
