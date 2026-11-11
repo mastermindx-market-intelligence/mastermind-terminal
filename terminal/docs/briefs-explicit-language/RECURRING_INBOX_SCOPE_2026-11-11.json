@@ -1,0 +1,83 @@
+{
+  "schema": "briefs.recurring-evidence-scope.v1",
+  "recordedFromProtectedCommit": "ffcc39bcdf89cb19b08444b8bb64cadbc1a3a5ec",
+  "producerActivation": false,
+  "productionAcceptance": false,
+  "historical": {
+    "directory": "terminal/docs/pr-crops/b-f11-7-recurring-briefs",
+    "tree": "e94e96dbbf6a8031be853bd1d1ef3708e956b75e",
+    "scope": "Historical mixed inbox and dormant subscription packet; not current subscriber qualification.",
+    "files": [
+      {
+        "file": "EVIDENCE.yml",
+        "sha256": "763412350de378e1d371909b1d7ec7a8e19a0c199f315ffb84011da6801b22c9",
+        "gitBlob": "79d465ebb50e40a246aea75aaf552f310ce95bd3"
+      },
+      {
+        "file": "empty-1440-zh.png",
+        "sha256": "7bc2fe284488afdff77bbd7e923a68bd2e66812285a649ff7b8e22cbf313e87d",
+        "gitBlob": "8274f01c4bcfee83fde0eecd02c6e9c9bc36ac08"
+      },
+      {
+        "file": "empty-1440.png",
+        "sha256": "6bdfe384d60d8a3758db42339d7a913ac19ca8eef5423d63f826b5204c8510b1",
+        "gitBlob": "019705d4e8d9f296d97cfc4579234e4ce6dbadc3"
+      },
+      {
+        "file": "empty-390-zh.png",
+        "sha256": "ce3071980d2b043c83948e6f123c8c287a94363200dc961ba1d3cd98bfa96ef7",
+        "gitBlob": "68e2716c1a5e6f06a51dbba68fbd8469892f283b"
+      },
+      {
+        "file": "empty-390.png",
+        "sha256": "9c9a93438e065b83f61e75315ddfff4337b3f27431ec9e973b7727873c34f7ea",
+        "gitBlob": "5c119a5a5aadbd6c47e56c5bf2dce196175a736c"
+      },
+      {
+        "file": "list-1440-zh.png",
+        "sha256": "ad18a92d785f353d1ffa7e268d34d42c684706e991d5fba8673b1267d4b46340",
+        "gitBlob": "114b83198c499f25b68736ab127916249af26258"
+      },
+      {
+        "file": "list-1440.png",
+        "sha256": "922fb39845d183d1e807a7597fc75775c9e2e02ab1c4ba7507db30df85fe287c",
+        "gitBlob": "43877040bb0d32471fb73bbb6635827529c0378d"
+      },
+      {
+        "file": "list-390-zh.png",
+        "sha256": "b6d29a5215c981c1784019804336ee023770235cc212eef212c940b3d81f0584",
+        "gitBlob": "eb2728fabd35ec57b67158719baaf1564c7faa0b"
+      },
+      {
+        "file": "list-390.png",
+        "sha256": "17a7b332ec48689e19ec002b7e4a66c6775d4db9365034f4599d2ae0051de490",
+        "gitBlob": "9bff070b769917e523c4d8c34b6d15ff0730d31f"
+      },
+      {
+        "file": "subscribe-1440-zh.png",
+        "sha256": "7bdd861c7a33a75a01380ac489734eee8021d4606d43fc0d5dd25b12677df8c9",
+        "gitBlob": "47ed928c7138776aa2cbfc339927523962757ade"
+      },
+      {
+        "file": "subscribe-1440.png",
+        "sha256": "9d97100b8fc874a7f514775f5f597bfdb483a21d1780120ea26ce2beda173c91",
+        "gitBlob": "537eb00c0c270b2caa11bebe9e67bcfe6b48c4c6"
+      },
+      {
+        "file": "subscribe-390-zh.png",
+        "sha256": "dfb115f56f4a67839308376049547a809c1a77653024ced719c2d85546ce7e77",
+        "gitBlob": "fe35286c939ac5d2e3fc9e13910330760cb9feb6"
+      },
+      {
+        "file": "subscribe-390.png",
+        "sha256": "b42fee240a9f6b0aedbd90942247c07a151374b56918074eb7a27e19e061cbb6",
+        "gitBlob": "cb2b737c1c8515a77e86a61d93b9e10026a81107"
+      }
+    ]
+  },
+  "current": {
+    "directory": "terminal/docs/pr-crops/b-f11-7-active-inbox",
+    "schema": "briefs.active-inbox.capture.v1",
+    "scope": "Complete list/empty by EN/ZH by desktop1440/mobile390. Actual captures are required; no historical image can satisfy this gate."
+  }
+}

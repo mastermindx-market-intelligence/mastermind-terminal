@@ -35,6 +35,14 @@ export function ensureBrainPrincipalBinding(
   host.addEventListener("mm-brain-ready", project);
   try {
     auth.onAuthStateChange((_event, session) => { generation++; accept(session); });
+    host.MM_BRAIN_CFG.authorizeOptionsQuestion = async expected => {
+      const issued = generation;
+      if (!expected || principal !== expected) return false;
+      try {
+        const { data, error } = await auth.getSession();
+        return !error && generation === issued && principal === expected && data.session?.user.id === expected;
+      } catch { return false; }
+    };
     const issued = generation;
     void auth.getSession().then(({ data, error }) => {
       if (generation === issued) accept(error ? null : data.session);

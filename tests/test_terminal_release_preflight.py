@@ -273,6 +273,7 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
         ".env.example",
         ".next",
         ".next.bak",
+        ".next.broken",
         "node_modules",
         "public/data",
         PERSONAL_ACCURACY_BUNDLE,
@@ -293,6 +294,7 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
         ".env.local.bak-20260706": "file",
         ".next": "directory",
         ".next.bak": "directory",
+        ".next.broken": "directory",
         "node_modules": "directory",
         PERSONAL_ACCURACY_BUNDLE: "file",
         FUNDAMENTAL_SCAN_BUNDLE: "file",
@@ -420,6 +422,42 @@ def test_every_bundle_the_build_installs_has_an_exact_preflight_allowance() -> N
             "classification": "generated_sidecar_bundle",
             "expected_live_type": "file",
         }
+
+
+RETAINED_GENERATION_MOVE = re.compile(
+    r'mv "\$\{?(?:app|APP)\}?/\.next" "\$\{?(?:app|APP)\}?/(\.next\.[a-z]+)"'
+)
+
+
+def build_retained_generations() -> set[str]:
+    script = (PROJECT_ROOT / "ops" / "terminal-build.sh").read_text(encoding="utf-8")
+    return set(RETAINED_GENERATION_MOVE.findall(script))
+
+
+@pytest.mark.parametrize("target", ["production", "beta"])
+def test_every_generation_the_build_retains_is_classified_as_rollback(
+    target: str,
+) -> None:
+    # terminal-build.sh keeps the previous build at .next.bak and a build that failed
+    # acceptance at .next.broken, both inside the live app root. The next release
+    # preflight audits that root, so a retained name without a rollback allowance is
+    # thousands of HOST_ONLY_UNTRACKED findings and refuses every later deploy (the
+    # recovery path accepts exactly one finding). Production lacked .next.broken
+    # while beta had it; one failed acceptance then blocked all production deploys.
+    retained = build_retained_generations()
+    assert {".next.bak", ".next.broken"} <= retained
+
+    policy_path = PROJECT_ROOT / "ops" / f"terminal_source_audit.{target}.json"
+    policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    parse_policy(policy)
+    app = next(item for item in policy["mappings"] if item["repo_path"] == "terminal")
+    allowances = {item["path"]: item for item in app["allowances"]}
+    for name in sorted(retained):
+        assert allowances.get(name) == {
+            "path": name,
+            "classification": "rollback_build_artifact",
+            "expected_live_type": "directory",
+        }, f"{target} policy does not classify the retained generation {name}"
 
 
 def test_relative_policy_path_is_rejected_before_any_file_read(

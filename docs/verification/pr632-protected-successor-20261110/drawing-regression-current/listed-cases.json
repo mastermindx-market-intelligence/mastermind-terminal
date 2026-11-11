@@ -1,0 +1,3896 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/drawing-system.spec.ts",
+      "e2e/drawing-professional-editing.spec.ts",
+      "e2e/chart-view-reset.spec.ts",
+      "e2e/crosshair-price-label.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--list",
+      "--reporter=json"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/playwright.config.ts",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "id": "desktop",
+        "metadata": {},
+        "name": "desktop",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "tablet",
+        "metadata": {},
+        "name": "tablet",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "mobile",
+        "metadata": {},
+        "name": "mobile",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "company-intelligence-desktop",
+        "metadata": {},
+        "name": "company-intelligence-desktop",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "company-intelligence-tablet",
+        "metadata": {},
+        "name": "company-intelligence-tablet",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "company-intelligence-mobile",
+        "metadata": {},
+        "name": "company-intelligence-mobile",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "terminal-chrome-intermediate",
+        "metadata": {},
+        "name": "terminal-chrome-intermediate",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "id": "w2a-workspaces",
+        "metadata": {},
+        "name": "w2a-workspaces",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/e2e",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 47632",
+      "env": {
+        "ADMIN_DEV": "1",
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "FLOW_FIXTURE": "1",
+        "HUB_REALTIME_QUOTES": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "RATE_LIMIT_MAX": "100000",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TICKER_NEWS_RAIL": "1"
+      },
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "url": "http://127.0.0.1:47632/terminal?symbol=NVDA"
+    },
+    "workers": 1
+  },
+  "errors": [],
+  "stats": {
+    "duration": 423.953,
+    "expected": 0,
+    "flaky": 0,
+    "skipped": 183,
+    "startTime": "2026-11-10T08:49:03.425Z",
+    "unexpected": 0
+  },
+  "suites": [
+    {
+      "column": 0,
+      "file": "chart-view-reset.spec.ts",
+      "line": 0,
+      "specs": [
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-37a5a90076ced86a47fd",
+          "line": 46,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "New chart tickers reserve space between the latest candle and symbol tag"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-f30b4c15a4772e302a8c",
+          "line": 57,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Reset chart view restores the recent weekly window"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-6dffbc0f3715bed88394",
+          "line": 90,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Vertical cursor lock has a clear X and never follows a ticker change"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-9c597cc2ddd62abd9238",
+          "line": 141,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-1be82a940491d15f2371",
+          "line": 188,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Logarithmic price-axis wheel zoom compounds without corrupting the scale"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-9146eb1844f57a7b49d5",
+          "line": 46,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "New chart tickers reserve space between the latest candle and symbol tag"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-b8ffe5ca8641236f1c86",
+          "line": 57,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Reset chart view restores the recent weekly window"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-f63f9a7b966835e638da",
+          "line": 90,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Vertical cursor lock has a clear X and never follows a ticker change"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-55b8c7ed0fe5c45135ed",
+          "line": 141,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-8e03d637a8614ce1b0c5",
+          "line": 188,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Logarithmic price-axis wheel zoom compounds without corrupting the scale"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-fb149e435c57f7637488",
+          "line": 46,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "New chart tickers reserve space between the latest candle and symbol tag"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-5cc0ec8b3130ce064112",
+          "line": 57,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Reset chart view restores the recent weekly window"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-5b032f737caca3b74f58",
+          "line": 90,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Vertical cursor lock has a clear X and never follows a ticker change"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-b9d7bf3b9a32fad7f013",
+          "line": 141,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp"
+        },
+        {
+          "column": 5,
+          "file": "chart-view-reset.spec.ts",
+          "id": "01baa576dac601f661d7-8f78d0be5c5884393a81",
+          "line": 188,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Logarithmic price-axis wheel zoom compounds without corrupting the scale"
+        }
+      ],
+      "title": "chart-view-reset.spec.ts"
+    },
+    {
+      "column": 0,
+      "file": "crosshair-price-label.spec.ts",
+      "line": 0,
+      "specs": [
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-d586da16bc1781350520",
+          "line": 100,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "extended hours owns the countdown while the static close and crosshair remain collision-free"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-0111acdf47fedfbbf6bc",
+          "line": 214,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "regular hours keeps the bar-close countdown on the current quote"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-9542c640ab139eb7d97b",
+          "line": 226,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "the countdown migrates back to the current quote when extended hours ends live"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-1f359aa20d08e9439789",
+          "line": 264,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a diverged premarket label remains on its true projected price"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-f33d82ce289826f29d5a",
+          "line": 275,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "persistent and hover labels follow the price pane when a study moves above it"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-99d023c1ecc1433896d1",
+          "line": 331,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dense option levels use gex_state fallback and fan their badges without moving the active AH quote"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-c1fa296e015a1373be77",
+          "line": 456,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "mounted options levels consume a newly published state snapshot without reloading the chart"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-4af9c89fc830db97bb46",
+          "line": 516,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a four-digit premarket quote expands the compact numeric lane instead of clipping"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-60fbf4402c5b517ae0da",
+          "line": 535,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "left-side and percentage scales keep the foreground label on the active axis with correct units"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-60c70740ea9aca820f52",
+          "line": 633,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Magnet follows the nearest transformed price-pane series instead of the raw candle close"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-8fca70231c1573ac2aa1",
+          "line": 668,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a stationary foreground label refreshes when the price scale changes underneath it"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-ceaae9b2c81fe2b36313",
+          "line": 100,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "extended hours owns the countdown while the static close and crosshair remain collision-free"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-d9080781e622a4544faa",
+          "line": 214,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "regular hours keeps the bar-close countdown on the current quote"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-d7f9e403233a467f924c",
+          "line": 226,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "the countdown migrates back to the current quote when extended hours ends live"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-2fb907abf32e731bee60",
+          "line": 264,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a diverged premarket label remains on its true projected price"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-d17215f4c8517222ddca",
+          "line": 275,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "persistent and hover labels follow the price pane when a study moves above it"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-37b7ebce20c907defff0",
+          "line": 331,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dense option levels use gex_state fallback and fan their badges without moving the active AH quote"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-0fcdace5fd9df967c9da",
+          "line": 456,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "mounted options levels consume a newly published state snapshot without reloading the chart"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-2b0a90d497b948e14201",
+          "line": 516,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a four-digit premarket quote expands the compact numeric lane instead of clipping"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-f20b2dd94d0227b2b45f",
+          "line": 535,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "left-side and percentage scales keep the foreground label on the active axis with correct units"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-4d534fa4b507e87e3b42",
+          "line": 633,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Magnet follows the nearest transformed price-pane series instead of the raw candle close"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-d6ac873b3bfd402ccb62",
+          "line": 668,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a stationary foreground label refreshes when the price scale changes underneath it"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-9c8db3c24b9cf340d43b",
+          "line": 100,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "extended hours owns the countdown while the static close and crosshair remain collision-free"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-76caa84c8984140bcd62",
+          "line": 214,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "regular hours keeps the bar-close countdown on the current quote"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-00209b707e47303998e3",
+          "line": 226,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "the countdown migrates back to the current quote when extended hours ends live"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-3b0c4486bbb8435e1295",
+          "line": 264,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a diverged premarket label remains on its true projected price"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-64cb305e570dd724fa09",
+          "line": 275,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "persistent and hover labels follow the price pane when a study moves above it"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-bfe8fb75d763e063e910",
+          "line": 331,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dense option levels use gex_state fallback and fan their badges without moving the active AH quote"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-0c7814c1bd7106158be7",
+          "line": 456,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "mounted options levels consume a newly published state snapshot without reloading the chart"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-51bf28576577f1fa59d6",
+          "line": 516,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a four-digit premarket quote expands the compact numeric lane instead of clipping"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-11d95eadd42912e06fd3",
+          "line": 535,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "left-side and percentage scales keep the foreground label on the active axis with correct units"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-6740c6c091efa0f06ddc",
+          "line": 633,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Magnet follows the nearest transformed price-pane series instead of the raw candle close"
+        },
+        {
+          "column": 5,
+          "file": "crosshair-price-label.spec.ts",
+          "id": "32090280d6eafb4d3ba5-92a67f6adbb697127497",
+          "line": 668,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a stationary foreground label refreshes when the price scale changes underneath it"
+        }
+      ],
+      "title": "crosshair-price-label.spec.ts"
+    },
+    {
+      "column": 0,
+      "file": "drawing-professional-editing.spec.ts",
+      "line": 0,
+      "specs": [
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-0cc92a23e082f9810902",
+          "line": 41,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "professional drawing placement, angle lock, keyboard editing, and cloning stay atomic"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-eba90ae993639ee5e677",
+          "line": 100,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Fibonacci and position inspectors drive durable analytical settings"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-b9720415df6b777a1fc4",
+          "line": 158,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Replay hard-locks drawings and the quick bar keeps current plus recent colors"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-e3f25abd3dfc090de368",
+          "line": 269,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing toolbar and favorite controls retain focus across responsive remounts"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-e0c9348af75fdb1e4204",
+          "line": 301,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "bulk drawing controls preserve source scopes and lock only user-authored objects"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-30d58f48174d086ac9cd",
+          "line": 346,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "detector commands remain scoped to the pane that dispatched them"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-22be7e15d78bdba8ffd5",
+          "line": 41,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "professional drawing placement, angle lock, keyboard editing, and cloning stay atomic"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-4876505577c12e7bcc6a",
+          "line": 100,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Fibonacci and position inspectors drive durable analytical settings"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-7881927da3bdd85d26c2",
+          "line": 158,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Replay hard-locks drawings and the quick bar keeps current plus recent colors"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-5b5ea2779e2fead13456",
+          "line": 269,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing toolbar and favorite controls retain focus across responsive remounts"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-b1370fc5ec4dde557b4d",
+          "line": 301,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "bulk drawing controls preserve source scopes and lock only user-authored objects"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-b72759ff883e7eeccdd9",
+          "line": 346,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "detector commands remain scoped to the pane that dispatched them"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-292a216c7f91bd93e149",
+          "line": 41,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "professional drawing placement, angle lock, keyboard editing, and cloning stay atomic"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-93f5e0bdda07f8b750a6",
+          "line": 100,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Fibonacci and position inspectors drive durable analytical settings"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-cd4e3183942bfdeee645",
+          "line": 158,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Replay hard-locks drawings and the quick bar keeps current plus recent colors"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-4692746a5cb294eb6e7f",
+          "line": 269,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing toolbar and favorite controls retain focus across responsive remounts"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-c799ca852996d93e3404",
+          "line": 301,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "bulk drawing controls preserve source scopes and lock only user-authored objects"
+        },
+        {
+          "column": 5,
+          "file": "drawing-professional-editing.spec.ts",
+          "id": "96c7bb85fb3d3be8672f-bc381af4e32f333693ae",
+          "line": 346,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "detector commands remain scoped to the pane that dispatched them"
+        }
+      ],
+      "title": "drawing-professional-editing.spec.ts"
+    },
+    {
+      "column": 0,
+      "file": "drawing-system.spec.ts",
+      "line": 0,
+      "specs": [
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-abcd3c30f8364e2b4021",
+          "line": 266,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing registry and precision controls stay complete at every responsive width"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-7de1d14790fb7797e2ed",
+          "line": 395,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "desktop drawing labels and hover flyouts match the OpenMarket interaction contract"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-93baa7ef775a728351d2",
+          "line": 493,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-820146fb376e06d4311b",
+          "line": 576,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-c8d45699486e29037a09",
+          "line": 620,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "phone drawing chrome keeps one collision-free editing surface"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-d63cacc9c2c722ead57c",
+          "line": 709,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart-type catalog exposes and applies the new line and area families"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-bdd3a8226e01997ad6d2",
+          "line": 743,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-c68b48357262411181ab",
+          "line": 997,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "flagship geometry, editing, and path limits survive adversarial interaction"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-6b660197afa3adb9f4da",
+          "line": 1189,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "each drawing tool keeps its own defaults and fill color contract"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-bc0a73da25d855888473",
+          "line": 1257,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "pane-anchored notes stay fixed while calculated labels never open a text editor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-60be8ff0ff049862cd4b",
+          "line": 1310,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "media tools choose and persist real emoji, icons, and bounded local images"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-5cd3b80ea4bd60949116",
+          "line": 1377,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dense collections save beyond Chromium's keepalive request quota"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-a331ba19bb3751775728",
+          "line": 1411,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "the drawing cap rejects object 501 without evicting object 1"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-75e406ecd318aef52489",
+          "line": 1442,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "account drawing loads fail closed and retry without issuing a destructive save"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-dde7f85a74a482ccb2a2",
+          "line": 1483,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "unavailable account drawings disable tool selection without changing the group's shown tool"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-bb687cb19c94e92bfa22",
+          "line": 1514,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a symbol change keeps the renderer alive and never leaks the old symbol's drawings"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-b7c9da7c24a03a67c023",
+          "line": 1586,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a drag released in the future gutter finishes instead of following the cursor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-442195c8c564b7d3e54c",
+          "line": 1873,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a price-range drag crossing a pane separator persists an owner-scale value"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-41f7b2e481149537cc70",
+          "line": 1909,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an endpoint handle dragged across a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-545467919b4f621d2c76",
+          "line": 1964,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dragging a whole range drawing across a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-d2966efdf0399b08b7d7",
+          "line": 2023,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Shift+Measure crossing a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-2f31d099faf0276c15f3",
+          "line": 2065,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a reloaded range drawing is served back unrepaired and still clips to its pane"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-3e19f316c66060e96396",
+          "line": 2108,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart-spanning range and vertical tools are still not clipped to the price pane"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-0d3ff208c9968d9425df",
+          "line": 2176,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a cross-pane price gesture clamps on a logarithmic price scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-c82ded8bf3fc06710ff5",
+          "line": 2206,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a cross-pane price gesture clamps on an inverted price scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-aed4dd2ec777abfceb20",
+          "line": 2239,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a coarse-pointer cross-pane drag keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-ec6bde26fa49837d1201",
+          "line": 2267,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a phone cross-pane drag keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-47c9df0017df4ae33faa",
+          "line": 2301,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "collapsing the indicator pane moves the clamp to pane 0's new floor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-74dbf0d21a77c6568333",
+          "line": 2343,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-7fb66ef2fa3bbf5185c3",
+          "line": 2392,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an indicator-pane drawing holds its place when the price scale rescales"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-5088326f64a02108d14b",
+          "line": 2536,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an indicator-pane drawing stays in its pane when that pane y-axis rescales"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-656c6fd8c1c4dffff191",
+          "line": 2628,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy indicator-pane drawing coordinates migrate into pane value space"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-a794b6acdec9d296f10a",
+          "line": 2659,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-7bd7a94440a8ebbf0c32",
+          "line": 2659,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-083a5df8cb261e847fbb",
+          "line": 2727,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "selecting a brush stroke shows its bounds, not a handle per sample"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-148762411d9dcc346832",
+          "line": 2764,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "collapsing an indicator pane hides its plot and drawings until restore"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-fcad9f8026acf0ed9dfd",
+          "line": 2824,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "coarse pane collapse hides plot paint and remains restorable"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-eecde2c6ac6662f245f6",
+          "line": 2907,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a segmented path finishes on a double-click between bar centres"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-1d24ec5c0225f67e28bc",
+          "line": 2980,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a desktop Path finishes exactly once when its closing double-click has no native dblclick"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-d70abda471778067f074",
+          "line": 266,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing registry and precision controls stay complete at every responsive width"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-cfa8eb80f4601c453e90",
+          "line": 395,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "desktop drawing labels and hover flyouts match the OpenMarket interaction contract"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-005366696ce1b12efd12",
+          "line": 493,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-55a62bf9e136cc602722",
+          "line": 576,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-25e019bb37782d108728",
+          "line": 620,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "phone drawing chrome keeps one collision-free editing surface"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-d010ed06d7ffb17dccba",
+          "line": 709,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart-type catalog exposes and applies the new line and area families"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-345fd8b7968ba3ad5e3e",
+          "line": 743,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-d9633407686ffa66e088",
+          "line": 997,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "flagship geometry, editing, and path limits survive adversarial interaction"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-cb57e5e5fae819974ec1",
+          "line": 1189,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "each drawing tool keeps its own defaults and fill color contract"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-9334a4c481cd1cf62a90",
+          "line": 1257,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "pane-anchored notes stay fixed while calculated labels never open a text editor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-75012d67cf1b3c02b07e",
+          "line": 1310,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "media tools choose and persist real emoji, icons, and bounded local images"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-5d40e56c7e4f239a2b1c",
+          "line": 1377,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dense collections save beyond Chromium's keepalive request quota"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-55a16abd849f19abfc5c",
+          "line": 1411,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "the drawing cap rejects object 501 without evicting object 1"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-66ba92a62844061635cf",
+          "line": 1442,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "account drawing loads fail closed and retry without issuing a destructive save"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-9a6f2ca237deabc53321",
+          "line": 1483,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "unavailable account drawings disable tool selection without changing the group's shown tool"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-4b1256948e85cb42bc1d",
+          "line": 1514,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a symbol change keeps the renderer alive and never leaks the old symbol's drawings"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-072554048360dfc0ab46",
+          "line": 1586,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a drag released in the future gutter finishes instead of following the cursor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-c13d421580e5020095f9",
+          "line": 1873,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a price-range drag crossing a pane separator persists an owner-scale value"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-5fb79ba5567ed30fddd3",
+          "line": 1909,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an endpoint handle dragged across a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-852c207df2768f4e3a8f",
+          "line": 1964,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dragging a whole range drawing across a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-93496ba2d60d7e36adca",
+          "line": 2023,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Shift+Measure crossing a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-6fc1b230b4afaa601eda",
+          "line": 2065,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a reloaded range drawing is served back unrepaired and still clips to its pane"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-bf6d73f7263fcf6cfbd7",
+          "line": 2108,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart-spanning range and vertical tools are still not clipped to the price pane"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-55e86a39bef3a282788d",
+          "line": 2176,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a cross-pane price gesture clamps on a logarithmic price scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-44faf4fed98a5a8e754e",
+          "line": 2206,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a cross-pane price gesture clamps on an inverted price scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-374c8f6d7d7fd73d15c3",
+          "line": 2239,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a coarse-pointer cross-pane drag keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-384d7341a13b8bbe6932",
+          "line": 2267,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a phone cross-pane drag keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-e531b08ce5cb2ef1121c",
+          "line": 2301,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "collapsing the indicator pane moves the clamp to pane 0's new floor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-b6f10bd5b6804c1bb67c",
+          "line": 2343,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-e9cb0d97e74fe4579f26",
+          "line": 2392,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an indicator-pane drawing holds its place when the price scale rescales"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-27f1ac52347a5f7aa551",
+          "line": 2536,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an indicator-pane drawing stays in its pane when that pane y-axis rescales"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-11db8c052c8f6cb17f35",
+          "line": 2628,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy indicator-pane drawing coordinates migrate into pane value space"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-ee3bcd3d235328c2f06d",
+          "line": 2659,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-8fb3d3d41c2e91fb4648",
+          "line": 2659,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-96c9294d4ee347af906d",
+          "line": 2727,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "selecting a brush stroke shows its bounds, not a handle per sample"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-78f44fcc74413756d609",
+          "line": 2764,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "collapsing an indicator pane hides its plot and drawings until restore"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-ab751a6e4996bcbe741d",
+          "line": 2824,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "coarse pane collapse hides plot paint and remains restorable"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-b76b15bf478180ee86f4",
+          "line": 2907,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a segmented path finishes on a double-click between bar centres"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-0427e9fc012b72a66768",
+          "line": 2980,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a desktop Path finishes exactly once when its closing double-click has no native dblclick"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-42aabeabd9942edcc741",
+          "line": 266,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing registry and precision controls stay complete at every responsive width"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-c0c742dd590231cf3d8d",
+          "line": 395,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "desktop drawing labels and hover flyouts match the OpenMarket interaction contract"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-27b037e9a5524f016737",
+          "line": 493,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-84e16502c4327b8cf58b",
+          "line": 576,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-d9aa794f06b888ceca81",
+          "line": 620,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "phone drawing chrome keeps one collision-free editing surface"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-f6a109edd7a3c7facc3b",
+          "line": 709,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart-type catalog exposes and applies the new line and area families"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-0670c58b82310f04bf0e",
+          "line": 743,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-66d52331063bbc56b8cd",
+          "line": 997,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "flagship geometry, editing, and path limits survive adversarial interaction"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-f8185de718c4b678c02d",
+          "line": 1189,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "each drawing tool keeps its own defaults and fill color contract"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-b620960d7cd040866f6f",
+          "line": 1257,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "pane-anchored notes stay fixed while calculated labels never open a text editor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-55f8d83b5a705736a908",
+          "line": 1310,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "media tools choose and persist real emoji, icons, and bounded local images"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-0eec17b74bede96d1d30",
+          "line": 1377,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dense collections save beyond Chromium's keepalive request quota"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-7de7915e40d632379481",
+          "line": 1411,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "the drawing cap rejects object 501 without evicting object 1"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-6a38b777a15d07ebf940",
+          "line": 1442,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "account drawing loads fail closed and retry without issuing a destructive save"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-a278f70f9d74096fdf81",
+          "line": 1483,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "unavailable account drawings disable tool selection without changing the group's shown tool"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-61c5c5e378432be7980a",
+          "line": 1514,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a symbol change keeps the renderer alive and never leaks the old symbol's drawings"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-952bbfc7daa7dcff5247",
+          "line": 1586,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a drag released in the future gutter finishes instead of following the cursor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-ce30e59b677e2ce83531",
+          "line": 1873,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a price-range drag crossing a pane separator persists an owner-scale value"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-cb01e0bbba374bfd53b7",
+          "line": 1909,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an endpoint handle dragged across a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-b474e0cad717336b3c4a",
+          "line": 1964,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "dragging a whole range drawing across a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-34817b111aaacfad0f3b",
+          "line": 2023,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "Shift+Measure crossing a pane separator keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-2459859cf811b19c2b51",
+          "line": 2065,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a reloaded range drawing is served back unrepaired and still clips to its pane"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-fc6860109e3555b3b0c2",
+          "line": 2108,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "chart-spanning range and vertical tools are still not clipped to the price pane"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-625b5bc01758699df723",
+          "line": 2176,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a cross-pane price gesture clamps on a logarithmic price scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-15c93ec9340db2f6eab3",
+          "line": 2206,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a cross-pane price gesture clamps on an inverted price scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-58109088847d0e2fafb7",
+          "line": 2239,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a coarse-pointer cross-pane drag keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-743460a442d4b4c60d3a",
+          "line": 2267,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a phone cross-pane drag keeps the owner scale"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-c3f47b8303c4d2036803",
+          "line": 2301,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "collapsing the indicator pane moves the clamp to pane 0's new floor"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-f908771a4f0d20126162",
+          "line": 2343,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-fb6cd2797adfc23a95d2",
+          "line": 2392,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an indicator-pane drawing holds its place when the price scale rescales"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-b298fffa7d11fb541a2e",
+          "line": 2536,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "an indicator-pane drawing stays in its pane when that pane y-axis rescales"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-c1c947c035f1627db40b",
+          "line": 2628,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy indicator-pane drawing coordinates migrate into pane value space"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-b3009334702aa7d4156f",
+          "line": 2659,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-b45ef4272c0750dd2894",
+          "line": 2659,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-58565660cdec03c5f72a",
+          "line": 2727,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "selecting a brush stroke shows its bounds, not a handle per sample"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-7328999919d0ad0ecc25",
+          "line": 2764,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "collapsing an indicator pane hides its plot and drawings until restore"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-c6c9e72273362dc896ea",
+          "line": 2824,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "coarse pane collapse hides plot paint and remains restorable"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-34a65756727270c13a3d",
+          "line": 2907,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a segmented path finishes on a double-click between bar centres"
+        },
+        {
+          "column": 5,
+          "file": "drawing-system.spec.ts",
+          "id": "2de9b50e3befc3c5a90d-4bca30ae15a1cd19d399",
+          "line": 2980,
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [],
+              "status": "skipped",
+              "timeout": 60000
+            }
+          ],
+          "title": "a desktop Path finishes exactly once when its closing double-click has no native dblclick"
+        }
+      ],
+      "title": "drawing-system.spec.ts"
+    }
+  ]
+}

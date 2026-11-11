@@ -1,0 +1,165 @@
+{
+  "packet": "terminal/docs/pr-crops/b-pl-6-batch-3",
+  "files": {
+    "AlertDetail-1440-zh.png": {
+      "sha256": "faca0f3888aa572577ec02c7525c3985f00a7e5778e8c152becb27e01e5117ed",
+      "size": 39009
+    },
+    "AlertDetail-1440.png": {
+      "sha256": "c107217c886f3bb02f2f9c35add9a5585197b95231d44238354a1ad2cf7b15a6",
+      "size": 38761
+    },
+    "AlertDetail-390-zh.png": {
+      "sha256": "1263688ecb3d9fa758e188761e53f4d05ec5ab4d3bee9fdf9d0cc3469aafe1f8",
+      "size": 39638
+    },
+    "AlertDetail-390.png": {
+      "sha256": "4c3e59e025be61614f825096add01f690d0e4d31cc014aa613e55a9bf294b6e6",
+      "size": 39054
+    },
+    "CAPTURE_HISTORY.md": {
+      "sha256": "55a1efb52c3c9fe9213f7171c7a23d338044221b6edf2df80ab746d839a0f380",
+      "size": 1780
+    },
+    "EVIDENCE.yml": {
+      "sha256": "c79c65aa41562ba6ed2696b91bea89b9ede85ea1c85466ffe544049ab8f270be",
+      "size": 3336
+    },
+    "FlowDesk-1440-zh.png": {
+      "sha256": "07499465c95ac0bf530cc0ebd1d77de1a7dddaa43da21a07fa7de172c7509260",
+      "size": 56105
+    },
+    "FlowDesk-1440.png": {
+      "sha256": "302037dbe11130915b975b92d6bee22f46408c05e1cb96e24cba09f2fd0ad6d0",
+      "size": 55292
+    },
+    "FlowDesk-390-zh.png": {
+      "sha256": "22f68c3ce945a4ba09c2e486aecf7555d09b688cd1d937f99369a72738b176d3",
+      "size": 25275
+    },
+    "FlowDesk-390.png": {
+      "sha256": "67549b9c1ec2db83a6ff7ff38a98e2c1b330051f7ab0dc09b479daa091e17e50",
+      "size": 24737
+    },
+    "FlowDesk-detections-1440-zh.png": {
+      "sha256": "3785a7252842787a719d5c0ac269a1dad2712930e2706aaa8afe25d8e58df8c3",
+      "size": 311105
+    },
+    "FlowDesk-detections-1440.png": {
+      "sha256": "d323e24e1f0dd62a0f403b26e2901819b3b4c5d4d75ed3b194d5ce968dbac4dc",
+      "size": 300238
+    },
+    "FlowDesk-detections-390-zh.png": {
+      "sha256": "b817b40d9224cfd498c3aa9d850a08554fd23953acf0bd303fe196e33564bc4e",
+      "size": 96833
+    },
+    "FlowDesk-detections-390.png": {
+      "sha256": "c4a25418f2f92cc0940935c387dd136d013757b2d07f5ef2499258b8e8f8efed",
+      "size": 86289
+    },
+    "FlowDesk-detections-820-zh.png": {
+      "sha256": "f415da28db7bb6baeb8edce1d98f8848896daac0548720239351397cd0e8e70b",
+      "size": 253446
+    },
+    "FlowDesk-detections-820.png": {
+      "sha256": "e02e2c44ba945fbcc7e49c9ebc98c2581767497bfe19435533780f422b85383d",
+      "size": 250010
+    },
+    "FlowDesk-enriched-1440-zh.png": {
+      "sha256": "8077611147b423f8ab47c1097e8098c8dc55bb01d94673ab6644fd27bb8bd3c4",
+      "size": 14562
+    },
+    "FlowDesk-enriched-1440.png": {
+      "sha256": "901b778a0dfecb3da6e543aa7acf125292457c62405d9ed9fbed7163df670f67",
+      "size": 14025
+    },
+    "FlowDesk-enriched-390-zh.png": {
+      "sha256": "c6ddd547b37d06116d3d1f28c1b8580c34a1292f957f56a527d4e6a4ef18c2e4",
+      "size": 14553
+    },
+    "FlowDesk-enriched-390.png": {
+      "sha256": "91c2af6cfe3e3f824503294b925a373c32fe28c21e5815bb1b02e25992ca7f47",
+      "size": 14023
+    },
+    "FlowDesk-enriched-820-zh.png": {
+      "sha256": "11bb2405628a07b5939e5b8f828f360517dddeab8ff60aa7b4f25aea0b0ad739",
+      "size": 14817
+    },
+    "FlowDesk-enriched-820.png": {
+      "sha256": "ae0a0e4756102299e3d3ca3c96df6c33519388b89f34bce8b42a5ae11958f63a",
+      "size": 14291
+    },
+    "FlowDesk-inspector-1440-zh.png": {
+      "sha256": "d842bee96aa00b7b05b444669c456d868f88328bfdc73eb02b83314526bb9534",
+      "size": 342197
+    },
+    "FlowDesk-inspector-1440.png": {
+      "sha256": "48935fc4007f742f804b4ae41f73f43e1df24aff58d23466f2d2d61ed3b88c0c",
+      "size": 327302
+    },
+    "FlowDesk-inspector-390-zh.png": {
+      "sha256": "b858ec999586b20338471164ee12f63ddb96c36e1b59cba1d96802063e8e6006",
+      "size": 102810
+    },
+    "FlowDesk-inspector-390.png": {
+      "sha256": "ca239ebf15a4ecb97df809c097a0294755a70deed888d809c2c09e5079e9588c",
+      "size": 99384
+    },
+    "FlowDesk-inspector-820-zh.png": {
+      "sha256": "064c646e7eb33dd1587559bfb56a69296d61d9d609ae77962969c3d02372d14c",
+      "size": 209018
+    },
+    "FlowDesk-inspector-820.png": {
+      "sha256": "9da9db766a03f5edf63ab2d940071e013176609cf8da4d9e6bf684f424be74e1",
+      "size": 201246
+    },
+    "HeatmapTreemap-1440-zh.png": {
+      "sha256": "d774dd2c5941c19929d4ed0d90650c163aed0821433b1d7c68252199e3f50a13",
+      "size": 161856
+    },
+    "HeatmapTreemap-1440.png": {
+      "sha256": "5e7cd1416339adae93a22826464fc47fe2fe076572bd71149d3a4dfd5088a183",
+      "size": 153811
+    },
+    "HeatmapTreemap-390-zh.png": {
+      "sha256": "dda8151e0a5a9ee7ecab7e5a4f7ff7c5ab77e6093136531579ac11e861114c12",
+      "size": 112845
+    },
+    "HeatmapTreemap-390.png": {
+      "sha256": "c6f2388d3eecdb3f2eaee098e3df3a60da92517ddcf956ab486c4bcd2098f394",
+      "size": 106627
+    },
+    "OptionsFlowBoard-1440-zh.png": {
+      "sha256": "fc0dcda5d0217ad4735fa1726e3423df1591b2bddcbd5b595589578d46cb655c",
+      "size": 114674
+    },
+    "OptionsFlowBoard-1440.png": {
+      "sha256": "5d3993b0226dce8989bee4e65e2fd32f4e712045093397f17c7e22cc61acaf10",
+      "size": 111546
+    },
+    "OptionsFlowBoard-390-zh.png": {
+      "sha256": "3777ff9e25f2189bddd704a78c637137fb7f32ceea7296341099d891e3cac7ab",
+      "size": 62832
+    },
+    "OptionsFlowBoard-390.png": {
+      "sha256": "e698e9a99e6b09f73638af4cb120d864f3bd1318fce1bdfc0acc0fa8ef66f49c",
+      "size": 58917
+    },
+    "PineLibrary-1440-zh.png": {
+      "sha256": "339bfb08142c48c2ad510f3eff30227e0996301ed979016e42e48c45bf4348f8",
+      "size": 38893
+    },
+    "PineLibrary-1440.png": {
+      "sha256": "47bc3d728e639f9255c5b4f052fea88d85a65e7787b5392c06d709ba7ea0bf6b",
+      "size": 36772
+    },
+    "PineLibrary-390-zh.png": {
+      "sha256": "972aedc6292b85ab872cb44300d721a3fe5de26916dc6373029b65854c0b9a5b",
+      "size": 7609
+    },
+    "PineLibrary-390.png": {
+      "sha256": "222a6e224a2ddfe36fc109741fd98a325eae17230ed52e42bee6171d7b941a16",
+      "size": 7187
+    }
+  }
+}

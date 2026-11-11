@@ -1,0 +1,54 @@
+{
+  "self_review": "SELF_REVIEWED",
+  "source_law_pin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "branch_parent": "67fd92b80781ac95df7d238e9a674c0fd8f7b670",
+  "protected_parent": "74c007125129090cc762f2bc4b1b152123326444",
+  "dependency_lock_install": "npm ci --ignore-scripts --no-audit --fund=false; exit 0",
+  "next": "16.4.6",
+  "playwright": "1.61.1",
+  "owner_behavior_tests": {
+    "passed": 97,
+    "files": 4
+  },
+  "synthetic_packet_validator": {
+    "passed": 34,
+    "browser_proof": false
+  },
+  "focused_ci_contracts": {
+    "passed": 198
+  },
+  "route_type_generation": "pass",
+  "typescript": {
+    "exit_code": 0,
+    "diagnostics": 0,
+    "max_old_space_size_mib": 6144
+  },
+  "affected_eslint": {
+    "exit_code": 0
+  },
+  "packet_consumer": {
+    "passed": 5,
+    "failed": 1,
+    "reason": "The new current eight-case packet is absent; genuine hosted capture remains required. No fabricated image or replacement hash was supplied."
+  },
+  "producerActivation": false,
+  "productionAcceptance": false,
+  "release_holds": "Preserve #662 hold and nullable compatibility/activation boundaries; no automatic enrollment, approval, merge or deployment.",
+  "plain_language": {
+    "exit_code": 0,
+    "base_resolved": true,
+    "scanned_files": 496,
+    "blocking": 0,
+    "legacy_reported": 5,
+    "waived": 0
+  },
+  "source_diff_check": {
+    "exit_code": 0,
+    "excluded_raw_logs": "docs/verification/pr1033-active-inbox-recovery-20261111/*.log",
+    "raw_log_only_findings": [
+      "owner-tests.log: final blank line",
+      "packet-consumer.log: printed source context whitespace and final blank line"
+    ],
+    "raw_logs_preserved_verbatim": true
+  }
+}

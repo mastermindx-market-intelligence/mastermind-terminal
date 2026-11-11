@@ -1,0 +1,74 @@
+{
+  "source": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+  "reviewed_at": "2026-11-10T13:21:24.665613+00:00",
+  "review_type": "SELF_REVIEWED",
+  "decision": "PASS_FOR_AFFECTED_CAPTURE_SCOPE",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "states": [
+    "condition",
+    "typed-null"
+  ],
+  "images": [
+    {
+      "file": "desktop-en-condition.png",
+      "sha256": "d0308436804fbb9e06bdf92b9a73c53bb5ae904eeb856e79ee72fc5c6e2c55fd",
+      "review": "Viewed individually at native output size. Event, 10-share holding, condition or explicit typed-null line, and source/no-advice footer are present. No clipped text, overlap or blurred capture observed.",
+      "scope": "EventImpactPanel crop; not full-page, live-data or accessibility certification."
+    },
+    {
+      "file": "desktop-en-typed-null.png",
+      "sha256": "ca6593db5288092d66f010db9209c9393c384d8d104230047e324df80dd9c3f1",
+      "review": "Viewed individually at native output size. Event, 10-share holding, condition or explicit typed-null line, and source/no-advice footer are present. No clipped text, overlap or blurred capture observed.",
+      "scope": "EventImpactPanel crop; not full-page, live-data or accessibility certification."
+    },
+    {
+      "file": "desktop-zh-condition.png",
+      "sha256": "1de0e5cd47ca319a41f38380cedf5cec3ed5a94ac97b65f71b350c984666ec49",
+      "review": "Viewed individually at native output size. Event, 10-share holding, condition or explicit typed-null line, and source/no-advice footer are present. No clipped text, overlap or blurred capture observed.",
+      "scope": "EventImpactPanel crop; not full-page, live-data or accessibility certification."
+    },
+    {
+      "file": "desktop-zh-typed-null.png",
+      "sha256": "bc91fc6fcc176ac7fbe7d08807633bc4875019f5b6d32bc6e3652f098ebdf348",
+      "review": "Viewed individually at native output size. Event, 10-share holding, condition or explicit typed-null line, and source/no-advice footer are present. No clipped text, overlap or blurred capture observed.",
+      "scope": "EventImpactPanel crop; not full-page, live-data or accessibility certification."
+    },
+    {
+      "file": "mobile-en-condition.png",
+      "sha256": "1c5e165c827ad0479eb8c540ab5a1d9e46e2300b154bd0c7674473a84bd8adfe",
+      "review": "Viewed individually at native output size. Event, 10-share holding, condition or explicit typed-null line, and source/no-advice footer are present. No clipped text, overlap or blurred capture observed.",
+      "scope": "EventImpactPanel crop; not full-page, live-data or accessibility certification."
+    },
+    {
+      "file": "mobile-en-typed-null.png",
+      "sha256": "c7d91384df75a0d196ee7c30b4115cdf5f58c8dcac6c976cab7774eac57d3bb6",
+      "review": "Viewed individually at native output size. Event, 10-share holding, condition or explicit typed-null line, and source/no-advice footer are present. No clipped text, overlap or blurred capture observed.",
+      "scope": "EventImpactPanel crop; not full-page, live-data or accessibility certification."
+    },
+    {
+      "file": "mobile-zh-condition.png",
+      "sha256": "76b9239b2c7ef2e923e3d4d4b28bb685a1a84298672012d13afc5b82447220e6",
+      "review": "Viewed individually at native output size. Event, 10-share holding, condition or explicit typed-null line, and source/no-advice footer are present. No clipped text, overlap or blurred capture observed.",
+      "scope": "EventImpactPanel crop; not full-page, live-data or accessibility certification."
+    },
+    {
+      "file": "mobile-zh-typed-null.png",
+      "sha256": "773c75c618a515fe49c1583c177114be5b2704d1c7b15c3ae9c06a02cc985aa4",
+      "review": "Viewed individually at native output size. Event, 10-share holding, condition or explicit typed-null line, and source/no-advice footer are present. No clipped text, overlap or blurred capture observed.",
+      "scope": "EventImpactPanel crop; not full-page, live-data or accessibility certification."
+    }
+  ]
+}

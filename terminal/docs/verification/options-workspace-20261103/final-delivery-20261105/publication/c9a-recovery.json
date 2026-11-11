@@ -1,0 +1,50 @@
+{
+  "schema": "typed_publisher_recovery.v1",
+  "operation_id": "exposure-strike-workspace-ux-20261103-c3",
+  "original_attempt": {
+    "local_head": "c9a57fc8dc6cb624309c3930c49319bbc980db2b",
+    "remote_head": "faa8f30c27508fad83e9ca2ca82ff28165f89cab",
+    "status": "REFUSED",
+    "effect_state": "NOT_APPLIED",
+    "code": "TYPED_GIT_PRECHECK_REFUSED",
+    "action_ref": null
+  },
+  "material_recovery_evidence": "Later successful read-only status calls were observed in the unchanged gateway, and the owned original browser server had stopped. One same-operation status then established exact clean heads and readiness before a single push.",
+  "status": {
+    "schema": "mastermind.studio_git_publish_status.v1",
+    "operation_id": "exposure-strike-workspace-ux-20261103-c3",
+    "branch": "sol/web-exposure-strike-workspace-ux-20261103-c3",
+    "local_head_sha": "c9a57fc8dc6cb624309c3930c49319bbc980db2b",
+    "remote_head_sha": "faa8f30c27508fad83e9ca2ca82ff28165f89cab",
+    "clean": true,
+    "publication_state": "DIFFERENT_REMOTE_HEAD",
+    "ready_to_push": true
+  },
+  "push": {
+    "schema": "mastermind.studio_git_push_result.v1",
+    "status": "OK",
+    "effect_state": "APPLIED",
+    "code": "APPLIED",
+    "action_ref": "3fb48a8330b19de31c12ef572e860dbd4329882ece2c82cfe351890aa644011b",
+    "push_attempted": true,
+    "operation_id": "exposure-strike-workspace-ux-20261103-c3",
+    "branch": "sol/web-exposure-strike-workspace-ux-20261103-c3",
+    "local_head_sha": "c9a57fc8dc6cb624309c3930c49319bbc980db2b",
+    "remote_head_sha": "c9a57fc8dc6cb624309c3930c49319bbc980db2b",
+    "clean": true,
+    "publication_state": "APPLIED",
+    "ready_to_push": false
+  },
+  "publisher_sha256": "d8f7f7712129094ce0ffac2eaeb66d15dd3f063a3ade9fa354de7af0d412477a",
+  "gateway_sha256": "17157fa5f8739dbe17aae767a335e97dd713a978dde9b192feb1b41a7b036b30",
+  "cause": "Transient precheck boundary recovered; original exception unproven. Gateway suppresses underlying exceptions. Sequential local workspace/storage checks and remote observation are possible boundaries; duration alone does not identify the failing stage.",
+  "authority": "Unchanged original publisher, operation, branch, destination, and exact expected head. No alternate publisher, raw push, configuration changes, merge, enqueue, ready/undraft, labels, or deployment.",
+  "new_ci": {
+    "id": 41999461362,
+    "head_sha": "c9a57fc8dc6cb624309c3930c49319bbc980db2b",
+    "event": "pull_request",
+    "status_at_first_read": "queued",
+    "created_at": "2026-11-05T09:05:04Z",
+    "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41999461362"
+  }
+}

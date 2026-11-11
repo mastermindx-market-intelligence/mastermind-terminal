@@ -1,0 +1,18 @@
+{
+  "browserStore": "/Users/chriswong/Library/Caches/ms-playwright",
+  "copyExitCode": 0,
+  "copyStderr": "",
+  "copyStdout": "",
+  "dependencyCopy": "APFS clone",
+  "dependencyDonor": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-900-workspace-successor/terminal",
+  "finishedAt": "2026-11-10T15:26:28.961881+00:00",
+  "lockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "node": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "nodeVersion": "v22.23.4",
+  "schema": "terminal.pr1427.runtime.v1",
+  "sourceHead": "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7",
+  "sourceTree": "28755f8133c5208c38ca7af4645e0eaee1610187",
+  "startedAt": "2026-11-10T15:26:22.586352+00:00",
+  "state": "RUNTIME_PREPARED"
+}

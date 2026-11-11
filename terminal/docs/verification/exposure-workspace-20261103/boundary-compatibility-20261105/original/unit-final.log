@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal
+
+ ✓ lib/__tests__/researchLabAdmission.test.tsx (11 tests) 126ms
+ ✓ lib/__tests__/researchLabSourceAvailability.test.tsx (3 tests) 135ms
+ ✓ lib/__tests__/researchReportedGammaMounted.test.tsx (8 tests) 412ms
+
+ Test Files  3 passed (3)
+      Tests  22 passed (22)
+   Start at  19:58:57
+   Duration  2.42s (transform 509ms, setup 0ms, collect 1.44s, tests 674ms, environment 2.45s, prepare 362ms)
+

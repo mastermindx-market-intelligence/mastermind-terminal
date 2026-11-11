@@ -1,0 +1,23 @@
+{
+  "browserPassed": 72,
+  "executionRecords": {
+    "qualification-r1/drawing-save-concurrency-lifecycle.json": "3aa48a08860a05fb4cbb6be0e6f68f3d7dddbcd9149fdb2c663974625f9bb736",
+    "qualification-r1/execution.json": "a846a8ea44011ae651ff38790a1c4183d158ea7cde95aaf84694620ddb701e2f",
+    "repair.json": "3342744b6e1f467c92da3fc3c3037962da23b796668898d1e6fe43a43722428d"
+  },
+  "existingDesktopOnlySkipped": 18,
+  "failed": 0,
+  "flaky": 0,
+  "originalHead": "bf47f5429a2395bf9fcf1e2e5a69ffeae00ae16f",
+  "preparedAt": "2026-11-09T16:00:53.485770+00:00",
+  "repairedCasePassed": 3,
+  "retainedPriorNavigationUnits": 15,
+  "retries": 0,
+  "runtimeChanged": false,
+  "schema": "terminal_pr654_drawing_assertion_qualification.v1",
+  "sourceEntries": 1896,
+  "sourceSha256": "4d7ab638002e1d34829ff79567951348fac976b71fad82fcd9a5752a12210507",
+  "sourceStable": true,
+  "state": "SOURCE_AND_BROWSER_QUALIFIED",
+  "typecheckPassed": true
+}

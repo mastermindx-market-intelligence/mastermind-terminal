@@ -1,0 +1,86 @@
+{
+  "schema": "options_exposure_source_compatibility.v1",
+  "status": "SOURCE_AND_BROWSER_QUALIFIED_PENDING_TYPED_PUBLICATION",
+  "source_law": "70187bb1660e8a7c3038271bb9f8924b5e525cb0",
+  "protected_terminal": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "original_operation": "exposure-strike-workspace-ux-20261103-c3",
+  "original_parent": "e9fa843122ac0eee36d607b8313e0bb264bed840",
+  "options_head": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+  "paper": "Six accepted boards preserved; no design mutation.",
+  "runtime_sha256": {
+    "terminal/components/gexdesk/GexDeskView.tsx": "770ddedbe67516359a1f8d29f1ce28a7cc89b63e16dba87071b84609fc04b544",
+    "terminal/components/researchlab/OptionsResearchLab.tsx": "1b9bfeaa9ae3a9460fcecd812a98dcd8ef6591df0041d5dc4a53bde6dc2daf8b",
+    "terminal/components/options-companion/GexMarketMemory.tsx": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+    "terminal/components/researchlab/ResearchReportedGammaPanel.tsx": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+    "terminal/components/researchlab/researchReportedGamma.ts": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+    "terminal/lib/dataCache.ts": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+    "terminal/lib/idbJsonStore.ts": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8"
+  },
+  "runtime_identical_original_and_preview": true,
+  "original": {
+    "browser_passed": 12,
+    "browser_retries": 0,
+    "focused_unit_passed": 210,
+    "evidence_passed": 23,
+    "source_typescript_exit": 0,
+    "authored_lint_exit": 0,
+    "broader_lint_scope": "61 errors and10 warnings remain in three byte-identical protected dependency files; complete diagnostics retained, no suppression."
+  },
+  "preview": {
+    "browser_passed": 18,
+    "browser_retries": 0,
+    "source_files": 3113,
+    "affected_unit_passed": 338,
+    "source_map_sha256": "2935ba8c1b093aaf503dd5f1b3509093cb7bcc6df86c85248284693b4667da4c",
+    "capture_scope": "Prior4df capture matrices retain their historical identities; this phase claims new combined browser proof only."
+  },
+  "native_captures": [
+    {
+      "packet": "gex-levels-heatmap-load-failure",
+      "operation_path": "docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105",
+      "current_images": 114,
+      "capture_receipt_sha256": "935ba4848b8fe09b1f7d45e39bbe228a2ba304d8fdaeefc47d013c286e7e7503",
+      "current_manifest_sha256": "415d5782676d2359b2adc7901d690a1d80e6b908537d7674bf2c44b0e8355113",
+      "prior_manifest_sha256": "fdbbde228018ceaf5073624f4bbf8b7c517a7bb86f27c94d93423d6619a3434e",
+      "preserved_prior_images": 114
+    },
+    {
+      "packet": "eod-heatmap-flowdesk-load-failure",
+      "operation_path": "docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105",
+      "current_images": 126,
+      "capture_receipt_sha256": "7b74bfcc4c4e11c8505f0e661cdd65a782802a8e07e69d0fa9c6ea6bab252939",
+      "current_manifest_sha256": "83b7a54f7def760363e747e876d77bc8a9f53a5d0e79766ea3754858d5d9aafe",
+      "prior_manifest_sha256": "aa03e7e65e155f9addb167232fbc50e3b71e8380eb07fedde1f82e47ae10c91c",
+      "preserved_prior_images": 126
+    }
+  ],
+  "conflict_repair": {
+    "known_original_conflict_paths": 15,
+    "gex_diff3_exit": 0,
+    "manifest_diff3_exits": [
+      0,
+      0
+    ],
+    "root_png_resolution": "Protected baseline restored exactly; every former original root PNG preserved under its original packet operation.",
+    "ancestry_effect": "None. Ordinary source repair uses the original single-parent publisher. Exact committed-tree composition is recorded in the PR after publication."
+  },
+  "effect_reconciliation": {
+    "transient_network_error": "Original evidence-preservation call returned connection failure; original targets were verified absent on the same unchanged gateway generation before one same-carrier continuation. Both preserved sets then completed and were hash-verified.",
+    "owned_test_ports_closed": [
+      3661,
+      3663,
+      3671,
+      3673
+    ]
+  },
+  "release_holds": [
+    "no merge",
+    "no enqueue",
+    "no Ready or undraft action",
+    "no labels",
+    "no deployment",
+    "no purchases",
+    "no alternate publisher"
+  ],
+  "next_action": "Commit and push this qualified source repair through the original C3 operation, read exact GitHub head/native checks, then resolve Options PR1248 remaining four evidence conflicts and joint proof."
+}

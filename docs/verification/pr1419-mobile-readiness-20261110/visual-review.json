@@ -1,0 +1,20 @@
+{
+  "reviewedAt": "2026-11-10T15:00:35.839428+00:00",
+  "reviewer": "assigned ChatGPT Web principal",
+  "files": [
+    "terminal/e2e/proof/sector-retained-depth/calls-trace-1440.png",
+    "terminal/e2e/proof/sector-retained-depth/calls-emergence-1440.png"
+  ],
+  "refreshedByThisRun": true,
+  "identicalToBase": true,
+  "observations": [
+    "Visible text and keyboard focus are legible",
+    "Emergence copy and its carried company-evidence link are legible",
+    "No observed overlap or horizontal clipping in the shown viewport"
+  ],
+  "limits": [
+    "Synthetic harness data",
+    "Viewport captures, not full-page images",
+    "No new mobile visual, light-theme, live-data or production acceptance"
+  ]
+}

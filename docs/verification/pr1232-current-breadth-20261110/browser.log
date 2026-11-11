@@ -1,0 +1,34 @@
+[warmup] /terminal?symbol=NVDA → 200 in 152ms
+[warmup] /options → 200 in 4086ms
+[warmup] /portfolio → 200 in 1470ms
+[warmup] /alerts → 200 in 1453ms
+[warmup] /analysis → 200 in 2398ms
+[warmup] /discover → 200 in 2184ms
+[warmup] /admin → 200 in 1206ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 499ms
+[warmup] /login → 200 in 95ms
+[warmup] /reset-password → 200 in 545ms
+[warmup] /api/me → 200 in 642ms
+[warmup] /api/watchlist → 200 in 210ms
+[warmup] /api/layouts → 200 in 254ms
+[warmup] /api/watchlist/annotations → 409 in 311ms
+[warmup] 14 routes compiled in 16s
+[fixture-ready] prophet_idx fixture 200 in 631ms
+
+Running 12 tests using 1 worker
+
+[1/12] [desktop] › e2e/sector-breadth.spec.ts:6:7 › breadth rank, velocity, search and sector drilldown in en
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/12] [desktop] › e2e/sector-breadth.spec.ts:6:7 › breadth rank, velocity, search and sector drilldown in zh
+[3/12] [desktop] › e2e/sector-breadth.spec.ts:82:5 › historical producer replay ranks eleven sectors and exposes the six closes
+[4/12] [desktop] › e2e/sector-breadth.spec.ts:167:5 › original monthly snapshot preserves ties and never presents rotation without history
+[5/12] [tablet] › e2e/sector-breadth.spec.ts:6:7 › breadth rank, velocity, search and sector drilldown in en
+[6/12] [tablet] › e2e/sector-breadth.spec.ts:6:7 › breadth rank, velocity, search and sector drilldown in zh
+[7/12] [tablet] › e2e/sector-breadth.spec.ts:82:5 › historical producer replay ranks eleven sectors and exposes the six closes
+[8/12] [tablet] › e2e/sector-breadth.spec.ts:167:5 › original monthly snapshot preserves ties and never presents rotation without history
+[9/12] [mobile] › e2e/sector-breadth.spec.ts:6:7 › breadth rank, velocity, search and sector drilldown in en
+[10/12] [mobile] › e2e/sector-breadth.spec.ts:6:7 › breadth rank, velocity, search and sector drilldown in zh
+[11/12] [mobile] › e2e/sector-breadth.spec.ts:82:5 › historical producer replay ranks eleven sectors and exposes the six closes
+[12/12] [mobile] › e2e/sector-breadth.spec.ts:167:5 › original monthly snapshot preserves ties and never presents rotation without history
+  12 passed (1.4m)

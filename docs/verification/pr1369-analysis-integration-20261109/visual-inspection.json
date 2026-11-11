@@ -1,0 +1,9 @@
+{
+  "findings": "Mobile native symbol/actions toolbar fits one row; desktop retains both research destinations; no visible dev indicator. Beta AAPL loading and selected statistics are coherent. Exact30.00 is verified by the browser DOM assertion, not claimed visible in the viewport sample.",
+  "inspected": [
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+    "qualification-r1-continuation/browser-lifetime-beta-artifacts/analysis-company-read-life-4114b-d-without-unused-quotes-zh--mobile/company-loading-zh.png",
+    "qualification-r1-continuation/browser-lifetime-beta-artifacts/analysis-company-read-life-4114b-d-without-unused-quotes-zh--mobile/selected-company-statistics-zh.png"
+  ]
+}

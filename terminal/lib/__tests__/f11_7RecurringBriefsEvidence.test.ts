@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { readInboxPacket, regularBytes } from "../../e2e/tools/briefs_inbox_capture_contract.cjs";
+import scope from "../../docs/briefs-explicit-language/RECURRING_INBOX_SCOPE_2026-11-11.json";
 
 const REPO = join(__dirname, "../../..");
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f11-7-recurring-briefs");
@@ -47,11 +49,7 @@ function layoutFileMap(yml: string): Record<string, string> {
   return map;
 }
 
-function sha256Of(abs: string): string {
-  return createHash("sha256").update(readFileSync(abs)).digest("hex");
-}
-
-describe("B-F11-7 evidence lock is the sha256 of the layout sources", () => {
+describe("B-F11-7 current inbox proof and preserved historical subscription packet", () => {
   it("no packet test file imports a process spawner", () => {
     const libDir = join(__dirname);
     const files = readdirSync(libDir)
@@ -67,23 +65,32 @@ describe("B-F11-7 evidence lock is the sha256 of the layout sources", () => {
     }
   });
 
-  it("EVIDENCE.yml records a sha256 for every layout file the crops depend on", () => {
+  it("the historical manifest retains its original layout bindings", () => {
     const recorded = layoutFileMap(evidenceText());
     for (const rel of LAYOUT_FILES) {
       expect(recorded[rel], `layoutFiles is missing ${rel}`).toMatch(/^[0-9a-f]{64}$/);
     }
   });
 
-  it("each layoutFiles sha256 matches the file on disk", () => {
-    const recorded = layoutFileMap(evidenceText());
-    for (const [rel, expected] of Object.entries(recorded)) {
-      const abs = join(REPO, rel);
-      expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+  it("preserves all original mixed-packet bytes with an explicit historical scope", () => {
+    expect(scope.producerActivation).toBe(false);
+    expect(scope.productionAcceptance).toBe(false);
+    expect(scope.historical.directory).toBe("terminal/docs/pr-crops/b-f11-7-recurring-briefs");
+    expect(scope.historical.files.map(row => row.file).sort()).toEqual(["EVIDENCE.yml", ...CROPS].sort());
+    for (const row of scope.historical.files) {
+      const bytes = regularBytes(join(CROP_DIR, row.file));
+      expect(createHash("sha256").update(bytes).digest("hex"), row.file).toBe(row.sha256);
     }
   });
 
-  it("all twelve dark crops exist and are non-empty", () => {
+  it("requires an independently qualified current eight-view inbox packet", () => {
+    const packet = readInboxPacket(REPO);
+    expect(packet.schema).toBe(scope.current.schema);
+    expect(packet.cases).toHaveLength(8);
+    expect(packet.cases.every((row: { kind: string }) => row.kind === "list" || row.kind === "empty")).toBe(true);
+  });
+
+  it("all twelve historical dark crops exist and are non-empty", () => {
     expect(CROPS).toHaveLength(12);
     for (const file of CROPS) {
       const abs = join(CROP_DIR, file);
@@ -92,7 +99,7 @@ describe("B-F11-7 evidence lock is the sha256 of the layout sources", () => {
     }
   });
 
-  it("EVIDENCE.yml declares the capture flag and the dark-only law", () => {
+  it("the historical manifest declares its capture flag and dark-only scope", () => {
     const yml = evidenceText();
     expect(yml).toMatch(/capture_flag:\s*TERMINAL_E2E_FIXTURE/);
     expect(yml).toMatch(/DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06/);

@@ -1,0 +1,42 @@
+✔ accepts the exact synthetic eight-case matrix with separately bound crop geometry (9.991034ms)
+✔ rejects historical packet schema (2.292537ms)
+✔ rejects historical scope (1.105853ms)
+✔ rejects producer activation (0.94447ms)
+✔ rejects production acceptance (0.985733ms)
+✔ rejects unclosed browser (1.591313ms)
+✔ rejects unsettled server (1.050259ms)
+✔ rejects incomplete context cleanup (1.125042ms)
+✔ rejects missing case (1.105693ms)
+✔ rejects duplicate case (1.221196ms)
+✔ rejects path outside the exact inventory (1.516039ms)
+✔ rejects extra case (0.896288ms)
+✔ rejects source drift (3.470458ms)
+✔ rejects undeclared source (0.970549ms)
+✔ rejects image hash drift (0.893283ms)
+✔ rejects image dimension drift (1.69606ms)
+✔ rejects crop dimension drift (0.700985ms)
+✔ rejects viewport drift (0.546271ms)
+✔ rejects runtime drift (0.614875ms)
+✔ rejects missing contract (0.503808ms)
+✔ rejects no contract read (5.435413ms)
+✔ rejects fractional contract read count (1.626556ms)
+✔ rejects unexpected mutation (0.422535ms)
+✔ rejects subscription controls (0.364538ms)
+✔ rejects hidden development indicator (0.577088ms)
+✔ rejects browser error (0.491899ms)
+✔ rejects unsettled inbox (0.622376ms)
+✔ rejects changed state text (0.694014ms)
+✔ decodes and rejects a truncated PNG even when its recorded hash matches (0.674945ms)
+✔ decodes and rejects a corrupt PNG even when its recorded hash matches (0.516586ms)
+✔ reads only a complete regular-file packet on disk (8.813192ms)
+✔ rejects an extra file in the selected packet directory (3.208925ms)
+✔ rejects a symlink image instead of following it (3.959954ms)
+✔ rejects a symlink packet directory (3.014954ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 242.144286

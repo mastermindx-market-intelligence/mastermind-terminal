@@ -413,54 +413,125 @@ def _role_occurrences(value: str) -> list[tuple[int, int, str]]:
     return sorted(matches)
 
 
-def _role_near_exact_name(speaker: str, sentence: str) -> str:
-    """Return only a title locally bound to the speaker's full label.
+_TITLE_NAME_WORDS = {
+    "chief", "executive", "financial", "operating", "revenue", "technology",
+    "product", "officer", "senior", "vice", "president", "director", "investor",
+    "relations", "managing", "acting", "interim", "head", "of", "and", "our",
+    "the", "company", "corporation", "corp", "inc", "limited", "group",
+    "ceo", "cfo", "coo", "cro", "cto", "cpo", "analyst", "operator",
+}
 
-    Introductory rosters frequently contain several executives.  The closest
-    role wins, but an intervening person/joining clause rejects the match.
+
+def _person_name_occurrences(
+    sentence: str, participant_names: tuple[str, ...],
+) -> list[tuple[int, int, str]]:
+    """Find exact participants and conservative full-name barriers in a roster."""
+    names: list[tuple[int, int, str]] = []
+    for name in sorted(set(participant_names), key=len, reverse=True):
+        normalized = " ".join(name.split())
+        if not normalized:
+            continue
+        pattern = r"\s+".join(re.escape(word) for word in normalized.split())
+        for match in re.finditer(rf"(?<!\w){pattern}(?!\w)", sentence, re.I):
+            if not any(start < match.end() and match.start() < end for start, end, _ in names):
+                names.append((match.start(), match.end(), normalized.casefold()))
+
+    # A named executive may not have a speaking turn. Keep that person as a
+    # boundary, including in title-first phrases such as "CFO John Smith".
+    for phrase in re.finditer(r"\b[A-Z][a-zA-Z'’\-]*(?:\s+[A-Z][a-zA-Z'’\-]*)+\b", sentence):
+        run: list[re.Match[str]] = []
+        words = list(re.finditer(r"[A-Za-z'’\-]+", phrase.group()))
+        for word in [*words, None]:
+            if word is not None and word.group().casefold() not in _TITLE_NAME_WORDS:
+                run.append(word)
+                continue
+            if len(run) >= 2:
+                start = phrase.start() + run[0].start()
+                end = phrase.start() + run[-1].end()
+                if not any(left < end and start < right for left, right, _ in names):
+                    names.append((start, end, sentence[start:end].casefold()))
+            run = []
+    return sorted(names)
+
+
+def _role_near_exact_name(
+    speaker: str, sentence: str, participant_names: tuple[str, ...] = (),
+) -> str:
+    """Bind adjacent names and titles without preferring distance or direction.
+
+    A roster can be name/title/name/title or title/name/title/name. Choose a
+    role only when every maximum adjacent pairing gives this name that role;
+    a single title between two names is insufficient evidence of ownership.
     """
-    normalized = " ".join(speaker.split())
-    if not normalized:
+    normalized = " ".join(speaker.split()).casefold()
+    names = _person_name_occurrences(sentence, (speaker, *participant_names))
+    if not normalized or not any(name == normalized for _, _, name in names):
         return ""
-    folded = sentence.casefold()
-    name_matches = list(re.finditer(
-        rf"(?<!\w){re.escape(normalized.casefold())}(?!\w)",
-        folded,
-    ))
-    if not name_matches:
-        return ""
+    entities = [(start, end, "name", name) for start, end, name in names]
+    for start, end, role in _role_occurrences(sentence):
+        # Complete the long title so its trailing "Officer" cannot look like
+        # a qualifier belonging to the next participant.
+        officer = re.match(r"\s+officer\b", sentence[end:], re.I)
+        if officer:
+            end += officer.end()
+        if not any(left < end and start < right for left, right, _ in names):
+            entities.append((start, end, "role", role))
+    entities.sort()
 
-    candidates: list[tuple[int, int, str]] = []
-    for name_match in name_matches:
-        for role_start, role_end, role in _role_occurrences(sentence):
-            if role_end <= name_match.start():
-                gap = name_match.start() - role_end
-                between = sentence[role_end:name_match.start()]
-            elif role_start >= name_match.end():
-                gap = role_start - name_match.end()
-                between = sentence[name_match.end():role_start]
-            else:
-                gap = 0
-                between = ""
-            if gap > 64:
+    # Treat overlapping aliases and "Chief Financial Officer (CFO)" as one
+    # title, rather than allowing the same title to be assigned twice.
+    merged: list[tuple[int, int, str, str]] = []
+    for entity in entities:
+        if merged and entity[2] == merged[-1][2] == "role" and entity[3] == merged[-1][3]:
+            previous = merged[-1]
+            if entity[0] <= previous[1] or re.fullmatch(r"[\s,()/\-]*", sentence[previous[1]:entity[0]]):
+                merged[-1] = (previous[0], max(previous[1], entity[1]), "role", entity[3])
                 continue
-            if re.search(r"(?i)\b(?:joined|joining|with\s+me|followed|hand(?:ing)?\s+(?:it\s+)?to)\b", between):
-                continue
-            if ";" in between:
-                continue
-            proper_names = re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b", between)
-            title_or_company_words = {
-                "chief", "executive", "financial", "officer", "senior", "vice",
-                "president", "director", "investor", "relations", "managing",
-                "interim", "company", "corporation", "corp", "inc", "limited", "group",
-            }
-            if any(
-                not ({token.casefold() for token in phrase.split()} & title_or_company_words)
-                for phrase in proper_names
-            ):
-                continue
-            candidates.append((gap, role_start, role))
-    return min(candidates)[2] if candidates else ""
+        merged.append(entity)
+    entities = merged
+
+    edges: list[bool] = []
+    for left, right in zip(entities, entities[1:]):
+        between = sentence[left[1]:right[0]]
+        blocked = (
+            left[2] == right[2] or right[0] < left[1] or len(between) > 64
+            or ";" in between
+            or re.search(r"(?i)\b(?:joined|joining|with\s+me|followed|hand(?:ing)?\s+(?:it\s+)?to)\b", between)
+            or (re.search(r"(?i)\band\b", between)
+                and not re.search(r"(?i)\b(?:executive|vice|president|director|head)\b", between))
+        )
+        edges.append(not blocked)
+
+    # Maximum matching on this ordered path is linear. Prefix/suffix scores
+    # also identify ties, so ambiguous ownership stays blank instead of being
+    # resolved by the number of characters in a person's name or title.
+    count = len(entities)
+    prefix = [0] * (count + 1)
+    suffix = [0] * (count + 1)
+    for end in range(1, count + 1):
+        prefix[end] = prefix[end - 1]
+        if end >= 2 and edges[end - 2]:
+            prefix[end] = max(prefix[end], prefix[end - 2] + 1)
+    for start in range(count - 1, -1, -1):
+        suffix[start] = suffix[start + 1]
+        if start + 1 < count and edges[start]:
+            suffix[start] = max(suffix[start], 1 + suffix[start + 2])
+
+    roles: set[str] = set()
+    for index, (_, _, kind, name) in enumerate(entities):
+        if kind != "name" or name != normalized:
+            continue
+        if prefix[index] + suffix[index + 1] == prefix[count]:
+            continue  # An equally good pairing leaves this name without a title.
+        candidates = {
+            entities[index - 1 if edge == index - 1 else index + 1][3]
+            for edge in (index - 1, index)
+            if 0 <= edge < len(edges) and edges[edge]
+            and prefix[edge] + 1 + suffix[edge + 2] == prefix[count]
+        }
+        if len(candidates) == 1:
+            roles.update(candidates)
+    return next(iter(roles)) if len(roles) == 1 else ""
 
 
 def _self_declared_role(sentence: str) -> str:
@@ -476,7 +547,7 @@ def _self_declared_role(sentence: str) -> str:
             return min(candidates)[2]
     return ""
 
-def _infer_role(speaker: str, text: str) -> str:
+def _infer_role(speaker: str, text: str, participant_names: tuple[str, ...] = ()) -> str:
     """Conservative role inference from speaker-local evidence only.
 
     Earnings-call introductions often name several other executives.  Searching
@@ -497,7 +568,7 @@ def _infer_role(speaker: str, text: str) -> str:
         candidate = sentence.strip()
         if not candidate:
             continue
-        role = _role_near_exact_name(speaker, candidate)
+        role = _role_near_exact_name(speaker, candidate, participant_names)
         if not role:
             role = _self_declared_role(candidate)
         if role:
@@ -518,6 +589,7 @@ def _infer_transcript_roles(segments: list[dict[str, str]]) -> list[str]:
         speaker = " ".join(segment.get("speaker", "").split())
         if speaker:
             speakers.setdefault(speaker.casefold(), speaker)
+    participant_names = tuple(speakers.values())
 
     # Highest-confidence evidence: the label itself.
     for key, speaker in speakers.items():
@@ -533,7 +605,7 @@ def _infer_transcript_roles(segments: list[dict[str, str]]) -> list[str]:
         if not key or key in roles_by_speaker or key in first_turn_seen:
             continue
         first_turn_seen.add(key)
-        role = _infer_role(speakers[key], segment.get("text", ""))
+        role = _infer_role(speakers[key], segment.get("text", ""), participant_names)
         if role:
             roles_by_speaker[key] = role
 
@@ -549,7 +621,7 @@ def _infer_transcript_roles(segments: list[dict[str, str]]) -> list[str]:
             for key in tuple(unresolved):
                 if key not in folded:
                     continue
-                role = _role_near_exact_name(speakers[key], sentence)
+                role = _role_near_exact_name(speakers[key], sentence, participant_names)
                 if role:
                     roles_by_speaker[key] = role
                     unresolved.remove(key)
@@ -839,3 +911,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

@@ -1,0 +1,66 @@
+{
+  "artifacts": {
+    ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "drawing-system.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "errors": [],
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "a desktop Path finishes exactly once when its closing double-click has no native dblclick"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/drawing-system.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--grep",
+    "a desktop Path finishes exactly once when its closing double-click has no native dblclick",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-guard-r3"
+  ],
+  "completedAt": "2026-11-09T18:40:26.288044+00:00",
+  "exit": 0,
+  "expectedDiscriminatorLine": 3054,
+  "head": "9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4",
+  "integratedDependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r3-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T18:40:26.160320+00:00",
+    "sha256": "978d8881a0f01b41edfdf12d87fb7ae43e11a00306e3bb84db7486a270ccf8c9"
+  },
+  "logSha256": "889f169582920615be98f97f9da58a91bc71c4d5616c50191306702e0c242716",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3902,
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "reportErrors": [],
+  "schema": "terminal_pr632_current_drawing_guard.v1",
+  "seconds": 16.05,
+  "sourceEntries": 1938,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:40:04.250767+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 15651.909,
+    "expected": 1,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-09T18:40:04.567Z",
+    "unexpected": 0
+  }
+}

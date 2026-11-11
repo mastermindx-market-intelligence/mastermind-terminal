@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { renderToStaticMarkup, renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SharedShellToolbar from "@/components/chrome/shared-shell/SharedShellToolbar";
 import AnalysisWorkspace from "@/components/workspaces/AnalysisWorkspace";
@@ -8,12 +9,14 @@ import { LangProvider } from "@/lib/i18n";
 
 const state = vi.hoisted(()=>({query:new URLSearchParams(),push:vi.fn(),fund:vi.fn(),bars:vi.fn()}));
 vi.mock("next/navigation",()=>({useRouter:()=>({push:state.push}),usePathname:()=>"/analysis",useSearchParams:()=>state.query}));
-vi.mock("next/link",()=>({default:({children,href,className}:{children:React.ReactNode;href:string;className?:string})=><a href={href} className={className}>{children}</a>}));
+vi.mock("next/link",()=>({default:({children,href,...props}:React.ComponentProps<"a">&{href:string})=><a {...props} href={href}>{children}</a>}));
 vi.mock("@/components/chrome/shared-shell/SharedShellPresentation",()=>({useOptionalSharedShellPresentation:()=>({context:{locale:"en",theme:"dark"}})}));
 vi.mock("@/components/fin/MegaPane",()=>({FIN_PAGES:["overview","intelligence","earnings"],default:({sym,page,fund,onClose}:{sym:string;page:string;fund:{ticker:string}|null;onClose:()=>void})=><section data-company={sym} data-local-view={page} data-fund-ticker={fund?.ticker??""}><button onClick={onClose}>chart</button></section>}));
 vi.mock("@/components/chrome/shared-shell/ShellSearch",()=>({default:()=>null}));
 vi.mock("@/components/chrome/shared-shell/SharedShellPresentationControls",()=>({default:()=>null}));
-vi.mock("@/components/SymbolPicker",()=>({default:()=>null}));
+vi.mock("@/components/SymbolPicker",()=>({default:({onPick}:{onPick:(symbol:string)=>void})=>(
+ <div>{["NVDA","AAPL","BAD/IDENTITY"].map(symbol=><button key={symbol} data-pick-symbol={symbol} onClick={()=>onPick(symbol)}>{symbol}</button>)}</div>
+)}));
 vi.mock("@/lib/fund",()=>({getFund:(symbol:string)=>state.fund(symbol),getBars:(symbol:string)=>state.bars(symbol)}));
 vi.mock("@/lib/dataCache",()=>({getJSON:()=>Promise.resolve(null)}));
 vi.mock("@/lib/activeSymbol",()=>({readActiveSymbol:()=>null,writeActiveSymbol:vi.fn(),useActiveSymbol:()=>"NVDA"}));
@@ -25,6 +28,28 @@ async function render(){await act(async()=>root.render(<LangProvider><SharedShel
 beforeEach(()=>{state.push.mockReset();state.fund.mockReset();state.bars.mockResolvedValue([]);vi.stubGlobal("fetch",vi.fn(async()=>({ok:true,json:async()=>({quotes:{}})})));host=document.createElement("div");document.body.append(host);root=createRoot(host);location("symbol=NVDA&page=intelligence");});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
 describe("reused Company route identity",()=>{
+ it("renders the exact J1 thesis destination before hydration or passive effects",()=>{
+  const context="mo_from=ontology&mo_chain=context-chain&mo_path_rev=3&mo_focus=context-node&mo_asof=2026-09-23&mo_kc=2026-08-31";
+  location(`symbol=NVDA&page=intelligence&${context}&mo_untrusted=discard-me`);
+  const html=renderToString(<LangProvider><AnalysisWorkspace initialSymbol="NVDA" initialPage="intelligence"/></LangProvider>);
+  const firstPaint=document.createElement("div");
+  firstPaint.innerHTML=html;
+  const link=Array.from(firstPaint.querySelectorAll<HTMLAnchorElement>("a.analysis-context-theses"))
+   .find(anchor=>new URL(anchor.href).searchParams.get("view")==="theses")!;
+  expect(link).toBeDefined();
+  const destination=new URL(link.href);
+  expect(Object.fromEntries(destination.searchParams)).toEqual({
+   view:"theses",symbol:"NVDA",...Object.fromEntries(new URLSearchParams(context)),
+  });
+ });
+ it("does not carry invalid ontology context in the first-render thesis link",()=>{
+  location("symbol=NVDA&mo_from=unsupported&mo_chain=context-chain&mo_focus=context-node");
+  const firstPaint=document.createElement("div");
+  firstPaint.innerHTML=renderToString(<LangProvider><AnalysisWorkspace initialSymbol="NVDA"/></LangProvider>);
+  const link=Array.from(firstPaint.querySelectorAll<HTMLAnchorElement>("a.analysis-context-theses"))
+   .find(anchor=>new URL(anchor.href).searchParams.get("view")==="theses")!;
+  expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({view:"theses",symbol:"NVDA"});
+ });
  it("clears malformed selection when navigation removes the symbol",async()=>{
   state.fund.mockImplementation((symbol:string)=>Promise.resolve({ticker:symbol}));
   location("symbol=BAD%2FIDENTITY");await render();
@@ -57,5 +82,127 @@ describe("reused Company route identity",()=>{
   const chart=new URL(state.push.mock.calls.at(-1)![0],window.location.href);
   expect(chart.searchParams.get("symbol")).toBe("NVDA");
   expect(chart.searchParams.get("ret")).toBe(window.location.href);
+ });
+});
+
+const ONTOLOGY_QUERY = "mo_from=ontology&mo_chain=context-chain&mo_path_rev=3&mo_focus=context-node&mo_asof=2026-09-23&mo_kc=2026-08-31";
+const COMPANY_ORIGIN_QUERY = "symbol=NVDA&page=intelligence&"+ONTOLOGY_QUERY;
+
+function thesesUrl(container: ParentNode = host) {
+ const link = container.querySelector<HTMLAnchorElement>('a[aria-label^="Your theses on "]');
+ expect(link).not.toBeNull();
+ return new URL(link!.getAttribute("href")!, window.location.href);
+}
+
+function expectOntologyContext(url: URL, query = ONTOLOGY_QUERY) {
+ for (const [key,value] of new URLSearchParams(query)) expect(url.searchParams.get(key),key).toBe(value);
+}
+
+function expectNoOntologyContext(container: ParentNode = host) {
+ expect([...thesesUrl(container).searchParams.keys()].filter(key=>key.startsWith("mo_"))).toEqual([]);
+ expect(container.querySelector('[data-testid="mo-context-strip"]')).toBeNull();
+}
+
+function initialMarkup(initialSymbol?: string) {
+ const container = document.createElement("div");
+ container.innerHTML = renderToStaticMarkup(
+  <LangProvider><AnalysisWorkspace initialSymbol={initialSymbol} initialPage="intelligence"/></LangProvider>,
+ );
+ return container;
+}
+
+describe("Company origin context at the first actionable link",()=>{
+ it("renders the validated origin in the thesis href before any effect runs",()=>{
+  location(COMPANY_ORIGIN_QUERY+"&mo_unknown=never-forward");
+  const markup = initialMarkup("NVDA");
+  const url = thesesUrl(markup);
+  expect(url.searchParams.get("view")).toBe("theses");
+  expect(url.searchParams.get("symbol")).toBe("NVDA");
+  expectOntologyContext(url);
+  expect(url.searchParams.has("mo_unknown")).toBe(false);
+  expect(markup.querySelector('[data-testid="mo-context-strip"]')).not.toBeNull();
+ });
+
+ it("does not attach origin context to a default company before effects",()=>{
+  location(ONTOLOGY_QUERY);
+  const markup = initialMarkup();
+  expect(thesesUrl(markup).searchParams.get("symbol")).toBe("NVDA");
+  expectNoOntologyContext(markup);
+ });
+
+ it("keeps a malformed explicit company unresolved before effects",()=>{
+  location("symbol=BAD%2FIDENTITY&"+ONTOLOGY_QUERY);
+  const markup = initialMarkup("BAD/IDENTITY");
+  expect(markup.querySelector('a[aria-label^="Your theses on "]')).toBeNull();
+  expect(markup.querySelector('[data-testid="mo-context-strip"]')).toBeNull();
+  expect(markup.textContent).toContain("not a supported symbol format");
+ });
+
+ it.each([
+  ["duplicate known key", ONTOLOGY_QUERY+"&mo_chain=second-chain"],
+  ["invalid calendar date", ONTOLOGY_QUERY.replace("2026-09-23","2026-02-30")],
+  ["invalid origin", ONTOLOGY_QUERY.replace("mo_from=ontology","mo_from=elsewhere")],
+ ])("rejects %s before effects",(_label,query)=>{
+  location("symbol=NVDA&"+query);
+  expectNoOntologyContext(initialMarkup("NVDA"));
+ });
+
+ it("strips an unscoped arrival without later attaching it to the adopted company",async()=>{
+  state.fund.mockResolvedValue({ticker:"NVDA"});
+  location(ONTOLOGY_QUERY);
+  await act(async()=>root.render(<LangProvider><AnalysisWorkspace/></LangProvider>));
+  expect(host.querySelector("[data-company]")?.getAttribute("data-company")).toBe("NVDA");
+  expect([...new URL(window.location.href).searchParams.keys()].filter(key=>key.startsWith("mo_"))).toEqual([]);
+  expectNoOntologyContext();
+ });
+
+ it.each(["NVDA","AAPL"])("clears immediately on a %s pick while the route hook lags, then accepts a later return",async(symbol)=>{
+  state.fund.mockImplementation((selected:string)=>Promise.resolve({ticker:selected}));
+  location(COMPANY_ORIGIN_QUERY);
+  await render();
+  expectOntologyContext(thesesUrl());
+  const originalQuery = state.query.toString();
+  await act(async()=>(host.querySelector('[data-pick-symbol="'+symbol+'"]') as HTMLButtonElement).click());
+  // The history writer changed the real URL, but this query hook deliberately
+  // retains the old snapshot. Same-company picks must still clear immediately.
+  expect(state.query.toString()).toBe(originalQuery);
+  expect(thesesUrl().searchParams.get("symbol")).toBe(symbol);
+  expectNoOntologyContext();
+  const clearedQuery = window.location.search.slice(1);
+  expect([...new URLSearchParams(clearedQuery).keys()].filter(key=>key.startsWith("mo_"))).toEqual([]);
+  await render();
+  expectNoOntologyContext();
+
+  location(clearedQuery);
+  await render();
+  expectNoOntologyContext();
+  location(COMPANY_ORIGIN_QUERY);
+  await render();
+  expect(thesesUrl().searchParams.get("symbol")).toBe("NVDA");
+  expectOntologyContext(thesesUrl());
+ });
+
+ it("retains the origin when the picker rejects an invalid company",async()=>{
+  state.fund.mockResolvedValue({ticker:"NVDA"});
+  location(COMPANY_ORIGIN_QUERY);
+  await render();
+  const before = window.location.href;
+  await act(async()=>(host.querySelector('[data-pick-symbol="BAD/IDENTITY"]') as HTMLButtonElement).click());
+  expect(window.location.href).toBe(before);
+  expectOntologyContext(thesesUrl());
+ });
+
+ it("pairs a changed route's context with its current company",async()=>{
+  state.fund.mockImplementation((symbol:string)=>Promise.resolve({ticker:symbol}));
+  location(COMPANY_ORIGIN_QUERY);
+  await render();
+  const otherContext = ONTOLOGY_QUERY.replace("context-chain","next-chain");
+  location("symbol=AAPL&page=earnings&"+otherContext);
+  await render();
+  expect(thesesUrl().searchParams.get("symbol")).toBe("AAPL");
+  expectOntologyContext(thesesUrl(),otherContext);
+  location(ONTOLOGY_QUERY);
+  await render();
+  expectNoOntologyContext();
  });
 });

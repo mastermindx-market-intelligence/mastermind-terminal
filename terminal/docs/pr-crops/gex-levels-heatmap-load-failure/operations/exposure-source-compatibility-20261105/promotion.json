@@ -1,0 +1,10 @@
+{
+  "operation": "exposure-source-compatibility-20261105",
+  "kind": "gex",
+  "current_native_images": 114,
+  "prior_images_preserved": 114,
+  "protected_baseline_images": 114,
+  "root_manifest_sha256": "fe185493956a1b99a160ddf7f3d591c6c9a3f9dfa15e5b6f8f2b3068269ed976",
+  "active_manifest_sha256": "415d5782676d2359b2adc7901d690a1d80e6b908537d7674bf2c44b0e8355113",
+  "manifest_diff3_rc": 0
+}

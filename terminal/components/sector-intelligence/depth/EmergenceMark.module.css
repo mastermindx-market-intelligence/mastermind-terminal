@@ -1,0 +1,106 @@
+/* Independent-emergence mark (v1.1 R6-09). Semantic tokens only, light+dark
+   from the shared token root; no coloured left-edge/accent stripe (design
+   law) — the bordered panel/ chip is the only container treatment. */
+
+.block {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.headline {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+/* Evidence action: the bound board renders a plain link in a 44px row —
+   keep the touch target, use link ink, no bordered button chrome. */
+.link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: 600 12px var(--font-ui);
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+a.link {
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Compact member-line marker: a bordered tag sized to the dense rows it
+   lives in; as a link it keeps a comfortable inline target. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel);
+  color: var(--text-2);
+  font: 650 9.5px var(--font-ui);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+button.chip {
+  min-height: 28px;
+  cursor: pointer;
+}
+
+a.chip {
+  text-decoration: none;
+  color: var(--link);
+}
+
+.chip:hover {
+  border-color: var(--brand-2);
+}
+
+.block :focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block,
+  .chip {
+    transition: none !important;
+  }
+}

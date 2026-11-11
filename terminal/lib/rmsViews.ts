@@ -112,7 +112,10 @@ export function readConditionStates(
 }
 
 const THESIS_ID_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const FIRE_STATUSES = new Set(["pending", "deferred", "sent"]);
+// Delivery disposition cannot erase a condition that already fired. These are
+// the existing alert_outbox statuses, not evidence that external delivery ran.
+export const THESIS_FIRE_OUTBOX_STATUSES = ["pending", "deferred", "sent", "failed", "suppressed"] as const;
+const FIRE_STATUSES = new Set<string>(THESIS_FIRE_OUTBOX_STATUSES);
 
 export type OutboxRow = {
   payload: unknown;
@@ -136,7 +139,9 @@ export function mapOutboxToConditionStates(
   for (const row of rows) {
     const payload = row.payload;
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) continue;
-    const thesisId = (payload as Record<string, unknown>).thesis_id;
+    const event = payload as Record<string, unknown>;
+    if (event.source !== "macro.thesis_condition_monitor" || event.category !== "thesis_window") continue;
+    const thesisId = event.thesis_id;
     if (!wellFormedThesisId(thesisId) || !wanted.has(thesisId)) continue;
     if (!FIRE_STATUSES.has(typeof row.status === "string" ? row.status : "")) continue;
     const at = typeof row.created_at === "string" && row.created_at ? row.created_at : "";

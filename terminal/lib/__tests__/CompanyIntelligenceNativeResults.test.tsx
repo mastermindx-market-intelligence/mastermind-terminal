@@ -44,7 +44,7 @@ it.each(["en", "zh"] as const)("keeps TOL denominator reachable after four numer
   expect(context.querySelector("strong")?.textContent).toBe(denominator.value);
   expect(context.querySelector("small")?.textContent).toBe(denominator.basis);
   await act(async () => (context.querySelector("button") as HTMLButtonElement).click());
-  expect(container.querySelector(".ci-evidence.open blockquote")?.textContent).toBe(denominator.value);
+  expect(document.querySelector(".ci-evidence.open blockquote")?.textContent).toBe(denominator.value);
   expect(original.lifecycle.source_available_at).toBe("2026-08-18T20:46:57Z");
 });
 it("does not present a typed-absence denominator as a source convention", async () => {

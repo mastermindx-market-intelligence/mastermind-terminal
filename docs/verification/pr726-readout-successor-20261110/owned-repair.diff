@@ -1,0 +1,327 @@
+diff --git a/terminal/components/PrecisionEntryStrip.tsx b/terminal/components/PrecisionEntryStrip.tsx
+index 5119e3c66..c54592efb 100644
+--- a/terminal/components/PrecisionEntryStrip.tsx
++++ b/terminal/components/PrecisionEntryStrip.tsx
+@@ -166,8 +166,8 @@ export default function PrecisionEntryStrip({
+   const w2 = w2Detail(readout, lang);
+   const freshness = freshnessDetail(readout, lang);
+   const posture = lang === "zh"
+-    ? readout.posture.headlineZh || readout.posture.headline
+-    : readout.posture.headline || readout.posture.headlineZh;
++    ? readout.posture.headlineZh
++    : readout.posture.headline;
+ 
+   return (
+     <div
+diff --git a/terminal/lib/__tests__/precisionEntryReadout.test.ts b/terminal/lib/__tests__/precisionEntryReadout.test.ts
+index 9a7284a6f..85a2af0f4 100644
+--- a/terminal/lib/__tests__/precisionEntryReadout.test.ts
++++ b/terminal/lib/__tests__/precisionEntryReadout.test.ts
+@@ -104,7 +104,7 @@ describe("Precision Entry intel readout", () => {
+       },
+     });
+ 
+-    expect(readout.availability).toBe("partial");
++    expect(readout.availability).toBe("unavailable");
+     expect(readout.freshness).toBe("unknown");
+     expect(readout.posture.status).toBeNull();
+     expect(readout.bottomConfidence).toBeNull();
+@@ -245,4 +245,118 @@ describe("Precision Entry intel readout", () => {
+       expect(readout.posture.status).toBe(status);
+     }
+   });
++
++  it.each([
++    ["empty", { entry: {}, confluence: {}, sniper: {} }],
++    ["metadata-only", {
++      entry: { schema: "entry/v1", asof: "2026-11-10", extra: 1 },
++      confluence: { asof: "2026-11-10" },
++      sniper: { asof: "2026-11-09" },
++    }],
++    ["malformed", {
++      entry: { headline: 42, confidence: "60", spot: 0, stop: Infinity, buy_zone: [100, 90] },
++      confluence: { ticks: 1.5, bars_to_cross: "0", htf_s1: "false", provisional: 0 },
++      sniper: { coiled: "false", w2_washout: 0, w2_stoch_d: 101, days_since_63d_low: 1.5 },
++    }],
++  ])("keeps %s containers unavailable despite current freshness", (_name, analysis) => {
++    const readout = buildPrecisionEntryReadout({
++      schema: "intel/v1", asof: "2026-11-10", tape: { stale: false }, analysis,
++    });
++    expect(readout.availability).toBe("unavailable");
++    expect(readout.freshness).toBe("current");
++    expect(readout.asof.intel).toBe("2026-11-10");
++    expect(readout.bottomConfidence).toBeNull();
++    expect(readout.geometry.location).toBe("unknown");
++  });
++
++  it("reports partial coverage when only one populated section has validated facts", () => {
++    const readout = buildPrecisionEntryReadout({
++      analysis: { entry: { headline: "Wait for confluence" }, confluence: {}, sniper: {} },
++    });
++    expect(readout.availability).toBe("partial");
++    expect(readout.posture.headline).toBe("Wait for confluence");
++  });
++
++  it("counts the entry next-trigger fact only in its own source section", () => {
++    const readout = buildPrecisionEntryReadout({
++      analysis: { entry: { next_trigger: "2D MACD" }, confluence: {}, sniper: { coiled: false } },
++    });
++    expect(readout.availability).toBe("partial");
++    expect(readout.trigger.next).toBe("2D MACD");
++    expect(readout.structure.coiled).toBe(false);
++  });
++
++  it("does not let derived unknown geometry qualify an empty entry section", () => {
++    const readout = buildPrecisionEntryReadout({
++      analysis: { entry: {}, confluence: { htf_s1: false }, sniper: { coiled: false } },
++    });
++    expect(readout.availability).toBe("partial");
++    expect(readout.geometry.location).toBe("unknown");
++    expect(readout.trigger.htfS1).toBe(false);
++    expect(readout.structure.coiled).toBe(false);
++  });
++
++  it("counts valid zero and false observations as evidence in all three sections", () => {
++    const readout = buildPrecisionEntryReadout({
++      analysis: {
++        entry: { confidence: 0 },
++        confluence: { htf_s1: false, bars_to_cross: 0, ticks: 0 },
++        sniper: { w2_stoch_d: 0, days_since_63d_low: 0, w2_washout: false, coiled: false },
++      },
++    });
++    expect(readout.availability).toBe("ready");
++    expect(readout.bottomConfidence).toBe(0);
++    expect(readout.trigger).toMatchObject({ htfS1: false, barsToCross: 0, ticks: 0 });
++    expect(readout.structure).toEqual({
++      w2Washout: false, w2StochD: 0, daysSince63dLow: 0, coiled: false,
++    });
++  });
++
++  it("keeps non-positive price fields unavailable instead of treating zero as price evidence", () => {
++    const readout = buildPrecisionEntryReadout({
++      analysis: {
++        entry: { spot: 0, stop: 0, chase_above: -1, buy_zone: [0, 100] },
++        confluence: { asof: "2026-11-10" },
++        sniper: { schema: "sniper/v1" },
++      },
++    });
++    expect(readout.availability).toBe("unavailable");
++    expect(readout.geometry).toEqual({
++      spot: null, buyZone: null, chaseAbove: null, stop: null, location: "unknown",
++    });
++  });
++
++  it("preserves the existing signed finite-number and integer contracts", () => {
++    const readout = buildPrecisionEntryReadout({
++      analysis: {
++        entry: { confidence: 0 },
++        confluence: { ticks: -1, bars_to_cross: -0.5 },
++        sniper: { days_since_63d_low: 0 },
++      },
++    });
++    expect(readout.availability).toBe("ready");
++    expect(readout.trigger.ticks).toBe(-1);
++    expect(readout.trigger.barsToCross).toBe(-0.5);
++    expect(readout.structure.daysSince63dLow).toBe(0);
++  });
++
++  it("counts a valid source band without inventing a spot or derived location", () => {
++    const readout = buildPrecisionEntryReadout({
++      analysis: { entry: { buy_zone: [90, 100] }, confluence: {}, sniper: {} },
++    });
++    expect(readout.availability).toBe("partial");
++    expect(readout.geometry.buyZone).toEqual({ low: 90, high: 100 });
++    expect(readout.geometry.spot).toBeNull();
++    expect(readout.geometry.location).toBe("unknown");
++  });
++
++  it("preserves validated canonical text facts without requiring visible raw enums", () => {
++    const readout = buildPrecisionEntryReadout({
++      analysis: { entry: { status: "await_confluence" }, confluence: { tier: "T3" }, sniper: { coiled: false } },
++    });
++    expect(readout.availability).toBe("ready");
++    expect(readout.posture.status).toBe("await_confluence");
++    expect(readout.trigger.tier).toBe("T3");
++  });
++
+ });
+diff --git a/terminal/lib/__tests__/precisionEntryStrip.test.tsx b/terminal/lib/__tests__/precisionEntryStrip.test.tsx
+index 125455ae5..134085b92 100644
+--- a/terminal/lib/__tests__/precisionEntryStrip.test.tsx
++++ b/terminal/lib/__tests__/precisionEntryStrip.test.tsx
+@@ -120,7 +120,7 @@ describe("PrecisionEntryStrip", () => {
+   });
+ 
+   it("makes stale data visible with the source as-of date", () => {
+-    const intel = structuredClone(READY_INTEL) as any;
++    const intel = structuredClone(READY_INTEL);
+     intel.tape.stale = true;
+     const el = mount(intel);
+     const state = el.querySelector("[data-testid='precision-data-state']");
+@@ -232,4 +232,78 @@ describe("PrecisionEntryStrip", () => {
+     expect(text).not.toContain("Buy");
+     expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
+   });
++
++  for (const lang of ["en", "zh"] as const) {
++    const headline = lang === "en" ? "Wait for confluence" : "等待共振";
++    const opposite = lang === "en" ? "等待共振" : "Wait for confluence";
++    const withoutSelectedHeadline = {
++      ...READY_INTEL,
++      analysis: {
++        ...READY_INTEL.analysis,
++        entry: {
++          ...READY_INTEL.analysis.entry,
++          headline: lang === "en" ? "" : READY_INTEL.analysis.entry.headline,
++          headline_zh: lang === "zh" ? "" : READY_INTEL.analysis.entry.headline_zh,
++        },
++      },
++    };
++
++    it("omits absent " + lang + " posture without falling back to the opposite headline", () => {
++      const el = mount(withoutSelectedHeadline, { lang });
++      expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
++      expect(el.textContent).not.toContain(opposite);
++      expect(el.querySelector("[data-testid='precision-entry-strip']")?.getAttribute("data-precision-availability")).toBe("ready");
++    });
++
++    it("updates " + lang + " posture through omission, restoration and a language change", () => {
++      const el = mount(READY_INTEL, { lang });
++      expect(el.querySelector("[data-testid='precision-posture']")?.textContent).toContain(headline);
++      act(() => root!.render(
++        <PrecisionEntryStrip readout={buildPrecisionEntryReadout(withoutSelectedHeadline)} horizon="swing" lang={lang} />,
++      ));
++      expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
++      expect(el.textContent).not.toContain(opposite);
++      act(() => root!.render(
++        <PrecisionEntryStrip readout={buildPrecisionEntryReadout(READY_INTEL)} horizon="swing" lang={lang} />,
++      ));
++      expect(el.querySelector("[data-testid='precision-posture']")?.textContent).toContain(headline);
++      act(() => root!.render(
++        <PrecisionEntryStrip readout={buildPrecisionEntryReadout(READY_INTEL)} horizon="swing" lang={lang === "en" ? "zh" : "en"} />,
++      ));
++      expect(el.querySelector("[data-testid='precision-posture']")?.textContent).toContain(opposite);
++      expect(el.textContent).not.toContain(headline);
++    });
++
++    for (const [name, analysis] of [
++      ["empty", { entry: {}, confluence: {}, sniper: {} }],
++      ["metadata-only", { entry: { asof: "2026-11-10" }, confluence: { asof: "2026-11-10" }, sniper: { asof: "2026-11-10" } }],
++      ["malformed", { entry: { confidence: "0" }, confluence: { htf_s1: "false" }, sniper: { coiled: 0 } }],
++    ] as const) {
++      it("shows localized unavailability for " + name + " containers in " + lang, () => {
++        const el = mount({ tape: { stale: false }, analysis }, { lang });
++        expect(el.querySelector("[data-testid='precision-entry-strip']")?.getAttribute("data-precision-availability")).toBe("unavailable");
++        const badge = el.querySelector("[data-testid='precision-data-state']");
++        expect(badge?.getAttribute("data-precision-data")).toBe("unavailable");
++        expect(badge?.textContent).toBe(lang === "en" ? "Intel unavailable" : "智能数据不可用");
++        expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
++      });
++    }
++
++    it("renders zero and false facts without a missing-data badge in " + lang, () => {
++      const el = mount({
++        analysis: {
++          entry: { confidence: 0 },
++          confluence: { htf_s1: false, bars_to_cross: 0 },
++          sniper: { w2_stoch_d: 0, w2_washout: false, coiled: false },
++        },
++      }, { lang });
++      expect(el.querySelector("[data-testid='precision-entry-strip']")?.getAttribute("data-precision-availability")).toBe("ready");
++      expect(el.querySelector("[data-testid='precision-data-state']")).toBeNull();
++      expect(el.querySelector("[data-testid='precision-bottom-confidence']")?.textContent).toContain("0");
++      expect(el.querySelector("[data-testid='precision-htf']")?.textContent).toContain(lang === "en" ? "Not confirmed" : "未确认");
++      expect(el.querySelector("[data-testid='precision-trigger']")?.textContent).toContain(lang === "en" ? "Crossing" : "正在交叉");
++      expect(el.querySelector("[data-testid='precision-w2']")?.textContent).toContain(lang === "en" ? "Stoch D 0" : "随机指标 D 0");
++    });
++  }
++
+ });
+diff --git a/terminal/lib/precisionEntryReadout.ts b/terminal/lib/precisionEntryReadout.ts
+index e432c0f9e..c013c985e 100644
+--- a/terminal/lib/precisionEntryReadout.ts
++++ b/terminal/lib/precisionEntryReadout.ts
+@@ -130,8 +130,40 @@ export function buildPrecisionEntryReadout(intel: unknown): PrecisionEntryReadou
+   const spot = positiveNum(entry?.spot);
+   const zone = buyZone(entry?.buy_zone);
+   const chaseAbove = positiveNum(entry?.chase_above);
++  const stop = positiveNum(entry?.stop);
++  const posture = {
++    status: str(entry?.status),
++    urgency: str(entry?.urgency),
++    headline: str(entry?.headline),
++    headlineZh: str(entry?.headline_zh),
++    action: str(entry?.action),
++    actionZh: str(entry?.action_zh),
++  };
++  const bottomConfidence = boundedNum(entry?.confidence, 0, 100);
++  const confluenceFacts = {
++    tier: str(confluence?.tier),
++    sub: str(confluence?.sub),
++    ticks: int(confluence?.ticks),
++    barsToCross: num(confluence?.bars_to_cross),
++    provisional: bool(confluence?.provisional),
++    notTopped: bool(confluence?.not_topped),
++    htfS1: bool(confluence?.htf_s1),
++  };
++  const trigger = { next: str(entry?.next_trigger), ...confluenceFacts };
++  const structure = {
++    w2Washout: bool(sniper?.w2_washout),
++    w2StochD: boundedNum(sniper?.w2_stoch_d, 0, 100),
++    daysSince63dLow: int(sniper?.days_since_63d_low),
++    coiled: bool(sniper?.coiled),
++  };
+ 
+-  const present = [entry, confluence, sniper].filter(Boolean).length;
++  // Coverage follows validated source facts, independently of freshness or metadata.
++  const hasEntry = [
++    ...Object.values(posture), bottomConfidence, trigger.next, spot, zone, chaseAbove, stop,
++  ].some(value => value !== null);
++  const hasConfluence = Object.values(confluenceFacts).some(value => value !== null);
++  const hasSniper = Object.values(structure).some(value => value !== null);
++  const present = [hasEntry, hasConfluence, hasSniper].filter(Boolean).length;
+   const stale = bool(tape?.stale);
+ 
+   return {
+@@ -142,36 +174,15 @@ export function buildPrecisionEntryReadout(intel: unknown): PrecisionEntryReadou
+       confluence: str(confluence?.asof),
+       sniper: str(sniper?.asof),
+     },
+-    posture: {
+-      status: str(entry?.status),
+-      urgency: str(entry?.urgency),
+-      headline: str(entry?.headline),
+-      headlineZh: str(entry?.headline_zh),
+-      action: str(entry?.action),
+-      actionZh: str(entry?.action_zh),
+-    },
+-    bottomConfidence: boundedNum(entry?.confidence, 0, 100),
+-    trigger: {
+-      next: str(entry?.next_trigger),
+-      tier: str(confluence?.tier),
+-      sub: str(confluence?.sub),
+-      ticks: int(confluence?.ticks),
+-      barsToCross: num(confluence?.bars_to_cross),
+-      provisional: bool(confluence?.provisional),
+-      notTopped: bool(confluence?.not_topped),
+-      htfS1: bool(confluence?.htf_s1),
+-    },
+-    structure: {
+-      w2Washout: bool(sniper?.w2_washout),
+-      w2StochD: boundedNum(sniper?.w2_stoch_d, 0, 100),
+-      daysSince63dLow: int(sniper?.days_since_63d_low),
+-      coiled: bool(sniper?.coiled),
+-    },
++    posture,
++    bottomConfidence,
++    trigger,
++    structure,
+     geometry: {
+       spot,
+       buyZone: zone,
+       chaseAbove,
+-      stop: positiveNum(entry?.stop),
++      stop,
+       location: location({ spot, zone, chaseAbove }),
+     },
+   };

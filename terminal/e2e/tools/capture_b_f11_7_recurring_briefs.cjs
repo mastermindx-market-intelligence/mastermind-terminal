@@ -1,400 +1,244 @@
 #!/usr/bin/env node
 /**
- * B-F11-7 Recurring briefs — dark evidence crops.
- *
- * Playwright against /alerts (inbox) and /analysis?view=theses (subscribe).
- * Dark only (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06).
- * Capture flag TERMINAL_E2E_FIXTURE suppresses the Next.js N indicator.
- *
- * From terminal/:
- *   node e2e/tools/capture_b_f11_7_recurring_briefs.cjs
- *
- * Writes PNGs + EVIDENCE.yml under docs/pr-crops/b-f11-7-recurring-briefs/.
+ * Capture the complete active recurring-inbox matrix on /alerts.
+ * From terminal/: node e2e/tools/capture_b_f11_7_recurring_briefs.cjs --active-inbox
+ * The original mixed inbox/subscription packet remains historical.
  */
 "use strict";
+/* eslint-disable @typescript-eslint/no-require-imports -- plain Node capture tool */
 
-const { spawn, execFileSync } = require("node:child_process");
-const { createHash } = require("node:crypto");
-const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
-const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const assert = require("node:assert/strict");
+const { execFileSync } = require("node:child_process");
+const { mkdirSync, mkdtempSync, readFileSync, writeFileSync, copyFileSync,
+  existsSync, readdirSync, realpathSync } = require("node:fs");
+const { join, resolve } = require("node:path");
+const { tmpdir } = require("node:os");
+const { chromium, expect } = require("@playwright/test");
+const { startLegacyServer, reportLegacyServer, waitLegacyServer, settleLegacyServer } =
+  require("./capture_ci_evidence.cjs");
+const { SCHEMA, CONTRACT, MANIFEST, PACKET_PATH, VIEWPORTS, SHOTS, sha256,
+  sourceHashes, lockedVersions, pngSize, regularBytes, readInboxPacket } = require("./briefs_inbox_capture_contract.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "b-f11-7-recurring-briefs");
-const LAYOUT_FILES = [
-  "terminal/components/briefs/BriefsInbox.tsx",
-  "terminal/components/briefs/BriefSubscribeControls.tsx",
-  "terminal/components/briefs/briefs.module.css",
-  "terminal/lib/briefs.ts",
-  "terminal/components/alerts/AlertsCockpit.tsx",
-];
-const PORT = Number(process.env.TERMINAL_CROP_PORT || 3567);
-const BASE = `http://127.0.0.1:${PORT}`;
-const VIEWPORTS = {
-  desktop: { width: 1440, height: 900 },
-  mobile: { width: 390, height: 844 },
-};
+const OUT = join(REPO, PACKET_PATH);
+const PORT = Number(process.env.TERMINAL_CROP_PORT || 47284);
+const BASE = "http://127.0.0.1:" + PORT;
 const THESIS = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const READY_ID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const READY_BODY = {
   target: { kind: "thesis", id: THESIS, name: "NVDA cycle", version_or_asof: "v3" },
   market_read: [
-    { section: "tape", sentence_en: "The close held above last week's range.", sentence_zh: "收盘守住了上周的区间。", asof: "2026-09-11" },
-    { section: "flow", sentence_en: "Call buying stayed in the front week.", sentence_zh: "买权仍集中在近月。", asof: "2026-09-11" },
+    { section: "tape", sentence_en: "The close held above last week's range.",
+      sentence_zh: "收盘守住了上周的区间。", translation_status: "available", asof: "2026-09-11" },
+    { section: "flow", sentence_en: "Call buying stayed in the front week.",
+      sentence_zh: null, translation_status: "unavailable", asof: "2026-09-11" },
+    { section: "watch_items", sentence_en: "Watch credit.", sentence_zh: null,
+      translation_status: "unavailable", asof: "2026-09-11" },
   ],
   monitors: [{ name: "range hold", state_en: "Holding", state_zh: "仍成立" }],
   artifact: { name: "US session digest", asof: "2026-09-11T20:05:00.000Z" },
 };
+const SUBSCRIPTION = { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close",
+  state: "active", targetName: "NVDA cycle" };
 const LIST_DELIVERIES = [
-  {
-    deliveryId: "d-deg",
-    subscriptionId: "s1",
-    slotAsof: "2026-09-11",
-    state: "degraded",
-    body: {},
-    createdAt: "2026-09-11T20:10:00.000Z",
-    subscription: { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close", state: "active", targetName: "NVDA cycle" },
-  },
-  {
-    // Canonical inert delivery identity exercises the actual sharing entry.
-    deliveryId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
-    subscriptionId: "s1",
-    slotAsof: "2026-09-10",
-    state: "ready",
-    pinned: true,
-    body: READY_BODY,
-    createdAt: "2026-09-10T20:10:00.000Z",
-    subscription: {
-      targetKind: "thesis",
-      targetId: THESIS,
-      cadence: "daily_after_us_close",
-      state: "active",
-      targetName: "NVDA cycle",
-    },
-  },
+  { deliveryId: "d-deg", subscriptionId: "s1", slotAsof: "2026-09-11", state: "degraded",
+    body: {}, createdAt: "2026-09-11T20:10:00.000Z", subscription: SUBSCRIPTION },
+  { deliveryId: READY_ID, subscriptionId: "s1", slotAsof: "2026-09-10", state: "ready",
+    pinned: true, body: READY_BODY, createdAt: "2026-09-10T20:10:00.000Z", subscription: SUBSCRIPTION },
 ];
-const SHOTS = [
-  { viewport: "desktop", lang: "en", kind: "list", file: "list-1440.png" },
-  { viewport: "desktop", lang: "zh", kind: "list", file: "list-1440-zh.png" },
-  { viewport: "mobile", lang: "en", kind: "list", file: "list-390.png" },
-  { viewport: "mobile", lang: "zh", kind: "list", file: "list-390-zh.png" },
-  { viewport: "desktop", lang: "en", kind: "empty", file: "empty-1440.png" },
-  { viewport: "desktop", lang: "zh", kind: "empty", file: "empty-1440-zh.png" },
-  { viewport: "mobile", lang: "en", kind: "empty", file: "empty-390.png" },
-  { viewport: "mobile", lang: "zh", kind: "empty", file: "empty-390-zh.png" },
-  { viewport: "desktop", lang: "en", kind: "subscribe", file: "subscribe-1440.png" },
-  { viewport: "desktop", lang: "zh", kind: "subscribe", file: "subscribe-1440-zh.png" },
-  { viewport: "mobile", lang: "en", kind: "subscribe", file: "subscribe-390.png" },
-  { viewport: "mobile", lang: "zh", kind: "subscribe", file: "subscribe-390-zh.png" },
-];
+const COPY = {
+  en: { title: "Briefs", email: "Briefs appear here in the Terminal. Email delivery isn't available yet.",
+    empty: "No briefs yet — subscribe a thesis or watchlist to get one after the next close.",
+    sharing: "Review team sharing" },
+  zh: { title: "简报", email: "简报会出现在终端里。邮件送达尚未开通。",
+    empty: "还没有简报。订阅一份论点或观察列表，下次收盘后就会收到。", sharing: "查看团队分享" },
+};
 
-mkdirSync(OUT, { recursive: true });
-
-function currentGitHead() {
-  return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
+function checkoutIdentity() {
+  const git = argument => execFileSync("git", ["rev-parse", argument], { cwd: ROOT, encoding: "utf8" }).trim();
+  return { commit: git("HEAD"), tree: git("HEAD^{tree}") };
 }
 
-function sha256File(rel) {
-  return createHash("sha256").update(readFileSync(join(REPO, rel))).digest("hex");
+function runtimeVersions() {
+  const version = name => JSON.parse(readFileSync(join(ROOT, "node_modules", name, "package.json"), "utf8")).version;
+  return { node: process.version, next: version("next"), playwright: version("@playwright/test") };
 }
 
-function layoutFilesBlock() {
-  return LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`);
-}
-
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
+async function installInputs(page, deliveries, reads, writes, invalidReads) {
+  await page.route("**/api/briefs/deliveries**", async route => {
+    const request = route.request(), url = new URL(request.url());
+    if (request.method() !== "GET") {
+      writes.push({ method: request.method(), path: url.pathname });
+      return route.fulfill({ status: 405, json: { error: "unexpected_write" } });
+    }
+    if (url.searchParams.get("contract") !== CONTRACT) {
+      invalidReads.push(url.pathname + url.search);
+      return route.fulfill({ status: 400, json: { error: "contract_required" } });
+    }
+    reads.push({ method: "GET", path: url.pathname, contract: CONTRACT });
+    return route.fulfill({ json: { contract: CONTRACT, deliveries } });
   });
-  child.ready = new Promise((resolve) => {
-    const onData = (buf) => {
-      const line = String(buf);
-      if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-      if (/✓ Ready/i.test(line)) resolve();
-    };
-    child.stdout.on("data", onData);
+  await page.route("**/api/briefs/subscriptions**", async route => {
+    if (route.request().method() === "GET") return route.fulfill({ json: { subscriptions: [] } });
+    writes.push({ method: route.request().method(), path: new URL(route.request().url()).pathname });
+    return route.fulfill({ status: 405, json: { error: "unexpected_write" } });
   });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
+  await page.route("**/api/alerts**", async route => {
+    const request = route.request(), path = new URL(request.url()).pathname;
+    if (request.method() !== "GET") {
+      writes.push({ method: request.method(), path });
+      return route.fulfill({ status: 405, json: { error: "unexpected_write" } });
+    }
+    if (path === "/api/alerts") return route.fulfill({ json: { alerts: [] } });
+    if (path === "/api/alerts/receipts") return route.fulfill({ json: {
+      run: null, runs_state: "READ_OK_ZERO", last_success_at: null, outbox: [], outbox_state: "READ_OK_ZERO",
+    } });
+    return route.fulfill({ status: 503, json: { error: "UNAVAILABLE" } });
+  });
 }
 
-function stopServer(child) {
-  if (!child || !child.pid) return;
+async function assertState(page, shot) {
+  const inbox = page.locator('[data-briefs-module="inbox"]'), copy = COPY[shot.lang];
+  await expect(inbox).toBeVisible();
+  await inbox.scrollIntoViewIfNeeded();
+  await expect(inbox).toHaveAttribute("aria-busy", "false");
+  await expect(inbox.getByRole("heading", { name: copy.title, exact: true })).toBeVisible();
+  await expect(inbox.getByTestId("briefs-email-null")).toHaveText(copy.email);
+  await expect(page.getByTestId("brief-subscribe")).toHaveCount(0);
+  await expect(page.locator("[data-nextjs-dev-tools-button]")).toHaveCount(0);
+  if (shot.kind === "list") {
+    await expect(inbox.locator("[data-brief-row]")).toHaveCount(2);
+    await expect(inbox.locator("[data-brief-miss]")).toHaveCount(1);
+    await expect(inbox.locator("[data-brief-pinned]")).toHaveCount(1);
+    await expect(inbox.locator("[data-brief-date]")).toHaveText(["2026-09-11", "2026-09-10"]);
+    await expect(inbox.locator("[data-brief-language-availability]"))
+      .toContainText(shot.lang === "zh" ? "1/3" : "1 of 3");
+    await expect(inbox).toContainText(shot.lang === "zh"
+      ? "英文原文：" + READY_BODY.market_read[1].sentence_en : READY_BODY.market_read[1].sentence_en);
+    await expect(inbox).toContainText(shot.lang === "zh"
+      ? READY_BODY.market_read[0].sentence_zh : READY_BODY.market_read[0].sentence_en);
+    await expect(inbox).not.toContainText("Watch credit.");
+    await expect(inbox).not.toContainText("翻译待补");
+    await expect(inbox.getByRole("link", { name: copy.sharing, exact: true }))
+      .toHaveAttribute("href", "/briefs/" + READY_ID + "/sharing");
+  } else {
+    await expect(inbox.locator("[data-brief-row]")).toHaveCount(0);
+    await expect(inbox.locator('[data-briefs-state="empty"]')).toHaveText(copy.empty);
+  }
+  assert.ok(await inbox.evaluate(element => element.scrollWidth <= element.clientWidth + 1),
+    "Inbox has horizontal overflow");
+  return inbox;
+}
+
+async function captureCase(browser, shot, stage) {
+  const viewport = VIEWPORTS[shot.viewport];
+  const context = await browser.newContext({ viewport, deviceScaleFactor: 1,
+    hasTouch: shot.viewport === "mobile", locale: shot.lang === "zh" ? "zh-CN" : "en-US", colorScheme: "dark" });
+  const reads = [], writes = [], invalidReads = [], browserErrors = [];
+  let result, failure;
   try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
+    const page = await context.newPage();
+    page.setDefaultTimeout(45_000);
+    page.on("pageerror", error => browserErrors.push(error.message));
+    await installInputs(page, shot.kind === "list" ? LIST_DELIVERIES : [], reads, writes, invalidReads);
+    await page.addInitScript(lang => {
+      localStorage.setItem("mm.lang", lang);
+      localStorage.setItem("theme", "dark");
+      localStorage.setItem("theme_auto", "0");
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
+    }, shot.lang);
+    await page.goto(BASE + "/alerts?lang=" + shot.lang, { waitUntil: "domcontentloaded", timeout: 90_000 });
+    const inbox = await assertState(page, shot);
+    await page.evaluate(async () => { await document.fonts.ready; });
+    await page.mouse.move(0, 0);
+    const before = { crop: await inbox.boundingBox(), text: await inbox.innerText() };
+    assert.ok(before.crop);
+    const bytes = await inbox.screenshot({ path: join(stage, shot.file), animations: "disabled" });
+    await assertState(page, shot);
+    assert.deepEqual({ crop: await inbox.boundingBox(), text: await inbox.innerText() }, before,
+      "Inbox state changed while the screenshot was taken");
+    result = { file: shot.file, kind: shot.kind, lang: shot.lang, route: "/alerts", viewport,
+      deviceScaleFactor: 1, crop: before.crop, image: { ...pngSize(bytes), sha256: sha256(bytes) },
+      proof: { settled: true, rows: shot.kind === "list" ? 2 : 0,
+        missRows: shot.kind === "list" ? 1 : 0, pinnedRows: shot.kind === "list" ? 1 : 0,
+        subscriptionControls: 0, unexpectedWrites: 0, devIndicators: 0, browserErrors,
+        text: before.text, textSha256: sha256(Buffer.from(before.text)) } };
+  } catch (error) { failure = error; }
+  finally {
+    try { await context.close(); }
+    catch (error) { failure = failure ? new AggregateError([failure, error], "Capture and context cleanup failed") : error; }
   }
+  if (failure) throw failure;
+  assert.deepEqual(writes, [], "Unexpected fixture write");
+  assert.deepEqual(invalidReads, [], "The current explicit-language request was not used");
+  assert.deepEqual(browserErrors, [], "Browser error during inbox capture");
+  assert.ok(reads.length > 0);
+  result.proof.contractReads = reads.length;
+  return result;
 }
 
-async function waitForServer(child, timeoutMs) {
-  await Promise.race([
-    child.ready,
-    new Promise((_, reject) => setTimeout(() => reject(new Error("dev server never printed Ready")), timeoutMs)),
-  ]);
-  const deadline = Date.now() + 60_000;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/terminal?symbol=NVDA`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.name || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-  throw new Error(`dev server on ${PORT} printed Ready but never answered (${last})`);
-}
-
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
-async function assertNoNextIndicator(page, file) {
-  await page.waitForTimeout(400);
-  await stripDevOverlay(page);
-  const n = await page.locator("[data-nextjs-dev-tools-button]").count();
-  if (n > 0) {
-    throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
-  }
-}
-
-async function mockBriefs(page, deliveries) {
-  await page.route("**/api/briefs/deliveries**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ deliveries }),
-    });
-  });
-  await page.route("**/api/briefs/subscriptions**", async (route) => {
-    if (route.request().method() === "GET") {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ subscriptions: [] }),
-      });
-      return;
-    }
-    await route.continue();
-  });
-}
-
-async function openAlerts(page, lang, viewport, deliveries) {
-  await page.setViewportSize(viewport);
-  await mockBriefs(page, deliveries);
-  await page.addInitScript((l) => {
-    localStorage.setItem("mm.lang", l);
-    localStorage.setItem("theme", "dark");
-    localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
-    document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
-  }, lang);
-  await page.goto(`${BASE}/alerts?lang=${lang}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
-  await page.getByTestId("briefs-inbox").waitFor({ state: "visible", timeout: 45_000 });
-  // The cockpit initially renders a lazy-mount placeholder with the same test id.
-  // Scroll it into view, then require the actual list/empty state before capture.
-  await page.getByTestId("briefs-inbox").scrollIntoViewIfNeeded();
-  await page.locator(deliveries.length ? '[data-brief-row]' : '[data-briefs-state="empty"]').first()
-    .waitFor({ state: "visible", timeout: 45_000 });
-  await stripDevOverlay(page);
-}
-
-async function openSubscribe(page, lang, viewport) {
-  await page.setViewportSize(viewport);
-  await mockBriefs(page, []);
-  const thesis = {
-    id: THESIS,
-    currentVersion: 1,
-    lifecycleState: "active",
-    subject: {
-      schema: "mastermind.thesis-subject-ref/v1",
-      kind: "issuer",
-      owner: "terminal.analysis_symbol",
-      key: "NVDA",
-      identityState: "listing_scoped",
-      listing: { symbol: "NVDA", mic: null, securityId: null },
-      companyId: null,
-      display: "NVDA · listing scoped",
-    },
-    title: "NVDA cycle",
-    updatedAt: "2026-09-11T20:00:00.000Z",
-    createdAt: "2026-09-11T20:00:00.000Z",
-    current: {
-      id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-      thesisId: THESIS,
-      version: 1,
-      previousVersion: null,
-      transition: "create",
-      lifecycleState: "active",
-      subject: {
-        schema: "mastermind.thesis-subject-ref/v1",
-        kind: "issuer",
-        owner: "terminal.analysis_symbol",
-        key: "NVDA",
-        identityState: "listing_scoped",
-        listing: { symbol: "NVDA", mic: null, securityId: null },
-        companyId: null,
-        display: "NVDA · listing scoped",
-      },
-      content: {
-        schema: "mastermind.thesis-content/v1",
-        title: "NVDA cycle",
-        statement: "Demand will outrun supply through the next platform cycle.",
-        catalysts: [],
-        falsifiers: [],
-        risks: [],
-        horizon: "unspecified",
-        effectiveAt: null,
-        revisionNote: null,
-      },
-      clientRequestId: "crop-subscribe",
-      systemRecordedAt: "2026-09-11T20:00:00.000Z",
-      effectiveAt: null,
-    },
-    history: [],
-    historyTruncated: false,
-  };
-  await page.route("**/api/theses**", async (route) => {
-    const url = new URL(route.request().url());
-    if (url.searchParams.get("id") === THESIS) {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ thesis }) });
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ theses: [thesis], truncated: false }),
-    });
-  });
-  await page.addInitScript((l) => {
-    localStorage.setItem("mm.lang", l);
-    localStorage.setItem("theme", "dark");
-    localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
-    document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
-  }, lang);
-  await page.goto(`${BASE}/analysis?view=theses&symbol=NVDA&thesis=${THESIS}&lang=${lang}`, {
-    waitUntil: "domcontentloaded",
-    timeout: 90_000,
-  });
-  await page.getByTestId("brief-subscribe").waitFor({ state: "visible", timeout: 45_000 });
-  await stripDevOverlay(page);
-}
-
-async function shoot(page, file, kind) {
-  await assertNoNextIndicator(page, file);
-  await page.mouse.move(0, 0);
-  await page.waitForTimeout(200);
-  const target = kind === "subscribe"
-    ? page.getByTestId("brief-subscribe")
-    : page.getByTestId("briefs-inbox");
-  await target.screenshot({ path: join(OUT, file) });
-}
-
-async function main() {
-  const capturedAtHead = currentGitHead();
-  const child = startServer();
-  const files = [];
+async function main(args = process.argv.slice(2)) {
+  assert.deepEqual(args, ["--active-inbox"],
+    "Use --active-inbox for the complete current packet; the original mixed packet is historical");
+  assert.equal((process.env.CAPTURE_ONLY || "").trim(), "", "A subset cannot qualify active inbox evidence");
+  const checkout = checkoutIdentity(), sources = sourceHashes(REPO), runtime = runtimeVersions();
+  const versions = lockedVersions(REPO);
+  assert.equal(runtime.next, versions.next);
+  assert.equal(runtime.playwright, versions.playwright);
+  const stageRoot = mkdtempSync(join(tmpdir(), "mmx-briefs-active-inbox-"));
+  const stage = join(stageRoot, "packet");
+  mkdirSync(stage);
+  console.log("capture stage " + stageRoot);
+  const cases = [], failures = [];
+  let child, browser, browserClosed = false, serverSettled = false;
   try {
-    await waitForServer(child, 180_000);
-    const browser = await chromium.launch({ headless: true });
-    try {
-      for (const shot of SHOTS) {
-        const only = (process.env.CAPTURE_ONLY || "").split(",").filter(Boolean);
-        if (only.length && !only.includes(shot.kind) && !only.includes(shot.file)) continue;
-        process.stdout.write(`capture ${shot.file} … `);
-        const context = await browser.newContext({
-          viewport: VIEWPORTS[shot.viewport],
-          hasTouch: shot.viewport === "mobile",
-          locale: shot.lang === "zh" ? "zh-CN" : "en-US",
-          colorScheme: "dark",
-        });
-        const page = await context.newPage();
-        page.setDefaultTimeout(45_000);
-        try {
-          if (shot.kind === "subscribe") {
-            await openSubscribe(page, shot.lang, VIEWPORTS[shot.viewport]);
-          } else {
-            await openAlerts(page, shot.lang, VIEWPORTS[shot.viewport], shot.kind === "list" ? LIST_DELIVERIES : []);
-          }
-          await shoot(page, shot.file, shot.kind);
-          files.push(shot.file);
-          console.log("ok");
-        } catch (err) {
-          console.log(`FAIL ${err && err.message ? err.message : err}`);
-          try {
-            await page.screenshot({ path: join(OUT, `FAIL-${shot.file}`), fullPage: false });
-          } catch { /* ignore */ }
-          throw err;
-        } finally {
-          await context.close();
-        }
-      }
-    } finally {
-      await browser.close();
+    child = startLegacyServer(ROOT, PORT);
+    await reportLegacyServer(child, "started");
+    await waitLegacyServer(child, BASE + "/alerts?lang=en", 180_000);
+    browser = await chromium.launch({ headless: true });
+    for (const shot of SHOTS) {
+      cases.push(await captureCase(browser, shot, stage));
+      console.log("capture " + shot.file + " ok");
     }
-  } finally {
-    stopServer(child);
+  } catch (error) { failures.push(error); }
+  finally {
+    if (browser) {
+      try { await browser.close(); browserClosed = true; } catch (error) { failures.push(error); }
+    }
+    if (child) {
+      try { await settleLegacyServer(child); serverSettled = true; } catch (error) { failures.push(error); }
+    }
   }
-
-  // A subset capture cannot qualify unrendered surfaces or their source hashes.
-  if (files.length !== SHOTS.length) {
-    console.log(`wrote ${files.length} crops; retained EVIDENCE.yml for scoped binding adjudication`);
-    return;
+  const cleanup = { contextsClosed: cases.length, browserClosed, serverSettled };
+  writeFileSync(join(stageRoot, "capture-proof.json"), JSON.stringify({
+    checkout, sources, runtime, cleanup, cases, errors: failures.map(error => String(error)),
+  }, null, 2) + "\n");
+  if (failures.length) throw new AggregateError(failures, "Inbox capture or cleanup failed; prior packets preserved");
+  assert.deepEqual(checkoutIdentity(), checkout, "Checkout changed during capture");
+  assert.deepEqual(sourceHashes(REPO), sources, "Source changed during capture");
+  const packet = { schema: SCHEMA, scope: "active-inbox", theme: "dark", contract: CONTRACT,
+    producerActivation: false, productionAcceptance: false, captureFlag: "TERMINAL_E2E_FIXTURE",
+    mechanism: "playwright-locator-screenshot", capturedAt: new Date().toISOString(),
+    checkout, sources, runtime, cleanup, cases };
+  writeFileSync(join(stage, MANIFEST), JSON.stringify(packet, null, 2) + "\n");
+  readInboxPacket(REPO, stage);
+  if (existsSync(OUT)) {
+    assert.equal(realpathSync(OUT), resolve(OUT), "Symlink output directory");
+    const allowed = new Set([MANIFEST, ...SHOTS.map(shot => shot.file)]);
+    assert.ok(readdirSync(OUT).every(file => allowed.has(file)), "Unexpected existing active packet member");
+    for (const file of readdirSync(OUT)) regularBytes(join(OUT, file));
   }
-
-  const evidence = [
-    "# B-F11-7 Recurring briefs — capture evidence",
-    "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
-    "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
-    `# capturedAtHead: ${capturedAtHead}`,
-    `# capturedAt: ${new Date().toISOString()}`,
-    "# capturedAtHead is informational. The lock is layoutFiles.",
-    "layoutFiles:",
-    ...layoutFilesBlock(),
-    "theme: dark",
-    "languages: [en, zh]",
-    "viewports:",
-    "  - { name: desktop, width: 1440, height: 900 }",
-    "  - { name: mobile, width: 390, height: 844 }",
-    "harness:",
-    ...SHOTS.map((s) => `  ${s.file}: { kind: ${s.kind}, lang: ${s.lang}, viewport: ${s.viewport} }`),
-    "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
-    "command: |",
-    "  cd terminal",
-    "  node e2e/tools/capture_b_f11_7_recurring_briefs.cjs",
-    "files:",
-    ...files.map((f) => `  - ${f}`),
-    "",
-  ];
-  writeFileSync(join(OUT, "EVIDENCE.yml"), evidence.join("\n"));
-  console.log(`wrote ${files.length} crops + EVIDENCE.yml (capturedAtHead ${capturedAtHead})`);
+  mkdirSync(OUT, { recursive: true });
+  for (const shot of SHOTS) copyFileSync(join(stage, shot.file), join(OUT, shot.file));
+  // The selector is written only after all eight qualified images are present.
+  copyFileSync(join(stage, MANIFEST), join(OUT, MANIFEST));
+  readInboxPacket(REPO);
+  console.log(JSON.stringify({ briefsInboxEvidence: { packet: PACKET_PATH, cases: cases.length,
+    checkout, runtime, stage: stageRoot, producerActivation: false, productionAcceptance: false } }));
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+module.exports = { main };
+if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });

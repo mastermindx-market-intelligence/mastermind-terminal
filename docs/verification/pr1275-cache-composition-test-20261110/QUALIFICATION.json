@@ -1,0 +1,103 @@
+{
+  "schema": "terminal.pr1275.cache-composition-test.qualification.v1",
+  "state": "QUALIFIED_FOR_CURRENT_HEAD_CI",
+  "operation": "terminal-pr-duty-20261110-1275-next-composition-web4",
+  "lawPin": "c065e56b4cb7c4487e51249795ca6ebf010e6ffa",
+  "originalPublicHead": "edb979fdf580713052c14297018d0aca0fdb3052",
+  "testPath": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+  "testPreimage": "4e42163a5739c593c1a764b1f86c066613d66fbf",
+  "testPostimage": "8c4642c4883149a736b0194aee52ccf96e4c1ae4",
+  "sourceAtExecution": "Working test postimage on edb979f; forthcoming successor includes these identical bytes. No commit/execution restamp.",
+  "sourceClaim": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1275#issuecomment-6774370402",
+  "causalFailure": "causal-failure.json",
+  "changedBehavior": "All 12 original configuration rows retain their project/distDir/debug checks and gain explicit cache values plus exact experimental key and own-property expectations.",
+  "caseMatrix": {
+    "cacheAndDebugFalse": [
+      1,
+      2,
+      3
+    ],
+    "cacheFalseOnly": [
+      7,
+      11,
+      12
+    ],
+    "experimentalAbsent": [
+      4,
+      5,
+      6,
+      8,
+      9,
+      10
+    ]
+  },
+  "syntheticGate": {
+    "state": "PASSED",
+    "baseHead": "edb979fdf580713052c14297018d0aca0fdb3052",
+    "testPostimage": "8c4642c4883149a736b0194aee52ccf96e4c1ae4",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "--test",
+      "e2e/tools/capture_ci_evidence.test.cjs",
+      "e2e/tools/capture_visual_evidence.test.cjs",
+      "scripts/ci/plan-evidence-capture.test.cjs",
+      "e2e/tools/sharedShellSafeReporter.test.cjs",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "e2e/tools/f11_provider_closed_policy.test.cjs"
+    ],
+    "cwd": "terminal",
+    "pid": 88812,
+    "startedAt": "2026-11-10T17:33:55.980628+00:00",
+    "finishedAt": "2026-11-10T17:34:16.705598+00:00",
+    "exitCode": 0,
+    "seconds": 20.715,
+    "nodeVersion": "v22.23.4",
+    "nodeBinarySha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+    "counts": {
+      "tests": 337,
+      "suites": 0,
+      "pass": 337,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "processGroupAbsent": true,
+    "logSha256": "09e37eabdbf68460d1e5bd880c11bd8c1f30c684f0a291b6729528cd5c567490",
+    "hostedRuntimeDifference": "Original hosted negative baseline used Node20.20.2 on Ubuntu24.04.5; this local run uses Node22.23.4 on Darwin arm64. Natural successor CI remains owed."
+  },
+  "callerSettlement": {
+    "pid": 88327,
+    "exitCode": 0,
+    "runtimeSeconds": 24.6,
+    "evidence": "Studio Direct read_process_output returned explicit completion."
+  },
+  "reuse": {
+    "captureSource": "17f1e9cf88728b60f7366484dac6799569c50ed3",
+    "previousPacket": "docs/verification/pr1275-next-composition-20261110",
+    "acceptedCaptureCases": 6,
+    "acceptedEvidenceReaderPasses": 5,
+    "historicalObservedInputs": 45,
+    "unchangedObservedInputs": 44,
+    "explicitTestOnlyDelta": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+    "fixtureBindingsUnchanged": 15,
+    "layoutBindingsUnchanged": 3,
+    "unchangedActiveAndPriorProofFiles": 81,
+    "preservationRecord": "preservation.json",
+    "scope": "Original source, capture identity, six crops, manifests and lifecycle proof retain historical attribution; no recapture or relabeling.",
+    "runtimeConfigUnchanged": "71069181428ef3af6ac567a15878703ab0398069",
+    "fixtureManifestUnchanged": "faa0a9a830638546b42c0deb6b39caaa44cf396e",
+    "layoutManifestUnchanged": "e349ca8d6e01d334904bb64143349323ca7672a1"
+  },
+  "fullTypecheck": {
+    "state": "HISTORICAL_CHECK_RETAINED",
+    "actualCheckout": "c65cc7ca61d56b19acf3a3f9779783ec3709f8eb",
+    "job": 129984061769,
+    "step": 7,
+    "conclusion": "success",
+    "scope": "Runtime and TypeScript source unchanged; successor natural CI remains authoritative."
+  },
+  "nextAcceptance": "Publish one successor with an exact original-branch CAS; preserve existing auto request; required natural PR and queue checks remain owed.",
+  "noIndependentApprovalClaim": true,
+  "qualifiedAt": "2026-11-10T17:35:19.210837+00:00"
+}
