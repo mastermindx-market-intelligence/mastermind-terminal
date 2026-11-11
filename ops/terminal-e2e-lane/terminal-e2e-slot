@@ -1,0 +1,176 @@
+#!/bin/bash
+# Terminal e2e JIT runner slot loop (docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md, "Registering a
+# slot"). Runs as root in terminal-e2e-slot@N.service. Minting runs as ghmint; each job runs
+# as ghrunner-N in a fresh child cgroup of the unit.
+#
+# Every local failure exits the unit, and the unit does not restart: an operator looks
+# before the slot runs again. Only an API/network mint failure (mint-jitconfig exit 75)
+# backs off and retries. Never echo $jit: it is credential material for one job.
+set -euo pipefail
+N="${1:-}"
+case "$N" in [1-9]) ;; *) echo "slot: slot number must be 1-9" >&2; exit 1 ;; esac
+u="ghrunner-$N"
+name="ubuntu0-e2e-$N"
+slot="/opt/actions-runner/slots/$name"
+labels="self-hosted,linux,x64,ubuntu0-e2e"
+tarball=/opt/actions-runner/actions-runner-linux-x64.tar.gz
+crontab_file="/var/spool/cron/crontabs/$u"
+# World-writable directories a job can write. /tmp and /var/tmp are the unit's private
+# mounts; the unit makes the host's other world-writable directories read-only.
+scratch=(/tmp /var/tmp /dev/shm /dev/mqueue /run/lock)
+die() { echo "slot $name: $*" >&2; exit 1; }
+gid="$(cat /etc/ghmint/group_id)" || die "/etc/ghmint/group_id unreadable"
+case "$gid" in ''|*[!0-9]*) die "/etc/ghmint/group_id is not digits" ;; esac
+
+# --- Host prerequisites, asserted on every start -------------------------------------------
+# Unified cgroup v2 only, and this process really is the slot's unit in the lane's slice
+# (run by hand, the job would land in the caller's session cgroup without the unit sandbox).
+mapfile -t cgl < /proc/self/cgroup
+[ "${#cgl[@]}" = 1 ] && [ "${cgl[0]#0::}" != "${cgl[0]}" ] || die "not unified cgroup v2"
+unit_cg="/sys/fs/cgroup${cgl[0]#0::}"
+[ "$unit_cg" = "/sys/fs/cgroup/terminal_e2e.slice/terminal-e2e-slot@$N.service" ] \
+  || die "not running as terminal-e2e-slot@$N.service in terminal_e2e.slice"
+job_cg="$unit_cg/job"
+# The unit's procfs hides other uids' processes from the job (ProtectProc=invisible).
+procopts="$(findmnt -no OPTIONS /proc)" || die "findmnt failed"
+case ",$procopts," in *,hidepid=invisible,*) ;; *) die "/proc is not hidepid=invisible" ;; esac
+# The reset runs `ipcrm --all`: only safe in the unit's own IPC namespace (PrivateIPC=yes),
+# never the host's, which holds other services' shared memory.
+ipc_self="$(readlink /proc/self/ns/ipc)" && ipc_host="$(readlink /proc/1/ns/ipc)" || die "cannot read IPC namespaces"
+[ -n "$ipc_self" ] && [ "$ipc_self" != "$ipc_host" ] || die "IPC namespace is the host's (PrivateIPC=yes missing)"
+# The slot user: nologin, its own uid, its private group only, no sudo, no linger.
+pw="$(getent passwd "$u")" || die "no user $u"
+IFS=: read -r _ _ uid ugid _ home shell <<<"$pw"
+[ "$shell" = /usr/sbin/nologin ] || die "$u has a login shell"
+[ "$home" = "/home/$u" ] || die "$u home is not /home/$u"
+[ "$uid" -ge 1000 ] && [ "$uid" -lt 60000 ] || die "$u uid out of range"
+[ "$(getent passwd | awk -F: -v id="$uid" '$3 == id' | wc -l)" = 1 ] || die "uid $uid is shared"
+[ "$(id -G "$u")" = "$ugid" ] || die "$u has supplementary groups"
+[ "$(getent group "$ugid" | cut -d: -f1,4)" = "$u:" ] || die "$u primary group is not private"
+sudo_l="$(sudo -n -l -U "$u" 2>&1)" || true
+case "$sudo_l" in *"is not allowed to run sudo"*) ;; *) die "$u may have sudo rights" ;; esac
+linger="$(loginctl show-user "$u" -p Linger --value 2>/dev/null)" || linger=no
+[ "$linger" = no ] || die "linger on for $u"
+# Timers are denied at the source; an allow file would make cron and at ignore the deny file.
+grep -qx "$u" /etc/cron.deny && grep -qx "$u" /etc/at.deny || die "$u not in cron.deny/at.deny"
+for f in /etc/cron.allow /etc/at.allow; do
+  [ ! -e "$f" ] || ! grep -qx "$u" "$f" || die "$f names $u"
+done
+# sshd denies the slot users and the retired canary account.
+sshd_cfg="$(sshd -T -C user="$u",host=localhost,addr=127.0.0.1)" || die "sshd -T failed"
+grep -qiE '^denyusers( .*)? ghrunner-\*( |$)' <<<"$sshd_cfg" || die "sshd does not deny ghrunner-*"
+grep -qiE '^denyusers( .*)? ghrunner( |$)' <<<"$sshd_cfg" || die "sshd does not deny ghrunner"
+# The retired canary account cannot run anything: no shell, locked, no linger.
+if pw_legacy="$(getent passwd ghrunner)"; then
+  [ "${pw_legacy##*:}" = /usr/sbin/nologin ] || die "retired account ghrunner has a login shell"
+  [ "$(passwd -S ghrunner | cut -d' ' -f2)" = L ] || die "retired account ghrunner is not locked"
+  [ "$(loginctl show-user ghrunner -p Linger --value 2>/dev/null || echo no)" = no ] || die "linger on for ghrunner"
+fi
+[ -s "$tarball" ] || die "runner tarball missing"
+
+backoff=15
+while :; do
+  # 1. No timer may fire as $u after the reset: purge cron/at BEFORE killing anything.
+  if [ -e "$crontab_file" ] || [ -L "$crontab_file" ]; then crontab -r -u "$u" || die "crontab -r failed"; fi
+  [ ! -e "$crontab_file" ] && [ ! -L "$crontab_file" ] || die "crontab for $u survived"
+  if command -v atq >/dev/null; then
+    atjobs="$(atq)" || die "atq failed"
+    for j in $(awk -v u="$u" '$NF == u {print $1}' <<<"$atjobs"); do atrm "$j" || die "atrm $j failed"; done
+  fi
+
+  # 2. Kill the previous job's cgroup, not a process-list snapshot. Bounded wait: an
+  #    unkillable (D-state) task stops the slot instead of wedging it silently.
+  if [ -d "$job_cg" ]; then
+    echo 1 > "$job_cg/cgroup.kill" || die "cgroup.kill failed (kernel < 5.14?)"
+    for _ in $(seq 300); do
+      grep -qx 'populated 0' "$job_cg/cgroup.events" && break
+      sleep 0.2
+    done
+    grep -qx 'populated 0' "$job_cg/cgroup.events" || die "RETRYING_CLEANUP_BLOCKED: job cgroup still populated after 60s"
+    rmdir "$job_cg" || die "rmdir job cgroup failed"
+  fi
+  # A process of $u outside the job cgroup is an escape, not leftover state: kill it and stop.
+  prc=0; pkill -KILL -u "$u" || prc=$?
+  case "$prc" in 1) ;; 0) die "killed a $u process outside the job cgroup; investigate" ;; *) die "pkill failed rc=$prc" ;; esac
+
+  # 3. Fresh IPC, scratch files, home and runner tree, readable by this slot only.
+  ipcrm --all || die "ipcrm failed"   # the unit's private IPC namespace: only this slot's objects
+  for d in "${scratch[@]}"; do
+    find "$d" -xdev -user "$u" -delete || die "cleanup of $d failed"
+    left="$(find "$d" -xdev -user "$u" -print -quit)" || die "re-scan of $d failed"
+    [ -z "$left" ] || die "files of $u survived in $d"
+  done
+  rm -rf "/home/$u" "$slot" || die "cannot remove the previous home or runner tree"
+  { mkdir -p "/home/$u" && cp -a /etc/skel/. "/home/$u/" && chown -R "$u:$u" "/home/$u" && chmod 0700 "/home/$u"; } \
+    || die "cannot rebuild /home/$u"
+  { mkdir -p "$slot" && tar xzf "$tarball" -C "$slot" && chown -R "$u:$u" "$slot" && chmod 0700 "$slot"; } \
+    || die "cannot rebuild the runner tree"
+  # The job cgroup exists before the mint, so no local step can fail once a registration exists.
+  mkdir "$job_cg" || die "cannot create the job cgroup"
+
+  # 4. Fail closed, as the last statements before the mint. A failed query is not "none".
+  sessions="$(loginctl list-sessions --no-legend)" || die "loginctl list-sessions failed"
+  [ "$(awk -v id="$uid" '$2 == id' <<<"$sessions" | wc -l)" = 0 ] || die "$u has a logind session; not minting"
+  [ ! -e "/run/user/$uid" ] || die "$u has a user runtime directory; not minting"
+  for who in "$u" ghrunner; do
+    prc=0; pgrep -u "$who" >/dev/null || prc=$?
+    case "$prc" in 1) ;; 0) die "$who has a live process; not minting" ;; *) die "pgrep failed rc=$prc" ;; esac
+  done
+  others="$(systemctl list-units --no-legend --plain --state=active,activating,deactivating,reloading 'actions.runner.*')" \
+    || die "systemctl list-units failed"
+  [ -z "$others" ] || die "another actions runner service is active on this host; not minting"
+
+  # 5. One-shot JIT config, minted as ghmint. Exit 75 is an API/network failure: back off.
+  #    Any other refusal (a same-name registration to reconcile, bad input) stops the slot.
+  mrc=0
+  jit="$(sudo -u ghmint /usr/local/bin/mint-jitconfig mint "$name" "$labels" "$gid")" || mrc=$?
+  if [ "$mrc" = 75 ]; then
+    unset jit
+    echo "slot $name: mint failed (API/network); retrying in ${backoff}s" >&2
+    sleep "$backoff"; backoff=$(( backoff * 2 > 300 ? 300 : backoff * 2 ))
+    continue
+  fi
+  if [ "$mrc" != 0 ] || [ -z "$jit" ]; then
+    unset jit
+    die "mint refused (rc=$mrc); reconcile the $name registration before restarting"
+  fi
+  echo "slot $name: runner registered; waiting for one job"
+
+  # 6. Hand the JIT config to run.sh in the environment, never in argv: /proc/<pid>/cmdline
+  #    is readable by every uid outside this unit and sudo writes the whole command line to
+  #    the auth log. Runner.Listener reads ACTIONS_RUNNER_INPUT_JITCONFIG and unsets it in its
+  #    own process; /proc/<pid>/environ is readable only by the job uid and root. setpriv
+  #    execs in place, so no root parent keeps the value for the life of the job. The
+  #    environment matches what `sudo -H -u` gave the job (env_reset + secure_path).
+  #    The process that writes itself into cgroup.procs is the one that execs run.sh: in
+  #    the ( ... ) subshell that is $BASHPID ($$ is still the loop shell).
+  #    errexit is off inside a subshell on the left of ||: every step checks explicitly.
+  started=$SECONDS
+  rc=0
+  (
+    lang="${LANG:-C.UTF-8}"
+    login_shell="$(getent passwd "$u" | cut -d: -f7)" || exit 1
+    [ -n "$login_shell" ] || exit 1
+    # compgen lists names only (never values), one per line: drop every exported variable and
+    # every function (an exported function reaches children as BASH_FUNC_*); survivors fail closed.
+    mapfile -t exported < <(compgen -e) || exit 1
+    mapfile -t functions < <(compgen -A function) || exit 1
+    unset "${exported[@]}" || exit 1
+    unset -f "${functions[@]}" || exit 1
+    [ -z "$(compgen -e)$(compgen -A function)" ] || exit 1
+    export HOME="/home/$u" USER="$u" LOGNAME="$u" LANG="$lang" SHELL="$login_shell" \
+      PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin \
+      ACTIONS_RUNNER_INPUT_JITCONFIG="$jit" || exit 1
+    echo "$BASHPID" > "$job_cg/cgroup.procs" || exit 1
+    cd "/home/$u" || exit 1
+    exec setpriv --reuid="$u" --regid="$u" --init-groups "$slot/run.sh"
+  ) || rc=$?
+  unset jit
+  echo "slot $name: runner exited rc=$rc"
+  # A runner that exits nonzero within 30s never took a job and its registration may still
+  # exist offline. Never re-mint over an uncertain start: stop for an operator.
+  if [ "$rc" != 0 ] && [ $((SECONDS - started)) -lt 30 ]; then
+    die "runner failed to start (rc=$rc); reconcile the $name registration before restarting"
+  fi
+  backoff=15
+done
