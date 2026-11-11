@@ -1,0 +1,35 @@
+[
+  {
+    "name": "disclosure-units",
+    "returncode": 0,
+    "seconds": 8.81,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/heatmapCapDisclosure.test.tsx",
+      "--maxWorkers=1",
+      "--minWorkers=1"
+    ]
+  },
+  {
+    "name": "test-lint",
+    "returncode": 0,
+    "seconds": 120.95,
+    "command": [
+      "./node_modules/.bin/eslint",
+      "lib/__tests__/heatmapCapDisclosure.test.tsx"
+    ]
+  },
+  {
+    "name": "diff-check",
+    "returncode": 0,
+    "seconds": 1.41,
+    "command": [
+      "git",
+      "-C",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-609",
+      "diff",
+      "--check"
+    ]
+  }
+]

@@ -1,0 +1,81 @@
+{
+  "schema": "terminal-copy-repair-proof-v1",
+  "operation_id": "terminal-pr-estate-support-20261111-c3-609",
+  "date": "2026-11-11",
+  "issue": 609,
+  "law_pin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "base": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "source": [
+    {
+      "path": "terminal/components/heatmap/HeatmapView.tsx",
+      "sha256": "1f43e9c1a8a4a92f4692bacc3835d5783b05b48078f65fead404776df357af94",
+      "git_blob": "185f6444b276344e1cc009aea051a00d0e248365"
+    },
+    {
+      "path": "terminal/lib/__tests__/heatmapCapDisclosure.test.tsx",
+      "sha256": "224e1bf00ae165fe8c17fcb68068c612a838c691f127ffd3e0685a6e8c425c34",
+      "git_blob": "f633b81298088f0baf269a54ea3db6cb525a85fe"
+    }
+  ],
+  "preimages": {
+    "terminal/components/heatmap/HeatmapView.tsx": "25b5ad5644eee6f2ad268efd1b9521d2e4a29824",
+    "terminal/lib/__tests__/heatmapCapDisclosure.test.tsx": "3bbf54617f04df48cb2e91ae69663e1ba461b937"
+  },
+  "readonly_label_owner": {
+    "path": "terminal/lib/heatmapStrings.ts",
+    "blob": "9a212f7b5b6a51dcc2ea4884613edcf784cbd86e"
+  },
+  "change": "Four bilingual copy literals identify the actual Price × volume/EQUAL and 价格 × 成交量/等面积 controls. Existing two language tests bind explanation and fallback instructions to the authoritative label owner.",
+  "checks": [
+    {
+      "name": "disclosure-units",
+      "returncode": 0,
+      "seconds": 8.81,
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/heatmapCapDisclosure.test.tsx",
+        "--maxWorkers=1",
+        "--minWorkers=1"
+      ]
+    },
+    {
+      "name": "test-lint",
+      "returncode": 0,
+      "seconds": 120.95,
+      "command": [
+        "./node_modules/.bin/eslint",
+        "lib/__tests__/heatmapCapDisclosure.test.tsx"
+      ]
+    },
+    {
+      "name": "diff-check",
+      "returncode": 0,
+      "seconds": 1.41,
+      "command": [
+        "git",
+        "-C",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-609",
+        "diff",
+        "--check"
+      ]
+    }
+  ],
+  "tests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "source_unchanged_after_checks": true,
+  "custody": {
+    "workspace": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-609",
+    "acquire_initial": "PARTIAL / EFFECT_UNKNOWN / WORKSPACE_ACQUISITION_UNQUALIFIED",
+    "reconciliation": "Original repository/operation only; installed owner subsequently read back registered clean exact base, RELEASABLE / UNCHANGED_FROM_ACQUIRED_BASE. No acquire retry or retargeting.",
+    "pr707": "Original pending merge and refresh-order changes preserved. Completed original fixture capture 57 passes/18 authored skips and settled lifecycle do not qualify its remaining native/final-consumer holds."
+  },
+  "release": {
+    "new_head_ci": "PENDING",
+    "production_acceptance": false,
+    "issue_closure": false
+  },
+  "claim": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/issues/609#issuecomment-6792064823"
+}

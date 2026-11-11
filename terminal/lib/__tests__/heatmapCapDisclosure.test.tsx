@@ -22,6 +22,7 @@ import {
   MissingCapDisclosure,
 } from "@/components/heatmap/HeatmapView";
 import type { CapCoverage } from "@/lib/heatmapCapitalization";
+import { getHeatmapStr } from "@/lib/heatmapStrings";
 
 function coverageOf(partial: Partial<CapCoverage> & Pick<CapCoverage, "total" | "withCap" | "missingCap" | "invalidCap">): CapCoverage {
   return {
@@ -62,6 +63,10 @@ describe("cachedUsdCapCopy — truthful bilingual product copy", () => {
 
   it("EN explains cached USD capitalization, unknown reference date, and quote time", () => {
     const text = allCopyText(false, cov);
+    const copy = cachedUsdCapCopy(false, cov, { pruned: false, renderedCount: 6, scopedCount: 6 });
+    expect(copy.modeNote).toContain(getHeatmapStr("en", "sizeCap"));
+    expect(copy.emptyCapWarn).toContain(getHeatmapStr("en", "sizeCap"));
+    expect(copy.emptyCapWarn).toContain(getHeatmapStr("en", "sizeEqual"));
     expect(text).toMatch(/cached USD market capitalization/i);
     expect(text).toMatch(/reference date is unknown/i);
     expect(text).toMatch(/quote time/i);
@@ -72,6 +77,10 @@ describe("cachedUsdCapCopy — truthful bilingual product copy", () => {
 
   it("ZH explains cached USD cap, unknown date, and distinguishes quote time", () => {
     const text = allCopyText(true, cov);
+    const copy = cachedUsdCapCopy(true, cov, { pruned: false, renderedCount: 6, scopedCount: 6 });
+    expect(copy.modeNote).toContain(getHeatmapStr("zh", "sizeCap"));
+    expect(copy.emptyCapWarn).toContain(getHeatmapStr("zh", "sizeCap"));
+    expect(copy.emptyCapWarn).toContain(getHeatmapStr("zh", "sizeEqual"));
     expect(text).toContain("缓存的美元市值");
     expect(text).toContain("财务参考日期未知");
     expect(text).toContain("行情时间");

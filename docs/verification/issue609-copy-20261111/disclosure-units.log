@@ -1,0 +1,10 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-609/terminal
+
+ ✓ lib/__tests__/heatmapCapDisclosure.test.tsx (7 tests) 90ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  01:26:15
+   Duration  3.60s (transform 431ms, setup 0ms, collect 1.28s, tests 90ms, environment 615ms, prepare 148ms)
