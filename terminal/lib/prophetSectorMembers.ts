@@ -503,10 +503,12 @@ export type SectorMembersRead =
   | { status: "not_found"; code: string | null } // 404 unknown_group
   | { status: "invalid_request" } // 422 malformed query
   | { status: "unavailable" }  // 5xx from the BFF — the reading is not published yet (designed degradation, never a broken page)
-  | { status: "retry" }        // 429/network — transient; never a sign-in prompt
+  | { status: "retry"; retryAfterSec: number | null } // 429/network — transient; never a sign-in prompt; retryAfterSec carries the BFF/owner Retry-After when present
   | { status: "invalid" };     // 200 with a body outside the wire contract
 
-export function classifySectorMembersResponse(status: number, body: unknown): SectorMembersRead {
+export function classifySectorMembersResponse(
+  status: number, body: unknown, retryAfterSec: number | null = null,
+): SectorMembersRead {
   const code = record(body) && typeof body.code === "string" ? body.code : null;
   if (status === 200) {
     const payload = decodeProphetSectorMembers(body);
@@ -516,9 +518,9 @@ export function classifySectorMembersResponse(status: number, body: unknown): Se
   if (status === 403) return { status: "denied" };
   if (status === 404) return { status: "not_found", code };
   if (status === 422) return { status: "invalid_request" };
-  if (status === 429) return { status: "retry" };
+  if (status === 429) return { status: "retry", retryAfterSec };
   if (status >= 500) return { status: "unavailable" };
-  return { status: "retry" };
+  return { status: "retry", retryAfterSec: null };
 }
 
 export type SectorMembersFetch = {
@@ -544,9 +546,11 @@ export async function fetchProphetSectorMembers(query: SectorMembersFetch = {}):
       { credentials: "same-origin", cache: "no-store", signal: query.signal });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
-    return { status: "retry" };
+    return { status: "retry", retryAfterSec: null };
   }
   let body: unknown = null;
   try { body = await response.json(); } catch { body = null; }
-  return classifySectorMembersResponse(response.status, body);
+  const retryAfterHeader = response.headers.get("retry-after");
+  const retryAfterSec = retryAfterHeader !== null && /^\d+$/.test(retryAfterHeader) ? Number(retryAfterHeader) : null;
+  return classifySectorMembersResponse(response.status, body, retryAfterSec);
 }

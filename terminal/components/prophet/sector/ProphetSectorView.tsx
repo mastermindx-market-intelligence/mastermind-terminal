@@ -24,10 +24,11 @@ import { SectorGroupPicker } from "./SectorGroupPicker";
 import { SectorMemberPopulation } from "./SectorMemberPopulation";
 import { MemberSetup } from "./MemberSetup";
 import { SectorSourcesDisclosure } from "./SectorSourcesDisclosure";
-import { makeProphetSectorT } from "./prophetSectorStrings";
+import { makeProphetSectorT, prophetSectorFill } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
 
-type Read<T> = { status: "loading" } | { status: "ready"; payload: T } | ({ status: SectorMembersRead["status"] } & Record<string, never>);
+type Read<T> = { status: "loading" } | { status: "ready"; payload: T }
+  | ({ status: SectorMembersRead["status"] } & { retryAfterSec?: number | null });
 
 /** One bounded fetch cycle: sequence-guarded, aborted on change, retryable. */
 function useSectorMembersFetch<T extends SectorMembersPayload>(
@@ -58,6 +59,7 @@ function useSectorMembersFetch<T extends SectorMembersPayload>(
       }
       if (mine !== seq.current) return;
       if (result.status === "ok") setRead({ status: "ready", payload: result.payload as T });
+      else if (result.status === "retry") setRead({ status: "retry", retryAfterSec: result.retryAfterSec });
       else setRead({ status: result.status } as Read<T>);
     })();
     return () => { controller.abort(); };
@@ -128,9 +130,14 @@ export function ProphetSectorView({ state, update }: {
         </div>
       );
     }
+    // status === "retry" (429 or network): when the throttle said how long to
+    // wait, say that instead of the generic read failure.
+    const retryAfterSec = read.status === "retry" ? read.retryAfterSec ?? null : null;
     return (
-      <div className={styles.stateCopy}>
-        <p>{t("retry")}</p>
+      <div className={styles.stateCopy} data-testid={`${testId}-retry`}>
+        <p>{retryAfterSec !== null
+          ? prophetSectorFill(t("retryRateLimited"), { n: retryAfterSec })
+          : t("retry")}</p>
         <button type="button" className={styles.smallButton} onClick={retry}>{t("retryAction")}</button>
       </div>
     );

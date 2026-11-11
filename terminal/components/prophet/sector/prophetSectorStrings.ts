@@ -137,6 +137,9 @@ export const PROPHET_SECTOR_LEX = {
   signedOut:           ["Sign in to see sector members.", "登录后查看行业成分。"],
   denied:              ["Your subscription does not include Prophet sector members.", "你的订阅不包含预言台行业成分。"],
   retry:               ["Could not read sector members.", "无法读取行业成分。"],
+  // The BFF/owner throttle answered with how long to wait — say that, not the
+  // generic read failure, so an engaged reader knows a retry will work.
+  retryRateLimited:    ["Too many requests — try again in {n} seconds.", "请求过于频繁——请 {n} 秒后重试。"],
   retryAction:         ["Try again", "重试"],
   invalid:             ["This response is outside the expected format.", "响应格式不符合预期。"],
   notFound:            ["This group is not in the current sector read.", "该行业组不在当前行业读数中。"],

@@ -552,7 +552,8 @@ describe("classifySectorMembersResponse — the refusal table", () => {
   });
 
   it("maps 429 and 5xx to transient/unavailable, never sign-in", () => {
-    expect(classifySectorMembersResponse(429, null)).toEqual({ status: "retry" });
+    expect(classifySectorMembersResponse(429, null)).toEqual({ status: "retry", retryAfterSec: null });
+    expect(classifySectorMembersResponse(429, null, 30)).toEqual({ status: "retry", retryAfterSec: 30 });
     for (const status of [500, 502, 503]) {
       expect(classifySectorMembersResponse(status, null)).toEqual({ status: "unavailable" });
     }
@@ -564,7 +565,14 @@ describe("fetchProphetSectorMembers — transport", () => {
 
   it("a network TypeError reads as retry", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("Failed to fetch"); }));
-    await expect(fetchProphetSectorMembers({ group: "housing" })).resolves.toEqual({ status: "retry" });
+    await expect(fetchProphetSectorMembers({ group: "housing" })).resolves.toEqual({ status: "retry", retryAfterSec: null });
+  });
+
+  it("carries the BFF Retry-After into the retry classification", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "rate_limited" }), {
+      status: 429, headers: { "Content-Type": "application/json", "Retry-After": "30" },
+    })));
+    await expect(fetchProphetSectorMembers({ group: "housing" })).resolves.toEqual({ status: "retry", retryAfterSec: 30 });
   });
 
   it("a caller abort propagates instead of becoming retry", async () => {
