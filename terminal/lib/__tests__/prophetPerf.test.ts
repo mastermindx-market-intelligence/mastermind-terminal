@@ -362,3 +362,48 @@ describe("Prophet PERF calendar dates and source freshness", () => {
     expect(expectUnchangedAdmission(value).stale).toBe(true);
   });
 });
+
+describe("Prophet PERF v1 producer authority", () => {
+  it.each([
+    "data/prophet/unrelated.jsonl",
+    "https://example.invalid/ledger.jsonl",
+    " data/prophet/ledger.jsonl",
+    "data/prophet/ledger.jsonl ",
+  ])("rejects a substituted canonical-ledger source attribution: %j", async (path) => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    (value.source as Record<string, unknown>).path = path;
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it.each([
+    { benchmark_return_pct: 1.25, excess_return_pct: 0.5 },
+    { benchmark_return_pct: 0, excess_return_pct: 0 },
+    { benchmark_return_pct: -2.5, excess_return_pct: -1 },
+  ])("rejects a populated benchmark claim unsupported by the v1 producer: %j", async (figures) => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    (value.summary as Record<string, unknown>).benchmarked_performance = {
+      available: true,
+      ...figures,
+      unavailable_reason: null,
+    };
+    expect(normalizeProphetPerfPayload(value)).toBeNull();
+  });
+
+  it("preserves the exact canonical source and supplied unavailable benchmark values", async () => {
+    const value = cloneFixture(await fixtureFor("prophet_perf"));
+    const before = cloneFixture(value);
+    const admitted = normalizeProphetPerfPayload(value);
+    expect(admitted).not.toBeNull();
+    expect(admitted!.source.path).toBe("data/prophet/ledger.jsonl");
+    expect(admitted!.source).toEqual(value.source);
+    expect(admitted!.summary).toEqual(value.summary);
+    expect(admitted!.summary.benchmarked_performance).toEqual({
+      available: false,
+      benchmark_return_pct: null,
+      excess_return_pct: null,
+      unavailable_reason: "canonical_effective_ledger_has_no_benchmark_return_evidence",
+    });
+    expect(admitted!.plans).toEqual(value.plans);
+    expect(value).toEqual(before);
+  });
+});

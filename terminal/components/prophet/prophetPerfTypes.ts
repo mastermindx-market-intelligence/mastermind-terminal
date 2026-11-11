@@ -224,7 +224,7 @@ export function normalizeProphetPerfPayload(value: unknown): ProphetPerfPayload 
   const sourceLatestClose = nullableString(source.latest_close_date);
   const sourceFreshnessReason = nullableString(source.freshness_unavailable_reason);
   if (
-    !sourcePath ||
+    sourcePath !== "data/prophet/ledger.jsonl" ||
     source.schema !== "prophet.ledger/v1" ||
     source.projection !== "canonical_effective_ledger" ||
     sourceLatestAsof === undefined ||
@@ -287,22 +287,16 @@ export function normalizeProphetPerfPayload(value: unknown): ProphetPerfPayload 
     (rawAvailable > 0 && (!hasRawStats || rawUnavailableReason !== null))
   ) return null;
 
-  if (typeof benchmark.available !== "boolean") return null;
+  // The v1 canonical ledger producer supplies no benchmark-return evidence.
+  if (benchmark.available !== false) return null;
   const benchmarkReturn = finiteNumber(benchmark.benchmark_return_pct);
   const excessReturn = finiteNumber(benchmark.excess_return_pct);
   const benchmarkReason = nullableString(benchmark.unavailable_reason);
   if (benchmarkReturn === undefined || excessReturn === undefined || benchmarkReason === undefined) return null;
   if (
-    (!benchmark.available && (
-      benchmarkReturn !== null ||
-      excessReturn !== null ||
-      !benchmarkReason
-    )) ||
-    (benchmark.available && (
-      benchmarkReturn === null ||
-      excessReturn === null ||
-      benchmarkReason !== null
-    ))
+    benchmarkReturn !== null ||
+    excessReturn !== null ||
+    !benchmarkReason
   ) return null;
 
   const canonicalRows = count(integrity.canonical_row_count);

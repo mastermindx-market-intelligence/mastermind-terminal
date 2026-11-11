@@ -1,0 +1,14 @@
+{
+  "schema": "prophet.perf-source-benchmark-preservation.v1",
+  "base": "56760d570407c8e17c7b321b74e3096c2e490ce6",
+  "baseTree": "69d8aacc6f14f8b6c1d0b5d5d4c4bf421baf6cc9",
+  "sourcePathsAllowed": [
+    "terminal/components/prophet/prophetPerfTypes.ts",
+    "terminal/lib/__tests__/prophetPerf.test.ts"
+  ],
+  "proofPrefixAllowed": "docs/verification/pr668-source-benchmark-recovery-20261111/",
+  "unchangedOriginalEntries": 2824,
+  "allOtherOriginalBlobsAndModesPreserved": true,
+  "priorCountDateClockRepairsAndProofsPreserved": true,
+  "noRemovedPaths": true
+}

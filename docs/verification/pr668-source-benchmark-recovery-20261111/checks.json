@@ -1,0 +1,32 @@
+{
+  "schema": "prophet.perf-source-benchmark-recovery.v1",
+  "base": "56760d570407c8e17c7b321b74e3096c2e490ce6",
+  "sourcePaths": [
+    "terminal/components/prophet/prophetPerfTypes.ts",
+    "terminal/lib/__tests__/prophetPerf.test.ts"
+  ],
+  "before": {
+    "passed": 49,
+    "expectedRegressionFailures": 7,
+    "total": 56
+  },
+  "after": {
+    "passed": 56,
+    "failed": 0
+  },
+  "existingCasesPreserved": 48,
+  "newNegativeCases": 7,
+  "newPositiveCases": 1,
+  "strictScopedTypeScriptExit": 0,
+  "scopedESLintExit": 0,
+  "existingAuthoredFixtureAdmissions": 2,
+  "admittedInputSourceSummaryAndPlansUnchanged": true,
+  "wireSchemaChanged": false,
+  "reasonVocabularyNarrowed": false,
+  "numericStatisticsRecomputed": false,
+  "browserExecuted": false,
+  "producerExecuted": false,
+  "producerOrLedgerModified": false,
+  "producerR5R6Accepted": false,
+  "fullPacketAAdopted": false
+}
