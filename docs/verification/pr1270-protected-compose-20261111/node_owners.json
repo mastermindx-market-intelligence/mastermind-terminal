@@ -1,0 +1,21 @@
+{
+  "name": "node_owners",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "--test",
+    "e2e/tools/briefs_inbox_capture_contract.test.cjs",
+    "e2e/tools/capture_ci_evidence.test.cjs",
+    "e2e/tools/capture_visual_evidence.test.cjs",
+    "scripts/ci/plan-evidence-capture.test.cjs",
+    "e2e/tools/sharedShellSafeReporter.test.cjs",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+    "e2e/tools/f11_provider_closed_policy.test.cjs"
+  ],
+  "cwd": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3/terminal",
+  "started_at": "2026-11-11T19:56:38.169624+00:00",
+  "completed_at": "2026-11-11T19:56:59.156257+00:00",
+  "rc": 0,
+  "log_sha256": "8954f546c52299b779664a02fac3c8ba8542ff4f95846cf1c49571c184217258",
+  "log_bytes": 85380,
+  "tail": " gate stays silent\n  ---\n  duration_ms: 71.356792\n  type: 'test'\n  ...\n# Subtest: recapturing and committing an updated lock clears the PR gate\nok 389 - recapturing and committing an updated lock clears the PR gate\n  ---\n  duration_ms: 84.641334\n  type: 'test'\n  ...\n# Subtest: an empty touched list never attributes drift to a pull request\nok 390 - an empty touched list never attributes drift to a pull request\n  ---\n  duration_ms: 103.491167\n  type: 'test'\n  ...\n# Subtest: GEX drift is attributed only when the pull request touched that source\nok 391 - GEX drift is attributed only when the pull request touched that source\n  ---\n  duration_ms: 102.283292\n  type: 'test'\n  ...\n# Subtest: a large file-backed census reaches a child planner without losing late drift\nok 392 - a large file-backed census reaches a child planner without losing late drift\n  ---\n  duration_ms: 129.083792\n  type: 'test'\n  ...\n# Subtest: a missing or non-file PR census fails explicitly instead of becoming empty\nok 393 - a missing or non-file PR census fails explicitly instead of becoming empty\n  ---\n  duration_ms: 64.111791\n  type: 'test'\n  ...\n# Subtest: an existing empty census retains the empty-touched-list policy\nok 394 - an existing empty census retains the empty-touched-list policy\n  ---\n  duration_ms: 90.111542\n  type: 'test'\n  ...\n# Subtest: merge_group never consumes the PR-only census file\nok 395 - merge_group never consumes the PR-only census file\n  ---\n  duration_ms: 39.048166\n  type: 'test'\n  ...\n# Subtest: workflow_dispatch never consumes the PR-only census file\nok 396 - workflow_dispatch never consumes the PR-only census file\n  ---\n  duration_ms: 35.923459\n  type: 'test'\n  ...\n1..396\n# tests 396\n# suites 0\n# pass 396\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 20788.056542\n"
+}

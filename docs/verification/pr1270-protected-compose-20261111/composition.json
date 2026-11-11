@@ -1,0 +1,9 @@
+{
+  "composed_test_sha256": "2225f3049829702581f09f3803783185d3fb30e007fe8aa7964cb41c88ad329a",
+  "current_tree": "feac351f8f127011316e02c3f9a106f7b0dd0cbe",
+  "prior_proof_and_ticker_packet_unchanged": true,
+  "protected_test_prefix_unchanged": true,
+  "protected_test_sha256": "b381c0f4be37f867538cfec920507f2bef9f1d5aa6b204e35d822658aa6cd6d2",
+  "runtime_blob": "999070fa1b4053d44b0bc5c77704ec59b894a114",
+  "unmerged": false
+}

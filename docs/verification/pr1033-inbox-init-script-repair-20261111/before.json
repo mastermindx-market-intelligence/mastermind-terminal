@@ -1,0 +1,9 @@
+{
+  "sourceTree": "fa9c34e9ae9a19d503265532e6f5172ce2c35289",
+  "sourcePath": "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs",
+  "preFixReproduction": {
+    "name": "TypeError",
+    "message": "Cannot read properties of null (reading 'setAttribute')"
+  },
+  "browserLaunched": false
+}

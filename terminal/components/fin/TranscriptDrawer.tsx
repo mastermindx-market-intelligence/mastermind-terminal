@@ -189,16 +189,15 @@ export default function TranscriptDrawer({ sym, id, name, focus, onClose }: Tran
   const rawUrl = transcriptBodyUrl(sym, id);
 
   useEffect(() => {
-    // A cached response can arrive before the portal's first animation frame.
     if (!mounted || !tx || load.error || focus?.segment_index === undefined) return;
     const targetKey = `${sym}:${id}:${focus.segment_index}:${focus.expected_document_sha256 ?? ""}`;
     if (jumpedTargetRef.current === targetKey) return;
-    const target = document.querySelector<HTMLElement>(`.fin-tx-seg[data-segment="${focus.segment_index + 1}"]`);
+    const target = drawerRef.current?.querySelector<HTMLElement>(`.fin-tx-seg[data-segment="${focus.segment_index + 1}"]`);
     if (!target) return;
     jumpedTargetRef.current = targetKey;
     target.scrollIntoView({ block: "center", behavior: "smooth" });
     target.focus({ preventScroll: true });
-  }, [focus?.expected_document_sha256, focus?.segment_index, id, load.error, mounted, sym, tx]);
+  }, [mounted, focus?.expected_document_sha256, focus?.segment_index, id, load.error, sym, tx]);
 
   useEffect(() => () => {
     // A closed or changed reader cannot receive a previous copy result.

@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-11T19:54:51.119850+00:00",
+  "head": "75a390d6891830a8bfa47a43a804e4dfe8d939df",
+  "index_sha256": "06f1b2b6f40d53bf9c320853d21e3ad846edde042b03334ce323d103773abb9e",
+  "index_tree": "9144294359db428a823b8d4ae7d4c78aa4e4ca83",
+  "merge": "c13976bf86fb066e69cab399200a07ca63431521",
+  "prior_publication_sha256": "813f077291b723ffb9261fe7e3789d58195676cafd4fcddfeba7d0f09e6dd9f1",
+  "protected": "568fa505afb068900424fe4db0da67587d46a114",
+  "published_head": "8bfcb249f50505422617a86261742f1b53151984",
+  "state": "ADOPTION_PREPARED",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3"
+}

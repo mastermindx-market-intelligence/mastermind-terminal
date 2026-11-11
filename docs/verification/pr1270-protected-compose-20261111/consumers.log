@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-d06-evidence-readers-20261111-c3/terminal
+
+ ✓ lib/__tests__/d06CaptureDependency.test.ts (9 tests) 170ms
+ ✓ lib/__tests__/transcriptDrawerFocus.test.tsx (6 tests) 102ms
+ ✓ lib/__tests__/tickerNewsEvidence.test.ts (4 tests) 14ms
+
+ Test Files  3 passed (3)
+      Tests  19 passed (19)
+   Start at  12:56:38
+   Duration  1.54s (transform 239ms, setup 0ms, collect 638ms, tests 285ms, environment 635ms, prepare 174ms)
+
