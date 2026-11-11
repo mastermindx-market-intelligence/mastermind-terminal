@@ -7,4 +7,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 shopt -s nullglob
-grep -lE 'selectedComposition\(|without (a )?recaptur' lib/__tests__/*.test.ts lib/__tests__/*.test.tsx | LC_ALL=C sort
+# Markers: the composition reader, the evidence-lock message, and the lexicon
+# projection lock (its packet is rewritten by every batch-1 capture). grep exit
+# 1 (no match) fails the script under -e; the callers also refuse an empty list.
+grep -lE 'selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\(' \
+  lib/__tests__/*.test.ts lib/__tests__/*.test.tsx | LC_ALL=C sort

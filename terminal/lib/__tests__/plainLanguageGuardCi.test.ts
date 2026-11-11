@@ -149,7 +149,7 @@ describe("plain-language guard — CI wiring", () => {
     // wiring it does not own.
   });
 
-  it("A3. both guard steps run LAST — after npm test and after the quarantine disclosure — inside the job that feeds the required check", () => {
+  it("A3. both guard steps run LAST — after the last vitest step and after the quarantine disclosure — inside the job that feeds the required check", () => {
     const text = readFileSync(workflowPath, "utf8");
     const unit = jobBlock(text, "terminal-unit");
     // Since the unit split, the last vitest step inside terminal-unit is the

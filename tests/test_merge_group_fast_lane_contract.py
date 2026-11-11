@@ -138,7 +138,9 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
     import re
     root = Path(__file__).resolve().parents[1]
     tests_dir = root / "terminal" / "lib" / "__tests__"
-    marker = re.compile(r"selectedComposition\(|without (a )?recaptur")
+    marker = re.compile(
+        r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\("
+    )
     expected = sorted(
         "lib/__tests__/" + path.name
         for pattern in ("*.test.ts", "*.test.tsx")
@@ -147,6 +149,7 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
     )
     assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
     assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
+    assert "lib/__tests__/lexEvidenceProjection.test.ts" in expected
     listed = subprocess.run(
         ["bash", "scripts/ci/evidence-lock-suites.sh"],
         cwd=root / "terminal", check=True, capture_output=True, text=True,
