@@ -1228,4 +1228,19 @@ describe("rows increment — hostile rows never throw, soft cells never invalida
     // key is the row's identity for hrefs, expansion state and leagues.
     expect(read).toEqual({ state: "unavailable", reason: "invalid_shape" });
   });
+
+  it("N-4 — a key repeated across TWO arrays of one block fails the whole block (invalid_shape)", () => {
+    // r2 N-4: the seenKeys set spans the block's named arrays (one identity
+    // space — the producer's detail pages all land in one key-keyed
+    // directory), so a sector key colliding with a subsector key is the same
+    // envelope failure as a within-array duplicate. The within-array case is
+    // pinned above; this pins the cross-array scope.
+    const doc = mutateSp500((data) => {
+      const rows = data.subsectors as Record<string, unknown>[];
+      const sectors = data.sectors as Record<string, unknown>[];
+      (sectors[0] as Record<string, unknown>).key = rows[0]!.key;
+    });
+    const read = confluenceSp500FromCarriedBlock(carried(doc));
+    expect(read).toEqual({ state: "unavailable", reason: "invalid_shape" });
+  });
 });
