@@ -1,5 +1,5 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { editorialView } from "../lib/__tests__/fixtures/newsEditorial";
 import type { TickerNewsViewMode } from "../lib/newsTypes";
@@ -17,6 +17,7 @@ if (CAPTURE_PACKET !== "" && CAPTURE_PACKET !== "ticker-news") {
 const LEGACY_PACKET = CAPTURE_PACKET === "ticker-news";
 const DEFAULT_CROPS = CROPS && !LEGACY_PACKET;
 const LEGACY_CROPS = CROPS && LEGACY_PACKET;
+const HOSTED_EVIDENCE = process.env.GITHUB_ACTIONS === "true";
 const LEGACY_OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news");
 const UNAVAILABLE_OUT = LEGACY_PACKET ? LEGACY_OUT : OUT;
 const LIGHT_SPECIMEN_CSS = readFileSync(join(process.cwd(), "docs/specimens/news-flow.light.css"), "utf8");
@@ -350,6 +351,16 @@ async function openNews(page: Page, expectedState = "live") {
   return panel;
 }
 
+async function captureTickerNewsCrop(panel: Locator, testInfo: TestInfo, name: string, localDir?: string) {
+  if (!HOSTED_EVIDENCE && !localDir) return;
+  // The existing responsive QA upload collects the Playwright output directory for each shard.
+  const pixels = await panel.screenshot(HOSTED_EVIDENCE ? { path: testInfo.outputPath(name) } : {});
+  if (localDir) {
+    mkdirSync(localDir, { recursive: true });
+    writeFileSync(join(localDir, name), pixels);
+  }
+}
+
 async function pickSymbol(page: Page, testInfo: TestInfo, symbol: string, searchText: string) {
   const desktop = testInfo.project.name === "desktop";
   if (desktop) await page.locator(".pair").first().click();
@@ -442,10 +453,8 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
             expect((await viewControl.boundingBox())?.height).toBeGreaterThanOrEqual(44);
           }
           expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-          if (LEGACY_CROPS && theme === "dark" && mode === "news") {
-            await panel.screenshot({
-              path: join(LEGACY_OUT, [viewport.size, lang, "dark.png"].join("-")),
-            });
+          if (theme === "dark" && mode === "news") {
+            await captureTickerNewsCrop(panel, testInfo, `${viewport.size}-${lang}-dark.png`, LEGACY_CROPS ? LEGACY_OUT : undefined);
           }
           if (DEFAULT_CROPS) {
             await panel.screenshot({
@@ -484,9 +493,7 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
     );
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    if (CROPS) {
-      await panel.screenshot({ path: join(UNAVAILABLE_OUT, `unavailable-${size}-${lang}-dark.png`) });
-    }
+    await captureTickerNewsCrop(panel, testInfo, `unavailable-${size}-${lang}-dark.png`, CROPS ? UNAVAILABLE_OUT : undefined);
   }
 });
 
