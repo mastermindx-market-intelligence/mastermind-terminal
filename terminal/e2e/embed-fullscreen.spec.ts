@@ -35,10 +35,15 @@ async function fullscreen(page:Page,active:boolean){
 for(const lang of ["en","zh"] as const){
  test("browser fullscreen retains chart, range, overlays and source date in "+lang,async({page},info)=>{
   const theme=lang==="en"?"light":"dark";
-  let reads=0;
-  await page.route("**/data/NVDA.json",route=>{reads++;return route.fulfill({json:{bars}});});
+  let reads=0,completedReads=0;
+  await page.route("**/data/NVDA.json",async route=>{
+   reads++;await route.fulfill({json:{bars}});completedReads++;
+  });
   await page.goto("/embed/chart?symbol=NVDA&fs=1&transparent=1&theme="+theme+"&lang="+lang);
   await expect(page.locator(".embed-chart-host canvas").first()).toBeVisible();
+  await expect.poll(()=>reads-completedReads).toBe(0);
+  const startupReads=reads;
+  expect(startupReads,"the chart has a completed source read before controls").toBeGreaterThan(0);
   await page.getByRole("button",{name:"6M",exact:true}).click();
   const sma=page.getByRole("button",{name:lang==="en"?"Toggle the 50-day moving average":"切换50日移动平均线",exact:true});
   await sma.click();await expect(sma).toHaveAttribute("aria-pressed","false");
@@ -56,7 +61,9 @@ for(const lang of ["en","zh"] as const){
   await expect(page.getByRole("button",{name:"6M",exact:true})).toHaveAttribute("aria-pressed","true");
   await expect(sma).toHaveAttribute("aria-pressed","false");
   expect(await page.evaluate(()=>{const w=window as EmbedWindow;return w.__d06Engine===w.__mmEmbedOpts;})).toBe(true);
-  expect(reads).toBe(1);
+  expect(reads,"controls and fullscreen retain the completed startup source").toBe(startupReads);
+  expect(completedReads).toBe(startupReads);
+  await info.attach("fullscreen-source-reads",{body:Buffer.from(JSON.stringify({startupReads,reads,completedReads})),contentType:"application/json"});
  });
 }
 for(const fail of [false,true]){

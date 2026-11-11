@@ -1,0 +1,45 @@
+{
+  "schema": "terminal.pr1270.browser_followup.v1",
+  "state": "QUALIFIED_LOCAL_AWAITING_PUBLICATION",
+  "publishedBasis": "36f579e184ae9a6939c75154cdf5641c8e2e24b1",
+  "actualLocalHead": "357c32f1a330dda9362955361ae0ab30a3e54048",
+  "actualIndexTreeAtCapture": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+  "sourceFiles": {
+    "terminal/components/fin/TranscriptDrawer.tsx": {
+      "sha256": "1eada58b78e3cab8a48c82be5ff87eb04461e420e8791f4b1ea68d732ccec501",
+      "bytes": 17602,
+      "blob": "4bf73a746c1e5dc1e7f4d0b0afb3480f3a81f572"
+    },
+    "terminal/e2e/embed-fullscreen.spec.ts": {
+      "sha256": "79eabe1fcca707f88afc3fad9f8844cd465f4cfc114e13991e77e4bfcf25e3af",
+      "bytes": 11509,
+      "blob": "a0021da025c03950a0738ede885902d676474faf"
+    },
+    "terminal/lib/__tests__/transcriptDrawerFocus.test.tsx": {
+      "sha256": "8bbdcd35d9aaabbde4f8261f8f5823ce872dc9216d9b4e37722403a0d4f27bd4",
+      "bytes": 4151,
+      "blob": "b9841073b937811b39957426e455dff13bdf3c05"
+    }
+  },
+  "browserCases": 7,
+  "unitCases": 53,
+  "sourceSnapshotCount": 4483,
+  "sourceStable": true,
+  "archive": {
+    "path": "raw-evidence.tar.gz",
+    "bytes": 17627972,
+    "sha256": "a3b34b8c69bc8aa2ab7ac17c0e0b29b3998e2632d171fdb84a907905aa62cb48",
+    "members": 36,
+    "memberReadback": "ALL_EXACT"
+  },
+  "holds": [
+    "Draft",
+    "no-auto",
+    "current-native-EOD-GEX",
+    "Options-axis-applicability",
+    "physical-WKWebView",
+    "production-auth-RLS-upload",
+    "full-D06",
+    "F01/F02-unknown-effects"
+  ]
+}

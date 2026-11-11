@@ -189,7 +189,8 @@ export default function TranscriptDrawer({ sym, id, name, focus, onClose }: Tran
   const rawUrl = transcriptBodyUrl(sym, id);
 
   useEffect(() => {
-    if (!tx || load.error || focus?.segment_index === undefined) return;
+    // A cached response can arrive before the portal's first animation frame.
+    if (!mounted || !tx || load.error || focus?.segment_index === undefined) return;
     const targetKey = `${sym}:${id}:${focus.segment_index}:${focus.expected_document_sha256 ?? ""}`;
     if (jumpedTargetRef.current === targetKey) return;
     const target = document.querySelector<HTMLElement>(`.fin-tx-seg[data-segment="${focus.segment_index + 1}"]`);
@@ -197,7 +198,7 @@ export default function TranscriptDrawer({ sym, id, name, focus, onClose }: Tran
     jumpedTargetRef.current = targetKey;
     target.scrollIntoView({ block: "center", behavior: "smooth" });
     target.focus({ preventScroll: true });
-  }, [focus?.expected_document_sha256, focus?.segment_index, id, load.error, sym, tx]);
+  }, [focus?.expected_document_sha256, focus?.segment_index, id, load.error, mounted, sym, tx]);
 
   useEffect(() => () => {
     // A closed or changed reader cannot receive a previous copy result.
