@@ -1,0 +1,104 @@
+{
+  "browser_test": "TERMINAL_E2E_PORT=32177 TERMINAL_VISUAL_EVIDENCE_OPERATION=multiasset-terminal-20261105-sol-crops ./node_modules/.bin/playwright test e2e/multi-asset-risk-context.spec.ts --project=desktop --project=tablet --project=mobile --workers=2 --reporter=line",
+  "captures": 12,
+  "cases": 6,
+  "file_checksums": [
+    {
+      "bytes": 89088,
+      "file": "screenshots/cross-asset-desktop-zh-dark.png",
+      "pixel_height": 373,
+      "pixel_width": 398,
+      "sha256": "efa1a9a7d8df7e0a29ddfc30fb0276be0c0c3505e1caa4049d8ecc4f77ae362e"
+    },
+    {
+      "bytes": 52356,
+      "file": "screenshots/cross-asset-rejected-desktop-zh-dark.png",
+      "pixel_height": 257,
+      "pixel_width": 398,
+      "sha256": "bba316473b8299322b411b7b7d7d7f853acde94e35c994c163fc61deda8b3de1"
+    },
+    {
+      "bytes": 87811,
+      "file": "screenshots/cross-asset-mobile-zh-dark.png",
+      "pixel_height": 389,
+      "pixel_width": 356,
+      "sha256": "6158f88a555c6b7ec95bba7c72b5f5c7ec3e39f9a31b925c9572df2431e032cd"
+    },
+    {
+      "bytes": 51479,
+      "file": "screenshots/cross-asset-rejected-mobile-zh-dark.png",
+      "pixel_height": 257,
+      "pixel_width": 356,
+      "sha256": "fa1668f1a737aefc62d378262da6744158eac279b8fbc6a58e38047a681d7f43"
+    },
+    {
+      "bytes": 55384,
+      "file": "screenshots/cross-asset-rejected-tablet-zh-dark.png",
+      "pixel_height": 208,
+      "pixel_width": 778,
+      "sha256": "ba66c77de778d45334b7260ac47de596c629a829f2fd77642200b7c78c5677f4"
+    },
+    {
+      "bytes": 92023,
+      "file": "screenshots/cross-asset-tablet-zh-dark.png",
+      "pixel_height": 274,
+      "pixel_width": 778,
+      "sha256": "1f05c32cd16330149fdd7ee311a8b865cb2b1694578aa82daa2ff543880539d6"
+    },
+    {
+      "bytes": 72213,
+      "file": "screenshots/cross-asset-desktop-en-light.png",
+      "pixel_height": 472,
+      "pixel_width": 398,
+      "sha256": "cd3e85db92b08d706a777c959516f01a07ca977d026efbb2fdc5ca37babd8796"
+    },
+    {
+      "bytes": 42210,
+      "file": "screenshots/cross-asset-rejected-desktop-en-light.png",
+      "pixel_height": 307,
+      "pixel_width": 398,
+      "sha256": "46e4cc16b6ccbfce567edd91a8bafc075e8161b9e95e087cfa24bdbc1bd1dfc1"
+    },
+    {
+      "bytes": 76520,
+      "file": "screenshots/cross-asset-mobile-en-light.png",
+      "pixel_height": 538,
+      "pixel_width": 356,
+      "sha256": "4ae0810f65d9e4e4a6c4bb692b1a7e9966d61f93ad90b20c05db1754b97cb625"
+    },
+    {
+      "bytes": 44279,
+      "file": "screenshots/cross-asset-rejected-mobile-en-light.png",
+      "pixel_height": 357,
+      "pixel_width": 356,
+      "sha256": "f3ce630ef195bd5975cb25784110c9fc9bed8b7868799db6869b90ddf4f1c030"
+    },
+    {
+      "bytes": 47282,
+      "file": "screenshots/cross-asset-rejected-tablet-en-light.png",
+      "pixel_height": 241,
+      "pixel_width": 778,
+      "sha256": "6bd2740c4c048c5e4830b6c28f8c1f1b589eab63bdaf46b19ea8e1095570af8b"
+    },
+    {
+      "bytes": 79012,
+      "file": "screenshots/cross-asset-tablet-en-light.png",
+      "pixel_height": 323,
+      "pixel_width": 778,
+      "sha256": "decd4b5cb61545eeab2a63dfee5799f988fd3fdd0adae2c230878079e9f98391"
+    }
+  ],
+  "matrix": [
+    "desktop 1440x900",
+    "tablet 820x1180",
+    "mobile 390x844",
+    "en light",
+    "zh dark"
+  ],
+  "operation": "multiasset-terminal-20261105-sol",
+  "result": "6 passed",
+  "schema": "mastermind.terminal_multi_asset_browser_receipt/v1",
+  "scope": "synthetic_local_fixture_only_not_authenticated_production",
+  "source_base": "90a15953a731ba5d9064a6c496018b339bfffaf2",
+  "source_test": "terminal/e2e/multi-asset-risk-context.spec.ts"
+}

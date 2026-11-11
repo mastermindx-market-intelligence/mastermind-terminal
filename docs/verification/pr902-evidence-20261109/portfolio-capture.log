@@ -1,0 +1,64 @@
+unpromoted capture directory /tmp/mmx-b-f08-b5-1-targets-dhKrWX
+[dev] ✓ Ready in 216ms
+capture PortfolioTargets-empty-1440.png … ok
+capture PortfolioTargets-populated-within-band-1440.png … ok
+capture PortfolioTargets-populated-outside-band-1440.png … ok
+capture PortfolioTargets-orphaned-target-disclosed-1440.png … [dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+FAIL expect(locator).toHaveAttribute(expected) failed
+
+Locator:  locator('#portfolio-tab-targets')
+Expected: "true"
+Received: "false"
+Timeout:  5000ms
+
+Call log:
+  - Expect "to.have.attribute.value" with timeout 5000ms
+  - waiting for locator('#portfolio-tab-targets')
+    14 × locator resolved to <button role="tab" type="button" tabindex="-1" aria-selected="false" id="portfolio-tab-targets" aria-controls="portfolio-panel-targets">Targets</button>
+       - unexpected value "false"
+
+ExpectError: expect(locator).toHaveAttribute(expected) failed
+
+Locator:  locator('#portfolio-tab-targets')
+Expected: "true"
+Received: "false"
+Timeout:  5000ms
+
+Call log:
+  - Expect "to.have.attribute.value" with timeout 5000ms
+  - waiting for locator('#portfolio-tab-targets')
+    14 × locator resolved to <button role="tab" type="button" tabindex="-1" aria-selected="false" id="portfolio-tab-targets" aria-controls="portfolio-panel-targets">Targets</button>
+       - unexpected value "false"
+
+    at captureRawStack (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr902-alert-target-evidence-20261109-2fe663974ce0/terminal/node_modules/playwright-core/lib/coreBundle.js:3172:17)
+    at callMatcherAsStep (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr902-alert-target-evidence-20261109-2fe663974ce0/terminal/node_modules/playwright/lib/matchers/expect.js:12877:57)
+    at Object.toHaveAttribute (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr902-alert-target-evidence-20261109-2fe663974ce0/terminal/node_modules/playwright/lib/matchers/expect.js:12867:23)
+    at captureState (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr902-alert-target-evidence-20261109-2fe663974ce0/terminal/e2e/tools/capture_b_f08_b5_1_targets.cjs:347:28)
+    at async main (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr902-alert-target-evidence-20261109-2fe663974ce0/terminal/e2e/tools/capture_b_f08_b5_1_targets.cjs:388:15) {
+  matcherResult: {
+    name: 'toHaveAttribute',
+    expected: 'true',
+    message: 'expect(locator).toHaveAttribute(expected) failed\n' +
+      '\n' +
+      "Locator:  locator('#portfolio-tab-targets')\n" +
+      'Expected: "true"\n' +
+      'Received: "false"\n' +
+      'Timeout:  5000ms\n' +
+      '\n' +
+      'Call log:\n' +
+      '  - Expect "to.have.attribute.value" with timeout 5000ms\n' +
+      "  - waiting for locator('#portfolio-tab-targets')\n" +
+      '    14 × locator resolved to <button role="tab" type="button" tabindex="-1" aria-selected="false" id="portfolio-tab-targets" aria-controls="portfolio-panel-targets">Targets</button>\n' +
+      '       - unexpected value "false"\n',
+    pass: false,
+    actual: 'false',
+    log: [
+      '  - Expect "to.have.attribute.value" with timeout 5000ms',
+      "  - waiting for locator('#portfolio-tab-targets')",
+      '    14 × locator resolved to <button role="tab" type="button" tabindex="-1" aria-selected="false" id="portfolio-tab-targets" aria-controls="portfolio-panel-targets">Targets</button>',
+      '       - unexpected value "false"'
+    ],
+    timeout: 5000,
+    ariaSnapshot: '- tab "Targets"'
+  }
+}

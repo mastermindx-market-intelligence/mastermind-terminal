@@ -1,0 +1,118 @@
+{
+  "schema": "terminal.native-error-input-comparison.v1",
+  "accepted_input": "498532c39486c203c27df3d7d843b40769ab3d29",
+  "accepted_proof": "terminal/docs/pr-crops/native-error-theme-20261103/after/result.json",
+  "matched": [
+    {
+      "path": "terminal/node_modules/react/cjs/react.production.js",
+      "expected": "6a3554a5287116df819640334924348287618dcdcd7124a05eb126dcbbecd5f9",
+      "actual": "6a3554a5287116df819640334924348287618dcdcd7124a05eb126dcbbecd5f9"
+    },
+    {
+      "path": "terminal/node_modules/react/index.js",
+      "expected": "60caffdecbdc5db3bc4ec4e83df9488345ccb271d07533b9210bf5750918d97e",
+      "actual": "60caffdecbdc5db3bc4ec4e83df9488345ccb271d07533b9210bf5750918d97e"
+    },
+    {
+      "path": "terminal/node_modules/scheduler/cjs/scheduler.production.js",
+      "expected": "679adff761d31e9426604f80c0e99be44a3e6f4c6834b0218ecf0312a67c171f",
+      "actual": "679adff761d31e9426604f80c0e99be44a3e6f4c6834b0218ecf0312a67c171f"
+    },
+    {
+      "path": "terminal/node_modules/scheduler/index.js",
+      "expected": "145965504d60007bc25486ab930b0367867dcd5d579ccd343c148d69349a7cfb",
+      "actual": "145965504d60007bc25486ab930b0367867dcd5d579ccd343c148d69349a7cfb"
+    },
+    {
+      "path": "terminal/node_modules/react-dom/cjs/react-dom.production.js",
+      "expected": "7a5e56724be242e34ddc14f9d0dc7fc6a32f1367ae994f02d3699b00c085eff4",
+      "actual": "7a5e56724be242e34ddc14f9d0dc7fc6a32f1367ae994f02d3699b00c085eff4"
+    },
+    {
+      "path": "terminal/node_modules/react-dom/index.js",
+      "expected": "ba1a3e33489f868371561777607e3ee5091df0f7ea3f1a10f789d6b86e4c1505",
+      "actual": "ba1a3e33489f868371561777607e3ee5091df0f7ea3f1a10f789d6b86e4c1505"
+    },
+    {
+      "path": "terminal/node_modules/react-dom/cjs/react-dom-client.production.js",
+      "expected": "764ffa6adc2c9b02b4dc00f4a58ef13d050e7825898bd9e5dc808d3a3f9d4bb9",
+      "actual": "764ffa6adc2c9b02b4dc00f4a58ef13d050e7825898bd9e5dc808d3a3f9d4bb9"
+    },
+    {
+      "path": "terminal/node_modules/react-dom/client.js",
+      "expected": "00e348ab3d6bc2eef908345d0bc4e008c95bcfecec060dfda5c4967953761396",
+      "actual": "00e348ab3d6bc2eef908345d0bc4e008c95bcfecec060dfda5c4967953761396"
+    },
+    {
+      "path": "terminal/lib/chatQuotas.ts",
+      "expected": "da3ea57cb9c22b5ed7bfb12f2ab85a1a86809a202c720661f481ad7be7967b2f",
+      "actual": "da3ea57cb9c22b5ed7bfb12f2ab85a1a86809a202c720661f481ad7be7967b2f"
+    },
+    {
+      "path": "terminal/node_modules/react/cjs/react-jsx-runtime.production.js",
+      "expected": "1e46f15002696985e80c61d47aaa30dabb03c954270a690f5f7dfbbacfa9002b",
+      "actual": "1e46f15002696985e80c61d47aaa30dabb03c954270a690f5f7dfbbacfa9002b"
+    },
+    {
+      "path": "terminal/node_modules/react/jsx-runtime.js",
+      "expected": "b392951a77d0a2e6a6bd017e49d768481ae5b63c4109c6c31f622cf7b2433edc",
+      "actual": "b392951a77d0a2e6a6bd017e49d768481ae5b63c4109c6c31f622cf7b2433edc"
+    },
+    {
+      "path": "terminal/lib/i18n.tsx",
+      "expected": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+      "actual": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+    },
+    {
+      "path": "terminal/components/BrandMark.tsx",
+      "expected": "adde4b9fbd9953d87f971aac9cf571b80aaab8090cba6cf76a19fc49d0395cbd",
+      "actual": "adde4b9fbd9953d87f971aac9cf571b80aaab8090cba6cf76a19fc49d0395cbd"
+    },
+    {
+      "path": "terminal/lib/originNav.ts",
+      "expected": "517038a8bc557760d43ad25c919761b252268747f63eabc725129fa88d951d1d",
+      "actual": "517038a8bc557760d43ad25c919761b252268747f63eabc725129fa88d951d1d"
+    },
+    {
+      "path": "terminal/components/DashboardBackButton.tsx",
+      "expected": "6a28b0f29da3ab9054d52745d49b953b93bf0db4309f1531314f53b99445abfa",
+      "actual": "6a28b0f29da3ab9054d52745d49b953b93bf0db4309f1531314f53b99445abfa"
+    },
+    {
+      "path": "terminal/app/error-return.module.css",
+      "expected": "8d28516c1237812020b4838b86dfe6e3ca6ad707696bceeefec343345552e19d",
+      "actual": "8d28516c1237812020b4838b86dfe6e3ca6ad707696bceeefec343345552e19d"
+    },
+    {
+      "path": "terminal/app/error.tsx",
+      "expected": "864fcba811891cd100a3b54d95009776db9b01149eff3f787aa14055100dcfdc",
+      "actual": "864fcba811891cd100a3b54d95009776db9b01149eff3f787aa14055100dcfdc"
+    },
+    {
+      "path": "terminal/lib/accountIdentity.ts",
+      "expected": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+      "actual": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c"
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/SharedShellPresentation.tsx",
+      "expected": "d0e1eb7c4a16b45bfad93e17a56cef9387df197dc3de83b3cb516b6e7a125a0d",
+      "actual": "d0e1eb7c4a16b45bfad93e17a56cef9387df197dc3de83b3cb516b6e7a125a0d"
+    },
+    {
+      "path": "terminal/app/globals.css",
+      "expected": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+      "actual": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/shared-shell.css",
+      "expected": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2",
+      "actual": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2"
+    }
+  ],
+  "changed": [],
+  "fixture_paths_retained": [
+    "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/fixture-prefs.ts",
+    "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/fixture-entry.tsx"
+  ],
+  "scope": "Dependency/source reuse check only; not a fresh rendered/Next/served observation"
+}

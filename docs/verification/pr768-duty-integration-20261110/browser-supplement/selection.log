@@ -1,0 +1,11 @@
+Listing tests:
+  [desktop] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en
+  [desktop] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en
+  [desktop] › options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation
+  [tablet] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en
+  [tablet] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en
+  [tablet] › options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation
+  [mobile] › options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en
+  [mobile] › options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en
+  [mobile] › options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation
+Total: 9 tests in 2 files

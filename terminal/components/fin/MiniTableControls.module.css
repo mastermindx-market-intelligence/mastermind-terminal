@@ -1,0 +1,42 @@
+.disclosureCell:global(.fin-cell) {
+  padding-block: 0;
+}
+
+.disclosureButton:global(.fin-row-toggle) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: normal;
+  scroll-margin-block: 24px 96px;
+}
+
+.pagerButton:global(.fin-pg-chev) {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 16px;
+  scroll-margin-block: 24px 96px;
+}
+
+.disclosureButton:focus-visible,
+.pagerButton:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: -3px;
+}
+
+.chevron {
+  flex: 0 0 12px;
+  color: var(--muted);
+  font-size: 10px;
+}

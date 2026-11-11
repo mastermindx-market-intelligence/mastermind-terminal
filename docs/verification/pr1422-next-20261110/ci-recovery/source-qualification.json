@@ -1,0 +1,21 @@
+{
+  "base": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+  "source_map_changed_paths": [
+    "terminal/e2e/rs-pivot-study.spec.ts",
+    "terminal/e2e/watchlist-annotation-sync.spec.ts"
+  ],
+  "all_production_postimages_unchanged": true,
+  "all_other_cases_unchanged": true,
+  "watchlist_original_assertions_unchanged": true,
+  "watchlist_fault_response_assertion_added": true,
+  "known_original_ci_failures_addressed": [
+    129826075287,
+    129826076443,
+    129826075971,
+    129826076523
+  ],
+  "captured_images": 8,
+  "evidence_reader_passes": 4,
+  "targeted_browser_passes": 6,
+  "retries": 0
+}

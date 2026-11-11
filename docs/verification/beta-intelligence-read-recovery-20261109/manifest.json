@@ -1,0 +1,212 @@
+{
+  "operation": "beta-intelligence-read-recovery-20261109-astra-01",
+  "recorded_at": "2026-11-09T12:22:29.507571+00:00",
+  "protected_base": "f34b0deb0bb2a0b2f57ba82256b9e87886ad76e0",
+  "source_contract": "Existing unpinned standard reader only; no source or rights fallback added",
+  "before": {
+    "new_cases": 10,
+    "failed": 6,
+    "passed": 4
+  },
+  "after": {
+    "units_passed": 116,
+    "unit_files": 5,
+    "new_unit_cases": 12,
+    "beta_browser_passed": 12,
+    "default_browser_passed": 12,
+    "browser_retries": 0,
+    "browser_skips": 0,
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "typecheck_exit": 0
+  },
+  "fixture_correction": "Initial browser run counted raw fetches; development Strict Mode repeats initial reads. All 12 initial failures were request-count mismatches. Corrected spec binds actual retry nonce and retains timeout/retry/late-response/workspace/URL assertions; no product change was made for this fixture issue.",
+  "type_cache_recovery": "After both dev servers ended, a malformed generated .next/dev/types/validator.ts prevented tsc. Preserved its bytes and digest, removed only the inactive owned generated dev types, regenerated canonical route types and reran full tsc successfully. No source/typecheck rule was changed.",
+  "generated_validator_before_sha256": "fb153bcad3866b38478e5a001a7aab7d8e78dcce4517ff8c332716e2401dec5f",
+  "lint": "Component has exactly its protected-base four react-hooks/set-state-in-effect errors, no added diagnostic. New unit/e2e files pass lint. Strict component lint is not green.",
+  "review": "SELF_REVIEWED, not an independent or GitHub non-author approval",
+  "image_proof": "All 24 screenshots visually inspected through four mode/language contact sheets. Actual local Next/browser UI with explicitly controlled AAPL data and closed-baseline fixture, not live NVDA or authenticated production proof.",
+  "files": [
+    {
+      "path": "terminal/components/fin/CompanyIntelligencePage.tsx",
+      "bytes": 45252,
+      "sha256": "6bf8769833b12184f2ca788ed82b8b4cd34064382e2767a5079a9663d418d625"
+    },
+    {
+      "path": "terminal/lib/__tests__/CompanyIntelligenceLoadRecovery.test.tsx",
+      "bytes": 8913,
+      "sha256": "dd61d8ba78cc83add2aac04db28cd74380eab95a1977566dd48bf8e1e89fbb8a"
+    },
+    {
+      "path": "terminal/e2e/company-intelligence-load-recovery.spec.ts",
+      "bytes": 5586,
+      "sha256": "038dfff305180f701641f6eb1ccacc456ef4cfada17ec77c17948d0bbd59613d"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/desktop-en-read-deadline.png",
+      "bytes": 87393,
+      "sha256": "caaac0e76fe7c00065747eed778e6c20337d21cc281953940ef7ea9c1267a62e"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/desktop-en-read-recovered.png",
+      "bytes": 195812,
+      "sha256": "debfb8ddd3e2481e5d9ac3703ac3737ef1b6f3ced03dbfd8cc6b7cd450108abc"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/mobile-en-read-deadline.png",
+      "bytes": 41963,
+      "sha256": "9c4c3078fc455ad0b2998b6084a1fb5704ff9c397e3c70104dadb03b5a79ba7a"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/mobile-en-read-recovered.png",
+      "bytes": 84812,
+      "sha256": "da1560209d67f8c7f5e3419198c8d0cf282c06769a38beca258deae09bc11793"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/tablet-en-read-deadline.png",
+      "bytes": 51901,
+      "sha256": "363c8becbcf0843c1dfd226b38f439cac5c0f06b06df741052de467c71ec8e8b"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/tablet-en-read-recovered.png",
+      "bytes": 177427,
+      "sha256": "678938aed5529dc98dc2985039908cbdc43c084415b9b9abc85bd82321faf4d8"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/desktop-zh-read-deadline.png",
+      "bytes": 83480,
+      "sha256": "9df6496c88eebcb2405ce33abeeb0bf2ac0d42e06a8c6c73199338a952efd2c6"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/desktop-zh-read-recovered.png",
+      "bytes": 184764,
+      "sha256": "f0eebece8a2b386b8f3c90aedd2edb52c42c32adf39060669acefa3c195ddf9f"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/mobile-zh-read-deadline.png",
+      "bytes": 42470,
+      "sha256": "b7d3b2462bc5e371ff98c7434d652156dfb5827cb86f2a5339b9cfef84fc1cae"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/mobile-zh-read-recovered.png",
+      "bytes": 83344,
+      "sha256": "ccd4692e6e0de6b1d4b65de22a0fdf41da6025e04b2d11d574fd69604787fd5d"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/tablet-zh-read-deadline.png",
+      "bytes": 50079,
+      "sha256": "b460e0c9b779cc47453157a96db915798af19116563a0ed6d54a9351e2b20ad9"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/beta/tablet-zh-read-recovered.png",
+      "bytes": 169921,
+      "sha256": "6f557b8a42516b12f9924a573cdd0f10b40c778149d367fe3336c4d26d8f62a6"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/desktop-en-read-deadline.png",
+      "bytes": 75361,
+      "sha256": "0e3ddd59ad8c0fbbe524d5ff064b4221951110c0d1728331e9be80eea967c750"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/desktop-en-read-recovered.png",
+      "bytes": 197564,
+      "sha256": "38eaa07a35ec8c4ae6dc55bd9e221d3c5774a5f875afb58275d27be0ee38ad1c"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/mobile-en-read-deadline.png",
+      "bytes": 27352,
+      "sha256": "3cb599968fc271cfe75c23d56b371616ce411fbcaddebcf582b7f0be0575d861"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/mobile-en-read-recovered.png",
+      "bytes": 81755,
+      "sha256": "deff10350c7300c122fff1cd6c1377e6267ea9797e7f7c139a19a52c625d7ec1"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/tablet-en-read-deadline.png",
+      "bytes": 37268,
+      "sha256": "a6111dfef27cc7b7161d35c734a9a957de796c56a6bf0a85668aad177809c0ef"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/tablet-en-read-recovered.png",
+      "bytes": 176339,
+      "sha256": "a4096145300f562db4aeff74916efcd459f2078e67c592730407a6c7a4d940f1"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/desktop-zh-read-deadline.png",
+      "bytes": 72728,
+      "sha256": "b953fd8d6f75bf2038bbe4be01d472441c311e4aa748724262fb36ea8adf8ec6"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/desktop-zh-read-recovered.png",
+      "bytes": 187529,
+      "sha256": "fb60bea7f3e7db5af30517a8e58ff32cff320b562548f1e4fab1d4f28c4f4255"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/mobile-zh-read-deadline.png",
+      "bytes": 27437,
+      "sha256": "dbae5a25ba3eeb7b96abfe3313e71d845d1fac395a268f2adbe808c4b20f3793"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/mobile-zh-read-recovered.png",
+      "bytes": 78560,
+      "sha256": "9b24ac948b8ae5f376e97c11c66018e0bb3392ef347fbbf1a95525267e21bdf5"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/tablet-zh-read-deadline.png",
+      "bytes": 35481,
+      "sha256": "6a59158b176645cb7f2caa9d1b57d680f0b72c35c853061c36a82fdeacc3b6af"
+    },
+    {
+      "path": "docs/verification/beta-intelligence-read-recovery-20261109/default/tablet-zh-read-recovered.png",
+      "bytes": 169219,
+      "sha256": "4f931f6d994418ab640d01e856c74a3dcaab9c9bf7516dd9135357ba9b7fe5bd"
+    }
+  ],
+  "logs": [
+    {
+      "name": "mmx-intelligence-read-before.log",
+      "sha256": "bd0a3e41851e30cddd24f65e5a8fea9cca1cb321d5229d9d22a7034f84954f8d"
+    },
+    {
+      "name": "mmx-intelligence-read-qualification.log",
+      "sha256": "52433580539c86e2ff1876a58d4eac42b111854759227ebc78bc54f79b5e4786"
+    },
+    {
+      "name": "mmx-intelligence-read-beta-browser.log",
+      "sha256": "56af25c6ad63ef2e8bd81bd1e2a67d360d992525e974b3f42060bd110db72be0"
+    },
+    {
+      "name": "mmx-intelligence-read-beta-qualified.log",
+      "sha256": "bc28907f52c550187092038db0ce513034d9c3b3431177a4231dd51064e07465"
+    },
+    {
+      "name": "mmx-intelligence-read-default-qualified.log",
+      "sha256": "a9de8888f666549c5a71c2b176a4706a2d54acb3c2371579b3492ebcadc1f117"
+    },
+    {
+      "name": "mmx-intelligence-read-types.log",
+      "sha256": "bbb8861bb8985589c6492e0a0430a9f784b49929424a835e0b2f68c71f0f96cf"
+    },
+    {
+      "name": "mmx-intelligence-read-types-final.log",
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    }
+  ]
+}

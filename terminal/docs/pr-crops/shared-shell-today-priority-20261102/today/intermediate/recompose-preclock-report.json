@@ -1,0 +1,4394 @@
+{
+  "sourceHead": null,
+  "kind": "ACTUAL_APPSHELL_TODAY_LOCAL_FIXTURE",
+  "clocks": {
+    "live": "2026-11-02T15:30:00Z",
+    "other": "2026-11-01T12:00:00Z"
+  },
+  "results": [
+    {
+      "width": 320,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 304
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1456,
+            "height": 434
+          },
+          "since": {
+            "top": 2307,
+            "height": 153
+          },
+          "watch": {
+            "top": 690,
+            "height": 182
+          },
+          "continuation": {
+            "top": 893,
+            "height": 504
+          },
+          "research": {
+            "top": 1910,
+            "height": 377
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "zh",
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 304
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1371,
+            "height": 396
+          },
+          "since": {
+            "top": 2183,
+            "height": 153
+          },
+          "watch": {
+            "top": 627,
+            "height": 182
+          },
+          "continuation": {
+            "top": 829,
+            "height": 483
+          },
+          "research": {
+            "top": 1787,
+            "height": 377
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "en",
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 304
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1456,
+            "height": 434
+          },
+          "since": {
+            "top": 2307,
+            "height": 153
+          },
+          "watch": {
+            "top": 690,
+            "height": 182
+          },
+          "continuation": {
+            "top": 893,
+            "height": 504
+          },
+          "research": {
+            "top": 1910,
+            "height": 377
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 304
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1371,
+            "height": 396
+          },
+          "since": {
+            "top": 2183,
+            "height": 153
+          },
+          "watch": {
+            "top": 627,
+            "height": 182
+          },
+          "continuation": {
+            "top": 829,
+            "height": 483
+          },
+          "research": {
+            "top": 1787,
+            "height": 377
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1417,
+            "height": 376
+          },
+          "since": {
+            "top": 2166,
+            "height": 153
+          },
+          "watch": {
+            "top": 652,
+            "height": 182
+          },
+          "continuation": {
+            "top": 854,
+            "height": 504
+          },
+          "research": {
+            "top": 1813,
+            "height": 333
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 239.140625,
+          "y": 718.765625,
+          "width": 134.859375,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.046875
+        },
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1313,
+            "height": 356
+          },
+          "since": {
+            "top": 2021,
+            "height": 131
+          },
+          "watch": {
+            "top": 591,
+            "height": 182
+          },
+          "continuation": {
+            "top": 793,
+            "height": 461
+          },
+          "research": {
+            "top": 1690,
+            "height": 311
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 287.046875,
+          "y": 658.078125,
+          "width": 86.953125,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.484375
+        },
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "en",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1417,
+            "height": 376
+          },
+          "since": {
+            "top": 2166,
+            "height": 153
+          },
+          "watch": {
+            "top": 652,
+            "height": 182
+          },
+          "continuation": {
+            "top": 854,
+            "height": 504
+          },
+          "research": {
+            "top": 1813,
+            "height": 333
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 239.140625,
+          "y": 718.765625,
+          "width": 134.859375,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.046875
+        },
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1313,
+            "height": 356
+          },
+          "since": {
+            "top": 2021,
+            "height": 131
+          },
+          "watch": {
+            "top": 591,
+            "height": 182
+          },
+          "continuation": {
+            "top": 793,
+            "height": 461
+          },
+          "research": {
+            "top": 1690,
+            "height": 311
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 287.046875,
+          "y": 658.078125,
+          "width": 86.953125,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.484375
+        },
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 820,
+        "width": 820,
+        "mains": 1,
+        "stripRight": 793
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 360,
+            "height": 324
+          },
+          "since": {
+            "top": 1290,
+            "height": 88
+          },
+          "watch": {
+            "top": 759,
+            "height": 180
+          },
+          "continuation": {
+            "top": 759,
+            "height": 500
+          },
+          "research": {
+            "top": 963,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "zh",
+        "scroll": 820,
+        "width": 820,
+        "mains": 1,
+        "stripRight": 793
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 360,
+            "height": 324
+          },
+          "since": {
+            "top": 1290,
+            "height": 88
+          },
+          "watch": {
+            "top": 759,
+            "height": 180
+          },
+          "continuation": {
+            "top": 759,
+            "height": 479
+          },
+          "research": {
+            "top": 963,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "en",
+        "scroll": 820,
+        "width": 820,
+        "mains": 1,
+        "stripRight": 793
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 360,
+            "height": 324
+          },
+          "since": {
+            "top": 1290,
+            "height": 88
+          },
+          "watch": {
+            "top": 759,
+            "height": 180
+          },
+          "continuation": {
+            "top": 759,
+            "height": 500
+          },
+          "research": {
+            "top": 963,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 820,
+        "width": 820,
+        "mains": 1,
+        "stripRight": 793
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 360,
+            "height": 324
+          },
+          "since": {
+            "top": 1290,
+            "height": 88
+          },
+          "watch": {
+            "top": 759,
+            "height": 180
+          },
+          "continuation": {
+            "top": 759,
+            "height": 479
+          },
+          "research": {
+            "top": 963,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 170
+          },
+          "since": {
+            "top": 1150,
+            "height": 88
+          },
+          "watch": {
+            "top": 619,
+            "height": 180
+          },
+          "continuation": {
+            "top": 619,
+            "height": 453
+          },
+          "research": {
+            "top": 823,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "zh",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 170
+          },
+          "since": {
+            "top": 1150,
+            "height": 88
+          },
+          "watch": {
+            "top": 619,
+            "height": 180
+          },
+          "continuation": {
+            "top": 619,
+            "height": 431
+          },
+          "research": {
+            "top": 823,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 170
+          },
+          "since": {
+            "top": 1150,
+            "height": 88
+          },
+          "watch": {
+            "top": 619,
+            "height": 180
+          },
+          "continuation": {
+            "top": 619,
+            "height": 453
+          },
+          "research": {
+            "top": 823,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 170
+          },
+          "since": {
+            "top": 1150,
+            "height": 88
+          },
+          "watch": {
+            "top": 619,
+            "height": 180
+          },
+          "continuation": {
+            "top": 619,
+            "height": 431
+          },
+          "research": {
+            "top": 823,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "stale",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 4,
+        "kinds": [
+          "stale",
+          "stale",
+          "stale"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "16 days ago · 10 sessions old — check source",
+            "ratio": 8
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 153
+          },
+          "since": {
+            "top": 1133,
+            "height": 88
+          },
+          "watch": {
+            "top": 602,
+            "height": 180
+          },
+          "continuation": {
+            "top": 602,
+            "height": 453
+          },
+          "research": {
+            "top": 806,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "stale",
+      "layout": {
+        "theme": "light",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 4,
+        "kinds": [
+          "stale",
+          "stale",
+          "stale"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "16 days ago · 10 sessions old — check source",
+            "ratio": 6.32
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 153
+          },
+          "since": {
+            "top": 1133,
+            "height": 88
+          },
+          "watch": {
+            "top": 602,
+            "height": 180
+          },
+          "continuation": {
+            "top": 602,
+            "height": 453
+          },
+          "research": {
+            "top": 806,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "stale",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 4,
+        "kinds": [
+          "stale",
+          "stale",
+          "stale"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "16 天前 · 已落后 10 个交易日，请核对来源",
+            "ratio": 6.32
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1332,
+            "height": 304
+          },
+          "since": {
+            "top": 1987,
+            "height": 131
+          },
+          "watch": {
+            "top": 610,
+            "height": 182
+          },
+          "continuation": {
+            "top": 812,
+            "height": 461
+          },
+          "research": {
+            "top": 1656,
+            "height": 311
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 287.046875,
+          "y": 676.671875,
+          "width": 86.953125,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.078125
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "stale",
+      "layout": {
+        "theme": "dark",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 4,
+        "kinds": [
+          "stale",
+          "stale",
+          "stale"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "16 天前 · 已落后 10 个交易日，请核对来源",
+            "ratio": 8
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1332,
+            "height": 304
+          },
+          "since": {
+            "top": 1987,
+            "height": 131
+          },
+          "watch": {
+            "top": 610,
+            "height": 182
+          },
+          "continuation": {
+            "top": 812,
+            "height": 461
+          },
+          "research": {
+            "top": 1656,
+            "height": 311
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 287.046875,
+          "y": 676.671875,
+          "width": 86.953125,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.078125
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "aged",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "ahead"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "ahead",
+            "text": "Dated after today — check source",
+            "ratio": 7.39
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 153
+          },
+          "since": {
+            "top": 1133,
+            "height": 88
+          },
+          "watch": {
+            "top": 602,
+            "height": 180
+          },
+          "continuation": {
+            "top": 602,
+            "height": 453
+          },
+          "research": {
+            "top": 806,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "aged",
+      "layout": {
+        "theme": "light",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "ahead"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "ahead",
+            "text": "Dated after today — check source",
+            "ratio": 5.58
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 153
+          },
+          "since": {
+            "top": 1133,
+            "height": 88
+          },
+          "watch": {
+            "top": 602,
+            "height": 180
+          },
+          "continuation": {
+            "top": 602,
+            "height": 453
+          },
+          "research": {
+            "top": 806,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "aged",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "ahead"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "ahead",
+            "text": "日期晚于今天，请核对来源",
+            "ratio": 5.58
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1313,
+            "height": 333
+          },
+          "since": {
+            "top": 1997,
+            "height": 131
+          },
+          "watch": {
+            "top": 591,
+            "height": 182
+          },
+          "continuation": {
+            "top": 793,
+            "height": 461
+          },
+          "research": {
+            "top": 1666,
+            "height": 311
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 287.046875,
+          "y": 658.078125,
+          "width": 86.953125,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.484375
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "aged",
+      "layout": {
+        "theme": "dark",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "ahead"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "ahead",
+            "text": "日期晚于今天，请核对来源",
+            "ratio": 7.39
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1313,
+            "height": 333
+          },
+          "since": {
+            "top": 1997,
+            "height": 131
+          },
+          "watch": {
+            "top": 591,
+            "height": 182
+          },
+          "continuation": {
+            "top": 793,
+            "height": 461
+          },
+          "research": {
+            "top": 1666,
+            "height": 311
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 287.046875,
+          "y": 658.078125,
+          "width": 86.953125,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.484375
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "unavailable",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 153
+          },
+          "since": {
+            "top": 1133,
+            "height": 88
+          },
+          "watch": {
+            "top": 602,
+            "height": 180
+          },
+          "continuation": {
+            "top": 602,
+            "height": 453
+          },
+          "research": {
+            "top": 806,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "unavailable",
+      "layout": {
+        "theme": "light",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 153
+          },
+          "since": {
+            "top": 1133,
+            "height": 88
+          },
+          "watch": {
+            "top": 602,
+            "height": 180
+          },
+          "continuation": {
+            "top": 602,
+            "height": 453
+          },
+          "research": {
+            "top": 806,
+            "height": 303
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "unavailable",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1313,
+            "height": 313
+          },
+          "since": {
+            "top": 1977,
+            "height": 131
+          },
+          "watch": {
+            "top": 591,
+            "height": 182
+          },
+          "continuation": {
+            "top": 793,
+            "height": 461
+          },
+          "research": {
+            "top": 1646,
+            "height": 311
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 287.046875,
+          "y": 658.078125,
+          "width": 86.953125,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.484375
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "unavailable",
+      "layout": {
+        "theme": "dark",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1313,
+            "height": 313
+          },
+          "since": {
+            "top": 1977,
+            "height": 131
+          },
+          "watch": {
+            "top": 591,
+            "height": 182
+          },
+          "continuation": {
+            "top": 793,
+            "height": 461
+          },
+          "research": {
+            "top": 1646,
+            "height": 311
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "firstAction": {
+          "x": 287.046875,
+          "y": 658.078125,
+          "width": 86.953125,
+          "height": 44
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.484375
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "paid",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "ready",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 170
+          },
+          "since": {
+            "top": 619,
+            "height": 182
+          },
+          "watch": {
+            "top": 825,
+            "height": 180
+          },
+          "continuation": {
+            "top": 825,
+            "height": 453
+          },
+          "research": {
+            "top": 1029,
+            "height": 303
+          }
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "paid",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "ready",
+        "positions": {
+          "strip": {
+            "top": 1537,
+            "height": 356
+          },
+          "since": {
+            "top": 591,
+            "height": 203
+          },
+          "watch": {
+            "top": 814,
+            "height": 182
+          },
+          "continuation": {
+            "top": 1016,
+            "height": 461
+          },
+          "research": {
+            "top": 1913,
+            "height": 311
+          }
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 55.796875
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "first",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "ready",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 170
+          },
+          "since": {
+            "top": 619,
+            "height": 203
+          },
+          "watch": {
+            "top": 846,
+            "height": 180
+          },
+          "continuation": {
+            "top": 846,
+            "height": 453
+          },
+          "research": {
+            "top": 1050,
+            "height": 303
+          }
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "first",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "ready",
+        "positions": {
+          "strip": {
+            "top": 1572,
+            "height": 356
+          },
+          "since": {
+            "top": 591,
+            "height": 238
+          },
+          "watch": {
+            "top": 849,
+            "height": 182
+          },
+          "continuation": {
+            "top": 1051,
+            "height": 461
+          },
+          "research": {
+            "top": 1948,
+            "height": 311
+          }
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 55.671875
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "quiet",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "ready",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 170
+          },
+          "since": {
+            "top": 619,
+            "height": 203
+          },
+          "watch": {
+            "top": 846,
+            "height": 180
+          },
+          "continuation": {
+            "top": 846,
+            "height": 453
+          },
+          "research": {
+            "top": 1050,
+            "height": 303
+          }
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "quiet",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "ready",
+        "positions": {
+          "strip": {
+            "top": 1572,
+            "height": 356
+          },
+          "since": {
+            "top": 591,
+            "height": 238
+          },
+          "watch": {
+            "top": 849,
+            "height": 182
+          },
+          "continuation": {
+            "top": 1051,
+            "height": 461
+          },
+          "research": {
+            "top": 1948,
+            "height": 311
+          }
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 55.671875
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "portfolioUnavailable",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1407
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "unavailable",
+        "positions": {
+          "strip": {
+            "top": 374,
+            "height": 170
+          },
+          "since": {
+            "top": 619,
+            "height": 194
+          },
+          "watch": {
+            "top": 837,
+            "height": 180
+          },
+          "continuation": {
+            "top": 837,
+            "height": 453
+          },
+          "research": {
+            "top": 1041,
+            "height": 303
+          }
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "portfolioUnavailable",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "unavailable",
+        "positions": {
+          "strip": {
+            "top": 1520,
+            "height": 356
+          },
+          "since": {
+            "top": 591,
+            "height": 186
+          },
+          "watch": {
+            "top": 798,
+            "height": 182
+          },
+          "continuation": {
+            "top": 1000,
+            "height": 461
+          },
+          "research": {
+            "top": 1896,
+            "height": 311
+          }
+        },
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 55.921875
+        }
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "textZoom": 2,
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 3112,
+            "height": 761
+          },
+          "since": {
+            "top": 4658,
+            "height": 403
+          },
+          "watch": {
+            "top": 1300,
+            "height": 554
+          },
+          "continuation": {
+            "top": 1874,
+            "height": 1152
+          },
+          "research": {
+            "top": 3893,
+            "height": 745
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 55.78125
+        },
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "textZoom": 2,
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 2258,
+            "height": 797
+          },
+          "since": {
+            "top": 3747,
+            "height": 308
+          },
+          "watch": {
+            "top": 990,
+            "height": 302
+          },
+          "continuation": {
+            "top": 1312,
+            "height": 860
+          },
+          "research": {
+            "top": 3075,
+            "height": 651
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.125
+        },
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    }
+  ]
+}

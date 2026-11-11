@@ -1,0 +1,32 @@
+:global(table.scr2 thead) .sortHeader { padding: 0; }
+.sortButton {
+  display: block;
+  width: 100%;
+  padding: 11px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.symbolLink { color: inherit; text-decoration: none; border-radius: 4px; }
+.symbolLink:hover :global(.tk) { color: var(--brand-2); }
+.sortButton:focus-visible, .symbolLink:focus-visible, .presetEditor :is(button, input):focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+.presetEditor { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.presetEditor button:disabled { opacity: 0.4; cursor: default; }
+.editing:global(.scr2-presetbar) { flex-wrap: wrap; }
+.editing :global(.scr2-presets) { flex: 1 1 160px; }
+.editing :global(.scr2-presets-tail) { max-width: 100%; }
+.presetEditor :global(.scr2-preset-name) { min-width: 80px; flex: 1 1 120px; }
+
+@media (pointer: coarse) {
+  .sortButton { min-height: 44px; }
+  .presetEditor :is(button, input) { min-height: 44px; }
+  .presetEditor input { font-size: 16px; }
+}

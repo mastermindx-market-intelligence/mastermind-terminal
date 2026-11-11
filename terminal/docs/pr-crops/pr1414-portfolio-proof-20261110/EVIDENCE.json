@@ -1,0 +1,62 @@
+{
+  "sourceHead": "0f077993fc1a1244531f825d3d829491f47d338c",
+  "sourceTree": "6967ae685b7bea6f9ae33cef93cd30ba7dc8ca80",
+  "operationId": "terminal-pr-duty-20261110-1414-portfolio-proof-web4",
+  "scope": "Local deterministic browser qualification of the unchanged incumbent Portfolio producers on the PR's actual integrated source; not production acceptance.",
+  "captureResults": [
+    {
+      "producer": "e2e/tools/capture_b_f08_8_invalidation.cjs",
+      "count": 8,
+      "exitCode": 0,
+      "port": 3571,
+      "log": "invalidation-capture.log",
+      "geometry": "invalidation-geometry.json"
+    },
+    {
+      "producer": "e2e/tools/capture_b_f08_9_risk_history.cjs",
+      "count": 12,
+      "exitCode": 0,
+      "port": 3561,
+      "log": "risk-history-capture.log",
+      "geometry": "risk-history-geometry.json"
+    },
+    {
+      "producer": "e2e/tools/capture_b_f08_b5_1_targets.cjs",
+      "count": 32,
+      "exitCode": 0,
+      "port": 3543,
+      "log": "targets-capture.log",
+      "geometry": "../b-f08-b5-1-targets/CROP_GEOMETRY.json",
+      "nativeReadbacks": "../b-f08-b5-1-targets/NATIVE_READBACKS.json",
+      "nativeReadbackCount": 36
+    }
+  ],
+  "profile": "EN/ZH; dark; initial interaction sizes1440x900 and390x844. Target producer's actual per-image geometry is recorded without falsifying viewport dimensions.",
+  "validation": {
+    "evidenceReaderFiles": 4,
+    "evidenceReaderTestsPassed": 17,
+    "evidenceReaderFailures": 0,
+    "log": "evidence-readers.log",
+    "sourceLocks": "All current manifest layoutFiles SHA-256 values matched the exact frozen source; producers also verified source head/bytes unchanged before promotion.",
+    "pngIntegrity": "52 complete unique actual PNG captures validated; hashes and dimensions are in capture-inventory.json.",
+    "fixtureLoader": "The actual transitive sectorFixture import succeeded; three unrelated TypeScript paths remained refused by the narrow fixture scope."
+  },
+  "visualInspection": {
+    "invalidation": "Parent inspected all8 captures through two unaltered-source QA contact sheets.",
+    "riskHistory": "Parent inspected all12 captures through three QA contact sheets.",
+    "targets": "Read-only visual adviser inspected all32 captures through eight QA sheets; parent additionally inspected orphaned-empty-book and unweighable EN/ZH desktop/mobile originals through their sheets.",
+    "findings": "No material clipping, overflow, overlapping controls, missing primary content or inconsistent captured state was observed. This is visual inspection of fixture captures, not a human user test or formal GitHub approval."
+  },
+  "preservation": {
+    "files": 57,
+    "historyPathSuffix": "history/before-pr1414-0f077993",
+    "description": "All prior active packet files copied byte-for-byte with original Git blob and SHA-256 records in PRESERVATION.json. Existing older history remains untouched; original capture heads retain their attribution."
+  },
+  "lifecycle": {
+    "capturesRanSequentially": true,
+    "allCaptureProcessesExitedZero": true,
+    "ports3571_3561_3543": "No listeners after all captures.",
+    "sourceHeadUnchanged": true
+  },
+  "remaining": "Full current-head CI, native protected merge and any separately owed production acceptance remain unproven."
+}

@@ -6,13 +6,18 @@ import { NEWS_VIEW } from "../lib/__tests__/fixtures/newsEditorial";
 import type { TickerNewsContentKind, TickerNewsReportingState } from "../lib/newsTypes";
 
 /**
- * Regression suite for a hidden legacy activity strip with the real News feed visible.
+ * Wave B3 → R3: the News consumer responsive evidence matrix.
  *
- * Live dark cells: D1/D2 (desktop EN/ZH), D3/D4 (tablet), D5/D6 (mobile), each in
- * seven states (busier, typical, quieter, thin, partial, unavailable, open). E1
- * proves the east convention leaves the live dot a neutral status token. The light
- * treatment ships only as the static specimen (seat ruling D-W1), so it is captured
- * as SPECIMEN renders of docs/specimens/news-flow.html (L1-L6) — never live cells.
+ * The activity-details strip is no longer mounted inside TickerNewsPanel: the
+ * panel presents the News rows alone. Every live cell therefore proves the News
+ * consumer still renders each story of the supplied flow payload — the articles,
+ * their headlines and the Mark reviewed control — and that the strip's mount and
+ * its "how these counts work" control are gone. Live dark cells: D1/D2 (desktop
+ * EN/ZH), D3/D4 (tablet), D5/D6 (mobile), each in six states (busier, typical,
+ * quieter, thin, partial, unavailable). E1 proves the east convention leaves the
+ * live dot a neutral status token. The light treatment is evidenced only as the
+ * static specimen (seat ruling D-W1), so it is captured as SPECIMEN renders of
+ * docs/specimens/news-flow.html (L1-L6) — never live cells.
  *
  * The spec runs once per project; viewports come from playwright.config.ts and are
  * never changed here. Crops land in NEWS_FLOW_CROPS_DIR, or test-results/news-flow-crops.
@@ -488,7 +493,7 @@ const FLOW_UNAVAILABLE = {
 
 type ProjectName = "desktop" | "tablet" | "mobile";
 type Lang = "en" | "zh";
-type StateName = "busier" | "typical" | "quieter" | "thin" | "partial" | "unavailable" | "open";
+type StateName = "busier" | "typical" | "quieter" | "thin" | "partial" | "unavailable";
 
 const CELLS: Record<ProjectName, Record<Lang, string>> = {
   desktop: { en: "D1", zh: "D2" },
@@ -497,6 +502,8 @@ const CELLS: Record<ProjectName, Record<Lang, string>> = {
 };
 
 // The partial cell rides a catching_up snapshot; every other cell is live.
+// flowState records each payload's own flow state; the strip that surfaced it is
+// no longer mounted, so no cell asserts it any more.
 const STATE_FIXTURES: Record<StateName, { flow: unknown; snapshotState: "live" | "catching_up"; flowState: string }> = {
   busier: { flow: FLOW_OK, snapshotState: "live", flowState: "ok" },
   typical: { flow: FLOW_TYPICAL, snapshotState: "live", flowState: "ok" },
@@ -504,23 +511,9 @@ const STATE_FIXTURES: Record<StateName, { flow: unknown; snapshotState: "live" |
   thin: { flow: FLOW_THIN, snapshotState: "live", flowState: "thin_history" },
   partial: { flow: FLOW_PARTIAL, snapshotState: "catching_up", flowState: "ok" },
   unavailable: { flow: FLOW_UNAVAILABLE, snapshotState: "live", flowState: "unavailable" },
-  open: { flow: FLOW_OK, snapshotState: "live", flowState: "ok" },
-};
-
-// Unavailable sentence copied from lib/newsFlowLex.ts ("state.unavailable") — the
-// strings are pinned here rather than imported, matching the e2e house style.
-const GLANCE: Record<StateName, Record<Lang, [string, string]>> = {
-  busier: { en: ["7 reports in 24h", "Busier than a typical day"], zh: ["24小时内 7 条报道", "比平日更密集"] },
-  typical: { en: ["3 reports in 24h", "About a typical day"], zh: ["24小时内 3 条报道", "与平日相当"] },
-  quieter: { en: ["1 report in 24h", "Quieter than a typical day"], zh: ["24小时内 1 条报道", "比平日清淡"] },
-  thin: { en: ["2 reports in 24h", "Too little history to compare"], zh: ["24小时内 2 条报道", "历史尚短，暂不比较"] },
-  partial: { en: ["7 reports in 24h", "Counts may be incomplete"], zh: ["24小时内 7 条报道", "计数可能不完整"] },
-  unavailable: { en: ["Report counts unavailable right now", ""], zh: ["报道计数暂不可用", ""] },
-  open: { en: ["7 reports in 24h", "Busier than a typical day"], zh: ["24小时内 7 条报道", "比平日更密集"] },
 };
 
 const MORE_LABEL: Record<Lang, string> = { en: "How these counts work", zh: "计数说明" };
-const DETAIL_TITLE: Record<Lang, string> = { en: "Report count, last 28 days", zh: "近28天报道数" };
 
 function snapshotFor(state: "live" | "catching_up", flow: unknown) {
   return {
@@ -598,15 +591,14 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
     return route.fulfill({ json: snapshotFor(snapshotState, flow) });
   });
 
-  await page.goto("/terminal?symbol=NVDA");
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  // Navigate after the locale and any scenario-specific routes are installed.
 }
 
 async function setPresentation(page: Page, lang: Lang) {
-  await page.evaluate((l) => {
+  await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
   }, lang);
-  await page.reload();
+  await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
   await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
@@ -672,8 +664,6 @@ async function liveDotColors(page: Page) {
 
 // ---- the live matrix: one test per state, one describe per language ---------------
 
-/** Regression: activity telemetry stays available to the data owner, but the
- * reading rail does not mount its visual strip or help control at any viewport. */
 async function runCell(page: Page, baseURL: string | undefined, testInfo: TestInfo, lang: Lang, state: StateName) {
   const project = testInfo.project.name as ProjectName;
   const cell = CELLS[project][lang];
@@ -683,28 +673,41 @@ async function runCell(page: Page, baseURL: string | undefined, testInfo: TestIn
   await setPresentation(page, lang);
   const panel = await openNews(page, snapshotState);
 
+  // The activity-details strip is no longer mounted in the panel: no flow-state
+  // element, and no "how these counts work" control to open it with.
   await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
-  await expect(panel.locator("[data-news-catchup]")).toHaveCount(0);
-  await expect(panel.locator("[data-news-source-filter]")).toHaveCount(0);
-  await expect(panel.locator("[data-news-mark-shown]")).toHaveCount(0);
-  await expect(panel.locator("[data-news-headline]").first()).toBeVisible();
+  await expect(panel.getByRole("button", { name: MORE_LABEL[lang] })).toHaveCount(0);
+  await expect(panel.locator("[data-news-catchup], [data-news-mark-shown], [data-news-source-filter], [data-news-filter]")).toHaveCount(0);
+
+  // The News rows themselves are untouched by the removal: every story of the
+  // supplied payload still renders, with its headline and its Mark reviewed
+  // control (the panel's story articles are its only <article> elements).
+  await expect(panel.locator("article[data-story-id]")).toHaveCount(ROWS.length);
+  await expect(panel.locator("[data-news-headline]").first()).toHaveText(ROWS[0].title);
+  await expect(panel.locator("[data-news-mark-one]")).toHaveCount(ROWS.length);
+
+  // The crop is taken before the assertion block so a red assertion still leaves
+  // the cell's evidence image behind (an evidence spec captures first, judges after).
   await panel.screenshot({ path: join(CROPS_DIR, `${cell}-${state}.png`) });
 
+  // Zero horizontal document overflow, every cell and state.
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
+
+  // Every live cell (and E1): the dot paints --brand-2, never a direction token.
   if (snapshotState === "live") {
     const colors = await liveDotColors(page);
-    if (!colors) throw new Error("live dot not rendered for compact news");
+    if (!colors) throw new Error("live dot not rendered in a live cell");
     expect(colors.dot).toBe(colors.brand2);
   }
 }
 
 for (const lang of ["en", "zh"] as const) {
-  test.describe(`${lang.toUpperCase()} compact news-flow cells`, () => {
-    for (const state of ["busier", "typical", "quieter", "thin", "partial", "unavailable", "open"] as const) {
-      test(`${state} activity never consumes the reading viewport`, async ({ page, baseURL }, testInfo) => {
+  test.describe(`${lang.toUpperCase()} News consumer cells`, () => {
+    for (const state of ["busier", "typical", "quieter", "thin", "partial", "unavailable"] as const) {
+      test(`${state} state renders the News rows`, async ({ page, baseURL }, testInfo) => {
         await runCell(page, baseURL, testInfo, lang, state);
       });
     }
@@ -720,6 +723,8 @@ test("E1 east convention keeps the live dot neutral", async ({ page, baseURL }, 
   const panel = await openNews(page);
   await page.evaluate(() => document.documentElement.setAttribute("data-updown", "east"));
 
+  // The strip is no longer mounted, east or not: the panel's live dot is the
+  // only status token E1 judges.
   await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
 
   const colors = await liveDotColors(page);

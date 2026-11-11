@@ -17,7 +17,7 @@ describe("Intelligence source projection", () => {
   })
   it("does not describe missing, impossible or future observations as fresh", () => {
     const now = Date.parse("2026-10-17T12:00:00Z")
-    for (const value of [null, "", "not a date", "2026-02-30", "2027-01-01"]) expect(workspaceSourceClock(value, now)).toEqual({ kind: "unknown" })
+    for (const value of [null, "", "not a date", "2026-02-30", "2026-10-18", "2026-10-17T12:00:01Z", "2027-01-01"]) expect(workspaceSourceClock(value, now)).toEqual({ kind: "unknown" })
     expect(workspaceSourceClock("2026-10-10", now)).toMatchObject({ kind: "dated", ageDays: 7 })
   })
 })

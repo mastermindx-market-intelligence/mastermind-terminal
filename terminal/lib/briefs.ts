@@ -78,6 +78,7 @@ export type BriefPatchState = (typeof PATCH_STATES)[number];
 
 export const BRIEFS_COPY = {
   title: ["Briefs", "简报"],
+  reviewSharing: ["Review team sharing", "查看团队分享"],
   emailNull: [
     "Briefs appear here in the Terminal. Email delivery isn't available yet.",
     "简报会出现在终端里。邮件送达尚未开通。",

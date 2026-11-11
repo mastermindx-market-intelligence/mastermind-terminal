@@ -1,0 +1,17 @@
+{
+  "sourceHead": "5983026f1643e053a40bdc8ca66a61d08a12d66d",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr902-alert-target-evidence-20261109-2fe663974ce0",
+  "proofDirectory": "/tmp/mmx-pr902-evidence-20261109-2fe663974ce0",
+  "portsAbsent": [
+    3602,
+    3603,
+    3604
+  ],
+  "startedAt": "2026-11-09T06:48:48.431475+00:00",
+  "completedAt": "2026-11-09T06:48:59.679131+00:00",
+  "versions": {
+    "node": "v26.5.0",
+    "npm": "11.17.0"
+  },
+  "npmCiExit": 0
+}

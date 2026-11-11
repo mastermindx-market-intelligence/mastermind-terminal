@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TickerNewsPanel from "@/components/news/TickerNewsPanel";
 import { useNewsCatchup } from "@/components/news/useNewsCatchup";
 import { NEWS_REVIEW_KEY } from "@/lib/newsReviewState";
+import * as newsReviewState from "@/lib/newsReviewState";
+import * as ownerStorage from "@/lib/ownerStorage";
 import type { TickerNewsStoryRow } from "@/lib/newsTypes";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -322,7 +324,7 @@ describe("AC-E13-03 — review state is private to the signed-in account", () =>
     expect(JSON.stringify(JSON.parse(stored()!).guest)).toBe(guest);
   });
 
-  it("with no account identity it says marks need an account and offers no mark controls", async () => {
+  it("with no account identity it shows the story without offering a mark action", async () => {
     feed(() => response(snapshot("NVDA", [row("ev2_a", "Launch", 5)])));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
     expect(host.querySelector("[data-news-catchup]")).toBeNull();
@@ -339,7 +341,7 @@ describe("AC-E13-03 — review state is private to the signed-in account", () =>
     });
     await click(markOne("ev2_a"));
     expect(reviewOf("ev2_a")).toBe("reviewed");
-    // An unavailable local store does not reintroduce the retired toolbar.
+    expect(host.querySelector('[data-news-review-mode="session"]')?.textContent).toContain("session only");
     expect(host.querySelector("[data-news-catchup]")).toBeNull();
     expect(stored()).toBeNull();
   });
@@ -424,5 +426,128 @@ describe("AC-E13-05 — marking reviewed changes nothing at the source and sends
     expect(stored()).not.toContain("Launch");
     expect(stored()).not.toContain("benzinga.com");
     delete (globalThis as { Notification?: unknown }).Notification;
+  });
+});
+
+describe("AC-E13-06 — explicit review preserves the keyboard reading position", () => {
+  const headline = (id: string) =>
+    Array.from(host.querySelectorAll<HTMLElement>("article[data-story-id]"))
+      .find((article) => article.dataset.storyId === id)
+      ?.querySelector<HTMLElement>("[data-news-headline]");
+  const focusAndClick = async (button: HTMLButtonElement | null | undefined) => {
+    expect(button).toBeTruthy();
+    button!.focus();
+    expect(document.activeElement).toBe(button);
+    await click(button);
+  };
+
+  it.each([
+    ["linked", "https://www.benzinga.com/news/a"],
+    ["without a source link", ""],
+  ])("keeps the same %s story after its review button disappears", async (_kind, url) => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2, 1, { url }), row("ev2_b", "Second", 1)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    await focusAndClick(markOne("ev2_a"));
+
+    expect(markOne("ev2_a")).toBeNull();
+    expect(reviewOf("ev2_a")).toBe("reviewed");
+    expect(document.activeElement).toBe(headline("ev2_a"));
+    expect(host.querySelector("[data-news-filter]")).toBeNull();
+    expect(reviewOf("ev2_b")).toBe("new");
+    if (!url) expect(headline("ev2_a")?.getAttribute("tabindex")).toBe("-1");
+  });
+
+  it("does not take focus when an unfocused review control is activated", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2), row("ev2_b", "Second", 1)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    const otherHeadline = headline("ev2_b")!;
+    otherHeadline.focus();
+    await click(markOne("ev2_a"));
+    expect(document.activeElement).toBe(otherHeadline);
+    expect(reviewOf("ev2_a")).toBe("reviewed");
+  });
+
+  it("respects a newer focus choice made before React commits the review", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2), row("ev2_b", "Second", 1)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    const otherHeadline = headline("ev2_b")!;
+    const button = markOne("ev2_a")!;
+    button.focus();
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      otherHeadline.focus();
+    });
+    expect(document.activeElement).toBe(otherHeadline);
+    expect(reviewOf("ev2_a")).toBe("reviewed");
+  });
+
+  it("does not repair focus for another tab's review update", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    markOne("ev2_a")!.focus();
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await act(async () => {
+      localStorage.setItem(NEWS_REVIEW_KEY, JSON.stringify({
+        "account:user-a": { NVDA: { stories: { ev2_a: [2, 1] }, through: null } },
+      }));
+      window.dispatchEvent(new StorageEvent("storage", { key: NEWS_REVIEW_KEY }));
+    });
+    expect(markOne("ev2_a")).toBeNull();
+    expect(focus).not.toHaveBeenCalled();
+  });
+
+  it("consumes a no-op action before a later storage update can remove its trigger", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    // Exercise the existing no-storage / unchanged-base return, which does not commit.
+    const storage = vi.spyOn(ownerStorage, "browserStorage").mockReturnValue(null);
+    const mark = vi.spyOn(newsReviewState, "markStoriesReviewed").mockImplementation((base) => base);
+    const button = markOne("ev2_a")!;
+    await focusAndClick(button);
+    expect(document.activeElement).toBe(button);
+    expect(reviewOf("ev2_a")).toBe("new");
+    storage.mockRestore();
+    mark.mockRestore();
+
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await act(async () => {
+      localStorage.setItem(NEWS_REVIEW_KEY, JSON.stringify({
+        "account:user-a": { NVDA: { stories: { ev2_a: [2, 1] }, through: null } },
+      }));
+      window.dispatchEvent(new StorageEvent("storage", { key: NEWS_REVIEW_KEY }));
+    });
+    expect(markOne("ev2_a")).toBeNull();
+    expect(focus).not.toHaveBeenCalled();
+  });
+
+
+  it("cancels a pending handoff when the account changes in the same commit", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    const button = markOne("ev2_a")!;
+    button.focus();
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-b" />);
+    });
+    expect(reviewOf("ev2_a")).toBe("new");
+    expect(focus).not.toHaveBeenCalled();
+  });
+
+  it("repairs an accepted session-only review once, without replay on a later render", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    vi.spyOn(jsdomWindow().Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("full", "QuotaExceededError");
+    });
+    await focusAndClick(markOne("ev2_a"));
+    expect(document.activeElement).toBe(headline("ev2_a"));
+    expect(host.querySelector("[data-news-review-mode]")?.getAttribute("data-news-review-mode")).toBe("session");
+    expect(stored()).toBeNull();
+
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
+    expect(focus).not.toHaveBeenCalled();
   });
 });

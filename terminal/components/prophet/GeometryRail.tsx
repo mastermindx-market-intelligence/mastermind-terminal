@@ -252,7 +252,7 @@ export function GeometryRail({
                   transform: "translateY(50%)",
                   opacity: stretch.wide && lv.isTarget ? 0.55 : 1,
                 }}
-                aria-label={`${lv.label} ${lv.price.toFixed(2)}`}
+                aria-hidden="true"
               />
             );
           })}

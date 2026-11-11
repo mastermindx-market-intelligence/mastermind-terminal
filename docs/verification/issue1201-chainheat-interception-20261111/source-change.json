@@ -1,0 +1,9 @@
+{
+  "operation": "terminal-pr-duty-20261111-1201-c3",
+  "base": "ffcc39bcdf89cb19b08444b8bb64cadbc1a3a5ec",
+  "path": "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+  "preimageBlob": "b91df13b08a15897c43ba477ec43e0824ee5224b",
+  "postimageBlob": "743beea3e99479a3e255532b5918ef44ebb61234",
+  "postimageSha256": "194638305205d1ee4b2adc29eae0368c53b998f6f0ed106865cb223a014eb503",
+  "scope": "B9 only; N3 remains open"
+}

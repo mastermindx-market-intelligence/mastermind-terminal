@@ -1,0 +1,9 @@
+[dev] - Network:       http://127.0.0.1:3805
+✓ Ready in 699ms
+capture desktop-en.png … ok
+capture desktop-zh.png … ok
+capture tablet-en.png … ok
+capture tablet-zh.png … ok
+capture mobile-en.png … ok
+capture mobile-zh.png … ok
+wrote 6 crops + EVIDENCE.yml at 496ef734fafb64500bb95384770b59eb51555e00

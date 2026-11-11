@@ -1,0 +1,82 @@
+{
+  "captureReceipts": {
+    "grants": {
+      "path": "b-f12-b5-1-grants/capture-execution.json",
+      "sha256": "7e42f3924e4c1d7dbc2b2dad451d876da98f059040e00e0620f8b4063d3aa7a6"
+    },
+    "rollup": {
+      "path": "w9t_f13_9-team-rollup-no-rank/capture-execution.json",
+      "sha256": "495d686006d5da4ed302c9d7994eb6ca9f8ee48deffea8b84567442c3e72343d"
+    },
+    "workspaces": {
+      "path": "b-f12-b5-2-team-workspaces/capture-execution.json",
+      "sha256": "382fbb298889dbee8acc2160df30f0701f4d82562684e010be9a5a3f299fa2f5"
+    }
+  },
+  "capturedFrames": 36,
+  "checks": [
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts",
+        "lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts",
+        "lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr900-native-validation-20261109/terminal/docs/verification/pr900-evidence-renewal-20261109/evidence-report.json"
+      ],
+      "exit": 0,
+      "logSha256": "b260dbeadc7945f1a0bc2975d3e752f27ec72073dd5f6fef2ea43473151d63fe",
+      "name": "evidence-guards",
+      "seconds": 1.97
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typecheck",
+      "seconds": 43.63
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts",
+        "lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts",
+        "lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typescript-eslint",
+      "seconds": 3.38
+    }
+  ],
+  "currentSourceFiles": {
+    "terminal/e2e/tools/capture_b_f12_b5_1_sharing.cjs": "f8797b370f62916c8b18ada1f9b7759126536538fe5101dd2a9edd9b5cb738ea",
+    "terminal/e2e/tools/capture_f12_b5_2_team_workspaces.cjs": "b8098d7cd098f3f485b97f56d626e072343a344ae858e9b86722c326633aacc1",
+    "terminal/e2e/tools/capture_w9t_f13_9_team_rollup.cjs": "472758b73fe60bb46feb92fd1fb5fdc34fd457f9731a4f87e6ea394c3a19ae64",
+    "terminal/lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts": "48c6c0af6e3e2f1149ef840ca9c939e58a2eee556e7563bf7e28a2b9f305d781",
+    "terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts": "4957bc4fb089b7e1441b0169f1bb7c7c2cf3465ecbf41b8da2c903e7d74c2972",
+    "terminal/lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts": "2b16e0294525a781929ea29a2ca2cfae47dec8a082efd0cf6ce8740dde33c1b3"
+  },
+  "evidenceTestsPassed": 12,
+  "formalReview": "CHANGES_REQUESTED 5784189509 remains; no self-approval or enrollment",
+  "originalHead": "9a3b166921c1dc015be147a99a2e4f42cdaedb18",
+  "policyPin": "494d095813dad415938800fa0e4d2719497738fa",
+  "protectedMaster": "b387616013f38cce9e467cc7da7b87fd2672718c",
+  "recordedAt": "2026-11-09T12:42:34.401686+00:00",
+  "schema": "pr900_final_qualification.v1",
+  "visualInspection": [
+    "b-f12-b5-1-grants/mobile-zh-shared.png",
+    "b-f12-b5-2-team-workspaces/mobile-zh-member-read-only.png",
+    "w9t_f13_9-team-rollup-no-rank/mobile-en-no-rows.png"
+  ]
+}

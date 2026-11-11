@@ -1,0 +1,382 @@
+{
+  "scope": "Four new component detail inputs only; no matrix repetition or live service",
+  "os_profile": "(version 1)(allow default)(deny network*)",
+  "receipt": {
+    "phase": "details",
+    "base": "3eb42cc4c145bc38e389fcccac737b45dc9ab1ad",
+    "sourceState": "M terminal/app/error-return.module.css\n M terminal/app/error.tsx\n?? terminal/docs/pr-crops/native-error-theme-20261103/\n?? terminal/lib/__tests__/errorPresentation.test.tsx",
+    "sourcePreimages": {
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react/cjs/react.production.js": "6a3554a5287116df819640334924348287618dcdcd7124a05eb126dcbbecd5f9",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react/index.js": "60caffdecbdc5db3bc4ec4e83df9488345ccb271d07533b9210bf5750918d97e",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/scheduler/cjs/scheduler.production.js": "679adff761d31e9426604f80c0e99be44a3e6f4c6834b0218ecf0312a67c171f",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/scheduler/index.js": "145965504d60007bc25486ab930b0367867dcd5d579ccd343c148d69349a7cfb",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react-dom/cjs/react-dom.production.js": "7a5e56724be242e34ddc14f9d0dc7fc6a32f1367ae994f02d3699b00c085eff4",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react-dom/index.js": "ba1a3e33489f868371561777607e3ee5091df0f7ea3f1a10f789d6b86e4c1505",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react-dom/cjs/react-dom-client.production.js": "764ffa6adc2c9b02b4dc00f4a58ef13d050e7825898bd9e5dc808d3a3f9d4bb9",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react-dom/client.js": "00e348ab3d6bc2eef908345d0bc4e008c95bcfecec060dfda5c4967953761396",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/lib/chatQuotas.ts": "da3ea57cb9c22b5ed7bfb12f2ab85a1a86809a202c720661f481ad7be7967b2f",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react/cjs/react-jsx-runtime.production.js": "1e46f15002696985e80c61d47aaa30dabb03c954270a690f5f7dfbbacfa9002b",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react/jsx-runtime.js": "b392951a77d0a2e6a6bd017e49d768481ae5b63c4109c6c31f622cf7b2433edc",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/components/BrandMark.tsx": "adde4b9fbd9953d87f971aac9cf571b80aaab8090cba6cf76a19fc49d0395cbd",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/lib/originNav.ts": "517038a8bc557760d43ad25c919761b252268747f63eabc725129fa88d951d1d",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/components/DashboardBackButton.tsx": "6a28b0f29da3ab9054d52745d49b953b93bf0db4309f1531314f53b99445abfa",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/app/error-return.module.css": "8d28516c1237812020b4838b86dfe6e3ca6ad707696bceeefec343345552e19d",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/app/error.tsx": "864fcba811891cd100a3b54d95009776db9b01149eff3f787aa14055100dcfdc",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/lib/accountIdentity.ts": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+      "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/fixture-prefs.ts": "61577e79492a49f84f2d06190b0c61656099438e62352a86a8f9f1962c2c9490",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/components/chrome/shared-shell/SharedShellPresentation.tsx": "d0e1eb7c4a16b45bfad93e17a56cef9387df197dc3de83b3cb516b6e7a125a0d",
+      "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/fixture-detail-entry.tsx": "c9e3cc979069f76b3c6820d8f03cc13c5ad0be44d5ec6c6d93ca3ccfb2b70659",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/components/chrome/shared-shell/shared-shell.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2"
+    },
+    "localResources": {
+      "fixture.css": "c3503952553fef368ab4e3c6993dad1b69ad705302182ec4e02dda028ae4debd",
+      "fixture.html": "ab4bf26dda7b431a3087328b84d81d766360cd0e14940e6b4f786f2ba6ca238b",
+      "fixture.js": "eaa93a4fe79e8fd3c5e15432fc784b120a7e6864ab8733a221fd7c94c916db67",
+      "native-globals.css": "7a7e871139a57991e1d4003b52749bb5d4629f7163381f5c214b6a11b36ef717",
+      "native-presentation.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2",
+      "return.html": "e72a06333f2e6519f76901ec9b7322887de29ee7b725b6b35bb9754c096c4db8",
+      "fonts/Inter-400.woff2": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc",
+      "fonts/Inter-600.woff2": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a",
+      "fonts/Inter-700.woff2": "6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491"
+    },
+    "fixtureSeam": "Pure guest preference input; actual ErrorPage/PresentationOwner/locale/Back/validators, React boundary and all CSS; no Next/inShell/principal/Portfolio persistence claim"
+  },
+  "cells": [
+    {
+      "case": "dark-contrast",
+      "outcome": "PASS_SCOPED",
+      "metrics": {
+        "theme": "dark",
+        "rootTheme": "dark",
+        "rootOwner": null,
+        "overflow": false,
+        "samples": [
+          {
+            "text": "Something went wrong",
+            "color": "rgb(215, 220, 227)",
+            "background": "rgb(24, 27, 33)",
+            "outline": "rgb(215, 220, 227) none 3px",
+            "height": 24.625,
+            "width": 510,
+            "contrast": 12.513347014441809
+          },
+          {
+            "text": "An unexpected error occurred. Try reloading — if it persists, please refresh the page.ref: LOCAL-SOURCE-FIXTURE",
+            "color": "rgb(178, 187, 201)",
+            "background": "rgb(24, 27, 33)",
+            "outline": "rgb(178, 187, 201) none 3px",
+            "height": 71.546875,
+            "width": 454.21875,
+            "contrast": 8.906686117712798
+          },
+          {
+            "text": "ref: LOCAL-SOURCE-FIXTURE",
+            "color": "rgb(178, 187, 201)",
+            "background": "rgb(24, 27, 33)",
+            "outline": "rgb(178, 187, 201) none 3px",
+            "height": 17.046875,
+            "width": 454.21875,
+            "contrast": 8.906686117712798
+          },
+          {
+            "text": "Portfolio",
+            "color": "rgb(215, 220, 227)",
+            "background": "rgb(24, 27, 33)",
+            "outline": "rgb(122, 167, 224) solid 2px",
+            "height": 44,
+            "width": 98.984375,
+            "contrast": 12.513347014441809
+          },
+          {
+            "text": "Portfolio",
+            "color": "rgb(215, 220, 227)",
+            "background": "rgb(24, 27, 33)",
+            "outline": "rgb(215, 220, 227) none 3px",
+            "height": 12.5,
+            "width": 51.984375,
+            "contrast": 12.513347014441809
+          },
+          {
+            "text": "Try again",
+            "color": "rgb(255, 255, 255)",
+            "background": "rgb(49, 107, 232)",
+            "outline": "rgb(255, 255, 255) none 3px",
+            "height": 44,
+            "width": 94.5625,
+            "contrast": 4.77390920280017
+          },
+          {
+            "text": "Go to chart",
+            "color": "rgb(215, 220, 227)",
+            "background": "rgb(24, 27, 33)",
+            "outline": "rgb(215, 220, 227) none 3px",
+            "height": 44,
+            "width": 107.578125,
+            "contrast": 12.513347014441809
+          }
+        ],
+        "reference": {
+          "text": "ref: LOCAL-SOURCE-FIXTURE",
+          "color": "rgb(178, 187, 201)",
+          "background": "rgb(24, 27, 33)",
+          "outline": "rgb(178, 187, 201) none 3px",
+          "height": 17.046875,
+          "width": 454.21875
+        },
+        "returnCount": 1
+      },
+      "errors": [],
+      "blocked": [],
+      "screenshot": "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/captures-details/dark-contrast.png",
+      "sha256": "c105ef74683080ddb5c03da74e38afe5faddc0b40d0cd5ce6572c069010a27db"
+    },
+    {
+      "case": "light-long-reference",
+      "outcome": "PASS_SCOPED",
+      "metrics": {
+        "theme": "light",
+        "rootTheme": "dark",
+        "rootOwner": null,
+        "overflow": false,
+        "samples": [
+          {
+            "text": "出现错误",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(255, 255, 255)",
+            "outline": "rgb(32, 38, 50) none 3px",
+            "height": 24.625,
+            "width": 292,
+            "contrast": 15.165538505519269
+          },
+          {
+            "text": "发生了意外错误。请尝试重试，若问题持续请刷新页面。ref: LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgb(255, 255, 255)",
+            "outline": "rgb(84, 97, 116) none 3px",
+            "height": 361.34375,
+            "width": 292,
+            "contrast": 6.289247755414098
+          },
+          {
+            "text": "ref: LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgb(255, 255, 255)",
+            "outline": "rgb(84, 97, 116) none 3px",
+            "height": 306.84375,
+            "width": 292,
+            "contrast": 6.289247755414098
+          },
+          {
+            "text": "投资组合",
+            "color": "rgb(36, 91, 218)",
+            "background": "rgb(238, 241, 246)",
+            "outline": "rgb(36, 91, 218) none 3px",
+            "height": 44,
+            "width": 97,
+            "contrast": 5.175542761983049
+          },
+          {
+            "text": "投资组合",
+            "color": "rgb(36, 91, 218)",
+            "background": "rgb(238, 241, 246)",
+            "outline": "rgb(36, 91, 218) none 3px",
+            "height": 12.5,
+            "width": 50,
+            "contrast": 5.175542761983049
+          },
+          {
+            "text": "重试",
+            "color": "rgb(255, 255, 255)",
+            "background": "rgb(36, 91, 218)",
+            "outline": "rgb(255, 255, 255) none 3px",
+            "height": 44,
+            "width": 62,
+            "contrast": 5.859638371656876
+          },
+          {
+            "text": "返回图表",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(255, 255, 255)",
+            "outline": "rgb(32, 38, 50) none 3px",
+            "height": 44,
+            "width": 90,
+            "contrast": 15.165538505519269
+          }
+        ],
+        "reference": {
+          "text": "ref: LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-LONG-REFERENCE-",
+          "color": "rgb(84, 97, 116)",
+          "background": "rgb(255, 255, 255)",
+          "outline": "rgb(84, 97, 116) none 3px",
+          "height": 306.84375,
+          "width": 292
+        },
+        "returnCount": 1
+      },
+      "errors": [],
+      "blocked": [],
+      "screenshot": "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/captures-details/light-long-reference.png",
+      "sha256": "6098f108684a3c0a8d9880e2c468589aebc56591a2d576ba0059c8c3b472d53c"
+    },
+    {
+      "case": "no-owner",
+      "outcome": "PASS_SCOPED",
+      "metrics": {
+        "theme": "dark",
+        "rootTheme": "dark",
+        "rootOwner": null,
+        "overflow": false,
+        "samples": [
+          {
+            "text": "出现错误",
+            "color": "rgb(214, 218, 227)",
+            "background": "rgb(13, 15, 19)",
+            "outline": "rgb(214, 218, 227) none 3px",
+            "height": 24.625,
+            "width": 292,
+            "contrast": 13.697815650420562
+          },
+          {
+            "text": "发生了意外错误。请尝试重试，若问题持续请刷新页面。ref: LOCAL-SOURCE-FIXTURE",
+            "color": "rgb(155, 163, 180)",
+            "background": "rgb(13, 15, 19)",
+            "outline": "rgb(155, 163, 180) none 3px",
+            "height": 71.546875,
+            "width": 292,
+            "contrast": 7.5733449016766565
+          },
+          {
+            "text": "ref: LOCAL-SOURCE-FIXTURE",
+            "color": "rgb(155, 163, 180)",
+            "background": "rgb(13, 15, 19)",
+            "outline": "rgb(155, 163, 180) none 3px",
+            "height": 17.046875,
+            "width": 292,
+            "contrast": 7.5733449016766565
+          },
+          {
+            "text": "投资组合",
+            "color": "rgb(214, 218, 227)",
+            "background": "rgb(13, 15, 19)",
+            "outline": "rgb(77, 130, 255) solid 2px",
+            "height": 44,
+            "width": 97,
+            "contrast": 13.697815650420562
+          },
+          {
+            "text": "投资组合",
+            "color": "rgb(214, 218, 227)",
+            "background": "rgb(13, 15, 19)",
+            "outline": "rgb(214, 218, 227) none 3px",
+            "height": 12.5,
+            "width": 50,
+            "contrast": 13.697815650420562
+          },
+          {
+            "text": "重试",
+            "color": "rgb(255, 255, 255)",
+            "background": "rgb(41, 98, 255)",
+            "outline": "rgb(255, 255, 255) none 3px",
+            "height": 44,
+            "width": 62,
+            "contrast": 4.900409267024044
+          },
+          {
+            "text": "返回图表",
+            "color": "rgb(214, 218, 227)",
+            "background": "rgb(13, 15, 19)",
+            "outline": "rgb(214, 218, 227) none 3px",
+            "height": 44,
+            "width": 90,
+            "contrast": 13.697815650420562
+          }
+        ],
+        "reference": {
+          "text": "ref: LOCAL-SOURCE-FIXTURE",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(13, 15, 19)",
+          "outline": "rgb(155, 163, 180) none 3px",
+          "height": 17.046875,
+          "width": 292
+        },
+        "returnCount": 1
+      },
+      "errors": [],
+      "blocked": [],
+      "screenshot": "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/captures-details/no-owner.png",
+      "sha256": "29287a2786f06d5cb4a4dc271c5d0ff3e9bc5945221a9714f8d3e56be56c6e27"
+    },
+    {
+      "case": "unsafe-return",
+      "outcome": "PASS_SCOPED",
+      "metrics": {
+        "theme": "light",
+        "rootTheme": "dark",
+        "rootOwner": null,
+        "overflow": false,
+        "samples": [
+          {
+            "text": "Something went wrong",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(255, 255, 255)",
+            "outline": "rgb(32, 38, 50) none 3px",
+            "height": 24.625,
+            "width": 292,
+            "contrast": 15.165538505519269
+          },
+          {
+            "text": "An unexpected error occurred. Try reloading — if it persists, please refresh the page.ref: LOCAL-SOURCE-FIXTURE",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgb(255, 255, 255)",
+            "outline": "rgb(84, 97, 116) none 3px",
+            "height": 94.796875,
+            "width": 292,
+            "contrast": 6.289247755414098
+          },
+          {
+            "text": "ref: LOCAL-SOURCE-FIXTURE",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgb(255, 255, 255)",
+            "outline": "rgb(84, 97, 116) none 3px",
+            "height": 17.046875,
+            "width": 292,
+            "contrast": 6.289247755414098
+          },
+          {
+            "text": "Try again",
+            "color": "rgb(255, 255, 255)",
+            "background": "rgb(36, 91, 218)",
+            "outline": "rgb(255, 255, 255) none 3px",
+            "height": 44,
+            "width": 94.5625,
+            "contrast": 5.859638371656876
+          },
+          {
+            "text": "Go to chart",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(255, 255, 255)",
+            "outline": "rgb(32, 38, 50) none 3px",
+            "height": 44,
+            "width": 107.578125,
+            "contrast": 15.165538505519269
+          }
+        ],
+        "reference": {
+          "text": "ref: LOCAL-SOURCE-FIXTURE",
+          "color": "rgb(84, 97, 116)",
+          "background": "rgb(255, 255, 255)",
+          "outline": "rgb(84, 97, 116) none 3px",
+          "height": 17.046875,
+          "width": 292
+        },
+        "returnCount": 0
+      },
+      "errors": [],
+      "blocked": [],
+      "screenshot": "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/captures-details/unsafe-return.png",
+      "sha256": "b3d578a6b3aa1926f333f3987996c88ed623bca61152fd20f2cbdbe59d130bfa"
+    }
+  ]
+}

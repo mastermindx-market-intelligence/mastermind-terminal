@@ -1,0 +1,18 @@
+{
+  "archives": {
+    "prior-pr": {
+      "commit": "f3f5e88b56275afac0363577fe683cc42cb8763d",
+      "files": 127,
+      "inventorySha256": "bbaf5592ef15e11b328faf5cffdb91567098db583b9865d2e44d20b5d596f94a"
+    },
+    "prior-protected": {
+      "commit": "b387616013f38cce9e467cc7da7b87fd2672718c",
+      "files": 127,
+      "inventorySha256": "c726ac1938cc85bf005b71ba01e0cec0a00dc57ae4ca168c1724a6200ea275bf"
+    }
+  },
+  "branchHead": "f3f5e88b56275afac0363577fe683cc42cb8763d",
+  "packet": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure",
+  "protectedMaster": "b387616013f38cce9e467cc7da7b87fd2672718c",
+  "schema": "terminal_pr650_history.v1"
+}

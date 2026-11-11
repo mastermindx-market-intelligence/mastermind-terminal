@@ -1,0 +1,132 @@
+[warmup] /terminal?symbol=NVDA → 200 in 72ms
+[warmup] /options → 200 in 142ms
+[warmup] /portfolio → 200 in 144ms
+[warmup] /alerts → 200 in 82ms
+[warmup] /analysis → 200 in 141ms
+[warmup] /discover → 200 in 97ms
+[warmup] /admin → 200 in 50ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 39ms
+[warmup] /login → 200 in 60ms
+[warmup] /reset-password → 200 in 64ms
+[warmup] /api/me → 200 in 56ms
+[warmup] /api/watchlist → 200 in 28ms
+[warmup] /api/layouts → 200 in 26ms
+[warmup] /api/watchlist/annotations → 409 in 23ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 133ms
+
+Running 9 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en (2.9s)
+  ✓  2 [desktop] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh (2.3s)
+  ✓  3 [desktop] › e2e/responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload (1.5s)
+  ✓  4 [tablet] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en (2.6s)
+  ✓  5 [tablet] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh (3.0s)
+  ✓  6 [tablet] › e2e/responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload (1.9s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✘  7 [mobile] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en (1.0m)
+  ✘  8 [mobile] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh (1.0m)
+  ✘  9 [mobile] › e2e/responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload (1.0m)
+
+
+  1) [mobile] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'By Expiration', exact: true })
+
+
+      106 |
+      107 |   await page.getByRole("button", { name: t("greekVannaFull"), exact: true }).click();
+    > 108 |   await page.getByRole("button", { name: t("viewByExpiry"), exact: true }).click();
+          |                                                                            ^
+      109 |
+      110 |   // The existing expiry bar view must consume the enriched by_expiry fields rather
+      111 |   // than fall back to the legacy "gamma & delta only" state.
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr645-expiry-integration-20261109-c4/terminal/e2e/exposure-expiry-greeks.spec.ts:108:76
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/pr645-expiry-successor-expiry-r1/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/pr645-expiry-successor-expiry-r1/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr645-expiry-successor-expiry-r1/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr645-expiry-successor-expiry-r1/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [mobile] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: '按到期日', exact: true })
+
+
+      106 |
+      107 |   await page.getByRole("button", { name: t("greekVannaFull"), exact: true }).click();
+    > 108 |   await page.getByRole("button", { name: t("viewByExpiry"), exact: true }).click();
+          |                                                                            ^
+      109 |
+      110 |   // The existing expiry bar view must consume the enriched by_expiry fields rather
+      111 |   // than fall back to the legacy "gamma & delta only" state.
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr645-expiry-integration-20261109-c4/terminal/e2e/exposure-expiry-greeks.spec.ts:108:76
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/pr645-expiry-successor-expiry-r1/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/pr645-expiry-successor-expiry-r1/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr645-expiry-successor-expiry-r1/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr645-expiry-successor-expiry-r1/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [mobile] › e2e/responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByRole('group', { name: 'Exposure axis' }).getByRole('button', { name: 'By Expiration', exact: true })
+
+
+      1447 |
+      1448 |   const axis = page.getByRole("group", { name: "Exposure axis" });
+    > 1449 |   await axis.getByRole("button", { name: "By Expiration", exact: true }).click();
+           |                                                                          ^
+      1450 |
+      1451 |   const expiryRegion = page.locator(".obs-gexdesk-ladder-region");
+      1452 |   await expect(expiryRegion).toBeVisible();
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr645-expiry-integration-20261109-c4/terminal/e2e/responsive.spec.ts:1449:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/pr645-expiry-successor-expiry-r1/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/pr645-expiry-successor-expiry-r1/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pr645-expiry-successor-expiry-r1/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/pr645-expiry-successor-expiry-r1/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [mobile] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en 
+    [mobile] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh 
+    [mobile] › e2e/responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload 
+  6 passed (3.4m)

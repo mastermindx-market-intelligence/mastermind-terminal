@@ -1,0 +1,332 @@
+{
+  "schema": "shared-search.calculator-directory-fixture.v1",
+  "candidateExporterCommit": "ebfce2ac97478f6225e88d49067bf287a94cdaa7",
+  "intendedParent": "553a63ed26c0fc039ce8dd612ae98cc380ebef77",
+  "metadataSha256": "e82e7b3dc90703ee59bbe0cb6c89fb2c1d7cd079bbd67cb8e253085531e8d89b",
+  "exporterSha256": "c71fe34dde2e6f4b7f4da768fa481e755733ed5f630d1338525f5300822c49e0",
+  "consumerProjectionSha256": "6112f548a1f85c8ab41e9cf56d935e580e17436ff225e335ba55ceec045550f2",
+  "canonicalSources": {
+    "registrySha256": "868b5ff4ab2dd974228ec53a857dbba24c07ce164e2996e8721524a47e1edd8f",
+    "macro": "73852e221d9ce087abe30b4703de3627773f3351",
+    "terminal": "e0d4cabfccd3f1fd83b4362288124ba8078de731",
+    "mastermind": "7ab47f0b62d9a22ff16a13f6b99b96b681874a93",
+    "inventory": "8fda9075961737aab7539f585f40bc4bb4ca4bef"
+  },
+  "directoryOnlyAdditions": [
+    {
+      "id": "macro:tools_family:/tools/calculators/cagr.html",
+      "href": "/tools/calculators/cagr.html",
+      "kind": "legacy",
+      "title": {
+        "en": "CAGR Calculator",
+        "zh": "复合年增长率计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/compounding.html",
+      "href": "/tools/calculators/compounding.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Compound Interest Calculator",
+        "zh": "复利计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/covered-call.html",
+      "href": "/tools/calculators/covered-call.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Covered Call Return Calculator",
+        "zh": "备兑看涨期权回报计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/dividend.html",
+      "href": "/tools/calculators/dividend.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Dividend Calculator",
+        "zh": "股息计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/dollar-cost-averaging.html",
+      "href": "/tools/calculators/dollar-cost-averaging.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Dollar-Cost Averaging (DCA) Calculator",
+        "zh": "定期定额投资计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/drawdown-recovery.html",
+      "href": "/tools/calculators/drawdown-recovery.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Drawdown Recovery Calculator",
+        "zh": "回撤恢复计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/forex-pip-value.html",
+      "href": "/tools/calculators/forex-pip-value.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Forex Pip Value Calculator",
+        "zh": "外汇点值计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/inflation.html",
+      "href": "/tools/calculators/inflation.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Inflation & Purchasing Power Calculator",
+        "zh": "通胀与购买力计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/kelly-criterion.html",
+      "href": "/tools/calculators/kelly-criterion.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Kelly Criterion Calculator",
+        "zh": "凯利公式计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/margin.html",
+      "href": "/tools/calculators/margin.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Margin & Buying Power Calculator",
+        "zh": "保证金与购买力计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/net-worth.html",
+      "href": "/tools/calculators/net-worth.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Net Worth Calculator",
+        "zh": "净资产计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/options-profit.html",
+      "href": "/tools/calculators/options-profit.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Options Profit Calculator",
+        "zh": "期权盈亏计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/percentage-gain-loss.html",
+      "href": "/tools/calculators/percentage-gain-loss.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Percentage Gain/Loss Calculator",
+        "zh": "百分比盈亏计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/portfolio-rebalancing.html",
+      "href": "/tools/calculators/portfolio-rebalancing.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Portfolio Rebalancing Calculator",
+        "zh": "投资组合再平衡计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/position-size.html",
+      "href": "/tools/calculators/position-size.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Position Size Calculator",
+        "zh": "仓位计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/retirement.html",
+      "href": "/tools/calculators/retirement.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Retirement Calculator",
+        "zh": "退休储蓄计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/risk-of-ruin.html",
+      "href": "/tools/calculators/risk-of-ruin.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Risk of Ruin Calculator",
+        "zh": "破产风险计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/risk-reward.html",
+      "href": "/tools/calculators/risk-reward.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Risk-Reward Calculator",
+        "zh": "风险收益比计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/roi.html",
+      "href": "/tools/calculators/roi.html",
+      "kind": "legacy",
+      "title": {
+        "en": "ROI Calculator",
+        "zh": "投资回报率计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/rule-of-72.html",
+      "href": "/tools/calculators/rule-of-72.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Rule of 72 Calculator",
+        "zh": "72法则计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/savings-goal.html",
+      "href": "/tools/calculators/savings-goal.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Savings Goal Calculator",
+        "zh": "储蓄目标计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/sharpe-ratio.html",
+      "href": "/tools/calculators/sharpe-ratio.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Sharpe Ratio Calculator",
+        "zh": "夏普比率计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/short-selling.html",
+      "href": "/tools/calculators/short-selling.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Short Selling Profit Calculator",
+        "zh": "卖空盈亏计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/stock-average.html",
+      "href": "/tools/calculators/stock-average.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Stock Average (Average Down) Calculator",
+        "zh": "股票平均成本计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/stop-loss-take-profit.html",
+      "href": "/tools/calculators/stop-loss-take-profit.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Stop-Loss & Take-Profit Calculator",
+        "zh": "止损与止盈计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/trade-profit.html",
+      "href": "/tools/calculators/trade-profit.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Trade Profit & Loss Calculator",
+        "zh": "交易盈亏计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    }
+  ],
+  "nativeAndLegacyMembershipChanged": false,
+  "historicalEnrollment": "Explicit title_zh required; historical English-only metadata adds no directory rows.",
+  "publication": "Bounded real-exporter fixture only. Canonical publication/import and GMI+3 are separate."
+}

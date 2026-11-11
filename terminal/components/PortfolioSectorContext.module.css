@@ -1,0 +1,28 @@
+/* Selected-sector evidence inside the Portfolio Risk section.
+   It stands beside — never inside — the market-global risk readout: its own eyebrow, its own
+   heading and its own card, so a reader can always tell a selected sector from the whole book.
+   It adds no palette, no font family and no chart; every value is a recorded fact. */
+
+.section { min-width: 0; margin-bottom: 26px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.identity { min-width: 0; }
+.eyebrow { margin: 0; color: var(--text-2); font-size: 11px; line-height: 1.5; letter-spacing: .07em; text-transform: uppercase; }
+.heading h2 { margin: 4px 0 0; color: var(--text); font: 650 24px/1.2 var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.backLink { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 0; color: var(--link); font: 600 12px/1.4 var(--font-ui); text-decoration: none; }
+.backLink:hover { text-decoration: underline; }
+.scope { margin: 10px 0 16px; max-width: 78ch; color: var(--text-2); font-size: 12px; line-height: 1.6; }
+.dossier { min-width: 0; }
+
+.holding { margin-top: 16px; padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel-2); }
+.holding h3 { margin: 0 0 8px; color: var(--text); font-size: 14px; font-weight: 600; letter-spacing: -.012em; }
+.records { margin: 0; color: var(--text); font-size: 12px; line-height: 1.6; }
+.weight { margin: 10px 0 0; color: var(--text); font: 650 24px/1.2 var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.coverage { margin: 6px 0 0; color: var(--text-2); font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
+.hint { margin: 8px 0 0; color: var(--text-2); font-size: 12px; line-height: 1.6; max-width: 78ch; }
+.missing { margin: 10px 0 0; color: var(--text-2); font-size: 12px; line-height: 1.6; max-width: 78ch; }
+
+@media (max-width: 560px) {
+  .heading h2 { font-size: 21px; }
+  .weight { font-size: 21px; }
+  .holding { padding: 14px 15px; }
+}

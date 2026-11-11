@@ -1,0 +1,22 @@
+{
+  "sourceAndHistoryExit": 0,
+  "rawOutputExit": 2,
+  "rawOutputWarnings": [
+    "docs/verification/pr902-evidence-20261109/historical-packet-red.log:34: trailing whitespace.",
+    "+- Expected: ",
+    "docs/verification/pr902-evidence-20261109/historical-packet-red.log:37: trailing whitespace.",
+    "++ Received: ",
+    "docs/verification/pr902-evidence-20261109/historical-packet-red.log:81: trailing whitespace.",
+    "+- Expected: ",
+    "docs/verification/pr902-evidence-20261109/historical-packet-red.log:84: trailing whitespace.",
+    "++ Received: ",
+    "docs/verification/pr902-evidence-20261109/historical-packet-red.log:128: trailing whitespace.",
+    "+    119| ",
+    "docs/verification/pr902-evidence-20261109/historical-packet-red.log:140: trailing whitespace.",
+    "+- Expected: ",
+    "docs/verification/pr902-evidence-20261109/historical-packet-red.log:143: trailing whitespace.",
+    "++ Received: ",
+    "docs/verification/pr902-evidence-20261109/historical-packet-red.log:204: new blank line at EOF."
+  ],
+  "disposition": "Raw expected-red command output remains byte-exact; final blank lines are output formatting, not source whitespace."
+}

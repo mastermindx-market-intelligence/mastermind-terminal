@@ -1,0 +1,73 @@
+{
+  "completedAt": "2026-11-10T05:00:50.580589+00:00",
+  "diffCheck": {
+    "exit": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "results": {
+    "chart-layers-guard": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/chartLayersUxEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/docs/verification/pr1407-style-isolation-20261110/chart-layers-guard.json"
+      ],
+      "exit": 0,
+      "logSha256": "62be90d92925b9891641803a22a1688797325978a1343d15e93c105e27e63e96",
+      "seconds": 1.88,
+      "summary": {
+        "numFailedTests": 0,
+        "numPassedTests": 4,
+        "numPendingTests": 0,
+        "numTotalTests": 4,
+        "success": true
+      }
+    },
+    "scoped-lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/IndicatorsModal.tsx",
+        "components/LayoutMenu.tsx",
+        "components/TerminalShell.tsx",
+        "components/ChartObjectTree.tsx",
+        "lib/__tests__/layoutRenameFocus.test.tsx",
+        "lib/__tests__/indicatorsScriptRename.test.tsx",
+        "lib/__tests__/chartObjectTree.test.tsx",
+        "e2e/workspace-rename-focus.spec.ts",
+        "e2e/scripts-library.spec.ts",
+        "e2e/chart-object-tree.spec.ts",
+        "--format",
+        "json",
+        "--output-file",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/docs/verification/pr1407-style-isolation-20261110/scoped-lint.json"
+      ],
+      "exit": 1,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 52.01,
+      "summary": {
+        "errors": 54,
+        "files": 10,
+        "warnings": 18
+      }
+    }
+  },
+  "schema": "terminal_pr1407_final_qualification.v1",
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "sourcePostimages": {
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/IndicatorsModal.module.css": "c79f33ff2966eff65a756f3026ead5be589e37562ea9d1605c3931567f44d0f1",
+    "terminal/components/IndicatorsModal.tsx": "ee79bec876fb74ab352fc8cfed633da22e72ee8e9c4b78694ca8461a586d88e8",
+    "terminal/components/LayoutMenu.module.css": "82daf23f2da0d25db461cfec7e49f2d4d4eb84f131b63459c957ba646c6f4f87",
+    "terminal/components/LayoutMenu.tsx": "7c1ec57d2cdfb55ac3262184579e4aec5f8cefdde9dc37f1146975e6070a1541",
+    "terminal/components/TerminalShell.tsx": "46fd228a8210266cfb3e8a41d27d6f3b8b1bd3d0fc92ef2b432ace0b6720e25f"
+  },
+  "sourceStable": true,
+  "startedAt": "2026-11-10T04:59:52.104254+00:00",
+  "state": "FAILED"
+}

@@ -1,0 +1,91 @@
+{
+  "sourceOnly": true,
+  "fixtureOnly": true,
+  "actualSharedControls": true,
+  "measurements": [
+    {
+      "device": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "lang": "en",
+      "shared": "1",
+      "bg": "#0f1115",
+      "cardBackground": "rgba(255, 255, 255, 0.03)",
+      "cardBorder": "rgba(255, 255, 255, 0.09)",
+      "noteColor": "rgb(139, 147, 161)",
+      "noteFont": "10px",
+      "noteRGB": [
+        139,
+        147,
+        161
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": false,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        32,
+        34,
+        38
+      ],
+      "noteContrast": 5.147814362576152
+    },
+    {
+      "device": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "lang": "en",
+      "shared": "1",
+      "bg": "#f7f8fa",
+      "cardBackground": "rgba(255, 255, 255, 0.03)",
+      "cardBorder": "rgba(255, 255, 255, 0.16)",
+      "noteColor": "rgb(105, 118, 138)",
+      "noteFont": "10px",
+      "noteRGB": [
+        105,
+        118,
+        138
+      ],
+      "cardRGB": [
+        255,
+        255,
+        255
+      ],
+      "cardOpaque": false,
+      "documentOverflow": false,
+      "cardOverflow": false,
+      "ids": [
+        "ocam_cf5c79769b8c76858f04bec6",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d",
+        "ocrev_da2ce98049b501e31d08468d"
+      ],
+      "clocks": [
+        "2026-08-13T14:30:00Z",
+        "2026-08-13T14:30:00Z"
+      ],
+      "sampledNoteBackground": [
+        248,
+        248,
+        250
+      ],
+      "noteContrast": 4.342748174073331
+    }
+  ]
+}

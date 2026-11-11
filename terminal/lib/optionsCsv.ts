@@ -156,8 +156,13 @@ const UTF8_BOM = "\uFEFF";
 const LEADING_FORMULA = /^[\s\uFEFF]*[=+\-@]/u;
 const LEADING_CONTROL = /^[ \u00A0\u2000-\u200A\u202F\u205F\u3000\uFEFF]*[\t\r\n]/u;
 
+/** Shared hazard predicate: a CSV exporter may choose to REFUSE rather than prefix. */
+export function isUnsafeCsvText(value: string): boolean {
+  return LEADING_FORMULA.test(value) || LEADING_CONTROL.test(value);
+}
+
 function spreadsheetSafeString(value: string): string {
-  return LEADING_FORMULA.test(value) || LEADING_CONTROL.test(value) ? `'${value}` : value;
+  return isUnsafeCsvText(value) ? `'${value}` : value;
 }
 
 /** Serialize one RFC-4180 field after applying string-only formula hardening. */

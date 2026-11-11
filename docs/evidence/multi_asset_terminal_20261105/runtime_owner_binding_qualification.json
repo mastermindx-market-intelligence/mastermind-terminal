@@ -1,0 +1,55 @@
+{
+  "authenticated_browser_claimed": false,
+  "native_runtime_owner": "existing Macro MACRO_LIVE_DIR publisher",
+  "new_producer": false,
+  "new_service_or_scheduler": false,
+  "operation": "multiasset-terminal-20261105-sol",
+  "preserved_browser_cases": 12,
+  "preserved_browser_receipt": "r2/receipt.json",
+  "production_mutation_claimed": false,
+  "production_replay": "BLOCKED_BY_TOOL_SAFETY_NO_RESULT",
+  "schema": "mastermind.runtime_owner_binding_qualification/v1",
+  "scope": "local_source_and_isolated_fixture_tests_only",
+  "source_parent": "bcc115582273689e45dad032bb4eacff61461b0c",
+  "source_selection_tests": [
+    "active_runtime_before_stale_checkout",
+    "expired_or_future_runtime_falls_back",
+    "missing_clock_abstention",
+    "malformed_missing_symlink_oversized_abstention",
+    "explicit_URL_precedence_preserved",
+    "closed_recent_runtime_does_not_displace_newer_settled",
+    "expired_and_inactive_provisional_envelope_falls_back"
+  ],
+  "sources": {
+    "ingest/pull_macro_risk.py": "698fcd5de7ac006e842142939ca84002169bc89f678eaf0a9e84bbb759d8d455",
+    "tests/test_market_risk_bridge.py": "bbf5f6b679b764f1188abad235d149fe40f67db0a9bb0d81df5d01864ada530f"
+  },
+  "tests": {
+    "python": {
+      "exit": 0,
+      "passed": 87,
+      "warnings": 6
+    },
+    "vitest": {
+      "exit": 0,
+      "files": 3,
+      "passed": 124
+    }
+  },
+  "unchanged_computation_function_hashes": {
+    "_multi_asset_display_transport": "c6e858e9cd249afb1b100d38e145c813228ea698516cc33e5237fde5b03db2f3",
+    "_num": "493c51cd0ddd6907e04699d223dfa507f4ee52523f180d31c3067ef546453c18",
+    "_timestamp": "3e73023fcb54ab2a2adfc47385b9ae800da0804f00ff771f1cadcf2de2ae8313",
+    "build_market_risk": "7b536fbae960db0d92f68d844c045dfee564e87f89ec32a21d981090d54bfcf2",
+    "qualify_risk_envelope": "53416decd1db6e9e65ed85459f0e32bd6136a0ba67b106feb4749ee2a6fe0b67"
+  },
+  "unchanged_terminal_source_hashes": {
+    "terminal/e2e/multi-asset-risk-context.spec.ts": "2d542c181a6566082e605733d2f45ac4bffaf22ac6ee25dbfca8423e227f9db5",
+    "terminal/lib/__tests__/fixtures/multiAssetDaily.stale.synthetic.json": "825a5394c76cb176043e7da58290fc8dda1e254c0afc08128b416607d2024420",
+    "terminal/lib/__tests__/fixtures/multiAssetDaily.synthetic.json": "eecd7fbfd766efa5a12658546665d0228e7c1c14bd80f73df5e8bf67e75ca80c",
+    "terminal/lib/__tests__/marketRisk.test.ts": "aa863c24e7c433256400e67ff3a4cfa0c3def8033871e68436782ea0b2d254e7",
+    "terminal/lib/__tests__/multiAssetContext.test.ts": "e64d3c8e454d605ab54835e7b518c88bc5cc5d45c3bdb5ff7fe45a2b1ee5f0d5",
+    "terminal/lib/marketRisk.ts": "6591d95bdb5ae8fb165fd32b1d516c7f1aeeb1272176b38c548c978d77f37824",
+    "terminal/lib/multiAssetContext.ts": "ff83fa06dbbd809eedd8d4c3499e61a9919f407abdc674f11647ec2002dea416"
+  }
+}

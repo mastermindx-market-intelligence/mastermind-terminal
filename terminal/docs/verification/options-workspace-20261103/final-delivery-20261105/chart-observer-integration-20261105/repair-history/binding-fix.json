@@ -1,0 +1,24 @@
+{
+  "state": "APPLIED",
+  "at": "2026-11-05T10:49:01.740137+00:00",
+  "files": [
+    {
+      "root": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3",
+      "before_sha256": "c7fab6aef66e4d43769255f0b6522ed7d39091f3987994cd9ba7076464caf896",
+      "after_sha256": "e66704686098ea1b6463061065a7ab25339d68c63685453ae600bd6226bb9325"
+    },
+    {
+      "root": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3",
+      "before_sha256": "c7fab6aef66e4d43769255f0b6522ed7d39091f3987994cd9ba7076464caf896",
+      "after_sha256": "e66704686098ea1b6463061065a7ab25339d68c63685453ae600bd6226bb9325"
+    },
+    {
+      "root": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree",
+      "before_sha256": "c7fab6aef66e4d43769255f0b6522ed7d39091f3987994cd9ba7076464caf896",
+      "after_sha256": "e66704686098ea1b6463061065a7ab25339d68c63685453ae600bd6226bb9325"
+    }
+  ],
+  "historical_proof_bindings_unchanged": true,
+  "new_accepted_hashes": [],
+  "scope": "Current observer may be either of the two already-qualified observers after validating both actual capture profiles. Runtime source and browser assertions remain unchanged."
+}

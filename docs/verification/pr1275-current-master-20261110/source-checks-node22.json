@@ -1,0 +1,75 @@
+[
+  {
+    "check": "f11-node-contracts",
+    "runtime": "v22.23.4",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "--test",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "e2e/tools/f11_owned_server.test.cjs",
+      "e2e/tools/f11_provider_closed_policy.test.cjs",
+      "e2e/tools/f11_script_metadata.test.cjs"
+    ],
+    "exit_code": 0,
+    "seconds": 1.135,
+    "sha256": "5c8190e81c9c320b6e6cb40fb4ab73b3022852a948cd92b01e94317664b88282",
+    "tail": " ...\n# Subtest: no Next image optimizer path can forward an upstream/provider request\nok 90 - no Next image optimizer path can forward an upstream/provider request\n  ---\n  duration_ms: 0.647625\n  type: 'test'\n  ...\n# Subtest: encoded path separators cannot be forwarded as static files, while encoded Next bracket names remain allowed\nok 91 - encoded path separators cannot be forwarded as static files, while encoded Next bracket names remain allowed\n  ---\n  duration_ms: 0.161292\n  type: 'test'\n  ...\n# Subtest: static path decoding ambiguities refuse without a blanket percent ban\nok 92 - static path decoding ambiguities refuse without a blanket percent ban\n  ---\n  duration_ms: 0.137167\n  type: 'test'\n  ...\n# Subtest: projects exact sha256, byte count, mime, and durations for a known buffer\nok 93 - projects exact sha256, byte count, mime, and durations for a known buffer\n  ---\n  duration_ms: 11.247917\n  type: 'test'\n  ...\n# Subtest: empty body is a valid observable with zero bytes and the empty digest\nok 94 - empty body is a valid observable with zero bytes and the empty digest\n  ---\n  duration_ms: 0.666625\n  type: 'test'\n  ...\n# Subtest: binary buffer keeps its exact byte count and digest without interpretation\nok 95 - binary buffer keeps its exact byte count and digest without interpretation\n  ---\n  duration_ms: 2.083875\n  type: 'test'\n  ...\n# Subtest: mime whitelist maps exact tokens and normalizes case, spaces, parameters\nok 96 - mime whitelist maps exact tokens and normalizes case, spaces, parameters\n  ---\n  duration_ms: 2.278625\n  type: 'test'\n  ...\n# Subtest: hostile free-form content types sanitize to other and never echo input\nok 97 - hostile free-form content types sanitize to other and never echo input\n  ---\n  duration_ms: 1.420709\n  type: 'test'\n  ...\n# Subtest: absent content type projects missing\nok 98 - absent content type projects missing\n  ---\n  duration_ms: 0.3085\n  type: 'test'\n  ...\n# Subtest: unknown caller fields are never projected and input is never mutated\nok 99 - unknown caller fields are never projected and input is never mutated\n  ---\n  duration_ms: 0.544625\n  type: 'test'\n  ...\n# Subtest: pure: repeated calls are deterministic fresh objects\nok 100 - pure: repeated calls are deterministic fresh objects\n  ---\n  duration_ms: 0.24925\n  type: 'test'\n  ...\n# Subtest: public pathnames including encoded brackets and parens are accepted\nok 101 - public pathnames including encoded brackets and parens are accepted\n  ---\n  duration_ms: 0.858167\n  type: 'test'\n  ...\n# Subtest: non-public pathnames: origins, queries, fragments, case, prefix\nok 102 - non-public pathnames: origins, queries, fragments, case, prefix\n  ---\n  duration_ms: 8.827417\n  type: 'test'\n  ...\n# Subtest: traversal and encoded-separator ambiguity is rejected, raw and encoded\nok 103 - traversal and encoded-separator ambiguity is rejected, raw and encoded\n  ---\n  duration_ms: 1.253542\n  type: 'test'\n  ...\n# Subtest: pathname length bound is 240 characters\nok 104 - pathname length bound is 240 characters\n  ---\n  duration_ms: 0.388084\n  type: 'test'\n  ...\n# Subtest: body must be a Buffer; other typed bodies are rejected\nok 105 - body must be a Buffer; other typed bodies are rejected\n  ---\n  duration_ms: 1.023583\n  type: 'test'\n  ...\n# Subtest: body size bound is 32 MiB inclusive\nok 106 - body size bound is 32 MiB inclusive\n  ---\n  duration_ms: 66.139125\n  type: 'test'\n  ...\n# Subtest: each duration is independently typed and bounded to [0, 600000]\nok 107 - each duration is independently typed and bounded to [0, 600000]\n  ---\n  duration_ms: 4.905\n  type: 'test'\n  ...\n# Subtest: a valid sibling duration does not rescue an invalid one\nok 108 - a valid sibling duration does not rescue an invalid one\n  ---\n  duration_ms: 1.063292\n  type: 'test'\n  ...\n# Subtest: input must be one plain object of named fields\nok 109 - input must be one plain object of named fields\n  ---\n  duration_ms: 0.22625\n  type: 'test'\n  ...\n# Subtest: byte-0 observable record carries no boot or success signal\nok 110 - byte-0 observable record carries no boot or success signal\n  ---\n  duration_ms: 0.920375\n  type: 'test'\n  ...\n# Subtest: parent: residual nested percent traversal refuses; normal encoded brackets remain valid\nok 111 - parent: residual nested percent traversal refuses; normal encoded brackets remain valid\n  ---\n  duration_ms: 0.377708\n  type: 'test'\n  ...\n1..111\n# tests 111\n# suites 0\n# pass 111\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 956.954917\n"
+  },
+  {
+    "check": "affected-vitest",
+    "runtime": "v22.23.4",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/readingWorkspaces.test.tsx",
+      "lib/__tests__/analysisWorkspaceNavigation.test.tsx",
+      "lib/__tests__/productionTypeProject.test.ts"
+    ],
+    "exit_code": 0,
+    "seconds": 6.09,
+    "sha256": "75e21892335064b132f34d3bb44b5f19fef389dbc82252a0cc54c8b97363c3a9",
+    "tail": "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m\n\n\u001b[1m\u001b[7m\u001b[36m RUN \u001b[39m\u001b[27m\u001b[22m \u001b[36mv2.1.9 \u001b[39m\u001b[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/terminal\u001b[39m\n\n\u001b[90mstderr\u001b[2m | lib/__tests__/analysisWorkspaceNavigation.test.tsx\u001b[2m > \u001b[22m\u001b[2mreused Company route identity\u001b[2m > \u001b[22m\u001b[2mclears malformed selection when navigation removes the symbol\n\u001b[22m\u001b[39mReceived `false` for a non-boolean attribute `prefetch`.\n\nIf you want to write it to the DOM, pass a string instead: prefetch=\"false\" or prefetch={value.toString()}.\n\nIf you used to conditionally omit it with prefetch={condition && value}, pass prefetch={condition ? value : undefined} instead.\n\n \u001b[32m\u2713\u001b[39m lib/__tests__/analysisWorkspaceNavigation.test.tsx \u001b[2m(\u001b[22m\u001b[2m16 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 489\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m\u2713\u001b[39m lib/__tests__/productionTypeProject.test.ts \u001b[2m(\u001b[22m\u001b[2m23 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3192\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m\u2713\u001b[22m\u001b[39m strict production TypeScript project\u001b[2m > \u001b[22minherits every full-project compiler option unchanged \u001b[33m865\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m\u2713\u001b[22m\u001b[39m strict production TypeScript project\u001b[2m > \u001b[22momits only test/e2e/tool roots while retaining every application and generated root \u001b[33m532\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m\u2713\u001b[22m\u001b[39m strict production TypeScript project\u001b[2m > \u001b[22mstill rejects an ordinary application error \u001b[33m543\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m\u2713\u001b[22m\u001b[39m strict production TypeScript project\u001b[2m > \u001b[22mkeeps a test-only error in the full gate and checks it if imported by production \u001b[33m787\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m\u2713\u001b[39m lib/__tests__/readingWorkspaces.test.tsx \u001b[2m(\u001b[22m\u001b[2m59 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2060\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m3 passed\u001b[39m\u001b[22m\u001b[90m (3)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m98 passed\u001b[39m\u001b[22m\u001b[90m (98)\u001b[39m\n\u001b[2m   Start at \u001b[22m 01:56:26\n\u001b[2m   Duration \u001b[22m 5.18s\u001b[2m (transform 1.07s, setup 0ms, collect 2.18s, tests 5.74s, environment 2.35s, prepare 470ms)\u001b[22m\n\n"
+  },
+  {
+    "check": "next-typegen",
+    "runtime": "v22.23.4",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/next/dist/bin/next",
+      "typegen"
+    ],
+    "exit_code": 0,
+    "seconds": 5.998,
+    "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+    "tail": "Generating route types...\n\u2713 Types generated successfully\n"
+  },
+  {
+    "check": "full-typecheck",
+    "runtime": "v22.23.4",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit"
+    ],
+    "exit_code": 0,
+    "seconds": 128.91,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tail": ""
+  },
+  {
+    "check": "affected-lint",
+    "runtime": "v22.23.4",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/eslint/bin/eslint.js",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "lib/__tests__/readingWorkspaces.test.tsx"
+    ],
+    "exit_code": 0,
+    "seconds": 7.817,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tail": ""
+  }
+]

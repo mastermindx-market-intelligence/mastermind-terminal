@@ -391,3 +391,40 @@ describe("entitlement — incident fail-closed triage", () => {
     expect(await read).toBe("unavailable");
   });
 });
+
+describe("options paywall denial provenance", () => {
+  it("separates session denial from a verified Free account without weakening the gate", async () => {
+    const { getLiveOptionsAccessDetail } = await loadEntitlement();
+
+    signOut();
+    expect(await getLiveOptionsAccessDetail()).toEqual({
+      access: "denied", reason: "authentication_denied",
+    });
+    expect(meCalls).toHaveLength(0);
+
+    signIn("tok-free");
+    nextAnswer = () => ({ tier: "free", features: [] });
+    expect(await getLiveOptionsAccessDetail()).toEqual({
+      access: "denied", reason: "plan_missing_feature",
+    });
+    expect(meCalls).toHaveLength(1);
+  });
+
+  it("preserves outage and verified operator access without granting uncertainty", async () => {
+    const { getLiveOptionsAccessDetail } = await loadEntitlement();
+    signIn("tok-a");
+    globalThis.fetch = vi.fn(async () => {
+      throw new Error("billing unavailable");
+    }) as unknown as typeof globalThis.fetch;
+    expect(await getLiveOptionsAccessDetail()).toEqual({
+      access: "unavailable", reason: "authority_unavailable",
+    });
+
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({
+      tier: "unlimited", features: [],
+    }), { status: 200 })) as unknown as typeof globalThis.fetch;
+    expect(await getLiveOptionsAccessDetail()).toEqual({
+      access: "allowed", reason: "verified",
+    });
+  });
+});

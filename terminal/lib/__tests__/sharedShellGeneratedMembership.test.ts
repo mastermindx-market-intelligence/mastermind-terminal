@@ -1,5 +1,5 @@
 /**
- * Shared Shell generated membership regression (stocks/earnings refresh).
+ * Shared Shell generated membership regression (published company/earnings refresh).
  *
  * The pinned generated catalog (sharedShellRoutes.generated.json) predates the
  * newly published /stocks/earnings/*.html pages. The canonical generator must
@@ -31,10 +31,14 @@ import LegacyShellPage, { generateMetadata } from "../../app/(shell)/[...legacyP
 
 const SHARED_SHELL_FLAG = "MMX_SHARED_SHELL";
 
-/** Newly published earnings pages the refreshed generation must admit. */
-const NEW_EARNINGS_PAGES = [
+/** Published family members, including the November protected inventory refresh. */
+const NEW_PUBLISHED_PAGES = [
   "/stocks/earnings/ge-2026q3-call-record.html",
   "/stocks/earnings/page-61.html",
+  "/stocks/earnings/aal-2026q3-call-record.html",
+  "/stocks/earnings/abbv-2026q3-call-record.html",
+  "/stocks/HTFL.html",
+  "/stocks/MIAX.html",
 ] as const;
 
 /** Look-alikes that must stay outside the strict-finite generated membership. */
@@ -44,6 +48,10 @@ const NON_MEMBERS = [
   "/committee.html",
   "/crossasset.html",
   "/api/private",
+  "/gmi.html",
+  "/macro/fragments/credit.html",
+  // Product Trust F-6 withdrew this fixture-only card in Macro #10237/#10268.
+  "/consumer_cyclical_plnt.html",
 ] as const;
 
 /** Generated titles end in a "<label> <dot> Mastermind" suffix; only the suffix is stable. */
@@ -67,15 +75,15 @@ afterEach(() => {
 });
 
 describe("Shared Shell generated membership refresh", () => {
-  describe("newly published /stocks/earnings pages", () => {
-    it.each([...NEW_EARNINGS_PAGES])("admits %s exactly, without a native collision", (path) => {
+  describe("published company and earnings pages", () => {
+    it.each([...NEW_PUBLISHED_PAGES])("admits %s exactly, without a native collision", (path) => {
       expect(isLegacyShellPath(path)).toBe(true);
       expect(sharedShellCatalog.legacyPaths).toContain(path);
       expect(sharedShellCatalog.nativePaths).not.toContain(path);
     });
 
     it("resolves admitted earnings links as legacy, keeping ordinary query bytes and dropping bridge transport", () => {
-      const admitted = NEW_EARNINGS_PAGES[0];
+      const admitted = NEW_PUBLISHED_PAGES[0];
       const target = resolveSharedShellLink(
         admitted + "?ticker=GE&q=earnings&q=call&mmx_shell_hint=x&mmx_shell=1&mmx_generation=g2026q3#transcript",
         admitted,
@@ -95,7 +103,7 @@ describe("Shared Shell generated membership refresh", () => {
     });
 
     it("serves the actual server page and noindex metadata for the new pages", async () => {
-      for (const path of NEW_EARNINGS_PAGES) {
+      for (const path of NEW_PUBLISHED_PAGES) {
         const rendered = await LegacyShellPage(pageProps(path));
         expect(rendered).toBeNull();
 
@@ -111,6 +119,13 @@ describe("Shared Shell generated membership refresh", () => {
     });
   });
 
+  it("retains the ordinary PLNT company and earnings paths after the synthetic card withdrawal", () => {
+    for (const path of ["/stocks/PLNT.html", "/stocks/earnings/plnt-2026q2-call-record.html"]) {
+      expect(isLegacyShellPath(path)).toBe(true);
+      expect(resolveSharedShellLink(path, path)).toEqual({ kind: "legacy", href: path });
+    }
+  });
+
   describe("routes outside the generated membership", () => {
     it.each([...NON_MEMBERS])("rejects %s for membership, resolution and the actual page", async (path) => {
       expect(isLegacyShellPath(path)).toBe(false);
@@ -123,7 +138,7 @@ describe("Shared Shell generated membership refresh", () => {
   });
 
   it("rejects an admitted page when the Shared Shell flag is off", async () => {
-    const admitted = NEW_EARNINGS_PAGES[0];
+    const admitted = NEW_PUBLISHED_PAGES[0];
     expect(isLegacyShellPath(admitted)).toBe(true);
 
     vi.stubEnv(SHARED_SHELL_FLAG, "0");

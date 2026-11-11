@@ -32,6 +32,7 @@
 //   - Worker startup / postMessage throws settle the promise instead of stranding it.
 import { compilePine, runPine, type PineError, type RunResult, type Bar, type RunOpts } from "./index";
 import { hashSource, barsToColumns } from "./host-shared";
+import type { ReferenceExport, ReferenceExportRequest } from "./retained-export";
 
 export type { Bar } from "./runtime";
 export type { PineError, RunResult } from "./index";
@@ -45,6 +46,7 @@ export interface PineCompileResult {
   budgetExceeded?: boolean; // wall-budget breach → worker terminated + respawned
 }
 export interface PineResult {
+  referenceExport?: ReferenceExport;
   ok: boolean;
   errors: PineError[];
   result: RunResult | null;
@@ -55,6 +57,7 @@ export interface PineResult {
 }
 
 export interface RunRequest {
+  referenceExport?: ReferenceExportRequest;  // opt in to a receipt on this worker run
   slot: string;                 // supersession key (e.g. scriptId). A new run for this slot cancels the prior one.
   source: string;               // always provided so the worker can (re)compile if the astId isn't cached
   astId?: string;               // if known (from a prior compile()), lets the worker skip re-parsing
@@ -91,7 +94,7 @@ export function compilePineSync(source: string): PineCompileResult {
 
 type PendingPayload =
   | { kind: "compile"; source: string }
-  | { kind: "run"; source: string; astId?: string; bars: Bar[]; inputs: Record<string, any>; opts: NonNullable<RunRequest["opts"]> };
+  | { kind: "run"; source: string; astId?: string; bars: Bar[]; inputs: Record<string, any>; opts: NonNullable<RunRequest["opts"]>; referenceExport?: ReferenceExportRequest };
 
 interface Pending {
   reqId: number;
@@ -211,6 +214,7 @@ class WorkerHost implements PineHost {
       bars: payload,
       inputs: p.payload.inputs,
       opts: p.payload.opts,
+      ...(p.payload.referenceExport ? { referenceExport: p.payload.referenceExport, hostBudgetMs: p.budgetMs } : {}),
     }, transfer);
   }
 
@@ -278,7 +282,9 @@ class WorkerHost implements PineHost {
     if (!p) return;               // stale (superseded/terminated) — ignore
     this.settle(p, () => {
       if (data.kind === "compiled") return { ok: data.ok, errors: data.errors, astId: data.astId } as PineCompileResult;
-      return { ok: data.ok, errors: data.errors, result: data.result, astId: data.astId ?? undefined } as PineResult;
+      return { ok: data.ok, errors: data.errors, result: data.result, astId: data.astId ?? undefined,
+        ...(p.payload.kind === "run" && p.payload.referenceExport && data.ok && data.referenceExport
+          ? { referenceExport: data.referenceExport } : {}) } as PineResult;
     });
   }
 
@@ -378,6 +384,30 @@ class WorkerHost implements PineHost {
   }
 
   run(req: RunRequest): Promise<PineResult> {
+    if (!req.referenceExport) return this.runRequest(req);
+    if (!(req.referenceExport.inputBytes instanceof Uint8Array) || req.referenceExport.inputBytes.byteLength > 64 * 1024 * 1024
+        || req.bars.length > 100_000) {
+      return Promise.resolve({ ok: false, errors: [], result: null, referenceExport: { status: "unavailable", reason: "invalid_input" } });
+    }
+    // structuredClone preserves SharedArrayBuffer backing. A concurrent writer
+    // could otherwise change the purported source snapshot on the boot repost.
+    if (!(req.referenceExport.inputBytes.buffer instanceof ArrayBuffer)) {
+      return Promise.resolve({ ok: false, errors: [], result: null,
+        referenceExport: { status: "unavailable", reason: "shared_source_bytes" } });
+    }
+    // The boot retry must use the same bytes, columns and options as the first post.
+    let original: RunRequest;
+    try { original = structuredClone(req); } catch {
+      return Promise.resolve({ ok: false, errors: [], result: null,
+        referenceExport: { status: "unavailable", reason: "uncloneable_request" } });
+    }
+    return this.runRequest(original).then(out => out.referenceExport ? out : {
+      ...out, referenceExport: { status: "unavailable", reason: out.budgetExceeded ? "timeout" :
+        out.cancelled ? "cancelled" : out.ok ? "missing_worker_export" : "failed_run" },
+    });
+  }
+
+  private runRequest(req: RunRequest): Promise<PineResult> {
     if (this.disposed) return Promise.resolve(cancelledRunOutcome());
     const reqId = this.nextId++;
     const budgetMs = req.budgetMs ?? DEFAULT_RUN_BUDGET_MS;
@@ -393,7 +423,7 @@ class WorkerHost implements PineHost {
 
       const p: Pending = {
         reqId, slot: req.slot, kind: "run", resolve, timer: null, budgetMs,
-        payload: { kind: "run", source: req.source, astId: req.astId, bars: req.bars, inputs: req.inputs || {}, opts: req.opts || {} },
+        payload: { kind: "run", source: req.source, astId: req.astId, bars: req.bars, inputs: req.inputs || {}, opts: req.opts || {}, referenceExport: req.referenceExport },
       };
       // Per-run wall budget (armed at worker ready): on breach, terminate + respawn the worker
       // and resolve THIS run as budgetExceeded. Sibling/queued requests settle as
@@ -439,7 +469,10 @@ class SyncHost implements PineHost {
     return Promise.resolve(compilePineSync(source));
   }
   run(req: RunRequest): Promise<PineResult> {
-    if (this.disposed) return Promise.resolve(cancelledRunOutcome());
+    if (this.disposed) return Promise.resolve({ ...cancelledRunOutcome(), ...(req.referenceExport
+      ? { referenceExport: { status: "unavailable" as const, reason: "cancelled" } } : {}) });
+    if (req.referenceExport) return Promise.resolve({ ok: false, errors: [], result: null,
+      referenceExport: { status: "unavailable", reason: "worker_required" } });
     return Promise.resolve(runPineSync(req));
   }
   evict(): void { /* no worker cache to evict */ }

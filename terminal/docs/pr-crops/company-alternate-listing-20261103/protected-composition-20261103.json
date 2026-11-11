@@ -1,0 +1,31 @@
+{
+  "schema": "terminal.company-search-protected-composition.v1",
+  "task": "P12.T25",
+  "local_prior_head": "aeb0d475581854a3da3823259595acd8dbfe6b4d",
+  "protected_parent": "4f9fad0beed2c77983bec7a1f7cf540f194cba86",
+  "protected_parent_tree": "2fcb3319dfd84de57660a2afc51b7a462373c238",
+  "reviewed_runtime_paths_unchanged": {
+    "terminal/components/SearchModal.tsx": "d1522bfdaa7c5cd223e5024aa3698104ea404d9c46a5854b17e86da3ea570818",
+    "terminal/components/SearchModal.module.css": "c07ad2028e36b1c70be969a9ab55d8d289dfcfeeceb18be5c5de3d1b18bbbaa9",
+    "terminal/components/SymbolPicker.tsx": "0aa9f20b5f5a76b917dbb0e54bd3d5f467d8bb23bc8e642befe1fd10525f252f",
+    "terminal/components/chrome/shared-shell/ShellSearch.tsx": "6ec2cdc819392b1c9a13bc7bbd066d49955061d166f33d498be37c57a9af0c69",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b",
+    "terminal/components/CompanyListingIdentity.tsx": "6d4347aafef93cfdaa1de89dada550f0f61953488e7166b146fdfc349bea77b7",
+    "terminal/components/CompanyListingIdentity.module.css": "29788c51e58e5e972be0335d490685cb8512a3fbd8bdbe35aa4663e2fe2f70a3",
+    "terminal/lib/companySearchContext.ts": "ee780295ea796509bbfdf92688ddd522144cd38f0fb82925a8ca31acfdaf4b12"
+  },
+  "protected_imports_and_appendices_equal": {
+    "terminal/lib/dataCache.ts": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+    "terminal/lib/idbJsonStore.ts": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8",
+    "terminal/lib/sharedShellRoutes.generated.json": "2bfc0bf51e405abdd61032470d0b04cf1e1114370bd1c1f9b8e9e137d807f8cc",
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": "ccf76ba74dde64dc24c1466a81e63a7eb16a7c19e4ba5451a7bdf441dfcb579b",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": "fc81b639e72b7a66c7172c1a3c296b8251e2b0d3fdd001da9e7464b1d1fc57da"
+  },
+  "conflict_resolution": "Keep reviewed T25 callback/selection/query/Back paths and source rows; preserve all unconflicted incoming manifest appendices and protected source",
+  "accepted_historical_proof": "Earlier 12-cell/36step PNG and A2/theses captures retained at their original source/profile. No current whole-union recapture claim. Changed cache public-return behavior covered by affected cache/selection tests.",
+  "local_affected_tests": "151PASS/12files including current3evidence gates, metadata/return races and protected cache/route membership",
+  "old_ci_boundary": "41565966299 all17green is historical current-head proof on aeb0; b79 is PR-recorded base only, no checkout/tree inference",
+  "new_hosted_checkout_binding": "Pending normal CI on this composition; no old-green transfer",
+  "release_limits": "No beta/build/install before T29 guard actual prerequisites; no heldChrome/provider/private effects",
+  "full_typescript": "PASS npx tsc --noEmit"
+}

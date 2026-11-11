@@ -119,8 +119,10 @@ export const FlowCard = memo(function FlowCard({
   }, [expanded]);
 
   // Score is precomputed server-side and attached to the event (ev.flowScore).
+  // Unknown is not zero: a missing or non-finite score stays null so the ring
+  // renders the no-reading mark instead of a filled 0-ring.
   const fs = ev.flowScore;
-  const score = fs && !isNaN(fs.score) ? fs.score : 0;
+  const score = fs && Number.isFinite(fs.score) ? fs.score : null;
   const components = fs?.components ?? [];
   const badges = deriveBadges(ev);
   const t = makeFlowT(lang);
@@ -165,7 +167,7 @@ export const FlowCard = memo(function FlowCard({
 
         {/* Score ring — compact sm size, magnitude tone (never asserted side) */}
         <span className="obs-fc-ring-wrap obs-fc-ring-inline">
-          <RingGauge value={score} size="sm" tone="auto" />
+          <RingGauge value={score} size="sm" tone="auto" naLabel={t("scoreUnavailable")} />
         </span>
 
         <span className="obs-fc-time num">{fmtTime(ev.ts)}</span>

@@ -1,0 +1,9 @@
+{
+  "affectedSourceCheckExit": 0,
+  "affectedSourcePaths": [
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts"
+  ],
+  "fullCheckExit": 0,
+  "inheritedOrArtifactFindings": [],
+  "note": "Protected or original source bytes and exact evidence artifacts are preserved; no unrelated accepted code is restyled."
+}

@@ -1,0 +1,26 @@
+/* Reset only interactive timeline rows; WatchingList retains its shared row. */
+.action.action {
+  appearance: none;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.action.action + .action {
+  border-top: 1px solid var(--line-2);
+}
+
+.action.action:hover {
+  background: var(--panel-2);
+}
+
+.action.action:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}

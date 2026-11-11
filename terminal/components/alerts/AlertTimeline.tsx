@@ -1,5 +1,6 @@
 "use client";
 import s from "./alerts.module.css";
+import actions from "./AlertTimeline.module.css";
 import { pick } from "@/lib/finFormat";
 import { copy, type DeliveryState } from "@/lib/alertsView";
 
@@ -34,10 +35,9 @@ export default function AlertTimeline({
       </div>
       <div className={s.spine}>
         {rows.map((r) => (
-          <div
-            key={r.id} className={s.row} role="button" tabIndex={0} data-delivery={r.delivery}
+          <button
+            key={r.id} type="button" className={`${s.row} ${actions.action}`} data-delivery={r.delivery}
             onClick={() => onOpen(r.id)}
-            onKeyDown={(e) => { if (e.key === "Enter") onOpen(r.id); }}
           >
             <span className={s.dot} />
             <span className={s.time}>{r.time}</span>
@@ -45,7 +45,7 @@ export default function AlertTimeline({
             <span className={s.verdict}>{r.verdict}</span>
             <span className={`${s.chip} ${CHIP_CLASS[r.delivery]}`}>{copy(`delivery.${r.delivery}`, lang)}</span>
             {r.foldedRows > 0 && <span className={s.moduleCount}>{copy("folded.note", lang, { n: r.foldedRows })}</span>}
-          </div>
+          </button>
         ))}
       </div>
     </div>

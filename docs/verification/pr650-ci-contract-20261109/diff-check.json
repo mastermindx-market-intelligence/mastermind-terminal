@@ -1,0 +1,11 @@
+{
+  "changedSource": [
+    "terminal/e2e/tools/optionsExposureEvidence.test.cjs",
+    "terminal/e2e/tools/optionsExposureEvidence.cases.cjs",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+    "tests/test_ci_browser_setup.py"
+  ],
+  "exit": 0,
+  "runtimeChanged": false,
+  "state": "PASSED"
+}

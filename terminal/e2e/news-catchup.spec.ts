@@ -312,3 +312,32 @@ test("compact news uses the reclaimed reading viewport across EN/ZH and desktop/
     }
   }
 });
+
+test("keyboard review returns focus to each linked or unlinked headline", async ({ page, baseURL }, testInfo) => {
+  const feed: Feed = {
+    nvda: { ...FIRST_VISIT, rows: FIRST_VISIT.rows.map((row) => row.story_id === "ev2_nvda_guidance" ? { ...row, url: "" } : row) },
+    nvdaStatus: 200,
+  };
+  const storeKey = await prepare(page, testInfo, baseURL, feed);
+  const panel = await openNews(page);
+  await expect(panel.locator("[data-news-mark-one]")).toHaveCount(3);
+  const initialOrder = await storyIds(panel);
+  for (const id of ["ev2_nvda_supply", "ev2_nvda_guidance"]) {
+    const story = reviewOf(panel, id);
+    await story.locator("[data-news-mark-one]").focus();
+    await page.keyboard.press("Enter");
+    const headline = story.locator("[data-news-headline]");
+    await expect(headline).toBeFocused();
+    await expect(headline).toBeInViewport();
+    await expect(story.locator("[data-news-mark-one]")).toHaveCount(0);
+    await expect(story).toHaveAttribute("data-news-review", "reviewed");
+    if (id === "ev2_nvda_guidance") {
+      await expect(headline).toHaveAttribute("tabindex", "-1");
+      expect(await headline.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+      await panel.screenshot({ path: testInfo.outputPath("news-static-headline-focus.png"), animations: "disabled" });
+    }
+  }
+  expect(await storyIds(panel)).toEqual(initialOrder);
+  const marks = JSON.parse((await storedReview(page))!)[e2eWatchlistOwner(storeKey)].NVDA.stories;
+  expect(Object.keys(marks).sort()).toEqual(["ev2_nvda_guidance", "ev2_nvda_supply"]);
+});

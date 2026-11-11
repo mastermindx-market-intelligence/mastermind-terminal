@@ -132,4 +132,87 @@ describe("Earnings repricing evidence: owner-preserving view", () => {
     expect(html).not.toContain("<button");
     expect(html).toContain('data-ci-repricing-status="SOURCE_NOT_BOUND"');
   });
+
+  it.each([
+    ["positive range", "3–5%"],
+    ["positive point", "3%"],
+    ["zero point", "0%"],
+    ["negative range", "-3–-1%"],
+    ["negative point", "-1%"],
+    ["zero-crossing range", "-2–2%"],
+    ["negative-to-zero range", "-2–0%"],
+    ["signed decimal range", "-0.5–0.5%"],
+    ["existing ASCII separator", "3-5%"],
+    ["negative ASCII separator", "-3--1%"],
+  ])("preserves source-backed %s guidance and its bilingual receipt button", (_name, value) => {
+    const guidance = item("guidance:revenue_yoy_pct:0", value);
+    const presented = source({ guidance: [guidance] });
+    const context = composeEarningsExpectationEvidence(presented);
+    const lane = context.lanes.find((row) => row.id === "guidance");
+    expect(lane?.status).toBe("SOURCE_BACKED");
+    expect(lane?.value).toEqual([value, value]);
+    expect(lane?.evidence).toBe(guidance);
+    expect(context.repricingInference).toBe("NOT_ESTABLISHED");
+    expect(context.historicalConsensusAdmitted).toBe(false);
+    expect(context.eventPriceReactionJoined).toBe(false);
+    expect(context.authority).toBe("CONTEXT_ONLY_NO_TRADING");
+    for (const zh of [false, true]) {
+      const html = renderToStaticMarkup(
+        <EarningsRepricingEvidence presented={presented} zh={zh}
+          onChooseEvidence={() => {}} />,
+      );
+      expect(html).toContain(value);
+      expect(html).toMatch(/<button\b[^>]*data-ci-repricing-lane="guidance"[^>]*>/);
+      expect(html).not.toContain(zh ? "暂无核验的数值区间" : "No verified numerical range");
+      expect(html).not.toMatch(/<button\b[^>]*data-ci-repricing-lane="(?:consensus|reaction)"[^>]*>/);
+    }
+  });
+
+  it("does not displace earlier negative guidance with a later positive item", () => {
+    const negative = item("guidance:revenue_yoy_pct:0", "-3–-1%");
+    const positive = item("guidance:gross_margin_pct:1", "40–42%");
+    const context = composeEarningsExpectationEvidence(source({
+      guidance: [negative, positive],
+    }));
+    const lane = context.lanes.find((row) => row.id === "guidance");
+    expect(lane?.evidence).toBe(negative);
+    expect(lane?.value).toEqual(["-3–-1%", "-3–-1%"]);
+  });
+
+  it.each([
+    "--3–-1%", "-3–%", "-3–-1%%", "-3–-1% commentary",
+    "decline -3–-1%", "-3..5–-1%", "NaN%", "Infinity%",
+    "FY2027", "No structured range", "$3–5", "+3–+5%", "−3–−1%",
+  ])("keeps malformed or non-producer guidance %s unbound", (value) => {
+    const presented = source({
+      guidance: [item("guidance:revenue_yoy_pct:0", value)],
+    });
+    const context = composeEarningsExpectationEvidence(presented);
+    const lane = context.lanes.find((row) => row.id === "guidance");
+    const html = renderToStaticMarkup(
+      <EarningsRepricingEvidence presented={presented} zh={false}
+        onChooseEvidence={() => {}} />,
+    );
+    expect(lane?.status).toBe("SOURCE_NOT_BOUND");
+    expect(lane?.evidence).toBeNull();
+    expect(lane?.value[0]).toBe("No verified numerical range");
+    expect(html).not.toMatch(/<button\b[^>]*data-ci-repricing-lane="guidance"[^>]*>/);
+  });
+
+  it.each(["address_only", "typed_absence"] as const)(
+    "does not admit signed guidance with a %s receipt", (receipt) => {
+      const presented = source({
+        guidance: [item("guidance:revenue_yoy_pct:0", "-3–-1%", receipt)],
+      });
+      const context = composeEarningsExpectationEvidence(presented);
+      const lane = context.lanes.find((row) => row.id === "guidance");
+      expect(lane?.status).toBe("SOURCE_NOT_BOUND");
+      expect(lane?.evidence).toBeNull();
+      const html = renderToStaticMarkup(
+        <EarningsRepricingEvidence presented={presented} zh={false}
+          onChooseEvidence={() => {}} />,
+      );
+      expect(html).not.toMatch(/<button\b[^>]*data-ci-repricing-lane="guidance"[^>]*>/);
+    },
+  );
 });

@@ -159,6 +159,18 @@ describe("dataCache × idbJsonStore — end-to-end read-back through a fake Inde
     expect(dc.peek(url)).toEqual([{ o: 1, h: 2, l: 3, c: 4 }]);
   });
 
+  it.each(["recorded", "legacy", "future"] as const)("keeps the exact OHLC observation clock on a %s disk hit", async kind => {
+    const { idb, dc } = await freshModules();
+    const received = Date.now();
+    const observed = kind === "legacy" ? undefined : received + (kind === "future" ? 60_000 : -20_000);
+    await idb.idbPut("/data/QQQ.json", { t: "QQQ", bars: [] }, received, observed);
+    const read = await dc.getOhlcView("QQQ");
+    expect(read.status).toBe("data");
+    if (read.status !== "data") throw new Error("expected persisted prices");
+    expect(dc.ohlcObservationCutoff("QQQ", read.data)).toBe(kind === "recorded" ? observed : null);
+    expect(dc.ohlcObservationCutoff("QQQ", { ...read.data })).toBeNull();
+  });
+
   it("seeds memory with the PERSISTED ts (not now): a stale IDB record serves stale + revalidates", async () => {
     const { idb, dc } = await freshModules();
     const url = "/data/STALESYM.json";

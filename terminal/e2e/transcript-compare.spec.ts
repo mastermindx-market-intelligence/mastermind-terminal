@@ -655,3 +655,158 @@ test.describe("E12 two-call transcript comparison", () => {
     }
   });
 });
+
+
+type DrawerClipboardProbe = {
+  mode: "reject" | "resolve" | "defer";
+  attempts: string[];
+  copied: string[];
+  pending: { resolve: () => void; reject: () => void }[];
+};
+
+async function stubDrawerClipboard(page: Page) {
+  await page.addInitScript(() => {
+    const probe: DrawerClipboardProbe = { mode: "reject", attempts: [], copied: [], pending: [] };
+    (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard = probe;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText(value: string) {
+          probe.attempts.push(value);
+          const success = () => { probe.copied.push(value); };
+          if (probe.mode === "reject") return Promise.reject(new Error("Synthetic clipboard failure"));
+          if (probe.mode === "resolve") { success(); return Promise.resolve(); }
+          return new Promise<void>((resolve, reject) => {
+            probe.pending.push({
+              resolve: () => { success(); resolve(); },
+              reject: () => reject(new Error("Synthetic delayed clipboard failure")),
+            });
+          });
+        },
+      },
+    });
+  });
+}
+
+async function openSourceForCopy(page: Page, zh = false) {
+  await openTranscripts(page);
+  const panel = await openCompare(page, zh ? "对比两次电话会" : "Compare two calls");
+  await panel.getByRole("textbox", { name: zh ? "话题" : "Topic", exact: true }).fill("data center demand");
+  if (isPhone(page)) await panel.getByRole("tablist").getByRole("tab").nth(1).click();
+  const source = panel.locator('article[data-call-id="2027Q1"][data-segment-index="2"]').getByRole("button");
+  await source.click();
+  const drawer = page.locator(".fin-tx-drawer");
+  await expect(drawer).toBeVisible();
+  await expect(drawer.locator('.fin-tx-seg[data-segment="3"]')).toBeFocused();
+  return { drawer, source };
+}
+
+test.describe("Transcript drawer copy feedback", () => {
+  test.beforeEach(async ({ page }) => {
+    await routeArchive(page, newArchive());
+    await stubDrawerClipboard(page);
+  });
+
+  for (const lang of ["en", "zh"] as const) {
+    test(`failed copy offers a manual retry in ${lang}`, async ({ page }, testInfo) => {
+      const zh = lang === "zh";
+      const theme = process.env.MMX_SHARED_SHELL === "1" && zh ? "light" : "dark";
+      if (testInfo.project.name === "mobile") await page.setViewportSize({ width: 320, height: 568 });
+      await page.addInitScript(({ lang, theme }) => {
+        localStorage.setItem("mm.lang", lang);
+        localStorage.setItem("mmx.shell.theme", theme);
+      }, { lang, theme });
+      const { drawer, source } = await openSourceForCopy(page, zh);
+      await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+      const link = drawer.getByRole("button", { name: zh ? "复制链接" : "Copy link", exact: true });
+      const status = drawer.locator(".fin-tx-toolbar").getByRole("status");
+      const failed = zh ? "复制失败，请再次点击复制按钮。" : "Couldn’t copy. Try the copy button again.";
+      await link.focus();
+      await page.keyboard.press("Enter");
+      await page.screenshot({ path: testInfo.outputPath(`link-copy-failed-${lang}.png`), animations: "disabled" });
+      await expect(status).toHaveText(failed);
+      await expect(status).toHaveAttribute("aria-live", "polite");
+      await expect(status).toHaveAttribute("aria-atomic", "true");
+      await expect(link).toBeFocused();
+      const expectedLink = new URL(page.url());
+      expectedLink.searchParams.set("pane", "transcripts");
+      expectedLink.searchParams.set("page", "transcripts");
+      expectedLink.searchParams.set("tx", "2027Q1");
+      await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.mode = "resolve"; });
+      await page.keyboard.press("Enter");
+      await expect(status).toHaveText("");
+      await expect(drawer.getByRole("button", { name: zh ? "已复制" : "Copied", exact: true })).toBeFocused();
+      expect(await page.evaluate(() => (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.copied)).toEqual([expectedLink.toString()]);
+
+      const segment = drawer.getByRole("button", { name: zh ? "复制第 3 段" : "Copy segment 3", exact: true });
+      await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.mode = "reject"; });
+      await segment.focus();
+      await page.keyboard.press("Space");
+      await expect(status).toHaveText(failed);
+      await expect(segment).toBeFocused();
+      await expect(segment).toHaveText("⧉");
+      await page.screenshot({ path: testInfo.outputPath(`segment-copy-failed-${lang}.png`), animations: "disabled" });
+      const statusBox = (await status.boundingBox())!;
+      expect(statusBox.x).toBeGreaterThanOrEqual(0);
+      expect(statusBox.x + statusBox.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+      expect(statusBox.y + statusBox.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+      expect(await status.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.mode = "resolve"; });
+      await page.keyboard.press("Enter");
+      await expect(status).toHaveText("");
+      await expect(segment).toHaveText("✓");
+      await expect(segment).toBeFocused();
+      const text = call2027Q1().segments[2];
+      expect(await page.evaluate(() => (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.copied)).toEqual([
+        expectedLink.toString(), `${text.speaker} (${text.role}): ${text.text}`,
+      ]);
+      await expectNoDocumentOverflow(page);
+      await page.keyboard.press("Escape");
+      await expect(drawer).toHaveCount(0);
+      await expect(source).toBeFocused();
+    });
+  }
+
+  test("only the latest copy attempt owns feedback and its full success lifetime", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "one timing proof covers this viewport-independent async behavior");
+    const { drawer, source } = await openSourceForCopy(page);
+    const link = drawer.locator(".fin-tx-source-actions button");
+    const segment = drawer.getByRole("button", { name: "Copy segment 3", exact: true });
+    const status = drawer.locator(".fin-tx-toolbar").getByRole("status");
+    await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.mode = "defer"; });
+    await link.click();
+    await segment.click();
+    await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.pending[1].resolve(); });
+    await expect(segment).toHaveText("✓");
+    await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.pending[0].reject(); });
+    await expect(segment).toHaveText("✓");
+    await expect(status).toHaveText("");
+
+    await page.clock.install();
+    await page.clock.pauseAt(new Date(Date.now() + 100));
+    await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.mode = "resolve"; });
+    await link.click();
+    await expect(link).toHaveText("Copied");
+    await page.clock.runFor(1000);
+    await link.click();
+    await page.clock.runFor(700);
+    await expect(link).toHaveText("Copied");
+    await page.clock.runFor(899);
+    await expect(link).toHaveText("Copied");
+    await page.clock.runFor(1);
+    await expect(link).toHaveText("Copy link");
+    await page.clock.resume();
+
+    await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.mode = "defer"; });
+    await link.click();
+    await page.keyboard.press("Escape");
+    await expect(drawer).toHaveCount(0);
+    await expect(source).toBeFocused();
+    await source.click();
+    await expect(drawer.locator('.fin-tx-seg[data-segment="3"]')).toBeFocused();
+    await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.pending[2].reject(); });
+    await expect(drawer.locator(".fin-tx-toolbar").getByRole("status")).toHaveText("");
+    await expect(drawer.getByRole("button", { name: "Copy link", exact: true })).toBeVisible();
+  });
+});

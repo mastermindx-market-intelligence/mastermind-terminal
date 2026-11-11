@@ -1,0 +1,11 @@
+{
+  "schema": "terminal_pr1397_protected_composition.v1",
+  "head": "e5a11c73e05809ea84c84464ce5a14f9b4f483d4",
+  "protectedMaster": "d15741d452403594a4ddb540a97b9a981c2a62ca",
+  "startedAt": "2026-11-10T06:52:10.802164+00:00",
+  "state": "MERGED",
+  "mergeExit": 0,
+  "mergeStdout": "Auto-merging terminal/components/fin/StatisticsPage.tsx\nAuto-merging terminal/lib/__tests__/finStatementMath.test.ts\n",
+  "mergeStderr": "Automatic merge went well; stopped before committing as requested\n",
+  "conflicts": []
+}

@@ -188,6 +188,10 @@ function EmptyState({ title, why, action }: { title: string; why: string; action
   );
 }
 
+// Bound the complete browser read, including a stalled response body. Server
+// upstream deadlines alone cannot settle a disconnected client transport.
+const COMPANY_INTELLIGENCE_READ_DEADLINE_MS = 15_000;
+
 export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenceOpenChange }: CompanyIntelligencePageProps) {
   const { lang } = useLang();
   const zh = lang === "zh";
@@ -213,19 +217,33 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     setLoad({ sym: ticker, nonce: retryNonce, v1: undefined, v2: undefined });
     const v1Fail: CompanyIntelligenceResult = { ok: false, state: "error", error: { code: "upstream_unavailable", message: "Company intelligence request failed", retryable: true } };
     const v2Fail: EventWorkspaceResult = { ok: false, state: "error", available: false, error: { code: "upstream_unavailable", message: "Event workspace request failed", retryable: true } };
+    let remaining = 2;
+    const deadline = window.setTimeout(() => {
+      if (controller.signal.aborted) return;
+      controller.abort();
+      setLoad(current => current.sym === ticker && current.nonce === retryNonce
+        ? { ...current, v1: current.v1 ?? v1Fail, v2: current.v2 ?? v2Fail }
+        : current);
+    }, COMPANY_INTELLIGENCE_READ_DEADLINE_MS);
+    const settled = () => {
+      remaining -= 1;
+      if (remaining === 0) window.clearTimeout(deadline);
+    };
     void getCurrentEventWorkspace(ticker, { signal: controller.signal, retryNonce })
       .catch(() => v2Fail)
       .then((v2) => {
         if (controller.signal.aborted) return;
+        settled();
         setLoad((current) => current.sym === ticker && current.nonce === retryNonce ? { ...current, v2 } : current);
       });
     void getCompanyIntelligence(ticker, { signal: controller.signal, retryNonce })
       .catch(() => v1Fail)
       .then((v1) => {
         if (controller.signal.aborted) return;
+        settled();
         setLoad((current) => current.sym === ticker && current.nonce === retryNonce ? { ...current, v1 } : current);
       });
-    return () => controller.abort();
+    return () => { window.clearTimeout(deadline); controller.abort(); };
   }, [retryNonce, ticker]);
 
   useEffect(() => {
@@ -326,7 +344,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
           title={pick(zh, "Current event workspace unavailable", "当期事件工作区暂不可用")}
           why={v2.error.message}
           action={v2.error.retryable ? (
-            <button className="btn btn-primary" onClick={() => setRetryNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button>
+            <button className="btn btn-primary" onClick={() => setRetryNonce(value => value + 1)}>{pick(zh, "Retry", "重试")}</button>
           ) : undefined}
         />
       </div>
@@ -351,7 +369,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
           title={pick(zh, "Company intelligence unavailable", "公司情报暂不可用")}
           why={message}
           action={(result?.ok === false ? result.error.retryable : true) ? (
-            <button className="btn btn-primary" onClick={() => setRetryNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button>
+            <button className="btn btn-primary" onClick={() => setRetryNonce(value => value + 1)}>{pick(zh, "Retry", "重试")}</button>
           ) : undefined}
         />
       </div>

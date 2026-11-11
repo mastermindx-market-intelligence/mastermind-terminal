@@ -1,0 +1,8 @@
+{
+  "changedSource": [
+    "terminal/e2e/drawing-save-concurrency.spec.ts"
+  ],
+  "exit": 0,
+  "runtimeChanged": false,
+  "state": "PASSED"
+}

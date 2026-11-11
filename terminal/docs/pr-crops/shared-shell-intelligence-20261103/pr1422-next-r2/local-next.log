@@ -1,0 +1,233 @@
+▲ Next.js 16.4.6 (Turbopack)
+- Local:         http://127.0.0.1:34224
+- Network:       http://127.0.0.1:34224
+✓ Ready in 1070ms
+✓ Running next.config.ts took 180ms
+
+ GET /api/shared-shell/status 200 in 220ms (next.js: 168ms, application-code: 52ms)
+○ Compiling /intelligence ...
+ GET /intelligence 200 in 5.7s (next.js: 4.9s, proxy.ts: 178ms, application-code: 593ms)
+ GET /prophet 200 in 1241ms (next.js: 1019ms, proxy.ts: 23ms, application-code: 200ms)
+ GET /sectors 200 in 1094ms (next.js: 948ms, proxy.ts: 14ms, application-code: 132ms)
+ GET /intelligence 200 in 168ms (next.js: 33ms, proxy.ts: 11ms, application-code: 124ms)
+✓ Compiled in 62ms
+ GET /intelligence 200 in 314ms (next.js: 39ms, proxy.ts: 104ms, application-code: 172ms)
+[analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+ POST /api/collect 204 in 175ms (next.js: 75ms, application-code: 100ms)
+ POST /api/collect 204 in 62ms (next.js: 5ms, application-code: 57ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 279ms (next.js: 28ms, proxy.ts: 19ms, application-code: 232ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 208ms (next.js: 13ms, proxy.ts: 17ms, application-code: 178ms)
+ POST /api/collect 204 in 27ms (next.js: 2ms, application-code: 25ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 253ms (next.js: 10ms, proxy.ts: 15ms, application-code: 229ms)
+ POST /api/collect 204 in 37ms (next.js: 3ms, application-code: 34ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 201ms (next.js: 10ms, proxy.ts: 17ms, application-code: 174ms)
+ POST /api/collect 204 in 15ms (next.js: 0.9ms, application-code: 14ms)
+ POST /api/collect 204 in 13ms (next.js: 0.4ms, application-code: 12ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 480ms (next.js: 165ms, proxy.ts: 10ms, application-code: 305ms)
+ POST /api/collect 204 in 66ms (next.js: 0.7ms, application-code: 66ms)
+ POST /api/collect 204 in 55ms (next.js: 5ms, application-code: 50ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 195ms (next.js: 13ms, proxy.ts: 14ms, application-code: 167ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 250ms (next.js: 13ms, proxy.ts: 18ms, application-code: 219ms)
+ POST /api/collect 204 in 31ms (next.js: 1.4ms, application-code: 30ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 233ms (next.js: 11ms, proxy.ts: 14ms, application-code: 208ms)
+ POST /api/collect 204 in 33ms (next.js: 4ms, application-code: 29ms)
+ POST /api/collect 204 in 27ms (next.js: 3ms, application-code: 24ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 69ms (next.js: 3ms, proxy.ts: 6ms, application-code: 60ms)
+ POST /api/collect 204 in 8ms (next.js: 0.5ms, application-code: 8ms)
+ POST /api/collect 204 in 8ms (next.js: 0.4ms, application-code: 7ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 127ms (next.js: 6ms, proxy.ts: 8ms, application-code: 113ms)
+ POST /api/collect 204 in 8ms (next.js: 1.1ms, application-code: 7ms)
+ POST /api/collect 204 in 9ms (next.js: 0.4ms, application-code: 9ms)
+✓ Compiled in 3ms
+ GET /intelligence 200 in 86ms (next.js: 6ms, proxy.ts: 8ms, application-code: 72ms)
+ POST /api/collect 204 in 7ms (next.js: 1.2ms, application-code: 6ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 183ms (next.js: 26ms, proxy.ts: 17ms, application-code: 140ms)
+ POST /api/collect 204 in 12ms (next.js: 0.7ms, application-code: 12ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 84ms (next.js: 5ms, proxy.ts: 5ms, application-code: 73ms)
+ POST /api/collect 204 in 12ms (next.js: 1.8ms, application-code: 10ms)
+ POST /api/collect 204 in 9ms (next.js: 1.4ms, application-code: 8ms)
+✓ Compiled in 10ms
+ GET /intelligence 200 in 316ms (next.js: 15ms, proxy.ts: 20ms, application-code: 281ms)
+ POST /api/collect 204 in 17ms (next.js: 6ms, application-code: 11ms)
+✓ Compiled in 6ms
+ GET /intelligence 200 in 183ms (next.js: 12ms, proxy.ts: 11ms, application-code: 160ms)
+ POST /api/collect 204 in 11ms (next.js: 1.4ms, application-code: 10ms)
+✓ Compiled in 3ms
+ GET /intelligence 200 in 212ms (next.js: 13ms, proxy.ts: 33ms, application-code: 166ms)
+ POST /api/collect 204 in 19ms (next.js: 4ms, application-code: 14ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 224ms (next.js: 26ms, proxy.ts: 32ms, application-code: 166ms)
+ POST /api/collect 204 in 21ms (next.js: 2ms, application-code: 18ms)
+✓ Compiled in 7ms
+ GET /intelligence 200 in 335ms (next.js: 11ms, proxy.ts: 16ms, application-code: 307ms)
+ POST /api/collect 204 in 100ms (next.js: 3ms, application-code: 98ms)
+ POST /api/collect 204 in 94ms (next.js: 21ms, application-code: 73ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 185ms (next.js: 10ms, proxy.ts: 11ms, application-code: 165ms)
+ POST /api/collect 204 in 17ms (next.js: 1.2ms, application-code: 15ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 188ms (next.js: 13ms, proxy.ts: 14ms, application-code: 161ms)
+ POST /api/collect 204 in 13ms (next.js: 1.5ms, application-code: 12ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 152ms (next.js: 17ms, proxy.ts: 13ms, application-code: 122ms)
+ POST /api/collect 204 in 16ms (next.js: 0.6ms, application-code: 16ms)
+ POST /api/collect 204 in 15ms (next.js: 1.0ms, application-code: 14ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 178ms (next.js: 10ms, proxy.ts: 10ms, application-code: 157ms)
+ POST /api/collect 204 in 12ms (next.js: 1.1ms, application-code: 11ms)
+ POST /api/collect 204 in 9ms (next.js: 1.2ms, application-code: 8ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 143ms (next.js: 8ms, proxy.ts: 11ms, application-code: 124ms)
+ POST /api/collect 204 in 23ms (next.js: 1.3ms, application-code: 21ms)
+ POST /api/collect 204 in 18ms (next.js: 1.7ms, application-code: 16ms)
+✓ Compiled in 3ms
+ GET /intelligence 200 in 106ms (next.js: 6ms, proxy.ts: 5ms, application-code: 95ms)
+ POST /api/collect 204 in 15ms (next.js: 2ms, application-code: 13ms)
+✓ Compiled in 7ms
+ GET /intelligence 200 in 105ms (next.js: 8ms, proxy.ts: 5ms, application-code: 92ms)
+ POST /api/collect 204 in 13ms (next.js: 1.0ms, application-code: 12ms)
+ POST /api/collect 204 in 11ms (next.js: 0.5ms, application-code: 10ms)
+✓ Compiled in 3ms
+ GET /intelligence 200 in 138ms (next.js: 16ms, proxy.ts: 14ms, application-code: 108ms)
+ POST /api/collect 204 in 12ms (next.js: 0.8ms, application-code: 11ms)
+ POST /api/collect 204 in 10ms (next.js: 0.9ms, application-code: 10ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 143ms (next.js: 8ms, proxy.ts: 9ms, application-code: 126ms)
+ POST /api/collect 204 in 8ms (next.js: 0.6ms, application-code: 7ms)
+✓ Compiled in 1ms
+ GET /intelligence 200 in 191ms (next.js: 20ms, proxy.ts: 24ms, application-code: 148ms)
+ POST /api/collect 204 in 15ms (next.js: 3ms, application-code: 12ms)
+✓ Compiled in 1ms
+ GET /intelligence 200 in 138ms (next.js: 26ms, proxy.ts: 21ms, application-code: 92ms)
+ POST /api/collect 204 in 21ms (next.js: 4ms, application-code: 17ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 176ms (next.js: 35ms, proxy.ts: 7ms, application-code: 134ms)
+ POST /api/collect 204 in 30ms (next.js: 1.3ms, application-code: 28ms)
+ POST /api/collect 204 in 22ms (next.js: 1.2ms, application-code: 21ms)
+✓ Compiled in 11ms
+ GET /intelligence 200 in 172ms (next.js: 20ms, proxy.ts: 15ms, application-code: 137ms)
+ POST /api/collect 204 in 17ms (next.js: 1.1ms, application-code: 16ms)
+ POST /api/collect 204 in 43ms (next.js: 1.0ms, application-code: 42ms)
+✓ Compiled in 3ms
+ GET /intelligence 200 in 237ms (next.js: 22ms, proxy.ts: 17ms, application-code: 198ms)
+ POST /api/collect 204 in 20ms (next.js: 1.2ms, application-code: 18ms)
+✓ Compiled in 3ms
+ GET /intelligence 200 in 147ms (next.js: 7ms, proxy.ts: 12ms, application-code: 127ms)
+ POST /api/collect 204 in 14ms (next.js: 1.9ms, application-code: 12ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 175ms (next.js: 23ms, proxy.ts: 11ms, application-code: 141ms)
+ POST /api/collect 204 in 17ms (next.js: 0.7ms, application-code: 16ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 204ms (next.js: 19ms, proxy.ts: 15ms, application-code: 169ms)
+ POST /api/collect 204 in 33ms (next.js: 2ms, application-code: 31ms)
+ POST /api/collect 204 in 32ms (next.js: 3ms, application-code: 29ms)
+✓ Compiled in 6ms
+ GET /intelligence 200 in 151ms (next.js: 9ms, proxy.ts: 10ms, application-code: 132ms)
+ POST /api/collect 204 in 9ms (next.js: 0.6ms, application-code: 9ms)
+✓ Compiled in 9ms
+ GET /intelligence 200 in 181ms (next.js: 12ms, proxy.ts: 12ms, application-code: 157ms)
+✓ Compiled in 2ms
+ GET /intelligence 200 in 328ms (next.js: 14ms, proxy.ts: 208ms, application-code: 106ms)
+ POST /api/collect 204 in 23ms (next.js: 4ms, application-code: 18ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 232ms (next.js: 16ms, proxy.ts: 14ms, application-code: 201ms)
+ POST /api/collect 204 in 13ms (next.js: 1.0ms, application-code: 12ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 189ms (next.js: 10ms, proxy.ts: 6ms, application-code: 172ms)
+ POST /api/collect 204 in 18ms (next.js: 0.7ms, application-code: 18ms)
+ POST /api/collect 204 in 15ms (next.js: 0.7ms, application-code: 15ms)
+✓ Compiled in 1ms
+ GET /intelligence 200 in 176ms (next.js: 21ms, proxy.ts: 20ms, application-code: 136ms)
+ POST /api/collect 204 in 20ms (next.js: 4ms, application-code: 16ms)
+ POST /api/collect 204 in 18ms (next.js: 1.2ms, application-code: 16ms)
+✓ Compiled in 7ms
+ GET /intelligence 200 in 147ms (next.js: 12ms, proxy.ts: 8ms, application-code: 127ms)
+ POST /api/collect 204 in 17ms (next.js: 4ms, application-code: 13ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 129ms (next.js: 6ms, proxy.ts: 8ms, application-code: 115ms)
+ POST /api/collect 204 in 13ms (next.js: 1.8ms, application-code: 11ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 121ms (next.js: 6ms, proxy.ts: 14ms, application-code: 101ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 155ms (next.js: 18ms, proxy.ts: 13ms, application-code: 125ms)
+ POST /api/collect 204 in 13ms (next.js: 0.7ms, application-code: 12ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 144ms (next.js: 6ms, proxy.ts: 8ms, application-code: 130ms)
+ POST /api/collect 204 in 17ms (next.js: 0.8ms, application-code: 16ms)
+ POST /api/collect 204 in 12ms (next.js: 0.9ms, application-code: 11ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 137ms (next.js: 6ms, proxy.ts: 7ms, application-code: 124ms)
+ POST /api/collect 204 in 26ms (next.js: 1.5ms, application-code: 24ms)
+✓ Compiled in 24ms
+ GET /intelligence 200 in 233ms (next.js: 30ms, proxy.ts: 20ms, application-code: 183ms)
+ POST /api/collect 204 in 34ms (next.js: 4ms, application-code: 31ms)
+ POST /api/collect 204 in 30ms (next.js: 4ms, application-code: 27ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 122ms (next.js: 4ms, proxy.ts: 8ms, application-code: 110ms)
+✓ Compiled in 10ms
+ GET /intelligence 200 in 150ms (next.js: 15ms, proxy.ts: 22ms, application-code: 112ms)
+ POST /api/collect 204 in 11ms (next.js: 0.6ms, application-code: 10ms)
+✓ Compiled in 6ms
+ GET /intelligence 200 in 166ms (next.js: 8ms, proxy.ts: 10ms, application-code: 147ms)
+✓ Compiled in 9ms
+ GET /intelligence 200 in 170ms (next.js: 14ms, proxy.ts: 12ms, application-code: 145ms)
+ POST /api/collect 204 in 10ms (next.js: 0.8ms, application-code: 9ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 171ms (next.js: 14ms, proxy.ts: 13ms, application-code: 143ms)
+✓ Compiled in 3ms
+ GET /intelligence 200 in 195ms (next.js: 10ms, proxy.ts: 16ms, application-code: 169ms)
+ POST /api/collect 204 in 24ms (next.js: 1.9ms, application-code: 22ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 127ms (next.js: 6ms, proxy.ts: 8ms, application-code: 113ms)
+✓ Compiled in 14ms
+ GET /intelligence 200 in 110ms (next.js: 10ms, proxy.ts: 9ms, application-code: 92ms)
+ POST /api/collect 204 in 24ms (next.js: 1.7ms, application-code: 23ms)
+ POST /api/collect 204 in 39ms (next.js: 1.4ms, application-code: 38ms)
+✓ Compiled in 1ms
+ GET /intelligence 200 in 203ms (next.js: 45ms, proxy.ts: 31ms, application-code: 127ms)
+ POST /api/collect 204 in 27ms (next.js: 0.6ms, application-code: 26ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 110ms (next.js: 5ms, proxy.ts: 5ms, application-code: 100ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 137ms (next.js: 6ms, proxy.ts: 8ms, application-code: 123ms)
+ POST /api/collect 204 in 10ms (next.js: 1.8ms, application-code: 8ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 204ms (next.js: 5ms, proxy.ts: 6ms, application-code: 194ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 160ms (next.js: 8ms, proxy.ts: 11ms, application-code: 141ms)
+ POST /api/collect 204 in 14ms (next.js: 0.7ms, application-code: 13ms)
+ POST /api/collect 204 in 15ms (next.js: 1.5ms, application-code: 13ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 139ms (next.js: 4ms, proxy.ts: 7ms, application-code: 128ms)
+ POST /api/collect 204 in 18ms (next.js: 1.7ms, application-code: 16ms)
+✓ Compiled in 6ms
+ GET /intelligence 200 in 103ms (next.js: 6ms, proxy.ts: 9ms, application-code: 88ms)
+ POST /api/collect 204 in 21ms (next.js: 3ms, application-code: 19ms)
+✓ Compiled in 6ms
+ GET /intelligence 200 in 147ms (next.js: 8ms, proxy.ts: 10ms, application-code: 129ms)
+ POST /api/collect 204 in 27ms (next.js: 0.8ms, application-code: 26ms)
+ POST /api/collect 204 in 25ms (next.js: 1.1ms, application-code: 24ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 130ms (next.js: 7ms, proxy.ts: 7ms, application-code: 116ms)
+ POST /api/collect 204 in 44ms (next.js: 5ms, application-code: 38ms)
+ POST /api/collect 204 in 32ms (next.js: 1.6ms, application-code: 30ms)
+✓ Compiled in 4ms
+ GET /intelligence 200 in 145ms (next.js: 6ms, proxy.ts: 5ms, application-code: 134ms)
+ POST /api/collect 204 in 23ms (next.js: 1.2ms, application-code: 22ms)
+ POST /api/collect 204 in 27ms (next.js: 1.1ms, application-code: 25ms)
+✓ Compiled in 5ms
+ GET /intelligence 200 in 137ms (next.js: 6ms, proxy.ts: 8ms, application-code: 123ms)
+ POST /api/collect 204 in 9ms (next.js: 1.7ms, application-code: 8ms)
+[?25h

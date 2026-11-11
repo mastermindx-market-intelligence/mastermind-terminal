@@ -1,5 +1,5 @@
 "use client";
-import { exposureOriginReturnHref, exposureOriginStep, type ExposureOrigin } from "@/lib/exposureOrigin";
+import { exposureOriginForStep, exposureOriginReturnHref, exposureOriginStep, type ExposureOrigin } from "@/lib/exposureOrigin";
 import { exposureOriginT, fill } from "./exposureOriginStrings";
 import type { ExposureOriginRoster } from "./useExposureOriginRoster";
 import styles from "./ExposureOriginStrip.module.css";
@@ -16,8 +16,10 @@ export interface ExposureOriginStripProps {
 export default function ExposureOriginStrip(props: ExposureOriginStripProps) {
   const { origin, lang, roster } = props;
   const t = exposureOriginT(lang);
-  const prev = roster.state === "exact" && roster.tickers ? exposureOriginStep(origin, roster.tickers, -1) : null;
-  const next = roster.state === "exact" && roster.tickers ? exposureOriginStep(origin, roster.tickers, 1) : null;
+  const proposedPrev = roster.state === "exact" && roster.tickers ? exposureOriginStep(origin, roster.tickers, -1) : null;
+  const proposedNext = roster.state === "exact" && roster.tickers ? exposureOriginStep(origin, roster.tickers, 1) : null;
+  const prev = proposedPrev && exposureOriginForStep(origin, proposedPrev) ? proposedPrev : null;
+  const next = proposedNext && exposureOriginForStep(origin, proposedNext) ? proposedNext : null;
   return (
     <nav className={styles.strip} aria-label={t("originNavLabel")} data-testid="exposure-origin-strip" data-state={roster.state}>
       <span className={styles.eyebrow}>{t("fromSectorCentral")}</span>

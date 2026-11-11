@@ -1,0 +1,29 @@
+[dev] - Network:       http://127.0.0.1:3796
+✓ Ready in 749ms
+capture GuidePanel-1440.png … [dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+ok
+capture LevelsView-1440.png … ok
+capture LevelsLearn-1440.png … ok
+capture ChartConductor-1440.png … ok
+capture GuidePanel-1440-zh.png … ok
+capture LevelsView-1440-zh.png … ok
+capture LevelsLearn-1440-zh.png … ok
+capture ChartConductor-1440-zh.png … ok
+capture GuidePanel-820.png … ok
+capture LevelsView-820.png … ok
+capture LevelsLearn-820.png … ok
+capture ChartConductor-820.png … ok
+capture GuidePanel-820-zh.png … ok
+capture LevelsView-820-zh.png … ok
+capture LevelsLearn-820-zh.png … ok
+capture ChartConductor-820-zh.png … ok
+capture GuidePanel-390.png … ok
+capture LevelsView-390.png … ok
+capture LevelsLearn-390.png … ok
+capture ChartConductor-390.png … ok
+capture GuidePanel-390-zh.png … ok
+capture LevelsView-390-zh.png … ok
+capture LevelsLearn-390-zh.png … ok
+capture ChartConductor-390-zh.png … ok
+capturedAtHead 6cd355cfb9ea39de310bf32f63432c33ddac865b
+wrote 24 crops + EVIDENCE.yml to /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1373-lifecycle-validation-20261109/terminal/docs/pr-crops/b-pl-6-batch-2

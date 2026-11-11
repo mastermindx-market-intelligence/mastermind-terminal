@@ -1,0 +1,66 @@
+[warmup] /terminal?symbol=NVDA → 200 in 429ms
+[warmup] /options → 200 in 175ms
+[warmup] /portfolio → 200 in 825ms
+[warmup] /alerts → 200 in 1163ms
+[warmup] /analysis → 200 in 2690ms
+[warmup] /discover → 200 in 1599ms
+[warmup] /admin → 200 in 729ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 821ms
+[warmup] /login → 200 in 366ms
+[warmup] /reset-password → 200 in 4412ms
+[warmup] /api/me → 200 in 1177ms
+[warmup] /api/watchlist → 200 in 972ms
+[warmup] /api/layouts → 200 in 643ms
+[warmup] /api/watchlist/annotations → 409 in 1019ms
+[warmup] /api/quote?view=regular&syms=NVDA → 200 in 830ms
+[warmup] /api/drawings?symbol=NVDA → 200 in 857ms
+[warmup] /api/scripts/list → 200 in 668ms
+[warmup] /api/study-templates → 200 in 746ms
+[warmup] /api/ext-quote?syms=NVDA → 503 in 582ms
+[warmup] /api/flow?f=gexstate%3ANVDA → 200 in 1200ms
+[warmup] /api/brain/me → 200 in 2526ms
+[warmup] /api/brain/chart/state → 404 in 14ms
+[warmup] /api/collect → 405 in 918ms
+[warmup] /data/NVDA.opts.json → 404 in 880ms
+[warmup] 24 routes compiled in 26s
+
+Running 1 test using 1 worker
+
+  ✘  1 [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (9.5s)
+
+
+  1) [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 4
+    Received:    -28.198085937499286
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      453 |         const rows = await exposureHeaderClearance(page);
+      454 |         return rows.some(row => row.strike === 756) ? Math.min(...rows.map(row => row.gap)) : Number.NEGATIVE_INFINITY;
+    > 455 |       }).toBeGreaterThanOrEqual(4);
+          |          ^
+      456 |     } finally {
+      457 |       await info.attach("exposure-header-clearance-initial", {body:JSON.stringify(
+      458 |         await exposureHeaderClearance(page),null,2),contentType:"application/json"});
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts:455:10
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .next/options-chart-framing-original-baseline-r4-v2/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .next/options-chart-framing-original-baseline-r4-v2/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    .next/options-chart-framing-original-baseline-r4-v2/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace .next/options-chart-framing-original-baseline-r4-v2/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return 

@@ -1,0 +1,90 @@
+{
+  "operation": "shared-shell-polish-20261109-astra-01",
+  "recorded_at": "2026-11-09T11:48:48.044060+00:00",
+  "previous_candidate": "a5a7c9ccdeb1efa928ca6f79083dbb564c607799",
+  "scope": "Incremental status-revalidation repair on original PR #1384; local fixtures and real Next parent/browser integration, not beta deployment proof",
+  "before": {
+    "failed": 4,
+    "component_sha256": "344c0c449474b3bb1cb217fc6f5983968ed0e2f553a3921b9b146cdf6b9cad64",
+    "log_sha256": "c5b7dd6ba5c81b0c1b833c84e8c05f0dcb5bf00f685880a529a3b79ecebcfd8d"
+  },
+  "units": {
+    "passed": 118,
+    "failed": 0,
+    "files": 7,
+    "node_options": "--no-experimental-webstorage",
+    "log_sha256": "afa6347292f446c4e99f0a7d2746cfd186432c56232e5f1a48336f7cf18ee27f"
+  },
+  "browser": {
+    "passed": 24,
+    "failed": 0,
+    "intentional_viewport_skips": 6,
+    "retries": 0,
+    "projects": [
+      "desktop",
+      "tablet",
+      "mobile"
+    ],
+    "port": 3196,
+    "log_sha256": "ebd9b10ed1b1803bc5f7fa5ce33e0772935caa23754e8c47f27ab7f559f1d132",
+    "controlled_surface": "Cross-origin child fixture; real Next layout, frame host and runtime admission"
+  },
+  "typecheck": {
+    "exit": 0,
+    "command": "NODE_OPTIONS=--no-experimental-webstorage npx next typegen && NODE_OPTIONS=--no-experimental-webstorage npx tsc --noEmit",
+    "log_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+  },
+  "lint": {
+    "component": "unchanged exact-candidate baseline: 2 set-state-in-effect errors and 1 exhaustive-deps warning",
+    "changed_tests": "0 errors and 0 warnings; strict component lint is not green"
+  },
+  "images_inspected": "All six image bytes visually inspected as the viewport contact sheet; recovered content is a controlled test child",
+  "self_review": "SELF_REVIEWED; no non-author approval claimed",
+  "files": [
+    {
+      "path": "terminal/components/chrome/shared-shell/LegacyPageHost.tsx",
+      "bytes": 22760,
+      "sha256": "b5f7b868b2b57adcbdeff4c527b44fd641d40e14150063a53eacab903a626814"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellNavigationCommit.test.tsx",
+      "bytes": 35077,
+      "sha256": "d8aed8b691a396a66158c9097ecb029fe1c04e99ea3a274ce10a27ba2e275dd0"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-refinement.spec.ts",
+      "bytes": 27380,
+      "sha256": "4690f61b00419b604a7a2db49ed7a690a22cb17696085f4bc221748f823a4c1f"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/status-revalidation/desktop-status-unavailable-retry.png",
+      "bytes": 56825,
+      "sha256": "f9301560e8891cc55b32db7bb4279423d9246a805fd477b042e4a7f2136cbb5f"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/status-revalidation/desktop-status-workspace-recovered.png",
+      "bytes": 43923,
+      "sha256": "51bbd743b377be8903d4ec3a0f107867843422de013438a9830f6f93fec126fd"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/status-revalidation/mobile-status-unavailable-retry.png",
+      "bytes": 20641,
+      "sha256": "b7481ca75cb0fc0f8a64e7942c9dc005d2018d621a1591eed82443b437aa8211"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/status-revalidation/mobile-status-workspace-recovered.png",
+      "bytes": 8660,
+      "sha256": "b1a7224bab5f1569d062f47a657103d3e2ff4ae824c2ab4bc94f66e49944bbb8"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/status-revalidation/tablet-status-unavailable-retry.png",
+      "bytes": 26022,
+      "sha256": "98779946ed8006b1b9faa59fc98aae4548aa298ef494d91dc2d848cfe2c03e13"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/status-revalidation/tablet-status-workspace-recovered.png",
+      "bytes": 13038,
+      "sha256": "dee96391464f332dd890450c1d32912d136fb7f057f5b74c68a749b2dffaa7a0"
+    }
+  ]
+}

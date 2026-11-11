@@ -3,6 +3,15 @@ import path from "path";
 
 export default defineConfig({
   test: {
+    // Fixture-only opt-in for the Investigation API admission gate
+    // (lib/investigationApiAdmission.ts): the suites below drive the real route
+    // handlers, which need the exact literal "open" to reach their existing
+    // paths, and the closed-mode assertions stub the variable back over this
+    // default. Production never receives this value — the unset default there
+    // stays closed, and the gate module itself has no test bypass.
+    env: {
+      INVESTIGATION_API_ADMISSION: "open",
+    },
     // Only include files using the vitest describe/it API.
     // The .mjs files in components/__tests__/ and tests/ use a custom console runner
     // and are not vitest suites — exclude them to avoid "no test suite found" failures.

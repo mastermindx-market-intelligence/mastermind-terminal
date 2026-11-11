@@ -1,0 +1,47 @@
+{
+  "task": "P12.T21.S2",
+  "base": "3eb42cc4c145bc38e389fcccac737b45dc9ab1ad",
+  "root": "01a15e6c-42f8-7941-ac2b-296021932fbb",
+  "author": "01a15e7f-588d-7ef0-b99f-91cad4c24c5e",
+  "scope": "local source and controlled component fixture only; pending root review",
+  "source": {
+    "terminal/app/error.tsx": {
+      "sha256": "864fcba811891cd100a3b54d95009776db9b01149eff3f787aa14055100dcfdc",
+      "git_blob": "514de9068b379f2d9441eea04bc51de2c600c1b9"
+    },
+    "terminal/app/error-return.module.css": {
+      "sha256": "8d28516c1237812020b4838b86dfe6e3ca6ad707696bceeefec343345552e19d",
+      "git_blob": "8566df086c08d0eeb4330e1311caf8a09f65ba1f"
+    },
+    "terminal/lib/__tests__/errorPresentation.test.tsx": {
+      "sha256": "2b7734168f447b1340a83bf37b69c722963f46949e577090f580b3c741a8d64e",
+      "git_blob": "eb115947f60ba3f644ffb50f8c90171d457430d7"
+    }
+  },
+  "matrix": {
+    "before": 2,
+    "after": 9,
+    "details": 4,
+    "page_errors": 0,
+    "blocked_requests": 0
+  },
+  "checks": {
+    "unit": 18,
+    "typegen": "PASS",
+    "typescript": "PASS",
+    "test_eslint": "PASS",
+    "error_eslint": "one unchanged inherited hard-anchor finding; same protected baseline"
+  },
+  "no_source_writes": [
+    "root/shell layouts",
+    "SharedShellPresentation",
+    "global tokens/CSS",
+    "locale/provider",
+    "auth/1257 paths",
+    "origin validators",
+    "chunk reload",
+    "holding ownership"
+  ],
+  "effects": "No push/PR/CI/arm/install/server/provider/user browser/persistent profile; fresh offline component contexts only",
+  "retained_artifact_root": "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103"
+}

@@ -1,0 +1,631 @@
+{
+  "status": "PASS",
+  "scope": "Local synthetic interaction prototype only",
+  "checks": [
+    "midpoint debit",
+    "natural debit",
+    "natural break-even",
+    "custom cent retained",
+    "custom break-even retains precision",
+    "invalid debit shows error",
+    "invalid debit suppresses derived values",
+    "quantity scales debit",
+    "heading focus after navigation",
+    "exact shocked price",
+    "expiry loss at selected price",
+    "IV uses additive points",
+    "time and IV do not alter expiry payoff",
+    "requirements dialog opens",
+    "Escape dismisses dialog",
+    "dialog focus restored",
+    "reset price",
+    "reset IV",
+    "save cannot claim success",
+    "activation unavailable",
+    "export explicitly unsaved",
+    "export has no valuation or activation",
+    "retained evaluation clock",
+    "review prices remain distinct",
+    "source correction is not selling",
+    "fresh page has no saved account state",
+    "1440/dark/en/plan no document overflow",
+    "1440/dark/en/plan 44px targets",
+    "1440/dark/en/scenario no document overflow",
+    "1440/dark/en/scenario 44px targets",
+    "1440/dark/en/watch no document overflow",
+    "1440/dark/en/watch 44px targets",
+    "1440/dark/en/review no document overflow",
+    "1440/dark/en/review 44px targets",
+    "1440/dark/zh/plan no document overflow",
+    "1440/dark/zh/plan 44px targets",
+    "1440/dark/zh/scenario no document overflow",
+    "1440/dark/zh/scenario 44px targets",
+    "1440/dark/zh/watch no document overflow",
+    "1440/dark/zh/watch 44px targets",
+    "1440/dark/zh/review no document overflow",
+    "1440/dark/zh/review 44px targets",
+    "1440/light/en/plan no document overflow",
+    "1440/light/en/plan 44px targets",
+    "1440/light/en/scenario no document overflow",
+    "1440/light/en/scenario 44px targets",
+    "1440/light/en/watch no document overflow",
+    "1440/light/en/watch 44px targets",
+    "1440/light/en/review no document overflow",
+    "1440/light/en/review 44px targets",
+    "1440/light/zh/plan no document overflow",
+    "1440/light/zh/plan 44px targets",
+    "1440/light/zh/scenario no document overflow",
+    "1440/light/zh/scenario 44px targets",
+    "1440/light/zh/watch no document overflow",
+    "1440/light/zh/watch 44px targets",
+    "1440/light/zh/review no document overflow",
+    "1440/light/zh/review 44px targets",
+    "820/dark/en/plan no document overflow",
+    "820/dark/en/plan 44px targets",
+    "820/dark/en/scenario no document overflow",
+    "820/dark/en/scenario 44px targets",
+    "820/dark/en/watch no document overflow",
+    "820/dark/en/watch 44px targets",
+    "820/dark/en/review no document overflow",
+    "820/dark/en/review 44px targets",
+    "820/dark/zh/plan no document overflow",
+    "820/dark/zh/plan 44px targets",
+    "820/dark/zh/scenario no document overflow",
+    "820/dark/zh/scenario 44px targets",
+    "820/dark/zh/watch no document overflow",
+    "820/dark/zh/watch 44px targets",
+    "820/dark/zh/review no document overflow",
+    "820/dark/zh/review 44px targets",
+    "820/light/en/plan no document overflow",
+    "820/light/en/plan 44px targets",
+    "820/light/en/scenario no document overflow",
+    "820/light/en/scenario 44px targets",
+    "820/light/en/watch no document overflow",
+    "820/light/en/watch 44px targets",
+    "820/light/en/review no document overflow",
+    "820/light/en/review 44px targets",
+    "820/light/zh/plan no document overflow",
+    "820/light/zh/plan 44px targets",
+    "820/light/zh/scenario no document overflow",
+    "820/light/zh/scenario 44px targets",
+    "820/light/zh/watch no document overflow",
+    "820/light/zh/watch 44px targets",
+    "820/light/zh/review no document overflow",
+    "820/light/zh/review 44px targets",
+    "768/dark/en/plan no document overflow",
+    "768/dark/en/plan 44px targets",
+    "768/dark/en/scenario no document overflow",
+    "768/dark/en/scenario 44px targets",
+    "768/dark/en/watch no document overflow",
+    "768/dark/en/watch 44px targets",
+    "768/dark/en/review no document overflow",
+    "768/dark/en/review 44px targets",
+    "768/dark/zh/plan no document overflow",
+    "768/dark/zh/plan 44px targets",
+    "768/dark/zh/scenario no document overflow",
+    "768/dark/zh/scenario 44px targets",
+    "768/dark/zh/watch no document overflow",
+    "768/dark/zh/watch 44px targets",
+    "768/dark/zh/review no document overflow",
+    "768/dark/zh/review 44px targets",
+    "768/light/en/plan no document overflow",
+    "768/light/en/plan 44px targets",
+    "768/light/en/scenario no document overflow",
+    "768/light/en/scenario 44px targets",
+    "768/light/en/watch no document overflow",
+    "768/light/en/watch 44px targets",
+    "768/light/en/review no document overflow",
+    "768/light/en/review 44px targets",
+    "768/light/zh/plan no document overflow",
+    "768/light/zh/plan 44px targets",
+    "768/light/zh/scenario no document overflow",
+    "768/light/zh/scenario 44px targets",
+    "768/light/zh/watch no document overflow",
+    "768/light/zh/watch 44px targets",
+    "768/light/zh/review no document overflow",
+    "768/light/zh/review 44px targets",
+    "390/dark/en/plan no document overflow",
+    "390/dark/en/plan 44px targets",
+    "390/dark/en/scenario no document overflow",
+    "390/dark/en/scenario 44px targets",
+    "390/dark/en/watch no document overflow",
+    "390/dark/en/watch 44px targets",
+    "390/dark/en/review no document overflow",
+    "390/dark/en/review 44px targets",
+    "390/dark/zh/plan no document overflow",
+    "390/dark/zh/plan 44px targets",
+    "390/dark/zh/scenario no document overflow",
+    "390/dark/zh/scenario 44px targets",
+    "390/dark/zh/watch no document overflow",
+    "390/dark/zh/watch 44px targets",
+    "390/dark/zh/review no document overflow",
+    "390/dark/zh/review 44px targets",
+    "390/light/en/plan no document overflow",
+    "390/light/en/plan 44px targets",
+    "390/light/en/scenario no document overflow",
+    "390/light/en/scenario 44px targets",
+    "390/light/en/watch no document overflow",
+    "390/light/en/watch 44px targets",
+    "390/light/en/review no document overflow",
+    "390/light/en/review 44px targets",
+    "390/light/zh/plan no document overflow",
+    "390/light/zh/plan 44px targets",
+    "390/light/zh/scenario no document overflow",
+    "390/light/zh/scenario 44px targets",
+    "390/light/zh/watch no document overflow",
+    "390/light/zh/watch 44px targets",
+    "390/light/zh/review no document overflow",
+    "390/light/zh/review 44px targets",
+    "200 percent zoom plan no overflow",
+    "200 percent zoom scenario no overflow",
+    "200 percent zoom watch no overflow",
+    "200 percent zoom review no overflow",
+    "no uncaught browser errors",
+    "no external network requests"
+  ],
+  "matrix": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "view": "plan",
+      "screenshot": "plan-1440-dark-en.png"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "view": "scenario",
+      "screenshot": "scenario-1440-dark-en.png"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "view": "watch",
+      "screenshot": "watch-1440-dark-en.png"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "view": "review",
+      "screenshot": "review-1440-dark-en.png"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "plan",
+      "screenshot": "plan-1440-dark-zh.png"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "scenario",
+      "screenshot": "scenario-1440-dark-zh.png"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "watch",
+      "screenshot": "watch-1440-dark-zh.png"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "review",
+      "screenshot": "review-1440-dark-zh.png"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "view": "plan",
+      "screenshot": "plan-1440-light-en.png"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "view": "scenario",
+      "screenshot": "scenario-1440-light-en.png"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "view": "watch",
+      "screenshot": "watch-1440-light-en.png"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "view": "review",
+      "screenshot": "review-1440-light-en.png"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "view": "plan",
+      "screenshot": "plan-1440-light-zh.png"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "view": "scenario",
+      "screenshot": "scenario-1440-light-zh.png"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "view": "watch",
+      "screenshot": "watch-1440-light-zh.png"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "view": "review",
+      "screenshot": "review-1440-light-zh.png"
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "en",
+      "view": "plan",
+      "screenshot": "plan-820-dark-en.png"
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "en",
+      "view": "scenario",
+      "screenshot": "scenario-820-dark-en.png"
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "en",
+      "view": "watch",
+      "screenshot": "watch-820-dark-en.png"
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "en",
+      "view": "review",
+      "screenshot": "review-820-dark-en.png"
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "plan",
+      "screenshot": "plan-820-dark-zh.png"
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "scenario",
+      "screenshot": "scenario-820-dark-zh.png"
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "watch",
+      "screenshot": "watch-820-dark-zh.png"
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "review",
+      "screenshot": "review-820-dark-zh.png"
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "en",
+      "view": "plan",
+      "screenshot": "plan-820-light-en.png"
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "en",
+      "view": "scenario",
+      "screenshot": "scenario-820-light-en.png"
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "en",
+      "view": "watch",
+      "screenshot": "watch-820-light-en.png"
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "en",
+      "view": "review",
+      "screenshot": "review-820-light-en.png"
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "zh",
+      "view": "plan",
+      "screenshot": "plan-820-light-zh.png"
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "zh",
+      "view": "scenario",
+      "screenshot": "scenario-820-light-zh.png"
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "zh",
+      "view": "watch",
+      "screenshot": "watch-820-light-zh.png"
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "zh",
+      "view": "review",
+      "screenshot": "review-820-light-zh.png"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "lang": "en",
+      "view": "plan",
+      "screenshot": "plan-768-dark-en.png"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "lang": "en",
+      "view": "scenario",
+      "screenshot": "scenario-768-dark-en.png"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "lang": "en",
+      "view": "watch",
+      "screenshot": "watch-768-dark-en.png"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "lang": "en",
+      "view": "review",
+      "screenshot": "review-768-dark-en.png"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "plan",
+      "screenshot": "plan-768-dark-zh.png"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "scenario",
+      "screenshot": "scenario-768-dark-zh.png"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "watch",
+      "screenshot": "watch-768-dark-zh.png"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "review",
+      "screenshot": "review-768-dark-zh.png"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "lang": "en",
+      "view": "plan",
+      "screenshot": "plan-768-light-en.png"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "lang": "en",
+      "view": "scenario",
+      "screenshot": "scenario-768-light-en.png"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "lang": "en",
+      "view": "watch",
+      "screenshot": "watch-768-light-en.png"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "lang": "en",
+      "view": "review",
+      "screenshot": "review-768-light-en.png"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "lang": "zh",
+      "view": "plan",
+      "screenshot": "plan-768-light-zh.png"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "lang": "zh",
+      "view": "scenario",
+      "screenshot": "scenario-768-light-zh.png"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "lang": "zh",
+      "view": "watch",
+      "screenshot": "watch-768-light-zh.png"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "lang": "zh",
+      "view": "review",
+      "screenshot": "review-768-light-zh.png"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "view": "plan",
+      "screenshot": "plan-390-dark-en.png"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "view": "scenario",
+      "screenshot": "scenario-390-dark-en.png"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "view": "watch",
+      "screenshot": "watch-390-dark-en.png"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "view": "review",
+      "screenshot": "review-390-dark-en.png"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "plan",
+      "screenshot": "plan-390-dark-zh.png"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "scenario",
+      "screenshot": "scenario-390-dark-zh.png"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "watch",
+      "screenshot": "watch-390-dark-zh.png"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "view": "review",
+      "screenshot": "review-390-dark-zh.png"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "view": "plan",
+      "screenshot": "plan-390-light-en.png"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "view": "scenario",
+      "screenshot": "scenario-390-light-en.png"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "view": "watch",
+      "screenshot": "watch-390-light-en.png"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "view": "review",
+      "screenshot": "review-390-light-en.png"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "view": "plan",
+      "screenshot": "plan-390-light-zh.png"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "view": "scenario",
+      "screenshot": "scenario-390-light-zh.png"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "view": "watch",
+      "screenshot": "watch-390-light-zh.png"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "view": "review",
+      "screenshot": "review-390-light-zh.png"
+    }
+  ],
+  "errors": [],
+  "requests": [],
+  "productionAcceptance": false,
+  "sourceDigests": {
+    "docs/prototypes/options-plan-review/app.tsx": "08cb0ce6fcca7151d96e2e69b6f1be36c9a182390cd3c4bc90452038ebce19b7",
+    "docs/prototypes/options-plan-review/styles.css": "1aa9635b79db72213b28a7d3babe5ddaaa15dc9f0041f91c709e3b8d46c6d9ff",
+    "docs/prototypes/options-plan-review/tokens.css": "ead8f267f359c3109af4373cf44f437d3938f9bd9d1629934bd132c0c5505f45",
+    "docs/prototypes/options-plan-review/build.mjs": "ef7267db51af77fa704ae200d22d10af057e31ffa32ec50e29c2dc9a85079cd5",
+    "docs/prototypes/options-plan-review/verify.mjs": "bc4aa9b33b28f7cbcc6c85ad0703490160cf56183bd5b95ea6c23956bd9de449",
+    "docs/prototypes/options-plan-review/tsconfig.json": "89164a94e7b996b7d8f67aa0c6679766cdbc132b7e4bedf239c30c8aeab7d6ae",
+    "terminal/lib/optionsPlanReference.ts": "b2db749ebcfe77e90c1d73929f8ebd79e85ed7546f226f1b20aaebbbf5a2d73c",
+    "terminal/lib/__tests__/optionsPlanReference.test.ts": "dc9c6489aede58d2bce2c90418d71ea3e786221d4fe0c231ecfd531f36ca7ba5",
+    "terminal/components/charts/svgChart.ts": "0aeab3062dbb59b19a95d476ab445c69c69426c65e5acee35d298f0743cb2aad"
+  },
+  "terminalBase": "b9828842d2c2129d1dbefa8213296001a3139eef"
+}

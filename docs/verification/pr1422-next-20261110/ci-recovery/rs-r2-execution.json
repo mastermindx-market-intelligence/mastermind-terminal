@@ -1,0 +1,44 @@
+{
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/rs-pivot-study.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/rs-missing-chunk-r2-artifacts",
+    "--grep",
+    "a missing study client chunk leaves the streamed action inert$"
+  ],
+  "completedAt": "2026-11-10T13:23:42.510039+00:00",
+  "errors": [],
+  "exit": 0,
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1422-next-20261110/ci-recovery/rs-missing-chunk-r2-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-10T13:23:52.805233+00:00",
+    "sha256": "747682794411a1f900b6d972e17c3fd2a6c217a99141200daa75d18478252d02"
+  },
+  "logSha256": "79eb8637adcd8eaceeb54e070b1cfadb5e10f000ba0e5d14c8d0730a70711381",
+  "nextLockAbsent": true,
+  "port": 34233,
+  "portClosed": true,
+  "seconds": 49.661,
+  "sourceBase": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+  "sourceCount": 2016,
+  "sourcePostimages": "rs-r2-source-before.json",
+  "sourceStable": true,
+  "startedAt": "2026-11-10T13:22:52.848964+00:00",
+  "stats": {
+    "duration": 45811.953,
+    "expected": 3,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T13:22:53.623Z",
+    "unexpected": 0
+  }
+}

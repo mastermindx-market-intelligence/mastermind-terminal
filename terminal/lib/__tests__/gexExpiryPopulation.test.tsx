@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ExpiryBars } from "@/components/gexdesk/ExpiryBars";
 import { ExposureExpiryDrawer } from "@/components/gexdesk/ExposureExpiryDrawer";
 import { byExpiryToTermStructure, type ExpiryRow } from "@/lib/expiryTermStructure";
+import { makeGexT } from "@/components/gexdesk/gexStrings";
 
 vi.mock("@/components/surface/EodReplayTag", () => ({ EodReplayTag: () => null }));
 
@@ -67,5 +68,75 @@ describe("ExposureExpiryDrawer — the header count does not change with the gre
     expect(gammaCount).toContain("3");
     await act(async () => (node.querySelector(".obs-xdrawer-hd") as HTMLButtonElement).click());
     expect(node.querySelector('[data-testid="xdrawer-unresolved"]')?.textContent).toContain("1");
+  });
+});
+
+const MIXED: ExpiryRow[] = [
+  { exp: "2026-08-07", gamma_net: 5, charm_net: 1 },
+  { exp: "2026-07-24", gamma_net: 0, vanna_net: 0, charm_net: 0 },
+  { exp: "2026-07-10", gamma_net: 2, vanna_net: 2, charm_net: 2 },
+  {
+    exp: "2026-07-17", gamma_net: -1, vanna_net: null, charm_net: -1,
+    exposure_support: {
+      basis: "admitted_input_contracts",
+      vanna: { known_contracts: 1, admitted_contracts: 2, known_net: -0.25 },
+      charm: { known_contracts: 2, admitted_contracts: 2, known_net: -1 },
+    },
+  },
+  { exp: "2026-07-31", gamma_net: 3, charm_net: 3 },
+];
+
+describe("enriched support preserves the protected expiry population", () => {
+  it("sorts unresolved expiries and keeps known subtotals and true zero distinct", () => {
+    const vanna = byExpiryToTermStructure(MIXED, "vanna", ASOF);
+    expect(vanna).toMatchObject({ rowCount: 5, sourceCount: 5, missingCount: 2, partialCount: 1 });
+    expect(vanna.unresolved).toEqual(["2026-07-31", "2026-08-07"]);
+    expect(vanna.nodes.map(({ exp, net, sign, partial }) => ({ exp, net, sign, partial }))).toEqual([
+      { exp: "2026-07-10", net: 2, sign: 1, partial: false },
+      { exp: "2026-07-17", net: -0.25, sign: -1, partial: true },
+      { exp: "2026-07-24", net: 0, sign: 0, partial: false },
+    ]);
+    const charm = byExpiryToTermStructure(MIXED, "charm", ASOF);
+    expect(charm).toMatchObject({ rowCount: 5, sourceCount: 5, missingCount: 0, partialCount: 0, unresolved: [] });
+    expect(charm.nodes).toHaveLength(5);
+  });
+
+  it.each(["en", "zh"] as const)("renders missing, zero and partial rows truthfully in %s", async lang => {
+    const t = makeGexT(lang);
+    await render(<ExpiryBars byExpiry={MIXED} greek="vanna" asOf={ASOF} lang={lang} />);
+    expect([...node.querySelectorAll("[data-expiry]")].map(row => row.getAttribute("data-expiry")))
+      .toEqual(["2026-07-10", "2026-07-17", "2026-07-24", "2026-07-31", "2026-08-07"]);
+    const partial = node.querySelector('[data-expiry="2026-07-17"]')!;
+    expect(partial.getAttribute("data-partial")).toBe("true");
+    expect(partial.getAttribute("title")).toBe(`${t("expiryKnownSubtotal")} · 1/2 ${t("expiryAdmittedInputs")}`);
+    expect(partial.querySelector(".num")?.textContent).toContain("-250K");
+    const zero = node.querySelector('[data-expiry="2026-07-24"]')!;
+    expect(zero.querySelector(".num")?.textContent).toBe("0");
+    expect((zero.querySelector(".num") as HTMLElement).style.color).toBe("var(--muted)");
+    expect(zero.children[1].childElementCount).toBe(0);
+    for (const exp of ["2026-07-31", "2026-08-07"]) {
+      const missing = node.querySelector(`[data-expiry="${exp}"]`)!;
+      expect(missing.querySelector(".num")?.textContent).toBe("—");
+      expect((missing.querySelector(".num") as HTMLElement).style.color).toBe("var(--text-dim)");
+      expect(missing.children[1].childElementCount).toBe(0);
+    }
+    expect(node.querySelector('[data-testid="expiry-support"]')?.textContent)
+      .toBe(t("expirySupportSummary").replace("{known}", "3").replace("{total}", "5").replace("{partial}", "1"));
+  });
+
+  it.each(["en", "zh"] as const)("keeps the drawer count stable while its valued population changes in %s", async lang => {
+    const t = makeGexT(lang);
+    await render(<ExposureExpiryDrawer byExpiry={MIXED} greek="vanna" asOf={ASOF} lang={lang} />);
+    const count = node.querySelector(".obs-xdrawer-count")?.textContent;
+    expect(count).toContain("5");
+    await act(async () => (node.querySelector(".obs-xdrawer-hd") as HTMLButtonElement).click());
+    expect(node.querySelector('[data-testid="expiry-support"]')?.textContent)
+      .toBe(t("expirySupportSummary").replace("{known}", "3").replace("{total}", "5").replace("{partial}", "1"));
+    expect(node.querySelector('[data-testid="xdrawer-unresolved"]')?.textContent)
+      .toBe(t("xdrawerUnresolved").replace("{n}", "2").replace("{m}", "5"));
+    await render(<ExposureExpiryDrawer byExpiry={MIXED} greek="charm" asOf={ASOF} lang={lang} />);
+    expect(node.querySelector(".obs-xdrawer-count")?.textContent).toBe(count);
+    expect(node.querySelector('[data-testid="expiry-support"]')).toBeNull();
+    expect(node.querySelector('[data-testid="xdrawer-unresolved"]')).toBeNull();
   });
 });

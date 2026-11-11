@@ -1,0 +1,27 @@
+[warmup] /terminal?symbol=NVDA → 200 in 45ms
+[warmup] /options → 200 in 1284ms
+[warmup] /portfolio → 200 in 492ms
+[warmup] /alerts → 200 in 599ms
+[warmup] /analysis → 200 in 974ms
+[warmup] /discover → 200 in 1048ms
+[warmup] /admin → 200 in 382ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 305ms
+[warmup] /login → 200 in 68ms
+[warmup] /reset-password → 200 in 309ms
+[warmup] /api/me → 200 in 271ms
+[warmup] /api/watchlist → 200 in 118ms
+[warmup] /api/layouts → 200 in 132ms
+[warmup] /api/watchlist/annotations → 409 in 102ms
+[warmup] 14 routes compiled in 6s
+
+Running 6 tests using 1 worker
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (light) › volatility compare panel · old-read-on-today / en (2.3s)
+  ✓  2 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (light) › volatility compare panel · old-read-on-today / zh (2.1s)
+  ✓  3 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (light) › volatility compare panel · today-read / en (1.6s)
+  ✓  4 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (light) › volatility compare panel · today-read / zh (1.8s)
+  ✓  5 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (light) › volatility compare panel · asof-missing / en (1.6s)
+  ✓  6 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (light) › volatility compare panel · asof-missing / zh (1.7s)
+
+  6 passed (29.7s)

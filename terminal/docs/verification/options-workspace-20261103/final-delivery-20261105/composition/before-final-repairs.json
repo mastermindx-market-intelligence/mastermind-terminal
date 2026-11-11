@@ -1,0 +1,158 @@
+{
+  "schema": "options_source_composition_analysis.v2",
+  "recorded_at": "2026-11-05T08:50:20.295689+00:00",
+  "options_head": "8e3362508aa2c451b7c02531097d0b9ee34653d9",
+  "exposure_head": "c9a57fc8dc6cb624309c3930c49319bbc980db2b",
+  "options_merge_base": "ac3762717ad150fd4f18614afd78072115a7c80a",
+  "exposure_merge_base": "350a61f9bae0ae61b2ab188ec99cc73552496ad2",
+  "git_version": "git version 2.46.1",
+  "effect": "Result objects only; no branch, HEAD, index, working-tree changes or synthetic commits.",
+  "index_and_status_unchanged": true,
+  "rows": [
+    {
+      "base": "11531481b0a540ee96bcd86df418fd1e42715363",
+      "base_options": {
+        "exit": 0,
+        "tree": "63d98b00fda946b3656784fae8c2c2e3a83c44f5",
+        "stdout": "63d98b00fda946b3656784fae8c2c2e3a83c44f5\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "base_exposure": {
+        "exit": 0,
+        "tree": "8b1500440012b21d4134872840bc78c72780a34a",
+        "stdout": "8b1500440012b21d4134872840bc78c72780a34a\n\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "options_then_exposure": {
+        "exit": 0,
+        "tree": "8c2c113e167101c74075c92f622338d260e02f33",
+        "stdout": "8c2c113e167101c74075c92f622338d260e02f33\n\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "exposure_then_options": {
+        "exit": 0,
+        "tree": "8c2c113e167101c74075c92f622338d260e02f33",
+        "stdout": "8c2c113e167101c74075c92f622338d260e02f33\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "all_clean": true,
+      "both_orders_same_tree": true
+    },
+    {
+      "base": "164d26bed0951212a58999388d68f0f67a459bbf",
+      "base_options": {
+        "exit": 0,
+        "tree": "6010993d05dffb1326bf42e786f6da927461be36",
+        "stdout": "6010993d05dffb1326bf42e786f6da927461be36\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "base_exposure": {
+        "exit": 0,
+        "tree": "3c28c1d0fcebc61f55b590d1aeab1fbd5c0e0fd5",
+        "stdout": "3c28c1d0fcebc61f55b590d1aeab1fbd5c0e0fd5\n\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "options_then_exposure": {
+        "exit": 0,
+        "tree": "df0a64f82fa00a7703b701977a7515210d7f37e8",
+        "stdout": "df0a64f82fa00a7703b701977a7515210d7f37e8\n\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "exposure_then_options": {
+        "exit": 0,
+        "tree": "df0a64f82fa00a7703b701977a7515210d7f37e8",
+        "stdout": "df0a64f82fa00a7703b701977a7515210d7f37e8\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "all_clean": true,
+      "both_orders_same_tree": true
+    },
+    {
+      "base": "04525d24358c2409263a83709cb1615f0bfa3783",
+      "base_options": {
+        "exit": 0,
+        "tree": "a072741baefe45af2c6ad6a68064857e2c253382",
+        "stdout": "a072741baefe45af2c6ad6a68064857e2c253382\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "base_exposure": {
+        "exit": 0,
+        "tree": "4c639f67012623174566ce95b635cf2aa2b9e44d",
+        "stdout": "4c639f67012623174566ce95b635cf2aa2b9e44d\n\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "options_then_exposure": {
+        "exit": 0,
+        "tree": "fb32cbcfbc2bd90b42869b065c2fe5be36d2139f",
+        "stdout": "fb32cbcfbc2bd90b42869b065c2fe5be36d2139f\n\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "exposure_then_options": {
+        "exit": 0,
+        "tree": "fb32cbcfbc2bd90b42869b065c2fe5be36d2139f",
+        "stdout": "fb32cbcfbc2bd90b42869b065c2fe5be36d2139f\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "all_clean": true,
+      "both_orders_same_tree": true
+    },
+    {
+      "base": "7a55f7a79d61dcb750d9fc281ed7d272e29d7055",
+      "base_options": {
+        "exit": 0,
+        "tree": "d3b24147b799fac7a01bf84303693319c5dfa817",
+        "stdout": "d3b24147b799fac7a01bf84303693319c5dfa817\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "base_exposure": {
+        "exit": 0,
+        "tree": "07b94db2d699dab69b5f6a9d5a6394f173e69887",
+        "stdout": "07b94db2d699dab69b5f6a9d5a6394f173e69887\n\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "options_then_exposure": {
+        "exit": 0,
+        "tree": "7fbc2909e35fb40f5c45d5f9440f0d0c905e3b85",
+        "stdout": "7fbc2909e35fb40f5c45d5f9440f0d0c905e3b85\n\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "exposure_then_options": {
+        "exit": 0,
+        "tree": "7fbc2909e35fb40f5c45d5f9440f0d0c905e3b85",
+        "stdout": "7fbc2909e35fb40f5c45d5f9440f0d0c905e3b85\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "all_clean": true,
+      "both_orders_same_tree": true
+    },
+    {
+      "base": "5d7b76376a8b3f5a8001f02d7f0ded29f5743798",
+      "base_options": {
+        "exit": 0,
+        "tree": "4d71b4206e204433e2c0b3891dba429d2e02c46d",
+        "stdout": "4d71b4206e204433e2c0b3891dba429d2e02c46d\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "base_exposure": {
+        "exit": 0,
+        "tree": "743156408474a5c379500e01447031a1ac6b12ba",
+        "stdout": "743156408474a5c379500e01447031a1ac6b12ba\n\nAuto-merging terminal/components/gexdesk/GexDeskView.tsx\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "options_then_exposure": {
+        "exit": 0,
+        "tree": "a162a7809ffe6eb75c461c551a5146e61d2e7b03",
+        "stdout": "a162a7809ffe6eb75c461c551a5146e61d2e7b03\n\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\n",
+        "stderr": ""
+      },
+      "exposure_then_options": {
+        "exit": 0,
+        "tree": "a162a7809ffe6eb75c461c551a5146e61d2e7b03",
+        "stdout": "a162a7809ffe6eb75c461c551a5146e61d2e7b03\n\nAuto-merging terminal/components/exposure-map/ExposureMap.module.css\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml\nAuto-merging terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml\nAuto-merging terminal/e2e/options-exposure-workspace.spec.ts\nAuto-merging terminal/e2e/responsive.spec.ts\nAuto-merging terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs\nAuto-merging terminal/next.config.ts\n",
+        "stderr": ""
+      },
+      "all_clean": true,
+      "both_orders_same_tree": true
+    }
+  ]
+}

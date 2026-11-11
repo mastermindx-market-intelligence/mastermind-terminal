@@ -16,9 +16,9 @@ async function openVolCompare(page: import("@playwright/test").Page, lang: "en" 
   await page.addInitScript((locale) => {
     localStorage.setItem("mm.lang", locale);
   }, lang);
-  // Freeze the clock at 2026-10-21 (the day after the nightly read): the panel
-  // derives "today" in ET, so 23 Oct stays a 2-trading-day horizon and the
-  // 21D interpolated expiry lands on 11 Nov.
+  // Freeze the clock at 2026-10-21, the fixture's read day (asof 2026-10-21, and every
+  // term row's dte = exp − asof): the panel derives "today" in ET, so 23 Oct stays a
+  // 2-trading-day horizon, and the 21D interpolated expiry lands on asof + 21 = 11 Nov.
   await page.clock.setFixedTime(new Date("2026-10-21T15:00:00Z"));
   await page.route("**/api/flow?*", async (route) => {
     const f = new URL(route.request().url()).searchParams.get("f");

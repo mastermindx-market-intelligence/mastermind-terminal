@@ -1,0 +1,340 @@
+{
+  "operation_id": "stock-intelligence-r6-20261103-c3",
+  "base_sha": "f528a219cc5d73e94e058575e3df83d689632bf9",
+  "paper": {
+    "file": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "page": "p-I-1",
+    "board": "1SNP-0"
+  },
+  "source_sha256": {
+    "terminal/components/fin/OracleDash.tsx": "306c57f14902fa72633d7af71293438973538c67f5bfb8d688984e6f28c99975",
+    "terminal/components/fin/StockEvidenceOverview.tsx": "2c69d9bc1036b0f999154a97dd3ba1440c83cce5440c2fc6fd219a991499a7ed",
+    "terminal/components/fin/StockEvidenceOverview.module.css": "76e7371b98af0ae492e6f4273cf9f430c9c41f111eb7cee223deebea822fdcac",
+    "terminal/lib/intelligenceActivity.ts": "e0e52a04931d7968541b3ef130574c6f58567f5485f3838b4ce51ef526abafbe",
+    "terminal/e2e/intelligence-workspace.spec.ts": "180543fde950e929095af3d13aee3cfa2ab2749945a6f0f742107956190cf8ab"
+  },
+  "browser": {
+    "passed": 36,
+    "skipped": 12,
+    "retries": 0,
+    "owned_process_pid": 61739,
+    "source_hash_guard": "all five files unchanged through complete run"
+  },
+  "synthetic_search_measurements_ms": {
+    "400_before": 149.7,
+    "400_after": 9.8,
+    "4000_before": 1041.6,
+    "4000_after": 26.5,
+    "qualification": "single local samples on synthetic records, not production latency guarantees"
+  },
+  "captures": [
+    {
+      "file": "mobile-320-dark-en.webp",
+      "size": [
+        320,
+        743
+      ],
+      "input_png_sha256": "27d4d4fb1bfa92503195c38f4511fa91829a42ee43f93a8ed7906bfd770fcb59",
+      "sha256": "b8ac621f6d5f14a0e06edd695d8804a0aa7baa586c1eb3c24234b4d9d4b0c23b",
+      "bytes": 18064,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-320-light-specimen-en.webp",
+      "size": [
+        320,
+        743
+      ],
+      "input_png_sha256": "fdd6837714fd2664c43a50157901559ed16649f93487db6978a17ddd0e643982",
+      "sha256": "a60a68294c3181ef36f2d03ad83a53033d474adccc9adc8c7c5931355cbac62a",
+      "bytes": 20546,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-320-search-light-specimen-en.webp",
+      "size": [
+        320,
+        743
+      ],
+      "input_png_sha256": "964c61b167774ffd414bdc69d20dde9c94e148327ea5db676b0e279dab3e4c0b",
+      "sha256": "dbacdd714738bf33dcc651097abd2ab8fb0e10472e469e4b508268198a9e600c",
+      "bytes": 24018,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "desktop-overview-sources-en.webp",
+      "size": [
+        398,
+        1025
+      ],
+      "input_png_sha256": "7316c1430a9398049250e595cd046963b0dfe5d36bb6ee27d2574afcb311afbb",
+      "sha256": "3cdd67c4d7a35e666abb7a2639b1ac04e0a520ef6720328477eef1819a1948de",
+      "bytes": 21866,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "desktop-search-en.webp",
+      "size": [
+        440,
+        758
+      ],
+      "input_png_sha256": "14a4459f5e9c087adb0bb00c533d724dd546d2eb3d6113e20cd9736ebf12ca8e",
+      "sha256": "abec4a2205b9b3ac94ec18b2789be20f13d8e54fb99397e4bdf003bebf42b0bb",
+      "bytes": 23830,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "desktop-summary-en.webp",
+      "size": [
+        440,
+        758
+      ],
+      "input_png_sha256": "b616ade493d505a7c978712872ed87363de460095ad85142acdad1778b13bc6e",
+      "sha256": "c1667d59de87e29dc4664c9b0e22cf5329254a30ea1c43361ef7a32952413d4c",
+      "bytes": 23006,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-overview-sources-en.webp",
+      "size": [
+        356,
+        1055
+      ],
+      "input_png_sha256": "a3e56981a471564213b1d0e015017f27d385df606fdf6b802e07ea71cf7aab14",
+      "sha256": "656227114a1f8a4914f146603854772db94132c254611578a67906acc1db6a86",
+      "bytes": 31532,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-search-en.webp",
+      "size": [
+        390,
+        743
+      ],
+      "input_png_sha256": "9b7b5c077eea6c52e879d81452279f0c6f65a55b4ccf59a10a0164f929045ad3",
+      "sha256": "39441f18feaab422c234106a3775b816577cad2229dba12eff350503094596ed",
+      "bytes": 20774,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-summary-en.webp",
+      "size": [
+        390,
+        743
+      ],
+      "input_png_sha256": "5f41acf6f7717ccaaddabf76d19ff002e85e31b351540284316df78a6678f54a",
+      "sha256": "f61863593deb854286d105765777a701f28b125d8c3453b1fe43ff163bb2b825",
+      "bytes": 21328,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "tablet-overview-sources-en.webp",
+      "size": [
+        778,
+        1038
+      ],
+      "input_png_sha256": "a95dfa1562fd47dc59f558d0954309bf3bc94e9a66c09ade281ce1569b0edadb",
+      "sha256": "1a2cd100f80f7b6af438ff4a74095fc34ee5983fccb6a31ce63062cf33913832",
+      "bytes": 25338,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "tablet-search-en.webp",
+      "size": [
+        820,
+        900
+      ],
+      "input_png_sha256": "6e841d776d8782377c0713386e6574e8f5349927d602afa97d4cd51e82f7f6fa",
+      "sha256": "18ca6afc3aecf403b2420df819436b1616842a4972fa5d7194e3cf4c2e15ead7",
+      "bytes": 30782,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "tablet-summary-en.webp",
+      "size": [
+        820,
+        900
+      ],
+      "input_png_sha256": "897214a28e5a53cdf7febb833739b737af2f577540f9119a7f9bca433b29b5d7",
+      "sha256": "515e25397afa4d4a140f706c54578627ccddc31e591b9619a3159ca08426aad2",
+      "bytes": 25572,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "desktop-overview-sources-zh.webp",
+      "size": [
+        398,
+        1010
+      ],
+      "input_png_sha256": "2d122089ed0c07f249d86b082890fc1e73e351e3dab988611826bd0422225594",
+      "sha256": "8c5ed5c7399d15bc877f46b1b8039748c3769e3c31ddf187963a60ec16b245c8",
+      "bytes": 20488,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "desktop-search-zh.webp",
+      "size": [
+        440,
+        758
+      ],
+      "input_png_sha256": "433ef7d4844bc0cec52e2df3831bee0b343e3bf8902e9dc7f46a662ebe88122c",
+      "sha256": "c16d85cc2142e403d7bcc12493961ef94ed64a9d7eaaf463b969834d0aa0350f",
+      "bytes": 21410,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "desktop-summary-zh.webp",
+      "size": [
+        440,
+        758
+      ],
+      "input_png_sha256": "85fbc22b66133c4e16819eda2f7f30904ff158ef81aa102d167e4241ee7da377",
+      "sha256": "b8558715b4e5891a11a4971d5b89e11f522f38fc6b46d842684c5cd367e4289e",
+      "bytes": 19198,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-overview-sources-zh.webp",
+      "size": [
+        356,
+        1038
+      ],
+      "input_png_sha256": "35ced970e071d957b371a1b38f68cf1afcf8ea0a467c16c630e5d69af8ac6d82",
+      "sha256": "e96faea714602644f395709370e44c9c6affc5dc2a077c9fe56d813c0e77ee72",
+      "bytes": 28126,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-search-zh.webp",
+      "size": [
+        390,
+        743
+      ],
+      "input_png_sha256": "e6a9775c79e38380f7ed32a9c98509a5a0eab314f05395a8b4393abc32bd02d9",
+      "sha256": "3981ddea5721f00b555402889ce6af5a9a2b75b27fa12c4ecf4d3ae08efb7555",
+      "bytes": 19666,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-summary-zh.webp",
+      "size": [
+        390,
+        743
+      ],
+      "input_png_sha256": "18317671bf54770ac6914f2fe31db027d9fccb424d651f3ab761fd0f21f59a65",
+      "sha256": "95e13ce691c5512de4307397db50a836607fc119eb107af45f2e96c21d1799c4",
+      "bytes": 18006,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "tablet-overview-sources-zh.webp",
+      "size": [
+        778,
+        1038
+      ],
+      "input_png_sha256": "2acd0a93379655fbfd638ec6d195f52c5c6596edb480053e7fd375e5db4d9fc8",
+      "sha256": "e3a81742f3b47f6d57ba290e43ee274c13e0907656382d26af273942dcb4b0d5",
+      "bytes": 22288,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "tablet-search-zh.webp",
+      "size": [
+        820,
+        900
+      ],
+      "input_png_sha256": "1848fa7fd1c92d75e5313ab38195af4a1e80d7a039c95470b1f27181ce253c4d",
+      "sha256": "8595027008f0e0ab48b12778498f1bef66e28c54059c3d50a4ec7fd1e9bd6c40",
+      "bytes": 26532,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "tablet-summary-zh.webp",
+      "size": [
+        820,
+        900
+      ],
+      "input_png_sha256": "3237656122753d29d63aff92bff0375c3551bccb1f5067daf76bd8f9ae5ae23c",
+      "sha256": "ccca70462477dcbf944970dbe854c8ca6ae79a787931aa58eb3040dbfcb79ad6",
+      "bytes": 22640,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-320-dark-zh.webp",
+      "size": [
+        320,
+        743
+      ],
+      "input_png_sha256": "1a440e19fb8b302bbacb6100301d2cb27f28e869399717532d90c18fb7195d0b",
+      "sha256": "6ca306b2244351333a2a4362712eaf98ff12ed2c0a611c74ecc3965f4b4028b3",
+      "bytes": 15390,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-320-light-specimen-zh.webp",
+      "size": [
+        320,
+        743
+      ],
+      "input_png_sha256": "e548159626b76beb3067e5360eb8b0b9bdd05b31f4ea5dc4412d146d4cef1a01",
+      "sha256": "0e68c126ed7e1bd97741052bf8b0652c3500c98133724e6d656e508b7d422cb3",
+      "bytes": 17166,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "mobile-320-search-light-specimen-zh.webp",
+      "size": [
+        320,
+        743
+      ],
+      "input_png_sha256": "1592841c3a2b091192b3d1b12d13184b5d142866003efffa014b6105dc16fa00",
+      "sha256": "82dad51ef4fc448bdd80feaa28b7fee1449ecca69ba524bb860c147dd44dbccd",
+      "bytes": 20898,
+      "provenance": "local Next.js Terminal route, COST fixture sources; not authenticated production"
+    },
+    {
+      "file": "desktop-chart-context.webp",
+      "size": [
+        1440,
+        900
+      ],
+      "input_png_sha256": "58a245b1d5fb57f969f019061af678ef54fe4c04537bd3a23474f0d971dd86a0",
+      "sha256": "e5828bfd1d8fbafc070ddfe23c60fb84d4f679419400df3bec7ccda18bb2a231",
+      "bytes": 111006,
+      "provenance": "local Next.js Terminal route, chart/market fixtures; not production"
+    }
+  ],
+  "production_acceptance": false,
+  "followup_keyboard_chart": {
+    "passed": 6,
+    "skipped": 0,
+    "retries": 0,
+    "process_pid": 2961,
+    "scope": "EN/ZH desktop/tablet/mobile search Escape/clear focus and recent-observation chart handoff; mobile sheet closes, desktop stays open",
+    "test_file_sha256": "5205d8dd653ea77af62c7507b2e780394e00dffd002d506bd6742cf0327d8d5f"
+  },
+  "checks": {
+    "focused_unit_tests": 231,
+    "unit_files": 7,
+    "typecheck": "PASS",
+    "plain_language_added_lines": "PASS",
+    "new_helper_component_and_tests_eslint": {
+      "files": 5,
+      "errors": 0,
+      "warnings": 0
+    },
+    "git_diff_check": "PASS",
+    "verification_process_pids": [
+      94837,
+      13195,
+      10708
+    ]
+  },
+  "published_source_sha256": {
+    "terminal/components/fin/OracleDash.tsx": "306c57f14902fa72633d7af71293438973538c67f5bfb8d688984e6f28c99975",
+    "terminal/components/fin/StockEvidenceOverview.tsx": "2c69d9bc1036b0f999154a97dd3ba1440c83cce5440c2fc6fd219a991499a7ed",
+    "terminal/components/fin/StockEvidenceOverview.module.css": "76e7371b98af0ae492e6f4273cf9f430c9c41f111eb7cee223deebea822fdcac",
+    "terminal/lib/intelligenceActivity.ts": "e0e52a04931d7968541b3ef130574c6f58567f5485f3838b4ce51ef526abafbe",
+    "terminal/e2e/intelligence-workspace.spec.ts": "5205d8dd653ea77af62c7507b2e780394e00dffd002d506bd6742cf0327d8d5f"
+  }
+}

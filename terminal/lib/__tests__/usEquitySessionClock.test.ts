@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { usRegularSessionWindow } from "../usEquitySessionClock";
+import { usCompletedSessionsAfterDate, usRegularSessionWindow } from "../usEquitySessionClock";
 import { filterUsEquitySession, resampleUsEquitySession, type Bar6 } from "../intradayShared";
 import projection from "../usEquitySessionProjection.json";
 
@@ -85,4 +85,43 @@ describe("regular candles obey the actual close", () => {
         ? [at(day, 570)[0]] : [at(day, 570)[0], at(day, 810)[0]]);
     }
   });
+});
+
+describe("completed session counts", () => {
+  // ET wall-clock as a display epoch: the date at midnight plus the minutes since.
+  const display = (day: string, minute: number): number => Date.parse(`${day}T00:00:00Z`) / 1000 + minute * 60;
+
+  it("counts sessions strictly after the reading, through today's projected close", () => {
+    // Ten sessions after 16 October, viewed on a Sunday that has no session of its own.
+    expect(usCompletedSessionsAfterDate("2026-10-16", display("2026-11-01", 700))).toBe(10);
+    // A reading dated today is never behind itself, even after the close.
+    expect(usCompletedSessionsAfterDate("2026-11-27", display("2026-11-27", 1_000))).toBe(0);
+    expect(usCompletedSessionsAfterDate("2026-11-25", display("2026-11-30", 600))).toBe(1);
+    expect(usCompletedSessionsAfterDate("2026-11-25", display("2026-11-30", 960))).toBe(2);
+  });
+
+  it("closes each day at its own projected minute, not an assumed 16:00", () => {
+    // 27 November 2026 closes at 13:00; one minute either side decides the count.
+    expect(usCompletedSessionsAfterDate("2026-11-25", display("2026-11-27", 779))).toBe(0);
+    expect(usCompletedSessionsAfterDate("2026-11-25", display("2026-11-27", 780))).toBe(1);
+    // An ordinary 6 July 2026 closes at 16:00.
+    expect(usCompletedSessionsAfterDate("2026-07-02", display("2026-07-06", 959))).toBe(0);
+    expect(usCompletedSessionsAfterDate("2026-07-02", display("2026-07-06", 960))).toBe(1);
+  });
+
+  it("returns zero for a covered reading dated later than today", () => {
+    expect(usCompletedSessionsAfterDate("2026-11-30", display("2026-11-02", 600))).toBe(0);
+  });
+
+  it.each(["2015-12-31", "2029-01-01", "0001-01-01", "2026-02-30", "16 Oct"])(
+    "refuses an invalid or uncovered reading date %s", reading => {
+      expect(() => usCompletedSessionsAfterDate(reading, display("2026-11-02", 600)))
+        .toThrow("US_SESSION_CLOCK_UNAVAILABLE");
+    });
+
+  it.each([NaN, Infinity, -Infinity, display("2029-01-01", 600), display("2015-12-31", 600)])(
+    "refuses an invalid or uncovered current moment %s", epoch => {
+      expect(() => usCompletedSessionsAfterDate("2026-10-16", epoch))
+        .toThrow("US_SESSION_CLOCK_UNAVAILABLE");
+    });
 });

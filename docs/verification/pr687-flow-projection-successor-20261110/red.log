@@ -1,0 +1,505 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal[39m
+
+ [31m❯[39m lib/__tests__/flowProjection.test.ts [2m([22m[2m52 tests[22m[2m | [22m[31m27 failed[39m[2m)[22m[90m 38[2mms[22m[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mdoes not project an invalid wire clock 2026-02-30T15:01:00Z[90m 6[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mdoes not project an invalid wire clock 2026-11-10[90m 1[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mdoes not project an invalid wire clock 2026-11-10T15:01:00[90m 1[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mdoes not project an invalid wire clock 2026-11-10T24:00:00Z[90m 1[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mdoes not project an invalid wire clock 123[90m 2[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mexcludes malformed size=1.5 without coercion or rounding[90m 1[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mexcludes malformed n_prints=0.25 without coercion or rounding[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds the invalid identity  without manufacturing an ID[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(3 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds the invalid identity   without manufacturing an ID[90m 1[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(3 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds the invalid identity  padded without manufacturing an ID[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(3 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds the invalid identity padded  without manufacturing an ID[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(3 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds the invalid identity null without manufacturing an ID[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(3 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds the invalid identity undefined without manufacturing an ID[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(3 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds the invalid identity 17 without manufacturing an ID[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(3 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds every occurrence of a repeated identity (identical)[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 2, …(5) }
+(1 matching property omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds every occurrence of a repeated identity (other-bucket)[90m 1[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 2, …(5) }
+(1 matching property omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds every occurrence of a repeated identity (invalid-clock)[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 2, …(5) }
+(1 matching property omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mwithholds every occurrence of a repeated identity (invalid-value)[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 2, …(5) }
+(1 matching property omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mcounts each rejected row once, in identity then clock then value order[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 6, …(4) }
+(2 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mpreserves distinct canonical IDs even when their contract terms agree[90m 0[2mms[22m[31m[39m
+[31m     → expected { intervalMinutes: 15, …(5) } to match object { validEventCount: 2, …(1) }
+(5 matching properties omitted from actual)[39m
+[31m   [31m×[31m canonical flow projection admission[2m > [22mkeeps unknown right and side premium separate from explicit puts and mixed[90m 0[2mms[22m[31m[39m
+[31m     → expected { …(14) } to match object { eventCount: 4, …(8) }
+(7 matching properties omitted from actual)[39m
+[31m   [31m×[31m bucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T15:15:00Z' })[90m 0[2mms[22m[31m[39m
+[31m     → expected [ { id: 'one', …(7) } ] to deeply equal [][39m
+[31m   [31m×[31m bucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T14:59:59.999999Z' })[90m 0[2mms[22m[31m[39m
+[31m     → expected [ { id: 'one', …(7) } ] to deeply equal [][39m
+[31m   [31m×[31m bucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T15:01:00' })[90m 0[2mms[22m[31m[39m
+[31m     → expected [ { id: 'one', …(7) } ] to deeply equal [][39m
+[31m   [31m×[31m bucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ size: 0.5 })[90m 0[2mms[22m[31m[39m
+[31m     → expected [ { id: 'one', …(7) } ] to deeply equal [][39m
+[31m   [31m×[31m bucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ premium: NaN })[90m 0[2mms[22m[31m[39m
+[31m     → expected [ { id: 'one', …(7) } ] to deeply equal [][39m
+[31m   [31m×[31m bucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit a valid member when a malformed duplicate shares its identity[90m 0[2mms[22m[31m[39m
+[31m     → expected [ { id: 'one', …(7) }, …(1) ] to deeply equal [][39m
+ [31m❯[39m lib/__tests__/flowProjectionControls.test.tsx [2m([22m[2m6 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[90m 123[2mms[22m[39m
+[31m   [31m×[31m projection controls describe their current state[2m > [22mexposes the selected interval and omitted identities (en)[90m 41[2mms[22m[31m[39m
+[31m     → expected null to be 'true' // Object.is equality[39m
+[31m   [31m×[31m projection controls describe their current state[2m > [22mexposes the selected interval and omitted identities (zh)[90m 4[2mms[22m[31m[39m
+[31m     → expected null to be 'true' // Object.is equality[39m
+[31m   [31m×[31m real FeedPane selection preserves coverage and expansion ownership[2m > [22mcollapses an expanded card when the interval changes by keyboard activation[90m 16[2mms[22m[31m[39m
+[31m     → panelRef.current?.scrollIntoView is not a function[39m
+[31m   [31m×[31m real FeedPane selection preserves coverage and expansion ownership[2m > [22mdoes not revive a hidden expansion after selecting and clearing a different bucket[90m 18[2mms[22m[31m[39m
+[31m     → panelRef.current?.scrollIntoView is not a function[39m
+[31m   [31m×[31m real FeedPane selection preserves coverage and expansion ownership[2m > [22mclears missing bucket state and expansion when a new feed removes that bucket[90m 12[2mms[22m[31m[39m
+[31m     → panelRef.current?.scrollIntoView is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 32 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mdoes not project an invalid wire clock 2026-02-30T15:01:00Z
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mdoes not project an invalid wire clock 2026-11-10
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mdoes not project an invalid wire clock 2026-11-10T15:01:00
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mdoes not project an invalid wire clock 2026-11-10T24:00:00Z
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mdoes not project an invalid wire clock 123
+[31m[1mAssertionError[22m: expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "buckets": Array [],[39m
+[31m+   "buckets": Array [[39m
+[31m+     Object {[39m
+[31m+       "callPremium": 100,[39m
+[31m+       "contractCount": 10,[39m
+[31m+       "end": "2026-03-02T15:15:00.000Z",[39m
+[31m+       "eventCount": 1,[39m
+[31m+       "eventIds": Array [[39m
+[31m+         "one",[39m
+[31m+       ],[39m
+[31m+       "grossPremium": 100,[39m
+[31m+       "key": "2026-03-02T15:00:00.000Z",[39m
+[31m+       "mixedPremium": 0,[39m
+[31m+       "printCount": 2,[39m
+[31m+       "putPremium": 0,[39m
+[31m+       "roots": Array [[39m
+[31m+         "AAPL",[39m
+[31m+       ],[39m
+[31m+       "softBuyPremium": 100,[39m
+[31m+       "softSellPremium": 0,[39m
+[31m+       "start": "2026-03-02T15:00:00.000Z",[39m
+[31m+     },[39m
+[31m+   ],[39m
+[2m    "inputEventCount": 1,[22m
+[32m-   "invalidTimestampCount": 1,[39m
+[32m-   "validEventCount": 0,[39m
+[31m+   "invalidTimestampCount": 0,[39m
+[31m+   "validEventCount": 1,[39m
+[2m  }[22m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m47:54[22m[39m
+    [90m 45| [39m    [35mnull[39m[33m,[39m [34m123[39m[33m,[39m undefined[33m,[39m
+    [90m 46| [39m  ])([32m"does not project an invalid wire clock %s"[39m[33m,[39m (ts) [33m=>[39m {
+    [90m 47| [39m    [34mexpect[39m([34mbuildFlowProjection[39m([[34mevent[39m({ ts })][33m,[39m [34m15[39m))[33m.[39m[34mtoMatchObject[39m({
+    [90m   | [39m                                                     [31m^[39m
+    [90m 48| [39m      inputEventCount[33m:[39m [34m1[39m[33m,[39m validEventCount[33m:[39m [34m0[39m[33m,[39m invalidTimestampCount[33m:[39m [34m1[39m…
+    [90m 49| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mexcludes malformed size=1.5 without coercion or rounding
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mexcludes malformed n_prints=0.25 without coercion or rounding
+[31m[1mAssertionError[22m: expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(2 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "buckets": Array [],[39m
+[31m+   "buckets": Array [[39m
+[31m+     Object {[39m
+[31m+       "callPremium": 100,[39m
+[31m+       "contractCount": 1.5,[39m
+[31m+       "end": "2026-11-10T15:15:00.000Z",[39m
+[31m+       "eventCount": 1,[39m
+[31m+       "eventIds": Array [[39m
+[31m+         "one",[39m
+[31m+       ],[39m
+[31m+       "grossPremium": 100,[39m
+[31m+       "key": "2026-11-10T15:00:00.000Z",[39m
+[31m+       "mixedPremium": 0,[39m
+[31m+       "printCount": 2,[39m
+[31m+       "putPremium": 0,[39m
+[31m+       "roots": Array [[39m
+[31m+         "AAPL",[39m
+[31m+       ],[39m
+[31m+       "softBuyPremium": 100,[39m
+[31m+       "softSellPremium": 0,[39m
+[31m+       "start": "2026-11-10T15:00:00.000Z",[39m
+[31m+     },[39m
+[31m+   ],[39m
+[2m    "inputEventCount": 1,[22m
+[32m-   "invalidValueCount": 1,[39m
+[32m-   "validEventCount": 0,[39m
+[31m+   "invalidValueCount": 0,[39m
+[31m+   "validEventCount": 1,[39m
+[2m  }[22m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m58:64[22m[39m
+    [90m 56| [39m    [[32m"size"[39m[33m,[39m [32m"10"[39m][33m,[39m [[32m"n_prints"[39m[33m,[39m [33m-[39m[34m1[39m][33m,[39m [[32m"n_prints"[39m[33m,[39m [32m"2"[39m][33m,[39m [[32m"n_prints"[39m[33m,[39m …
+    [90m 57| [39m  ] [35mas[39m [35mconst[39m)([32m"excludes malformed %s=%s without coercion or rounding"[39m[33m,[39m…
+    [90m 58| [39m    [34mexpect[39m([34mbuildFlowProjection[39m([[34mevent[39m({ [key][33m:[39m value })][33m,[39m [34m15[39m))[33m.[39m[34mtoMatch[39m…
+    [90m   | [39m                                                               [31m^[39m
+    [90m 59| [39m      inputEventCount[33m:[39m [34m1[39m[33m,[39m validEventCount[33m:[39m [34m0[39m[33m,[39m invalidValueCount[33m:[39m [34m1[39m[33m,[39m bu…
+    [90m 60| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds the invalid identity  without manufacturing an ID
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds the invalid identity   without manufacturing an ID
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds the invalid identity  padded without manufacturing an ID
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds the invalid identity padded  without manufacturing an ID
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds the invalid identity null without manufacturing an ID
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds the invalid identity undefined without manufacturing an ID
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds the invalid identity 17 without manufacturing an ID
+[31m[1mAssertionError[22m: expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 1, …(3) }
+(3 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "buckets": Array [],[39m
+[31m+   "buckets": Array [[39m
+[31m+     Object {[39m
+[31m+       "callPremium": 100,[39m
+[31m+       "contractCount": 10,[39m
+[31m+       "end": "2026-11-10T15:15:00.000Z",[39m
+[31m+       "eventCount": 1,[39m
+[31m+       "eventIds": Array [[39m
+[31m+         "",[39m
+[31m+       ],[39m
+[31m+       "grossPremium": 100,[39m
+[31m+       "key": "2026-11-10T15:00:00.000Z",[39m
+[31m+       "mixedPremium": 0,[39m
+[31m+       "printCount": 2,[39m
+[31m+       "putPremium": 0,[39m
+[31m+       "roots": Array [[39m
+[31m+         "AAPL",[39m
+[31m+       ],[39m
+[31m+       "softBuyPremium": 100,[39m
+[31m+       "softSellPremium": 0,[39m
+[31m+       "start": "2026-11-10T15:00:00.000Z",[39m
+[31m+     },[39m
+[31m+   ],[39m
+[2m    "inputEventCount": 1,[22m
+[32m-   "invalidIdentityCount": 1,[39m
+[32m-   "validEventCount": 0,[39m
+[31m+   "validEventCount": 1,[39m
+[2m  }[22m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m73:56[22m[39m
+    [90m 71| [39m  it[33m.[39m[34meach[39m([[32m""[39m[33m,[39m [32m" "[39m[33m,[39m [32m" padded"[39m[33m,[39m [32m"padded "[39m[33m,[39m [35mnull[39m[33m,[39m undefined[33m,[39m [34m17[39m])(
+    [90m 72| [39m    [32m"withholds the invalid identity %s without manufacturing an ID"[39m[33m,[39m (…
+    [90m 73| [39m      [34mexpect[39m([34mbuildFlowProjection[39m([[34mevent[39m({ id })][33m,[39m [34m15[39m))[33m.[39m[34mtoMatchObject[39m({
+    [90m   | [39m                                                       [31m^[39m
+    [90m 74| [39m        inputEventCount[33m:[39m [34m1[39m[33m,[39m validEventCount[33m:[39m [34m0[39m[33m,[39m invalidIdentityCount[33m:[39m …
+    [90m 75| [39m      })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds every occurrence of a repeated identity (identical)
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds every occurrence of a repeated identity (other-bucket)
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds every occurrence of a repeated identity (invalid-clock)
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mwithholds every occurrence of a repeated identity (invalid-value)
+[31m[1mAssertionError[22m: expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 2, …(5) }
+(1 matching property omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "buckets": Array [],[39m
+[31m+   "buckets": Array [[39m
+[31m+     Object {[39m
+[31m+       "callPremium": 200,[39m
+[31m+       "contractCount": 20,[39m
+[31m+       "end": "2026-11-10T15:15:00.000Z",[39m
+[31m+       "eventCount": 2,[39m
+[31m+       "eventIds": Array [[39m
+[31m+         "one",[39m
+[31m+         "one",[39m
+[31m+       ],[39m
+[31m+       "grossPremium": 200,[39m
+[31m+       "key": "2026-11-10T15:00:00.000Z",[39m
+[31m+       "mixedPremium": 0,[39m
+[31m+       "printCount": 4,[39m
+[31m+       "putPremium": 0,[39m
+[31m+       "roots": Array [[39m
+[31m+         "AAPL",[39m
+[31m+       ],[39m
+[31m+       "softBuyPremium": 200,[39m
+[31m+       "softSellPremium": 0,[39m
+[31m+       "start": "2026-11-10T15:00:00.000Z",[39m
+[31m+     },[39m
+[31m+   ],[39m
+[2m    "inputEventCount": 2,[22m
+[32m-   "invalidIdentityCount": 2,[39m
+[2m    "invalidTimestampCount": 0,[22m
+[2m    "invalidValueCount": 0,[22m
+[32m-   "validEventCount": 0,[39m
+[31m+   "validEventCount": 2,[39m
+[2m  }[22m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m84:58[22m[39m
+    [90m 82| [39m        [33m:[39m kind [33m===[39m [32m"invalid-clock"[39m [33m?[39m { ts[33m:[39m [32m"invalid"[39m }
+    [90m 83| [39m          [33m:[39m kind [33m===[39m [32m"invalid-value"[39m [33m?[39m { premium[33m:[39m [33m-[39m[34m1[39m } [33m:[39m {})[33m;[39m
+    [90m 84| [39m      [34mexpect[39m([34mbuildFlowProjection[39m([[34mevent[39m()[33m,[39m second][33m,[39m [34m15[39m))[33m.[39m[34mtoMatchObject[39m…
+    [90m   | [39m                                                         [31m^[39m
+    [90m 85| [39m        inputEventCount[33m:[39m [34m2[39m[33m,[39m validEventCount[33m:[39m [34m0[39m[33m,[39m invalidIdentityCount[33m:[39m …
+    [90m 86| [39m        invalidTimestampCount[33m:[39m [34m0[39m[33m,[39m invalidValueCount[33m:[39m [34m0[39m[33m,[39m buckets[33m:[39m [][33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mcounts each rejected row once, in identity then clock then value order
+[31m[1mAssertionError[22m: expected { intervalMinutes: 15, …(5) } to match object { inputEventCount: 6, …(4) }
+(2 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[2m    "inputEventCount": 6,[22m
+[32m-   "invalidIdentityCount": 3,[39m
+[32m-   "invalidTimestampCount": 1,[39m
+[32m-   "invalidValueCount": 1,[39m
+[32m-   "validEventCount": 1,[39m
+[31m+   "invalidTimestampCount": 3,[39m
+[31m+   "invalidValueCount": 0,[39m
+[31m+   "validEventCount": 3,[39m
+[2m  }[22m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m98:24[22m[39m
+    [90m 96| [39m      [34mevent[39m({ id[33m:[39m [32m"value"[39m[33m,[39m size[33m:[39m [34m0.5[39m })[33m,[39m [34mevent[39m({ id[33m:[39m [32m"valid"[39m })[33m,[39m
+    [90m 97| [39m    ][33m,[39m [34m15[39m)[33m;[39m
+    [90m 98| [39m    [34mexpect[39m(projection)[33m.[39m[34mtoMatchObject[39m({
+    [90m   | [39m                       [31m^[39m
+    [90m 99| [39m      inputEventCount[33m:[39m [34m6[39m[33m,[39m validEventCount[33m:[39m [34m1[39m[33m,[39m invalidIdentityCount[33m:[39m [34m3[39m[33m,[39m
+    [90m100| [39m      invalidTimestampCount[33m:[39m [34m1[39m[33m,[39m invalidValueCount[33m:[39m [34m1[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mpreserves distinct canonical IDs even when their contract terms agree
+[31m[1mAssertionError[22m: expected { intervalMinutes: 15, …(5) } to match object { validEventCount: 2, …(1) }
+(5 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "invalidIdentityCount": 0,[39m
+[2m    "validEventCount": 2,[22m
+[2m  }[22m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m107:24[22m[39m
+    [90m105| [39m  [34mit[39m([32m"preserves distinct canonical IDs even when their contract terms [39m…
+    [90m106| [39m    [35mconst[39m projection [33m=[39m [34mbuildFlowProjection[39m([[34mevent[39m({ id[33m:[39m [32m"a"[39m })[33m,[39m [34mevent[39m(…
+    [90m107| [39m    [34mexpect[39m(projection)[33m.[39m[34mtoMatchObject[39m({ validEventCount[33m:[39m [34m2[39m[33m,[39m invalidIden…
+    [90m   | [39m                       [31m^[39m
+    [90m108| [39m    [34mexpect[39m(projection[33m.[39mbuckets[[34m0[39m])[33m.[39m[34mtoMatchObject[39m({
+    [90m109| [39m      eventIds[33m:[39m [[32m"a"[39m[33m,[39m [32m"b"[39m][33m,[39m eventCount[33m:[39m [34m2[39m[33m,[39m grossPremium[33m:[39m [34m200[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mcanonical flow projection admission[2m > [22mkeeps unknown right and side premium separate from explicit puts and mixed
+[31m[1mAssertionError[22m: expected { …(14) } to match object { eventCount: 4, …(8) }
+(7 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[2m    "callPremium": 40,[22m
+[2m    "eventCount": 4,[22m
+[2m    "grossPremium": 100,[22m
+[32m-   "mixedPremium": 30,[39m
+[32m-   "putPremium": 20,[39m
+[31m+   "mixedPremium": 70,[39m
+[31m+   "putPremium": 60,[39m
+[2m    "softBuyPremium": 10,[22m
+[2m    "softSellPremium": 20,[22m
+[32m-   "unknownRightPremium": 40,[39m
+[32m-   "unknownSidePremium": 40,[39m
+[2m  }[22m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m120:35[22m[39m
+    [90m118| [39m      [34mevent[39m({ id[33m:[39m [32m"unknown"[39m[33m,[39m right[33m:[39m [32m"?"[39m[33m,[39m side[33m:[39m [32m"unknown"[39m[33m,[39m premium[33m:[39m [34m40[39m …
+    [90m119| [39m    ][33m,[39m [34m15[39m)[33m;[39m
+    [90m120| [39m    [34mexpect[39m(projection[33m.[39mbuckets[[34m0[39m])[33m.[39m[34mtoMatchObject[39m({
+    [90m   | [39m                                  [31m^[39m
+    [90m121| [39m      eventCount[33m:[39m [34m4[39m[33m,[39m grossPremium[33m:[39m [34m100[39m[33m,[39m callPremium[33m:[39m [34m40[39m[33m,[39m putPremium[33m:[39m [34m2[39m…
+    [90m122| [39m      unknownRightPremium[33m:[39m [34m40[39m[33m,[39m softBuyPremium[33m:[39m [34m10[39m[33m,[39m softSellPremium[33m:[39m [34m20[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mbucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T15:15:00Z' })
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mbucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T14:59:59.999999Z' })
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mbucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ ts: '2026-11-10T15:01:00' })
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mbucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ size: 0.5 })
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mbucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit an ID whose current row no longer belongs ({ premium: NaN })
+[31m[1mAssertionError[22m: expected [ { id: 'one', …(7) } ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   Object {[39m
+[31m+     "id": "one",[39m
+[31m+     "n_prints": 2,[39m
+[31m+     "premium": 100,[39m
+[31m+     "right": "C",[39m
+[31m+     "root": "AAPL",[39m
+[31m+     "side": "~buy",[39m
+[31m+     "size": 10,[39m
+[31m+     "ts": "2026-11-10T15:15:00Z",[39m
+[31m+   },[39m
+[31m+ ][39m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m143:63[22m[39m
+    [90m141| [39m  ])([32m"does not re-admit an ID whose current row no longer belongs (%s)[39m…
+    [90m142| [39m    [35mconst[39m bucket [33m=[39m [34mbuildFlowProjection[39m([[34mevent[39m()][33m,[39m [34m15[39m)[33m.[39mbuckets[[34m0[39m][33m;[39m
+    [90m143| [39m    [34mexpect[39m([34mselectFlowProjectionBucket[39m([[34mevent[39m(over)][33m,[39m bucket))[33m.[39m[34mtoEqual[39m(…
+    [90m   | [39m                                                              [31m^[39m
+    [90m144| [39m  })[33m;[39m
+    [90m145| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjection.test.ts[2m > [22mbucket drill-down keeps the current admitted Tape population[2m > [22mdoes not re-admit a valid member when a malformed duplicate shares its identity
+[31m[1mAssertionError[22m: expected [ { id: 'one', …(7) }, …(1) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   Object {[39m
+[31m+     "id": "one",[39m
+[31m+     "n_prints": 2,[39m
+[31m+     "premium": 100,[39m
+[31m+     "right": "C",[39m
+[31m+     "root": "AAPL",[39m
+[31m+     "side": "~buy",[39m
+[31m+     "size": 10,[39m
+[31m+     "ts": "2026-11-10T15:01:00Z",[39m
+[31m+   },[39m
+[31m+   Object {[39m
+[31m+     "id": "one",[39m
+[31m+     "n_prints": 2,[39m
+[31m+     "premium": 100,[39m
+[31m+     "right": "C",[39m
+[31m+     "root": "AAPL",[39m
+[31m+     "side": "~buy",[39m
+[31m+     "size": 10,[39m
+[31m+     "ts": "bad",[39m
+[31m+   },[39m
+[31m+ ][39m
+
+[36m [2m❯[22m lib/__tests__/flowProjection.test.ts:[2m149:79[22m[39m
+    [90m147| [39m    [35mconst[39m valid [33m=[39m [34mevent[39m()[33m;[39m
+    [90m148| [39m    [35mconst[39m bucket [33m=[39m [34mbuildFlowProjection[39m([valid][33m,[39m [34m15[39m)[33m.[39mbuckets[[34m0[39m][33m;[39m
+    [90m149| [39m    [34mexpect[39m([34mselectFlowProjectionBucket[39m([valid[33m,[39m [34mevent[39m({ ts[33m:[39m [32m"bad"[39m })][33m,[39m b…
+    [90m   | [39m                                                                              [31m^[39m
+    [90m150| [39m  })[33m;[39m
+    [90m151| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjectionControls.test.tsx[2m > [22mprojection controls describe their current state[2m > [22mexposes the selected interval and omitted identities (en)
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjectionControls.test.tsx[2m > [22mprojection controls describe their current state[2m > [22mexposes the selected interval and omitted identities (zh)
+[31m[1mAssertionError[22m: expected null to be 'true' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"true"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m lib/__tests__/flowProjectionControls.test.tsx:[2m70:86[22m[39m
+    [90m 68| [39m    ))[33m;[39m
+    [90m 69| [39m    [35mconst[39m buttons [33m=[39m [[33m...[39mhost[33m.[39mquerySelectorAll[33m<[39m[33mHTMLButtonElement[39m[33m>[39m([32m"butt[39m…
+    [90m 70| [39m    [34mexpect[39m(buttons[33m.[39m[34mfind[39m(b [33m=>[39m b[33m.[39mtextContent [33m===[39m [32m"15m"[39m)[33m?.[39m[34mgetAttribute[39m([32m"a[39m…
+    [90m   | [39m                                                                                     [31m^[39m
+    [90m 71| [39m    [34mexpect[39m(buttons[33m.[39m[34mfind[39m(b [33m=>[39m b[33m.[39mtextContent [33m===[39m [32m"5m"[39m)[33m?.[39m[34mgetAttribute[39m([32m"ar[39m…
+    [90m 72| [39m    [34mexpect[39m(host[33m.[39mtextContent)[33m.[39m[34mtoContain[39m(lang [33m===[39m [32m"zh"[39m [33m?[39m [32m"事件标识无效"[39m …
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/32]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjectionControls.test.tsx[2m > [22mreal FeedPane selection preserves coverage and expansion ownership[2m > [22mcollapses an expanded card when the interval changes by keyboard activation
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjectionControls.test.tsx[2m > [22mreal FeedPane selection preserves coverage and expansion ownership[2m > [22mdoes not revive a hidden expansion after selecting and clearing a different bucket
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjectionControls.test.tsx[2m > [22mreal FeedPane selection preserves coverage and expansion ownership[2m > [22mclears missing bucket state and expansion when a new feed removes that bucket
+[31m[1mTypeError[22m: panelRef.current?.scrollIntoView is not a function[39m
+[36m [2m❯[22m components/flowdesk/FlowCard.tsx:[2m118:23[22m[39m
+    [90m116| [39m  [34museEffect[39m(() [33m=>[39m {
+    [90m117| [39m    [35mif[39m ([33m![39mexpanded) [35mreturn[39m[33m;[39m
+    [90m118| [39m    panelRef[33m.[39mcurrent[33m?.[39m[34mscrollIntoView[39m({ block[33m:[39m [32m"nearest"[39m })[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m119| [39m  }[33m,[39m [expanded])[33m;[39m
+    [90m120| [39m
+[90m [2m❯[22m Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:[2m25989:20[22m[39m
+[90m [2m❯[22m runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:[2m874:13[22m[39m
+[90m [2m❯[22m commitHookEffectListMount node_modules/react-dom/cjs/react-dom-client.development.js:[2m13249:29[22m[39m
+[90m [2m❯[22m commitHookPassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:[2m13336:11[22m[39m
+[90m [2m❯[22m commitPassiveMountOnFiber node_modules/react-dom/cjs/react-dom-client.development.js:[2m15484:13[22m[39m
+[90m [2m❯[22m recursivelyTraversePassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:[2m15439:11[22m[39m
+[90m [2m❯[22m commitPassiveMountOnFiber node_modules/react-dom/cjs/react-dom-client.development.js:[2m15718:11[22m[39m
+[90m [2m❯[22m recursivelyTraversePassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:[2m15439:11[22m[39m
+[90m [2m❯[22m commitPassiveMountOnFiber node_modules/react-dom/cjs/react-dom-client.development.js:[2m15718:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/32]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m32 failed[39m[22m[2m | [22m[1m[32m26 passed[39m[22m[90m (58)[39m
+[2m   Start at [22m 10:12:53
+[2m   Duration [22m 2.64s[2m (transform 329ms, setup 0ms, collect 466ms, tests 161ms, environment 670ms, prepare 221ms)[22m
+
+JSON report written to /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/red-report.json

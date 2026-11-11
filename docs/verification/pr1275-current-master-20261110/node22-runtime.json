@@ -1,0 +1,12 @@
+{
+  "schema": "mastermind.scoped_node_runtime.v1",
+  "utc": "2026-11-10T08:55:50.816512+00:00",
+  "source_url": "https://nodejs.org/dist/v22.23.4/node-v22.23.4-darwin-arm64.tar.gz",
+  "checksum_index_url": "https://nodejs.org/dist/latest-v22.x/SHASUMS256.txt",
+  "checksum_index_sha256": "c90c3f1478fda8308b22cc1a1b0dc536169196444e67ee8b5c582fd351d02bce",
+  "archive_sha256": "c9e1dbc748b33ed2d14f42445191ecaf14c56259c7a9a26d0042c49ec2b66428",
+  "node": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "version": "v22.23.4",
+  "architecture": "arm64",
+  "scope": "This qualification workspace only; no host symlink or global package change."
+}

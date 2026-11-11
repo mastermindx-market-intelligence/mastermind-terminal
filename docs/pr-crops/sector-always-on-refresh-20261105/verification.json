@@ -1,0 +1,139 @@
+{
+  "scope": "Local fixture-backed Sector foreground revalidation; not production acceptance",
+  "base_sha": "f9d3280a2a3ff28dd925b128231702b836c8a247",
+  "operation": "macro-always-on-terminal-refresh-20261105-c3",
+  "unit_tests": {
+    "passed": 78,
+    "files": [
+      "sectorWorkspaceRefresh.test.tsx",
+      "sectorCentralDiscovery.test.tsx",
+      "sectorOwnerEnvelope.test.ts"
+    ]
+  },
+  "responsive_e2e": {
+    "passed": 12,
+    "files": [
+      "sector-feed-refresh.spec.ts",
+      "sector-live-discovery.spec.ts"
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ]
+  },
+  "typecheck": "npx tsc --noEmit --incremental false: exit 0",
+  "screenshots": [
+    {
+      "file": "sector-refresh-rotation-desktop.png",
+      "sha256": "2ea90cc37b85f81c4d0a99f9dccef6009099be0937993024187f80c895916cf6",
+      "bytes": 70783
+    },
+    {
+      "file": "sector-refresh-rotation-mobile.png",
+      "sha256": "72f3963719ddc70ee5625d33563957fb6d6d4d2042a97d3448ff2af69a86a7cd",
+      "bytes": 112116
+    },
+    {
+      "file": "sector-refresh-rotation-tablet.png",
+      "sha256": "c24bd3c0446b87bcd21748be8b73ba0bf080c369085bb44b55fdce468225cf5d",
+      "bytes": 119380
+    },
+    {
+      "file": "sector-refresh-breadth-desktop.png",
+      "sha256": "740f15e64e7f0ee8a6c8d3edc8266673edd74b1a2d9ab4e7339be30e59e6cc4b",
+      "bytes": 72760
+    },
+    {
+      "file": "sector-refresh-breadth-mobile.png",
+      "sha256": "cce1b200a7ae2d0c22dcb04b909abb0081644cb06ca5813d968b72f3e34f5b75",
+      "bytes": 69513
+    },
+    {
+      "file": "sector-refresh-breadth-tablet.png",
+      "sha256": "ee90ec3fa65983159b2a4379875674d3e594edd4fddf6258c09a0f31f293fff3",
+      "bytes": 74416
+    },
+    {
+      "file": "sector-refresh-detail-desktop.png",
+      "sha256": "384288f4dd7990558c43513022d90df07da5ee0a42a0941147becc1278af7e85",
+      "bytes": 89714
+    },
+    {
+      "file": "sector-refresh-detail-mobile.png",
+      "sha256": "1b4c5e56c5595a31154a09b2fd04a50ece9097339234ffeb3f3d2aa26852df3d",
+      "bytes": 164363
+    },
+    {
+      "file": "sector-refresh-detail-tablet.png",
+      "sha256": "4a5179b6ecc139e4206908c1da26dc20aeae1e8a8bcc4f8bd0ddb02d0f1a2683",
+      "bytes": 171021
+    },
+    {
+      "file": "sector-discovery-desktop.png",
+      "sha256": "98e9312ddfbef6121fb255ddfedc32bd442a117aeacfc739724bc194317e772a",
+      "bytes": 81151
+    },
+    {
+      "file": "sector-heatmap-labels-dark-desktop.png",
+      "sha256": "f850f828185e69e3a73b7e49a3f1cad11c4b627b7a91a3c7717229365ab6e78c",
+      "bytes": 11604
+    },
+    {
+      "file": "sector-heatmap-labels-light-desktop.png",
+      "sha256": "9309018de88bc18209c925b36bb93f757e6e5a60e1ff11e12332b8534b5335b2",
+      "bytes": 11533
+    },
+    {
+      "file": "sector-discovery-mobile.png",
+      "sha256": "1b7618cceca0d2e27c75f4958dc756c45410cdb8ef51ce216f92acbd2248108c",
+      "bytes": 80418
+    },
+    {
+      "file": "sector-heatmap-labels-dark-mobile.png",
+      "sha256": "340e4a6f03144d6f8480dc56d29b41fd7e5ed2790359d04990359230cfb89cc2",
+      "bytes": 3616
+    },
+    {
+      "file": "sector-heatmap-labels-light-mobile.png",
+      "sha256": "3e0b467bbb39511b64e9fcced6de6b9b6c4504a9cd97db87aba5519f2687cdc4",
+      "bytes": 3592
+    },
+    {
+      "file": "sector-discovery-tablet.png",
+      "sha256": "eac24449b25bef4b357f5c2adced61b93a7e34b87084a54adab3cdae7f419e4b",
+      "bytes": 77968
+    },
+    {
+      "file": "sector-heatmap-labels-dark-tablet.png",
+      "sha256": "688b7193897ff05919a756c66a3bb8a733f0aaf3f449e01d19642bbcd1270b25",
+      "bytes": 9243
+    },
+    {
+      "file": "sector-heatmap-labels-light-tablet.png",
+      "sha256": "03e49aa9fbc7d3fef58ba277cb02f770dc607d7f55f5a1f1db87b8339d5f3829",
+      "bytes": 9184
+    }
+  ],
+  "hosted_regression_followup": {
+    "date": "2026-11-06",
+    "suite": "sector-intraday-comparison.spec.ts: repeated observations keep source age",
+    "passed": 3,
+    "viewports": [
+      "desktop",
+      "tablet",
+      "mobile"
+    ],
+    "scope": "fixture browser regression; not production acceptance",
+    "change": "require the scheduled revalidation while retaining stale/source-clock assertions"
+  }
+}

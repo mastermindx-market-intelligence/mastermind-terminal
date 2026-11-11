@@ -1,0 +1,9 @@
+{
+  "affectedSourceCheckExit": 2,
+  "findings": [
+    "terminal/e2e/drawing-system.spec.ts:3131: new blank line at EOF."
+  ],
+  "note": "One added terminal blank line in the behavioral test. No functional defect or binding formatting gate is identified. Preserve the actual source qualified by the completed browser, type, lint and owner checks.",
+  "sourceSha256": "0b6f75ed26a0536db22a81da66846fc38a12de207eeaf7d8e8e6990f0d4b9aa0",
+  "state": "NONBLOCKING_FORMATTING_FINDING_RETAINED_WITH_QUALIFIED_SOURCE"
+}

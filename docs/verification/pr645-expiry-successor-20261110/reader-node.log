@@ -1,0 +1,13 @@
+✔ an undeclared legacy packet retains the existing owner capture decision (5335.204625ms)
+✔ qualified history cannot silently fall back after its declaration disappears: exposure-source-compatibility-20261105 (5291.236916ms)
+✔ qualified history cannot silently fall back after its declaration disappears: options-source-compatibility-20261105 (6325.153125ms)
+✔ qualified history cannot silently fall back after its declaration disappears: combined-source-compatibility-20261105 (6188.19375ms)
+✔ a corrupt declared successor is refused before the raw root can be reused or overwritten (9700.093083ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33022.615875

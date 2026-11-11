@@ -1,0 +1,85 @@
+{
+  "schema": "company-search.scoped-source-witness.v1",
+  "candidate_source_head": "c072cf92c",
+  "protected_base": "b79b1e136290978ff7675087de979bb1b42b3713",
+  "qualified_source_paths": {
+    "terminal/components/SearchModal.tsx": "d1522bfdaa7c5cd223e5024aa3698104ea404d9c46a5854b17e86da3ea570818",
+    "terminal/components/SearchModal.module.css": "c07ad2028e36b1c70be969a9ab55d8d289dfcfeeceb18be5c5de3d1b18bbbaa9",
+    "terminal/components/SymbolPicker.tsx": "0aa9f20b5f5a76b917dbb0e54bd3d5f467d8bb23bc8e642befe1fd10525f252f",
+    "terminal/components/chrome/shared-shell/ShellSearch.tsx": "6ec2cdc819392b1c9a13bc7bbd066d49955061d166f33d498be37c57a9af0c69",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b",
+    "terminal/components/CompanyListingIdentity.tsx": "6d4347aafef93cfdaa1de89dada550f0f61953488e7166b146fdfc349bea77b7",
+    "terminal/components/CompanyListingIdentity.module.css": "29788c51e58e5e972be0335d490685cb8512a3fbd8bdbe35aa4663e2fe2f70a3",
+    "terminal/lib/companySearchContext.ts": "ee780295ea796509bbfdf92688ddd522144cd38f0fb82925a8ca31acfdaf4b12"
+  },
+  "operations": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--operation.json",
+      "sha256": "486735178fc102681899178dc8e7fedb26c476c42c38ec74bb86e925e5e19874",
+      "id": "t25-listing-pl6-20261103-a2",
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      },
+      "actual_case_count": 8
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--operation.json",
+      "sha256": "5addcfc919528ceadaf6069eee4c9dc6da13f1d11010ee30363d3ff0fe581d2f",
+      "id": "t25-listing-vi-20261103-a2",
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      },
+      "actual_case_count": 3
+    }
+  ],
+  "actual_new_cases": "8 PL6 +3 VI scoped current-source captures, plus independent12-cell beta-enabled journey; no complete historical functional-matrix recapture claim",
+  "a1_a2_comparison": {
+    "pl6": {
+      "same_image_bytes": 8,
+      "case_count": 8,
+      "different_keys": []
+    },
+    "vi": {
+      "same_image_bytes": 1,
+      "case_count": 3,
+      "different_keys": [
+        "vi:desktop:zh:Chinese context uses text alongside regional colors and remains keyboard dismissible",
+        "vi:mobile:zh:Chinese context uses text alongside regional colors and remains keyboard dismissible"
+      ]
+    }
+  },
+  "historical_payloads_unchanged": true,
+  "profile_boundary": "Incumbent captures use sharedShell0. Company-only preview/query branches are inactive there; actual changed SharedShell1 behavior is independently captured in capture-report.json/browser-report.json. Allnewruntimeimports are included in incumbent source union; guards and historical artifact identities remain intact.",
+  "production_proof": false,
+  "independent_review": {
+    "verdict": "SOURCE / LOCAL FIXTURE PASS",
+    "head": "c072cf92c6d0b284bb435d9b36d716561922d083",
+    "reviewer": "independent non-author acceptance",
+    "record": "FINAL_BROWSER_ACCEPTANCE_CONTRACT.md:171",
+    "scope": "HK onward local fixture; BABA/USD source+DOM only; source/36stepPNG hashes and raw public fixture bytes verified; no served or authenticated acceptance"
+  },
+  "theses_entry_follow_up": {
+    "cause": "Natural CI41563394646 found third active Analysis source lock; local reproducer1FAIL4PASS",
+    "source_head": "246ae1579e88ff9c7583eff5061a404644bed05a",
+    "producer": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+    "producer_sha256": "f9dbddc41f49cdfe940c1a9f8f1c8db52245f1bf365b8272c3c7aec15daed798",
+    "rendering_change": "none; OUT declaration redirected only",
+    "start": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/start.json",
+    "start_sha256": "746aa977b4f43507a7e26745df9e814c398d0969fb4d983b38f72c6d2bcecb92",
+    "result": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/result.json",
+    "result_sha256": "8e03850d31ecd1ac9e41b255f207bf520a384294619f78cfd111a96e12f06fa2",
+    "case_count": 6,
+    "source_files_match_A2_operations": true,
+    "historical_six_crops_unchanged": true,
+    "actual_images_inspected": 6,
+    "scope": "NVDA context bar / Your theses visible, EN/ZH at1440/820/390, dark incumbent fixture/sharedShell0; body honestly unavailable. Existing beta-enabled company journey proof remains separate."
+  }
+}

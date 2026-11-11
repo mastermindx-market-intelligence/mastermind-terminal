@@ -1,0 +1,37 @@
+{
+  "protectedBefore": "4df7aad16ea775ad8112858a5095210c076efe08",
+  "protectedAfter": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "optionsHead": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+  "paths_from_protected": [
+    "terminal/components/ChartOverlays.tsx",
+    "terminal/components/Tracker.tsx",
+    "terminal/components/fin/AdvancedSeasonality.tsx",
+    "terminal/components/msc/TrendCards.tsx",
+    "terminal/lib/__tests__/advancedSeasonalityIdentity.test.tsx",
+    "terminal/lib/__tests__/indicatorLegendAccessibility.test.tsx",
+    "terminal/lib/__tests__/spotVolMissingR2.test.tsx",
+    "terminal/lib/__tests__/suiteModules.test.ts",
+    "terminal/lib/__tests__/trackerEmbedLifetime.test.tsx",
+    "terminal/lib/__tests__/volumeMappingWarmup.test.ts",
+    "terminal/lib/suites/macdx/macdEngine.ts",
+    "terminal/lib/suites/pulse/volumeMapping.ts"
+  ],
+  "changed_paths": [
+    "terminal/components/ChartOverlays.tsx",
+    "terminal/components/Tracker.tsx",
+    "terminal/components/fin/AdvancedSeasonality.tsx",
+    "terminal/components/gexdesk/GexDeskView.tsx",
+    "terminal/components/msc/TrendCards.tsx",
+    "terminal/components/researchlab/OptionsResearchLab.tsx",
+    "terminal/lib/__tests__/advancedSeasonalityIdentity.test.tsx",
+    "terminal/lib/__tests__/indicatorLegendAccessibility.test.tsx",
+    "terminal/lib/__tests__/researchReportedGammaMounted.test.tsx",
+    "terminal/lib/__tests__/spotVolMissingR2.test.tsx",
+    "terminal/lib/__tests__/suiteModules.test.ts",
+    "terminal/lib/__tests__/trackerEmbedLifetime.test.tsx",
+    "terminal/lib/__tests__/volumeMappingWarmup.test.ts",
+    "terminal/lib/suites/macdx/macdEngine.ts",
+    "terminal/lib/suites/pulse/volumeMapping.ts"
+  ],
+  "source_count": 3113
+}

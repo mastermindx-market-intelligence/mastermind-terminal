@@ -1,0 +1,166 @@
+(
+    <div id="1TY2-0" style={{ backgroundColor: '#0F1115', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSynthesis: 'none', gap: '20px', height: '1080px', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', padding: '24px', WebkitFontSmoothing: 'antialiased', width: '1140px' }}>
+      <div id="1TY3-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div id="1TY4-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '24px', fontWeight: 700, lineHeight: '30px' }}>
+          By strike · States that preserve trust
+        </div>
+        <div id="1TY5-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+          One source date per dataset. Missing is never zero. Keyboard focus follows the visible reading order.
+        </div>
+      </div>
+      <div id="1TY7-0" style={{ boxSizing: 'border-box', display: 'flex', flexWrap: 'wrap', gap: '16px', width: '1092px' }}>
+        <div id="1TY9-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '13px', minHeight: '213px', padding: '20px', width: '538px' }}>
+          <div id="1TYA-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div id="1TYB-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1px', lineHeight: '14px' }}>
+              LOADING
+            </div>
+            <div id="1TYC-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+              —
+            </div>
+          </div>
+          <div id="1TYD-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+            Loading the snapshot
+          </div>
+          <div id="1TYE-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+            Keep the primary workspace stable while the request is in flight. Do not show a zero total or current-state diagnosis.
+          </div>
+          <div id="1TYF-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '18px' }}>
+            Loading status · reduced motion
+          </div>
+        </div>
+        <div id="1TYH-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '13px', minHeight: '213px', padding: '20px', width: '538px' }}>
+          <div id="1TYI-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div id="1TYJ-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1px', lineHeight: '14px' }}>
+              EMPTY
+            </div>
+            <div id="1TYK-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+              No data
+            </div>
+          </div>
+          <div id="1TYL-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+            No published snapshot
+          </div>
+          <div id="1TYM-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+            A confirmed absence has its own message. Preserve ticker and session selection so another source can be chosen.
+          </div>
+          <div id="1TYN-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '18px' }}>
+            Choose ticker or session
+          </div>
+        </div>
+        <div id="1TYP-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '13px', minHeight: '213px', padding: '20px', width: '538px' }}>
+          <div id="1TYQ-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div id="1TYR-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1px', lineHeight: '14px' }}>
+              ERROR
+            </div>
+            <div id="1TYS-0" style={{ boxSizing: 'border-box', color: '#F18A9E', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+              Retry
+            </div>
+          </div>
+          <div id="1TYT-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+            Snapshot unavailable
+          </div>
+          <div id="1TYU-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+            A failed read stays an error. Retry the same source in place; never turn a failed response into an empty book.
+          </div>
+          <div id="1TYV-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '18px' }}>
+            Retry · retain keyboard focus
+          </div>
+        </div>
+        <div id="1TYX-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '13px', minHeight: '213px', padding: '20px', width: '538px' }}>
+          <div id="1TYY-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div id="1TYZ-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1px', lineHeight: '14px' }}>
+              PARTIAL
+            </div>
+            <div id="1TZ0-0" style={{ boxSizing: 'border-box', color: '#F0C76F', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+              +8.0M
+            </div>
+          </div>
+          <div id="1TZ1-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+            Known total · incomplete coverage
+          </div>
+          <div id="1TZ2-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+            Keep the known subtotal, missing population and source-session date exposed. The missing portion is not zero.
+          </div>
+          <div id="1TZ3-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '18px' }}>
+            Scoped summary stays visible
+          </div>
+        </div>
+        <div id="1TZ5-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '13px', minHeight: '213px', padding: '20px', width: '538px' }}>
+          <div id="1TZ6-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div id="1TZ7-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1px', lineHeight: '14px' }}>
+              STALE
+            </div>
+            <div id="1TZ8-0" style={{ boxSizing: 'border-box', color: '#F0C76F', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+              2026-07-10
+            </div>
+          </div>
+          <div id="1TZ9-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+            Published snapshot
+          </div>
+          <div id="1TZA-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+            Retain the book's publication time. A fresh quote must not refresh the exposure date or the Market State clock.
+          </div>
+          <div id="1TZB-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '18px' }}>
+            Show each clock beside its data
+          </div>
+        </div>
+        <div id="1TZD-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '13px', minHeight: '213px', padding: '20px', width: '538px' }}>
+          <div id="1TZE-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div id="1TZF-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1px', lineHeight: '14px' }}>
+              ARCHIVED
+            </div>
+            <div id="1TZG-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+              2026-07-02
+            </div>
+          </div>
+          <div id="1TZH-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+            Viewing a dated session
+          </div>
+          <div id="1TZI-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+            Withdraw the current Market State and live-only context. Return focus to analysis after selecting a session.
+          </div>
+          <div id="1TZJ-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '18px' }}>
+            Back to latest
+          </div>
+        </div>
+        <div id="1TZL-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '13px', minHeight: '213px', padding: '20px', width: '538px' }}>
+          <div id="1TZM-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div id="1TZN-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1px', lineHeight: '14px' }}>
+              PERMISSION
+            </div>
+            <div id="1TZO-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+              Unavailable
+            </div>
+          </div>
+          <div id="1TZP-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+            Access is required
+          </div>
+          <div id="1TZQ-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+            Use the existing entitlement or sign-in path. Never render protected values behind a disabled visual shell.
+          </div>
+          <div id="1TZR-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '18px' }}>
+            Existing access flow
+          </div>
+        </div>
+        <div id="1TZT-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: 0, gap: '13px', minHeight: '213px', padding: '20px', width: '538px' }}>
+          <div id="1TZU-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div id="1TZV-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1px', lineHeight: '14px' }}>
+              SUCCESS + KEYBOARD
+            </div>
+            <div id="1TZW-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+              ✓
+            </div>
+          </div>
+          <div id="1TZX-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '18px', fontWeight: 600, lineHeight: '22px' }}>
+            Explore without losing context
+          </div>
+          <div id="1TZY-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '20px' }}>
+            Expiry breakdown and Snapshot levels open without shrinking the ladder. Market State and History jumps move focus to their named sections.
+          </div>
+          <div id="1TZZ-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '18px' }}>
+            44 px touch targets · visible focus
+          </div>
+        </div>
+      </div>
+    </div>
+  )

@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-10-17T13:02:53.734083+00:00",
+  "commit": "072c53e4f02ae2097d76ca96e6da2f48031e64ae",
+  "tree": "cce4321d083b3b265fadf8390160bcebc594ce04",
+  "parents": [
+    "85d478be67329256d71822e738bd5364f9011cc5"
+  ],
+  "sourceBindings": {
+    "terminal/e2e/drawing-system.spec.ts": "0d89cc288d1b204b8afd272e59302e0e4d41015e0ad643e848b081c552391e26",
+    "terminal/e2e/chart-engine-drawings.spec.ts": "bc74f5d5ed0b371630611669559db38e36b998a5d0d09e64618c9715402bae95",
+    "terminal/e2e/chart-engine-screenshot.spec.ts": "bc3c2c623bd21698f11b4f009037a4635f0eac52263575d28f1894a02fb5c67d",
+    "terminal/lib/chart-engine/canvas/frame.ts": "7d24385531d12c6600272fafd3dd4bb39859eb52f22fb7133d5021083b18f697"
+  },
+  "sourceUnchanged": true,
+  "published": false
+}

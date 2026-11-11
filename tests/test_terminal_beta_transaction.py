@@ -3,7 +3,7 @@
 The original qualified harness was read for its fixture conventions. Its real-Git
 Owner is deliberately not run under this assignment's no-Git-effects restriction.
 """
-import hashlib,json,os,pathlib,pwd,re,shlex,shutil,subprocess,tempfile
+import hashlib,json,os,pathlib,pwd,re,shlex,shutil,subprocess,tempfile,time
 import unittest
 
 HERE=pathlib.Path(__file__).resolve().parent
@@ -336,6 +336,85 @@ kill -KILL "$$"
  assert 'pending' in out2.stdout+out2.stderr
 
 
+# The PIPE ignore taken just before the build lock (both profiles).
+LOCK_ENTRANCE='deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET" || exit $?\n'
+EARLY_PIPE_IGNORE="\ntrap '' PIPE\n"+LOCK_ENTRANCE
+
+def closed_channel_upgrade(box):
+ """The B upgrade with its output on a pipe. Parked in the stage step, the
+ reader goes away (a cancelled caller: no signal, the next write raises
+ SIGPIPE), then the stage step is released. Returns the exit status."""
+ box.flag('hold_stage');box.flag('fail_build')
+ reader,writer=os.pipe()
+ proc=subprocess.Popen(['bash',str(box.owner),'--target','beta','--target-sha',B],
+                       env=box.env,stdout=writer,stderr=writer)
+ os.close(writer)
+ try:
+  deadline=time.monotonic()+20
+  while not (box.root/'hold_stage.started').exists():
+   assert proc.poll() is None,'beta run ended before its stage step'
+   assert time.monotonic()<deadline,'beta run never reached its stage step'
+   time.sleep(0.05)
+  assert (box.base/'.terminal-build-resource.lock'/'hold').is_dir(),'fixture: the build lock is not where the case looks'
+  os.close(reader);reader=None
+  box.flag('hold_stage.release')
+  return proc.wait(timeout=25)
+ finally:
+  box.flag('hold_stage.release')
+  if reader is not None: os.close(reader)
+  if proc.poll() is None: proc.kill();proc.wait()
+  assert digest_tree(box.prod)==box.production_before,'beta mutated production fixture bytes'
+
+def _case_closed_deploy_channel_during_stage_still_reaches_the_build_and_cleanup(box):
+ box.bootstrap();prior=(box.target/'.runtime-accepted').resolve()
+ start=len(box.effects())
+ status=closed_channel_upgrade(box)
+ later=box.effects()[start:]
+ # The run went on past the closed channel to its own verdict (the injected
+ # build failure) and left through its cleanup, not through a signal.
+ assert 'npm:run build' in later,later
+ assert status>0,status
+ assert not (box.base/'.terminal-build-resource.lock'/'hold').exists(),'the build lock was never released'
+ assert not list(box.target.glob('.stage.*')),'the stage was left behind'
+ assert any(' reset ' in v and A in v for v in later),later
+ assert box.read('head')==A
+ assert box.accepted()['accepted_sha']==A
+ assert (box.target/'.runtime-accepted').resolve()==prior
+ assert not (box.target/'.release-pending').exists()
+ assert (box.app/'.deployment-id').read_text().strip()==A
+ assert (box.app/'.next/fixture-build-sha').read_text().strip()==A
+ assert box.read('enabled')=='enabled' and box.read('active')=='active'
+
+def _case_mutant_without_the_early_pipe_ignore_never_reaches_the_beta_build(box):
+ # Only the cut-short run is asserted: what the dying shell still does (EXIT
+ # trap or not, and with which status) differs between bash 5.2 and 5.3.
+ script=box.owner.read_text()
+ assert script.count(EARLY_PIPE_IGNORE)==1,'mutation anchor vanished from ops/terminal-build.sh'
+ box.owner.write_text(script.replace(EARLY_PIPE_IGNORE,'\n:  # MUTANT: PIPE keeps its default disposition\n'+LOCK_ENTRANCE))
+ box.bootstrap()
+ start=len(box.effects())
+ status=closed_channel_upgrade(box)
+ later=box.effects()[start:]
+ assert 'npm:run build' not in later,'mutation was inert: the run survived the closed channel (status=%r)'%status
+ assert not any(' reset ' in v and A in v for v in later),later
+
+# The status validator's success line goes to a file and is relayed by the shell.
+VERDICT_RELAY=" \\\n      >\"$temporary/verdict\" <<'PY_STATUS' || rc=$?\n"
+
+def _case_mutant_without_the_verdict_relay_cannot_verify_the_rollback_on_a_closed_channel(box):
+ # With PIPE ignored the validator's own print fails on the closed channel, so
+ # the rollback restores A but cannot prove it and leaves beta unresolved.
+ script=box.owner.read_text()
+ assert script.count(VERDICT_RELAY)==1,'mutation anchor vanished from ops/terminal-build.sh'
+ box.owner.write_text(script.replace(VERDICT_RELAY," <<'PY_STATUS' || rc=$?\n"))
+ box.bootstrap()
+ start=len(box.effects())
+ closed_channel_upgrade(box)
+ later=box.effects()[start:]
+ assert 'npm:run build' in later,later
+ assert (box.target/'.release-pending').exists(),'mutation was inert: the rollback was verified without the relay'
+ assert box.read('active')!='active',box.read('active')
+
 def _case_post_commit_enable_failure_preserves_B_and_does_not_attempt_rollback(box):
  box.bootstrap();box.flag('fail_enable')
  out=box.run(B)
@@ -376,7 +455,65 @@ def _case_complete_orphan_provision_record_is_reusable_without_overwriting_it(bo
 def _case_production_generation_library_and_restart_branch_are_unchanged():
  source=CANDIDATE.read_text()
  def span(s,a,b): return s[s.index(a):s.index(b,s.index(a))]
- assert hashlib.sha256(span(source,'deploy_generation_reset(){','# ── beta lifecycle state:').encode()).hexdigest()==GENERATION_SHA256
+ generation=span(source,'deploy_generation_reset(){','# ── beta lifecycle state:')
+ # The production dependency rollback adds exactly this restore to the single
+ # abort, between build/marker restoration and reactivation. It is inert unless a
+ # production deps install opened a snapshot (beta never does). Remove only this
+ # exact addition and keep the original generation byte lock, rather than
+ # blessing a new hash.
+ dependency_restore = '''  # Dependency inputs are part of the generation being returned to: the accepted
+  # ones go back before any process is restarted against the restored build.
+  if [ -n "${DEPS_SNAPSHOT_DIR:-}" ]; then
+    if deps_snapshot_restore "$app"; then
+      log "rollback dependency recovery OK"
+    else
+      log "FATAL: rollback dependency recovery failed; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
+      rc=1
+    fi
+  fi
+'''
+ assert generation.count(dependency_restore)==1
+ # The abort's control flow carries exactly three more additions, all in
+ # deploy_generation_abort and all removed here the same way. (1) Once the
+ # rollback has begun, HUP/INT/TERM and PIPE are held off unconditionally, so the
+ # restart-or-stop decision is always reached, and the exit path is told the
+ # generation is no longer open. Beta never reaches this function: every beta
+ # call site runs `beta_txn_abort … || exit 1` first, and that always returns 1.
+ # (2)+(3) Cumulative containment: the reviewed reactivation block keeps
+ # its bytes but runs only when every restoration leg is proven; otherwise the
+ # selected unit is stopped. The opening and closing lines bracket that block.
+ abort_local='  local app=$1 want_sha=$2 swapped=$3 reason=$4 rc=0\n'
+ signal_hold = '''  # A rollback that has begun is finished: a signal taken between the restore and
+  # the restart or stop would leave a process bound to a tree that moved. Held
+  # on every path that reaches here, and PIPE with the rest: a closed deploy
+  # channel arrives as SIGPIPE on the next log line, not as HUP. The exit path
+  # reads the flag so that it never starts this rollback a second time.
+  trap '' HUP INT TERM PIPE
+  DEPLOY_GENERATION_OPEN=0
+'''
+ containment_open = '''  # Containment is cumulative. Reactivation is only for a generation whose every
+  # restoration leg above (build, marker, dependency inputs) is proven complete.
+  # When any leg failed the selected unit is stopped instead, whether or not the
+  # build moved: with no backup to return to the moved flag stays 0 while a
+  # failed candidate may still be serving. The reviewed reactivation block below
+  # keeps its bytes, and so its indentation, inside this else.
+  if [ "$rc" -ne 0 ]; then
+    deploy_generation_contain
+  else
+'''
+ containment_close='  fi  # cumulative containment: every leg proven, or the selected unit stopped\n'
+ reactivation='  # A process must never remain pointed at a tree that moved: reactivate a\n'
+ resolved='  if [ "$rc" = 0 ]; then\n    log "rolled back — '
+ for added in (signal_hold,containment_open,containment_close):
+  assert generation.count(added)==1
+ assert generation.count(abort_local+signal_hold)==1
+ assert generation.count(dependency_restore+containment_open+reactivation)==1
+ assert generation.count(containment_close+resolved)==1
+ assert generation.index('deploy_generation_rollback "$app" "$swapped" || rc=$?')<generation.index(dependency_restore)<generation.index('if [ "$DEPLOY_ROLLBACK_MOVED_BUILD" = 1 ]; then')<generation.index(containment_close)
+ baseline_generation=generation
+ for added in (signal_hold,dependency_restore,containment_open,containment_close):
+  baseline_generation=baseline_generation.replace(added,'',1)
+ assert hashlib.sha256(baseline_generation.encode()).hexdigest()==GENERATION_SHA256
  assert hashlib.sha256(span(source,'run_release_preflight(){','# Read the live deployment marker').encode()).hexdigest()==PREFLIGHT_SHA256
  start=source.index('if ! systemctl restart terminal; then',source.index('# 6) atomic swap'))
  # The reviewed production opt-in adds exactly this status gate. Keep the
@@ -401,7 +538,13 @@ fi
 
 '''
  assert branch.count(investigation_addition)==1
- baseline_branch=branch.replace(addition,'',1).replace(investigation_addition,'',1)
+ # Acceptance also closes the production dependency rollback snapshot: exactly
+ # this one line, directly after the generation is committed. Same rule.
+ commit_line='  deploy_generation_commit "$APP"\n'
+ snapshot_discard='  deps_snapshot_discard\n'
+ assert branch.count(snapshot_discard)==1
+ assert branch.count(commit_line+snapshot_discard)==1
+ baseline_branch=branch.replace(addition,'',1).replace(investigation_addition,'',1).replace(snapshot_discard,'',1)
  assert hashlib.sha256(baseline_branch[:PRODUCTION_BRANCH_CHARS].encode()).hexdigest()==PRODUCTION_BRANCH_SHA256
  # These source gates must remain in the ordinary main branch, in order.
  main=source[source.index('# 0c) two entrances, one source contract.'):]
@@ -441,6 +584,9 @@ for failure in ['fail_status_sha','interrupt_start','fail_source_sync']:
 for mode in ['bootstrap','upgrade']:
  register(_case_final_restart_failure_stops_without_acceptance,mode)
 register(_case_hard_interruption_retains_pending_state_and_disables_automatic_start)
+register(_case_closed_deploy_channel_during_stage_still_reaches_the_build_and_cleanup)
+register(_case_mutant_without_the_early_pipe_ignore_never_reaches_the_beta_build)
+register(_case_mutant_without_the_verdict_relay_cannot_verify_the_rollback_on_a_closed_channel)
 register(_case_post_commit_enable_failure_preserves_B_and_does_not_attempt_rollback)
 register(_case_complete_orphan_provision_record_is_reusable_without_overwriting_it)
 register(_case_production_generation_library_and_restart_branch_are_unchanged,fixture=False)

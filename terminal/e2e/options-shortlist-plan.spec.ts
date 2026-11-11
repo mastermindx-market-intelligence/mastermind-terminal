@@ -25,7 +25,13 @@ for (const lang of ["en", "zh"] as const) {
   test(`mounted dated shortlist → authored Plan → curve/unavailable/scope reset ${lang}`, async ({ page, context, baseURL }, info) => {
     test.setTimeout(90_000);
     const t = (en: string, zh: string) => lang === "zh" ? zh : en;
-    await context.addCookies([{ name: "sb-127-auth-token.0", value: "base64-" + Buffer.from(JSON.stringify(session())).toString("base64url"), url: baseURL! }]);
+    // The opaque client/API token below is not a server-verifiable JWT. Use the
+    // existing explicit development shell fixture, as the other Options Plan
+    // fixtures do; production ignores this opt-in and still verifies claims.
+    await context.addCookies([
+      { name: "mm_e2e_rs30", value: "1", url: baseURL! },
+      { name: "sb-127-auth-token.0", value: "base64-" + Buffer.from(JSON.stringify(session())).toString("base64url"), url: baseURL! },
+    ]);
     await page.addInitScript(({ lang, user }) => {
       localStorage.setItem("mm.lang", lang);
       const originalFetch = window.fetch.bind(window);

@@ -1,0 +1,1785 @@
+{
+  "capturedAtHead": "0f077993fc1a1244531f825d3d829491f47d338c",
+  "readbacks": [
+    {
+      "file": "PortfolioTargets-empty-1440.png",
+      "state": "empty",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": null,
+            "entryPrice": null,
+            "entryCurrency": null,
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:05.754Z"
+          }
+        ],
+        "bookKey": "cd40e3938f04e37918181e0f5d79d782f39dcbdf4b4804d68feb41c5c7d99f74"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": null
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "cd40e3938f04e37918181e0f5d79d782f39dcbdf4b4804d68feb41c5c7d99f74"
+      }
+    },
+    {
+      "file": "PortfolioTargets-populated-within-band-1440.png",
+      "state": "populated-within-band",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:07.899Z"
+          }
+        ],
+        "bookKey": "5a42dd7f82d396006adb5749db9c0f0e116a3c5a109504caa18536a7f2373b06"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 95,
+          "targetsSumOffBy100": -5,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 95,
+              "bandPct": 5,
+              "driftPct": 5,
+              "status": "within_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "5a42dd7f82d396006adb5749db9c0f0e116a3c5a109504caa18536a7f2373b06"
+      }
+    },
+    {
+      "file": "PortfolioTargets-populated-outside-band-1440.png",
+      "state": "populated-outside-band",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:09.516Z"
+          }
+        ],
+        "bookKey": "7fb6039f0986459630000eead84919f32008f51e6f342d50438bc3363b77f314"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "7fb6039f0986459630000eead84919f32008f51e6f342d50438bc3363b77f314"
+      }
+    },
+    {
+      "file": "PortfolioTargets-orphaned-target-disclosed-1440.png",
+      "state": "orphaned-target-disclosed",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "closed",
+            "createdAt": "2026-11-10T07:49:11.097Z"
+          },
+          {
+            "id": "portfolio_positions-2",
+            "ticker": "AAPL",
+            "shares": 10,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:11.111Z"
+          }
+        ],
+        "bookKey": "ae91237540f1ff380902fa95fdd78e6d93d483ead8a79b8da7c2aaf47243ce74"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "AAPL",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "targetWeightPct": 80,
+              "bandPct": 5
+            }
+          ],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "ae91237540f1ff380902fa95fdd78e6d93d483ead8a79b8da7c2aaf47243ce74"
+      }
+    },
+    {
+      "file": "PortfolioTargets-orphaned-empty-book-1440.png",
+      "state": "orphaned-empty-book",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "closed",
+            "createdAt": "2026-11-10T07:49:12.824Z"
+          }
+        ],
+        "bookKey": "6abbf84a08abef0ff138941f90a7f0dddc69e8f011fa3611de82481348aa3bd5"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [],
+          "untargeted": [],
+          "orphaned": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "targetWeightPct": 80,
+              "bandPct": 5
+            }
+          ],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "6abbf84a08abef0ff138941f90a7f0dddc69e8f011fa3611de82481348aa3bd5"
+      }
+    },
+    {
+      "file": "PortfolioTargets-unweighable-1440.png",
+      "state": "unweighable",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:14.376Z"
+          },
+          {
+            "id": "portfolio_positions-2",
+            "ticker": "AAPL",
+            "shares": 0,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:14.383Z"
+          },
+          {
+            "id": "portfolio_positions-3",
+            "ticker": "MSFT",
+            "shares": 0,
+            "entryPrice": 100,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:14.392Z"
+          }
+        ],
+        "bookKey": "281177bc51a80235881ed4fd852c5f77ea296678c2cb860758d3b373bf72a695"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 90,
+          "targetsSumOffBy100": -10,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            },
+            {
+              "ticker": "AAPL",
+              "roleLabel": null,
+              "currentWeightPct": null,
+              "targetWeightPct": 10,
+              "bandPct": 5,
+              "driftPct": null,
+              "status": "unweighable"
+            }
+          ],
+          "untargeted": [
+            {
+              "ticker": "MSFT",
+              "currentWeightPct": null
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "281177bc51a80235881ed4fd852c5f77ea296678c2cb860758d3b373bf72a695"
+      }
+    },
+    {
+      "file": "PortfolioTargets-cleared-1440.png",
+      "state": "cleared",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:16.311Z"
+          }
+        ],
+        "bookKey": "e3820a4b139446c5cf19da9ce2976bdcf4f4f5bed746cc0a2617894586c956a9"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "e3820a4b139446c5cf19da9ce2976bdcf4f4f5bed746cc0a2617894586c956a9"
+      }
+    },
+    {
+      "file": "PortfolioTargets-cleared-1440.png",
+      "state": "cleared",
+      "phase": "cleared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:16.311Z"
+          }
+        ],
+        "bookKey": "e3820a4b139446c5cf19da9ce2976bdcf4f4f5bed746cc0a2617894586c956a9"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "e3820a4b139446c5cf19da9ce2976bdcf4f4f5bed746cc0a2617894586c956a9"
+      }
+    },
+    {
+      "file": "PortfolioTargets-unavailable-1440.png",
+      "state": "unavailable",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:18.000Z"
+          }
+        ],
+        "bookKey": "d850cd1677d5fa98416982bd2ee848da34677fa7fc1f70f0b8cfa8ee6e948fb7"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "d850cd1677d5fa98416982bd2ee848da34677fa7fc1f70f0b8cfa8ee6e948fb7"
+      }
+    },
+    {
+      "file": "PortfolioTargets-empty-1440-zh.png",
+      "state": "empty",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": null,
+            "entryPrice": null,
+            "entryCurrency": null,
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:19.560Z"
+          }
+        ],
+        "bookKey": "95aa67d3840d297acce50fc7ba696274e55a5d008128aeb6ebc0d380f62dbbbf"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": null
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "95aa67d3840d297acce50fc7ba696274e55a5d008128aeb6ebc0d380f62dbbbf"
+      }
+    },
+    {
+      "file": "PortfolioTargets-populated-within-band-1440-zh.png",
+      "state": "populated-within-band",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:21.120Z"
+          }
+        ],
+        "bookKey": "6dfe869abe166308bf4dd8ca69575557a99893f27c206eb9d245eb886db396c3"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 95,
+          "targetsSumOffBy100": -5,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 95,
+              "bandPct": 5,
+              "driftPct": 5,
+              "status": "within_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "6dfe869abe166308bf4dd8ca69575557a99893f27c206eb9d245eb886db396c3"
+      }
+    },
+    {
+      "file": "PortfolioTargets-populated-outside-band-1440-zh.png",
+      "state": "populated-outside-band",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:23.019Z"
+          }
+        ],
+        "bookKey": "24e92c56270c19ec7a1a304f84505ea78aad662516ff5c4dbe582be5d96db861"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "24e92c56270c19ec7a1a304f84505ea78aad662516ff5c4dbe582be5d96db861"
+      }
+    },
+    {
+      "file": "PortfolioTargets-orphaned-target-disclosed-1440-zh.png",
+      "state": "orphaned-target-disclosed",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "closed",
+            "createdAt": "2026-11-10T07:49:24.714Z"
+          },
+          {
+            "id": "portfolio_positions-2",
+            "ticker": "AAPL",
+            "shares": 10,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:24.721Z"
+          }
+        ],
+        "bookKey": "c22c6672634ba32041954005c2126fcf0c566e15cc1f38c7160d0b92d919323d"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "AAPL",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "targetWeightPct": 80,
+              "bandPct": 5
+            }
+          ],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "c22c6672634ba32041954005c2126fcf0c566e15cc1f38c7160d0b92d919323d"
+      }
+    },
+    {
+      "file": "PortfolioTargets-orphaned-empty-book-1440-zh.png",
+      "state": "orphaned-empty-book",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "closed",
+            "createdAt": "2026-11-10T07:49:26.354Z"
+          }
+        ],
+        "bookKey": "d3670e8fd39e27f1e4280e4937aa45d09329a33a08ebc5e889260eb07502b6db"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [],
+          "untargeted": [],
+          "orphaned": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "targetWeightPct": 80,
+              "bandPct": 5
+            }
+          ],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "d3670e8fd39e27f1e4280e4937aa45d09329a33a08ebc5e889260eb07502b6db"
+      }
+    },
+    {
+      "file": "PortfolioTargets-unweighable-1440-zh.png",
+      "state": "unweighable",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:27.854Z"
+          },
+          {
+            "id": "portfolio_positions-2",
+            "ticker": "AAPL",
+            "shares": 0,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:27.862Z"
+          },
+          {
+            "id": "portfolio_positions-3",
+            "ticker": "MSFT",
+            "shares": 0,
+            "entryPrice": 100,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:27.870Z"
+          }
+        ],
+        "bookKey": "f49f2a82253572f52e4a83e8a7ed6e4f4db057865d967ce670e81ca037ccd22f"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 90,
+          "targetsSumOffBy100": -10,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            },
+            {
+              "ticker": "AAPL",
+              "roleLabel": null,
+              "currentWeightPct": null,
+              "targetWeightPct": 10,
+              "bandPct": 5,
+              "driftPct": null,
+              "status": "unweighable"
+            }
+          ],
+          "untargeted": [
+            {
+              "ticker": "MSFT",
+              "currentWeightPct": null
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "f49f2a82253572f52e4a83e8a7ed6e4f4db057865d967ce670e81ca037ccd22f"
+      }
+    },
+    {
+      "file": "PortfolioTargets-cleared-1440-zh.png",
+      "state": "cleared",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:29.777Z"
+          }
+        ],
+        "bookKey": "18806161df22cd9ef3b7bce791c36f002433e2d6182c8d15c72d8816352f03be"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "18806161df22cd9ef3b7bce791c36f002433e2d6182c8d15c72d8816352f03be"
+      }
+    },
+    {
+      "file": "PortfolioTargets-cleared-1440-zh.png",
+      "state": "cleared",
+      "phase": "cleared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:29.777Z"
+          }
+        ],
+        "bookKey": "18806161df22cd9ef3b7bce791c36f002433e2d6182c8d15c72d8816352f03be"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "18806161df22cd9ef3b7bce791c36f002433e2d6182c8d15c72d8816352f03be"
+      }
+    },
+    {
+      "file": "PortfolioTargets-unavailable-1440-zh.png",
+      "state": "unavailable",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:31.428Z"
+          }
+        ],
+        "bookKey": "d286812b0057844ae5a5581cd4c3737634fc7fdbb7098a9ecd36e1d67e464f7d"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "d286812b0057844ae5a5581cd4c3737634fc7fdbb7098a9ecd36e1d67e464f7d"
+      }
+    },
+    {
+      "file": "PortfolioTargets-empty-390.png",
+      "state": "empty",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": null,
+            "entryPrice": null,
+            "entryCurrency": null,
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:32.885Z"
+          }
+        ],
+        "bookKey": "e1745db3efa2f78ce8dbb831d6202566c59fbdfbe31cf777949fdb91ba67d642"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": null
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "e1745db3efa2f78ce8dbb831d6202566c59fbdfbe31cf777949fdb91ba67d642"
+      }
+    },
+    {
+      "file": "PortfolioTargets-populated-within-band-390.png",
+      "state": "populated-within-band",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:34.281Z"
+          }
+        ],
+        "bookKey": "7f1c6afa34cb4dd23d3dc2d2fbc367f31eff98be5c7fea9ead15f4176eb1a6f0"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 95,
+          "targetsSumOffBy100": -5,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 95,
+              "bandPct": 5,
+              "driftPct": 5,
+              "status": "within_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "7f1c6afa34cb4dd23d3dc2d2fbc367f31eff98be5c7fea9ead15f4176eb1a6f0"
+      }
+    },
+    {
+      "file": "PortfolioTargets-populated-outside-band-390.png",
+      "state": "populated-outside-band",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:35.854Z"
+          }
+        ],
+        "bookKey": "d0d73ff57423d57e810e5432fe8ffa4eaf5d90d2d32f1e7e786cb4bae27dd197"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "d0d73ff57423d57e810e5432fe8ffa4eaf5d90d2d32f1e7e786cb4bae27dd197"
+      }
+    },
+    {
+      "file": "PortfolioTargets-orphaned-target-disclosed-390.png",
+      "state": "orphaned-target-disclosed",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "closed",
+            "createdAt": "2026-11-10T07:49:37.412Z"
+          },
+          {
+            "id": "portfolio_positions-2",
+            "ticker": "AAPL",
+            "shares": 10,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:37.420Z"
+          }
+        ],
+        "bookKey": "7b161376a50942b0ee1043df59774742fa432e6211052cf22941afee18875c6a"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "AAPL",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "targetWeightPct": 80,
+              "bandPct": 5
+            }
+          ],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "7b161376a50942b0ee1043df59774742fa432e6211052cf22941afee18875c6a"
+      }
+    },
+    {
+      "file": "PortfolioTargets-orphaned-empty-book-390.png",
+      "state": "orphaned-empty-book",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "closed",
+            "createdAt": "2026-11-10T07:49:38.872Z"
+          }
+        ],
+        "bookKey": "2ff50cf8acc1f62954d4241b2f0fb82cfeb0e0d9b5304cc6673aa6e024f79de8"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [],
+          "untargeted": [],
+          "orphaned": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "targetWeightPct": 80,
+              "bandPct": 5
+            }
+          ],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "2ff50cf8acc1f62954d4241b2f0fb82cfeb0e0d9b5304cc6673aa6e024f79de8"
+      }
+    },
+    {
+      "file": "PortfolioTargets-unweighable-390.png",
+      "state": "unweighable",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:40.347Z"
+          },
+          {
+            "id": "portfolio_positions-2",
+            "ticker": "AAPL",
+            "shares": 0,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:40.355Z"
+          },
+          {
+            "id": "portfolio_positions-3",
+            "ticker": "MSFT",
+            "shares": 0,
+            "entryPrice": 100,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:40.362Z"
+          }
+        ],
+        "bookKey": "c1001fffeda24e873212593b3da45516a3f09f582377a2e3489a4661eb7238d5"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 90,
+          "targetsSumOffBy100": -10,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            },
+            {
+              "ticker": "AAPL",
+              "roleLabel": null,
+              "currentWeightPct": null,
+              "targetWeightPct": 10,
+              "bandPct": 5,
+              "driftPct": null,
+              "status": "unweighable"
+            }
+          ],
+          "untargeted": [
+            {
+              "ticker": "MSFT",
+              "currentWeightPct": null
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "c1001fffeda24e873212593b3da45516a3f09f582377a2e3489a4661eb7238d5"
+      }
+    },
+    {
+      "file": "PortfolioTargets-cleared-390.png",
+      "state": "cleared",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:41.755Z"
+          }
+        ],
+        "bookKey": "435555a42936aabde673fde5e94f6c9d6450fd6151e86360814274afff63b814"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "435555a42936aabde673fde5e94f6c9d6450fd6151e86360814274afff63b814"
+      }
+    },
+    {
+      "file": "PortfolioTargets-cleared-390.png",
+      "state": "cleared",
+      "phase": "cleared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:41.755Z"
+          }
+        ],
+        "bookKey": "435555a42936aabde673fde5e94f6c9d6450fd6151e86360814274afff63b814"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "435555a42936aabde673fde5e94f6c9d6450fd6151e86360814274afff63b814"
+      }
+    },
+    {
+      "file": "PortfolioTargets-unavailable-390.png",
+      "state": "unavailable",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:43.374Z"
+          }
+        ],
+        "bookKey": "8111d1a290dd7bbf42f207439f74777d3a3c8964d95d5a5bea47d2695f591867"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "8111d1a290dd7bbf42f207439f74777d3a3c8964d95d5a5bea47d2695f591867"
+      }
+    },
+    {
+      "file": "PortfolioTargets-empty-390-zh.png",
+      "state": "empty",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": null,
+            "entryPrice": null,
+            "entryCurrency": null,
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:44.729Z"
+          }
+        ],
+        "bookKey": "a78d15150b00fd724089095d232288411e44e4e21142fa0dcad3a9fa07cf59d0"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": null
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "a78d15150b00fd724089095d232288411e44e4e21142fa0dcad3a9fa07cf59d0"
+      }
+    },
+    {
+      "file": "PortfolioTargets-populated-within-band-390-zh.png",
+      "state": "populated-within-band",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:46.426Z"
+          }
+        ],
+        "bookKey": "93e7a36c46024806250f7079113f4cc7a441153efbe6d2e1668c1933054d67e7"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 95,
+          "targetsSumOffBy100": -5,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 95,
+              "bandPct": 5,
+              "driftPct": 5,
+              "status": "within_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "93e7a36c46024806250f7079113f4cc7a441153efbe6d2e1668c1933054d67e7"
+      }
+    },
+    {
+      "file": "PortfolioTargets-populated-outside-band-390-zh.png",
+      "state": "populated-outside-band",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:47.949Z"
+          }
+        ],
+        "bookKey": "7fc1df35ec3339dda71f64233c1877617cc543abd1404a9cd99b51af800ae35d"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "7fc1df35ec3339dda71f64233c1877617cc543abd1404a9cd99b51af800ae35d"
+      }
+    },
+    {
+      "file": "PortfolioTargets-orphaned-target-disclosed-390-zh.png",
+      "state": "orphaned-target-disclosed",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "closed",
+            "createdAt": "2026-11-10T07:49:49.441Z"
+          },
+          {
+            "id": "portfolio_positions-2",
+            "ticker": "AAPL",
+            "shares": 10,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:49.448Z"
+          }
+        ],
+        "bookKey": "e53c0e9f8ac562cd5f29df452a90d73ca1791866f68d360ac366d8edaa7714dc"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "AAPL",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "targetWeightPct": 80,
+              "bandPct": 5
+            }
+          ],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "e53c0e9f8ac562cd5f29df452a90d73ca1791866f68d360ac366d8edaa7714dc"
+      }
+    },
+    {
+      "file": "PortfolioTargets-orphaned-empty-book-390-zh.png",
+      "state": "orphaned-empty-book",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "closed",
+            "createdAt": "2026-11-10T07:49:50.897Z"
+          }
+        ],
+        "bookKey": "abd4df7a0cac9792c65a7eae3074fe95ea8a73f039ef5980e2a74c1358367ab6"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [],
+          "untargeted": [],
+          "orphaned": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "targetWeightPct": 80,
+              "bandPct": 5
+            }
+          ],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "abd4df7a0cac9792c65a7eae3074fe95ea8a73f039ef5980e2a74c1358367ab6"
+      }
+    },
+    {
+      "file": "PortfolioTargets-unweighable-390-zh.png",
+      "state": "unweighable",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:52.393Z"
+          },
+          {
+            "id": "portfolio_positions-2",
+            "ticker": "AAPL",
+            "shares": 0,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:52.400Z"
+          },
+          {
+            "id": "portfolio_positions-3",
+            "ticker": "MSFT",
+            "shares": 0,
+            "entryPrice": 100,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:52.406Z"
+          }
+        ],
+        "bookKey": "00e84ae94ebd19d89eacf789372b8ac244949556616d4423aea294d4047b73d1"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 90,
+          "targetsSumOffBy100": -10,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            },
+            {
+              "ticker": "AAPL",
+              "roleLabel": null,
+              "currentWeightPct": null,
+              "targetWeightPct": 10,
+              "bandPct": 5,
+              "driftPct": null,
+              "status": "unweighable"
+            }
+          ],
+          "untargeted": [
+            {
+              "ticker": "MSFT",
+              "currentWeightPct": null
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "00e84ae94ebd19d89eacf789372b8ac244949556616d4423aea294d4047b73d1"
+      }
+    },
+    {
+      "file": "PortfolioTargets-cleared-390-zh.png",
+      "state": "cleared",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:53.880Z"
+          }
+        ],
+        "bookKey": "31925de2663c86953a11d54fb22a4867e217212abc5fd4523afdad201605d549"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 80,
+          "targetsSumOffBy100": -20,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 80,
+              "bandPct": 5,
+              "driftPct": 20,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "31925de2663c86953a11d54fb22a4867e217212abc5fd4523afdad201605d549"
+      }
+    },
+    {
+      "file": "PortfolioTargets-cleared-390-zh.png",
+      "state": "cleared",
+      "phase": "cleared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:53.880Z"
+          }
+        ],
+        "bookKey": "31925de2663c86953a11d54fb22a4867e217212abc5fd4523afdad201605d549"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "31925de2663c86953a11d54fb22a4867e217212abc5fd4523afdad201605d549"
+      }
+    },
+    {
+      "file": "PortfolioTargets-unavailable-390-zh.png",
+      "state": "unavailable",
+      "phase": "prepared",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-10T07:49:55.536Z"
+          }
+        ],
+        "bookKey": "d60dd9fada2eab45bce456746076348ddfd23dea67bce356ad834a33024a846c"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [
+            {
+              "ticker": "NVDA",
+              "currentWeightPct": 100
+            }
+          ],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "d60dd9fada2eab45bce456746076348ddfd23dea67bce356ad834a33024a846c"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "source": "fdb54a8a2092c6b42ce3d35493665805b8e14bdb",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/eventImpactPanelRefresh.test.tsx",
+    "lib/__tests__/eventImpactPanelActualCaller.test.tsx",
+    "lib/__tests__/eventImpact.test.ts",
+    "lib/__tests__/eventImpactPanelRender.test.ts",
+    "lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx",
+    "lib/__tests__/eventImpactRoute.test.ts",
+    "--reporter=verbose"
+  ],
+  "exit": 0,
+  "seconds": 4.62,
+  "logSha256": "df3b1c12a8f6102900c98c034214ba39e3b588408218f3a5931930941289f8f1"
+}

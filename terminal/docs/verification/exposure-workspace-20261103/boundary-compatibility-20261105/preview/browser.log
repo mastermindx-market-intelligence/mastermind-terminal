@@ -1,0 +1,38 @@
+[warmup] /terminal?symbol=NVDA → 200 in 414ms
+[warmup] /options → 200 in 202ms
+[warmup] /portfolio → 200 in 2545ms
+[warmup] /alerts → 200 in 2694ms
+[warmup] /analysis → 200 in 3912ms
+[warmup] /discover → 200 in 7139ms
+[warmup] /admin → 200 in 2401ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 2239ms
+[warmup] /login → 200 in 342ms
+[warmup] /reset-password → 200 in 2422ms
+[warmup] /api/me → 200 in 2610ms
+[warmup] /api/watchlist → 200 in 4849ms
+[warmup] /api/layouts → 200 in 2153ms
+[warmup] /api/watchlist/annotations → 409 in 2195ms
+[warmup] 14 routes compiled in 36s
+
+Running 18 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (9.2s)
+  ✓   2 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (5.6s)
+  ✓   3 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (2.9s)
+  ✓   4 [desktop] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (3.4s)
+  ✓   5 [desktop] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (3.4s)
+  ✓   6 [desktop] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (8.4s)
+  ✓   7 [tablet] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (3.9s)
+  ✓   8 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (3.0s)
+  ✓   9 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.6s)
+  ✓  10 [tablet] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (3.4s)
+  ✓  11 [tablet] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (3.5s)
+  ✓  12 [tablet] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (6.8s)
+  ✓  13 [mobile] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (4.5s)
+  ✓  14 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (4.0s)
+  ✓  15 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.9s)
+  ✓  16 [mobile] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (3.3s)
+  ✓  17 [mobile] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (3.6s)
+  ✓  18 [mobile] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (7.2s)
+
+  18 passed (2.3m)

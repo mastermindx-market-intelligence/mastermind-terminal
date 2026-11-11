@@ -1,0 +1,91 @@
+{
+  "schema": "terminal.issue1201.qualification.v1",
+  "qualified_at": "2026-11-11T08:19:09.631841+00:00",
+  "operation_id": "terminal-pr-duty-20261111-1201-c3",
+  "base_head": "ffcc39bcdf89cb19b08444b8bb64cadbc1a3a5ec",
+  "protected_source_check": "74c007125129090cc762f2bc4b1b152123326444",
+  "source_preimages_unchanged_on_protected_master": true,
+  "source_sha256": {
+    "terminal/app/observatory.css": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06",
+    "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts": "194638305205d1ee4b2adc29eae0368c53b998f6f0ed106865cb223a014eb503"
+  },
+  "procedure_pin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "review": "SELF_REVIEWED_SOURCE_CONTRIBUTOR",
+  "formal_github_approval": false,
+  "production_acceptance": false,
+  "issue_closure": false,
+  "scope": "N3 empty Inspector title and explanation stacking",
+  "dark_stats": {
+    "startTime": "2026-11-11T08:01:58.633Z",
+    "duration": 57754.850999999995,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "light_stats": {
+    "startTime": "2026-11-11T08:02:57.617Z",
+    "duration": 82906.063,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "matrix_cases": 8,
+  "retries": 0,
+  "page_errors": 0,
+  "selected_event_followups": 2,
+  "recorded_source_files_per_case": 12,
+  "viewport_contexts": [
+    {
+      "width": 1440,
+      "height": 900,
+      "hasTouch": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "hasTouch": true
+    }
+  ],
+  "playwright_project": "desktop",
+  "context_touch_is_configuration": true,
+  "synthetic_fixture": "options-r1-w3a-flow.json",
+  "route": "/options?tab=desk",
+  "gap_px": 8,
+  "explanation_width_px": {
+    "1440": 276,
+    "390": 266
+  },
+  "explanation_and_page_horizontal_overflow": 0,
+  "phone_card_px": {
+    "width": 300,
+    "height": 340
+  },
+  "phone_card_rail_edge_tolerance_px": 1,
+  "owned_ports_closed": [
+    60184,
+    60703
+  ],
+  "harness_sha256": "dba92e525848b71f3137aca37187f3d17d9a6cd0588b85e65381cffc1cace0b0",
+  "temporary_spec_removed": true,
+  "visual_review": {
+    "verdict": "PASS",
+    "reviewedImages": 8,
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      1440,
+      390
+    ],
+    "notes": "All eight actual PNGs visually inspected in three bounded output batches. Title above explanation with readable spacing; English and Chinese copy contained in card at desktop and phone. No clipped or one-word vertical title; dark/light contrast readable. Mobile retains existing tall inspector card; no redesign claimed.",
+    "role": "source-contributing root self-review"
+  },
+  "diagnostic_failures_preserved": true
+}

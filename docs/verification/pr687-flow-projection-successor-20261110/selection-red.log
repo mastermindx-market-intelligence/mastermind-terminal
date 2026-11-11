@@ -1,0 +1,77 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/terminal[39m
+
+ [31m❯[39m lib/__tests__/flowProjectionControls.test.tsx [2m([22m[2m6 tests[22m[2m | [22m[31m3 failed[39m[2m | [22m[33m3 skipped[39m[2m)[22m[90m 118[2mms[22m[39m
+[31m   [31m×[31m real FeedPane selection preserves coverage and expansion ownership[2m > [22mcollapses an expanded card when the interval changes by keyboard activation[90m 70[2mms[22m[31m[39m
+[31m     → expected <div …(5)>…(5)</div> to have a length of +0 but got 1[39m
+[31m   [31m×[31m real FeedPane selection preserves coverage and expansion ownership[2m > [22mdoes not revive a hidden expansion after selecting and clearing a different bucket[90m 24[2mms[22m[31m[39m
+[31m     → expected <div …(5)>…(5)</div> to have a length of +0 but got 1[39m
+[31m   [31m×[31m real FeedPane selection preserves coverage and expansion ownership[2m > [22mclears missing bucket state and expansion when a new feed removes that bucket[90m 23[2mms[22m[31m[39m
+[31m     → expected <div …(5)>…(5)</div> to have a length of +0 but got 1[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjectionControls.test.tsx[2m > [22mreal FeedPane selection preserves coverage and expansion ownership[2m > [22mcollapses an expanded card when the interval changes by keyboard activation
+[31m[1mAssertionError[22m: expected <div …(5)>…(5)</div> to have a length of +0 but got 1[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 1[39m
+
+[36m [2m❯[22m lib/__tests__/flowProjectionControls.test.tsx:[2m100:57[22m[39m
+    [90m 98| [39m  [34mit[39m([32m"collapses an expanded card when the interval changes by keyboard[39m…
+    [90m 99| [39m    [35mawait[39m [34mmount[39m()[33m;[39m [35mawait[39m [34mexpand[39m([34mcards[39m()[[34m0[39m])[33m;[39m [35mawait[39m [34mactivate[39m([34mintervalBu[39m…
+    [90m100| [39m    [34mexpect[39m(host[33m.[39m[34mquerySelectorAll[39m([32m'[data-fc-open="1"]'[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m…
+    [90m   | [39m                                                        [31m^[39m
+    [90m101| [39m    [34mexpect[39m([34mintervalButton[39m([32m"5m"[39m)[33m.[39m[34mgetAttribute[39m([32m"aria-pressed"[39m))[33m.[39m[34mtoBe[39m([32m"tr[39m…
+    [90m102| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjectionControls.test.tsx[2m > [22mreal FeedPane selection preserves coverage and expansion ownership[2m > [22mdoes not revive a hidden expansion after selecting and clearing a different bucket
+[31m[1mAssertionError[22m: expected <div …(5)>…(5)</div> to have a length of +0 but got 1[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 1[39m
+
+[36m [2m❯[22m lib/__tests__/flowProjectionControls.test.tsx:[2m109:57[22m[39m
+    [90m107| [39m    [35mawait[39m [34mactivate[39m([34mbucketButtons[39m()[33m.[39m[34mfind[39m(b [33m=>[39m b[33m.[39mtextContent [33m===[39m [32m"Clear [39m…
+    [90m108| [39m    [34mexpect[39m([34mcards[39m())[33m.[39m[34mtoHaveLength[39m([34m3[39m)[33m;[39m
+    [90m109| [39m    [34mexpect[39m(host[33m.[39m[34mquerySelectorAll[39m([32m'[data-fc-open="1"]'[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m…
+    [90m   | [39m                                                        [31m^[39m
+    [90m110| [39m  })[33m;[39m
+    [90m111| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/flowProjectionControls.test.tsx[2m > [22mreal FeedPane selection preserves coverage and expansion ownership[2m > [22mclears missing bucket state and expansion when a new feed removes that bucket
+[31m[1mAssertionError[22m: expected <div …(5)>…(5)</div> to have a length of +0 but got 1[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 1[39m
+
+[36m [2m❯[22m lib/__tests__/flowProjectionControls.test.tsx:[2m119:57[22m[39m
+    [90m117| [39m    [35mawait[39m [34mmount[39m(rows)[33m;[39m
+    [90m118| [39m    [34mexpect[39m([34mcards[39m())[33m.[39m[34mtoHaveLength[39m([34m3[39m)[33m;[39m
+    [90m119| [39m    [34mexpect[39m(host[33m.[39m[34mquerySelectorAll[39m([32m'[data-fc-open="1"]'[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m…
+    [90m   | [39m                                                        [31m^[39m
+    [90m120| [39m  })[33m;[39m
+    [90m121| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[33m3 skipped[39m[90m (6)[39m
+[2m   Start at [22m 10:14:58
+[2m   Duration [22m 1.56s[2m (transform 252ms, setup 0ms, collect 371ms, tests 118ms, environment 544ms, prepare 122ms)[22m
+
+JSON report written to /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/selection-red-report.json

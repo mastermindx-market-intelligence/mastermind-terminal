@@ -1,0 +1,14 @@
+{
+  "exit_code": 1,
+  "seconds": 5.897,
+  "command": [
+    "node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/portfolioSectorContext.test.tsx",
+    "lib/__tests__/sectorPortfolioContext.test.ts",
+    "lib/__tests__/portfolioWorkspaceSectorContext.test.tsx",
+    "-t",
+    "ready selection|full opener|effective section"
+  ],
+  "log_sha256": "cf4cf9661c9d0ec68dd55f45cbb92be85aa7eeda336db1a3650f3acfa82bbb90"
+}

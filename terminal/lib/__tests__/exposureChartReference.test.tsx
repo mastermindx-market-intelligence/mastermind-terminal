@@ -2,6 +2,8 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { OptionsChartLevel } from "@/lib/optionsCompanion";
+import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import ExposureChartReference from "@/components/exposure-map/ExposureChartReference";
 import { LangProvider } from "@/lib/i18n";
 import { exposureChartHref, exposureMapHref, type ExposureChartRequest } from "@/lib/exposureChartLink";
@@ -21,8 +23,8 @@ let host: HTMLDivElement, root: Root;
 const onPin = vi.fn();
 const banner = () => document.querySelector<HTMLElement>('[data-testid="exposure-chart-reference"]');
 const nonNullPins = () => onPin.mock.calls.map(call => call[0]).filter(Boolean);
-async function render(symbol = "SPY", active = true) {
-  await act(async () => root.render(<LangProvider><ExposureChartReference symbol={symbol} active={active} pinned={null} onPin={onPin} /></LangProvider>));
+async function render(symbol = "SPY", active = true, pinned: OptionsChartLevel | null = null, viewport: OptionsPinViewport | null = null) {
+  await act(async () => root.render(<LangProvider><ExposureChartReference symbol={symbol} active={active} pinned={pinned} onPin={onPin} viewport={viewport} /></LangProvider>));
 }
 beforeEach(() => {
   (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -53,6 +55,54 @@ describe("Main-chart exposure reference source binding", () => {
     await render();
     expect(readSource).toHaveBeenCalledTimes(1);
     expect(nonNullPins()).toHaveLength(1);
+  });
+  it("keeps source-ready distinct from offscreen placement and reveals only on explicit action", async () => {
+    await render();
+    const level = nonNullPins().at(-1)! as OptionsChartLevel;
+    await render("SPY", true, level);
+    expect(banner()?.dataset.state).toBe("ready");
+    expect(banner()?.dataset.chartState).toBe("pending");
+    const reveal = vi.fn();
+    const view: OptionsPinViewport = { level, state: "offscreen", coordinate: -100, paneHeight: 300, generation: {}, reveal };
+    await render("SPY", true, level, view);
+    expect(banner()?.dataset.state).toBe("ready");
+    expect(banner()?.dataset.chartState).toBe("offscreen");
+    expect(banner()?.textContent).toContain("outside the visible chart");
+    expect(reveal).not.toHaveBeenCalled();
+    const show = [...banner()!.querySelectorAll("button")].find(button => button.textContent === "Show reference on chart")!;
+    await act(async () => show.click());
+    expect(reveal).toHaveBeenCalledTimes(1);
+    expect(readSource).toHaveBeenCalledTimes(1);
+    expect(banner()?.textContent).toContain(REQUEST.session);
+    await render("SPY", true, level, { ...view, state: "visible", coordinate: 50 });
+    expect(banner()?.dataset.chartState).toBe("visible");
+    expect(banner()?.textContent).toContain("dated reference is visible");
+    expect([...banner()!.querySelectorAll("button")].some(button => button.textContent === "Show reference on chart")).toBe(false);
+  });
+  it("does not promote a same-numbers receipt from another qualified object or an unpinned view", async () => {
+    await render();
+    const level = nonNullPins().at(-1)! as OptionsChartLevel;
+    const reveal = vi.fn();
+    const stale: OptionsPinViewport = { level: { ...level }, state: "visible", coordinate: 50, paneHeight: 300, generation: {}, reveal };
+    await render("SPY", true, level, stale);
+    expect(banner()?.dataset.state).toBe("ready");
+    expect(banner()?.dataset.chartState).toBe("pending");
+    expect(banner()?.textContent).not.toContain("dated reference is visible");
+    await render("SPY", true, null, { ...stale, level, state: "offscreen" });
+    expect(banner()?.dataset.chartState).toBe("unavailable");
+    expect([...banner()!.querySelectorAll("button")].some(button => button.textContent === "Show reference on chart")).toBe(false);
+    expect(reveal).not.toHaveBeenCalled();
+  });
+  it("withdraws viewport availability when access or replay pauses the exact reference", async () => {
+    await render();
+    const level = nonNullPins().at(-1)! as OptionsChartLevel;
+    const view: OptionsPinViewport = { level, state: "visible", coordinate: 50, paneHeight: 300, generation: {}, reveal: vi.fn() };
+    await render("SPY", true, level, view);
+    expect(banner()?.dataset.chartState).toBe("visible");
+    await render("SPY", false, level, view);
+    expect(banner()?.dataset.state).toBe("paused");
+    expect(banner()?.dataset.chartState).toBe("unavailable");
+    expect(onPin).toHaveBeenLastCalledWith(null);
   });
   it("uses the exact archive route only for an explicitly archived selection", async () => {
     window.history.replaceState({}, "", exposureChartHref({ ...REQUEST, archived: true })!);

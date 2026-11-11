@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { HASH_A, HASH_B, exposureHrefFor, originStrip as strip, prepareSectorJourney as prepare } from "./helpers/optionsR1Journey";
+import { makeGexT } from "@/components/gexdesk/gexStrings";
+import { exposureMapT } from "@/components/exposure-map/exposureMapStrings";
 
 // Options R1 W1A — one continuous journey: Sector Central holding → Exposure → main
 // chart → back to the exact holding. Synthetic sources; this exercises product
@@ -115,3 +117,73 @@ test("the main chart carries the origin and Return to Exposure brings it back", 
   await expect(strip(page)).toHaveAttribute("data-state", "exact", { timeout: 30_000 });
   await expect(strip(page)).toContainText("3 of 14");
 });
+
+
+// Cross-feature composition: Sector-origin navigation must not carry an archived
+// MU book into NXPI, while Back and a deliberate revisit must consume fresh
+// corrected bytes for MU. This is a fixture-only non-merge integration proof.
+for (const lang of ["en", "zh"] as const) {
+  test(`archived Exposure replay and sector cohort navigation stay source-bound (${lang})`, async ({ page }) => {
+    await prepare(page, { lang });
+    const archivedDate = "2026-10-16";
+    let archiveReads = 0;
+    // Keep the existing Sector Central fixture and override only the dated MU
+    // archive feeds. A source correction affects the same key on its second read.
+    await page.route((url) => url.pathname === "/api/flow" &&
+      new URL(url).searchParams.get("f") === "gex_dates:MU", route =>
+        route.fulfill({ json: { root: "MU", latest: "2026-10-19", dates: ["2026-10-19", archivedDate] } }));
+    await page.route((url) => url.pathname === "/api/flow" &&
+      new URL(url).searchParams.get("f") === `gex_at:MU:${archivedDate}`, route => {
+        archiveReads++;
+        const strike = archiveReads === 1 ? 1070 : 1080;
+        return route.fulfill({ json: {
+          schema: "options_hub.gex/v1", root: "MU", asof: archivedDate,
+          spot_ref: 1071.88, by_strike_full_n: 1,
+          by_strike: [{ strike, gamma_net: 50, gamma_call: 60, gamma_put: -10 }],
+          by_expiry: [{ exp: "2026-10-23", gamma_net: 50 }],
+        } });
+      });
+
+    const { href } = await exposureHrefFor(page, "MU");
+    await page.goto(href);
+    const map = page.getByTestId("exposure-map");
+    const origin = strip(page);
+    await expect(origin).toHaveAttribute("data-state", "exact", { timeout: 30_000 });
+    await expect(map).toHaveAttribute("data-source-root", "MU");
+    // Use the same visible exact-values panel on desktop and phone. The
+    // ranked-node inspector is intentionally a sheet on compact screens.
+    await map.getByRole("button", { name: exposureMapT(lang)("exactValues"), exact: true }).click();
+    const stored = map.getByTestId("exposure-stored-snapshots");
+    await stored.locator("summary").click();
+    const picker = stored.getByRole("combobox", { name: makeGexT(lang)("sessionPickerAria") });
+    await expect(picker).toBeVisible();
+    await picker.selectOption(archivedDate);
+    await expect(map).toHaveAttribute("data-source-session", archivedDate, { timeout: 20_000 });
+    await expect(map.locator('[class*="archiveNotice"]')).toContainText(archivedDate);
+    // The visible node, not only the request counter, must be source-correct.
+    await expect(map.getByRole("button", { name: "1070", exact: true })).toBeVisible();
+    expect(archiveReads).toBe(1);
+
+    await origin.getByTestId("exposure-origin-next").click();
+    await expect(page).toHaveURL(/symbol=NXPI/);
+    await expect(map).toHaveAttribute("data-source-root", "NXPI");
+    await expect(map.locator('[class*="archiveNotice"]')).toHaveCount(0);
+    await expect(origin).toHaveAttribute("data-state", "exact");
+    await expect(origin.getByTestId("exposure-origin-back")).toHaveAttribute("href", /sectorCompany=NXPI/);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/symbol=MU/);
+    await expect(map).toHaveAttribute("data-source-root", "MU");
+    await expect(map.locator('[class*="archiveNotice"]')).toHaveCount(0);
+    await expect(origin).toHaveAttribute("data-state", "exact");
+    if (await stored.getAttribute("open") === null) await stored.locator("summary").click();
+    await picker.selectOption(archivedDate);
+    await expect.poll(() => archiveReads, { timeout: 15_000 }).toBe(2);
+    await expect(map).toHaveAttribute("data-source-session", archivedDate);
+    await expect(map.getByRole("button", { name: "1080", exact: true })).toBeVisible();
+    await expect(map.getByRole("button", { name: "1070", exact: true })).toHaveCount(0);
+    await expect(origin.getByTestId("exposure-origin-back")).toHaveAttribute("href", /sectorCompany=MU/);
+    await origin.getByTestId("exposure-origin-back").click();
+    await expect(page).toHaveURL(/\/discover\?tab=sectors&.*sectorCompany=MU/);
+  });
+}

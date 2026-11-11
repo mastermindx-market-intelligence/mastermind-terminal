@@ -87,6 +87,7 @@ export function validatePng(bytes: Uint8Array): PngCheck {
   // what proves the file is fully framed rather than a valid header with junk stapled behind it.
   let offset = 8;
   let sawIend = false;
+  let sawIdat = false;
   while (offset + 8 <= bytes.length) {
     const len = u32(offset);
     // A length that overruns the buffer means truncated or lying — either way not a stored image.
@@ -95,7 +96,10 @@ export function validatePng(bytes: Uint8Array): PngCheck {
     const next = offset + 12 + len;
     if (next > bytes.length) return { ok: false, code: "not_png" };
 
-    if (type(offset + 4) === "IEND") {
+    const chunkType = type(offset + 4);
+    if (chunkType === "IHDR" && offset !== 8) return { ok: false, code: "not_png" };
+    if (chunkType === "IDAT") sawIdat = true;
+    if (chunkType === "IEND") {
       // IEND carries no data and must be the final chunk — nothing may follow it.
       if (len !== 0) return { ok: false, code: "not_png" };
       sawIend = true;
@@ -105,6 +109,6 @@ export function validatePng(bytes: Uint8Array): PngCheck {
     offset = next;
   }
 
-  if (!sawIend) return { ok: false, code: "not_png" };
+  if (!sawIend || !sawIdat) return { ok: false, code: "not_png" };
   return { ok: true, width, height };
 }

@@ -1,0 +1,1133 @@
+{
+  "capturedAtHead": "0f077993fc1a1244531f825d3d829491f47d338c",
+  "crops": [
+    {
+      "file": "PortfolioTargets-empty-1440.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 265
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 232.5
+      },
+      "lastVisible": {
+        "x": 1071,
+        "y": 480.890625,
+        "width": 180,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-populated-within-band-1440.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 484
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 451.4375
+      },
+      "lastVisible": {
+        "x": 107,
+        "y": 699.828125,
+        "width": 84.15625,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-populated-outside-band-1440.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 484
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 451.4375
+      },
+      "lastVisible": {
+        "x": 107,
+        "y": 699.828125,
+        "width": 84.15625,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-orphaned-target-disclosed-1440.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 406
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 373.5625
+      },
+      "lastVisible": {
+        "x": 360.734375,
+        "y": 628.953125,
+        "width": 84.15625,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-orphaned-empty-book-1440.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 268
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 235.125
+      },
+      "lastVisible": {
+        "x": 360.734375,
+        "y": 490.515625,
+        "width": 84.15625,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-unweighable-1440.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 1317
+      },
+      "heightAdjustments": [
+        {
+          "before": {
+            "width": 1440,
+            "height": 900
+          },
+          "clippedBy": [
+            {
+              "tag": "DIV",
+              "className": "pg PortfolioWorkspace-module__k5FTuG__scroll",
+              "horizontal": false,
+              "vertical": true,
+              "shortfall": 384.640625,
+              "client": {
+                "x": 60,
+                "y": 54,
+                "width": 1380,
+                "height": 818
+              }
+            },
+            {
+              "tag": "MAIN",
+              "className": "main2 PortfolioWorkspace-module__k5FTuG__workspace",
+              "horizontal": false,
+              "vertical": true,
+              "shortfall": 384.640625,
+              "client": {
+                "x": 60,
+                "y": 54,
+                "width": 1380,
+                "height": 818
+              }
+            }
+          ],
+          "nextHeight": 1317
+        }
+      ],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 980
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 947.25
+      },
+      "lastVisible": {
+        "x": 1071,
+        "y": 1195.640625,
+        "width": 180,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-cleared-1440.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 297
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 264.4375
+      },
+      "lastVisible": {
+        "x": 1071,
+        "y": 480.890625,
+        "width": 180,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-unavailable-1440.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 297,
+        "width": 1212,
+        "height": 76
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 313.390625,
+        "width": 1180,
+        "height": 43.125
+      },
+      "lastVisible": {
+        "x": 90,
+        "y": 338.390625,
+        "width": 1180,
+        "height": 18.125
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-empty-1440-zh.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 265
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 232.5
+      },
+      "lastVisible": {
+        "x": 1071,
+        "y": 480.890625,
+        "width": 180,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-populated-within-band-1440-zh.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 484
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 451.4375
+      },
+      "lastVisible": {
+        "x": 107,
+        "y": 699.828125,
+        "width": 66.96875,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-populated-outside-band-1440-zh.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 484
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 451.4375
+      },
+      "lastVisible": {
+        "x": 107,
+        "y": 699.828125,
+        "width": 66.96875,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-orphaned-target-disclosed-1440-zh.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 406
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 373.5625
+      },
+      "lastVisible": {
+        "x": 395.609375,
+        "y": 628.953125,
+        "width": 66.96875,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-orphaned-empty-book-1440-zh.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 268
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 235.125
+      },
+      "lastVisible": {
+        "x": 395.609375,
+        "y": 490.515625,
+        "width": 66.96875,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-unweighable-1440-zh.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 1317
+      },
+      "heightAdjustments": [
+        {
+          "before": {
+            "width": 1440,
+            "height": 900
+          },
+          "clippedBy": [
+            {
+              "tag": "DIV",
+              "className": "pg PortfolioWorkspace-module__k5FTuG__scroll",
+              "horizontal": false,
+              "vertical": true,
+              "shortfall": 384.640625,
+              "client": {
+                "x": 60,
+                "y": 54,
+                "width": 1380,
+                "height": 818
+              }
+            },
+            {
+              "tag": "MAIN",
+              "className": "main2 PortfolioWorkspace-module__k5FTuG__workspace",
+              "horizontal": false,
+              "vertical": true,
+              "shortfall": 384.640625,
+              "client": {
+                "x": 60,
+                "y": 54,
+                "width": 1380,
+                "height": 818
+              }
+            }
+          ],
+          "nextHeight": 1317
+        }
+      ],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 980
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 947.25
+      },
+      "lastVisible": {
+        "x": 1071,
+        "y": 1195.640625,
+        "width": 180,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-cleared-1440-zh.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 293,
+        "width": 1212,
+        "height": 297
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 309.390625,
+        "width": 1180,
+        "height": 264.4375
+      },
+      "lastVisible": {
+        "x": 1071,
+        "y": 480.890625,
+        "width": 180,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-unavailable-1440-zh.png",
+      "requestedViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 74,
+        "y": 297,
+        "width": 1212,
+        "height": 76
+      },
+      "sectionRectCss": {
+        "x": 90,
+        "y": 313.390625,
+        "width": 1180,
+        "height": 43.125
+      },
+      "lastVisible": {
+        "x": 90,
+        "y": 338.390625,
+        "width": 1180,
+        "height": 18.125
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-empty-390.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 303,
+        "width": 378,
+        "height": 281
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 313.359375,
+        "width": 358,
+        "height": 260.4375
+      },
+      "lastVisible": {
+        "x": 201,
+        "y": 512.796875,
+        "width": 156,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-populated-within-band-390.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 303,
+        "width": 378,
+        "height": 666
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 313.359375,
+        "width": 358,
+        "height": 645.4375
+      },
+      "lastVisible": {
+        "x": 29,
+        "y": 901.796875,
+        "width": 84.15625,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-populated-outside-band-390.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 303,
+        "width": 378,
+        "height": 666
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 313.359375,
+        "width": 358,
+        "height": 645.4375
+      },
+      "lastVisible": {
+        "x": 29,
+        "y": 901.796875,
+        "width": 84.15625,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-orphaned-target-disclosed-390.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 303,
+        "width": 378,
+        "height": 459
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 313.359375,
+        "width": 358,
+        "height": 437.75
+      },
+      "lastVisible": {
+        "x": 286.734375,
+        "y": 697.109375,
+        "width": 84.15625,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-orphaned-empty-book-390.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 322,
+        "width": 378,
+        "height": 292
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 332.359375,
+        "width": 358,
+        "height": 271.375
+      },
+      "lastVisible": {
+        "x": 286.734375,
+        "y": 549.734375,
+        "width": 84.15625,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-unweighable-390.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 322,
+        "width": 378,
+        "height": 1366
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 332.359375,
+        "width": 358,
+        "height": 1345.0625
+      },
+      "lastVisible": {
+        "x": 201,
+        "y": 1616.421875,
+        "width": 156,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-cleared-390.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 303,
+        "width": 378,
+        "height": 309
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 313.359375,
+        "width": 358,
+        "height": 288.375
+      },
+      "lastVisible": {
+        "x": 201,
+        "y": 512.796875,
+        "width": 156,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-unavailable-390.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 307,
+        "width": 378,
+        "height": 82
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 317.359375,
+        "width": 358,
+        "height": 61.25
+      },
+      "lastVisible": {
+        "x": 16,
+        "y": 342.359375,
+        "width": 358,
+        "height": 36.25
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-empty-390-zh.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 278,
+        "width": 378,
+        "height": 281
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 288.171875,
+        "width": 358,
+        "height": 260.4375
+      },
+      "lastVisible": {
+        "x": 201,
+        "y": 487.609375,
+        "width": 156,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-populated-within-band-390-zh.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 278,
+        "width": 378,
+        "height": 666
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 288.171875,
+        "width": 358,
+        "height": 645.4375
+      },
+      "lastVisible": {
+        "x": 29,
+        "y": 876.609375,
+        "width": 66.96875,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-populated-outside-band-390-zh.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 278,
+        "width": 378,
+        "height": 666
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 288.171875,
+        "width": 358,
+        "height": 645.4375
+      },
+      "lastVisible": {
+        "x": 29,
+        "y": 876.609375,
+        "width": 66.96875,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-orphaned-target-disclosed-390-zh.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 278,
+        "width": 378,
+        "height": 513
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 288.171875,
+        "width": 358,
+        "height": 492
+      },
+      "lastVisible": {
+        "x": 16,
+        "y": 726.171875,
+        "width": 66.96875,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-orphaned-empty-book-390-zh.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 278,
+        "width": 378,
+        "height": 328
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 288.171875,
+        "width": 358,
+        "height": 307.5
+      },
+      "lastVisible": {
+        "x": 16,
+        "y": 541.671875,
+        "width": 66.96875,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-unweighable-390-zh.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 278,
+        "width": 378,
+        "height": 1366
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 288.171875,
+        "width": 358,
+        "height": 1345.0625
+      },
+      "lastVisible": {
+        "x": 201,
+        "y": 1572.234375,
+        "width": 156,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-cleared-390-zh.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 278,
+        "width": 378,
+        "height": 309
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 288.171875,
+        "width": 358,
+        "height": 288.375
+      },
+      "lastVisible": {
+        "x": 201,
+        "y": 487.609375,
+        "width": 156,
+        "height": 44
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    },
+    {
+      "file": "PortfolioTargets-unavailable-390-zh.png",
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heightAdjustments": [],
+      "cropRectCss": {
+        "x": 6,
+        "y": 282,
+        "width": 378,
+        "height": 64
+      },
+      "sectionRectCss": {
+        "x": 16,
+        "y": 292.171875,
+        "width": 358,
+        "height": 43.125
+      },
+      "lastVisible": {
+        "x": 16,
+        "y": 317.171875,
+        "width": 358,
+        "height": 18.125
+      },
+      "clippedBy": [],
+      "captureMethod": "native-full-page-document-clip",
+      "scale": "css"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "sql_sha256": "4838864e8b2584ff184a92f7fd3b02c7644c168517529663191e0ac1e5308c2f",
+  "test_sha256": "ba4d6642d485be6dca1a06d6570d08f48029427ee2dff6f8576193c5acc38743",
+  "adapter_sha256": "281d92f8266f8f74def522c2fcac363b5531a71418df7b883ad36d22732bb4a6",
+  "engine_sha256": "d08569144973ac96cfcb9561533c77b5552219a9abbbf251ead1ea031f355d0a",
+  "postgres_version_num": 170011,
+  "listen_addresses": "",
+  "fixture_scope": "disposable private Unix socket; no ambient database configuration"
+}

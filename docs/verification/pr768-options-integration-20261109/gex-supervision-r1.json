@@ -1,0 +1,49 @@
+{
+  "schema": "terminal_pr768_native_supervision.v1",
+  "kind": "gex",
+  "captureId": "terminal-pr768-gex-options-integration-20261109-r1",
+  "command": [
+    "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+    "e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  ],
+  "port": 3864,
+  "events": [
+    {
+      "observedAt": "2026-11-09T16:11:56.160Z",
+      "pid": 70359
+    },
+    {
+      "observedAt": "2026-11-09T16:11:56.224Z",
+      "serverPid": 70377,
+      "serverReportedStopped": false,
+      "serverRefused": null
+    },
+    {
+      "observedAt": "2026-11-09T16:15:53.605Z",
+      "serverPid": 70377,
+      "serverReportedStopped": true,
+      "serverRefused": null
+    },
+    {
+      "observedAt": "2026-11-09T16:15:53.679Z",
+      "serverPid": 70377,
+      "serverReportedStopped": true,
+      "serverRefused": null,
+      "serverSettled": true
+    }
+  ],
+  "state": "CLOSED",
+  "result": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "closed": true,
+    "pid": 70359,
+    "serverPid": 70377,
+    "serverReportedStopped": true,
+    "serverRefused": null,
+    "serverSettled": true,
+    "errorCode": null
+  }
+}

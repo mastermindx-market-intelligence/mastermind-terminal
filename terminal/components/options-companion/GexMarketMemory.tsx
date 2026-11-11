@@ -38,9 +38,14 @@ const fmtSpot = (value: number | null) =>
 
 const ALL_LENS: ExposureLens = { kind: "all" };
 
-export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapshot, lens = ALL_LENS, lang = "en", onSelectStrike }: {
+export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapshot, lens = ALL_LENS, lang = "en", onSelectStrike, renderReady }: {
   root: string; matrixSession: string; strike: number | null; t: OptionsT; currentSnapshot?: unknown; lens?: ExposureLens;
   lang?: "en" | "zh"; onSelectStrike?: (strike: number) => void;
+  /** Optional typed consumer of the READY validated bound pair. Supplying it
+   * replaces only the ready body; every loading, mismatch, archive-missing,
+   * scope, absent, no-prior and unavailable state stays the incumbent render.
+   * Omitting it keeps the default consumers byte-for-byte unchanged. */
+  renderReady?: (ready: { current: CompanionGexSnapshot; previous: CompanionGexSnapshot; originMs: number }) => React.ReactNode;
 }) {
   const key = `${root}|${matrixSession}|${JSON.stringify(lens)}`;
   const [state, setState] = useState<{ snapshot: unknown; result: MemoryState }>({
@@ -129,6 +134,12 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
   }
   if (visible.status === "no-prior") {
     return shell(<p className={styles.scopeHint} role="status">{t("memoryUnavailable")}</p>, "unavailable");
+  }
+  // A typed consumer may take over ONLY the ready body, receiving the already
+  // validated bound pair and this read's own explicit origin clock. The effect,
+  // cache keys, fingerprints and refusal states above are never duplicated.
+  if (renderReady && visible.status === "ready") {
+    return shell(renderReady({ current: visible.current, previous: visible.previous, originMs: visible.originMs }), "ready");
   }
   if (visible.status !== "ready" || !memory) {
     return shell(<p className={styles.scopeHint} role="status">{t("snapshotUnreadable")}</p>, "unavailable");

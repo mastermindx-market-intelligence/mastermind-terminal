@@ -1,0 +1,14 @@
+{
+  "parent_source": "0d35b973168b99d37c402e51c00fe31ed33c241d",
+  "reused_child_source": "1866e2c3891149694b0ec5a757dba072872ae8f6",
+  "frozen_files": {
+    "child-server.cjs": "4eccd0e9f3bcda1863af378688f1edc13b3e5ebce79dd65c94f82756cb54f610",
+    "public-crypto.html": "65e4e660edeb27cae0f44e540ed09b4879b1f62a64a26317aab8fa3d009650b1",
+    "public-vector.html": "dc386f2a10e1c2a12ba4ae80582fdb71b93ed31b0a745efbb6badbf91b90ce19"
+  },
+  "unchanged_fixture_limits": [
+    "Original peer fixture has no public-btc_strategy.html; Crypto\u2192Vector\u2192Back does not request that destination.",
+    "Vector chart loading is inherited fixture limit, not navigation acceptance.",
+    "No authenticated deployment or full Paper family claim."
+  ]
+}

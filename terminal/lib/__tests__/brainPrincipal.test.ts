@@ -17,9 +17,9 @@ const settle = async () => { await Promise.resolve(); await Promise.resolve(); }
 describe("Brain auth drives its document-level cache partition", () => {
   it("keeps unresolved identity empty and hands the exact user id to a late widget", async () => {
     const h = harness(); delete h.host.MMBrain; ensureBrainPrincipalBinding(h.host, h.factory);
-    expect(h.host.MM_BRAIN_CFG).toEqual({ principal: null });
+    expect(h.host.MM_BRAIN_CFG).toMatchObject({ principal: null });
     h.resolve({ data: { session: { user: { id: "A" } } } }); await settle();
-    expect(h.host.MM_BRAIN_CFG).toEqual({ principal: "A" });
+    expect(h.host.MM_BRAIN_CFG).toMatchObject({ principal: "A" });
     h.host.MMBrain = { setPrincipal: vi.fn() }; h.host.dispatchEvent(new Event("mm-brain-ready"));
     expect(h.host.MMBrain.setPrincipal).toHaveBeenLastCalledWith("A");
   });
@@ -44,11 +44,33 @@ describe("Brain auth drives its document-level cache partition", () => {
   });
   it("auth failure and old bundles keep an empty display partition", async () => {
     const h = harness(); h.host.MMBrain = { mounted: true }; ensureBrainPrincipalBinding(h.host, h.factory);
-    h.resolve({ data: { session: null }, error: new Error("unauthenticated") }); await settle(); expect(h.host.MM_BRAIN_CFG).toEqual({ principal: null });
+    h.resolve({ data: { session: null }, error: new Error("unauthenticated") }); await settle(); expect(h.host.MM_BRAIN_CFG).toMatchObject({ principal: null });
   });
   it("unavailable setup fails closed and can bind on a later mount", () => {
     const h = harness(); h.host.MM_BRAIN_CFG = { principal: "prior" };
     ensureBrainPrincipalBinding(h.host, () => { throw new Error("missing config"); }); expect(h.host.MMBrain?.setPrincipal).toHaveBeenLastCalledWith(null);
     ensureBrainPrincipalBinding(h.host, h.factory); h.event("B"); expect(h.host.MM_BRAIN_CFG?.principal).toBe("B");
+  });
+});
+
+
+describe("Options host authorization is an account expectation, not a token export", () => {
+  it("accepts only the exact current session and returns no credential", async () => {
+    const h = harness(); ensureBrainPrincipalBinding(h.host, h.factory);
+    h.resolve({ data: { session: { user: { id: "A" } } } }); await settle();
+    expect(await h.host.MM_BRAIN_CFG!.authorizeOptionsQuestion!("A")).toBe(true);
+    expect(await h.host.MM_BRAIN_CFG!.authorizeOptionsQuestion!("B")).toBe(false);
+    expect(await h.host.MM_BRAIN_CFG!.authorizeOptionsQuestion!("")).toBe(false);
+  });
+  it.each(["foreign", "missing", "error", "rejected"])("refuses fresh %s session evidence", async kind => {
+    const h = harness(); ensureBrainPrincipalBinding(h.host, h.factory); h.event("A");
+    if (kind === "rejected") h.reject(new Error("offline"));
+    else h.resolve({ data: { session: kind === "missing" ? null : { user: { id: kind === "foreign" ? "B" : "A" } } }, error: kind === "error" ? new Error("bad session") : undefined });
+    expect(await h.host.MM_BRAIN_CFG!.authorizeOptionsQuestion!("A")).toBe(false);
+  });
+  it("refuses an A-to-B-to-A switch while authorization is pending", async () => {
+    const h = harness(); ensureBrainPrincipalBinding(h.host, h.factory); h.event("A");
+    const pending = h.host.MM_BRAIN_CFG!.authorizeOptionsQuestion!("A"); h.event("B"); h.event("A");
+    h.resolve({ data: { session: { user: { id: "A" } } } }); expect(await pending).toBe(false);
   });
 });

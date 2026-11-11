@@ -437,7 +437,7 @@ const TICKER_INPUT: React.CSSProperties = {
   width: 110, height: 32, padding: "0 var(--sp-3)",
   background: "var(--inset)", border: "1px solid var(--line)", borderRadius: "var(--r-tile)",
   color: "var(--text)", fontSize: "var(--fs-body)", fontWeight: 700, textTransform: "uppercase",
-  letterSpacing: "0.06em", outline: "none",
+  letterSpacing: "0.06em",
   fontFamily: "var(--font-num)", fontVariantNumeric: "tabular-nums",
 };
 

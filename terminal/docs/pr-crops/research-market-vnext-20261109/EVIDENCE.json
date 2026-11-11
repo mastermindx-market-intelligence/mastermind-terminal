@@ -1,0 +1,1322 @@
+{
+  "schema": "mastermind.terminal.ui_evidence.v1",
+  "title": "Research Market current-source integration and numeric availability",
+  "operation": "terminal-pr739-market-integration-20261109-c4",
+  "date": "2026-11-09",
+  "capability_state": "LOCAL_QUALIFIED_NOT_PRODUCTION_PROVEN",
+  "source": {
+    "branch": "sol/research-market-vnext-20260924-sol-001",
+    "original_head": "ce768c41e941d4fc5b7d4ad932ab0fc157ff18d3",
+    "integrated_master": "03af393ce05c12282003a3919cc473c032264922",
+    "captured_head": "5a8c3b127568e761c5e4e55fb23af0f518c18f79",
+    "captured_tree": "eb4734172bb6404e3c7ec25b95916648fa9dfb52",
+    "source_files": [
+      {
+        "path": "terminal/components/fin/TechnicalsPage.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "c5dc9ea53c89d21e6b49dbe7b71c71075c407bcd",
+        "sha256": "a1c2e42e6534a3f833ec7fee9e877ac5b0dc049bfd0a0b15781f47f14eef5441",
+        "bytes": 22655
+      },
+      {
+        "path": "terminal/app/fin.css",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "b4e1aef96b94fd0f91e82de34d8258e7e45d37a6",
+        "sha256": "2dd71c8607dcfcad3948a19fe9be4aaa14885162ca10e46cf0776fe720e29068",
+        "bytes": 131275
+      },
+      {
+        "path": "terminal/e2e/research-workspace-nav.spec.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "785c335a77e5a1a8a00ed5f677fa47d9baf2d233",
+        "sha256": "fe2557c98d596c7f65aed3c945bf1a4cb71fdfea7b35b4ad7637570d9dfecdd2",
+        "bytes": 34066
+      },
+      {
+        "path": "terminal/lib/__tests__/technicalsUnavailableRows.test.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "894bc41582987cbc192a3c96410b43ad35cea449",
+        "sha256": "0b31c942a5554f0016d64c3bf6d37326fb3aaf74f2d17df070f2e5ce3366f988",
+        "bytes": 17077
+      }
+    ],
+    "runtime_dependencies": {
+      "terminal/components/fin/TechnicalsPage.tsx": "a1c2e42e6534a3f833ec7fee9e877ac5b0dc049bfd0a0b15781f47f14eef5441",
+      "terminal/app/fin.css": "2dd71c8607dcfcad3948a19fe9be4aaa14885162ca10e46cf0776fe720e29068",
+      "terminal/e2e/research-workspace-nav.spec.ts": "fe2557c98d596c7f65aed3c945bf1a4cb71fdfea7b35b4ad7637570d9dfecdd2",
+      "terminal/lib/__tests__/technicalsUnavailableRows.test.tsx": "0b31c942a5554f0016d64c3bf6d37326fb3aaf74f2d17df070f2e5ce3366f988",
+      "terminal/components/fin/BottomPivotContextCard.tsx": "4ea875ee5536ea703a0309d0643ba4893ab01ff7243fdbde41ef93758f861e23",
+      "terminal/components/fin/BottomPivotContextCard.module.css": "2eb8a98e1fc252d40e741dcc198350954b5dc1f95bac25a6afadc550a3be9886",
+      "terminal/components/fin/MegaPane.tsx": "6a29696b50fda71364aaddbfe9fde7882d832b4402db4d04479d001ab56ee46b",
+      "terminal/components/workspaces/AnalysisWorkspace.tsx": "8868ab406b9a25d177c10dc6d24427dea07e693a8fa4a191de594f118f4049d7",
+      "terminal/components/ui/ArcGauge.tsx": "c76c159fd61e8b716a788722c25b041b4507f57dc24e13265627b2dfc93edbd9",
+      "terminal/components/fin/ForecastPage.tsx": "d8784b341d21e2076f2c58cd485c348c01a3aee01c8f2591b66282e8167f09e0",
+      "terminal/lib/techRating.ts": "b17e9dd8ac2f01d05b1b6eb9c4a78267e26df29ebe268a30c7b6fadc8edbc793",
+      "terminal/lib/seasonal.ts": "a4b365a39aa483b4c7f087f746bde893718b62dd843941aec72b25fd1baacc97",
+      "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+      "terminal/e2e/bottom-pivot-context.spec.ts": "1679c14dfac3f6188612a69bb5872b4126244ea913279076718a1196f7e20c2e",
+      "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+      "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+    },
+    "complete_current_css_and_e2e_owner_preserved": true,
+    "historical_evidence": {
+      "path": "terminal/docs/pr-crops/research-market-vnext-20260926",
+      "preserved_unchanged": true,
+      "restamped": false
+    }
+  },
+  "design_reference": {
+    "file_id": "01M2WGNCX9475G79JRKJTCM08P",
+    "page_id": "p-4-1",
+    "artboards": [
+      "NED-0",
+      "OG8-0"
+    ],
+    "status": "Previously accepted reference retained; no new Paper read or mutation claimed."
+  },
+  "surface": {
+    "route": "/analysis?symbol=NVDA&page=technicals",
+    "theme": "dark",
+    "fixture": "Existing marketBarsFixture plus isolated threshold OHLC inputs through the canonical /data/NVDA.json route",
+    "production_data": false,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "thresholds": [
+      29,
+      30,
+      49,
+      50,
+      199,
+      200,
+      220
+    ],
+    "threshold_basis": {
+      "desktop": "D",
+      "tablet": "W",
+      "mobile": "1M"
+    },
+    "locales": [
+      "en",
+      "zh"
+    ]
+  },
+  "presentation": {
+    "finding": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/739#issuecomment-6092998703",
+    "ruling": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/739#issuecomment-6745062399",
+    "null_rows": "Dash and localized Unavailable/不可用 with muted tone; measured zero and finite canonical votes unchanged.",
+    "partial_groups": "Any numeric-null row withholds that existing group's gauge, direction and vote tally, with exact numeric available/unavailable counts. No subset score is computed.",
+    "complete_groups": "All-numeric groups retain canonical score/verdict/tally. This is numeric availability, not full analytical readiness.",
+    "empty_state": "Existing uncomputed/below-30 nonnumeric presentation retained, without fabricated denominator.",
+    "neutral_note": {
+      "en": "Neutral may reflect limited history.",
+      "zh": "中性也可能表示历史不足。"
+    },
+    "preserved_owners": [
+      "computeRatings",
+      "groupScore",
+      "readingToArc",
+      "ArcGauge",
+      "buildYears/monthlyStats",
+      "price/data cache",
+      "route/navigation",
+      "BottomPivotContextCard"
+    ],
+    "mobile_repair": "Market-only control spacing, one-line horizontally scrollable timeframes and compact summary spacing restore the existing seasonality-before-detail/first-screen geometry. The bottom-pivot owner remains unchanged."
+  },
+  "verification": {
+    "initial_source": {
+      "head": "d666f66b96a697e14eb72d76759de35f9b3f8041",
+      "tests_passed": 75,
+      "suites": {
+        "technicalsUnavailableRows": 8,
+        "indicatorMathFixes": 17,
+        "indicatorMath": 34,
+        "seasonal": 16
+      },
+      "qualification_sha256": "eaf3b0bc835165c6f358560eb6425a75371dd537f599085443bed93edf78cce2",
+      "test_log_sha256": "5013a7351b0ba58d7a9d3156d34d98249e3c694433509bae13600469016ea02f",
+      "collector_reconciliation": "Initial observer exited 1 because the diagnostic comparator included shifted source-line positions. Underlying tests/typegen/typecheck/test lint/whitespace passed; full unchanged rule/severity/message/source-line and legacy-section equality settled that receipt. No check was rerun to manufacture a result."
+    },
+    "final_source": {
+      "qualification_sha256": "0b45f30dbf8f548533893847b3f2ea866c0413e06fd4964353367db0dd6a4968",
+      "head": "5a8c3b127568e761c5e4e55fb23af0f518c18f79",
+      "tree": "eb4734172bb6404e3c7ec25b95916648fa9dfb52",
+      "checks": [
+        {
+          "check": "layout-mounted-vitest",
+          "exit": 0,
+          "seconds": 2.602,
+          "sha256": "ac7cda5cdd7e47f3ae0acd82c79822d70da5fb4be890bd5d8a514ed4dd8091b1",
+          "tail": "\n RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr739-market-integration-20261109-c4/terminal\n\n ✓ lib/__tests__/technicalsUnavailableRows.test.tsx (8 tests) 701ms\n\n Test Files  1 passed (1)\n      Tests  8 passed (8)\n   Start at  08:40:10\n   Duration  2.18s (transform 264ms, setup 0ms, collect 350ms, tests 701ms, environment 596ms, prepare 84ms)\n\n\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m\n",
+          "executed_at_head": "c1e8287d49cc0f288b0c9f14afa425a25c4275fc"
+        },
+        {
+          "check": "layout-full-typecheck",
+          "exit": 0,
+          "seconds": 48.335,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tail": "",
+          "executed_at_head": "c1e8287d49cc0f288b0c9f14afa425a25c4275fc"
+        },
+        {
+          "check": "layout-test-eslint",
+          "exit": 0,
+          "seconds": 2.315,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tail": "",
+          "executed_at_head": "c1e8287d49cc0f288b0c9f14afa425a25c4275fc"
+        },
+        {
+          "check": "final-whitespace",
+          "exit": 0,
+          "seconds": 0.028,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "executed_at_head": "5a8c3b127568e761c5e4e55fb23af0f518c18f79"
+        }
+      ],
+      "all_pass": true,
+      "source_files": [
+        {
+          "path": "terminal/components/fin/TechnicalsPage.tsx",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "c5dc9ea53c89d21e6b49dbe7b71c71075c407bcd",
+          "sha256": "a1c2e42e6534a3f833ec7fee9e877ac5b0dc049bfd0a0b15781f47f14eef5441",
+          "bytes": 22655
+        },
+        {
+          "path": "terminal/app/fin.css",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "b4e1aef96b94fd0f91e82de34d8258e7e45d37a6",
+          "sha256": "2dd71c8607dcfcad3948a19fe9be4aaa14885162ca10e46cf0776fe720e29068",
+          "bytes": 131275
+        },
+        {
+          "path": "terminal/e2e/research-workspace-nav.spec.ts",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "785c335a77e5a1a8a00ed5f677fa47d9baf2d233",
+          "sha256": "fe2557c98d596c7f65aed3c945bf1a4cb71fdfea7b35b4ad7637570d9dfecdd2",
+          "bytes": 34066
+        },
+        {
+          "path": "terminal/lib/__tests__/technicalsUnavailableRows.test.tsx",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "894bc41582987cbc192a3c96410b43ad35cea449",
+          "sha256": "0b31c942a5554f0016d64c3bf6d37326fb3aaf74f2d17df070f2e5ce3366f988",
+          "bytes": 17077
+        }
+      ],
+      "tracked_status": "",
+      "preserved_canonical_test_count": 67,
+      "canonical_qualification_head": "d666f66b96a697e14eb72d76759de35f9b3f8041",
+      "canonical_qualification_sha256": "eaf3b0bc835165c6f358560eb6425a75371dd537f599085443bed93edf78cce2",
+      "layout_qualification_head": "c1e8287d49cc0f288b0c9f14afa425a25c4275fc",
+      "layout_qualification_sha256": "8012b516bcdaa2312ec3ed2b985c3795ab2820434a66828b29501942dd53dc25",
+      "equivalence": {
+        "only_change": "Removed two spaces from blank E2E line 603, outside string/template/JSX text",
+        "old_bytes": 34068,
+        "new_bytes": 34066,
+        "all_other_source_bytes_identical": true,
+        "tests_not_rerun_for_whitespace_only_change": true
+      },
+      "component_lint": {
+        "no_new_diagnostics": true,
+        "whole_component_lint_clean": false,
+        "retained_error_count": 2,
+        "retained_rules": [
+          "@typescript-eslint/no-explicit-any",
+          "react-hooks/set-state-in-effect"
+        ],
+        "affected_legacy_sections_byte_identical": true,
+        "comparison": "Same rule, severity, full explanation before positional code frame and exact source line; shifted line numbers are not new diagnostics.",
+        "baseline_log_sha256": "8c18f7bf5451052731cb26f6eb5616e64a13d8d09567e2e4386e82aff998bddf",
+        "candidate_log_sha256": "80830ca8c456a24ed1d95d25d656d6a53207446c5b8a700fd29b2f21a919b39b",
+        "baseline_lines": [
+          82,
+          105
+        ],
+        "candidate_lines": [
+          83,
+          125
+        ]
+      }
+    },
+    "browser_current": {
+      "captured_head": "5a8c3b127568e761c5e4e55fb23af0f518c18f79",
+      "command": [
+        "/opt/homebrew/opt/node@22/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/research-workspace-nav.spec.ts",
+        "e2e/bottom-pivot-context.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--grep=Market|daily pivot on demand|stale original dates|partial and conflicting evidence|historical issuance|source refusal",
+        "--workers=1",
+        "--reporter=line,json",
+        "--output=test-results/pr739-final"
+      ],
+      "ci_mode": false,
+      "retries": 0,
+      "stats": {
+        "startTime": "2026-11-09T16:45:44.324Z",
+        "duration": 106337.10399999999,
+        "expected": 76,
+        "skipped": 2,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "seconds": 106.93,
+      "receipt_sha256": "eb33aa4592d6495fd5cbb8eb8cb4279b66c8b345c6c397d09a1c2422b6b685f1",
+      "log_sha256": "da91d48165a166303baa5416bf39b2527bf178a8fb468aa86553b745b7e32318",
+      "report_sha256": "70aebff197df429524b69e664444dd5ac503e2ff866bb5548dd4dd82e4329d0f",
+      "cases": [
+        {
+          "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark en",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark zh",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > stale original dates are not refreshed by a fresh envelope",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > partial and conflicting evidence never becomes an all-clear",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > historical issuance is visibly not current evidence",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 401 has no invented evidence",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 403 has no invented evidence",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 503 has no invented evidence",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark en",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark zh",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > stale original dates are not refreshed by a fresh envelope",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > partial and conflicting evidence never becomes an all-clear",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > historical issuance is visibly not current evidence",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 401 has no invented evidence",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 403 has no invented evidence",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 503 has no invented evidence",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark en",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark zh",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > stale original dates are not refreshed by a fresh envelope",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > partial and conflicting evidence never becomes an all-clear",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > historical issuance is visibly not current evidence",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 401 has no invented evidence",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 403 has no invented evidence",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "bottom-pivot-context.spec.ts > source refusal 503 has no invented evidence",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market vNext projects canonical technicals, pivots and five-year seasonality",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market vNext remains bilingual and overflow-safe on mobile",
+          "project": "desktop",
+          "expected": "skipped",
+          "status": "skipped",
+          "result_statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market summary keeps seasonality ahead of deep indicator tables",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 29 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 30 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 49 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 50 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 199 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 200 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 220 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market full-history hierarchy remains readable in Chinese",
+          "project": "desktop",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market vNext projects canonical technicals, pivots and five-year seasonality",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market vNext remains bilingual and overflow-safe on mobile",
+          "project": "tablet",
+          "expected": "skipped",
+          "status": "skipped",
+          "result_statuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market summary keeps seasonality ahead of deep indicator tables",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 29 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 30 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 49 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 50 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 199 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 200 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 220 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market full-history hierarchy remains readable in Chinese",
+          "project": "tablet",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market vNext projects canonical technicals, pivots and five-year seasonality",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market vNext remains bilingual and overflow-safe on mobile",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market summary keeps seasonality ahead of deep indicator tables",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 29 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 30 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 49 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 50 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 199 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 200 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 220 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Market full-history hierarchy remains readable in Chinese",
+          "project": "mobile",
+          "expected": "passed",
+          "status": "expected",
+          "result_statuses": [
+            "passed"
+          ]
+        }
+      ],
+      "market_captures": 18,
+      "bottom_pivot_ancillary_captures": 64,
+      "all_images_generated": 82
+    },
+    "browser_unaffected_preserved": {
+      "head": "d666f66b96a697e14eb72d76759de35f9b3f8041",
+      "passed": 15,
+      "intentional_skips": 6,
+      "cases": [
+        {
+          "title": "research-workspace-nav.spec.ts > company page families preserve exact FinPage deep links",
+          "project": "desktop",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > family selection lands on the existing family default without a second router",
+          "project": "desktop",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+          "project": "desktop",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview vNext remains bilingual and overflow-safe on mobile",
+          "project": "desktop",
+          "status": "skipped"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+          "project": "desktop",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+          "project": "desktop",
+          "status": "skipped"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Ownership family defaults to Institutional and preserves Insider as its sibling",
+          "project": "desktop",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > company page families preserve exact FinPage deep links",
+          "project": "tablet",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > family selection lands on the existing family default without a second router",
+          "project": "tablet",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+          "project": "tablet",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview vNext remains bilingual and overflow-safe on mobile",
+          "project": "tablet",
+          "status": "skipped"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+          "project": "tablet",
+          "status": "skipped"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+          "project": "tablet",
+          "status": "skipped"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Ownership family defaults to Institutional and preserves Insider as its sibling",
+          "project": "tablet",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > company page families preserve exact FinPage deep links",
+          "project": "mobile",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > family selection lands on the existing family default without a second router",
+          "project": "mobile",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+          "project": "mobile",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview vNext remains bilingual and overflow-safe on mobile",
+          "project": "mobile",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+          "project": "mobile",
+          "status": "skipped"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+          "project": "mobile",
+          "status": "expected"
+        },
+        {
+          "title": "research-workspace-nav.spec.ts > Ownership family defaults to Institutional and preserves Insider as its sibling",
+          "project": "mobile",
+          "status": "expected"
+        }
+      ],
+      "scope": "Current protected Overview/Ownership/navigation prefix retained byte-for-byte; later edits only affect Market suffix, Market styles and qualification copy.",
+      "receipt_sha256": "e21be3f9d3a7a433c5c6c6f9728b301318c3131b313a37f38f7f9939539e2076"
+    },
+    "browser_distinct_union": {
+      "passed": 91,
+      "intentional_skips": 8,
+      "failed": 0,
+      "not_a_single_run": true
+    },
+    "initial_browser_diagnostics": {
+      "head": "d666f66b96a697e14eb72d76759de35f9b3f8041",
+      "stats": {
+        "startTime": "2026-11-09T16:27:57.438Z",
+        "duration": 140225.201,
+        "expected": 47,
+        "skipped": 8,
+        "unexpected": 8,
+        "flaky": 0
+      },
+      "retained": true,
+      "receipt_sha256": "e21be3f9d3a7a433c5c6c6f9728b301318c3131b313a37f38f7f9939539e2076",
+      "failures": [
+        "Six looping threshold cases reused a prior 29-bar IndexedDB response; split into framework-isolated cases without changing the real application cache or weakening assertions.",
+        "Two mobile hierarchy cases found seasonality below the original first-screen bound with the current bottom-pivot panel. Market-only compact layout repairs preserve that original assertion."
+      ]
+    },
+    "geometry": {
+      "seasonality_before_deep_tables": true,
+      "seasonality_top_less_than_viewport_height_minus_72": true,
+      "narrow_seasonality_before_pivots": true,
+      "horizontal_document_overflow_max_px": 1,
+      "partial_and_neutral_groups_fully_in_viewport": true,
+      "changed_rows_reachable_by_ordinary_scroll": true,
+      "all_detail_above_fold_claimed": false
+    },
+    "visual_review": {
+      "reviewed": [
+        "desktop-market-full-history-en.png",
+        "desktop-market-full-history-zh.png",
+        "desktop-market-neutral-en.png",
+        "desktop-market-neutral-zh.png",
+        "desktop-market-partial-en.png",
+        "desktop-market-partial-zh.png",
+        "mobile-market-full-history-en.png",
+        "mobile-market-full-history-zh.png",
+        "mobile-market-neutral-en.png",
+        "mobile-market-neutral-zh.png",
+        "mobile-market-partial-en.png",
+        "mobile-market-partial-zh.png",
+        "tablet-market-full-history-en.png",
+        "tablet-market-full-history-zh.png",
+        "tablet-market-neutral-en.png",
+        "tablet-market-neutral-zh.png",
+        "tablet-market-partial-en.png",
+        "tablet-market-partial-zh.png"
+      ],
+      "count": 18,
+      "scope": "Actual current fixture Market captures, EN/ZH at desktop/tablet/mobile, full history/partial/Neutral",
+      "outcome": "PASS",
+      "notes": [
+        "Summary hierarchy and group qualification are readable without overlapping content.",
+        "Partial groups show availability counts with no gauge, direction or vote tally.",
+        "Complete Neutral controls retain the canonical 50 moving-average gauge and 15 Neutral votes.",
+        "Mobile English seasonality begins in the first screen; remaining monthly detail remains scrollable. No all-content-above-fold claim.",
+        "Bottom-pivot cases are automated consumer proof; their 64 ancillary images are not included in this 18-image manual review."
+      ],
+      "independent_review": false
+    },
+    "cleanup": {
+      "observer_exit": 0,
+      "source_hashes_stable": true,
+      "tracked_status": "",
+      "port": 32479,
+      "port_connect_after": 61,
+      "remaining_owned_process_group": []
+    }
+  },
+  "captures": [
+    {
+      "file": "desktop-market-partial-zh.png",
+      "sha256": "ee9335a7ecaf14ebaba8d4028186d74651529f0c908bfedb684683b2bdc78c65",
+      "bytes": 166687,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "mobile-market-partial-zh.png",
+      "sha256": "9c547b6c8844c6a9557c23fb1bae741ee4507f29f0909c55310fecb12481e8fe",
+      "bytes": 84799,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "tablet-market-partial-zh.png",
+      "sha256": "3c2958f27af2dedd9b14ba41b9d7fb5253275502ac75246c7109c3d6cf9aa28e",
+      "bytes": 132666,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "desktop-market-full-history-en.png",
+      "sha256": "a382a9224137733025f68647d8414ea97952de35eda013f3c11df8ceaf149821",
+      "bytes": 199743,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "mobile-market-full-history-en.png",
+      "sha256": "d61c872b76c22e531dccaa4c3ca9aeb736abb85d596ed0d15191538feebcfdff",
+      "bytes": 102201,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "tablet-market-full-history-en.png",
+      "sha256": "2aec34996be7df3a2e97ce6b4acd3ea2abdedb49a0184b8d0d901a4506be6e3e",
+      "bytes": 157360,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "desktop-market-partial-en.png",
+      "sha256": "6fa97fced4fd2d2b9f60f87d3f68add61edc6103bc1221672a904d54faeedf9a",
+      "bytes": 174613,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "mobile-market-partial-en.png",
+      "sha256": "16b7701b3f5c210dc628d70c8563fed9dc5b25346ac06094bcf014d45b2321c3",
+      "bytes": 86030,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "tablet-market-partial-en.png",
+      "sha256": "35c8dd9fb407fe0a616fc3a4d348bfbeac042cf203a8d11121cd733832907f73",
+      "bytes": 138687,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "desktop-market-neutral-zh.png",
+      "sha256": "d104b0d857f4e6c62e1b25280d03b2f37c2bb76f413fe098233478aeb9cd99e2",
+      "bytes": 174658,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "mobile-market-neutral-zh.png",
+      "sha256": "e22f3693195a63a6c8018d9d1f8a44ba359c527b65c8d032e8c19d389d31101b",
+      "bytes": 92418,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "tablet-market-neutral-zh.png",
+      "sha256": "06305c132c3a36ffe50bc0934bf0b8df5d195aaf19d58e7ebc5bdc40f0c7b0fd",
+      "bytes": 143061,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "desktop-market-neutral-en.png",
+      "sha256": "658c56b5196950fdbacb69a03ea52d690c21d7f3b552a455410fff962d5890d0",
+      "bytes": 182270,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "mobile-market-neutral-en.png",
+      "sha256": "80978b258123591bb6320f936bea239a11b3356ccd5bcb591ca5ea5901443c2c",
+      "bytes": 94656,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "tablet-market-neutral-en.png",
+      "sha256": "3d0f1d7d4290a37e3bde4b8f64ab7ec766f148bd36602caa3068bc8aaa8a86b5",
+      "bytes": 150048,
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "desktop-market-full-history-zh.png",
+      "sha256": "e49719844e466a0385d4d18e4a4a06fbdbc8ada5c800ca55eea24f57f00b3ecc",
+      "bytes": 192480,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "mobile-market-full-history-zh.png",
+      "sha256": "5bf6bd2242cf6234c576d22a166ce762a7a7c550df3570b999eedaa324b0f365",
+      "bytes": 99771,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "tablet-market-full-history-zh.png",
+      "sha256": "be214875a553c4c488afe48dee76dbdf3eaa85a03c88f71f8569b63f967b0ba3",
+      "bytes": 150497,
+      "width": 820,
+      "height": 1180
+    }
+  ],
+  "truth_boundaries": [
+    "Local deterministic fixture proof, not current-market or authenticated production acceptance.",
+    "MACD remains the canonical line; warmup votes are not changed.",
+    "Technical ratings are descriptive, pivots are deterministic references, seasonality is historical recurrence with the existing small-sample caveat.",
+    "Two protected-master whole-component lint errors remain; no clean whole-component lint claim.",
+    "Historical September evidence is not rewritten; no independent review or approval is claimed."
+  ],
+  "release_boundary": {
+    "current_disposition": "Draft and unarmed while #738 occupies the serialized Research family queue slot.",
+    "serialized_rule": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/issues/699#issuecomment-5810101348",
+    "next": "After #738 actually lands, reconcile affected current-master shared files, preserve exact-head proof and required CI/security controls, then individually enroll this original PR for protected merging.",
+    "production_acceptance": "Separate owed served-browser/deployment proof; not performed here."
+  },
+  "procedure_pin": "mastermindx-market-intelligence/Mastermind@28767babbda6de5b4e74006211956b32dcbd9531"
+}
