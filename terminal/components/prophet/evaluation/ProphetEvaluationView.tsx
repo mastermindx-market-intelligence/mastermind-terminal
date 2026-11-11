@@ -15,11 +15,12 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useLang } from "@/lib/i18n";
+import { useLang, type Lang } from "@/lib/i18n";
 import MobileSheet from "@/components/ui/MobileSheet";
 import {
   comparatorShortName, evaluationLevelLabel, criterionLabel,
-  fillTemplate, makeEvaluationT,
+  exclusionReasonLabel, fillTemplate, humanizeEngineText, humanizeIdentifier,
+  makeEvaluationT, type EvaluationLexKey,
 } from "@/lib/prophetEvaluationStrings";
 import {
   fmtCi95, fmtCount, fmtCriterionObserved, fmtPercent, fmtP, fmtRatio, fmtSignedPercent, fmtSignedPp, fmtDate,
@@ -27,7 +28,7 @@ import {
 import {
   BENCHMARK_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID, decodeBetaEvaluation,
   findComparator, intervalIncludesZero, orderedComparators, type BetaEvaluation,
-  type ComparatorRow,
+  type ComparatorRow, type SensitivityVariantRow,
 } from "@/lib/prophetBetaEvaluation";
 import "./prophetEvaluation.css";
 import { ForestPlot, type ForestRow } from "./evaluationCharts";
@@ -44,6 +45,55 @@ function isPanelKey(value: string | null): value is PanelKey {
 function safeFromParam(raw: string | null): string {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return "/prophet";
   return raw;
+}
+
+/** The shared `<tr>` body for one sensitivity-variant row (both sub-blocks use
+ * the same metric set). Values only, from the decoded artifact. */
+function sensitivityRowCells(
+  lang: Lang, benchmarkName: string, label: React.ReactNode, row: SensitivityVariantRow,
+): React.ReactNode {
+  const t = makeEvaluationT(lang);
+  return (
+    <>
+      <td>{label}</td>
+      <td className="pev-num">{row.positions !== null ? fmtCount(row.positions) : "—"}</td>
+      <td className="pev-num">{row.totalNetReturn !== null ? fmtSignedPercent(row.totalNetReturn) : "—"}</td>
+      <td className="pev-num">
+        {row.excessTotalVsSpy !== null ? fmtSignedPp(row.excessTotalVsSpy) : "—"}
+        {row.excessTotalCi95 && <> {fmtCi95(row.excessTotalCi95[0], row.excessTotalCi95[1], "pp")}</>}
+      </td>
+      <td className="pev-num">
+        {row.annExcessVsSpy !== null ? fmtSignedPp(row.annExcessVsSpy) : "—"}
+        {row.annExcessCi95 && <> {fmtCi95(row.annExcessCi95[0], row.annExcessCi95[1], "pp")}</>}
+      </td>
+      <td className="pev-num">{row.betaVsMarket !== null ? fmtRatio(row.betaVsMarket) : "—"}</td>
+      <td className="pev-num">{row.meanInvested !== null ? fmtPercent(row.meanInvested) : "—"}</td>
+      <td className="pev-num pev-dim">
+        {row.hitRateVsSpy
+          ? fillTemplate(t("sensHitRate"), {
+            beat: fmtCount(row.hitRateVsSpy.beatSpy), n: fmtCount(row.hitRateVsSpy.n),
+            benchmark: benchmarkName, rate: fmtPercent(row.hitRateVsSpy.rate),
+          })
+          : "—"}
+      </td>
+    </>
+  );
+}
+
+/** Column headers shared by both sensitivity sub-blocks. */
+function sensitivityRowHeader(
+  t: (key: EvaluationLexKey) => string, benchmarkName: string,
+): React.ReactNode {
+  return (
+    <thead>
+      <tr>
+        <th>{t("colComparator")}</th><th>{t("colPositions")}</th><th>{t("colTotal")}</th>
+        <th>{fillTemplate(t("colVsSpy"), { benchmark: benchmarkName })}</th>
+        <th>{t("colAnnDiff")}</th><th>{t("colBeta")}</th><th>{t("investedLabel")}</th>
+        <th>{t("sensHitRateCol")}</th>
+      </tr>
+    </thead>
+  );
 }
 
 export default function ProphetEvaluationView() {
@@ -171,6 +221,14 @@ export default function ProphetEvaluationView() {
     ? { diff: c6.vsSpy.totalDiff, ci: c6.vsSpy.totalDiffCi95 } : null;
   const bookTotal = c6 && c6.status === "evaluated" ? c6.totalNetReturn : null;
 
+  // D5 correction facts — every figure from the artifact, never hard-coded.
+  const populationDeviation = data.deviations.find(entry => entry.kind === "population_correction") ?? null;
+  const correctionDate = populationDeviation?.when.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? null;
+  const oldC6Row = data.sensitivity?.supersededAsRun?.rows
+    .find(entry => entry.comparatorId === INCUMBENT_COMPARATOR_ID)?.row ?? null;
+  const oldExcess = oldC6Row && oldC6Row.excessTotalVsSpy !== null ? oldC6Row.excessTotalVsSpy : null;
+  const showWhatChanged = Boolean(data.sensitivity) && (populationDeviation !== null || oldExcess !== null);
+
   return (
     <div className="main2 pev">
       <header className="pev-mast">
@@ -226,6 +284,146 @@ export default function ProphetEvaluationView() {
               { sessions: fmtCount(win.sessions), benchmark: benchmarkName },
             )}
           </p>
+        )}
+        {/* The correction rides WITH the verdict: a cold reader at phone width
+            sees both the honest interval and the fact of the correction in the
+            first screen, without opening anything. */}
+        {showWhatChanged && (
+          <div className="pev-what" data-testid="pev-what-changed">
+            <details>
+              <summary data-testid="pev-what-changed-summary">
+                {t("whatChangedTitle")}
+                {correctionDate && <> · {fmtDate(correctionDate)}</>}
+                {oldExcess !== null && verdictDiff && (
+                  <> · {fmtSignedPp(oldExcess)} → {fmtSignedPp(verdictDiff.diff)}</>
+                )}
+              </summary>
+              {oldExcess !== null && verdictDiff && data.population?.excludedCohort && (
+                <p className="pev-sentence">
+                  {fillTemplate(t("whatChangedSummary"), {
+                    date: fmtDate(correctionDate ?? ""),
+                    old: fmtSignedPp(oldExcess),
+                    cohort: fmtCount(data.population.excludedCohort.eraPlansExcluded),
+                    new: fmtSignedPp(verdictDiff.diff),
+                  })}
+                </p>
+              )}
+              <p className="pev-dim">{t("whatChangedPopulationNote")}</p>
+              {data.population?.excludedCohort && (
+                <p className="pev-dim">
+                  {fillTemplate(t("whatChangedCohortLine"), {
+                    n: fmtCount(data.population.excludedCohort.eraPlansExcluded),
+                  })}
+                </p>
+              )}
+              {populationDeviation && (
+                <details className="pev-what-source">
+                  <summary>{t("whatChangedSourceLabel")}</summary>
+                  <p className="pev-dim">{humanizeEngineText(populationDeviation.what)}</p>
+                  {populationDeviation.why && <p className="pev-dim">{humanizeEngineText(populationDeviation.why)}</p>}
+                </details>
+              )}
+
+              {/* Sensitivity sub-blocks: closed by default, each carrying the
+                  engine's own label, never headline-styled. */}
+              {data.sensitivity && (() => {
+                const sensitivity = data.sensitivity;
+                const variantRow = sensitivity.backfillReplaysAdmittedAfterAvailability;
+                const supersededBlock = sensitivity.supersededAsRun;
+                return (
+                  <div className="pev-sens-group">
+                    {variantRow && (
+                      <details className="pev-sens" data-testid="pev-sensitivity-variant">
+                        <summary>
+                          {t("sensitivityVariantTitle")}
+                          <span className="pev-chip is-unknown">{t("sensitivityChip")}</span>
+                        </summary>
+                        <p className="pev-dim">{t("sensitivityLabelNote")} {sensitivity.label}</p>
+                        <p className="pev-dim">{humanizeEngineText(variantRow.definition)}</p>
+                        <p className="pev-dim">
+                          {t("sensExcludedNote")} {variantRow.excludedFromThisVariant
+                            .map(entry => `${exclusionReasonLabel(lang, entry.reason)} ${fmtCount(entry.count)}`)
+                            .join(" · ")}
+                        </p>
+                        <div className="pev-table-scroll">
+                          <table className="pev-table">
+                            {sensitivityRowHeader(t, benchmarkName)}
+                            <tbody>
+                              <tr>
+                                {sensitivityRowCells(
+                                  lang, benchmarkName,
+                                  <>{comparatorShortName(lang, INCUMBENT_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID)}</>,
+                                  variantRow,
+                                )}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </details>
+                    )}
+                    {supersededBlock && (
+                      <details className="pev-sens" data-testid="pev-sensitivity-superseded">
+                        <summary>
+                          {t("sensitivitySupersededTitle")}
+                          <span className="pev-chip is-superseded">{t("supersededChip")}</span>
+                        </summary>
+                        <p className="pev-dim">{t("sensitivityLabelNote")} {sensitivity.label}</p>
+                        <p className="pev-dim">{t("supersededSameEngineNote")}</p>
+                        <p className="pev-dim">{humanizeEngineText(supersededBlock.reason)}</p>
+                        <div className="pev-table-scroll">
+                          <table className="pev-table">
+                            {sensitivityRowHeader(t, benchmarkName)}
+                            <tbody>
+                              {supersededBlock.rows.map(entry => (
+                                <tr key={entry.comparatorId}>
+                                  {sensitivityRowCells(
+                                    lang, benchmarkName,
+                                    <>{comparatorShortName(lang, entry.comparatorId, entry.comparatorId)}</>,
+                                    entry.row,
+                                  )}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {supersededBlock.contrasts.length > 0 && (
+                          <>
+                            <h3>{t("confirmatoryTitle")}</h3>
+                            <div className="pev-table-scroll">
+                              <table className="pev-table">
+                                <thead>
+                                  <tr>
+                                    <th>{t("colContrast")}</th><th>{t("colAnnDiff")}</th>
+                                    <th>{t("colTotalShort")}</th><th>{t("colRawP")}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {supersededBlock.contrasts.map(contrast => (
+                                    <tr key={contrast.id}>
+                                      <td>{humanizeIdentifier(lang, contrast.id)}</td>
+                                      <td className="pev-num">
+                                        {contrast.annDiff !== null ? fmtSignedPp(contrast.annDiff) : "—"}
+                                        {contrast.annDiffCi95 && <> {fmtCi95(contrast.annDiffCi95[0], contrast.annDiffCi95[1], "pp")}</>}
+                                      </td>
+                                      <td className="pev-num">
+                                        {contrast.totalDiff !== null ? fmtSignedPp(contrast.totalDiff) : "—"}
+                                        {contrast.totalDiffCi95 && <> {fmtCi95(contrast.totalDiffCi95[0], contrast.totalDiffCi95[1], "pp")}</>}
+                                      </td>
+                                      <td className="pev-num">{contrast.pOneSided !== null ? fmtP(contrast.pOneSided) : "—"}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </>
+                        )}
+                      </details>
+                    )}
+                  </div>
+                );
+              })()}
+            </details>
+          </div>
         )}
         <p className="pev-sentence pev-dim">{t("verdictClaimSentence")}</p>
         <div className="pev-minimum" data-testid="pev-minimum">
@@ -314,7 +512,7 @@ export default function ProphetEvaluationView() {
                   return (
                     <tr key={row.id} className="pev-row-unavail">
                       <td>{comparatorShortName(lang, row.id, row.label)}</td>
-                      <td colSpan={5} className="pev-dim">{fillTemplate(t("rowUnavailable"), { reason: row.reason ?? "" })}</td>
+                      <td colSpan={5} className="pev-dim">{fillTemplate(t("rowUnavailable"), { reason: humanizeEngineText(row.reason ?? "") })}</td>
                     </tr>
                   );
                 }
@@ -356,13 +554,14 @@ export default function ProphetEvaluationView() {
                 <tr key={k.id}>
                   <td>
                     {comparatorShortName(lang, k.a, k.a)} − {comparatorShortName(lang, k.b, k.b)}
-                    <span className="pev-dim"> ({k.headerDefinition})</span>
                   </td>
                   <td className="pev-num">{fmtSignedPp(k.annDiff)}</td>
                   <td className="pev-num">{fmtCi95(k.annDiffCi95[0], k.annDiffCi95[1], "pp")}</td>
                   <td className="pev-num">{fmtP(k.pRaw)}</td>
                   <td className="pev-num">{fmtP(k.pHolm)}</td>
-                  <td className={`pev-chip ${k.rejectH0 ? "is-met" : "is-not"}`}>{k.rejectH0 ? t("significantYes") : t("significantNo")}</td>
+                  <td className={`pev-chip ${k.rejectH0 ? "is-met" : "is-unknown"}`}>
+                    {k.rejectH0 ? t("significantYes") : t("notShownChip")}
+                  </td>
                   <td className="pev-num">{fmtCi95(k.block21.annDiffCi95[0], k.block21.annDiffCi95[1], "pp")} · {fmtP(k.block21.pHolm)}</td>
                   <td className="pev-num">{fmtSignedPp(k.at2xCosts.annDiff)}</td>
                 </tr>
@@ -370,6 +569,7 @@ export default function ProphetEvaluationView() {
             </tbody>
           </table>
         </div>
+        <p className="pev-dim" data-testid="pev-notshown-note">{t("notShownNote")}</p>
       </section>
 
       {/* ── 4. Material caveats ────────────────────────────────────────────── */}
@@ -397,7 +597,7 @@ export default function ProphetEvaluationView() {
           </div>
           <div className="pev-caveat">
             <h3>{t("caveatRawPicksTitle")}</h3>
-            {h21 && (
+            {h21 && h21.excessVsSpy && h21.shareBeatingSpy && h21.stockMinusSectorEtf && h21.sectorEtfMinusSpy && (
               <>
                 <p>{fillTemplate(t("caveatRawPicksBody"), {
                   h: fmtCount(Number(h21.horizon)), mean: fmtSignedPp(h21.excessVsSpy.mean),

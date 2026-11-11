@@ -14,8 +14,10 @@
 import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
 import {
-  comparatorShortName, exclusionReasonLabel, criterionLabel, fillTemplate,
-  getEvaluationStr, makeEvaluationT, releaseJobName, evaluationLevelLabel,
+  claimKeyLabel, claimStatusLabel, comparatorShortName, criterionLabel,
+  deviationKindLabel, exclusionReasonLabel, fillTemplate,
+  getEvaluationStr, humanizeEngineText, humanizeIdentifier, makeEvaluationT,
+  releaseJobName, evaluationLevelLabel,
   type EvaluationLexKey,
 } from "@/lib/prophetEvaluationStrings";
 import {
@@ -95,6 +97,7 @@ function CriteriaTable({ rows, lang }: { rows: ReleaseCriterion[]; lang: Lang })
 export function DetailsPanel({ data, lang }: { data: BetaEvaluation; lang: Lang }) {
   const t = makeEvaluationT(lang);
   const { protocol, code, dataClocks, basis, window, release, claims, deviations } = data;
+  const primaryAttribution = data.attribution.find(entry => entry.bookId === INCUMBENT_COMPARATOR_ID) ?? null;
   return (
     <div className="pev-panel-body">
       <Section title={t("protocolTitle")}>
@@ -114,13 +117,13 @@ export function DetailsPanel({ data, lang }: { data: BetaEvaluation; lang: Lang 
           mean: fmtCount(code.bootstrap.meanBlock), sens: fmtCount(code.bootstrap.sensitivityBlock),
         })}</p>
         <p>{t("holmLine")}</p>
-        <Verbatim lang={lang}><p>{data.contrasts.family}</p></Verbatim>
+        <Verbatim lang={lang}><p>{humanizeEngineText(data.contrasts.family)}</p></Verbatim>
       </Section>
       <Section title={t("basisTitle")}>
         <Field label={t("basisMarket")} value={basis.market} />
         <Field label={t("basisBenchmark")} value={basis.benchmark} />
         <Field label={t("basisCurrency")} value={basis.currency} />
-        <Field label={t("basisReturn")} value={basis.returnBasis} />
+        <Field label={t("basisReturn")} value={humanizeIdentifier(lang, basis.returnBasis)} />
         <Field label={t("basisCash")} value={basis.cashInstrument} />
         <Field label={t("basisCosts")} value={`${basis.costsBpPerSide.etf} / ${basis.costsBpPerSide.stock}`} />
         <Field label={t("windowLabel")} value={`${fmtDate(window.firstReturnClose)} → ${fmtDate(window.lastClose)} · ${fmtCount(window.sessions)} ${t("sessionsUnit")}`} />
@@ -131,8 +134,8 @@ export function DetailsPanel({ data, lang }: { data: BetaEvaluation; lang: Lang 
             <li key={row.id}>
               <b>{comparatorShortName(lang, row.id, row.label)}</b>
               {row.status === "evaluated" && row.definition
-                ? <Verbatim lang={lang}><span>{row.definition}</span></Verbatim>
-                : <span className="pev-dim">{fillTemplate(t("rowUnavailable"), { reason: row.reason ?? "" })}</span>}
+                ? <Verbatim lang={lang}><span>{humanizeEngineText(row.definition)}</span></Verbatim>
+                : <span className="pev-dim">{fillTemplate(t("rowUnavailable"), { reason: humanizeEngineText(row.reason ?? "") })}</span>}
             </li>
           ))}
         </ul>
@@ -153,8 +156,8 @@ export function DetailsPanel({ data, lang }: { data: BetaEvaluation; lang: Lang 
         <h5>{t("l0ChecksTitle")}</h5>
         <CriteriaTable rows={release.l0SourceChecks} lang={lang} />
         <Verbatim lang={lang}>
-          <p><b>{t("capRuleTitle")}</b> {release.capRule}</p>
-          <p><b>{t("l2l3Title")}</b> {release.l2L3Note}</p>
+          <p><b>{t("capRuleTitle")}</b> {humanizeEngineText(release.capRule)}</p>
+          <p><b>{t("l2l3Title")}</b> {humanizeEngineText(release.l2L3Note)}</p>
         </Verbatim>
       </Section>
       <Section title={t("claimsTitle")}>
@@ -164,8 +167,8 @@ export function DetailsPanel({ data, lang }: { data: BetaEvaluation; lang: Lang 
             <tbody>
               {claims.map(c => (
                 <tr key={c.key}>
-                  <td><span className="pev-mono">{c.key}</span><span className="pev-chip is-unknown">{c.status}</span></td>
-                  <td className="pev-dim">{c.basis}</td>
+                  <td><b>{claimKeyLabel(lang, c.key)}</b> <span className="pev-chip is-unknown">{claimStatusLabel(lang, c.status)}</span></td>
+                  <td className="pev-dim">{humanizeEngineText(c.basis)}</td>
                 </tr>
               ))}
             </tbody>
@@ -176,19 +179,23 @@ export function DetailsPanel({ data, lang }: { data: BetaEvaluation; lang: Lang 
         <Verbatim lang={lang}>
           <ol className="pev-defs">
             {deviations.map(d => (
-              <li key={d.id}><b>{d.id} · {d.kind} · {d.when}</b><span>{d.what}</span><span className="pev-dim">{d.why}</span></li>
+              <li key={d.id}>
+                <b>{d.id} · {deviationKindLabel(lang, d.kind)} · {d.when}</b>
+                <span>{humanizeEngineText(d.what)}</span>
+                <span className="pev-dim">{humanizeEngineText(d.why)}</span>
+              </li>
             ))}
           </ol>
         </Verbatim>
       </Section>
       <Section title={t("engineSummaryTitle")}>
         <Verbatim lang={lang}>
-          <ol className="pev-defs pev-headline-list">{data.headline.map((s, i) => <li key={i}>{s}</li>)}</ol>
+          <ol className="pev-defs pev-headline-list">{data.headline.map((s, i) => <li key={i}>{humanizeEngineText(s)}</li>)}</ol>
         </Verbatim>
       </Section>
       <Section title={t("limitationsTitle")}>
         <Verbatim lang={lang}>
-          <ul className="pev-defs">{data.limitations.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          <ul className="pev-defs">{data.limitations.map((s, i) => <li key={i}>{humanizeEngineText(s)}</li>)}</ul>
         </Verbatim>
       </Section>
       <Section title={t("clocksTitle")}>
@@ -197,6 +204,22 @@ export function DetailsPanel({ data, lang }: { data: BetaEvaluation; lang: Lang 
         <Field label={t("clockResolution")} value={`${fmtDate(dataClocks.resolutionLog.maxAsof)} · ${fmtCount(dataClocks.resolutionLog.rows)} rows`} />
         <Field label={t("clockPit")} value={`${fmtDate(dataClocks.pitMembership.lastRecordedChange)} · ${dataClocks.pitMembership.sha256.slice(0, 12)}…`} />
         <Field label={t("clockPrices")} value={`${dataClocks.prices.source} · ${fmtDate(dataClocks.prices.lastCloseUsed)}`} />
+      </Section>
+      <Section title={t("sourcesTitle")}>
+        <p className="pev-dim">{t("sourcesNote")}</p>
+        <div className="pev-source-raw" data-testid="pev-source-raw">
+          <p className="pev-mono">attribution.method = {primaryAttribution?.book.method ?? "—"}</p>
+          <p className="pev-mono">attribution.linking = {primaryAttribution?.book.linking ?? "—"}</p>
+          <p className="pev-mono">attribution.unit = {primaryAttribution?.book.unit ?? "—"}</p>
+          <p className="pev-mono">contrasts.family = {data.contrasts.family}</p>
+          <p className="pev-mono">return_basis = {basis.returnBasis}</p>
+          {data.sensitivity && <p className="pev-mono">sensitivity.label = {data.sensitivity.label}</p>}
+          {data.population?.excludedCohort && <>
+            <p className="pev-mono">population.primary = {data.population.primary}</p>
+            <p className="pev-mono">population.excluded_cohort.reason = {data.population.excludedCohort.reason}</p>
+            <p className="pev-mono">population.excluded_cohort.detection = {data.population.excludedCohort.detection}</p>
+          </>}
+        </div>
       </Section>
     </div>
   );
@@ -234,7 +257,7 @@ export function AttributionPanel({ data, lang }: { data: BetaEvaluation; lang: L
     <div className="pev-panel-body">
       <Section title={t("attributionMethodLabel")}>
         <Verbatim lang={lang}>
-          <p>{book.method} · {book.linking} · {book.unit}</p>
+          <p>{humanizeIdentifier(lang, book.method)} · {humanizeEngineText(book.linking)} · {humanizeEngineText(book.unit)}</p>
         </Verbatim>
         <p>{t("bridgeIdentity")}</p>
         <p className="pev-dim">{t("modelBookNote")}</p>
@@ -314,8 +337,37 @@ export function CoveragePanel({ data, lang }: { data: BetaEvaluation; lang: Lang
   const t = makeEvaluationT(lang);
   const c6 = data.comparators.find(row => row.id === INCUMBENT_COMPARATOR_ID) ?? null;
   const { coverage } = data;
+  const cohort = data.population?.excludedCohort ?? null;
+  const horizons = data.eventStudy.horizons;
   return (
     <div className="pev-panel-body">
+      {cohort && (
+        <Section title={t("cohortTitle")}>
+          <p className="pev-sentence">
+            {fillTemplate(t("whatChangedCohortLine"), { n: fmtCount(cohort.eraPlansExcluded) })}
+          </p>
+          <details className="pev-cohort-detail" data-testid="pev-cohort">
+            <summary>{fillTemplate(t("cohortSplitSummary"), { n: fmtCount(cohort.eraPlansExcluded) })}</summary>
+            {cohort.ofWhichReplayedReceiptedBake !== null && cohort.ofWhichSyntheticBoardReconstructions !== null ? (
+              <ul className="pev-defs">
+                <li>{fillTemplate(t("cohortReplays"), { n: fmtCount(cohort.ofWhichReplayedReceiptedBake) })}</li>
+                <li>{fillTemplate(t("cohortReconstructions"), { n: fmtCount(cohort.ofWhichSyntheticBoardReconstructions) })}</li>
+              </ul>
+            ) : (
+              <p className="pev-dim">{t("notAvailableLabel")}</p>
+            )}
+            <p className="pev-dim"><b>{t("cohortDetectionLabel")}</b> {humanizeEngineText(cohort.detection)}</p>
+            {cohort.wouldHaveEnteredPositionsAsRun !== null && (
+              <p className="pev-dim">
+                {fillTemplate(t("cohortWouldHaveEntered"), { n: fmtCount(cohort.wouldHaveEnteredPositionsAsRun) })}
+              </p>
+            )}
+            <p className="pev-dim">
+              <b>{t("cohortPlanIdsLabel")}</b> <span className="pev-mono">{cohort.planIds.join(" · ")}</span>
+            </p>
+          </details>
+        </Section>
+      )}
       <Section title={t("coveragePlansTitle")}>
         <p>
           {t("coverageEraPlans")}: <b>{fmtCount(coverage.eraPlans)}</b> · {t("coverageEvaluated")}: <b>{fmtCount(coverage.evaluatedPositions)}</b>
@@ -338,6 +390,60 @@ export function CoveragePanel({ data, lang }: { data: BetaEvaluation; lang: Lang
             </tbody>
           </table>
         </div>
+      </Section>
+      <Section title={t("horizonsTitle")}>
+        {data.eventStudy.excludedBackfilledPlans !== null && (
+          <p className="pev-dim">
+            {fillTemplate(t("horizonsExcludedNote"), { n: fmtCount(data.eventStudy.excludedBackfilledPlans) })}
+          </p>
+        )}
+        <div className="pev-table-scroll">
+          <table className="pev-table" data-testid="pev-horizons">
+            <thead>
+              <tr>
+                <th>{t("colHorizon")}</th>
+                <th>{fillTemplate(t("colExcessMean"), { benchmark: data.basis.benchmark })}</th>
+                <th>{fillTemplate(t("colShareBeating"), { benchmark: data.basis.benchmark })}</th>
+                <th>{t("colDates")}</th>
+                <th>n</th>
+              </tr>
+            </thead>
+            <tbody>
+              {horizons.map(h => {
+                if (!h.excessVsSpy || !h.shareBeatingSpy) {
+                  return (
+                    <tr key={h.horizon} className="pev-row-unavail">
+                      <td className="pev-num">{fmtCount(Number(h.horizon))}</td>
+                      <td colSpan={3}>
+                        <span className="pev-chip is-unknown">
+                          {t(h.status === "unmatured" ? "horizonUnmatured" : "horizonTooFewDates")}
+                        </span>
+                      </td>
+                      <td className="pev-num pev-dim">{fmtCount(h.n)}</td>
+                    </tr>
+                  );
+                }
+                return (
+                  <tr key={h.horizon}>
+                    <td className="pev-num">
+                      {fmtCount(Number(h.horizon))}
+                      {h.status === "too_few_dates" && (
+                        <> <span className="pev-chip is-unknown">{t("horizonTooFewDates")}</span></>
+                      )}
+                    </td>
+                    <td className="pev-num">
+                      {fmtSignedPp(h.excessVsSpy.mean)} {fmtCi95(h.excessVsSpy.ci95DateCluster[0], h.excessVsSpy.ci95DateCluster[1], "pp")}
+                    </td>
+                    <td className="pev-num">{fmtPercent(h.shareBeatingSpy.rate)}</td>
+                    <td className="pev-num">{h.nDates !== null ? fmtCount(h.nDates) : "—"}</td>
+                    <td className="pev-num pev-dim">{fmtCount(h.n)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="pev-dim">{t("horizonsNarrowCiNote")}</p>
       </Section>
       <Section title={t("coverageExitTitle")}>
         <ul className="pev-defs">
@@ -386,7 +492,10 @@ export function CoveragePanel({ data, lang }: { data: BetaEvaluation; lang: Lang
       <Section title={t("coverageNotEvaluableTitle")}>
         <ul className="pev-defs">
           <li>{t("coverageSleeves")}</li>
-          <li>{fillTemplate(t("coveragePeers"), { status: coverage.issuerExcludedPeers.status, reason: coverage.issuerExcludedPeers.reason })}</li>
+          <li>{fillTemplate(t("coveragePeers"), {
+            status: coverage.issuerExcludedPeers.status,
+            reason: humanizeEngineText(coverage.issuerExcludedPeers.reason),
+          })}</li>
           <li>{t("coverageHoldings")}</li>
         </ul>
         {c6?.hitRateVsSpy && (
@@ -414,7 +523,7 @@ export function PortfolioPanel({ data, lang }: { data: BetaEvaluation; lang: Lan
       <Section title={t("portfolioPanelTitle")}>
         <p>{t("portfolioPanelBody")}</p>
         {participation && (
-          <Verbatim lang={lang}><p className="pev-dim">{participation.basis}</p></Verbatim>
+          <Verbatim lang={lang}><p className="pev-dim">{humanizeEngineText(participation.basis)}</p></Verbatim>
         )}
         <Link className="pev-cta" href="/portfolio">{t("portfolioCta")}</Link>
       </Section>

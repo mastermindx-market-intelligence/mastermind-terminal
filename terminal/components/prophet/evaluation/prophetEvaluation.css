@@ -84,6 +84,7 @@
 .pev-chip.is-met { --c: var(--up); }
 .pev-chip.is-not { --c: var(--down); }
 .pev-chip.is-unknown { --c: var(--muted); }
+.pev-chip.is-superseded { --c: var(--muted); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muted) 45%, transparent); }
 
 /* ── Verdict ─────────────────────────────────────────────────────────────── */
 .pev-verdict-level { font: 600 16px/1.4 var(--font-ui); color: var(--text); margin: 0; }
@@ -264,6 +265,71 @@
 @keyframes pev-panel-in {
   from { opacity: 0; transform: translateX(16px); }
   to { opacity: 1; transform: translateX(0); }
+}
+
+/* ── What changed (D5 correction disclosure, inside the verdict card) ────── */
+.pev-what { border-top: 1px solid var(--hairline); margin-top: 10px; }
+.pev-what > details > summary {
+  cursor: pointer;
+  font: 600 13px/1.4 var(--font-ui);
+  color: var(--text-2);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-variant-numeric: tabular-nums;
+}
+.pev-what > details[open] > summary { align-items: flex-start; padding-top: 2px; }
+.pev-what > details > *:not(summary) { margin-top: 10px; }
+.pev-what-source { margin-top: 10px; }
+.pev-what-source summary {
+  cursor: pointer;
+  font: 600 12px/44px var(--font-ui);
+  color: var(--muted);
+  min-height: 44px;
+}
+.pev-what-source[open] summary { line-height: 1.4; padding: 10px 0 2px; }
+
+/* Sensitivity sub-blocks: one level down, dim by law — never headline-styled. */
+.pev-sens-group { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; }
+.pev-sens { border-top: 1px solid var(--hairline); padding-top: 4px; }
+.pev-sens summary {
+  cursor: pointer;
+  font: 600 12.5px/1.4 var(--font-ui);
+  color: var(--text-2);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pev-sens[open] summary { padding-top: 8px; }
+.pev-sens > *:not(summary) { margin-top: 8px; }
+.pev-sens h3 { margin: 10px 0 0; }
+.pev-sens .pev-table { color: var(--muted); }
+
+/* ── Coverage cohort + raw engine identifiers ────────────────────────────── */
+.pev-cohort-detail summary {
+  cursor: pointer;
+  font: 600 12px/1.4 var(--font-ui);
+  color: var(--muted);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.pev-cohort-detail[open] summary { padding-top: 6px; }
+.pev-cohort-detail > *:not(summary) { margin-top: 6px; }
+.pev-mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: 11.5px; word-break: break-word; }
+.pev-source-raw {
+  background: var(--panel-2);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-x: auto;
 }
 
 /* ── Narrow phones ───────────────────────────────────────────────────────── */
