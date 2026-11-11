@@ -57,8 +57,8 @@ const SCENARIO_COPY={
 // names; it never falls back to the latest, and the current read is a separate
 // labelled action. All words here claim no more than the state machine proves.
 const SECTOR_CONTEXT_COPY={
- en:{title:"Sector context",original:"Original sector context",unavailable:"Original sector context unavailable",durable:"The saved reference reopens this capture while the owner retains it (durable retention).",processOnly:"The saved reference reopens this capture only while the owner's generation process retains it.",counts:"Measured {served} of {configured} configured members · {unserved} owner-explained unserved",countsNotStated:"Measured {served} members · configured roster not stated · {unserved} owner-explained unserved",currentLabel:"Current",openCurrent:"Open current sector context",openOriginal:"Back to the original sector context",reopening:"Reopening the saved sector context…",signedOut:"Sign in to reopen the saved sector context.",retry:"The saved sector context could not be reopened. Try again.",retryAction:"Retry",generation:"Generation {id}"},
- zh:{title:"行业上下文",original:"原始行业上下文",unavailable:"原始行业上下文不可用",durable:"保存的引用在所有者保留该捕获期间可重新打开（持久保留）。",processOnly:"保存的引用仅在所有者的生成进程保留该捕获期间可重新打开。",counts:"已测量 {served} / {configured} 名配置成员 · {unserved} 名未测量（所有者已说明）",countsNotStated:"已测量 {served} 名成员 · 未给出配置名单 · {unserved} 名未测量（所有者已说明）",currentLabel:"当前",openCurrent:"打开当前行业上下文",openOriginal:"返回原始行业上下文",reopening:"正在重新打开已保存的行业上下文…",signedOut:"登录后重新打开已保存的行业上下文。",retry:"暂时无法重新打开已保存的行业上下文，请重试。",retryAction:"重试",generation:"生成 {id}"},
+ en:{title:"Sector context",original:"Original sector context",unavailable:"Original sector context unavailable",durable:"The saved reference reopens this capture while the owner retains it (durable retention).",processOnly:"The saved reference reopens this capture only while the owner's generation process retains it.",counts:"Measured {served} of {configured} configured members · {unserved} owner-explained unserved",countsNotStated:"Measured {served} members · configured roster not stated · {unserved} owner-explained unserved",currentLabel:"Current",openCurrent:"Open current sector context",openOriginal:"Back to the original sector context",reopening:"Reopening the saved sector context…",signedOut:"Sign in to reopen the saved sector context.",retry:"The saved sector context could not be reopened. Try again.",retryAction:"Retry",asOf:"As of {date}"},
+ zh:{title:"行业上下文",original:"原始行业上下文",unavailable:"原始行业上下文不可用",durable:"保存的引用在所有者保留该捕获期间可重新打开（持久保留）。",processOnly:"保存的引用仅在所有者的生成进程保留该捕获期间可重新打开。",counts:"已测量 {served} / {configured} 名配置成员 · {unserved} 名未测量（所有者已说明）",countsNotStated:"已测量 {served} 名成员 · 未给出配置名单 · {unserved} 名未测量（所有者已说明）",currentLabel:"当前",openCurrent:"打开当前行业上下文",openOriginal:"返回原始行业上下文",reopening:"正在重新打开已保存的行业上下文…",signedOut:"登录后重新打开已保存的行业上下文。",retry:"暂时无法重新打开已保存的行业上下文，请重试。",retryAction:"重试",asOf:"截至 {date}"},
 } as const;
 const fillCopy=(text:string,values:Record<string,string>)=>text.replace(/\{(\w+)\}/g,(_,key:string)=>values[key]??`{${key}}`);
 /** F1 counts line: a null configured roster is "not stated" — never zero, never complete.
@@ -428,9 +428,17 @@ function SectorContextCard({state,copy,onRetry,onOpenCurrent}:{state:SectorReope
  if(state==="loading")return <section className={styles.card} data-testid="sector-context-card"><h3>{copy.title}</h3><p role="status">{copy.reopening}</p></section>;
  if(state.state==="original") {
   const page=sectorPopulationPage(state.body);
-  return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="original">
+  // r3 N-8 ruling: the eyebrow dates the capture from the ONE date the decoded
+  // page states — the roster clock's as-of, and only while it agrees. Any other
+  // page (no clock, a clock that does not agree, a page that refuses to decode)
+  // states no date, so no line prints — never a placeholder, never "today",
+  // never a date parsed out of the owner's generation id. That id stays
+  // machine-readable on data-generation-id; it is never visible text.
+  const clock=page?.rosterClock??null;
+  const asOf=clock!==null&&clock.status==="agree"?clock.asOf:null;
+  return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="original" data-generation-id={state.identity.generation_id}>
    <h3>{copy.original}</h3>
-   <p className={styles.eyebrow}>{fillCopy(copy.generation,{id:state.identity.generation_id})}</p>
+   {asOf!==null&&<p className={styles.eyebrow}>{fillCopy(copy.asOf,{date:asOf})}</p>}
    <p>{state.contextRefDurable?copy.durable:copy.processOnly}</p>
    {page&&<p className={styles.eyebrow}>{sectorCountsLine(copy,page.counts)}</p>}
    <div className={styles.actions}><button type="button" onClick={onOpenCurrent}>{copy.openCurrent}</button></div>

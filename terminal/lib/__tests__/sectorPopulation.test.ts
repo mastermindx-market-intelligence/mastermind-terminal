@@ -450,11 +450,11 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
       } });
   });
 
-  it("roster_clock rides capture.population without refusing the page; agree reads agree", () => {
+  it("roster_clock rides capture.population without refusing the page; agree reads agree with its one stated date", () => {
     const mutated = clone();
     population(mutated).roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-06" };
     const read = sectorPopulationPage(mutated)!;
-    expect(read.rosterClock).toEqual({ status: "agree" });
+    expect(read.rosterClock).toEqual({ status: "agree", asOf: "2026-11-06" });
   });
 
   it("every non-agree roster_clock reads not_agree — mismatch forms, unavailable forms, malformed — never a refusal", () => {
@@ -463,8 +463,10 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
       { status: "mismatch", reason: "capture_effective_as_of_not_single", roster_as_of: "2026-11-06", capture_effective_as_of: ["2026-11-06", "2026-11-07"] },
       { status: "unavailable", reason: "capture_effective_as_of_malformed", roster_as_of: "2026-11-06" },
       { status: "unavailable", reason: "capture_effective_as_of_unavailable", roster_as_of: "2026-11-06" },
-      { status: "unavailable", reason: "roster_block_malformed", roster_as_of: "2026-11-06" },
-      { status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" },
+      // r4 N-6 fidelity: the roster_block_* branches carry {status, reason}
+      // ONLY — no roster_as_of (sector_population.py:553-555).
+      { status: "unavailable", reason: "roster_block_malformed" },
+      { status: "unavailable", reason: "roster_block_absent" },
       { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: [] }, // agree with a broken field
       42, "agree", [], true,
     ];
@@ -476,6 +478,24 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     }
   });
 
+  // r4 N-5 (fourth review): the key PRESENT with a null value is one more
+  // carried clock that does not agree — it reads not_agree like 42/[]/{},
+  // so the surface's generic not-stated reason line has a case to print for.
+  // Only an ABSENT key reads null (the pre-#10965 wire keeps stated counts).
+  it("a CARRIED null roster_clock reads not_agree with counts not stated; an absent key still reads null with stated counts", () => {
+    const carriedNull = clone();
+    population(carriedNull).roster_clock = null;
+    const read = sectorPopulationPage(carriedNull)!;
+    expect(read, "carried null clock must not refuse the page").not.toBeNull();
+    expect(read.rosterClock).toEqual({ status: "not_agree" });
+    expect(read.counts.countsStated).toBe(false);
+    const absent = clone();
+    delete population(absent).roster_clock;
+    const absentRead = sectorPopulationPage(absent)!;
+    expect(absentRead.rosterClock).toBeNull();
+    expect(absentRead.counts.countsStated).toBe(true);
+  });
+
   // B-1 (third review): lane 1's producer sends unaccounted/configured_current/
   // complete ALL null whenever roster_clock is not agree (Macro #10965,
   // lib/sector_population.py:613). That page must decode and render its member
@@ -483,7 +503,11 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
   it("B-1: the producer's own non-agree page — clock beside null counts — decodes, never refuses", () => {
     for (const clock of [
       { status: "mismatch", reason: "roster_as_of_mismatch", roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-06" },
-      { status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" },
+      // r4 N-6 fidelity: {status, reason} only for roster_block_*; and the
+      // not_single branch carries capture_effective_as_of as a sorted LIST
+      // (sector_population.py:574-576) — now covered with null counts.
+      { status: "unavailable", reason: "roster_block_absent" },
+      { status: "mismatch", reason: "capture_effective_as_of_not_single", roster_as_of: "2026-11-06", capture_effective_as_of: ["2026-11-06", "2026-11-07"] },
     ]) {
       const mutated = clone();
       const pop = population(mutated);
@@ -513,7 +537,7 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     pop.roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-06" };
     pop.unaccounted = null;
     const read = sectorPopulationPage(mutated)!;
-    expect(read.rosterClock).toEqual({ status: "agree" });
+    expect(read.rosterClock).toEqual({ status: "agree", asOf: "2026-11-06" });
     expect(read.counts.unaccounted).toBeNull();
     expect(read.counts.countsStated).toBe(false);
   });
@@ -709,7 +733,7 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     const mutated = clone();
     population(mutated).configured_current = null;
     population(mutated).complete = null;
-    population(mutated).roster_clock = { status: "unavailable", reason: "roster_block_malformed", roster_as_of: "2026-11-06" };
+    population(mutated).roster_clock = { status: "unavailable", reason: "roster_block_malformed" };
     const read = sectorPopulationPage(mutated)!;
     expect(read.counts.configuredCurrent).toBeNull();
     expect(read.rosterClock).toEqual({ status: "not_agree" });

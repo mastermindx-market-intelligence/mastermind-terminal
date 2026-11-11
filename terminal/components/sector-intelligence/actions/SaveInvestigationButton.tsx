@@ -46,23 +46,29 @@ export function SaveInvestigationButton({ principal, command, previous, lang, co
   // them (partitionInvestigationSave, the module's own law).
   const [journal, setJournal] = useState<InvestigationSaveState>(previous ?? { phase: "idle" });
   const state = partitionInvestigationSave(journal, principal);
-  const [inFlight, setInFlight] = useState(false);
+  // r4 N-7: the in-flight flag is PER ACCOUNT, keyed by the actor that raised
+  // it. A's pending POST may still be riding when the surface re-binds to B —
+  // B's Save is never disabled by A's flight, and A's late reply clears only
+  // A's own flag, never one B raised meanwhile.
+  const [inFlightFor, setInFlightFor] = useState<string | null>(null);
+  const inFlight = principal !== null && inFlightFor === principal;
   const text = copy[lang];
   useEffect(() => { onStateChange?.(journal); }, [journal, onStateChange]);
 
   const send = async (toSend: InvestigationCommand) => {
-    setInFlight(true);
+    const actor = principal;
+    setInFlightFor(actor);
     let response: unknown = null;
     try {
       const res = await fetch("/api/investigations", {
         method: "POST",
-        headers: { "content-type": "application/json", ...(principal ? { "x-mm-investigation-owner": principal } : {}) },
+        headers: { "content-type": "application/json", ...(actor ? { "x-mm-investigation-owner": actor } : {}) },
         body: JSON.stringify(toSend),
       });
       response = await res.json().catch(() => null);
     } catch { response = null; }
-    setInFlight(false);
-    if (principal) setJournal(current => settleInvestigationSave(current, principal, response));
+    setInFlightFor(current => current === actor ? null : current);
+    if (actor) setJournal(current => settleInvestigationSave(current, actor, response));
   };
 
   const onSave = () => {

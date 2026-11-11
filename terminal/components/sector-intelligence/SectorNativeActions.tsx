@@ -10,7 +10,7 @@
  * controls stay hidden, never fake. The command's evidence is pinned to the
  * admitted generation (generation_id + content_sha256), and the whole surface
  * re-binds when the generation or subject changes. */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_INTELLIGENCE_LEX, useSectorT } from "@/lib/sectorIntelligenceLex";
@@ -58,7 +58,17 @@ export default function SectorNativeActions({ context }: { context: SectorNative
   const identity = useShellIdentity();
   const principal = identity.kind === "account" && identity.userId ? identity.userId : null;
   const [admission, setAdmission] = useState<{ principal: string; subjectId: string; admitted: boolean } | null>(null);
-  const [saveState, setSaveState] = useState<InvestigationSaveState | null>(null);
+  // r4 N-7: the save state is PER ACCOUNT, keyed by the signed-in account id —
+  // the same per-owner keying the recovery design already persists with
+  // (investigationJournal.ts keys its buffer entries per owner). B's save
+  // writes B's slot only, so A's unsent recovery record survives the switch
+  // and returns with A; no journal ever crosses accounts.
+  const [saveJournals, setSaveJournals] = useState<Record<string, InvestigationSaveState>>({});
+  const saveState = principal !== null ? saveJournals[principal] ?? null : null;
+  const rememberSaveState = useCallback((state: InvestigationSaveState) => {
+    if (!principal) return;
+    setSaveJournals(current => ({ ...current, [principal]: state }));
+  }, [principal]);
   // The command is minted for the CURRENT principal (r2 N-D): a switched
   // account gets its own id/operation_id, never a replay of the first
   // account's ids (an idempotency/id collision on the same sector).
@@ -166,10 +176,10 @@ export default function SectorNativeActions({ context }: { context: SectorNative
   return <section className={`${styles.card} ${styles.stateCard}`} data-testid="sector-native-actions">
     <h2 className={styles.stateTitle}>{t("siActionsCard")}</h2>
     <SaveInvestigationButton principal={principal} command={command} lang={lang}
-      copy={copy.save} previous={saveState ?? undefined} onStateChange={setSaveState} />
+      copy={copy.save} previous={saveState ?? undefined} onStateChange={rememberSaveState} />
     {visibleSaveState.phase === "pending" || visibleSaveState.phase === "uncertain"
       ? <CheckSaveStatusButton principal={principal} command={command} state={visibleSaveState}
-        lang={lang} copy={copy.check} onStateChange={setSaveState} />
+        lang={lang} copy={copy.check} onStateChange={rememberSaveState} />
       : null}
     <ArmWatchControl principal={principal} link={{ investigation_id: command.id, revision }}
       symbol={symbol} lang={lang} copy={copy.watch} />
