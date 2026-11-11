@@ -1,0 +1,54 @@
+[warmup] /terminal?symbol=NVDA → 200 in 484ms
+[warmup] /options → 200 in 10052ms
+[warmup] /portfolio → 200 in 3423ms
+[warmup] /alerts → 200 in 3604ms
+[warmup] /analysis → 200 in 5931ms
+[warmup] /discover → 200 in 5882ms
+[warmup] /admin → 200 in 2174ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 2358ms
+[warmup] /login → 200 in 759ms
+[warmup] /reset-password → 200 in 1522ms
+[warmup] /api/me → 200 in 2501ms
+[warmup] /api/watchlist → 200 in 881ms
+[warmup] /api/layouts → 200 in 836ms
+[warmup] /api/watchlist/annotations → 409 in 1239ms
+[warmup] 14 routes compiled in 42s
+[fixture-ready] prophet_idx fixture 200 in 4771ms
+
+Running 1 test using 1 worker
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+F
+
+  1) [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:61:11 › N3 width 1440 › baseline: Inspector empty light/en/1440 
+
+    TypeError: Cannot read properties of undefined (reading '0')
+
+       at ../lib/flowdeskStrings.ts:248
+
+      246 | export function getFlowStr(lang: Lang, key: FlowDeskKey): string {
+      247 |   const entry = FLOW_LEX[key];
+    > 248 |   return lang === "zh" ? entry[1] : entry[0];
+          |                                          ^
+      249 | }
+      250 |
+      251 | /**
+        at getFlowStr (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/lib/flowdeskStrings.ts:248:42)
+        at t (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/lib/flowdeskStrings.ts:262:32)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/issue1201-inspector-empty-capture.spec.ts:88:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:61:11 › N3 width 1440 › baseline: Inspector empty light/en/1440 

@@ -1,0 +1,9 @@
+{
+  "base": "ffcc39bcdf89cb19b08444b8bb64cadbc1a3a5ec",
+  "path": "terminal/app/observatory.css",
+  "beforeBlob": "0c7ff826df0655c5016fcb6be838971bc4f4531a",
+  "beforeSha256": "649ba3f2d700a58e72ad1d8028bd580de6066b0b0047d0bf63c4cdcbc5d411af",
+  "afterSha256": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06",
+  "afterBlob": "f2498634f1c3964a0bdf57fd2cf38562f53e6565",
+  "delta": "Add flex-direction: column and gap:8px only to .obs-insp-empty"
+}

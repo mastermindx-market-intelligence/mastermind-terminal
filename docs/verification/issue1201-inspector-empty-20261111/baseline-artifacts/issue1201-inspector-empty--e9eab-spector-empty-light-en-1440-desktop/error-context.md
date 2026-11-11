@@ -1,0 +1,516 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: issue1201-inspector-empty-capture.spec.ts >> N3 width 1440 >> baseline: Inspector empty light/en/1440
+- Location: e2e/issue1201-inspector-empty-capture.spec.ts:34:11
+
+# Error details
+
+```
+Test timeout of 120000ms exceeded.
+```
+
+```
+Error: locator.click: Test timeout of 120000ms exceeded.
+Call log:
+  - waiting for getByRole('tab', { name: 'Preferences', exact: true })
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - generic [ref=e9]:
+          - generic [ref=e10]: MASTERMIND
+          - generic [ref=e11]: TERMINAL
+      - generic [ref=e13]: Options
+      - button "Settings" [ref=e14] [cursor=pointer]: U
+    - navigation "Primary" [ref=e15]:
+      - link "Chart" [ref=e16] [cursor=pointer]:
+        - /url: /terminal
+        - img [ref=e17]
+      - link "Analysis" [ref=e19] [cursor=pointer]:
+        - /url: /analysis
+        - img [ref=e20]
+      - link "Discover" [ref=e22] [cursor=pointer]:
+        - /url: /discover
+        - img [ref=e23]
+      - link "Dislocations" [ref=e28] [cursor=pointer]:
+        - /url: /dislocations
+        - img [ref=e29]
+      - link "Options" [ref=e32] [cursor=pointer]:
+        - /url: /options
+        - img [ref=e33]
+      - link "Scripts" [ref=e36] [cursor=pointer]:
+        - /url: /scripts
+        - img [ref=e37]
+      - link "Portfolio" [ref=e41] [cursor=pointer]:
+        - /url: /portfolio
+        - img [ref=e42]
+      - link "Alerts" [ref=e44] [cursor=pointer]:
+        - /url: /alerts
+        - img [ref=e45]
+      - button "Mastermind AI" [ref=e48] [cursor=pointer]:
+        - img [ref=e49]
+    - main [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]: Category
+          - generic [ref=e55]:
+            - tablist "Options categories" [ref=e56]:
+              - tab "Command" [selected] [ref=e57] [cursor=pointer]
+              - tab "Flow" [ref=e58] [cursor=pointer]
+              - tab "Exposure" [ref=e59] [cursor=pointer]
+              - tab "Structure" [ref=e60] [cursor=pointer]
+              - tab "Volatility" [ref=e61] [cursor=pointer]
+              - tab "Statistics" [ref=e62] [cursor=pointer]
+              - tab "Prophet" [ref=e63] [cursor=pointer]
+            - link "Futures depth & footprint" [ref=e64] [cursor=pointer]:
+              - /url: /options/futures
+              - text: Futures
+            - button "Open the four-step options workflow · 0/4 viewed" [ref=e65] [cursor=pointer]:
+              - img [ref=e66]
+              - generic [ref=e69]: Workflow
+              - generic [ref=e70]: 0/4 viewed
+        - generic [ref=e71]:
+          - generic [ref=e72]: View
+          - tablist "Options views" [ref=e73]:
+            - tab "Flow Desk" [selected] [ref=e74] [cursor=pointer]
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - 'generic "Market volatility regime: Mixed — normalizing" [ref=e77]':
+            - generic [ref=e79]: Vol
+            - text: Mixed — normalizing
+          - generic [ref=e80]: as of 10:40:13delayed
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - generic [ref=e88]: Flow Gauge
+                - generic [ref=e89]: Session 55% elapsed
+              - generic [ref=e90]: $3.1M
+              - generic [ref=e91]:
+                - generic [ref=e92]: 76% C
+                - generic [ref=e96]: 24% P
+              - generic [ref=e97]:
+                - generic [ref=e98]:
+                  - generic [ref=e99]: Call Prem
+                  - generic [ref=e100]: $2.3M
+                - generic [ref=e101]:
+                  - generic [ref=e102]: Put Prem
+                  - generic [ref=e103]: $750K
+                - generic [ref=e104]:
+                  - generic [ref=e105]: P/C Ratio
+                  - generic [ref=e106]: "0.32"
+                - generic [ref=e107]:
+                  - generic [ref=e108]: Tone
+                  - generic [ref=e109]: CALL-HEAVY
+            - complementary [ref=e110]:
+              - generic [ref=e111]:
+                - generic [ref=e112]:
+                  - generic [ref=e113]: Session overview
+                  - generic [ref=e114]:
+                    - generic [ref=e115]: nightly + intraday
+                    - button "Open tutorial" [ref=e116] [cursor=pointer]: "?"
+                - generic [ref=e118]:
+                  - generic [ref=e119]:
+                    - generic [ref=e120]: Premium
+                    - generic [ref=e121]: $638.5M
+                  - generic [ref=e122]:
+                    - generic [ref=e123]: Calls
+                    - generic [ref=e124]: 52%
+                  - generic [ref=e125]:
+                    - generic [ref=e126]: P/C
+                    - generic [ref=e127]: "0.91"
+                - generic [ref=e131]:
+                  - generic [ref=e132]: Calls
+                  - generic [ref=e133]: Puts
+              - generic [ref=e134]:
+                - generic [ref=e135]:
+                  - generic [ref=e136]: Watchlist
+                  - generic [ref=e137]: Score
+                - generic [ref=e139]:
+                  - generic [ref=e140]: Click a ticker to watch
+                  - generic [ref=e141]: Active today
+                  - generic [ref=e142] [cursor=pointer]:
+                    - button "AAPL Score unavailable" [ref=e143]:
+                      - generic [ref=e144]: AAPL
+                      - img "Score unavailable" [ref=e146]:
+                        - img [ref=e147]
+                        - generic [ref=e150]: —
+                    - button "Add AAPL to watchlist" [ref=e152]: +
+                  - generic [ref=e153] [cursor=pointer]:
+                    - button "NVDA Score unavailable" [ref=e154]:
+                      - generic [ref=e155]: NVDA
+                      - img "Score unavailable" [ref=e157]:
+                        - img [ref=e158]
+                        - generic [ref=e161]: —
+                    - button "Add NVDA to watchlist" [ref=e163]: +
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - generic [ref=e166]: Smart Money Radar
+                - generic [ref=e167]: Baseline derived from prior 252 trading sessions. Direction labels are heuristic and approximate.
+              - generic [ref=e168]:
+                - generic [ref=e169]: Ticker
+                - generic [ref=e170]: Activity
+                - generic [ref=e171]: Premium
+                - generic [ref=e172]: Calls
+              - generic [ref=e174]:
+                - generic [ref=e175]:
+                  - generic [ref=e176]: AAPL
+                  - generic [ref=e177]: Technology
+                - generic [ref=e180]: Above avg
+                - generic [ref=e181]: $2.4M
+                - generic [ref=e182]: 76%
+          - generic [ref=e184]:
+            - generic [ref=e185]:
+              - generic [ref=e186]: 9 SIGNALS
+              - textbox "Search ticker…" [ref=e187]
+              - generic [ref=e188]:
+                - button "NEW" [ref=e189] [cursor=pointer]
+                - button "SCORE" [ref=e190] [cursor=pointer]
+              - button "Filters" [ref=e191] [cursor=pointer]
+            - generic "Updated 2026-07-05T15:42:00Z; Source data 2026-07-05T14:34:51Z — 2026-07-05T15:40:32Z" [ref=e192]:
+              - generic [ref=e193]: Market closed
+              - generic [ref=e194]: · Last session
+              - generic [ref=e195]: · Updated 128d 15h ago
+              - generic [ref=e196]: · Source data 128d 15h–128d 17h ago
+              - generic [ref=e197]: · Refresh cycle 1h 8m
+            - generic [ref=e198]:
+              - button "ALL" [ref=e199] [cursor=pointer]
+              - button "Elite — top 2% of tape" [ref=e200] [cursor=pointer]
+              - button "WHALES" [ref=e201] [cursor=pointer]
+              - button "0DTE" [ref=e202] [cursor=pointer]
+              - button "SWEEPS" [ref=e203] [cursor=pointer]
+            - generic [ref=e204]:
+              - generic [ref=e205]: 88 % of eligible premium classified · 12 % unknown
+              - generic [ref=e206]: Calls $2.3M · Puts $750.0K · unsigned premium, not a direction
+            - generic [ref=e207]:
+              - 'option "AAPL Score unavailable 10:40 $216.0K Call Lean is inferred from the last trade''s price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $235 · 2026-10-23 · 2d Size 6,000 · Repeat-root: multiple prints on this underlying this session (not a $-sized campaign) Show score breakdown" [ref=e208] [cursor=pointer]':
+                - generic [ref=e209]:
+                  - generic [ref=e210]: AAPL
+                  - img "Score unavailable" [ref=e212]:
+                    - img [ref=e213]
+                    - generic [ref=e216]: —
+                  - generic [ref=e217]: 10:40
+                - generic [ref=e218]:
+                  - generic [ref=e219]: $216.0K
+                  - generic [ref=e220]: Call
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e221]: Leans buy (approximate)
+                - generic [ref=e223]: $235 · 2026-10-23 · 2d
+                - generic [ref=e224]:
+                  - generic [ref=e225]:
+                    - generic [ref=e226]: Size 6,000
+                    - generic [ref=e227]:
+                      - generic [ref=e228]: ·
+                      - 'generic "Repeat-root: multiple prints on this underlying this session (not a $-sized campaign)" [ref=e229]': CLUSTER
+                  - button "Show score breakdown" [ref=e230]:
+                    - img [ref=e231]
+              - 'option "AAPL Score unavailable 10:40 $504.0K Call Lean is inferred from the last trade''s price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $230 · 2026-10-23 · 2d Size 6,000 · Open interest 3,680 · Repeat-root: multiple prints on this underlying this session (not a $-sized campaign) · Premium activity is much higher than its typical one-year level Show score breakdown" [ref=e233] [cursor=pointer]':
+                - generic [ref=e234]:
+                  - generic [ref=e235]: AAPL
+                  - img "Score unavailable" [ref=e237]:
+                    - img [ref=e238]
+                    - generic [ref=e241]: —
+                  - generic [ref=e242]: 10:40
+                - generic [ref=e243]:
+                  - generic [ref=e244]: $504.0K
+                  - generic [ref=e245]: Call
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e246]: Leans buy (approximate)
+                - generic [ref=e248]: $230 · 2026-10-23 · 2d
+                - generic [ref=e249]:
+                  - generic [ref=e250]:
+                    - generic [ref=e251]: Size 6,000
+                    - generic [ref=e252]: ·
+                    - generic [ref=e253]: Open interest 3,680
+                    - generic [ref=e254]:
+                      - generic [ref=e255]: ·
+                      - 'generic "Repeat-root: multiple prints on this underlying this session (not a $-sized campaign)" [ref=e256]': CLUSTER
+                    - generic [ref=e257]:
+                      - generic [ref=e258]: ·
+                      - generic "Premium activity is much higher than its typical one-year level" [ref=e259]: UNUSUAL
+                  - button "Show score breakdown" [ref=e260]:
+                    - img [ref=e261]
+              - option "AAPL Score unavailable 10:39 $355.0K Put Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $225 · 2026-10-23 · 2d Size 2,500 Show score breakdown" [ref=e263] [cursor=pointer]:
+                - generic [ref=e264]:
+                  - generic [ref=e265]: AAPL
+                  - img "Score unavailable" [ref=e267]:
+                    - img [ref=e268]
+                    - generic [ref=e271]: —
+                  - generic [ref=e272]: 10:39
+                - generic [ref=e273]:
+                  - generic [ref=e274]: $355.0K
+                  - generic [ref=e275]: Put
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e276]: Not classified
+                - generic [ref=e278]: $225 · 2026-10-23 · 2d
+                - generic [ref=e279]:
+                  - generic [ref=e281]: Size 2,500
+                  - button "Show score breakdown" [ref=e282]:
+                    - img [ref=e283]
+              - 'option "AAPL Score unavailable 10:38 $259.2K Call Lean is inferred from the last trade''s price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $230 · 2026-10-23 · 2d Size 3,200 · Repeat-root: multiple prints on this underlying this session (not a $-sized campaign) Show score breakdown" [ref=e285] [cursor=pointer]':
+                - generic [ref=e286]:
+                  - generic [ref=e287]: AAPL
+                  - img "Score unavailable" [ref=e289]:
+                    - img [ref=e290]
+                    - generic [ref=e293]: —
+                  - generic [ref=e294]: 10:38
+                - generic [ref=e295]:
+                  - generic [ref=e296]: $259.2K
+                  - generic [ref=e297]: Call
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e298]: Leans sell (approximate)
+                - generic [ref=e300]: $230 · 2026-10-23 · 2d
+                - generic [ref=e301]:
+                  - generic [ref=e302]:
+                    - generic [ref=e303]: Size 3,200
+                    - generic [ref=e304]:
+                      - generic [ref=e305]: ·
+                      - 'generic "Repeat-root: multiple prints on this underlying this session (not a $-sized campaign)" [ref=e306]': CLUSTER
+                  - button "Show score breakdown" [ref=e307]:
+                    - img [ref=e308]
+              - option "AAPL Score unavailable 10:37 $395.0K Put Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $220 · 2026-10-23 · 2d Size 4,100 Show score breakdown" [ref=e310] [cursor=pointer]:
+                - generic [ref=e311]:
+                  - generic [ref=e312]: AAPL
+                  - img "Score unavailable" [ref=e314]:
+                    - img [ref=e315]
+                    - generic [ref=e318]: —
+                  - generic [ref=e319]: 10:37
+                - generic [ref=e320]:
+                  - generic [ref=e321]: $395.0K
+                  - generic [ref=e322]: Put
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e323]: Mixed
+                - generic [ref=e325]: $220 · 2026-10-23 · 2d
+                - generic [ref=e326]:
+                  - generic [ref=e328]: Size 4,100
+                  - button "Show score breakdown" [ref=e329]:
+                    - img [ref=e330]
+              - 'option "AAPL Score unavailable 10:36 $266.8K Call Lean is inferred from the last trade''s price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $230 · 2026-10-23 · 2d Size 2,900 · Repeat-root: multiple prints on this underlying this session (not a $-sized campaign) Show score breakdown" [ref=e332] [cursor=pointer]':
+                - generic [ref=e333]:
+                  - generic [ref=e334]: AAPL
+                  - img "Score unavailable" [ref=e336]:
+                    - img [ref=e337]
+                    - generic [ref=e340]: —
+                  - generic [ref=e341]: 10:36
+                - generic [ref=e342]:
+                  - generic [ref=e343]: $266.8K
+                  - generic [ref=e344]: Call
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e345]: Leans buy (approximate)
+                - generic [ref=e347]: $230 · 2026-10-23 · 2d
+                - generic [ref=e348]:
+                  - generic [ref=e349]:
+                    - generic [ref=e350]: Size 2,900
+                    - generic [ref=e351]:
+                      - generic [ref=e352]: ·
+                      - 'generic "Repeat-root: multiple prints on this underlying this session (not a $-sized campaign)" [ref=e353]': CLUSTER
+                  - button "Show score breakdown" [ref=e354]:
+                    - img [ref=e355]
+              - 'option "AAPL Score unavailable 10:36 $80.0K Call Lean is inferred from the last trade''s price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $230 · 2026-10-23 · 2d Size 1,000 · Repeat-root: multiple prints on this underlying this session (not a $-sized campaign) Show score breakdown" [ref=e357] [cursor=pointer]':
+                - generic [ref=e358]:
+                  - generic [ref=e359]: AAPL
+                  - img "Score unavailable" [ref=e361]:
+                    - img [ref=e362]
+                    - generic [ref=e365]: —
+                  - generic [ref=e366]: 10:36
+                - generic [ref=e367]:
+                  - generic [ref=e368]: $80.0K
+                  - generic [ref=e369]: Call
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e370]: Leans buy (approximate)
+                - generic [ref=e372]: $230 · 2026-10-23 · 2d
+                - generic [ref=e373]:
+                  - generic [ref=e374]:
+                    - generic [ref=e375]: Size 1,000
+                    - generic [ref=e376]:
+                      - generic [ref=e377]: ·
+                      - 'generic "Repeat-root: multiple prints on this underlying this session (not a $-sized campaign)" [ref=e378]': CLUSTER
+                  - button "Show score breakdown" [ref=e379]:
+                    - img [ref=e380]
+              - option "AAPL Score unavailable 10:35 $315.0K Call Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $240 · 2026-11-20 · 30d Size 1,500 Show score breakdown" [ref=e382] [cursor=pointer]:
+                - generic [ref=e383]:
+                  - generic [ref=e384]: AAPL
+                  - img "Score unavailable" [ref=e386]:
+                    - img [ref=e387]
+                    - generic [ref=e390]: —
+                  - generic [ref=e391]: 10:35
+                - generic [ref=e392]:
+                  - generic [ref=e393]: $315.0K
+                  - generic [ref=e394]: Call
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e395]: Leans buy (approximate)
+                - generic [ref=e397]: $240 · 2026-11-20 · 30d
+                - generic [ref=e398]:
+                  - generic [ref=e400]: Size 1,500
+                  - button "Show score breakdown" [ref=e401]:
+                    - img [ref=e402]
+              - option "NVDA Score unavailable 10:34 $680.0K Call Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side. $190 · 2026-10-23 · 2d Size 2,000 · Premium activity is much higher than its typical one-year level Show score breakdown" [ref=e404] [cursor=pointer]:
+                - generic [ref=e405]:
+                  - generic [ref=e406]: NVDA
+                  - img "Score unavailable" [ref=e408]:
+                    - img [ref=e409]
+                    - generic [ref=e412]: —
+                  - generic [ref=e413]: 10:34
+                - generic [ref=e414]:
+                  - generic [ref=e415]: $680.0K
+                  - generic [ref=e416]: Call
+                  - generic "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side." [ref=e417]: Leans sell (approximate)
+                - generic [ref=e419]: $190 · 2026-10-23 · 2d
+                - generic [ref=e420]:
+                  - generic [ref=e421]:
+                    - generic [ref=e422]: Size 2,000
+                    - generic [ref=e423]:
+                      - generic [ref=e424]: ·
+                      - generic "Premium activity is much higher than its typical one-year level" [ref=e425]: UNUSUAL
+                  - button "Show score breakdown" [ref=e426]:
+                    - img [ref=e427]
+          - generic [ref=e429]:
+            - generic [ref=e430]:
+              - generic [ref=e431]:
+                - generic [ref=e432]: Chain Heat
+                - generic "2026-07-07T16:00:00-04:00" [ref=e433]: Last session · Data 126d 11h ago
+                - generic [ref=e434]: ≥$3M cumul
+              - generic [ref=e435]: DISPLAY-ONLY — intraday chain-heat snapshot. Not investment advice.
+              - generic [ref=e436]:
+                - generic [ref=e437]:
+                  - generic [ref=e438]: SMH
+                  - generic [ref=e439]: Put
+                  - generic [ref=e440]: $530 · 09-18
+                  - generic [ref=e441]: $12.0M
+                - generic [ref=e442]:
+                  - generic [ref=e443]: accumulation
+                  - generic [ref=e444]: ask-share derived — not NBBO
+                - generic [ref=e445]:
+                  - generic [ref=e446]: hits 29
+                  - generic [ref=e447]: span 91m
+                  - generic [ref=e448]: first seen 09:35 ET
+                - generic [ref=e450]:
+                  - generic [ref=e451]: Legacy category proxy · coverage unavailable
+                  - generic [ref=e452]: 91%
+              - generic [ref=e455]:
+                - generic [ref=e456]:
+                  - generic [ref=e457]: QQQ
+                  - generic [ref=e458]: Call
+                  - generic [ref=e459]: $640 · 09-18
+                  - generic [ref=e460]: $6.4M
+                - generic [ref=e461]:
+                  - generic [ref=e462]: contested
+                  - generic [ref=e463]: ask-share derived — not NBBO
+                - generic [ref=e464]:
+                  - generic [ref=e465]: hits 14
+                  - generic [ref=e466]: span 58m
+                  - generic [ref=e467]: first seen 10:11 ET
+                - generic [ref=e469]:
+                  - generic [ref=e470]: Legacy category proxy · coverage unavailable
+                  - generic [ref=e471]: 44%
+              - generic [ref=e474]:
+                - generic [ref=e475]:
+                  - generic [ref=e476]: NVDA
+                  - generic [ref=e477]: Call
+                  - generic [ref=e478]: $200 · 09-19
+                  - generic [ref=e479]: $4.1M
+                - generic [ref=e480]:
+                  - generic [ref=e481]: accumulation
+                  - generic [ref=e482]: ask-share derived — not NBBO
+                - generic [ref=e483]:
+                  - generic [ref=e484]: hits 11
+                  - generic [ref=e485]: span 124m
+                  - generic [ref=e486]: first seen 09:42 ET
+                - generic [ref=e488]:
+                  - generic [ref=e489]: Legacy category proxy · coverage unavailable
+                  - generic [ref=e490]: 78%
+              - generic [ref=e493]:
+                - generic [ref=e494]:
+                  - generic [ref=e495]: SPY
+                  - generic [ref=e496]: Put
+                  - generic [ref=e497]: $530 · 09-18
+                  - generic [ref=e498]: $3.8M
+                - generic [ref=e499]:
+                  - generic [ref=e500]: accumulation
+                  - generic [ref=e501]: ask-share derived — not NBBO
+                - generic [ref=e502]:
+                  - generic [ref=e503]: hits 9
+                  - generic [ref=e504]: span 47m
+                  - generic [ref=e505]: first seen 11:05 ET
+                - generic [ref=e507]:
+                  - generic [ref=e508]: Legacy category proxy · coverage unavailable
+                  - generic [ref=e509]: 82%
+            - generic [ref=e513]:
+              - generic [ref=e514]: Select an event to inspect
+              - generic [ref=e515]: Click any card in the feed to open its full breakdown — score components, contract fields, detections, and the ticker's session context.
+        - generic [ref=e516]: Notability and direction labels are heuristic and approximate (~). Display only — not investment advice.
+  - alert [ref=e517]
+  - dialog "Getting you set up" [ref=e519]:
+    - generic [ref=e520]:
+      - generic [ref=e521]: Getting you set up
+      - button "Close" [ref=e522] [cursor=pointer]:
+        - img [ref=e523]
+    - generic [ref=e525]:
+      - complementary [ref=e526]:
+        - generic [ref=e527]:
+          - generic [ref=e528]: MASTERMIND
+          - generic [ref=e529]: TERMINAL
+        - navigation "Getting you set up" [ref=e530]:
+          - generic [ref=e533]: Account
+          - generic [ref=e536]: Preferences
+          - generic [ref=e539]: Plan
+          - generic [ref=e542]: Billing
+          - generic [ref=e545]: Done
+        - generic [ref=e547]: Your account
+      - generic [ref=e550]:
+        - heading "Create your account" [active] [level=1] [ref=e551]
+        - paragraph [ref=e552]: A few details and you are in — everything syncs across your devices.
+        - generic [ref=e553]:
+          - generic [ref=e554]:
+            - generic [ref=e555]:
+              - generic [ref=e556]: First name
+              - textbox "First name" [ref=e557]:
+                - /placeholder: Jordan
+            - generic [ref=e558]:
+              - generic [ref=e559]: Last name
+              - textbox "Last name" [ref=e560]:
+                - /placeholder: Wei
+          - generic [ref=e561]: Email
+          - textbox "Email" [ref=e562]:
+            - /placeholder: you@example.com
+          - generic [ref=e563]: Password
+          - textbox "Password" [ref=e564]:
+            - /placeholder: ••••••••
+          - button "Create account" [ref=e565] [cursor=pointer]
+        - generic [ref=e566]: or
+        - button "Continue with Google" [ref=e567] [cursor=pointer]:
+          - img [ref=e568]
+          - text: Continue with Google
+        - button "Apple — coming soon" [disabled] [ref=e573]
+        - button "Already have an account? Sign in" [ref=e574] [cursor=pointer]
+        - paragraph [ref=e575]: By continuing you agree to the Terms and Privacy Policy.
+```
+
+# Test source
+
+```ts
+  1  | import { expect, type Page } from "@playwright/test";
+  2  | 
+  3  | // Use the same visible preference action as the reader. A direct root attribute
+  4  | // write races the canonical account presentation owner and is not theme intent.
+  5  | export async function selectAppearance(page: Page, lang: "en" | "zh", theme: "light" | "dark") {
+  6  |   const topbar = page.locator("header.topbar");
+  7  |   const host = await topbar.isVisible() ? topbar : page.locator(".mobilebar");
+  8  |   await host.getByRole("button", { name: lang === "en" ? "Settings" : "设置", exact: true }).click();
+> 9  |   await page.getByRole("tab", { name: lang === "en" ? "Preferences" : "偏好", exact: true }).click();
+     |                                                                                            ^ Error: locator.click: Test timeout of 120000ms exceeded.
+  10 |   const choice = page.getByRole("group", { name: lang === "en" ? "Appearance" : "外观", exact: true })
+  11 |     .getByRole("button", { name: theme === "light" ? (lang === "en" ? "Light" : "浅色") : (lang === "en" ? "Dark" : "深色"), exact: true });
+  12 |   await choice.click();
+  13 |   await expect(choice).toHaveAttribute("aria-pressed", "true");
+  14 |   await page.getByRole("button", { name: lang === "en" ? "Close" : "关闭", exact: true }).first().click();
+  15 |   await expect(page.locator(".acs-overlay")).toBeHidden();
+  16 |   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+  17 | }
+  18 | 
+```
