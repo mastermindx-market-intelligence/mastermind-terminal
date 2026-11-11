@@ -1,0 +1,59 @@
+[warmup] /terminal?symbol=NVDA → 200 in 267ms
+[warmup] /options → 200 in 4359ms
+[warmup] /portfolio → 200 in 2252ms
+[warmup] /alerts → 200 in 2250ms
+[warmup] /analysis → 200 in 3229ms
+[warmup] /discover → 200 in 3608ms
+[warmup] /admin → 200 in 1070ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 711ms
+[warmup] /login → 200 in 217ms
+[warmup] /reset-password → 200 in 689ms
+[warmup] /api/me → 200 in 1011ms
+[warmup] /api/watchlist → 200 in 380ms
+[warmup] /api/layouts → 200 in 361ms
+[warmup] /api/watchlist/annotations → 409 in 297ms
+[warmup] 14 routes compiled in 21s
+[fixture-ready] prophet_idx fixture 200 in 1254ms
+
+Running 1 test using 1 worker
+[WebServer] [browser] Error: Failed to load Stripe.js
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+T
+
+  1) [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:34:11 › N3 width 1440 › baseline: Inspector empty light/en/1440 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: locator.click: Test timeout of 120000ms exceeded.
+    Call log:
+      - waiting for getByRole('tab', { name: 'Preferences', exact: true })
+
+
+       at presentationControls.ts:9
+
+       7 |   const host = await topbar.isVisible() ? topbar : page.locator(".mobilebar");
+       8 |   await host.getByRole("button", { name: lang === "en" ? "Settings" : "设置", exact: true }).click();
+    >  9 |   await page.getByRole("tab", { name: lang === "en" ? "Preferences" : "偏好", exact: true }).click();
+         |                                                                                            ^
+      10 |   const choice = page.getByRole("group", { name: lang === "en" ? "Appearance" : "外观", exact: true })
+      11 |     .getByRole("button", { name: theme === "light" ? (lang === "en" ? "Light" : "浅色") : (lang === "en" ? "Dark" : "深色"), exact: true });
+      12 |   await choice.click();
+        at selectAppearance (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/presentationControls.ts:9:92)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/issue1201-inspector-empty-capture.spec.ts:53:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:34:11 › N3 width 1440 › baseline: Inspector empty light/en/1440 

@@ -1,0 +1,58 @@
+{
+  "runs": [
+    {
+      "theme": "dark",
+      "shellVariant": "default-shell",
+      "startedAt": "2026-11-11T08:01:57.979473+00:00",
+      "port": 60184,
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/issue1201-inspector-empty-capture.spec.ts",
+        "--project=desktop",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=1",
+        "--reporter=json",
+        "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-inspector-empty-20261111/qualified-dark-artifacts"
+      ],
+      "cssSha256": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06",
+      "captureSourceSha256": "dba92e525848b71f3137aca37187f3d17d9a6cd0588b85e65381cffc1cace0b0",
+      "changeFromPriorCapture": "Guard the pre-document language initializer when documentElement is absent; retain page-error assertion",
+      "exitCode": 0,
+      "seconds": 58.434,
+      "completedAt": "2026-11-11T08:02:56.414155+00:00",
+      "sourceStable": true,
+      "portClosedAfterOwnerReturn": true
+    },
+    {
+      "theme": "light",
+      "shellVariant": "shared-shell",
+      "startedAt": "2026-11-11T08:02:56.417655+00:00",
+      "port": 60703,
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/issue1201-inspector-empty-capture.spec.ts",
+        "--project=desktop",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=1",
+        "--reporter=json",
+        "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-inspector-empty-20261111/qualified-light-artifacts"
+      ],
+      "cssSha256": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06",
+      "captureSourceSha256": "dba92e525848b71f3137aca37187f3d17d9a6cd0588b85e65381cffc1cace0b0",
+      "changeFromPriorCapture": "Guard the pre-document language initializer when documentElement is absent; retain page-error assertion",
+      "exitCode": 0,
+      "seconds": 84.133,
+      "completedAt": "2026-11-11T08:04:20.552940+00:00",
+      "sourceStable": true,
+      "portClosedAfterOwnerReturn": true
+    }
+  ],
+  "ownedTemporarySpecRemoved": true,
+  "cssSha256": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06"
+}

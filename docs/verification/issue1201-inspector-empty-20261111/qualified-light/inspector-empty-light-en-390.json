@@ -1,0 +1,77 @@
+{
+  "phase": "postimage",
+  "shellVariant": "shared-shell",
+  "route": "/options?tab=desk",
+  "syntheticFeedFixture": "options-r1-w3a-flow.json",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "hasTouch": true,
+  "theme": "light",
+  "lang": "en",
+  "geometry": {
+    "card": {
+      "x": 81,
+      "y": 446.375,
+      "width": 300,
+      "height": 340,
+      "right": 381,
+      "bottom": 786.375
+    },
+    "rail": {
+      "x": 10,
+      "y": 446.375,
+      "width": 370,
+      "height": 340,
+      "right": 380,
+      "bottom": 786.375
+    },
+    "title": {
+      "x": 127.453125,
+      "y": 478.375,
+      "width": 207.078125,
+      "height": 11.5,
+      "right": 334.53125,
+      "bottom": 489.875
+    },
+    "explanation": {
+      "x": 98,
+      "y": 497.875,
+      "width": 266,
+      "height": 49.5,
+      "right": 364,
+      "bottom": 547.375
+    },
+    "flexDirection": "column",
+    "titleText": "Select an event to inspect",
+    "explanationText": "Click any card in the feed to open its full breakdown — score components, contract fields, detections, and the ticker's session context.",
+    "explanationClientWidth": 266,
+    "explanationScrollWidth": 266,
+    "pageClientWidth": 390,
+    "pageScrollWidth": 390,
+    "theme": "light",
+    "lang": "en",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "selectedEventCheck": null,
+  "pageErrors": [],
+  "sourceHashes": {
+    "terminal/app/observatory.css": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/flowdesk/InspectorPane.tsx": "6dbf18a47196cb7090f16f33c6a821767eeb025cef722bbd1704d7c1f425c498",
+    "terminal/components/flowdesk/FlowDeskView.tsx": "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0",
+    "terminal/components/flowdesk/FeedPane.tsx": "e2e01341164c2eedefa6caf935064540cc133fc1166a36dd630b9207a9baca83",
+    "terminal/lib/flowdeskStrings.ts": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/components/chrome/shared-shell/SharedShellPresentation.tsx": "a57b68b36686f83a7a7095aa498b3fcc310982853e8008d48abee35213d9071c",
+    "terminal/components/chrome/shared-shell/SharedShellPresentationControls.tsx": "01da7b6d794897f681e2fbdd7d7917f5c19183703a367d42517ac135e1faac42",
+    "terminal/lib/sharedShellCopy.ts": "69c51a929fcc94ffea67e58d74433d345090818b2dc694dea7a8e53c25cc09df",
+    "terminal/components/MobileNav.tsx": "fd2281846f9e3073bef347fdd81e1811b60720c72a66bb705b2652144769da7c",
+    "terminal/e2e/fixtures/options-r1-w3a-flow.json": "bc1f5d0ebfaa2f39fe4b542f25e5b2df84c37738b6da124c380e014d565b9f1f"
+  },
+  "screenshotSha256": "19f5865383dbe85d74137dfe50c01a80c5794475eba3fbdbc2e320334217cbe0"
+}
