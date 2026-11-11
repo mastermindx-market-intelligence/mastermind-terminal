@@ -16,17 +16,30 @@ test.setTimeout(90_000);
 type Reply = "503" | "abort" | "404" | "fixture";
 
 async function installFlowReplies(page: Page, replies: Record<string, Reply>) {
+  const served: { feed: string; reply: Exclude<Reply, "fixture"> }[] = [];
   await page.route(
     (url) => url.pathname === "/api/flow" && (replies[url.searchParams.get("f") ?? ""] ?? "fixture") !== "fixture",
     async (route: Route) => {
-      switch (replies[new URL(route.request().url()).searchParams.get("f") ?? ""]) {
-        case "503": return route.fulfill({ status: 503, json: { error: "feed unavailable" } });
-        case "404": return route.fulfill({ status: 404, json: { error: "not published" } });
-        case "abort": return route.abort("failed");
+      // Snapshot the selected reply before awaiting it: Retry can later restore fixtures.
+      const feed = new URL(route.request().url()).searchParams.get("f") ?? "";
+      const reply = replies[feed];
+      switch (reply) {
+        case "503":
+          await route.fulfill({ status: 503, json: { error: "feed unavailable" } });
+          break;
+        case "404":
+          await route.fulfill({ status: 404, json: { error: "not published" } });
+          break;
+        case "abort":
+          await route.abort("failed");
+          break;
         default: return route.fallback();
       }
+      // A matching request alone is insufficient: record only completed injection.
+      served.push({ feed, reply });
     },
   );
+  return served;
 }
 
 async function setLang(page: Page, lang: "en" | "zh") {
@@ -51,9 +64,13 @@ for (const failure of ["503", "abort"] as const) {
     const t = makeFlowT(lang);
     const replies: Record<string, Reply> = { chainheat: failure };
     await setLang(page, lang);
-    await installFlowReplies(page, replies);
+    const served = await installFlowReplies(page, replies);
 
     await page.goto("/options?tab=desk");
+    await expect.poll(
+      () => served.filter((entry) => entry.feed === "chainheat" && entry.reply === failure).length,
+      { message: `The chainheat ${failure} reply must actually be served`, timeout: 45_000 },
+    ).toBeGreaterThan(0);
     const rail = page.locator('[data-tut="chain-heat"]');
     const loadError = rail.getByTestId("chainheat-load-error");
     await expect(loadError).toBeVisible({ timeout: 45_000 });
@@ -78,9 +95,13 @@ test("nothing published for the session is shown only on a 404, with nothing to 
   const lang = testInfo.project.name === "tablet" ? "zh" : "en";
   const t = makeFlowT(lang);
   await setLang(page, lang);
-  await installFlowReplies(page, { chainheat: "404" });
+  const served = await installFlowReplies(page, { chainheat: "404" });
 
   await page.goto("/options?tab=desk");
+  await expect.poll(
+    () => served.filter((entry) => entry.feed === "chainheat" && entry.reply === "404").length,
+    { message: "The chainheat 404 reply must actually be served", timeout: 45_000 },
+  ).toBeGreaterThan(0);
   const rail = page.locator('[data-tut="chain-heat"]');
   await expect(rail.getByText(t("chainHeatAbsent"))).toBeVisible({ timeout: 45_000 });
   await expect(rail).not.toContainText(t("chainHeatLoading"));

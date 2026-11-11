@@ -1,0 +1,15 @@
+{
+  "sourceTreeBeforeReceipt": "17159b3584fdd4f0f072d09178d5aca0f3d94c9c",
+  "focusedTestFiles": 5,
+  "focusedTestsPassed": 78,
+  "routeTypegenExit": 0,
+  "fullStrictTypeScriptExit": 0,
+  "lintAddedDiagnostics": 0,
+  "lintBaselineDiagnostics": 73,
+  "lintCurrentDiagnostics": 73,
+  "browserLaunched": false,
+  "currentTickerCaptureQualified": false,
+  "selectedPacketIsHistorical": true,
+  "noNativeExposureSourceChange": true,
+  "fullNaturalCIStillRequired": true
+}

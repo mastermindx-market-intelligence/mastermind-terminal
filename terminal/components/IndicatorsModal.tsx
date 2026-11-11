@@ -4,6 +4,7 @@ import {
   Fragment,
   useDeferredValue,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -41,6 +42,7 @@ import {
 import { SUITE_DEFS, SUITE_ORDER } from "@/lib/suites/registry";
 import { SUITE_TIER_LABEL } from "@/lib/indicator-canvas/types";
 import { classicCategoryLabel, planTierLabel } from "@/lib/plainLabels";
+import libraryStyles from "./IndicatorsModal.module.css";
 
 type ClassicIndicator = { key: string; label: string; labelZh?: string; mm?: boolean; tkey?: string };
 
@@ -203,13 +205,18 @@ export default function IndicatorsModal({
   const st = useStudyTemplatesT();
   const [cat, setCat] = useState<string>(ALL_INDICATORS);
   const [query, setQuery] = useState("");
-  const [renaming, setRenaming] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<{ id: string; token: number } | null>(null);
   const [draft, setDraft] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const restoreFocusRef = useRef(true);
+  const renameActionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const renameSessionRef = useRef<{ id: string; token: number } | null>(null);
+  const renameSequenceRef = useRef(0);
+  const renameReturnRef = useRef<{ id: string; from: Element } | null>(null);
+  const lostRenameFocusRef = useRef<HTMLButtonElement | null>(null);
   const copy = (en: string, zh: string) => (lang === "zh" ? zh : en);
 
   useEffect(() => {
@@ -321,10 +328,37 @@ export default function IndicatorsModal({
     listRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [cat, normalizedDeferredQuery, open]);
 
+  useLayoutEffect(() => {
+    if (!open || suspended) {
+      renameReturnRef.current = null;
+      lostRenameFocusRef.current = null;
+      if (!open) renameSessionRef.current = null;
+      return;
+    }
+    const pending = renameReturnRef.current;
+    const lost = lostRenameFocusRef.current;
+    renameReturnRef.current = null;
+    lostRenameFocusRef.current = null;
+    const active = document.activeElement;
+    const available = (element: HTMLElement | null | undefined) =>
+      element?.isConnected && element.getClientRects().length > 0 && !element.closest("[hidden], [inert]");
+    if (pending && renaming === null && (active === document.body || active === pending.from)) {
+      const action = renameActionRefs.current[pending.id];
+      const target = available(action) ? action : searchRef.current;
+      if (available(target)) target?.focus({ preventScroll: true });
+    } else if (lost && !lost.isConnected && (active === document.body || active === lost)) {
+      // A successful async rename can remove the returned action from filtered results.
+      if (available(searchRef.current)) searchRef.current?.focus({ preventScroll: true });
+    }
+  });
+
   if (!open) return null;
 
   const closeModal = (restoreFocus = true) => {
     restoreFocusRef.current = restoreFocus;
+    renameSessionRef.current = null;
+    renameReturnRef.current = null;
+    lostRenameFocusRef.current = null;
     setQuery("");
     setRenaming(null);
     onClose();
@@ -335,10 +369,15 @@ export default function IndicatorsModal({
     setQuery("");
   };
 
-  const commitRename = (id: string) => {
-    const name = draft.trim();
-    if (name) onRenameScript?.(id, name);
+  const finishRename = (id: string, token: number | undefined, input: HTMLInputElement, save: boolean, restoreFocus = false) => {
+    // Consume before callbacks or focus changes: an explicit finish may also trigger blur.
+    const session = renameSessionRef.current;
+    if (!session || session.id !== id || session.token !== token) return;
+    renameSessionRef.current = null;
+    renameReturnRef.current = restoreFocus && input === document.activeElement ? { id, from: input } : null;
+    const name = input.value.trim();
     setRenaming(null);
+    if (save && name) onRenameScript?.(id, name);
   };
 
   const searchResultButtons = () =>
@@ -356,7 +395,7 @@ export default function IndicatorsModal({
   };
 
   const handleDialogKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (event.nativeEvent.isComposing) return;
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) { event.stopPropagation(); return; }
 
     const target = event.target as HTMLElement;
     const editable = target.matches("input, textarea, select, [contenteditable='true']");
@@ -520,7 +559,7 @@ export default function IndicatorsModal({
     const disabled = locked || !onToggleModule;
 
     return (
-      <div key={entry.id} className={`imod-row${on ? " on" : ""}${locked && !pendingAccess ? " locked" : ""}`}>
+      <div key={entry.id} className={`imod-row ${libraryStyles.moduleRow}${on ? " on" : ""}${locked && !pendingAccess ? " locked" : ""}`}>
         <button
           type="button"
           className="imod-main"
@@ -534,7 +573,7 @@ export default function IndicatorsModal({
         >
           <span className="imod-mark" aria-hidden="true">{entry.tag}</span>
           <span className="imod-copy">
-            <span className="imod-titleline">
+            <span className={`imod-titleline ${libraryStyles.moduleTitle}`}>
               <strong>{entry.label}</strong>
               <span className={`im-tier im-tier-${SUITE_TIER_LABEL[entry.tier]}`}>{planTierLabel(entry.tier, t, lang)}</span>
             </span>
@@ -547,11 +586,11 @@ export default function IndicatorsModal({
           </span>
           <StateSwitch on={on} locked={locked && !pendingAccess} />
         </button>
-        <span className="imod-actions">
+        <span className={`imod-actions ${libraryStyles.moduleActions}`}>
           {onOpenGuide && (
             <button
               type="button"
-              className="imod-action"
+              className={`imod-action ${libraryStyles.action}`}
               title={`${t("guideOpen", "Guide")}: ${entry.label}`}
               aria-label={`${t("guideOpen", "Guide")}: ${entry.label}`}
               data-guide-module={entry.id}
@@ -564,7 +603,7 @@ export default function IndicatorsModal({
           {onOpenModuleSettings && (
             <button
               type="button"
-              className="imod-action icon"
+              className={`imod-action icon ${libraryStyles.action} ${libraryStyles.settingsAction}`}
               title={`${t("settings", "Settings")}: ${entry.label}`}
               aria-label={`${t("settings", "Settings")}: ${entry.label}`}
               onClick={() => {
@@ -572,7 +611,7 @@ export default function IndicatorsModal({
                 onOpenModuleSettings(entry.id);
               }}
             >
-              <SettingsMark />
+              <SettingsMark /><span>{t("settings", "Settings")}</span>
             </button>
           )}
         </span>
@@ -622,27 +661,31 @@ export default function IndicatorsModal({
     return [outage, ...items.map((script) => {
       const on = !!enabled?.has(script.id);
       return (
-        <div key={script.id} className={`li li-script${on ? " on" : ""}`}>
-          {renaming === script.id ? (
+        <div key={script.id} className={`li li-script ${libraryStyles.scriptRow}${on ? " on" : ""}`}>
+          {renaming?.id === script.id ? (
             <input
-              className="li-rename"
+              className={`li-rename ${libraryStyles.renameInput}`}
               autoFocus
               value={draft}
               aria-label={t("rename")}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") commitRename(script.id);
-                else if (event.key === "Escape") {
+                if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
                   event.stopPropagation();
-                  setRenaming(null);
+                  return;
+                }
+                if (event.key === "Enter" || event.key === "Escape") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  finishRename(script.id, renaming?.token, event.currentTarget, event.key === "Enter", true);
                 }
               }}
-              onBlur={() => commitRename(script.id)}
+              onBlur={(event) => finishRename(script.id, renaming?.token, event.currentTarget, true)}
             />
           ) : (
             <button
               type="button"
-              className="li-script-main"
+              className={`li-script-main ${libraryStyles.scriptMain}`}
               role="switch"
               aria-checked={on}
               aria-label={script.name}
@@ -651,7 +694,7 @@ export default function IndicatorsModal({
             >
               <span className="im-classic-mark script" aria-hidden="true">ƒ</span>
               <span className="li-main-copy">
-                <span className="li-nm">{script.name}</span>
+                <span className={`li-nm ${libraryStyles.scriptName}`}>{script.name}</span>
                 <span className="li-sub">
                   {t("myScripts")}{script.locked ? ` · ${t("readOnly")}` : ""}
                 </span>
@@ -659,16 +702,24 @@ export default function IndicatorsModal({
               <StateSwitch on={on} />
             </button>
           )}
-          <span className="li-acts">
+          <span className={`li-acts ${libraryStyles.scriptActions}`}>
             {!script.locked && (
               <button
                 type="button"
-                className="li-ic"
+                className={`li-ic ${libraryStyles.scriptAction}`}
+                ref={(element) => {
+                  const previous = renameActionRefs.current[script.id];
+                  if (!element && previous === document.activeElement) lostRenameFocusRef.current = previous;
+                  renameActionRefs.current[script.id] = element;
+                }}
                 title={t("rename")}
                 aria-label={`${t("rename")}: ${script.name}`}
                 onClick={() => {
+                  const session = { id: script.id, token: ++renameSequenceRef.current };
+                  renameSessionRef.current = session;
+                  renameReturnRef.current = null;
                   setDraft(script.name);
-                  setRenaming(script.id);
+                  setRenaming(session);
                 }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -677,7 +728,7 @@ export default function IndicatorsModal({
               </button>
             )}
             <Link
-              className="li-ic"
+              className={`li-ic ${libraryStyles.scriptAction}`}
               href={`/scripts?id=${encodeURIComponent(script.id)}`}
               title={t("editScript")}
               aria-label={`${t("editScript")}: ${script.name}`}
@@ -690,7 +741,7 @@ export default function IndicatorsModal({
             {!script.locked && (
               <button
                 type="button"
-                className="li-ic del"
+                className={`li-ic del ${libraryStyles.scriptAction}`}
                 title={t("delete")}
                 aria-label={`${t("delete")}: ${script.name}`}
                 onClick={() => {
@@ -712,7 +763,7 @@ export default function IndicatorsModal({
     <button
       type="button"
       key={id}
-      className={`im-nav-item${cat === id && !searching ? " on" : ""}${mastermind ? " mm" : ""}`}
+      className={`im-nav-item ${libraryStyles.navItem}${cat === id && !searching ? " on" : ""}${mastermind ? " mm" : ""}`}
       aria-pressed={cat === id && !searching}
       onClick={() => pickCategory(id)}
     >
@@ -948,7 +999,7 @@ export default function IndicatorsModal({
       <div
         ref={dialogRef}
         id="indicator-library-dialog"
-        className={`imodal imodal-library${searching ? " is-searching" : ""}${searchUpdating ? " is-updating" : ""}`}
+        className={`imodal imodal-library ${libraryStyles.library}${searching ? " is-searching" : ""}${searchUpdating ? " is-updating" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="indicators-modal-title"
@@ -962,7 +1013,7 @@ export default function IndicatorsModal({
             <b id="indicators-modal-title">{t("indicatorsTitle")}</b>
             <span>{copy("Find, add, and configure chart tools", "查找、添加并配置图表工具")}</span>
           </div>
-          <button type="button" className="im-close" aria-label={t("guideClose", "Close")} onClick={() => closeModal()}>
+          <button type="button" className={`im-close ${libraryStyles.close}`} aria-label={t("guideClose", "Close")} onClick={() => closeModal()}>
             <CloseMark />
           </button>
         </div>
@@ -1052,7 +1103,7 @@ export default function IndicatorsModal({
               {onOpenTemplates && (
                 <button
                   type="button"
-                  className="im-nav-item"
+                  className={`im-nav-item ${libraryStyles.navItem}`}
                   data-open-study-templates=""
                   onClick={() => {
                     closeModal(true);

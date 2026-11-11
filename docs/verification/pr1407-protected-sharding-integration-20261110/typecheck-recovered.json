@@ -1,0 +1,38 @@
+{
+  "checks": [
+    {
+      "command": [
+        "node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "exit": 0,
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "name": "typegen-recovered",
+      "seconds": 1.06
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typescript-recovered",
+      "seconds": 104.2
+    }
+  ],
+  "completedAt": "2026-11-10T08:24:45.218648+00:00",
+  "freshValidatorSha256": "79948cf8ae505fea1052069a8e49f1b68f17cbb06e57e9b2c423a1f7a7e34515",
+  "invalidDevValidatorAbsent": true,
+  "schema": "terminal_pr1407_recovered_typecheck.v1",
+  "sourceAfterSha256": "4742f225429a6b0f3b6d4729fd5eab42025f658ba718bb8480591fe295a41504",
+  "sourceBeforeSha256": "4742f225429a6b0f3b6d4729fd5eab42025f658ba718bb8480591fe295a41504",
+  "sourceEntries": 2006,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T08:22:56.128688+00:00",
+  "state": "QUALIFIED"
+}

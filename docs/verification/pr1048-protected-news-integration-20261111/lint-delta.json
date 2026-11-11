@@ -1,0 +1,15 @@
+{
+  "file": "terminal/components/TerminalShell.tsx",
+  "baselineDiagnostics": 73,
+  "currentDiagnostics": 73,
+  "baselineErrors": 48,
+  "currentErrors": 48,
+  "baselineWarnings": 25,
+  "currentWarnings": 25,
+  "normalization": "Compare severity, rule, first message line and exact source line; normalize only embedded (at line N) references shifted by the added import.",
+  "locationOnlyChange": {
+    "before": "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 4255) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook.",
+    "after": "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 4256) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook."
+  },
+  "added": []
+}
