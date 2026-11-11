@@ -195,6 +195,31 @@ describe("depth components, interactive mounts (jsdom)", () => {
     vi.unstubAllGlobals();
   });
 
+  it("N7/O9 — the all-history window keeps the width-derived thinning gap between axis dates", async () => {
+    // r2 O9: reverting the thin gap to a fixed 56 survived the static suite —
+    // the DEFAULT window never gets dense enough at 640px for the gap to
+    // bind. The densest window (all history, 252 sessions over ~557px of
+    // plot) does: the gap between consecutive KEPT labels must stay at least
+    // one full label width (10 ISO chars ≈ 66px) plus air = 74px, exactly the
+    // value the component derives (xLabelW + 8). A 56px gap lets two dates
+    // sit closer than one label — the r1 collision ("2026-02-132026-03-06").
+    await mount(<SectorThemeCompare history={capturedHistory} labels={{}} />);
+    const all = Array.from(host.querySelectorAll("button")).find((b) =>
+      /All history|全部历史/.test(b.textContent ?? ""),
+    );
+    expect(all).toBeDefined();
+    await act(async () => {
+      all!.click();
+    });
+    const xs = [...host.innerHTML.matchAll(/class="[^"]*axisX[^"]*"[^>]*x="([0-9.]+)"/g)]
+      .map((m) => Number(m[1]))
+      .sort((a, b) => a - b);
+    expect(xs.length).toBeGreaterThan(6); // the densest window actually thins
+    for (let i = 1; i < xs.length; i++) {
+      expect(xs[i]! - xs[i - 1]!).toBeGreaterThanOrEqual(74);
+    }
+  });
+
   it("R2-S1 — an S&P payload mounted under the Nasdaq tab shows the honest unavailable panel, never the S&P rows", async () => {
     const crossMounted: Partial<Record<UniverseId, UniverseData>> = {
       nasdaq: universesContract.universes.subsectors, // owner word sp500_subsectors
