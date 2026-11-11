@@ -1,0 +1,165 @@
+{
+  "artifacts": {
+    "artifacts/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-desktop/desktop-layers-zh.png": "decce7c9789f2ac0f0f3892e6894ccf5a2832d956e7b8e80715e7f06863e5138",
+    "artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-desktop/trace.zip": "cd654ce5a06339d305f9762ba5ce3e4612d86a089cbefd4922f9894c23f79bda",
+    "artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-mobile/mobile-layers-zh.png": "4bbc429596f2a56312c249026d9dae4da4aea0d8fed81f95f15f87320425c052",
+    "artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-mobile/trace.zip": "eaa65fe1576941748c8100495241775d41282d37872fca500c8558b4b5d197dd",
+    "artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/tablet-layers-zh.png": "9d386d4186ede0fc44d026ad24925afd42c7a38eb20776af8ff3a7cb1ff207df",
+    "artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/trace.zip": "63d92777d644a83ee97713a0904a7f9b27bed8bca6d29d2b6e24e0f54cff6e49",
+    "artifacts/chart-object-tree-an-open--edae3-t-changes-in-the-same-panel-desktop/trace.zip": "b5ec53fb3b79fc57608d7a521d8e9be241143ce2e109baa205871a4eb9754f80",
+    "artifacts/chart-object-tree-an-open--edae3-t-changes-in-the-same-panel-mobile/trace.zip": "28d2539475b399d32402fa3663599fea4c2bd3109417d72f544a6dc8d0635615",
+    "artifacts/chart-object-tree-an-open--edae3-t-changes-in-the-same-panel-tablet/trace.zip": "9f44682e1a6dd8d5ab5ba9b6e06bca286d396215f1fa9fe30f60e5de60dc2640",
+    "artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-desktop/desktop-layers-open.png": "a4fbde06cb17002bab697277ed1d0014c166f5f2d517bb1c4fa0f45fa2bc05e2",
+    "artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-desktop/trace.zip": "25d52f819ad2e685a22e5298be9facc27eb8cb7f39be023347b26f7cf64cda63",
+    "artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/mobile-layers-open.png": "22e888b194c81b580d981b4b115a188402710267e5d652239258591f776a9273",
+    "artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/trace.zip": "8f31ca691c819f1558221bba194c81fa4babb522a29281ab0e4f1e82ee7a5b7a",
+    "artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-tablet/tablet-layers-open.png": "4f02c6c0dda7ce4612edd258c2392a58f2f78e8b1b676382ca4f6b830559d7ca",
+    "artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-tablet/trace.zip": "1012a437cf3c63ef8426b327b92790c1619590bdc99ca6555b1728919bcf5c5a"
+  },
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "chart layers can be found, hidden, restored and removed without losing keyboard focus"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "[zh] layer controls remain visible and touch-sized without hiding their meaning"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "an open study filter survives responsive layout changes in the same panel"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "chart layers can be found, hidden, restored and removed without losing keyboard focus"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "[zh] layer controls remain visible and touch-sized without hiding their meaning"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "project": "tablet",
+      "title": "an open study filter survives responsive layout changes in the same panel"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "chart layers can be found, hidden, restored and removed without losing keyboard focus"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "[zh] layer controls remain visible and touch-sized without hiding their meaning"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "project": "mobile",
+      "title": "an open study filter survives responsive layout changes in the same panel"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/chart-object-tree.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--trace=on",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/test-results/pr1407-style-chart-layers"
+  ],
+  "completedAt": "2026-11-10T04:48:50.261547+00:00",
+  "errors": [],
+  "exit": 0,
+  "expectedAuthoredSkips": 2,
+  "expectedPassed": 7,
+  "generatedWorkspaceCrops": {},
+  "investorPreview": 0,
+  "lifecycleSha256": "2d520ebc9b892d2638f31af970ade3d77ef277336a42930035ce8230f471289d",
+  "logSha256": "c1ed3a1e8efcb2bced87b89ca55d36020e14cc0ddb914aa851f851216e7d9470",
+  "ownedServerStopped": true,
+  "port": 47407,
+  "reportSha256": "2b80e7c4fe71c67a74c1733770f805fd4fb7d02101a53788a7732b8df2daf5ae",
+  "schema": "terminal_pr1407_style_browser_stage.v1",
+  "seconds": 98.35,
+  "sharedShell": 0,
+  "sourceEntries": 1981,
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "sourceStable": true,
+  "stage": "chart-layers",
+  "startedAt": "2026-11-10T04:47:11.912132+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 92658.838,
+    "expected": 7,
+    "flaky": 0,
+    "skipped": 2,
+    "startTime": "2026-11-10T04:47:12.303Z",
+    "unexpected": 0
+  }
+}

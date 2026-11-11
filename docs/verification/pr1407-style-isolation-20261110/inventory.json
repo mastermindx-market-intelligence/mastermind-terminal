@@ -1,0 +1,537 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 4828,
+      "sha256": "34559f16d92a3b1c5e7bc51030169ef3bfd9150d58d5383984ad781885ca8259"
+    },
+    "browser-qualification.json": {
+      "bytes": 1674,
+      "sha256": "7c0b11c6d050d092a90fa76790f1b40c5ac175a566df1a88f63ac11ae7e27e28"
+    },
+    "chart-layers-guard.json": {
+      "bytes": 2246,
+      "sha256": "068d52370373c6535839c3b341c9719575ef8cbcd0ee97d772cdea08d7b2df95"
+    },
+    "chart-layers-guard.log": {
+      "bytes": 347,
+      "sha256": "62be90d92925b9891641803a22a1688797325978a1343d15e93c105e27e63e96"
+    },
+    "chart-layers-history/EVIDENCE.json": {
+      "bytes": 4943,
+      "sha256": "df938d574652f72e73a922edf63657c31b61b812955ef861c9005058b196ad49"
+    },
+    "chart-layers-history/desktop-open.png": {
+      "bytes": 301828,
+      "sha256": "405a8902bd9555f83230943c52155906601a7cf95e0e6ec2e034654643f46d79"
+    },
+    "chart-layers-history/desktop-zh.png": {
+      "bytes": 303994,
+      "sha256": "80b5ef1a2182e15e3a27f87d8d1b03b58d0de806dab493ae56602f4644a78ca0"
+    },
+    "chart-layers-history/history.json": {
+      "bytes": 919,
+      "sha256": "65761e55d533600c2576e584d30e4a2bac287ac22080f848c508dc06c5043afc"
+    },
+    "chart-layers-history/mobile-open.png": {
+      "bytes": 44129,
+      "sha256": "af07f3b4d36610d75ccf3d84500ccf8b315e6eacca3b2b25b307402318ab097a"
+    },
+    "chart-layers-history/mobile-zh.png": {
+      "bytes": 42122,
+      "sha256": "46675eec133dff5cb26a4984a0b67c2274991bf834598d45eebeba5189207cb3"
+    },
+    "chart-layers-history/tablet-open.png": {
+      "bytes": 146329,
+      "sha256": "f6fe695ed2ace7140ba0477cee7116f5f1f5663644792de9bb977fd8ec3756b9"
+    },
+    "chart-layers-history/tablet-zh.png": {
+      "bytes": 142145,
+      "sha256": "c69c9c5a3c73da8a22d6484a150c25bafd372461a698cf8e55cdf091908d9684"
+    },
+    "chart-layers-promotion.json": {
+      "bytes": 4441,
+      "sha256": "f83054ef0f4e99816ba41f38d49f588f4da9805c24438a5844faaa49e4cde350"
+    },
+    "chart-layers/artifacts/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-desktop/desktop-layers-zh.png": {
+      "bytes": 279079,
+      "sha256": "decce7c9789f2ac0f0f3892e6894ccf5a2832d956e7b8e80715e7f06863e5138"
+    },
+    "chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-desktop/trace.zip": {
+      "bytes": 7668187,
+      "sha256": "cd654ce5a06339d305f9762ba5ce3e4612d86a089cbefd4922f9894c23f79bda"
+    },
+    "chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-mobile/mobile-layers-zh.png": {
+      "bytes": 40380,
+      "sha256": "4bbc429596f2a56312c249026d9dae4da4aea0d8fed81f95f15f87320425c052"
+    },
+    "chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-mobile/trace.zip": {
+      "bytes": 2588944,
+      "sha256": "eaa65fe1576941748c8100495241775d41282d37872fca500c8558b4b5d197dd"
+    },
+    "chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/tablet-layers-zh.png": {
+      "bytes": 111932,
+      "sha256": "9d386d4186ede0fc44d026ad24925afd42c7a38eb20776af8ff3a7cb1ff207df"
+    },
+    "chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/trace.zip": {
+      "bytes": 2662120,
+      "sha256": "63d92777d644a83ee97713a0904a7f9b27bed8bca6d29d2b6e24e0f54cff6e49"
+    },
+    "chart-layers/artifacts/chart-object-tree-an-open--edae3-t-changes-in-the-same-panel-desktop/trace.zip": {
+      "bytes": 15026316,
+      "sha256": "b5ec53fb3b79fc57608d7a521d8e9be241143ce2e109baa205871a4eb9754f80"
+    },
+    "chart-layers/artifacts/chart-object-tree-an-open--edae3-t-changes-in-the-same-panel-mobile/trace.zip": {
+      "bytes": 2193,
+      "sha256": "28d2539475b399d32402fa3663599fea4c2bd3109417d72f544a6dc8d0635615"
+    },
+    "chart-layers/artifacts/chart-object-tree-an-open--edae3-t-changes-in-the-same-panel-tablet/trace.zip": {
+      "bytes": 2188,
+      "sha256": "9f44682e1a6dd8d5ab5ba9b6e06bca286d396215f1fa9fe30f60e5de60dc2640"
+    },
+    "chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-desktop/desktop-layers-open.png": {
+      "bytes": 280053,
+      "sha256": "a4fbde06cb17002bab697277ed1d0014c166f5f2d517bb1c4fa0f45fa2bc05e2"
+    },
+    "chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-desktop/trace.zip": {
+      "bytes": 22860931,
+      "sha256": "25d52f819ad2e685a22e5298be9facc27eb8cb7f39be023347b26f7cf64cda63"
+    },
+    "chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/mobile-layers-open.png": {
+      "bytes": 50504,
+      "sha256": "22e888b194c81b580d981b4b115a188402710267e5d652239258591f776a9273"
+    },
+    "chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/trace.zip": {
+      "bytes": 2717509,
+      "sha256": "8f31ca691c819f1558221bba194c81fa4babb522a29281ab0e4f1e82ee7a5b7a"
+    },
+    "chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-tablet/tablet-layers-open.png": {
+      "bytes": 114686,
+      "sha256": "4f02c6c0dda7ce4612edd258c2392a58f2f78e8b1b676382ca4f6b830559d7ca"
+    },
+    "chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-tablet/trace.zip": {
+      "bytes": 4036688,
+      "sha256": "1012a437cf3c63ef8426b327b92790c1619590bdc99ca6555b1728919bcf5c5a"
+    },
+    "chart-layers/browser-report.json": {
+      "bytes": 23728,
+      "sha256": "2b80e7c4fe71c67a74c1733770f805fd4fb7d02101a53788a7732b8df2daf5ae"
+    },
+    "chart-layers/browser.log": {
+      "bytes": 2122,
+      "sha256": "c1ed3a1e8efcb2bced87b89ca55d36020e14cc0ddb914aa851f851216e7d9470"
+    },
+    "chart-layers/execution.json": {
+      "bytes": 6542,
+      "sha256": "708f71aa084a1aa1cf0a2c860cc214ca6a575f2624a5756e3b6393cf76cd212e"
+    },
+    "chart-layers/lifecycle.json": {
+      "bytes": 926,
+      "sha256": "2d520ebc9b892d2638f31af970ade3d77ef277336a42930035ce8230f471289d"
+    },
+    "chart-layers/selection.log": {
+      "bytes": 1213,
+      "sha256": "418107ed8613796b55e86a856012c94d43507eb21029c15174d1570a937a417e"
+    },
+    "chart-layers/source-after.json": {
+      "bytes": 229892,
+      "sha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c"
+    },
+    "chart-layers/source-before.json": {
+      "bytes": 229892,
+      "sha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c"
+    },
+    "delivery-readiness.json": {
+      "bytes": 1607,
+      "sha256": "99789dc29946be076df442780c723fc6c6ac77f89ac7d0f15fbf86a610857868"
+    },
+    "diff-check.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-qualification.json": {
+      "bytes": 2912,
+      "sha256": "31572654d941c7ddb5fd807f5e4792462d8370ff1ea184f005a1515fc16dfc3e"
+    },
+    "lint-baseline-IndicatorsModal.json": {
+      "bytes": 315,
+      "sha256": "15da80a0631a2eefed718c18e656555bcba46199948afcad147f07eb141f79a0"
+    },
+    "lint-baseline-LayoutMenu.json": {
+      "bytes": 29230,
+      "sha256": "4eaf391df357647f99d95bda4322f497cff082874f15a8a22ca1428eea1effdd"
+    },
+    "lint-baseline-TerminalShell.json": {
+      "bytes": 544714,
+      "sha256": "8973f7987a933c492c7eba357c859df0cf85f3b123f98ce34b14eca38bf0686a"
+    },
+    "lint-baseline-comparison.json": {
+      "bytes": 43428,
+      "sha256": "228a1f2fd8443919302d1f5a7a4e44935febdccacf8b2cd0ee106c1d5b9763f5"
+    },
+    "lint-mapped-baseline-comparison.json": {
+      "bytes": 2896,
+      "sha256": "a6febb5394217066fc30777ffee99de81c039bc8e61fefaf092b7eae6c07968d"
+    },
+    "original-stale-lock.json": {
+      "bytes": 899,
+      "sha256": "3f394a7e611782622e80dddd290c35e88e891dc27273d7792150b079609fb4a7"
+    },
+    "product-unit.json": {
+      "bytes": 45267,
+      "sha256": "02586db19d09ff8ff92260105953a7b7f012a5417ae1eb60fbc0849bd4ae40bb"
+    },
+    "product-unit.log": {
+      "bytes": 341,
+      "sha256": "269956227f3bbc2cee3d46d0889ed2e7b33aa47d3ac1dc26cce8f9df3c57ebb6"
+    },
+    "qualification-source-after.json": {
+      "bytes": 229892,
+      "sha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c"
+    },
+    "qualification-source-before.json": {
+      "bytes": 229892,
+      "sha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c"
+    },
+    "qualification.json": {
+      "bytes": 3401,
+      "sha256": "9b37e73a7d2a4d2cd66aca4738ea6fc3fd1703df682a564205de7b7ff8bb1352"
+    },
+    "restored-global-guards.json": {
+      "bytes": 21148,
+      "sha256": "d58099487321f0aee97da1dfeda96cbcef21b672d6f9b5c66d455e1374c45191"
+    },
+    "restored-global-guards.log": {
+      "bytes": 351,
+      "sha256": "fbacb060a20d10546ffc610da2ebb84836cceecfcc0a165e1e7121f1bdb3f77f"
+    },
+    "run-browser-qualification.py": {
+      "bytes": 9567,
+      "sha256": "3faff129c350b2298019e6f9a38f358b4e173090aedb2824080e11a3cd054f65"
+    },
+    "run-qualification.py": {
+      "bytes": 3680,
+      "sha256": "9b93c421d7f9d2bd9119b55279af6a7c655909d0a16e9bfe7f625ea554fc8c24"
+    },
+    "scoped-lint.json": {
+      "bytes": 576843,
+      "sha256": "96055603385d4e229e966e2439547185f4d3d9d753333ed895a497a7d63cfcd3"
+    },
+    "scoped-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "source-repair.json": {
+      "bytes": 2079,
+      "sha256": "623eae058496c059b47eda8c209740dcc5339f0d7f0ca21dd11ec2c878e13b15"
+    },
+    "typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "typegen.log": {
+      "bytes": 59,
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    "workspace-library/artifacts/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/scripts-desktop-en-light.png": {
+      "bytes": 60409,
+      "sha256": "fb00e8887ea90ac3cc952e32974cdf142cdd68a5af327a63fac78be612783882"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/scripts-desktop-en.png": {
+      "bytes": 74812,
+      "sha256": "7721b9a9e0001b984d39c560342290a569acd8f7959800c1acb98fb5612d2fef"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/study-actions-desktop-en-light.png": {
+      "bytes": 68149,
+      "sha256": "d7550782ceade158329bb2d9912ca9627464817c74cdd7d80bfbc9dd120cd844"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/study-actions-desktop-en.png": {
+      "bytes": 79468,
+      "sha256": "14376b772ef14a73287bdfda3ef7610c0045538f524a5610ec520bef0e4311c9"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/scripts-mobile-en-light.png": {
+      "bytes": 35472,
+      "sha256": "f05e5a5b2c9910b30df6c53a4a1506831c11cbc6373c9b03d69c8968ff74677a"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/scripts-mobile-en.png": {
+      "bytes": 45049,
+      "sha256": "3c6dba3662a8047c5a43d917d87b7cd6adb49f3f45ecbf8bfbeeae17526120e2"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/study-actions-mobile-en-light.png": {
+      "bytes": 46343,
+      "sha256": "10ba126c68f1c6840f6308553f4349528267a5b1556f037360d6d963cffca9cb"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/study-actions-mobile-en.png": {
+      "bytes": 49675,
+      "sha256": "1bc9b5d582c3d05fb2613c3453df057601b4da8c7355b461719cde37e22b9d11"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/scripts-tablet-en-light.png": {
+      "bytes": 58927,
+      "sha256": "5a5d39bf1c7b7ab997cf58d497d1d18a29170acd7a72f7797b8a4c7bf221d672"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/scripts-tablet-en.png": {
+      "bytes": 69408,
+      "sha256": "5162b70ad8856cca26f1fa96c2410c99282abb726dcae0384da8a6f139563e07"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/study-actions-tablet-en-light.png": {
+      "bytes": 66213,
+      "sha256": "105f3821166369034d3a2e886d2bae89ab6ad136b3f163a02845e1fb0adf97e0"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/study-actions-tablet-en.png": {
+      "bytes": 73205,
+      "sha256": "c21606a4276a53515995d9ae57a22f8bfd5b3542fff240993a43e3d6ed49820f"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--desktop/scripts-desktop-zh-light.png": {
+      "bytes": 61460,
+      "sha256": "0d363e47147b72ea9a7b747c8b2e22c4b9ec761d394642b990d768eb740d28fa"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--desktop/scripts-desktop-zh.png": {
+      "bytes": 77072,
+      "sha256": "0d1baab985e0c142768c85c03de740bc9da6115562b05819abce734ebcbf5419"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--desktop/study-actions-desktop-zh-light.png": {
+      "bytes": 71148,
+      "sha256": "822d907262a36bff4d0385a4e67b4c5e7469e08717c40932be717298d6712929"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--desktop/study-actions-desktop-zh.png": {
+      "bytes": 81193,
+      "sha256": "f24e73a0749d10c660e5e3a2629c52aee969b2557db8f901baddda88c0557414"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/scripts-mobile-zh-light.png": {
+      "bytes": 37162,
+      "sha256": "1821b332922668777a912196726173b9e3ff03d85b8be2dfb0327536785bb903"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/scripts-mobile-zh.png": {
+      "bytes": 47856,
+      "sha256": "bb7ee429e7874af4ec95261021b7a14ed0421ba8d6e10e6746ac67016dee1f66"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/study-actions-mobile-zh-light.png": {
+      "bytes": 48822,
+      "sha256": "05ed0459f43cb2bfbb92c6adcaad88278f5e2455478ad77136da1d6fef65c11a"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/study-actions-mobile-zh.png": {
+      "bytes": 52395,
+      "sha256": "f5c9114c2aab0f97c20324c1dad6b7f7114ca70875db8fe6173ca82efaa2ebdc"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--tablet/scripts-tablet-zh-light.png": {
+      "bytes": 59782,
+      "sha256": "076c337d547d395c9e20413febf9d2c0cdd6fc39cb79c5fe6fcbc6fbb69d8c01"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--tablet/scripts-tablet-zh.png": {
+      "bytes": 70215,
+      "sha256": "a910cdbeb61df479a417cdcef3a8613c021adc964d773c7f851059cb21701fcb"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--tablet/study-actions-tablet-zh-light.png": {
+      "bytes": 68862,
+      "sha256": "6a3c6e02adcc765157ebf32b5c47d6d4d7643b5ef3fcdc24bd80e4486a6d159a"
+    },
+    "workspace-library/artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--tablet/study-actions-tablet-zh.png": {
+      "bytes": 74417,
+      "sha256": "233a364807fe6f0c5612025e93434c17d3328476da55ad6a430f619262fa0b7b"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-lat-6f8a3--newer-draft-is-being-typed-desktop/late-rename-draft.png": {
+      "bytes": 296631,
+      "sha256": "9600c5c017870eae3ab47fe7195a140f48ec399af5b3d8bebfdd779c43987e29"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-desktop/unreadable-workspace.json": {
+      "bytes": 73,
+      "sha256": "ef8d73b3e3d425ee053367151a1d21be56e3d8c2d5f46b83a4f773d00a2e57b5"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-desktop/workspace-actions-desktop-light.png": {
+      "bytes": 30910,
+      "sha256": "a651ff07ead0ed8c30cd996a5d0c4f33536d7207126a6186dacfcf1f633ad7d9"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-desktop/workspace-actions-desktop.png": {
+      "bytes": 35981,
+      "sha256": "790be7b9f384a7e9fc1b4b99191a3f2751500b35d89dab39be54292fe73b85fb"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-mobile/unreadable-workspace.json": {
+      "bytes": 72,
+      "sha256": "362d05132a32eebf66b6e281c3bae0e06665c8098e80470784207f411d704a7e"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-mobile/workspace-actions-mobile-light.png": {
+      "bytes": 31698,
+      "sha256": "de5972fbe2353bb6db6973556011860043ad71814a7fda767069a69c1c38f368"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-mobile/workspace-actions-mobile.png": {
+      "bytes": 38258,
+      "sha256": "cdfb409f4b836d3d4b28a8563afff1a791668cf9acd871d13b055aaaaecaf14c"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-tablet/unreadable-workspace.json": {
+      "bytes": 73,
+      "sha256": "37bfeaaf1e7cf06823ac4556dd8aebe78115a1e3f18b34d7d52bbe13e1256bf9"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-tablet/workspace-actions-tablet-light.png": {
+      "bytes": 31390,
+      "sha256": "bfe52d74770ed3b7e110439c6a27b1ec87bd84fbefd1bea13067ff4f20f09bc9"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-tablet/workspace-actions-tablet.png": {
+      "bytes": 36922,
+      "sha256": "85b5fbbb42a34beda85e3bc24d81bbdd2e4a79edb00dc0b4912dab57514af616"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-wor-1cac8-he-keyboard-task-intact-zh--desktop/rename-save-desktop-zh.png": {
+      "bytes": 295694,
+      "sha256": "f6438bbda5d013ff168a268df166cbc62e88bc73cd2bb87216c8361d13a5d856"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-wor-1cac8-he-keyboard-task-intact-zh--mobile/rename-save-mobile-zh.png": {
+      "bytes": 64181,
+      "sha256": "81193dfa323486b2665ee6293af112d762ea8fe00fcf2fc59ee8010ca5ce4e7e"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-wor-1cac8-he-keyboard-task-intact-zh--tablet/rename-save-tablet-zh.png": {
+      "bytes": 167610,
+      "sha256": "eec7f7d1095a46dcf1debd51d8c23d6dd29eb3cc49108144738e8e580ae166b6"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-wor-56ecd-he-keyboard-task-intact-en--desktop/rename-save-desktop-en.png": {
+      "bytes": 298776,
+      "sha256": "edd0248ede852adfa2e06ac161be7a4612a30a62429d155dcd12c2046e48552b"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-wor-56ecd-he-keyboard-task-intact-en--mobile/rename-save-mobile-en.png": {
+      "bytes": 66467,
+      "sha256": "b5e37ec16aaa8974955c504c18bbce38348f40628d318afaeb8cd0f982ad5f26"
+    },
+    "workspace-library/artifacts/workspace-rename-focus-wor-56ecd-he-keyboard-task-intact-en--tablet/rename-save-tablet-en.png": {
+      "bytes": 171042,
+      "sha256": "65bc2370e9bd19e964b797b507812e8355c4ddc14c246e8bf1a6198544eb8e44"
+    },
+    "workspace-library/browser-report.json": {
+      "bytes": 30109,
+      "sha256": "2a9a028aa7a596fa112f2eeb52ad7a8aab2af6bf3691524ac247c52c5d1d65cc"
+    },
+    "workspace-library/browser.log": {
+      "bytes": 3249,
+      "sha256": "72d053e0a25465e643be7b62d062da20c5e2affad568fd3440318d8ee18ca54e"
+    },
+    "workspace-library/execution.json": {
+      "bytes": 13698,
+      "sha256": "8793f2fe466dfa0ecbc542554d281f047b993aa64c38540aed655bf10a0a3a70"
+    },
+    "workspace-library/lifecycle.json": {
+      "bytes": 928,
+      "sha256": "10c9832757f409e5323ea45626d97f311d1de553ae29693350632b9a7e379428"
+    },
+    "workspace-library/selection.log": {
+      "bytes": 2154,
+      "sha256": "947bb13d9aaed53040bdaf0d8ba06dc5f7e515ed6be1c0a30015fdc174d82847"
+    },
+    "workspace-library/source-after.json": {
+      "bytes": 229892,
+      "sha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c"
+    },
+    "workspace-library/source-before.json": {
+      "bytes": 229892,
+      "sha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c"
+    },
+    "workspace-states/artifacts/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "workspace-states/browser-report.json": {
+      "bytes": 20757,
+      "sha256": "ddbaecf048bcd7538b733433e3f601d1bffa04bbc32be54c69ccdc0acabc4c4b"
+    },
+    "workspace-states/browser.log": {
+      "bytes": 2383,
+      "sha256": "9040ae8e54292a9f6ea3b5c4e9717cf03ead4df67ebd5ed3e90db77a7065ff6c"
+    },
+    "workspace-states/execution.json": {
+      "bytes": 9191,
+      "sha256": "7bad4b9f1f984a899747db44778d9052e6928e98f0cf075c21f943cee8da678d"
+    },
+    "workspace-states/generated-crops/1440-en-empty.png": {
+      "bytes": 291111,
+      "sha256": "80f31a7faac4380361daa0b9a6040d3e3dbc23cb31cb957c68ccfed9a6a8f2e4"
+    },
+    "workspace-states/generated-crops/1440-en-member-read-only.png": {
+      "bytes": 294605,
+      "sha256": "6995c0a0fa20d75ea99ee7443bbeaaa10232775c8794d9403381675d186d3fb0"
+    },
+    "workspace-states/generated-crops/1440-en-name-conflict.png": {
+      "bytes": 300132,
+      "sha256": "cdbc9f366e71afaf46525dc24b91849d39c8d6380685211e0f7ccdef9636afca"
+    },
+    "workspace-states/generated-crops/1440-en-ready.png": {
+      "bytes": 302288,
+      "sha256": "d8dc3a2cd2423fd71a79cb1c1733584cfebf8dbc3aea3918df3c662667e2fa89"
+    },
+    "workspace-states/generated-crops/1440-en-renaming.png": {
+      "bytes": 295980,
+      "sha256": "73c13a7ae106e1c3e723ce0279b6dffcb9b0dc5c74a12811d549511ca2900c5f"
+    },
+    "workspace-states/generated-crops/1440-en-row-open.png": {
+      "bytes": 295328,
+      "sha256": "74c6891b99de9172ebe5d6419bcd5d46502a6aa157e0cbe25ca6e75ceb69c39c"
+    },
+    "workspace-states/generated-crops/1440-en-share-confirm.png": {
+      "bytes": 301818,
+      "sha256": "97b8cc474de6e7467e235941957d9a0ed09f20741d4c48b12c84ee93d2eca512"
+    },
+    "workspace-states/generated-crops/1440-en-stale.png": {
+      "bytes": 305218,
+      "sha256": "6e95dfb9473c2f92e7ea75a30696b7f7d82f61afd36b2e4771efd26e5f62f973"
+    },
+    "workspace-states/generated-crops/1440-en-team-grouped.png": {
+      "bytes": 292928,
+      "sha256": "929a9e1a92c1f704205e2bb5bf87af79344be543867358dd2427b50d43d34a5f"
+    },
+    "workspace-states/generated-crops/1440-en-unsupported-rows.png": {
+      "bytes": 301882,
+      "sha256": "6edb8dce91993622d49bf99b25e9957216d3c114fe9990a647d17f682e5cece1"
+    },
+    "workspace-states/generated-crops/1440-zh-ready.png": {
+      "bytes": 287534,
+      "sha256": "10cc9848be2832e14b4b28503ac3c0c3183a6c6e967afd1e82ac9b77c5c82ca2"
+    },
+    "workspace-states/generated-crops/1440-zh-share-confirm.png": {
+      "bytes": 289714,
+      "sha256": "34fa69ebd5970338833a387a95913c779b51aa36d17b7954c806fb82dbd49513"
+    },
+    "workspace-states/generated-crops/1440-zh-stale.png": {
+      "bytes": 298800,
+      "sha256": "724548bf754f8802198d51d6582bacca7e7e6172a95e3b139d35e631e2c8c182"
+    },
+    "workspace-states/generated-crops/1440-zh-team-grouped.png": {
+      "bytes": 287780,
+      "sha256": "96be339f4a19cfee60b9cc8a909be4de9efde93116a3fe324b6483b32e82c890"
+    },
+    "workspace-states/generated-crops/1440-zh-unavailable.png": {
+      "bytes": 294184,
+      "sha256": "d43faf163f50abb04704fbedc438bab77fca1b25e8b44221b38ab069952e12c4"
+    },
+    "workspace-states/generated-crops/390-en-stale.png": {
+      "bytes": 73123,
+      "sha256": "9e10a8a0eb698ccfba85547620731e722b1f7bf07829caeb9f8e9ad0ec7dd431"
+    },
+    "workspace-states/generated-crops/820-en-team-grouped.png": {
+      "bytes": 173808,
+      "sha256": "21d5fb8c20cae6ae8f59535b9b0e92a9417eccf3d1b558037785659ed51389fb"
+    },
+    "workspace-states/generated-crops/820-zh-stale.png": {
+      "bytes": 178830,
+      "sha256": "bf0f1dc2b6921ac89c334283bc2292c8895709cf86b912609c8d224260f12bca"
+    },
+    "workspace-states/lifecycle.json": {
+      "bytes": 928,
+      "sha256": "f58ab46e5ee770ac3c681f9595ababef4e5cd1af31e317a4c96be4eaa3858577"
+    },
+    "workspace-states/selection.log": {
+      "bytes": 1469,
+      "sha256": "89cc095fd499a5e308928d3adc1ef916418ef2d4fdf5723d38fefade476db034"
+    },
+    "workspace-states/source-after.json": {
+      "bytes": 229892,
+      "sha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c"
+    },
+    "workspace-states/source-before.json": {
+      "bytes": 229892,
+      "sha256": "afd5c89ba4c27d8762999cd917969d9a5afa47f58861c432caf473b91598c98c"
+    }
+  },
+  "schema": "terminal_pr1407_proof_inventory.v1"
+}
