@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
 import { storedAiObjects, storedAiLayerHidden } from "@/lib/drawingAiPersistence";
-import type { ChartStatePreparationRequest, ChartStatePreparationResult } from "@/lib/mastermindBrain";
+import type { ChartStatePreparationRequest, ChartStatePreparationResult } from "@/lib/chartStatePreparation";
 import { editAiObjects, type AiLayerController, type AiObjectEdit } from "@/lib/chartAiLayer";
 import { isAiNativeDrawingKind, nativeDrawingAnchorError, nativeDrawingStateArgs } from "@/lib/chartDrawingTools";
 import { timeToMs } from "@/lib/timeWindow";

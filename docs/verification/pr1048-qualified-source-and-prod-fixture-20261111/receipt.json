@@ -1,0 +1,61 @@
+{
+  "schema": "mastermind.pr1048.qualified-source-prod-fixture.v1",
+  "parent": "4a551b50964c9d77438a57acac625fe3c02b124f",
+  "baseTree": "427d23cc398912c7d960758933fd1359301bad6d",
+  "lawPin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "protectedSource": "74c007125129090cc762f2bc4b1b152123326444",
+  "observedCheckout": "16ba05e9e09a81ec24c4492b8b9fe0d05081c15c",
+  "workflowRun": 42984147238,
+  "failedJobs": {
+    "unit": 130401772478,
+    "productionDesktop": 130403049445
+  },
+  "artifacts": {
+    "unit": {
+      "id": 13838633360,
+      "zipSha256": "2293403175d94a9fe7ad3966d73f093911ca6f0d2a24a0cd18c0e90cf5850e02"
+    },
+    "production": {
+      "id": 13839059301,
+      "zipSha256": "45d01ac058e094c3cd476f691da37dfcb31b7451460674be6b3bd1540bdacc43"
+    }
+  },
+  "validation": {
+    "focusedBehavior": [
+      {
+        "file": "lib/__tests__/chartStatePayload.test.ts",
+        "passed": 14
+      },
+      {
+        "file": "lib/__tests__/brainWidgetChartStop.test.ts",
+        "passed": 5
+      },
+      {
+        "file": "lib/__tests__/brainWidgetChartPreparation.test.tsx",
+        "passed": 4
+      },
+      {
+        "file": "lib/__tests__/chartCommandContinuation.test.tsx",
+        "passed": 21
+      },
+      {
+        "file": "lib/__tests__/useChartBusDrawingOwner.test.tsx",
+        "passed": 10
+      },
+      {
+        "file": "lib/__tests__/chartPaneDrawingIdentity.test.tsx",
+        "passed": 4
+      }
+    ],
+    "strictExistingEvidenceTests": 114,
+    "fullTypecheck": "passed with unchanged project configuration and 8 GiB Node heap",
+    "emittedRuntimeEqualityFiles": 4,
+    "affectedFixtureContractEslint": "passed",
+    "productionCasesCollectedOnly": 2
+  },
+  "evidenceManifestsModified": false,
+  "qualifiedHistoricalPacketsRetained": true,
+  "newBrowserExecution": false,
+  "sourceLockRestamp": false,
+  "productionAcceptance": false
+}

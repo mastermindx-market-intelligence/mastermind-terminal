@@ -1,0 +1,34 @@
+{
+  "operationIds": {
+    "pl6": "ci-42984147238-1-pl6",
+    "vi": "ci-42984147238-1-vi",
+    "composition": "ci-42984147238-1-current",
+    "prefix": "ci-42984147238-1"
+  },
+  "state": "FAILED",
+  "children": [],
+  "actualCheckout": {
+    "commit": "16ba05e9e09a81ec24c4492b8b9fe0d05081c15c",
+    "tree": "427d23cc398912c7d960758933fd1359301bad6d"
+  },
+  "githubEvent": {
+    "name": "pull_request",
+    "sha": "16ba05e9e09a81ec24c4492b8b9fe0d05081c15c",
+    "ref": "refs/pull/1048/merge",
+    "pullRequestBase": "74c007125129090cc762f2bc4b1b152123326444",
+    "pullRequestHead": "4a551b50964c9d77438a57acac625fe3c02b124f",
+    "mergeGroupBase": null,
+    "mergeGroupHead": null
+  },
+  "profile": {
+    "fixture": "terminal-e2e.v1",
+    "buildMode": "next-dev",
+    "sharedShell": "0",
+    "investorShellPreview": "0",
+    "theme": "dark"
+  },
+  "error": {
+    "message": "Options/Exposure evidence: NO_QUALIFIED_CAPTURE",
+    "stack": "Error: Options/Exposure evidence: NO_QUALIFIED_CAPTURE\n    at check (/home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/optionsExposureEvidence.cjs:107:15)\n    at selectWholeFingerprint (/home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/optionsExposureEvidence.cjs:123:5)\n    at readIntegrationNativePayload (/home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/optionsExposureEvidence.cjs:792:9)\n    at readExpiryIntegrationPair (/home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/optionsExposureEvidence.cjs:1131:25)\n    at readMomentumBrowserSuccessor (/home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/optionsExposureEvidence.cjs:1195:22)\n    at qualifiedOptionsExposurePacket (/home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/optionsExposureEvidence.cjs:434:16)\n    at optionalQualifiedOptionsExposurePacket (/home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/optionsExposureEvidence.cjs:1225:34)\n    at qualifiedNativePacket (/home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/capture_ci_evidence.cjs:520:20)\n    at /home/ubuntu3/actions-runner-a/_work/mastermind-terminal/mastermind-terminal/terminal/e2e/tools/capture_ci_evidence.cjs:649:22\n    at Array.map (<anonymous>)"
+  }
+}

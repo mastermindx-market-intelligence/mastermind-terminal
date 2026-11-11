@@ -14,13 +14,6 @@ import type { OptionsQuestionReference } from "./optionsQuestionContext";
 export type ChartStopRequest = { scope: "received_batches"; batch_ids: readonly string[] };
 export type ChartStopResult = { scope: "received_batches"; cancelled: number };
 
-/** Read-only readiness over the existing session-authenticated chart-state mirror. */
-export type ChartStatePreparationRequest = { origin_id: string; context_revision: number };
-export type ChartStatePreparationResult =
-  | ({ ok: true } & ChartStatePreparationRequest)
-  | { ok: false; reason: "host_unmounted" | "context_changed" | "cancelled" |
-      "state_unavailable" | "state_post_failed" | "state_post_timeout" | "sign_in_required" };
-
 export interface MastermindBrainHost {
   MMBrain?: {
     open?: () => void;
@@ -36,7 +29,6 @@ export interface MastermindBrainHost {
     symbol?: () => string;
     getCompanySourceSpan?: () => CompanySourceContextRef | null | undefined;
     onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;
-    prepareChartState?: (request: ChartStatePreparationRequest, signal?: AbortSignal) => Promise<ChartStatePreparationResult>;
     [key: string]: unknown;
   };
   __MM_BRAIN_ACTIVE_SYMBOL__?: string;

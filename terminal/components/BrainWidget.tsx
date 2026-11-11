@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { handoffMastermindBrainSymbol, type MastermindBrainHost,
-  type ChartStopRequest, type ChartStopResult,
-  type ChartStatePreparationRequest, type ChartStatePreparationResult } from "@/lib/mastermindBrain";
+  type ChartStopRequest, type ChartStopResult } from "@/lib/mastermindBrain";
+import type { ChartStatePreparationHost, ChartStatePreparationRequest, ChartStatePreparationResult } from "@/lib/chartStatePreparation";
 import type { AiContextClientV1 } from "@/lib/aiContext";
 import { ensureBrainPrincipalBinding } from "@/lib/brainPrincipal";
 
@@ -240,7 +240,7 @@ export default function BrainWidget({
   useEffect(() => {
     prepareChartStateRef.current = prepareChartState;
     if (typeof window === "undefined") return;
-    const w = window as unknown as MastermindBrainHost;
+    const w = window as unknown as ChartStatePreparationHost;
     if (!w.MM_BRAIN_CFG) return;
     let attached = true;
     const fn = prepareChartState ? (request: ChartStatePreparationRequest, signal?: AbortSignal) => attached

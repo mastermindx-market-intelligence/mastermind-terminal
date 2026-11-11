@@ -1,0 +1,28 @@
+[
+  {
+    "name": "eodPacket",
+    "selection": "qualified",
+    "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/qualified-root/EVIDENCE.yml",
+    "plan": {
+      "required": false,
+      "changed": []
+    },
+    "capturedAtHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+    "layoutCount": 13,
+    "sourceCount": 32,
+    "locksAppShell": false
+  },
+  {
+    "name": "gexPacket",
+    "selection": "qualified",
+    "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/expiry-greeks-integration-20261110/qualified-root/EVIDENCE.yml",
+    "plan": {
+      "required": false,
+      "changed": []
+    },
+    "capturedAtHead": "a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4",
+    "layoutCount": 12,
+    "sourceCount": 29,
+    "locksAppShell": false
+  }
+]

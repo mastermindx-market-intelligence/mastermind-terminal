@@ -1,0 +1,50 @@
+[
+  {
+    "name": "EOD",
+    "count": 32,
+    "currentDiff": [],
+    "priorDiff": [
+      {
+        "file": "terminal/lib/mastermindBrain.ts",
+        "expected": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+        "prior": "32d218b478ed511ccbf35f830bba1ca42a2f03acba2ab6a7dccc5b47200e4bf4"
+      }
+    ]
+  },
+  {
+    "name": "GEX",
+    "count": 29,
+    "currentDiff": [],
+    "priorDiff": [
+      {
+        "file": "terminal/lib/mastermindBrain.ts",
+        "expected": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+        "prior": "32d218b478ed511ccbf35f830bba1ca42a2f03acba2ab6a7dccc5b47200e4bf4"
+      }
+    ]
+  },
+  {
+    "name": "joint",
+    "count": 72,
+    "currentDiff": [],
+    "priorDiff": [
+      {
+        "file": "terminal/lib/mastermindBrain.ts",
+        "expected": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+        "prior": "32d218b478ed511ccbf35f830bba1ca42a2f03acba2ab6a7dccc5b47200e4bf4"
+      }
+    ]
+  },
+  {
+    "name": "expiry",
+    "count": 77,
+    "currentDiff": [],
+    "priorDiff": [
+      {
+        "file": "terminal/lib/mastermindBrain.ts",
+        "expected": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+        "prior": "32d218b478ed511ccbf35f830bba1ca42a2f03acba2ab6a7dccc5b47200e4bf4"
+      }
+    ]
+  }
+]

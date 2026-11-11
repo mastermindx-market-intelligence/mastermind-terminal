@@ -1,0 +1,614 @@
+$ ./node_modules/.bin/vitest run lib/__tests__/brainWidgetChartPreparation.test.tsx lib/__tests__/brainWidgetChartStop.test.ts lib/__tests__/chartStatePayload.test.ts lib/__tests__/chartCommandContinuation.test.tsx lib/__tests__/useChartBusDrawingOwner.test.tsx lib/__tests__/chartPaneDrawingIdentity.test.tsx lib/__tests__/optionsExposureEvidence.test.ts lib/__tests__/optionsExposureEvidenceOwner.test.ts
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1048/terminal
+
+ ❯ lib/__tests__/optionsExposureEvidence.test.ts (54 tests | 9 failed) 78ms
+   × current Exposure capture result qualification > does not fall back when the retained declared predecessor descriptor is corrupt 12ms
+     → ENOENT: no such file or directory, copyfile '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/EVIDENCE.before.yml' -> '/tmp/exposure-current-descriptor-eLuS4i/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml'
+   × Chart proof across independently composed branches > keeps the two captured observers identical except for the unrelated return readiness budget 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+   × Chart proof across independently composed branches > validates the captured original chart with the already verified original observer 3ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+   × Chart proof across independently composed branches > validates the captured preview chart with the already verified preview observer 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/preview.spec.ts.gz'
+   × Chart proof across independently composed branches > validates the captured preview chart with the already verified original observer 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+   × Chart proof across independently composed branches > validates the captured original chart with the already verified preview observer 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/preview.spec.ts.gz'
+   × Chart proof across independently composed branches > still rejects an uncaptured observer for the original chart 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+   × Chart proof across independently composed branches > still rejects an uncaptured observer for the preview chart 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+   × Chart proof across independently composed branches > validates every bound proof file before accepting either captured observer 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+ ✓ lib/__tests__/chartStatePayload.test.ts (14 tests) 129ms
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts (60 tests | 36 failed) 224ms
+   × current EOD owner and native reader > selects the same qualified manifest and preserves its actual capture identity 20ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+   × current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx 15ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx 6ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/gexdesk/GexSummaryBar.tsx 16ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/lib/dte.ts 23ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/e2e/exposure-partial-totals.spec.ts 12ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/public/data/gex_fixture.json 2ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × current EOD owner and native reader > refuses a corrupted selected image through the actual owner 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+   × current EOD owner and native reader > refuses a changed descriptor rather than recapturing over history 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+   × current EOD owner and native reader > refuses a removed declaration even when the historical root remains a valid raw manifest 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+   × paired Options integration proof > refuses a mixed current family declaration 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml'
+   × paired Options integration proof > refuses a complete-image receipt with an incomplete frame matrix 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+   × paired Options integration proof > refuses a current receipt without settled native-server proof 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+   × expiry integration with retained EOD identity > selects the fresh GEX packet through the shared owner without relabeling EOD 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml'
+   × expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExpiryBars.tsx 9ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExposureExpiryDrawer.tsx 6ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/lib/expiryTermStructure.ts 9ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/exposure-expiry-greeks.spec.ts 16ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/responsive.spec.ts 8ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × expiry integration with retained EOD identity > keeps validating the prior Options GEX descriptor 5ms
+     → expected [Function] to throw error matching /OPTIONS_INTEGRATION_PACKET_DIGEST:gex/ but got 'ENOENT: no such file or directory, op…'
+   × expiry integration with retained EOD identity > refuses to assign the fresh GEX identity to EOD 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+   × momentum browser successor with retained native evidence > refuses changed momentum runtime source through the eod owner 4ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > refuses changed momentum runtime source through the gex owner 4ms
+     → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > cannot downgrade by removing both successor declarations 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/prior-roots/eod.EVIDENCE.yml'
+   × momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-successor.json 5ms
+     → expected [Function] to throw error matching /BROWSER_SUCCESSOR_DESCRIPTOR/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > refuses corrupt successor payload: prior-roots/eod.EVIDENCE.yml 0ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/prior-roots/eod.EVIDENCE.yml'
+   × momentum browser successor with retained native evidence > refuses corrupt successor payload: qualification.json 2ms
+     → expected [Function] to throw error matching /BROWSER_SUCCESSOR_QUALIFICATION:joint/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/qualification.json 3ms
+     → expected [Function] to throw error matching /BROWSER_SUCCESSOR_QUALIFICATION:expiry/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-report.json 4ms
+     → expected [Function] to throw error matching /INTEGRATION_BROWSER_FILE:browser-repo…/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/browser-report.json 3ms
+     → expected [Function] to throw error matching /EXPIRY_INTEGRATION_JOURNEY_FILE:brows…/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > refuses corrupt successor payload: lifecycle.json 2ms
+     → expected [Function] to throw error matching /BROWSER_SUCCESSOR_LIFECYCLE:joint/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/lifecycle.json 2ms
+     → expected [Function] to throw error matching /BROWSER_SUCCESSOR_LIFECYCLE:expiry/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > binds actual new screenshot bytes: joint 2ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/browser-artifacts/direct/exposure-archive-memory-desktop-en.png'
+   × momentum browser successor with retained native evidence > binds actual new screenshot bytes: /expiry-journeys 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/desktop-en-expiry-charm-bars.png'
+   × momentum browser successor with retained native evidence > still validates historical browser payload: browser-report.json 4ms
+     → expected [Function] to throw error matching /INTEGRATION_BROWSER_FILE:browser-repo…/ but got 'ENOENT: no such file or directory, op…'
+   × momentum browser successor with retained native evidence > still validates historical browser payload: expiry-journeys/browser-report.json 3ms
+     → expected [Function] to throw error matching /EXPIRY_INTEGRATION_JOURNEY_FILE:brows…/ but got 'ENOENT: no such file or directory, op…'
+ ✓ lib/__tests__/brainWidgetChartStop.test.ts (5 tests) 29ms
+ ✓ lib/__tests__/brainWidgetChartPreparation.test.tsx (4 tests) 51ms
+ ✓ lib/__tests__/chartCommandContinuation.test.tsx (21 tests) 54ms
+ ✓ lib/__tests__/useChartBusDrawingOwner.test.tsx (10 tests) 73ms
+ ✓ lib/__tests__/chartPaneDrawingIdentity.test.tsx (4 tests) 68ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 45 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > current Exposure capture result qualification > does not fall back when the retained declared predecessor descriptor is corrupt
+Error: ENOENT: no such file or directory, copyfile '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/EVIDENCE.before.yml' -> '/tmp/exposure-current-descriptor-eLuS4i/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml'
+ ❯ lib/__tests__/optionsExposureEvidence.test.ts:78:7
+     76|       // The current root now selects the additive Options revision; t…
+     77|       // exercising the immutable indicator predecessor, while owner t…
+     78|       copyFileSync(join(repo, "terminal/docs/pr-crops", packets.gex,
+       |       ^
+     79|         "operations/exposure-source-compatibility-20261105/revisions/o…
+     80|       writeFileSync(join(packet, revision, "native-packet.json"), read…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > Chart proof across independently composed branches > keeps the two captured observers identical except for the unrelated return readiness budget
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+ ❯ observer lib/__tests__/optionsExposureEvidence.test.ts:261:28
+    259|     const path = join(process.cwd(), "docs/verification/options-worksp…
+    260|       "chart-observer-integration-20261105/observers", profile + ".spe…
+    261|     const raw = gunzipSync(readFileSync(path));
+       |                            ^
+    262|     expect(createHash("sha256").update(raw).digest("hex")).toBe(qualif…
+    263|     return raw.toString("utf8");
+ ❯ lib/__tests__/optionsExposureEvidence.test.ts:282:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > Chart proof across independently composed branches > validates the captured original chart with the already verified original observer
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > Chart proof across independently composed branches > validates the captured preview chart with the already verified original observer
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+ ❯ observer lib/__tests__/optionsExposureEvidence.test.ts:261:28
+    259|     const path = join(process.cwd(), "docs/verification/options-worksp…
+    260|       "chart-observer-integration-20261105/observers", profile + ".spe…
+    261|     const raw = gunzipSync(readFileSync(path));
+       |                            ^
+    262|     expect(createHash("sha256").update(raw).digest("hex")).toBe(qualif…
+    263|     return raw.toString("utf8");
+ ❯ lib/__tests__/optionsExposureEvidence.test.ts:298:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > Chart proof across independently composed branches > validates the captured preview chart with the already verified preview observer
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > Chart proof across independently composed branches > validates the captured original chart with the already verified preview observer
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/preview.spec.ts.gz'
+ ❯ observer lib/__tests__/optionsExposureEvidence.test.ts:261:28
+    259|     const path = join(process.cwd(), "docs/verification/options-worksp…
+    260|       "chart-observer-integration-20261105/observers", profile + ".spe…
+    261|     const raw = gunzipSync(readFileSync(path));
+       |                            ^
+    262|     expect(createHash("sha256").update(raw).digest("hex")).toBe(qualif…
+    263|     return raw.toString("utf8");
+ ❯ lib/__tests__/optionsExposureEvidence.test.ts:298:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > Chart proof across independently composed branches > still rejects an uncaptured observer for the original chart
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > Chart proof across independently composed branches > still rejects an uncaptured observer for the preview chart
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+ ❯ observer lib/__tests__/optionsExposureEvidence.test.ts:261:28
+    259|     const path = join(process.cwd(), "docs/verification/options-worksp…
+    260|       "chart-observer-integration-20261105/observers", profile + ".spe…
+    261|     const raw = gunzipSync(readFileSync(path));
+       |                            ^
+    262|     expect(createHash("sha256").update(raw).digest("hex")).toBe(qualif…
+    263|     return raw.toString("utf8");
+ ❯ lib/__tests__/optionsExposureEvidence.test.ts:303:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidence.test.ts > Chart proof across independently composed branches > validates every bound proof file before accepting either captured observer
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/chart-observer-integration-20261105/observers/original.spec.ts.gz'
+ ❯ observer lib/__tests__/optionsExposureEvidence.test.ts:261:28
+    259|     const path = join(process.cwd(), "docs/verification/options-worksp…
+    260|       "chart-observer-integration-20261105/observers", profile + ".spe…
+    261|     const raw = gunzipSync(readFileSync(path));
+       |                            ^
+    262|     expect(createHash("sha256").update(raw).digest("hex")).toBe(qualif…
+    263|     return raw.toString("utf8");
+ ❯ lib/__tests__/optionsExposureEvidence.test.ts:309:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > selects the same qualified manifest and preserves its actual capture identity
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+ ❯ Module.qualifiedOptionsExposurePacket e2e/tools/optionsExposureEvidence.cjs:431:18
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:67:22
+     65| describe("current EOD owner and native reader", () => {
+     66|   it("selects the same qualified manifest and preserves its actual cap…
+     67|     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner…
+       |                      ^
+     68|     const packet = owner.eodPacket(REPO);
+     69|     expect(packet.selection).toBe("qualified");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/gexdesk/GexSummaryBar.tsx
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/lib/dte.ts
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/e2e/exposure-partial-totals.spec.ts
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/public/data/gex_fixture.json
+AssertionError: expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/NO_QUALIFIED_CAPTURE/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-CeYkw2/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:87:43
+     85|     it("refuses reuse after mounted desk source drift: " + file, () =>…
+     86|       const root = shadowRepo({ [file]: readFileSync(join(REPO, file),…
+     87|       expect(() => owner.eodPacket(root)).toThrow(/NO_QUALIFIED_CAPTUR…
+       |                                           ^
+     88|     });
+     89|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses a corrupted selected image through the actual owner
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+ ❯ Module.qualifiedOptionsExposurePacket e2e/tools/optionsExposureEvidence.cjs:431:18
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:92:22
+     90| 
+     91|   it("refuses a corrupted selected image through the actual owner", ()…
+     92|     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner…
+       |                      ^
+     93|     const file = relative(REPO, join(selected.cropDir, "chainheat-retr…
+     94|     const bytes = Buffer.from(readFileSync(join(REPO, file)));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses a changed descriptor rather than recapturing over history
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+ ❯ Module.qualifiedOptionsExposurePacket e2e/tools/optionsExposureEvidence.cjs:431:18
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:101:22
+     99| 
+    100|   it("refuses a changed descriptor rather than recapturing over histor…
+    101|     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner…
+       |                      ^
+    102|     const file = relative(REPO, join(dirname(dirname(selected.evidence…
+    103|     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses a removed declaration even when the historical root remains a valid raw manifest
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:109:18
+    107|   it("refuses a removed declaration even when the historical root rema…
+    108|     const file = "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-fai…
+    109|     const text = readFileSync(join(REPO, file), "utf8");
+       |                  ^
+    110|     const root = shadowRepo({ [file]: text.slice(text.indexOf("\n\n") …
+    111|     expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROO…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > paired Options integration proof > refuses a mixed current family declaration
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml'
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:118:39
+    116|   it("refuses a mixed current family declaration", () => {
+    117|     const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failu…
+    118|     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "…
+       |                                       ^
+    119|     expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROO…
+    120|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > paired Options integration proof > refuses a complete-image receipt with an incomplete frame matrix
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+ ❯ Module.qualifiedOptionsExposurePacket e2e/tools/optionsExposureEvidence.cjs:431:18
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:122:22
+    120|   });
+    121|   it("refuses a complete-image receipt with an incomplete frame matrix…
+    122|     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner…
+       |                      ^
+    123|     const execution = structuredClone(selected.execution!);
+    124|     execution.frames.pop();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > paired Options integration proof > refuses a current receipt without settled native-server proof
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+ ❯ Module.qualifiedOptionsExposurePacket e2e/tools/optionsExposureEvidence.cjs:431:18
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:128:22
+    126|   });
+    127|   it("refuses a current receipt without settled native-server proof", …
+    128|     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner…
+       |                      ^
+    129|     const execution = structuredClone(selected.execution!);
+    130|     execution.nativeSupervisor!.serverReportedStopped = false;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > expiry integration with retained EOD identity > selects the fresh GEX packet through the shared owner without relabeling EOD
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml'
+ ❯ Module.qualifiedOptionsExposurePacket e2e/tools/optionsExposureEvidence.cjs:431:18
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:155:22
+    153| 
+    154|   it("selects the fresh GEX packet through the shared owner without re…
+    155|     const selected = qualifiedOptionsExposurePacket(REPO, "gex", gexCr…
+       |                      ^
+    156|     const packet = owner.gexPacket(REPO);
+    157|     expect(packet.selection).toBe("qualified");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExpiryBars.tsx
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExposureExpiryDrawer.tsx
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/lib/expiryTermStructure.ts
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/exposure-expiry-greeks.spec.ts
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/responsive.spec.ts
+AssertionError: expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/NO_QUALIFIED_CAPTURE/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-Wmk98b/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:174:43
+    172|     it("refuses retained EOD when expiry consumer proof drifts: " + fi…
+    173|       const root = shadowRepo({ [file]: readFileSync(join(REPO, file),…
+    174|       expect(() => owner.eodPacket(root)).toThrow(/NO_QUALIFIED_CAPTUR…
+       |                                           ^
+    175|     });
+    176|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > expiry integration with retained EOD identity > keeps validating the prior Options GEX descriptor
+AssertionError: expected [Function] to throw error matching /OPTIONS_INTEGRATION_PACKET_DIGEST:gex/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/OPTIONS_INTEGRATION_PACKET_DIGEST:gex/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-ETkVjB/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:181:41
+    179|     const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failu…
+    180|     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "…
+    181|     expect(() => owner.eodPacket(root)).toThrow(/OPTIONS_INTEGRATION_P…
+       |                                         ^
+    182|   });
+    183| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > expiry integration with retained EOD identity > refuses to assign the fresh GEX identity to EOD
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'
+ ❯ Module.qualifiedOptionsExposurePacket e2e/tools/optionsExposureEvidence.cjs:431:18
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:196:22
+    194| 
+    195|   it("refuses to assign the fresh GEX identity to EOD", () => {
+    196|     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner…
+       |                      ^
+    197|     expect(() => requireIntegrationExecution(selected.execution!, "eod…
+    198|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses changed momentum runtime source through the eod owner
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses changed momentum runtime source through the gex owner
+AssertionError: expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/NO_QUALIFIED_CAPTURE/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-dgeKd1/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:288:86
+    286|     it("refuses changed momentum runtime source through the " + family…
+    287|       const root = shadowRepo({ [component]: readFileSync(join(REPO, c…
+    288|       expect(() => family === "eod" ? owner.eodPacket(root) : owner.ge…
+       |                                                                                      ^
+    289|     });
+    290|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > cannot downgrade by removing both successor declarations
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/prior-roots/eod.EVIDENCE.yml'
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:295:7
+    293|     const overrides = Object.fromEntries(["eod", "gex"].map(family => [
+    294|       "terminal/docs/pr-crops/" + (family === "eod" ? "eod-heatmap-flo…
+    295|       readFileSync(join(REPO, current, "prior-roots", family + ".EVIDE…
+       |       ^
+    296|     ]));
+    297|     const root = shadowRepo(overrides);
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:293:57
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-successor.json
+AssertionError: expected [Function] to throw error matching /BROWSER_SUCCESSOR_DESCRIPTOR/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/BROWSER_SUCCESSOR_DESCRIPTOR/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-h7ftBJ/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:315:43
+    313|       const path = current + "/" + file;
+    314|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    315|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    316|     });
+    317|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses corrupt successor payload: prior-roots/eod.EVIDENCE.yml
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/prior-roots/eod.EVIDENCE.yml'
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:314:41
+    312|     it("refuses corrupt successor payload: " + file, () => {
+    313|       const path = current + "/" + file;
+    314|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+       |                                         ^
+    315|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+    316|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses corrupt successor payload: qualification.json
+AssertionError: expected [Function] to throw error matching /BROWSER_SUCCESSOR_QUALIFICATION:joint/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/BROWSER_SUCCESSOR_QUALIFICATION:joint/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-0CA97B/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:315:43
+    313|       const path = current + "/" + file;
+    314|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    315|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    316|     });
+    317|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/qualification.json
+AssertionError: expected [Function] to throw error matching /BROWSER_SUCCESSOR_QUALIFICATION:expiry/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/BROWSER_SUCCESSOR_QUALIFICATION:expiry/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-PpEYQ0/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:315:43
+    313|       const path = current + "/" + file;
+    314|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    315|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    316|     });
+    317|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-report.json
+AssertionError: expected [Function] to throw error matching /INTEGRATION_BROWSER_FILE:browser-repo…/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/INTEGRATION_BROWSER_FILE:browser-report.json/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-IJhoTP/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:315:43
+    313|       const path = current + "/" + file;
+    314|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    315|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    316|     });
+    317|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/browser-report.json
+AssertionError: expected [Function] to throw error matching /EXPIRY_INTEGRATION_JOURNEY_FILE:brows…/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/EXPIRY_INTEGRATION_JOURNEY_FILE:browser-report.json/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-jIK78I/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:315:43
+    313|       const path = current + "/" + file;
+    314|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    315|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    316|     });
+    317|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses corrupt successor payload: lifecycle.json
+AssertionError: expected [Function] to throw error matching /BROWSER_SUCCESSOR_LIFECYCLE:joint/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/BROWSER_SUCCESSOR_LIFECYCLE:joint/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-KBezIi/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:315:43
+    313|       const path = current + "/" + file;
+    314|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    315|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    316|     });
+    317|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/lifecycle.json
+AssertionError: expected [Function] to throw error matching /BROWSER_SUCCESSOR_LIFECYCLE:expiry/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/BROWSER_SUCCESSOR_LIFECYCLE:expiry/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-dHV4hy/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:315:43
+    313|       const path = current + "/" + file;
+    314|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    315|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    316|     });
+    317|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > binds actual new screenshot bytes: joint
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/browser-artifacts/direct/exposure-archive-memory-desktop-en.png'
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:328:33
+    326|       expect(image).toBeDefined();
+    327|       const path = current + stage + "/" + image;
+    328|       const bytes = Buffer.from(readFileSync(join(REPO, path)));
+       |                                 ^
+    329|       bytes[bytes.length - 1] ^= 1;
+    330|       const root = shadowRepo({ [path]: bytes });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > binds actual new screenshot bytes: /expiry-journeys
+Error: ENOENT: no such file or directory, open '/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/desktop-en-expiry-charm-bars.png'
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:328:33
+    326|       expect(image).toBeDefined();
+    327|       const path = current + stage + "/" + image;
+    328|       const bytes = Buffer.from(readFileSync(join(REPO, path)));
+       |                                 ^
+    329|       bytes[bytes.length - 1] ^= 1;
+    330|       const root = shadowRepo({ [path]: bytes });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > still validates historical browser payload: browser-report.json
+AssertionError: expected [Function] to throw error matching /INTEGRATION_BROWSER_FILE:browser-repo…/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/INTEGRATION_BROWSER_FILE:browser-report.json/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-Jc09c9/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:342:43
+    340|       const path = historical + "/" + file;
+    341|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    342|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    343|     });
+    344|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/45]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > still validates historical browser payload: expiry-journeys/browser-report.json
+AssertionError: expected [Function] to throw error matching /EXPIRY_INTEGRATION_JOURNEY_FILE:brows…/ but got 'ENOENT: no such file or directory, op…'
+
+- Expected: 
+/EXPIRY_INTEGRATION_JOURNEY_FILE:browser-report.json/
+
++ Received: 
+"ENOENT: no such file or directory, open '/tmp/eod-qualified-consumer-8W7uXa/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml'"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:342:43
+    340|       const path = historical + "/" + file;
+    341|       const root = shadowRepo({ [path]: readFileSync(join(REPO, path),…
+    342|       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+       |                                           ^
+    343|     });
+    344|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/45]⎯
+
+ Test Files  2 failed | 6 passed (8)
+      Tests  45 failed | 127 passed (172)
+   Start at  03:33:17
+   Duration  2.14s (transform 1.75s, setup 0ms, collect 3.51s, tests 706ms, environment 2.87s, prepare 874ms)
+
+
+exit=1

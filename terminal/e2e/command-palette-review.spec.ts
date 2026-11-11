@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
 import type { Ack, ChartCommandTarget } from "../lib/chartBus";
-import { useLang } from "./layoutStore";
+import { useLang as seedLayoutLanguage } from "./layoutStore";
 import { e2eWatchlistOwner, isolateWatchlistStore, seedOwnerWatchlists } from "./watchlistStore";
 
 // E20 x E16: the palette's review rows name the FROZEN review session's own neighbours and step
@@ -100,12 +100,27 @@ const isTouch = (testInfo: TestInfo) => testInfo.project.name !== "desktop";
 
 async function boot(page: Page, testInfo: TestInfo, baseURL: string | undefined, lang: "en" | "zh") {
   const storeKey = await isolateWatchlistStore(page, testInfo, baseURL);
+  const owner = e2eWatchlistOwner(storeKey);
+  const drawingReads: string[] = [], unexpectedDrawingWrites: string[] = [];
+  // Production requires a real authoritative drawing read before it can mirror
+  // chart state. This indicator-only journey has an empty signed-in account.
+  await page.route(url => url.pathname === "/api/drawings", async route => {
+    const request = route.request();
+    if (request.method() !== "GET") {
+      unexpectedDrawingWrites.push(request.method() + " " + new URL(request.url()).pathname);
+      await route.fulfill({ status: 405, json: { error: "unexpected_drawing_write" } });
+      return;
+    }
+    expect(request.headers()["x-drawing-owner"]).toBe(owner);
+    drawingReads.push(new URL(request.url()).searchParams.get("symbol") || "");
+    await route.fulfill({ json: { drawings: [], revision: null, schemaVersion: 1 } });
+  });
   await seedOwnerWatchlists(page, storeKey, SEED);
-  await useLang(page, lang);
+  await seedLayoutLanguage(page, lang);
   await page.route("https://www.mastermind-x.com/mm_brain.js", (route) => route.fulfill({ contentType: "application/javascript", body: "window.MMBrain={mounted:true,open(){},close(){},toggle(){}};" }));
   await page.goto("/terminal?symbol=SPY");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
-  return { storeKey, owner: e2eWatchlistOwner(storeKey) };
+  return { storeKey, owner, drawingReads, unexpectedDrawingWrites };
 }
 
 /** Desktop starts from the list menu; at ≤860px (where the rail board is hidden) from the idle control. */
@@ -170,7 +185,7 @@ for (const lang of ["en", "zh"] as const) {
       mirrors.push(route.request().postDataJSON());
       await route.fulfill({ json: { ok: true } });
     });
-    await boot(page, testInfo, baseURL, lang);
+    const { drawingReads, unexpectedDrawingWrites } = await boot(page, testInfo, baseURL, lang);
     const region = await startReview(page, lang);
     const current = region.getByTestId("wl-review-current");
 
@@ -264,6 +279,11 @@ for (const lang of ["en", "zh"] as const) {
     await expect(current).toHaveText("AAPL");
     await expect(region.getByTestId("wl-review-position")).toHaveText(c.position(4, 5));
     await expect.poll(() => chartSymbol(page)).toBe("AAPL");
+    expect(drawingReads).toEqual(expect.arrayContaining(["NVDA", "MSFT"]));
+    expect(unexpectedDrawingWrites).toEqual([]);
     await testInfo.attach("palette-review-chart-receipts", { body: JSON.stringify(mirrors), contentType: "application/json" });
+    await testInfo.attach("palette-review-drawing-fixture", {
+      body: JSON.stringify({ drawingReads, unexpectedDrawingWrites }), contentType: "application/json",
+    });
   });
 }

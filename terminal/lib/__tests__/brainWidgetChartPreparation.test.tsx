@@ -3,10 +3,10 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import BrainWidget from "../../components/BrainWidget";
-import type { MastermindBrainHost, ChartStatePreparationResult } from "../mastermindBrain";
+import type { ChartStatePreparationHost, ChartStatePreparationResult } from "../chartStatePreparation";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | undefined, box: HTMLDivElement;
-const host = () => window as unknown as MastermindBrainHost;
+const host = () => window as unknown as ChartStatePreparationHost;
 const request = { origin_id: "chart-owner", context_revision: 7 };
 const ready = { ok: true as const, ...request };
 beforeEach(() => {
