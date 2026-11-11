@@ -105,7 +105,10 @@ export default function SectorPopulationMembers() {
       group: group || undefined, q: applied ?? undefined,
       cursor: opts.cursor, signal: controller.signal,
     }).catch(() => null as PopulationRead | null);
-    if (mine !== seq.current) return;
+    // The aborted signal covers the unmount/re-run the token cannot: a
+    // superseded cycle is aborted, so no late reply — not even a swallowed
+    // AbortError read as null — may touch state after its cycle ended.
+    if (mine !== seq.current || controller.signal.aborted) return;
     if (read === null) {
       // N4: a continuation that died in transport keeps the loaded pages; a
       // page-one read keeps the plain retry state.
@@ -132,7 +135,7 @@ export default function SectorPopulationMembers() {
       const fresh = await fetchSectorPopulation({
         group: group || undefined, q: applied ?? undefined, signal: controller.signal,
       }).catch(() => null as PopulationRead | null);
-      if (mine !== seq.current) return;
+      if (mine !== seq.current || controller.signal.aborted) return;
       if (fresh === null) setPhase("retry");
       else if (fresh.status === "ok") { setPages([fresh.page]); setPhase("ready"); }
       else setPhase(fresh.status);
@@ -151,8 +154,12 @@ export default function SectorPopulationMembers() {
   }, [group, applied]);
 
   useEffect(() => {
-    void run({});
-    return () => { seq.current++; abort.current?.abort(); };
+    // The mount/filter pass rides the same async cycle as the handlers — the
+    // IIFE boundary keeps every setState provably behind the fetch await, and
+    // the cleanup aborts this cycle's controller (abort, not a seq bump, is
+    // the unmount invalidation — the guards in run check both).
+    void (async () => { await run({}); })();
+    return () => { abort.current?.abort(); };
   }, [run]);
 
   const head = pages[0] ?? null;
