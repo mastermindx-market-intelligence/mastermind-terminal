@@ -10,6 +10,12 @@ import type { SuiteField } from "@/lib/indicator-canvas/types";
 
 const FIELDS: SuiteField[] = [
   {
+    key: "priceLinks",
+    label: "Price Links",
+    type: "bool",
+    tip: "Show matching original-OHLC anchors on the price pane and mark the later detection bar. This is descriptive evidence, not a trade entry.",
+  },
+  {
     key: "hidden",
     label: "Hidden Divergences",
     type: "bool",
@@ -26,7 +32,7 @@ const FIELDS: SuiteField[] = [
   },
 ];
 
-const DEFAULTS: Record<string, any> = { hidden: true, showLast: 8 };
+const DEFAULTS: Record<string, any> = { hidden: true, showLast: 8, priceLinks: false };
 
 export const RSI_DIVERGENCE_META: SuiteModuleMeta = {
   key: "div",

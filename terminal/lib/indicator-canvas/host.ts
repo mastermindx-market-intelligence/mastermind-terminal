@@ -31,6 +31,13 @@ import type {
 } from "./types";
 import { MAX_PRIMS_PER_MODULE, MAX_TOTAL_PRIMS } from "./types";
 
+/** Partition the already-capped draw-list; detection, events, tooltips and their
+ * identities stay with this same bundle. Unknown coordinate tags fail closed. */
+export function projectSuiteBundle<T extends SuiteRenderBundle>(bundle: T, space: "native" | "price"): T {
+  return { ...bundle, prims: bundle.prims.filter(prim => space === "price"
+    ? prim.coordinateSpace === "price" : prim.coordinateSpace === undefined) };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────── input & result
 
 /** What ChartPanel hands the host: its own bar rows plus the active chart context. */
