@@ -24,7 +24,7 @@ vi.mock("@/lib/i18n", async (orig) => {
 
 import { SectorCallsBoard } from "@/components/sector-intelligence/depth/SectorCallsBoard";
 import { SectorFlowMatrix } from "@/components/sector-intelligence/depth/SectorFlowMatrix";
-import { SectorThemeCompare } from "@/components/sector-intelligence/depth/SectorThemeCompare";
+import { SectorThemeCompare, fmtThemeBreadth } from "@/components/sector-intelligence/depth/SectorThemeCompare";
 import { SectorConfluenceUniverses } from "@/components/sector-intelligence/depth/SectorConfluenceUniverses";
 import { DepthUnavailable } from "@/components/sector-intelligence/depth/DepthUnavailable";
 import type { ThemeRowsRead } from "@/lib/sectorDepthThemeRows";
@@ -929,6 +929,35 @@ describe("rows increment — the carried theme table from the real specimen", ()
     } finally {
       G.__SD_LANG = "en";
     }
+  });
+
+  it("N-11 — breadth prints ONE form at every value in [0,1] and the not-stated word outside it", () => {
+    const ns = "not stated";
+    // The column's own form everywhere is ONE decimal (0.0%, 91.7%, …) — the
+    // top of the range is no exception: 0.9996 and 1 both read "100.0%"
+    // (r2 N-11: the old >=100 branch printed a whole-number "100%" for 1
+    // while 0.9996 printed "100.0%").
+    expect(fmtThemeBreadth(0, ns)).toBe("0.0%");
+    expect(fmtThemeBreadth(0.9996, ns)).toBe("100.0%");
+    expect(fmtThemeBreadth(1, ns)).toBe("100.0%");
+    // Outside the 0-1 share the producer establishes (a share of members
+    // above their own 50-day MA cannot leave [0,1]): the not-stated word —
+    // never a figure above 100%, never a clamped figure.
+    expect(fmtThemeBreadth(1.0001, ns)).toBe(ns);
+    expect(fmtThemeBreadth(-0.01, ns)).toBe(ns);
+    expect(fmtThemeBreadth(null, ns)).toBe(ns);
+    expect(fmtThemeBreadth(Number.NaN, ns)).toBe(ns);
+    expect(fmtThemeBreadth("0.5" as unknown as number, ns)).toBe(ns);
+    // And the rendered cell wires the same law: an out-of-range breadth on a
+    // real row reads the localized not-stated word, with no percent figure.
+    const doc = structuredClone(themeRowsValueFx) as { rows: Record<string, unknown>[] };
+    const rid = doc.rows[0]!.id as string;
+    (doc.rows[0]!.state as Record<string, unknown>).breadth = 1.0001;
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    const cell = markup.split(`data-r-id="${rid}"`)[1]?.split('data-k="breadth"')[1]?.split("</td>")[0] ?? "";
+    expect(cell).toContain(">not stated");
+    expect(cell).not.toMatch(/\d/);
   });
 
   it("N6 — a lone relative number names its side (vs benchmark) in both locales", () => {
