@@ -83,7 +83,10 @@ export async function handleProphetBetaEvaluationRequest(request: Request): Prom
   if (new URL(request.url).search.length > 0) return error("invalid_query", 422);
 
   if (fixtureMode()) {
-    const limited = rateLimit(request, { name: "prophet-beta-evaluation", max: 60 });
+    // No explicit max on the fixture seam (same rule as the sector-members
+    // BFF): every Playwright project shares one loopback IP, so a hard-coded
+    // budget here would starve the matrix. The live branch below keeps 60.
+    const limited = rateLimit(request, { name: "prophet-beta-evaluation" });
     if (!limited.ok) return error("rate_limited", 429);
     return handleFixture();
   }
