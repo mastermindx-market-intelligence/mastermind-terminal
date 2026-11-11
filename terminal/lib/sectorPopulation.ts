@@ -144,8 +144,11 @@ export type PopulationFirstKnown =
   | { carried: true; status: "unavailable" };
 /** `roster_clock`: null when the wire carries no clock (today); any carried
  * non-agree — mismatch, unavailable or malformed — reads not_agree, and the
- * surface must treat the completeness figures as not stated. */
-export type PopulationRosterClock = { status: "agree" } | { status: "not_agree" };
+ * surface must treat the completeness figures as not stated. `agree` MEANS the
+ * two clock strings are exactly equal, so `asOf` is the ONE capture-session
+ * date the page states (r3 N-8 ruling: it is the only date a reader surface
+ * may print; carried exactly, never reformatted). */
+export type PopulationRosterClock = { status: "agree"; asOf: string } | { status: "not_agree" };
 /** `taxonomy_revision`: the one statement lane 1 makes today is that the
  * classification labels are current-basis, not point-in-time. */
 export type PopulationTaxonomyRevision = { currentNotPointInTime: boolean };
@@ -331,18 +334,22 @@ function readFirstKnown(value: unknown): PopulationFirstKnown {
   return { carried: true, status: "available", groups };
 }
 
-/** `capture.population.roster_clock` — null when not carried; agree only on the
- * owner's exact agree shape; every mismatch/unavailable/malformed reads
- * not_agree (item 5: the completeness figures are then not stated). N-4 (third
- * review): `agree` MEANS exact string equality of the two clocks — an agree
- * label over differing clocks is not an agreement and reads not_agree. */
+/** `capture.population.roster_clock` — null only when the key is NOT carried;
+ * agree only on the owner's exact agree shape; every mismatch/unavailable/
+ * malformed reads not_agree (item 5: the completeness figures are then not
+ * stated). N-4 (third review): `agree` MEANS exact string equality of the two
+ * clocks — an agree label over differing clocks is not an agreement and reads
+ * not_agree. r4 N-5 (fourth review): a CARRIED null is one more non-agree
+ * shape (like 42/[]/{}), so the surface's generic not-stated reason line has
+ * a case to print for — the producer always emits an object, this only
+ * future-proofs the decode honestly; counts stay not stated either way. */
 function readRosterClock(value: unknown): PopulationRosterClock | null {
-  if (value === undefined || value === null) return null;
+  if (value === undefined) return null;
   if (record(value) && value.status === "agree"
     && typeof value.roster_as_of === "string" && str(value.roster_as_of, 32)
     && typeof value.capture_effective_as_of === "string" && str(value.capture_effective_as_of, 32)
     && value.roster_as_of === value.capture_effective_as_of) {
-    return { status: "agree" };
+    return { status: "agree", asOf: value.capture_effective_as_of };
   }
   return { status: "not_agree" };
 }

@@ -408,13 +408,64 @@ describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time 
     act(() => root.unmount());
   });
 
+  it("r4 N-3: a non-agreeing clock with an INTEGER unaccounted > 0 prints no unaccounted segment (en)", async () => {
+    // The decoder admits this page — an integer unaccounted beside a carried
+    // clock is never a refusal — but countsStated is false, and the producer
+    // never emits the shape (unaccounted is null unless the clock agrees,
+    // sector_population.py:613). The render layer's countsStated gate is the
+    // only thing keeping the number off the counts line; this test pins it.
+    pageMutate = page => {
+      producerNonAgree({ status: "mismatch", reason: "roster_as_of_mismatch",
+        roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-06" })(page);
+      populationOf(page).unaccounted = 5;
+    };
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(countsLine(container)).not.toMatch(/unaccounted/i); // the segment prints nothing
+    expect(clockNote(container)).toContain("roster clock does not agree with the capture session");
+    act(() => root.unmount());
+  });
+
+  it("r4 N-5: a carried null roster_clock still prints the generic not-stated reason line (en + zh)", async () => {
+    // The producer always emits a clock OBJECT (sector_population.py:553-582),
+    // but a carried null decodes and must not read as "not stated, no reason":
+    // it is one more clock that does not agree, and the surface's existing
+    // mismatch line is the generic not-stated reason in both languages.
+    pageMutate = page => { populationOf(page).roster_clock = null; };
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(clockNote(container)).toContain("The roster clock does not agree with the capture session");
+    expect(clockNote(container)).toContain("configured counts are not stated");
+    act(() => root.unmount());
+    await withZh(async ({ container: zhContainer }) => {
+      expect(countsLine(zhContainer)).toContain("所有者未给出配置名单");
+      expect(clockNote(zhContainer)).toContain("名册时钟与采集会话不一致——未列明配置成员数。");
+    });
+  });
+
   it("B-1: the producer's non-agree roster_block_absent page renders the same honest states (zh)", async () => {
-    pageMutate = producerNonAgree({ status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" });
+    // r4 N-6 fidelity: the roster_block_* branches carry {status, reason}
+    // ONLY — no roster_as_of (sector_population.py:553-555).
+    pageMutate = producerNonAgree({ status: "unavailable", reason: "roster_block_absent" });
     await withZh(async ({ container }) => {
       expect(countsLine(container)).toContain("所有者未给出配置名单");
       expect(countsLine(container)).not.toContain("1020");
       expect(clockNote(container)).toContain("名册时钟与采集会话不一致");
     });
+  });
+
+  it("r4 N-6: the not_single list clock beside null counts renders the same honest states (en)", async () => {
+    // The not_single branch carries capture_effective_as_of as a sorted LIST
+    // (sector_population.py:574-576) with configured_current/complete/
+    // unaccounted all null — now covered at the render layer too.
+    pageMutate = producerNonAgree({ status: "mismatch", reason: "capture_effective_as_of_not_single",
+      roster_as_of: "2026-11-06", capture_effective_as_of: ["2026-11-06", "2026-11-07"] });
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(countsLine(container)).not.toContain("1020");
+    expect(clockNote(container)).toContain("roster clock does not agree with the capture session");
+    expect(cell(container, 0, 0)).toBeTruthy(); // the member list itself still renders
+    act(() => root.unmount());
   });
 
   it("N-4: an agree label over differing clocks keeps the counts not stated beside a clock note (en)", async () => {

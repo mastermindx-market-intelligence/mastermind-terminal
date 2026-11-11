@@ -557,7 +557,11 @@ export function groupReliability(
 }
 
 export function reliability(nPriced: number | null | undefined): ReliabilityTier {
-  const n = nPriced ?? 0;
+  // N-3 (r2 follow-up): a null count is NOT a measured 0 — "not stated",
+  // never a fabricated "low" from a coerced 0 (same law as groupReliability
+  // above). Real numbers keep the exact threshold derivation.
+  const n = nPriced ?? null;
+  if (n === null) return "not_stated";
   if (n >= RELIABLE_MIN) return "high";
   if (n >= RELIABLE_MED) return "med";
   return "low";

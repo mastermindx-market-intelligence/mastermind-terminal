@@ -152,10 +152,15 @@ export function fmtThemePct(v: number): string {
  * `float(b.mean())`; the 0.25/0.55 band thresholds at engine/theme_context.py:72,81
  * confirm the 0–1 scale). The table shows it as a percent, one decimal,
  * UNSIGNED — it is a share, not a delta, so it never takes fmtThemePct's sign
- * (N6: unit established from the producer source, then formatted to match). */
-export function fmtThemeBreadth(v: number): string {
-  const p = v * 100;
-  return (p >= 100 ? p.toFixed(0) : p.toFixed(1)) + "%";
+ * (N6: unit established from the producer source, then formatted to match).
+ * N-11 (r2 follow-up): ONE form at every value — one decimal, the form the
+ * rest of the column already uses, so 0.9996 and 1 both read "100.0%" (the
+ * old ≥100 branch printed 1 as "100%"). A value outside [0,1] — or a null or
+ * non-number — is not a share the producer establishes: the localized
+ * not-stated word, never a figure above 100%, never a clamped one. */
+export function fmtThemeBreadth(v: number | null, notStated: string): string {
+  if (typeof v !== "number" || !Number.isFinite(v) || v < 0 || v > 1) return notStated;
+  return (v * 100).toFixed(1) + "%";
 }
 
 /* ── theme_rows vocabulary (producer words → authored lexicon) ─────────────
@@ -606,7 +611,7 @@ export function SectorThemeCompare({
                       <td className={styles.td} data-val={health.val ?? undefined}>{health.text}</td>
                       <td className={styles.td} data-val={val.val ?? undefined}>{val.text}</td>
                       <td className={styles.td} data-k="breadth">
-                        {row.state.breadth === null ? notStated : fmtThemeBreadth(row.state.breadth)}
+                        {fmtThemeBreadth(row.state.breadth, notStated)}
                       </td>
                       <td
                         className={styles.td}

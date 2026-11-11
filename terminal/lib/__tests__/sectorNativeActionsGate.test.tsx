@@ -254,3 +254,47 @@ describe("SectorNativeActions — R4 residue (third review, item 4): a pending s
     expect(button("Check save status")).toBeDefined();
   });
 });
+
+describe("SectorNativeActions — r4 N-7 (round 2 item 6): the save state is keyed per account", () => {
+  let root: Root, host: HTMLDivElement;
+  beforeEach(() => { host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
+  afterEach(() => { act(() => root.unmount()); host.remove(); });
+
+  const flush = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+  const mount = async () => {
+    await act(async () => { root.render(<SectorNativeActions context={context} />); });
+    await flush();
+  };
+  const button = (text: string) => [...host.querySelectorAll("button")].find(b => b.textContent === text);
+  const switchTo = async (userId: string, email: string) => {
+    session.identity = { kind: "account", userId, email };
+    await act(async () => { root.render(<SectorNativeActions context={context} />); });
+    await flush();
+  };
+
+  it("A's journal survives B's save: B saves into B's own slot, and A's own state returns with A", async () => {
+    // Both saves lose their replies (non-JSON 503 ⇒ uncertain), so each account
+    // keeps a live recovery record — the exact world where losing one hurts.
+    saveAnswer = () => new Response("unavailable", { status: 503 });
+    await mount();
+    await act(async () => { button("Save")!.click(); });
+    await flush();
+    expect(button("Check save status")).toBeDefined(); // A's save is unconfirmed under A
+    // Switch A→B: B starts from B's own empty slot — no Check, no unconfirmed.
+    await switchTo(B, "b@example.test");
+    expect(button("Check save status")).toBeUndefined();
+    expect(host.textContent).not.toMatch(/Save unconfirmed/);
+    // B saves — B's record must land in B's slot WITHOUT overwriting A's.
+    await act(async () => { button("Save")!.click(); });
+    await flush();
+    expect(button("Check save status")).toBeDefined(); // B's own journey renders under B
+    const posts = calls.filter(call => call.method === "POST");
+    expect(posts).toHaveLength(2);
+    expect(posts.map(call => call.owner)).toEqual([A, B]); // both saves flew under their own owners
+    // Switch back: A sees A's OWN unconfirmed save again — B's save never
+    // consumed A's recovery record.
+    await switchTo(A, "a@example.test");
+    expect(button("Check save status")).toBeDefined();
+    expect(host.textContent).toMatch(/Save unconfirmed/);
+  });
+});

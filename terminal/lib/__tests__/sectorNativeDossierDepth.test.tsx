@@ -138,12 +138,13 @@ describe("DossierDepth calls-board navigation mount — third review rules (a)�
 
   const flush = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
-  /** A board whose hold lane carries one real theme row plus six crafted
-   * sector rows: the lawful target, the review's hostile ids (both pass the
-   * board's own isNavigableId), a missing id, and two evil-href rows — one on
-   * a foreign id, one on a REAL generation id. Every row is a deep clone of a
-   * real captured row with only the routing-relevant fields overridden, so
-   * the board's closed-shape admission still passes. */
+  /** A board whose hold lane carries one real theme row plus seven crafted
+   * rows: the lawful target, the review's hostile ids (both pass the board's
+   * own isNavigableId), a missing id, two evil-href rows — one on a foreign
+   * id, one on a REAL generation id — and a THEME row wearing a REAL sector
+   * id (r4 N-2: the Set gate alone must not be enough). Every row is a deep
+   * clone of a real captured row with only the routing-relevant fields
+   * overridden, so the board's closed-shape admission still passes. */
   const hostileBoardWire = (): Record<string, unknown> => {
     const wire = JSON.parse(JSON.stringify(capturedDoc)) as typeof capturedDoc;
     const board = wire.projection.data.action_board as { lanes: Record<string, { rows: unknown[]; total: number }> };
@@ -152,6 +153,7 @@ describe("DossierDepth calls-board navigation mount — third review rules (a)�
     const row = (over: Record<string, unknown>) => ({ ...JSON.parse(JSON.stringify(seed)), ...over });
     hold.rows = [
       seed, // the real theme row — rule (e): a theme row must do NOTHING
+      row({ kind: "theme", slug: "xlf", ticker: "TT5", name: "Theme row wearing a sector id", href: "basket/theme.html" }),
       row({ kind: "sector", slug: "xlk", ticker: "XLK", name: "Lawful tech row", href: "basket/tech.html" }),
       row({ kind: "sector", slug: "..", ticker: "TT1", name: "Dotdot hostile row" }),
       row({ kind: "sector", slug: "__proto__", ticker: "TT2", name: "Proto hostile row" }),
@@ -221,6 +223,11 @@ describe("DossierDepth calls-board navigation mount — third review rules (a)�
     // navigable-clean) but has no destination here — it must do nothing and
     // never feed the sector slot.
     await act(async () => { detailButton(mounted, "Test theme").click(); });
+    expect(onSelect).not.toHaveBeenCalled();
+    // r4 N-2: a THEME row whose slug EQUALS a real generation sector id
+    // ("xlf") passes the Set gate and every identifier rule — only the kind
+    // guard keeps a theme out of the sector slot. This click pins that guard.
+    await act(async () => { detailButton(mounted, "Theme row wearing a sector id").click(); });
     expect(onSelect).not.toHaveBeenCalled();
     // A REAL id with a hostile href selects exactly its id: routing is by
     // identity, the href is never read, and the location never moves.

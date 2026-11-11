@@ -187,4 +187,39 @@ describe("sector intelligence action components", () => {
     expect(host.querySelector("button")?.hasAttribute("disabled")).toBe(true);
     expect(status()).toContain("登录后保存");
   });
+
+  it("r4 N-7: A's in-flight save never disables B's Save after the switch (the flight flag is per account)", async () => {
+    // A's POST hangs in flight while the surface re-binds to account B on the
+    // SAME component instance (no remount): B's Save must stand enabled and
+    // read B's idle label, and A's late reply must neither clear a flag B
+    // raised nor forge a result — the journal stays A's raw recovery record.
+    const PRINCIPAL_B = "22222222-2222-4222-8222-222222222222";
+    let answerA: ((value: Response) => void) | null = null;
+    routes["/api/investigations"] = () => new Promise<Response>(resolve => { answerA = resolve; });
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    root = createRoot(host);
+    const states: InvestigationSaveState[] = [];
+    const mountAs = async (principal: string | null) => {
+      await act(async () => {
+        root.render(<SaveInvestigationButton principal={principal} command={command} lang="en" copy={saveCopy} onStateChange={s => states.push(s)} />);
+      });
+    };
+    await mountAs(PRINCIPAL);
+    await click(0);
+    expect(host.querySelector("button")!.hasAttribute("disabled")).toBe(true); // A's own flight disables A's Save
+    // The account switches on the same mounted button — no remount, no reset.
+    await mountAs(PRINCIPAL_B);
+    expect(host.querySelector("button")!.hasAttribute("disabled")).toBe(false); // never disabled by A's pending POST
+    expect(host.querySelector("button")!.textContent).toBe("Save");             // B's idle label, not A's "Saving…"
+    expect(status()).toBe("Save");                                              // no unconfirmed line under B
+    // A's reply lands at last: a non-JSON 503 keeps A's operation uncertain.
+    await act(async () => { answerA!(new Response("unavailable", { status: 503 })); });
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+    expect(host.querySelector("button")!.hasAttribute("disabled")).toBe(false); // A's reply cleared only A's flag
+    expect(status()).toBe("Save");                                              // B still sees nothing of A's journey
+    const journal = states.at(-1);
+    expect(journal?.phase).toBe("uncertain");                    // the caller-owned record survives…
+    expect(journal?.phase === "uncertain" ? journal.principal : null).toBe(PRINCIPAL); // …owned by A
+  });
 });

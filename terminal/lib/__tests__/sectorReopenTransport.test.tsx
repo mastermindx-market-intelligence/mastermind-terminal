@@ -26,7 +26,8 @@ import { join } from "node:path";
 import InvestigationWorkspace, { SECTOR_REOPEN_TRANSPORT } from "@/components/workspaces/InvestigationWorkspace";
 import { reopenCurrent, reopenOriginal } from "@/lib/sectorInvestigationReopen";
 
-vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }) }));
+const i18n = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
+vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: i18n.lang }) }));
 vi.mock("next/link", () => ({ default: ({ children, href }: React.PropsWithChildren<{ href: string }>) => <a href={href}>{children}</a> }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }) } }) }));
 
@@ -44,6 +45,7 @@ const json = (body: unknown, status = 200) =>
 
 beforeEach(() => {
   sessionStorage.clear();
+  i18n.lang = "en";
 });
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -144,5 +146,166 @@ describe("mounted workspace — a failed reopen lands in the retry card, never a
     await act(async () => { retry.click(); });
     expect(host.querySelector('[data-sector-reopen="original"]')).not.toBeNull();
     expect(host.textContent).not.toContain("could not be reopened");
+  });
+});
+
+describe("mounted workspace — r3 N-8 ruling (round 2 part 1b): the eyebrow is a stated date, never a raw owner id", () => {
+  let root: Root, host: HTMLDivElement;
+  let sectorAnswer: () => Response | Promise<Response>;
+  let versionRef: string;
+  const population = (body: Record<string, unknown>) =>
+    ((body.page as Record<string, unknown>).capture as Record<string, unknown>).population as Record<string, unknown>;
+  /** The served page, deep-copied from the fixture and mutated per test. */
+  const pageWith = (mutate?: (body: Record<string, unknown>) => void) => {
+    const body = JSON.parse(JSON.stringify(fixture)) as Record<string, unknown>;
+    mutate?.(body);
+    return body;
+  };
+  const manifest = {
+    schema: "investigation_manifest.v3",
+    intent: {
+      title: "Sector leadership", question: "Is the financials leadership retained?",
+      subjects: [{ kind: "sector", owner: "macro.sector", object_id: "xlf" }],
+    },
+    layout_refs: [], thesis_refs: [],
+    evidence_refs: [{ owner: "macro.sector", object_type: "sector_observation", object_id: "xlf", mode: "pinned",
+      version_ref: IDENTITY.generation_id, fingerprint: IDENTITY.content_id, context_ref: CONTEXT_REF }],
+    continuation: {},
+  };
+  beforeEach(() => {
+    host = document.createElement("div"); document.body.append(host); root = createRoot(host);
+    versionRef = IDENTITY.generation_id;
+    sectorAnswer = () => json(fixture);
+    vi.stubGlobal("fetch", vi.fn((url: string) => {
+      if (url.startsWith("/api/sector-intelligence?")) return sectorAnswer();
+      if (url.startsWith("/api/investigations?")) return Promise.resolve(json({ status: "found", id: ID, revision: 1, current_revision: 1, lifecycle: "active",
+        manifest: { ...manifest, evidence_refs: manifest.evidence_refs.map(ref => ({ ...ref, version_ref: versionRef })) }, committed_at: "2026-11-06T00:00:00Z", layouts: [] }));
+      if (url === "/api/investigations") return Promise.resolve(json({ status: "listed", items: [] }));
+      if (url === "/api/layouts") return Promise.resolve(json({ layouts: [] }));
+      if (url === "/api/alerts") return Promise.resolve(json({ alerts: [] }));
+      if (url === "/api/alerts/receipts") return Promise.resolve(json({ outbox: [] }));
+      return Promise.resolve(json({}));
+    }));
+  });
+  afterEach(() => { act(() => root.unmount()); host.remove(); });
+
+  const mount = async () => {
+    await act(async () => { root.render(<InvestigationWorkspace ownerKey="local-preview" initialInvestigationId={ID} initialRevision={1} />); });
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+  };
+  const card = () => host.querySelector('[data-sector-reopen="original"]');
+
+  it("an agreeing clock dates the eyebrow in English; the raw id stays an attribute, never text", async () => {
+    sectorAnswer = () => json(pageWith(body => {
+      population(body).roster_clock = { status: "agree", roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-07" };
+    }));
+    await mount();
+    const original = card();
+    expect(original, "original card missing").not.toBeNull();
+    expect(original!.textContent).toContain("As of 2026-11-07"); // the clock's exact date, as carried
+    expect(original!.textContent).not.toContain("As of 2026-11-06"); // never the session date by other means
+    expect(original!.textContent).not.toContain(IDENTITY.generation_id); // the raw id is never visible text
+    expect(original!.textContent).not.toMatch(/Generation/);
+    expect(original!.getAttribute("data-generation-id")).toBe(IDENTITY.generation_id); // still readable for support/tests
+  });
+
+  it("the same agreeing clock dates the eyebrow in Chinese (zh)", async () => {
+    i18n.lang = "zh";
+    sectorAnswer = () => json(pageWith(body => {
+      population(body).roster_clock = { status: "agree", roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-07" };
+    }));
+    await mount();
+    const original = card();
+    expect(original, "original card missing").not.toBeNull();
+    expect(original!.textContent).toContain("截至 2026-11-07");
+    expect(original!.textContent).not.toContain(IDENTITY.generation_id);
+    expect(original!.getAttribute("data-generation-id")).toBe(IDENTITY.generation_id);
+  });
+
+  it("a clock that does not agree states no date: no as-of line, no id text (en)", async () => {
+    sectorAnswer = () => json(pageWith(body => {
+      population(body).roster_clock = { status: "mismatch", reason: "roster_as_of_mismatch",
+        roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-07" };
+    }));
+    await mount();
+    const original = card();
+    expect(original, "original card missing").not.toBeNull();
+    expect(original!.textContent).not.toMatch(/As of|截至/);
+    expect(original!.textContent).not.toContain(IDENTITY.generation_id);
+    expect(original!.getAttribute("data-generation-id")).toBe(IDENTITY.generation_id);
+  });
+
+  it("an absent clock (today's wire) states no date: no as-of line, no id text (en)", async () => {
+    await mount(); // the unmutated fixture carries no roster_clock key at all
+    const original = card();
+    expect(original, "original card missing").not.toBeNull();
+    expect(original!.textContent).not.toMatch(/As of|截至/);
+    expect(original!.textContent).not.toContain(IDENTITY.generation_id);
+    expect(original!.getAttribute("data-generation-id")).toBe(IDENTITY.generation_id);
+  });
+
+  it("a two-date list (not_single) is not one stated date: no as-of line, no id text (en)", async () => {
+    sectorAnswer = () => json(pageWith(body => {
+      population(body).roster_clock = { status: "mismatch", reason: "capture_effective_as_of_not_single",
+        roster_as_of: "2026-11-06", capture_effective_as_of: ["2026-11-06", "2026-11-07"] };
+    }));
+    await mount();
+    const original = card();
+    expect(original, "original card missing").not.toBeNull();
+    expect(original!.textContent).not.toMatch(/As of|截至/);
+    expect(original!.textContent).not.toContain("2026-11-06"); // neither list date leaks either
+    expect(original!.textContent).not.toContain("2026-11-07");
+    expect(original!.textContent).not.toContain(IDENTITY.generation_id);
+  });
+
+  it("a hostile id in the answered page never becomes visible text — it cannot reach the original card at all (en)", async () => {
+    // captureIdentityOf reads owner_ref.generation_id with no charset check, but the
+    // SAVED version_ref had to pass NATIVE_SECTOR_TOKEN (investigationContracts.ts:364 —
+    // the same grammar as the page decoder's TOKEN128), and sameCaptureIdentity demands
+    // equality. So a hostile page id classifies identity_mismatch and lands in the
+    // unavailable card: it can never ride the original branch, its eyebrow or its date.
+    const hostile = "<script>alert(1)</script>";
+    sectorAnswer = () => json(pageWith(body => {
+      (((body.page as Record<string, unknown>).capture as Record<string, unknown>).owner_ref as Record<string, unknown>).generation_id = hostile;
+    }));
+    await mount();
+    expect(card(), "hostile id must never open the original card").toBeNull();
+    expect(host.querySelector('[data-sector-reopen="original_unavailable"]')).not.toBeNull();
+    expect(host.textContent).not.toContain("<script>");
+    expect(host.textContent).not.toContain("alert(1)");
+    expect(host.textContent).not.toMatch(/As of|截至/); // page null ⇒ no stated date anywhere
+  });
+
+  it("a date-LOOKING id never becomes the date — the eyebrow's date comes from the clock alone (en)", async () => {
+    // "2026-11-06" is a lawful generation id token: with no clock it must not
+    // print at all, and with an agreeing clock for a different night it must
+    // not become that line's date.
+    const dateLooking = "2026-11-06";
+    versionRef = dateLooking;
+    sectorAnswer = () => json(pageWith(body => {
+      (((body.page as Record<string, unknown>).capture as Record<string, unknown>).owner_ref as Record<string, unknown>).generation_id = dateLooking;
+    }));
+    await mount();
+    const original = card();
+    expect(original, "original card missing").not.toBeNull();
+    expect(original!.textContent).not.toContain("2026-11-06"); // the id prints nowhere
+    expect(original!.textContent).not.toMatch(/As of|截至/);
+    expect(original!.getAttribute("data-generation-id")).toBe(dateLooking);
+
+    sectorAnswer = () => json(pageWith(body => {
+      (((body.page as Record<string, unknown>).capture as Record<string, unknown>).owner_ref as Record<string, unknown>).generation_id = dateLooking;
+      population(body).roster_clock = { status: "agree", roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-07" };
+    }));
+    // A fresh mount on the same stubbed wire (re-rendering the same instance
+    // would re-run no effect and refetch nothing): the agreeing clock now
+    // states a date, and the id's date-shaped text must still not become it.
+    act(() => { root.unmount(); }); host.remove();
+    host = document.createElement("div"); document.body.append(host); root = createRoot(host);
+    await mount();
+    const second = card();
+    expect(second, "original card missing").not.toBeNull();
+    expect(second!.textContent).toContain("As of 2026-11-07"); // the clock's date…
+    expect(second!.textContent).not.toContain("As of 2026-11-06"); // …never the id's date-shaped text
+    expect(second!.getAttribute("data-generation-id")).toBe(dateLooking);
   });
 });
