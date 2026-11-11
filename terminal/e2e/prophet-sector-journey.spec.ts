@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import populationWire from "../lib/__tests__/fixtures/sector_population.captured.v11_page1.json";
+import { nativeGenerationFixture } from "../lib/__tests__/fixtures/sectorNativeGeneration";
+import { sectorFixture } from "./fixtures/sector-company-v3";
 
 /**
  * Prophet × Sector Intelligence — the first vertical slice (Lead B).
@@ -357,10 +359,20 @@ test.describe("Sector → Prophet entry (needs the isolated sector-side commit)"
 
   /** The population wire the golden capture decoder accepts, filtered to the
    * Industrials basket with Prophet-eligible rows — the sector side's own wire
-   * shape, extended by nothing this test invents beyond its rows. */
+   * shape, extended by nothing this test invents beyond its rows. The decoder's
+   * paging laws: a page never carries more rows than its own limit (the
+   * capture's limit is 2, so the 3-row page must raise it), and a final page
+   * says complete:true exactly when its cursor is cleared. */
   function industrialsPopulationWire() {
     const body = JSON.parse(JSON.stringify(populationWire)) as {
-      page: { rows: Record<string, unknown>[]; total_matching: number; next_cursor: null };
+      page: {
+        rows: Record<string, unknown>[];
+        filter: { group: string | null };
+        limit: number;
+        total_matching: number;
+        next_cursor: null;
+        complete: boolean;
+      };
     };
     const row = (ordinal: number, symbol: string, name: string, industry: string) => ({
       ...body.page.rows[0],
@@ -373,22 +385,59 @@ test.describe("Sector → Prophet entry (needs the isolated sector-side commit)"
       row(1, "ALLE", "Allegion plc", "Industrials"),
       row(2, "ADP", "Automatic Data Processing", "Industrials"),
     ];
+    body.page.filter.group = "us_sector_industrials";
+    body.page.limit = 3;
     body.page.total_matching = 3;
     body.page.next_cursor = null;
+    body.page.complete = true;
     return body;
   }
 
   test("the member row links into Prophet and the return restores the exact origin", async ({ page }) => {
     test.setTimeout(90_000);
     await withLang(page);
-    await page.route("**/api/sector-intelligence?*source=population*", route =>
-      route.fulfill({
-        status: 200,
-        json: industrialsPopulationWire(),
-        headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store" },
-      }));
+    // The dossier needs a decoding generation feed before it renders any view
+    // (its honest no-generation state is a transport card, not the member
+    // table), so this stub serves the whole sector-intelligence family the
+    // same way sector-leadership-dossier.spec.ts does: the shared fixture for
+    // every feed, the population capture extended with Prophet-eligible rows,
+    // and a synthetic generation parent.
+    await page.route("**/api/sector-intelligence?**", async route => {
+      const source = new URL(route.request().url()).searchParams.get("source") || "";
+      if (source === "population") {
+        return route.fulfill({
+          status: 200,
+          json: industrialsPopulationWire(),
+          headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store" },
+        });
+      }
+      if (source === "generation") {
+        return route.fulfill({ status: 200, json: { data: nativeGenerationFixture({
+          as_of: "2026-11-06",
+          sectors: [{ id: "xlk", name: "Technology", name_zh: "科技", ticker: "XLK",
+            momentum: { rs_21d_rank: 1, rs_rank: 3, above_200d: true, lead: "leading" },
+            heat: { breadth_pct: 58, adv: 46, dec: 33, heat_1M: 7.01 },
+            cycle: { phaseLabel: "Rolling over" }, conviction: { label_en: "Cautious" }, rotation: { state: "TURN SIGNALED" } }],
+        }), receipt: { source, path: "/api/sector-generation?audience=preview", status: "ready",
+          asOf: "2026-11-06", observedAt: "2026-11-06T21:00:00Z", stale: false, contentHash: "sha256:transport" } } });
+      }
+      if (source === "sector") {
+        return route.fulfill({ status: 200, json: { data: {
+          as_of: "2026-11-06",
+          sectors: [{ id: "xlk", name: "Technology", name_zh: "科技", ticker: "XLK",
+            momentum: { rs_21d_rank: 1, rs_rank: 3, above_200d: true, lead: "leading" },
+            heat: { breadth_pct: 58, adv: 46, dec: 33, heat_1M: 7.01 },
+            cycle: { phaseLabel: "Rolling over" }, conviction: { label_en: "Cautious" }, rotation: { state: "TURN SIGNALED" } }],
+        }, receipt: { source, path: "/sectordata/sector_central.json", status: "ready",
+          asOf: "2026-11-06", observedAt: "2026-11-06T21:00:00Z", stale: false, contentHash: "sha256:transport" } } });
+      }
+      return sectorFixture(route);
+    });
 
-    const origin = "/discover?tab=sectors&sectorWorkspace=detail&sectorView=companies";
+    // The dossier's Companies view needs the full workspace state in the
+    // address: sectorWorkspace=detail alone keeps the legacy detail surface —
+    // the native dossier (population members) is active only with a sectorJob.
+    const origin = "/discover?tab=sectors&sectorWorkspace=detail&sectorJob=research&sectorView=companies&group=us_sector_industrials";
     await page.goto(origin);
     // The sector side's own table is up (its wire, its decoder).
     const carrRow = page.getByRole("row", { name: /CARR/ }).first();
@@ -398,7 +447,8 @@ test.describe("Sector → Prophet entry (needs the isolated sector-side commit)"
     await expect(carrRow).toContainText(/Prophet/i);
 
     const link = carrRow.getByTestId("population-row-prophet").first();
-    await expect(link).toHaveAttribute("href", /prophetLane=sector&prophetGroup=us_sector_industrials/);
+    await expect(link).toHaveAttribute("href",
+      /prophetLane=sector&prophetView=population&prophetGroup=us_sector_industrials&prophetFrom=/);
     // The entitled reader follows it into the population.
     await link.click();
     await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 20_000 });
