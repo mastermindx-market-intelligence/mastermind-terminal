@@ -402,7 +402,7 @@ jobs:
       # whole unit suite serialized in one runner.
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs e2e/tools/ticker_news_capture_receipt.test.cjs
+        run: node --test e2e/tools/briefs_inbox_capture_contract.test.cjs e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs e2e/tools/ticker_news_capture_receipt.test.cjs
       - name: Record PR-touched paths for the evidence drift gate
         # The planner below fails a pull request whose OWN diff drifted an
         # evidence-locked source without a recaptured, committed lock — the
@@ -442,6 +442,12 @@ jobs:
           TERMINAL_CROP_PORT: "47283"
           TMPDIR: ${{ runner.temp }}/terminal-ci-evidence
         run: node e2e/tools/capture_e18_alert_management.cjs
+      - name: Capture current-source recurring inbox evidence
+        timeout-minutes: 8
+        env:
+          TERMINAL_CROP_PORT: "47284"
+          TMPDIR: ${{ runner.temp }}/terminal-ci-evidence
+        run: node e2e/tools/capture_b_f11_7_recurring_briefs.cjs --active-inbox
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 85
@@ -602,6 +608,7 @@ jobs:
             terminal/test-results/
             terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
             terminal/docs/pr-crops/e18-alert-management/
+            terminal/docs/pr-crops/b-f11-7-active-inbox/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml

@@ -1,0 +1,40 @@
+{
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pr": 1033,
+  "parent": "b4f0b78d651aec96ee0aa72f4333071b53592bc7",
+  "lawPin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "source": "terminal/components/fin/TranscriptDrawer.tsx",
+  "oldSha256": "8858a50921e889639bdb0e1b085756152ba89c0b5c121ff84db9d7bb42bf1267",
+  "newSha256": "8180e3e0d1fec93a8265f5e960cfadbe588548ee24599e70c7815a8cf6847759",
+  "sourceDiff": "diff --git a/terminal/components/fin/TranscriptDrawer.tsx b/terminal/components/fin/TranscriptDrawer.tsx\nindex 10972e373..999070fa1 100644\n--- a/terminal/components/fin/TranscriptDrawer.tsx\n+++ b/terminal/components/fin/TranscriptDrawer.tsx\n@@ -189,15 +189,15 @@ export default function TranscriptDrawer({ sym, id, name, focus, onClose }: Tran\n   const rawUrl = transcriptBodyUrl(sym, id);\n \n   useEffect(() => {\n-    if (!tx || load.error || focus?.segment_index === undefined) return;\n+    if (!mounted || !tx || load.error || focus?.segment_index === undefined) return;\n     const targetKey = `${sym}:${id}:${focus.segment_index}:${focus.expected_document_sha256 ?? \"\"}`;\n     if (jumpedTargetRef.current === targetKey) return;\n-    const target = document.querySelector<HTMLElement>(`.fin-tx-seg[data-segment=\"${focus.segment_index + 1}\"]`);\n+    const target = drawerRef.current?.querySelector<HTMLElement>(`.fin-tx-seg[data-segment=\"${focus.segment_index + 1}\"]`);\n     if (!target) return;\n     jumpedTargetRef.current = targetKey;\n     target.scrollIntoView({ block: \"center\", behavior: \"smooth\" });\n     target.focus({ preventScroll: true });\n-  }, [focus?.expected_document_sha256, focus?.segment_index, id, load.error, sym, tx]);\n+  }, [mounted, focus?.expected_document_sha256, focus?.segment_index, id, load.error, sym, tx]);\n \n   useEffect(() => () => {\n     // A closed or changed reader cannot receive a previous copy result.\n",
+  "hostedFailure": {
+    "runId": 43000889110,
+    "jobId": 130457128921,
+    "head": "b4f0b78d651aec96ee0aa72f4333071b53592bc7",
+    "attempts": 3,
+    "test": "transcript-compare.spec.ts:771",
+    "assertion": "segment 3 focused on second source reopen",
+    "passed": 184,
+    "skipped": 32,
+    "failed": 1,
+    "rawLogSha256": "524a5f9a03d0966857f61538315d18b284d18a4cbf8f7de4eeda8a20b8d96320"
+  },
+  "checks": {
+    "negativeOriginalSource": {
+      "failed": 2,
+      "passed": 2
+    },
+    "focusedTests": 55,
+    "changedFileLintExit": 0,
+    "browserCollectionInstances": 42,
+    "freshBrowserExecution": false
+  },
+  "scope": {
+    "producerActivation": false,
+    "productionAcceptance": false,
+    "newTimeoutsOrRetries": false,
+    "existingBrowserSpecUnchanged": true,
+    "noMergeOrRelease": true
+  },
+  "logRepresentation": "ANSI removed and trailing whitespace normalized; raw hosted log SHA-256 retained separately"
+}

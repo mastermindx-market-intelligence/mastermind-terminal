@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1033/terminal
+
+ ✓ lib/__tests__/briefsBody.test.ts (24 tests) 21ms
+ ✓ lib/__tests__/briefsRoute.test.ts (21 tests) 395ms
+ ✓ lib/__tests__/BriefsInbox.test.tsx (14 tests) 163ms
+ ✓ lib/__tests__/BriefsInbox.deliveryOwnership.test.tsx (38 tests) 292ms
+
+ Test Files  4 passed (4)
+      Tests  97 passed (97)
+   Start at  02:06:27
+   Duration  1.96s (transform 536ms, setup 0ms, collect 759ms, tests 870ms, environment 1.36s, prepare 440ms)
+
