@@ -1,0 +1,36 @@
+{
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+    "-t",
+    "mirrors dangling entries while preserving source alias semantics",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/docs/verification/pr650-evidence-shadow-links-20261109/regression-red-r1/report.json"
+  ],
+  "exit": 1,
+  "failures": [
+    {
+      "ancestorTitles": [
+        "shadow evidence repositories"
+      ],
+      "duration": 8.391625000000005,
+      "failureMessages": [
+        "Error: ENOENT: no such file or directory, stat '/tmp/eod-shadow-source-osTlBg/macro-site-link'\n    at Proxy.statSync (node:fs:2084:25)\n    at mirror (/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts:32:40)\n    at shadowRepo (/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts:35:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts:50:20\n    at file:///Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/terminal/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/terminal/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/terminal/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at runSuite (file:///Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)"
+      ],
+      "fullName": "shadow evidence repositories mirrors dangling entries while preserving source alias semantics",
+      "meta": {},
+      "status": "failed",
+      "title": "mirrors dangling entries while preserving source alias semantics"
+    }
+  ],
+  "logSha256": "2cdf15b43147ff5fbcfcf9761fd8c36c096f52df8f4dc0fc9a1f5ef22e3b991b",
+  "observedAt": "2026-11-09T18:30:00.680519+00:00",
+  "reportSha256": "08df4d8f709f995c678c7c2e8155d2abc86ece24c5d894a509d129c8974e5740",
+  "schema": "terminal_evidence_shadow_actual_red.v1",
+  "seconds": 2.15,
+  "sourceSha256": "a7bca808f1bc1bb8820cbca46a0bafc84d5a2040a92fd9618d6f795ffdae7a9b",
+  "sourceStable": true,
+  "state": "DANGLING_LINK_FAILURE_REPRODUCED"
+}

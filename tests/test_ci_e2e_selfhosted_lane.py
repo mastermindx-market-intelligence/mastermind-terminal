@@ -1,11 +1,13 @@
 """The `terminal-e2e` matrix job carries a repository-variable-gated lane switch
 (Mastermind #917, phase 9). These tests pin its safety contract:
 
-* with the variable unset, the hosted job preserves ubuntu-latest, one worker
-  and ports 3108 / 31991 / 31992;
+* with the variable unset, the hosted job runs on the GitHub-hosted
+  `ubuntu-24.04` image (never `ubuntu-latest`, which the fleet also carries),
+  one worker and ports 3108 / 31991 / 31992;
 * this unchanged workflow routes a fork pull_request to hosted runners,
   regardless of the variable; the runbook retains the separate host boundary;
-* the hosted fallback is a literal, so a broken expression cannot land on the host;
+* the hosted fallback is a literal, so a broken expression cannot land on the host,
+  and a fallback label the fleet also carries is rejected;
 * only the accepted protected selector's matrix.projects and matrix.specs fields
   are spliced into browser run blocks; lane values travel as env and are bound by
   .github/scripts/terminal_e2e_lane.sh, which rejects bad input.
@@ -42,13 +44,49 @@ def e2e_job() -> dict[str, Any]:
     return ci()["jobs"]["terminal-e2e"]
 
 
-EXPECTED_RUNS_ON = f"${{{{ {LANE_CONDITION} && fromJSON('{HOST_LABELS}') || 'ubuntu-latest' }}}}"
+HOSTED_FALLBACK = "ubuntu-24.04"
+# Labels the fleet runners also carry. A hosted fallback must never be one of these:
+# with `run-on: ... || 'ubuntu-latest'` the fleet hosts accept the "hosted" shards,
+# where the fixed port 3108 collides with a neighbouring slot and `--with-deps` apt
+# stalls (measured 2026-11-10: 16/26 fleet shard jobs failed versus 11/273 hosted).
+FLEET_MATCHING_RUNNER_LABELS = frozenset({"ubuntu-latest"})
+RUNS_ON_FALLBACK = re.compile(r"\|\|\s*'([^']+)'\s*\}\}$")
+
+
+def hosted_fallback(runs_on: str) -> str:
+    match = RUNS_ON_FALLBACK.search(runs_on)
+    assert match, f"runs-on has no literal hosted fallback: {runs_on!r}"
+    return match.group(1)
+
+
+def assert_hosted_fallback_is_fleet_exclusive(runs_on: str) -> None:
+    fallback = hosted_fallback(runs_on)
+    assert fallback not in FLEET_MATCHING_RUNNER_LABELS, (
+        f"hosted fallback {fallback!r} is rejected: it matches fleet runners"
+    )
+
+
+EXPECTED_RUNS_ON = f"${{{{ {LANE_CONDITION} && fromJSON('{HOST_LABELS}') || '{HOSTED_FALLBACK}' }}}}"
 
 
 def test_runs_on_is_exactly_the_gated_expression_with_literal_fallback() -> None:
     # Exact equality: a widened condition (e.g. `|| head.repo.fork`) or a split between
     # runs-on and the lane env would otherwise slip past substring checks.
     assert e2e_job()["runs-on"] == EXPECTED_RUNS_ON
+
+
+def test_hosted_fallback_is_a_github_hosted_image_no_fleet_runner_carries() -> None:
+    assert hosted_fallback(e2e_job()["runs-on"]) == HOSTED_FALLBACK
+    assert_hosted_fallback_is_fleet_exclusive(e2e_job()["runs-on"])
+
+
+def test_negative_ubuntu_latest_hosted_fallback_is_rejected() -> None:
+    # The pre-2026-11-10 expression. It must fail the fleet-exclusivity check, or the
+    # invariant has no negative test behind it: ubuntu-latest is rejected because it
+    # matches fleet runners.
+    prior = EXPECTED_RUNS_ON.replace(f"'{HOSTED_FALLBACK}'", "'ubuntu-latest'")
+    with pytest.raises(AssertionError, match="it matches fleet runners"):
+        assert_hosted_fallback_is_fleet_exclusive(prior)
 
 
 def test_check_names_are_unchanged_on_both_lanes() -> None:

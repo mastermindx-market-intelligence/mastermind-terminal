@@ -1,0 +1,92 @@
+{
+  "boundAt": "2026-11-10T17:12:25.208217+00:00",
+  "captureExecutionSha256": "f1e81797495174235c8eab758193efef88269bba8c85f446bfd8408ad59457bd",
+  "captureHead": "139ec0574b57ecbb59d237dc315c8276dd307794",
+  "currentManifestSha256": "e1b7a5dea4a9b6abde3df3eaac7ee49d3ac34a33987e2f628dae1ea9c5144859",
+  "images": {
+    "desktop-en-dark.png": {
+      "bytes": 52359,
+      "modifiedDuringCapture": true,
+      "pngHeight": 707,
+      "pngWidth": 344,
+      "sha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04"
+    },
+    "desktop-zh-dark.png": {
+      "bytes": 51972,
+      "modifiedDuringCapture": true,
+      "pngHeight": 707,
+      "pngWidth": 344,
+      "sha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d"
+    },
+    "mobile-en-dark.png": {
+      "bytes": 52998,
+      "modifiedDuringCapture": true,
+      "pngHeight": 669,
+      "pngWidth": 390,
+      "sha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28"
+    },
+    "mobile-zh-dark.png": {
+      "bytes": 53955,
+      "modifiedDuringCapture": true,
+      "pngHeight": 655,
+      "pngWidth": 390,
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585"
+    },
+    "tablet-en-dark.png": {
+      "bytes": 54550,
+      "modifiedDuringCapture": true,
+      "pngHeight": 565,
+      "pngWidth": 820,
+      "sha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69"
+    },
+    "tablet-zh-dark.png": {
+      "bytes": 55964,
+      "modifiedDuringCapture": true,
+      "pngHeight": 565,
+      "pngWidth": 820,
+      "sha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5"
+    },
+    "unavailable-desktop-en-dark.png": {
+      "bytes": 10069,
+      "modifiedDuringCapture": true,
+      "pngHeight": 707,
+      "pngWidth": 344,
+      "sha256": "d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048"
+    },
+    "unavailable-desktop-zh-dark.png": {
+      "bytes": 8590,
+      "modifiedDuringCapture": true,
+      "pngHeight": 707,
+      "pngWidth": 344,
+      "sha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8"
+    },
+    "unavailable-mobile-en-dark.png": {
+      "bytes": 8131,
+      "modifiedDuringCapture": true,
+      "pngHeight": 180,
+      "pngWidth": 390,
+      "sha256": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61"
+    },
+    "unavailable-mobile-zh-dark.png": {
+      "bytes": 6792,
+      "modifiedDuringCapture": true,
+      "pngHeight": 180,
+      "pngWidth": 390,
+      "sha256": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792"
+    }
+  },
+  "layouts": {
+    "terminal/components/TerminalShell.tsx": "9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2"
+  },
+  "priorManifestSha256": "4d7988f7700d0beeea8e7249136f2e65cf75166526f51d2b77b03c0b7669e0b0",
+  "priorPackets": "prior-packet-preservation.json",
+  "protectedMaster": "3ba8e1a663a752c7de42c717c3826e722dda416d",
+  "schema": "terminal.pr1426.current-manifest-binding.v1",
+  "scope": "Real local UI with existing fixture data; no authenticated/installed/provider or production news acceptance.",
+  "sourceCompositionTree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957",
+  "sourceEntries": 2051,
+  "sourceSnapshotSha256": "1e2406fa135784b992f804631ebe73fa9b7344fbda8efff8d50596ce6908ce3e",
+  "state": "CURRENT_CAPTURE_BOUND"
+}

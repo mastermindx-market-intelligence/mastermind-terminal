@@ -1,0 +1,141 @@
+{
+  "schema": "terminal.f11-source-component-failure.v1",
+  "status": "FAILURE",
+  "capturedAtHead": "e7185790537fc5179c8aaaedce0312dcc8fce313",
+  "failedAt": "2026-11-10T09:01:57.849Z",
+  "errorCode": "F11_THESES_ENTRY_LABEL_MISMATCH",
+  "captureProfile": {
+    "server": {
+      "command": "next dev --webpack",
+      "mode": "development",
+      "reactDebugChannel": false,
+      "providerClosedChild": true,
+      "freshServerPerImage": true,
+      "distDir": ".next/f11",
+      "tsconfigPath": "tsconfig.f11.json"
+    },
+    "publicScriptObservation": {
+      "bodyAwaitBeforeFulfill": true,
+      "byteShaMimeEncoding": true,
+      "browserDeliveryEvents": true
+    },
+    "node": "v22.23.4",
+    "next": "16.2.9",
+    "playwright": "1.61.1",
+    "browser": {
+      "version": "149.0.7827.55",
+      "revision": "1228",
+      "launch": {
+        "headless": true
+      },
+      "serviceWorkers": "block",
+      "freshContextPerImage": true,
+      "freshBrowserPerImage": true
+    }
+  },
+  "file": "desktop-zh.png",
+  "requestBoundary": {
+    "forwarded": 13,
+    "unavailable": 0,
+    "businessUnavailable": 0,
+    "componentFundUnavailable": 0,
+    "aborted": 0,
+    "webSocketsBlocked": 0,
+    "redirectOrBadStatus": 0,
+    "failedAllowedResponses": [],
+    "publicScripts": [
+      {
+        "pathname": "/_next/static/chunks/webpack.js",
+        "bytes": 145558,
+        "sha256": "e46f36761aa84193c509c214f65d57148ef51964961acc07ac33e72c0ffbeced",
+        "mime": "application/javascript",
+        "fetchMs": 53.95137500000419,
+        "bodyMs": 1.728625000003376,
+        "fulfillMs": 9.487249999991036,
+        "encoding": "gzip",
+        "requestId": 1
+      }
+    ],
+    "scriptDelivery": [
+      {
+        "requestId": 1,
+        "pathname": "/_next/static/chunks/webpack.js",
+        "event": "finished"
+      }
+    ]
+  },
+  "pageErrorNames": [],
+  "consoleErrorKinds": [],
+  "bootstrapState": {
+    "readyState": "interactive",
+    "scriptCount": 28,
+    "nextRuntime": false,
+    "flightArray": true,
+    "flightConsumerInstalled": false,
+    "webpackRegistryPresent": true,
+    "webpackGroups": 0,
+    "registeredChunkIds": [],
+    "scripts": [
+      {
+        "pathname": "/_next/static/chunks/main-app.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/app-pages-internals.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/app/layout.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/app/error.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/app/not-found.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/app/global-error.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/polyfills.js",
+        "async": false,
+        "defer": false,
+        "type": "classic"
+      },
+      {
+        "pathname": "/_next/static/chunks/webpack.js",
+        "async": true,
+        "defer": false,
+        "type": "classic"
+      }
+    ]
+  }
+}

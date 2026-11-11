@@ -1,0 +1,61 @@
+{
+  "completedAt": "2026-11-09T17:06:37.072471+00:00",
+  "results": {
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/ChartBoatsStatus.tsx",
+        "lib/extQuoteCopy.ts",
+        "e2e/overnight-status.spec.ts",
+        "lib/__tests__/boatsChartCoverage.test.ts"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 3.22
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 53.64
+    },
+    "units": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/boatsChartCoverage.test.ts",
+        "lib/__tests__/boatsChartRefresh.test.ts",
+        "lib/__tests__/tiingoBoatsLiveHistory.test.ts",
+        "lib/__tests__/extQuoteFreshness.test.ts",
+        "lib/__tests__/tiingoBoatsCoverage.test.ts",
+        "lib/__tests__/boatsWarmCacheIntegration.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/tiingo24h-terminal-ux-20261103-sol/docs/verification/pr1268-source-integration-20261109/unit-type-lint-r1/units.json"
+      ],
+      "exit": 0,
+      "logSha256": "f71d4ffa082be9681646c7db918fcdab6b8e7746dd931584ae49b1715c734531",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 86,
+        "numPendingTests": 0,
+        "numTotalTests": 86,
+        "success": true
+      },
+      "seconds": 2.85
+    }
+  },
+  "schema": "terminal_pr1268_affected_units_type_lint.v1",
+  "sourceEntries": 1937,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:05:37.038985+00:00",
+  "state": "QUALIFIED"
+}

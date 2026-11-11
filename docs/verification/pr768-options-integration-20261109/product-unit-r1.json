@@ -1,0 +1,15 @@
+{
+  "schema": "terminal_pr768_product_unit.v1",
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/gexDeskPartialData.test.tsx",
+    "lib/__tests__/gexLadder.test.ts",
+    "lib/__tests__/dte.test.ts"
+  ],
+  "exit": 0,
+  "seconds": 5.0,
+  "completedAt": "2026-11-09T16:09:51.888911+00:00",
+  "log": "docs/verification/pr768-options-integration-20261109/product-unit-r1.log"
+}

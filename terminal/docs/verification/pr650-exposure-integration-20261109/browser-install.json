@@ -1,0 +1,13 @@
+{
+  "command": [
+    "node",
+    "node_modules/playwright/cli.js",
+    "install",
+    "--only-shell",
+    "chromium"
+  ],
+  "exit": 0,
+  "cache": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-exposure-integration-20261109/terminal/test-results/pr650-exposure-integration-20261109/playwright-browsers",
+  "sharedCacheModified": false,
+  "completedAt": "2026-11-09T14:08:58.978586+00:00"
+}

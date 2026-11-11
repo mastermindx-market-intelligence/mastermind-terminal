@@ -1,0 +1,47 @@
+{
+  "data_classification": "SYNTHETIC LOCAL",
+  "source_snapshot_ref": "synthetic:options-exposure-surface-journey/v1",
+  "root": "SPY",
+  "session": "2026-10-19",
+  "spot": 100,
+  "clock_frozen_at": "2026-10-19T20:30:00Z",
+  "lang": "zh",
+  "theme": "light",
+  "project": "mobile",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "screenshots": {
+    "overview-narrow320": "test-results/synthetic-exposure-surface-mobile-zh-overview-narrow320.png",
+    "overview": "test-results/synthetic-exposure-surface-mobile-zh-overview.png",
+    "surface-field": "test-results/synthetic-exposure-surface-mobile-zh-surface-field.png",
+    "surface-cell": "test-results/synthetic-exposure-surface-mobile-zh-surface-cell.png",
+    "selected-node": "test-results/synthetic-exposure-surface-mobile-zh-selected-node.png",
+    "chart-reference-fullscreen": "test-results/synthetic-exposure-surface-mobile-zh-chart-reference-fullscreen.png",
+    "chart-reference-narrow320": "test-results/synthetic-exposure-surface-mobile-zh-chart-reference-narrow320.png",
+    "chart-reference-narrow320-fullscreen": "test-results/synthetic-exposure-surface-mobile-zh-chart-reference-narrow320-fullscreen.png",
+    "chart-reference": "test-results/synthetic-exposure-surface-mobile-zh-chart-reference.png",
+    "return": "test-results/synthetic-exposure-surface-mobile-zh-return.png"
+  },
+  "actual_theme_by_stage": {
+    "overview-narrow320": "light",
+    "overview": "light",
+    "surface-field": "light",
+    "surface-cell": "light",
+    "selected-node": "light",
+    "chart-reference-fullscreen": "dark",
+    "chart-reference-narrow320": "dark",
+    "chart-reference-narrow320-fullscreen": "dark",
+    "chart-reference": "dark",
+    "return": "dark"
+  },
+  "blocked_external_requests": [
+    {
+      "origin": "https://www.mastermind-x.com",
+      "path": "/mm_brain.js"
+    }
+  ],
+  "browser_zoom_200_percent": "NOT PROVED — no CSS zoom or DPR substitute",
+  "cached_selection_latency_p95": "TARGET <100ms; NOT MEASURED"
+}

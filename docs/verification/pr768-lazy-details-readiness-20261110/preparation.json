@@ -1,0 +1,14 @@
+{
+  "afterSha256": "7d060fb90e21ab0989680d687f0f360042afa68d03a4a78b991c3df032360912",
+  "beforeSha256": "1aad6948cf067ed3639f79110b2f413f1d92e876a5ba4a71b914e5da4f2bc575",
+  "changes": "Lazy details readiness before baseline",
+  "packageLockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "pr": 768,
+  "publishedParent": "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c",
+  "runtimeCopy": "APFS clone of existing matching dependencies; no package installation",
+  "runtimeSource": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal",
+  "schema": "terminal_pr_test_readiness_preparation.v1",
+  "state": "PREPARED",
+  "target": "terminal/e2e/drawing-system.spec.ts",
+  "validationHead": "1b5fe9b88568e4d74dc48db84f10f198cb297153"
+}

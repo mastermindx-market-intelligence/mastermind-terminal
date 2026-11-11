@@ -1,0 +1,414 @@
+{
+  "terminal/docs/pr-crops/ticker-news-cn-hk/README.md": {
+    "gitBlob": "1022d3707b785c1e5d79ceb5257cda304c6545de",
+    "sha256": "17559066767e17a8d215e8949edb44bfa66463918993f95633c1e71aba0e4646"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/desktop-0700.HK-en-dark.png": {
+    "gitBlob": "b9653666d49b085c4d46c2fc16c9e84e27da339b",
+    "sha256": "6742824859b2c7af4174e1ac9a31cfb5fbf5913aeade7a37f01ec6567d3af611"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/desktop-0700.HK-en-light-specimen.png": {
+    "gitBlob": "40b95fd500c7fcf9d588f707091cf2668ce6ec78",
+    "sha256": "908fca3e0936709b6bbfbb645023b3ddb75e8b622a92ddf2f6c9f4b7f3ccf926"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/desktop-0700.HK-zh-dark.png": {
+    "gitBlob": "ec688043728ca4860fdf0a9ce6783ebf6fc5d26f",
+    "sha256": "8c0f95b0314f21d6744b039397769e303ef5db0831990b83ccb75f13e068bb1c"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/desktop-0700.HK-zh-light-specimen.png": {
+    "gitBlob": "40d13b790ab60ea9347ba40810de0c963a2c1b41",
+    "sha256": "963f08cf09d77a1dde9223a258a1a178f6b094d7e8bcdf72a6222257b12bf09d"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/desktop-600519.SS-en-dark.png": {
+    "gitBlob": "b6f058de44b4b1c212c19d0004a13d155e6fdd95",
+    "sha256": "0d471f8c72de4d4cf052180ebbb1cfa7ece55936adfbee765575bbe7e812697b"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/desktop-600519.SS-en-light-specimen.png": {
+    "gitBlob": "de98831c3e4785e2aa6585d68201bcc2dd2227de",
+    "sha256": "24169e920494e2f7bca1a76f003c5ce34ab94a66b29eec812d41903c065ac657"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/desktop-600519.SS-zh-dark.png": {
+    "gitBlob": "7fd60f21eb1ceca802b4a7d79f8d48844c88b153",
+    "sha256": "462d89b3a1b37ffb856800fd6ab7b749c9c6098075e9ff8cd74d39a7b15068da"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/desktop-600519.SS-zh-light-specimen.png": {
+    "gitBlob": "f6fcb7d842c426baf114718f916ea50d7b0dc5c2",
+    "sha256": "9f10d02eb38b2f3b17ee28025ad7adfb3829fadfbe4e811d61852ff93e657987"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/mobile-0700.HK-en-dark.png": {
+    "gitBlob": "899e0509cf38b58511bfe6461b4a48c55f3aea6b",
+    "sha256": "5c58c2e4a2cde4c79463f729dccb0293a77ce511fc4b761b432c64d21af66646"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/mobile-0700.HK-en-light-specimen.png": {
+    "gitBlob": "ad03331837fc60714b4ef5b245f6739792c5350d",
+    "sha256": "c3e34ca23a025c82456d99ec4304d96ab0176bf25ddc38189c281f40eaa7eb5b"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/mobile-0700.HK-zh-dark.png": {
+    "gitBlob": "fc157031f9856112a93b15fec2c57eeaf718f843",
+    "sha256": "6ec785d455528870c055f6ea218019c38d5a381e6fa2254645c1e8c831be07e1"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/mobile-0700.HK-zh-light-specimen.png": {
+    "gitBlob": "df5548c776affaeec9b799cc91e465f9e8a5e592",
+    "sha256": "a30d1f2466ec4da6619d8d3989d6ae01c15f6fc7f4f3423b8a15cb425a2802f5"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/mobile-600519.SS-en-dark.png": {
+    "gitBlob": "7b775414a7322da26024a2859716595ff27b78ec",
+    "sha256": "1528b1a6b7f113f51235d81c820ada1d970f2040f89cf9a2b5bc8d8d74fab65c"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/mobile-600519.SS-en-light-specimen.png": {
+    "gitBlob": "9bdb154badd0e1f67246d74b7d4e2ce3d051417b",
+    "sha256": "cdd24c1afd4e038c85d9858004d9164b84c4a55d29f6965dc5cc6acc452d6bb1"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/mobile-600519.SS-zh-dark.png": {
+    "gitBlob": "e2c5c1fbdfb800ec5793fd2286e00bd0cc06364a",
+    "sha256": "31552adb6e6b98956b6e5c6afad206e6bd2d90f47595ab2b45a5fe10331328e7"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/mobile-600519.SS-zh-light-specimen.png": {
+    "gitBlob": "f853b095408b552601eb75390e7177bf689e1d35",
+    "sha256": "37bdb03b259b111ec6d39965f745216419b92fef2177c4439a2d493721242334"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/tablet-0700.HK-en-dark.png": {
+    "gitBlob": "68d9fd2b5251f5890406a9fc7454226fa7e04e3f",
+    "sha256": "c881ff82d822c8ce9d52fb26f9c07b5611ec6c43ca658c74a404aa8b71713376"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/tablet-0700.HK-en-light-specimen.png": {
+    "gitBlob": "4b0bd030d78576c1105397f6824dfaf36b953d5a",
+    "sha256": "6c848f531c2ce582e21937cac8ed17ad47da8f912e6a1ce79f96eed4a38187fe"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/tablet-0700.HK-zh-dark.png": {
+    "gitBlob": "15c5c8424b581b5b61e5c518d32383c978a0c20b",
+    "sha256": "4c58f77ab885f2aa8bd176175fe48953acfb50bb8d29dc15bc1ef407f10f6e4f"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/tablet-0700.HK-zh-light-specimen.png": {
+    "gitBlob": "c821e6a94e9b888215246491a8ad6505300ab9ff",
+    "sha256": "6a3fa5e4bee7efadcbc7f9a97917ffe483fc40c001eaff353a50b195713200b0"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/tablet-600519.SS-en-dark.png": {
+    "gitBlob": "65141d55725798e02d464040d5e7e42fcc6220aa",
+    "sha256": "c9c755ee2dbd9f525e56755dcc34ec1c14541944f4cc0115fbdd5e14024cb764"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/tablet-600519.SS-en-light-specimen.png": {
+    "gitBlob": "b2826539b08a0d274f8880e3df4509656026a4ac",
+    "sha256": "92126aec91172a25fa52a298c81a7808ec1adb15c465111d223218df9f4ea6a5"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/tablet-600519.SS-zh-dark.png": {
+    "gitBlob": "196c94d970529b6a14a6a8ad76187985082cb955",
+    "sha256": "74fd267b7cc1bd69e6cb5d8848bbd1feaaadc81019f1fd0de45115960b7bca47"
+  },
+  "terminal/docs/pr-crops/ticker-news-cn-hk/tablet-600519.SS-zh-light-specimen.png": {
+    "gitBlob": "ab88653afa546d513f42911d453c54bc94093ed2",
+    "sha256": "b3c53d54e1483fc26a0b2d371790d8b286c9f7a44f07a27e03fe79070313c74c"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/README.md": {
+    "gitBlob": "d06dc30acb83ca98bfed07348ac0c69cf38bf5f8",
+    "sha256": "b03246d8d36f65014daa868f29861878571c17c44d906cb47e8408abc6a936f7"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-en-dark-all.png": {
+    "gitBlob": "a3134a5eefbf602bf742ca0e9267b43774989767",
+    "sha256": "791faf21663141e596877e757bee45f8104fc2111a4917412cd24f3c31258d1a"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-en-dark-company.png": {
+    "gitBlob": "2762104b8a36ae2d00c36bba605161b9f3dcc3a6",
+    "sha256": "491cbb683e86b288e0622c34a1bb27bea46c557cbd2804e5eea98f58e5c66ad4"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-en-dark-news.png": {
+    "gitBlob": "06422416d721067af497f97baccacbf4cd0c18c6",
+    "sha256": "88154d13444ab785ad63d8e6ee2266d5a43b348ef5824de05110fa03140457f2"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-en-light-specimen-all.png": {
+    "gitBlob": "7930661b6e055140af0ac291c794778714ec3296",
+    "sha256": "89976f5c576440325e1f56c48decf2ad6a3b65310fdd4d33fd544439c8c8d258"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-en-light-specimen-company.png": {
+    "gitBlob": "86095ba739fbbec23cc344bcb0ce0a126b54ddb7",
+    "sha256": "e02dc24b1c812b06614f486dc1d1b9b728a1b21eec843459fed463f5165db273"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-en-light-specimen-news.png": {
+    "gitBlob": "eec1e5f2ec71660ba1be491163ad1c2b7ecc047f",
+    "sha256": "7c3b43fe590af1215dce7228515eba6b2ee13f39a41b3b19d9277b71aed1ab47"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-zh-dark-all.png": {
+    "gitBlob": "a7b1394ddb91bb28f418e5542e6832924463f212",
+    "sha256": "96f01155d426889d6229ff7442ea82f81640d265a67d125ec27b90fbf7eef8ba"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-zh-dark-company.png": {
+    "gitBlob": "c981807d422c313492e7d5a2251e6dcdfe7bb4cf",
+    "sha256": "09d741f026f1cdbe072468b43fd01cdb039409e6a07d98fdfb7dc9cd1b23a2ed"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-zh-dark-news.png": {
+    "gitBlob": "b982f3372cf9711a42b36debf7f311665fb385ea",
+    "sha256": "a6459ca67b5ade7748946ff84a858e42504f7c46a9b78f37fc2701ff8de49f87"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-zh-light-specimen-all.png": {
+    "gitBlob": "4b46abe6fe398a94f11e9f620a82bd27edf7cfa5",
+    "sha256": "e38b99bebd9f77145c29e710de76f4302af360338601b829944a2487e519ba0b"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-zh-light-specimen-company.png": {
+    "gitBlob": "7b8ab419ab49b6ca66f3f2a8679cd05292820510",
+    "sha256": "937f5f9fd273147bd6110e433a04162bee1cec4c725f8c4d3d7c20415008b485"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/desktop-zh-light-specimen-news.png": {
+    "gitBlob": "4416c5f6b8c38c1751ec76022cfee64b1fe5a1de",
+    "sha256": "e5895769e418f6b56b0d5681143185c3b16660f1b1c2c942e3f1cbd576597a8c"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-en-dark-all.png": {
+    "gitBlob": "30acf2cdaf60d7c4c772ffc95183e2c885da39f2",
+    "sha256": "6cf9dfe58d62ce9ede3a0483aa26764d77ba86afdabe81fb9051bd6255ff5ecd"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-en-dark-company.png": {
+    "gitBlob": "5bf10568f2b99c7b8c067f68c08513e9391d8157",
+    "sha256": "e4cd4c2e2106e2345951d632690a37854d9125eaa2827cf135b13ee5bb7944b1"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-en-dark-news.png": {
+    "gitBlob": "720110a9255245bfc417de79d06f887a840b351e",
+    "sha256": "461e19f47bc77deebff86c294679bf7ee5ced0ea5bbae956b21e5ef762826673"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-en-light-specimen-all.png": {
+    "gitBlob": "4f15151cdfcfdbef8528df5444e3d3061282e8f9",
+    "sha256": "4490b5e9a190ba8765547e4298f39dd6cab29eb88c4c71b670fb601112438557"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-en-light-specimen-company.png": {
+    "gitBlob": "cadaebacce1d1d7dec9cade209af1344856d8caf",
+    "sha256": "2c7c6cce60be6ee733469db34830d180aab8044cc39fdcfece796771112f319b"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-en-light-specimen-news.png": {
+    "gitBlob": "b46d7cb2285282bb5acdd68222744dd81758bd36",
+    "sha256": "890be44acc87998df46c00837029fa992dbaca32e59b822a52d74af4dde69dfe"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-zh-dark-all.png": {
+    "gitBlob": "eb24dcae443029f927faadee3913bd583342953d",
+    "sha256": "e1822a8a3761fdb4dc6517ec51b34d9443d6d3a049c6739d16e3b4730456e01c"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-zh-dark-company.png": {
+    "gitBlob": "679305b1aed6a27366b60b58eb9fbbbe519a462a",
+    "sha256": "63005e3d1c1dd5c6f42b2de3b48649229c426d07665510e05df139d99995cb10"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-zh-dark-news.png": {
+    "gitBlob": "1024b9305db5d4b18c9bb4623500cc69edef61d9",
+    "sha256": "1cc16dd38ef948c7d04efcce7617ae36283bd077aee8d0193d2e3fad88c3adb1"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-zh-light-specimen-all.png": {
+    "gitBlob": "b932ca32cd0f73cf310d889c6fe02905177646ab",
+    "sha256": "6134ba5accc6e631cf9223d51ccade237b85a4e2ffb9db623450013aae62589d"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-zh-light-specimen-company.png": {
+    "gitBlob": "dbcc73112cc557703e17771a7e7cbbd3b39ae67e",
+    "sha256": "3bd64ec177205910b6e127a578af060d352534c95fd437654cca4733851f6477"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/mobile-zh-light-specimen-news.png": {
+    "gitBlob": "8d276370284c6edaa9312f0617541d01b4f7182c",
+    "sha256": "2df79425f53cd4a60324b4bb190e752f7472e7d24ac45dc064d46a3d3e6d3e5a"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-en-dark-all.png": {
+    "gitBlob": "dd2602c1d5fb14d6c0bf5e9ce342ecec55c436bc",
+    "sha256": "a1fd42a5cef385a18d84dccb670fbca073103b30c9e017c2ce58a2fa99265882"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-en-dark-company.png": {
+    "gitBlob": "dba64fc7e56e309b5b4d0e7b46d4ffa165e903d1",
+    "sha256": "0ec9e4aff454cf4873157afe7b8260fbb582db43a8bb216946853c83ae1c90a8"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-en-dark-news.png": {
+    "gitBlob": "277adad1b365a3686b490ff4e716d34954bc473d",
+    "sha256": "cff7b1106d80c1c33e72c761c59c835fc2ac05021de7f5902a5a14e4727c215b"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-en-light-specimen-all.png": {
+    "gitBlob": "229dc23661688ebb65f260146cd08974823a595c",
+    "sha256": "1777baed40c1673d09eca6dc377095f1a3958b9d3b9720b0345168360b87bd90"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-en-light-specimen-company.png": {
+    "gitBlob": "20c343e904af20f8e0af1b598d66bc5823e88361",
+    "sha256": "d85f8d4ebd95e33b2a108f4207d11fcede32e3349ceefc37e3181301e968b463"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-en-light-specimen-news.png": {
+    "gitBlob": "e86f9a7a492c9885766b4e4bc7e21110539efd73",
+    "sha256": "a68006e91d25ef71ccaf32ec96ffc263a0c706b0ecedc5fd9131829692c615cf"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-zh-dark-all.png": {
+    "gitBlob": "f81559ba290e09310a10077b1883461301f7d06e",
+    "sha256": "8446b4173de1c88b9b92a9d1732f54fc8690945310e3adae54ce8ab2f4637a8a"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-zh-dark-company.png": {
+    "gitBlob": "07506f0fb456620ce027369e89cd75184a50fa32",
+    "sha256": "77f74c180728cf917bdd78d6b8989851938a8421e5814fa257541dfce6862412"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-zh-dark-news.png": {
+    "gitBlob": "4c144a74eed2ae5b89ee3be94e281433715cbdeb",
+    "sha256": "cb2f636ad7b94eaa2cfe6c07f51f4fbe76c9f7df02b5aeb993a7c16fc2e86e8f"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-zh-light-specimen-all.png": {
+    "gitBlob": "4fc9af30b2878e8bfa0a6790f45ad2bc201dad0c",
+    "sha256": "3c5dbac58c950efb1fe7aea9cebd26e860df88e637e4cf215cd436ef07a1938a"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-zh-light-specimen-company.png": {
+    "gitBlob": "737f18e40cb19d3affa1e48e822d317cf06649cd",
+    "sha256": "e1c97a94ad9e9bb83eeba669dabc9bd519740f1aacacba2bbb092cc17646d0e1"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/tablet-zh-light-specimen-news.png": {
+    "gitBlob": "d3833e4146da013b5bfdb0e29a9dbfad20595c8f",
+    "sha256": "5157459add79f817901e36c3c344cf02c370c3f9861aa044339adf9f9eed56a5"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/unavailable-desktop-en-dark.png": {
+    "gitBlob": "4f5feaa1be0e06338da3776c4509b0109a73a63c",
+    "sha256": "98cb36288824a5d55bdae92396841c1f232b2788a2102e126095f872dbc91db6"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/unavailable-desktop-zh-dark.png": {
+    "gitBlob": "9d3bfe1f96eb05627f6598123104f79d97a30f93",
+    "sha256": "ad293db11b044fbda80e98caa9f2ab7f9c1dafae9427f44a1e304ff3b5ea06d4"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/unavailable-mobile-en-dark.png": {
+    "gitBlob": "1a63b00c70d7b8083a1e19e9fa66767c96c8b1c1",
+    "sha256": "521d0eed01c8b790978717775875b0f84b07e8f3d79ffc6ce36f9632bfd50dca"
+  },
+  "terminal/docs/pr-crops/ticker-news-editorial-views/unavailable-mobile-zh-dark.png": {
+    "gitBlob": "fa3744ebb35768820b34c2f1c2427bf62df43c1c",
+    "sha256": "1c6487dd5b76591d0c015f2bdbda6c1b2dea3a57afe73615df3b2810c632c26f"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/README.md": {
+    "gitBlob": "300bc103136e6fb4a3d0a6ed445716fcce67f85f",
+    "sha256": "aa73461357a2a738bd327e8e6db0b8f63dd095eda40570014faf060869815e9d"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-en-dark-loading.png": {
+    "gitBlob": "a832ba9c8754eddeac80b896a65d67b6dfe749d8",
+    "sha256": "39b3f35ee7269b52873121fde4fede143ec95cb5aa279689da14cb60a17a1669"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-en-dark-recovered.png": {
+    "gitBlob": "06422416d721067af497f97baccacbf4cd0c18c6",
+    "sha256": "88154d13444ab785ad63d8e6ee2266d5a43b348ef5824de05110fa03140457f2"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-en-dark-unavailable.png": {
+    "gitBlob": "f0aca96ddd0f743a9192cf1ace608b09e0906bb5",
+    "sha256": "61d8f07d430120a1c423170727d82691d7a509ab9160c4da0d33782ded25875a"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-en-light-specimen-loading.png": {
+    "gitBlob": "a4d71c7628d3e421104847ba1bab31df702afa05",
+    "sha256": "924067e8c88ddabd6e63fd829c8e23545240a8bcb855c1a94bd8e133f9e6bc8d"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-en-light-specimen-recovered.png": {
+    "gitBlob": "06c0ccfef89c19fb0403d50054353fa58118d516",
+    "sha256": "8e95085a623abd44f9ae4bfbc039e7a60f8d8d113ff5ab9850970813fdce4c0a"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-en-light-specimen-unavailable.png": {
+    "gitBlob": "9d436df8a72b7dcd4408287338b81ea17bd2ac8e",
+    "sha256": "0145b326cb1114a9c6a267b6fc2eca312a27e957d5db590590b6d8673254c356"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-zh-dark-loading.png": {
+    "gitBlob": "ee36c5cd9720f24aecd983cef4bc8c3a8a3b0aa7",
+    "sha256": "1295ffddefd7b24a254d22046f2227d1a99e36f49969f2e5d0e99359f606d0f3"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-zh-dark-recovered.png": {
+    "gitBlob": "b982f3372cf9711a42b36debf7f311665fb385ea",
+    "sha256": "a6459ca67b5ade7748946ff84a858e42504f7c46a9b78f37fc2701ff8de49f87"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-zh-dark-unavailable.png": {
+    "gitBlob": "c449c7481cf73442c6b96c0160512895a7931074",
+    "sha256": "b5cf88d3595ad7bb06d533208f03207dc860ef0f1632c7175cf7ca5ccb5f9864"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-zh-light-specimen-loading.png": {
+    "gitBlob": "d72f049bb68b4b20321a4318775c419f130a82a4",
+    "sha256": "8c4d4de311b9726126c1e33561df2f70fa78c307fe97dde5d034197d604bc05c"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-zh-light-specimen-recovered.png": {
+    "gitBlob": "4416c5f6b8c38c1751ec76022cfee64b1fe5a1de",
+    "sha256": "e5895769e418f6b56b0d5681143185c3b16660f1b1c2c942e3f1cbd576597a8c"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/desktop-zh-light-specimen-unavailable.png": {
+    "gitBlob": "360d9b903ef062d1a94e37cc902580913d217809",
+    "sha256": "6e6ddc472c13ff540e93078cc5d8134b005c4b3b681520111e0e0da540d0a6e5"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-en-dark-loading.png": {
+    "gitBlob": "346445627edfc744821b505893b883014f40c0a0",
+    "sha256": "7adeaa3bde63c970efe8798247e594b4a2f5fd80a6db768712b598d9e070b89f"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-en-dark-recovered.png": {
+    "gitBlob": "720110a9255245bfc417de79d06f887a840b351e",
+    "sha256": "461e19f47bc77deebff86c294679bf7ee5ced0ea5bbae956b21e5ef762826673"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-en-dark-unavailable.png": {
+    "gitBlob": "fbe5571615220f1174205c8a9a35aef0a72371f0",
+    "sha256": "e239e573f1d9f9ae571515c1643dc73c2b973c19e49d36f01a2407b823a0db7f"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-en-light-specimen-loading.png": {
+    "gitBlob": "0a75df02fe7fd1c9b9ea51fcb13217fb8cdfdf38",
+    "sha256": "1c3229bab0cfa84b9357f503e52deca16bba70dc32f2a6c41b802b4e5b49d4be"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-en-light-specimen-recovered.png": {
+    "gitBlob": "4275d463b720f61f575d055cefd142c2e33d3b1d",
+    "sha256": "0e3e9b1247b564304197a4574c54c72f2ed62a6e064e21ff7747707e637de59a"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-en-light-specimen-unavailable.png": {
+    "gitBlob": "42c83ca9ff062c5dec942ff8a5fb0dc2c23d9f87",
+    "sha256": "2c079dbc419c361932306314b69d472e5dcec21e7531b8cd4fb9fead18c0870d"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-zh-dark-loading.png": {
+    "gitBlob": "92bd85855450daa73f2e054d85768d0e54190a95",
+    "sha256": "8c200ff79475056ffb5e8f6d9e53cd9a664cd3403993785681331cfdde4fbd1f"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-zh-dark-recovered.png": {
+    "gitBlob": "1024b9305db5d4b18c9bb4623500cc69edef61d9",
+    "sha256": "1cc16dd38ef948c7d04efcce7617ae36283bd077aee8d0193d2e3fad88c3adb1"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-zh-dark-unavailable.png": {
+    "gitBlob": "c1792a45c7871251972e29544a7a079768cebc8d",
+    "sha256": "0342258602eeb499f94d559b53cee85322373fe01fc8079e15487142733f171f"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-zh-light-specimen-loading.png": {
+    "gitBlob": "dd1b4c0417cc1250d04436c9110e0e38f1ea34ba",
+    "sha256": "fd46a14f8ec8b5b1a51d476ee164fb95d6292c894386465a49114f70021f1926"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-zh-light-specimen-recovered.png": {
+    "gitBlob": "8d276370284c6edaa9312f0617541d01b4f7182c",
+    "sha256": "2df79425f53cd4a60324b4bb190e752f7472e7d24ac45dc064d46a3d3e6d3e5a"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/mobile-zh-light-specimen-unavailable.png": {
+    "gitBlob": "6b719cff7de43fc3f668e217b1fabb042cb5c98e",
+    "sha256": "128347570d66b32e3475ecb9bb158d8d2166370a09dee21a0b47820eea1f7612"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-en-dark-loading.png": {
+    "gitBlob": "376128eba67abdb9db05f0456864a2341852148b",
+    "sha256": "f13ed22e9c2d4122a7433abd75877ac103b830fa98cda0ec459938c9a931cb13"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-en-dark-recovered.png": {
+    "gitBlob": "68a017ae8497de59488b31190f9270d66f2bf695",
+    "sha256": "de6048f7a80c048dca5813a44b617a12273218fc0fda168ee2681caa4b139d65"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-en-dark-unavailable.png": {
+    "gitBlob": "dedc59828f3cb88733d7ff5442783d48d9e27d36",
+    "sha256": "5cb71d891805a90e6fe911be790b82909431a0d4533a11df1debd9508b6140d9"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-en-light-specimen-loading.png": {
+    "gitBlob": "cb1e949dae9b165b1998aad5bf1b67adec2b3517",
+    "sha256": "cfc63286170e12879dca1e8d170d52743095586a4bf8688aa15fd8b8cd4babbc"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-en-light-specimen-recovered.png": {
+    "gitBlob": "f0bc26d098d7b18b354f69c0bea10e9f03158690",
+    "sha256": "fa3ea988173563a3fe610608ecf1554ce2ef1c1a11d81f396feff01f4d95faee"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-en-light-specimen-unavailable.png": {
+    "gitBlob": "7759fc25bfda7597c18c242d312c48c335aeb5ee",
+    "sha256": "24d84f33fee300d7fe31da6e57c6f99708cdee1df95976b9bf79ed54026c6abb"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-zh-dark-loading.png": {
+    "gitBlob": "29f0bca450197c70cd68065a0812eba8e7cfcaec",
+    "sha256": "00e763a381ae44991530e5571bc9e97787f25599eab991f81e589e25cf5456da"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-zh-dark-recovered.png": {
+    "gitBlob": "51bf7ed04c7c966c0e8d22d3bb6d588147533d1e",
+    "sha256": "11d020140e870174cf2f3d60eb683a2386aa6c085550d25586cdeff9c2b1c9f0"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-zh-dark-unavailable.png": {
+    "gitBlob": "46cb8e73543bdd8c6315ca11966f19cbde262169",
+    "sha256": "a569e01cd4191985eda7553c9b10ebdc30d48371da4b2ae5aa4bbd1f69c7dc41"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-zh-light-specimen-loading.png": {
+    "gitBlob": "0eb5cef392100dc190a50ecf43f996f94fe258ce",
+    "sha256": "fd1e5a419fac731618085e7e0e03aac9d026b1bf842d7c352dcb1d033cc0f999"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-zh-light-specimen-recovered.png": {
+    "gitBlob": "d104d35dafa6c3e04cbaaa99d62318407e4843e4",
+    "sha256": "095742af2abd8444496b0bfa41b39d2e85ea30f08bc6220af32a21115c311861"
+  },
+  "terminal/docs/pr-crops/ticker-news-recovery/tablet-zh-light-specimen-unavailable.png": {
+    "gitBlob": "13bf8db0324bab4c0a5cc8522855e6a3f8dbc8b6",
+    "sha256": "bd01a3133ab73428fca56a009a672529764c87f1354d5140bd5519926d42c9b1"
+  }
+}

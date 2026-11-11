@@ -1,0 +1,15 @@
+{
+  "schema": "terminal.pr900.runtime.v1",
+  "state": "MATCHING_DEPENDENCIES_READY",
+  "donor": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-910-protected-successor",
+  "copy": "same-volume APFS clones; donor untouched",
+  "node": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-900-workspace-successor/.pr900-runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "lockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "versions": {
+    "node": "v22.23.4",
+    "next": "16.2.9",
+    "playwright": "1.61.1"
+  },
+  "browserStore": "/Users/chriswong/Library/Caches/ms-playwright"
+}

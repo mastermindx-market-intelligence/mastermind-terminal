@@ -1,0 +1,12 @@
+{
+  "terminal/next-env.d.ts": {
+    "present": false,
+    "tracked": false
+  },
+  "terminal/tsconfig.json": {
+    "bytes": 666,
+    "present": true,
+    "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3",
+    "tracked": true
+  }
+}

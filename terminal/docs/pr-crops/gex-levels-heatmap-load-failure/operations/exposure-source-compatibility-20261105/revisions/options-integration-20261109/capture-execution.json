@@ -1,0 +1,1698 @@
+{
+  "branchHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "captureId": "terminal-pr768-gex-options-integration-20261109-r1",
+  "command": [
+    "node",
+    "e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  ],
+  "completedAt": "2026-11-09T16:15:54.268539+00:00",
+  "exit": 0,
+  "expected": 114,
+  "frames": [
+    {
+      "file": "gex-ladder-unavailable-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-absent-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-unavailable-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-pick-absent-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-state-refresh-failed-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-refresh-failed-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-unavailable-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-absent-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-refresh-failed-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-unavailable-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-absent-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-failed-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-refused-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-unavailable-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-absent-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-unavailable-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-pick-absent-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-state-refresh-failed-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-refresh-failed-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-unavailable-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-absent-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-refresh-failed-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-unavailable-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-absent-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-failed-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-refused-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-unavailable-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-absent-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-unavailable-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-pick-absent-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-state-refresh-failed-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-refresh-failed-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-unavailable-820.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-absent-820.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-refresh-failed-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-unavailable-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-absent-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-failed-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-refused-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-unavailable-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-absent-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-unavailable-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-pick-absent-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-state-refresh-failed-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-refresh-failed-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-unavailable-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-absent-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-refresh-failed-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-unavailable-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-absent-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-failed-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-refused-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-unavailable-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-absent-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-unavailable-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-pick-absent-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-state-refresh-failed-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-refresh-failed-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-unavailable-390.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-absent-390.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-refresh-failed-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-unavailable-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-absent-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-failed-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-refused-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-unavailable-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-ladder-absent-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-unavailable-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-pick-absent-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-rail-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-state-refresh-failed-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-refresh-failed-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "gex-live-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-unavailable-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-absent-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "levels-refresh-failed-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-unavailable-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-absent-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-failed-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-refresh-refused-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-persisted-retried-390-zh.png",
+      "status": "success"
+    }
+  ],
+  "images": {
+    "gex-ladder-absent-1440-zh.png": {
+      "bytes": 15051,
+      "height": 549,
+      "sha256": "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17",
+      "width": 1002
+    },
+    "gex-ladder-absent-1440.png": {
+      "bytes": 12780,
+      "height": 549,
+      "sha256": "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da",
+      "width": 1002
+    },
+    "gex-ladder-absent-390-zh.png": {
+      "bytes": 13147,
+      "height": 515,
+      "sha256": "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b",
+      "width": 372
+    },
+    "gex-ladder-absent-390.png": {
+      "bytes": 10565,
+      "height": 515,
+      "sha256": "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1",
+      "width": 372
+    },
+    "gex-ladder-absent-820-zh.png": {
+      "bytes": 15393,
+      "height": 720,
+      "sha256": "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858",
+      "width": 802
+    },
+    "gex-ladder-absent-820.png": {
+      "bytes": 13170,
+      "height": 720,
+      "sha256": "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236",
+      "width": 802
+    },
+    "gex-ladder-retried-1440-zh.png": {
+      "bytes": 97706,
+      "height": 549,
+      "sha256": "a275d3f9a01c823966704bbabb0b2c683173372a953f525f72b0a17a8ea09bd9",
+      "width": 1002
+    },
+    "gex-ladder-retried-1440.png": {
+      "bytes": 91831,
+      "height": 549,
+      "sha256": "5f6f499fc800425e90bc48f46ac30268cd4a4e875e584e3b70b42460c84e7857",
+      "width": 1002
+    },
+    "gex-ladder-retried-390-zh.png": {
+      "bytes": 44757,
+      "height": 515,
+      "sha256": "31b393cffc6767e73521cfba569d571bbfe5056807a6e8f32cf89e4a21a67cc5",
+      "width": 372
+    },
+    "gex-ladder-retried-390.png": {
+      "bytes": 40878,
+      "height": 515,
+      "sha256": "3dce8c29b285853e55e9e3228912c7fbac12e8ba2895918e24ebef3ccc9de31c",
+      "width": 372
+    },
+    "gex-ladder-retried-820-zh.png": {
+      "bytes": 110965,
+      "height": 720,
+      "sha256": "8e06e39eda6fb0eb567e50bca612dfa576e102301ce8fcc921e4c5db3111da6a",
+      "width": 802
+    },
+    "gex-ladder-retried-820.png": {
+      "bytes": 103883,
+      "height": 720,
+      "sha256": "c9c8aaa6909d8dea3ec1fa153ccf598b92979e446193fd58a61987a235b20973",
+      "width": 802
+    },
+    "gex-ladder-unavailable-1440-zh.png": {
+      "bytes": 14616,
+      "height": 549,
+      "sha256": "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be",
+      "width": 1002
+    },
+    "gex-ladder-unavailable-1440.png": {
+      "bytes": 13247,
+      "height": 549,
+      "sha256": "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4",
+      "width": 1002
+    },
+    "gex-ladder-unavailable-390-zh.png": {
+      "bytes": 12663,
+      "height": 515,
+      "sha256": "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796",
+      "width": 372
+    },
+    "gex-ladder-unavailable-390.png": {
+      "bytes": 10757,
+      "height": 515,
+      "sha256": "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96",
+      "width": 372
+    },
+    "gex-ladder-unavailable-820-zh.png": {
+      "bytes": 14966,
+      "height": 720,
+      "sha256": "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6",
+      "width": 802
+    },
+    "gex-ladder-unavailable-820.png": {
+      "bytes": 13695,
+      "height": 720,
+      "sha256": "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84",
+      "width": 802
+    },
+    "gex-live-refresh-failed-1440-zh.png": {
+      "bytes": 53179,
+      "height": 228,
+      "sha256": "e7fd42b9b4d9b0e429ff89f0de4cd0296f7e69802b91624411545ee7500684f8",
+      "width": 1380
+    },
+    "gex-live-refresh-failed-1440.png": {
+      "bytes": 47656,
+      "height": 228,
+      "sha256": "611b68cccf228e379c08ce88e836ff6c44aa1a7e5d85c7913214cf64df760b76",
+      "width": 1380
+    },
+    "gex-live-refresh-failed-390-zh.png": {
+      "bytes": 33151,
+      "height": 338,
+      "sha256": "be87f748d4b72b897a0dcd7594336109630e143295d4057e9997252728a2afe0",
+      "width": 390
+    },
+    "gex-live-refresh-failed-390.png": {
+      "bytes": 30828,
+      "height": 338,
+      "sha256": "4309ea641b5c7fdc734c72268a7479105194c344331b13bafd6f2675d9745111",
+      "width": 390
+    },
+    "gex-live-refresh-failed-820-zh.png": {
+      "bytes": 47044,
+      "height": 282,
+      "sha256": "566bf25dfbc2d13524d99dd7e4ddef4e00d4d316b00894dc27ba9fce22a2c575",
+      "width": 820
+    },
+    "gex-live-refresh-failed-820.png": {
+      "bytes": 43604,
+      "height": 282,
+      "sha256": "b74fa8b363d79315d1510e34c76a8e69da4b48abef3dc73fd7c0a1b157e560f7",
+      "width": 820
+    },
+    "gex-live-retried-1440-zh.png": {
+      "bytes": 47938,
+      "height": 181,
+      "sha256": "7d19bd3b60f980b28bbabea260ef32ba3f9bf71128316260d3a0ca0ff185a8a7",
+      "width": 1380
+    },
+    "gex-live-retried-1440.png": {
+      "bytes": 43232,
+      "height": 181,
+      "sha256": "2d5c92012b5ba7df9685823c5662938cb6a55ded0ace32ceda0e97dff5d0d4d2",
+      "width": 1380
+    },
+    "gex-live-retried-390-zh.png": {
+      "bytes": 27194,
+      "height": 285,
+      "sha256": "e11426257c545197db0aa2e5f4bc17b3736ce08c3314c6604e032b36ad8093a7",
+      "width": 390
+    },
+    "gex-live-retried-390.png": {
+      "bytes": 25438,
+      "height": 285,
+      "sha256": "8d8ff224c5899abbc528e8247b2e647c8c0bd01a30705c204e27ed4748b41546",
+      "width": 390
+    },
+    "gex-live-retried-820-zh.png": {
+      "bytes": 33722,
+      "height": 229,
+      "sha256": "12fb958c4b27ff938e55412a0d7ffb2e48e22ff3321f175147b367be022c774f",
+      "width": 820
+    },
+    "gex-live-retried-820.png": {
+      "bytes": 31401,
+      "height": 229,
+      "sha256": "0168bdfe20e0020543acf9f2e33a5b6726518169de7ce77df530a23aa1d66802",
+      "width": 820
+    },
+    "gex-pick-absent-1440-zh.png": {
+      "bytes": 5702,
+      "height": 76,
+      "sha256": "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436",
+      "width": 338
+    },
+    "gex-pick-absent-1440.png": {
+      "bytes": 5451,
+      "height": 91,
+      "sha256": "bbbe1395b2bae4048894b9c47ec46b0b6f1c56d0b77671a4b34b840bc43458b4",
+      "width": 338
+    },
+    "gex-pick-absent-390-zh.png": {
+      "bytes": 5779,
+      "height": 76,
+      "sha256": "65cf51fe66c4ecd3d8a7ef5c2fe8c8645acefefb82ac5807d5bc565d863719ef",
+      "width": 372
+    },
+    "gex-pick-absent-390.png": {
+      "bytes": 5683,
+      "height": 91,
+      "sha256": "bb0587e41a5f32abcb1f1ffa81cc7aeeda997b5277bc59d205f7e7f9cee27d06",
+      "width": 372
+    },
+    "gex-pick-absent-820-zh.png": {
+      "bytes": 6210,
+      "height": 76,
+      "sha256": "7d93f647541edbebfa3913fff6fb59808e041c4888b321cae898a4164f731e70",
+      "width": 802
+    },
+    "gex-pick-absent-820.png": {
+      "bytes": 5808,
+      "height": 76,
+      "sha256": "11641bc03d83314132214ae90152db3d05d3350578684831d7d2332f5b0fc55d",
+      "width": 802
+    },
+    "gex-rail-retried-1440-zh.png": {
+      "bytes": 23119,
+      "height": 221,
+      "sha256": "dfe276b451ccb8e33a41c2ef181d585c464a8dcf8741c21305e470d466350b8b",
+      "width": 338
+    },
+    "gex-rail-retried-1440.png": {
+      "bytes": 20079,
+      "height": 221,
+      "sha256": "7b2785b21061a62432ccbfa92fd96cc67a6e05b7d1f163aa01675ad6b10ec0cd",
+      "width": 338
+    },
+    "gex-rail-retried-390-zh.png": {
+      "bytes": 23368,
+      "height": 221,
+      "sha256": "f33250ad094f41f5caeb4de20c2461c943980536d203559ef382dc59fa147dc6",
+      "width": 372
+    },
+    "gex-rail-retried-390.png": {
+      "bytes": 20339,
+      "height": 221,
+      "sha256": "8b260bbe7deccc47e91254498bfbc299111a2c2851645d4c1371d4ad57cef8c6",
+      "width": 372
+    },
+    "gex-rail-retried-820-zh.png": {
+      "bytes": 24896,
+      "height": 221,
+      "sha256": "5db1735c8958bb172be89742594bdb12b1e25e8a2e4cb4dc910e13ab5a5e92ad",
+      "width": 802
+    },
+    "gex-rail-retried-820.png": {
+      "bytes": 24153,
+      "height": 221,
+      "sha256": "ea36824aab4a33b6eda5d0bb223f647ccdf088938dc43f78c7030421caf348d1",
+      "width": 802
+    },
+    "gex-rail-unavailable-1440-zh.png": {
+      "bytes": 25704,
+      "height": 267,
+      "sha256": "f09e7e44b56bcfc79d764293fc700e8cb913c8436db1f3d84c43656f9f8547a1",
+      "width": 338
+    },
+    "gex-rail-unavailable-1440.png": {
+      "bytes": 23525,
+      "height": 299,
+      "sha256": "e49027d013bc209a135a719a6e78a9d58e21ca6ec68b077d7539448d942ddf8f",
+      "width": 338
+    },
+    "gex-rail-unavailable-390-zh.png": {
+      "bytes": 26042,
+      "height": 279,
+      "sha256": "46c72d973110bfcc9f9046b1ea62b319ef4e6fa30cf259389c41abb18737985d",
+      "width": 372
+    },
+    "gex-rail-unavailable-390.png": {
+      "bytes": 23614,
+      "height": 311,
+      "sha256": "e7fb49e1767e95bd8783b47c65f0a144508ee3fb7feb51eafa82453b462010e1",
+      "width": 372
+    },
+    "gex-rail-unavailable-820-zh.png": {
+      "bytes": 27631,
+      "height": 279,
+      "sha256": "90d48a7bb43f9ed1ddbad54f7db6c0480c668b738c1e798044a22ddb76bad84b",
+      "width": 802
+    },
+    "gex-rail-unavailable-820.png": {
+      "bytes": 24021,
+      "height": 279,
+      "sha256": "ca17f1840168e70fcd3f865b515683b16820bf9985edb43604f6e24a8973cc22",
+      "width": 802
+    },
+    "gex-state-refresh-failed-1440-zh.png": {
+      "bytes": 8122,
+      "height": 87,
+      "sha256": "d76e50e0f44210099311f9e4cfffaab7a3efc8a5776e2b7ce6d18dc4cdc71298",
+      "width": 338
+    },
+    "gex-state-refresh-failed-1440.png": {
+      "bytes": 7391,
+      "height": 87,
+      "sha256": "385156c18861b925f50d25a4bd83847e81fb7dfdb6ba2d25968b2a7620bc9636",
+      "width": 338
+    },
+    "gex-state-refresh-failed-390-zh.png": {
+      "bytes": 8229,
+      "height": 93,
+      "sha256": "aaad7ab18b15e6d3f649175ededfa19d081abb1cec0db4b094e67a55cfaf8741",
+      "width": 372
+    },
+    "gex-state-refresh-failed-390.png": {
+      "bytes": 7482,
+      "height": 93,
+      "sha256": "8841cdf002efae4924c0e23bb78e6e25eb027406111407f0a4a60280d9aac946",
+      "width": 372
+    },
+    "gex-state-refresh-failed-820-zh.png": {
+      "bytes": 8730,
+      "height": 93,
+      "sha256": "d5e286202eea3ded15a3677a690a725dea8cd8b8e3bb521b4806bf463e156fd1",
+      "width": 802
+    },
+    "gex-state-refresh-failed-820.png": {
+      "bytes": 7944,
+      "height": 93,
+      "sha256": "31d37b92139d6d65c7501df300512053cff8cb6a1e943adc6d8df49e4cb31ca4",
+      "width": 802
+    },
+    "heatmap-absent-1440-zh.png": {
+      "bytes": 36439,
+      "height": 728,
+      "sha256": "16ece66bb700ab452fb2821be04b45622f904b1b5df75b7b7af71903177e3469",
+      "width": 1380
+    },
+    "heatmap-absent-1440.png": {
+      "bytes": 33413,
+      "height": 728,
+      "sha256": "ea40355c6b22a0ff9ba92a201444ef7715479a7d3ac066ba1e4721178884c4ae",
+      "width": 1380
+    },
+    "heatmap-absent-390-zh.png": {
+      "bytes": 27160,
+      "height": 199,
+      "sha256": "8b5aa5c298fb077f67f2ae51f44fd76fcc17f59b349155981a7be49b2849054e",
+      "width": 390
+    },
+    "heatmap-absent-390.png": {
+      "bytes": 23428,
+      "height": 199,
+      "sha256": "f747dd621b3b623339ef8754591cb52fcede73018d180e0aba2db09d2ab57bca",
+      "width": 390
+    },
+    "heatmap-absent-820-zh.png": {
+      "bytes": 28723,
+      "height": 149,
+      "sha256": "da251e7cd2b1de332b0eb20fec64632f43ef6026e99cfd9f271478e1c60152c3",
+      "width": 820
+    },
+    "heatmap-absent-820.png": {
+      "bytes": 26605,
+      "height": 149,
+      "sha256": "d5c3a996a7b5e5061a3cb258ae06cf2a374080e2c23aafdd8f26d2d05c673ac7",
+      "width": 820
+    },
+    "heatmap-persisted-refresh-failed-1440-zh.png": {
+      "bytes": 139625,
+      "height": 728,
+      "sha256": "c21979f36508a6d65847d8a07808aab75571b4437648ae8d7544ebf1d8ff3db7",
+      "width": 1380
+    },
+    "heatmap-persisted-refresh-failed-1440.png": {
+      "bytes": 133890,
+      "height": 728,
+      "sha256": "3ba395ebdf6c4052f24c7c20e1cde0000748a9802b060d31982bd1b44a305409",
+      "width": 1380
+    },
+    "heatmap-persisted-refresh-failed-390-zh.png": {
+      "bytes": 89337,
+      "height": 687,
+      "sha256": "d6e11eea8e68faddab33432d38e64670ec7e7c3a8da1fa40a0ed4ae348c36064",
+      "width": 390
+    },
+    "heatmap-persisted-refresh-failed-390.png": {
+      "bytes": 82223,
+      "height": 672,
+      "sha256": "b1c698a06ff2d42ab64d6110dcb45531d525c60d8572b9f0d98978ff2eeb51ef",
+      "width": 390
+    },
+    "heatmap-persisted-refresh-failed-820-zh.png": {
+      "bytes": 121921,
+      "height": 683,
+      "sha256": "2f8554cb007328f9cf0ebc26c4bebdcc0ddf2525dd850c46196a1fd81f0a4185",
+      "width": 820
+    },
+    "heatmap-persisted-refresh-failed-820.png": {
+      "bytes": 116881,
+      "height": 683,
+      "sha256": "b61c84cd905ec9f68390d66b84a8bc5d18536ceb766f61d584ca09bd0514d583",
+      "width": 820
+    },
+    "heatmap-persisted-refresh-refused-1440-zh.png": {
+      "bytes": 139625,
+      "height": 728,
+      "sha256": "c21979f36508a6d65847d8a07808aab75571b4437648ae8d7544ebf1d8ff3db7",
+      "width": 1380
+    },
+    "heatmap-persisted-refresh-refused-1440.png": {
+      "bytes": 133890,
+      "height": 728,
+      "sha256": "3ba395ebdf6c4052f24c7c20e1cde0000748a9802b060d31982bd1b44a305409",
+      "width": 1380
+    },
+    "heatmap-persisted-refresh-refused-390-zh.png": {
+      "bytes": 89337,
+      "height": 687,
+      "sha256": "d6e11eea8e68faddab33432d38e64670ec7e7c3a8da1fa40a0ed4ae348c36064",
+      "width": 390
+    },
+    "heatmap-persisted-refresh-refused-390.png": {
+      "bytes": 82223,
+      "height": 672,
+      "sha256": "b1c698a06ff2d42ab64d6110dcb45531d525c60d8572b9f0d98978ff2eeb51ef",
+      "width": 390
+    },
+    "heatmap-persisted-refresh-refused-820-zh.png": {
+      "bytes": 121921,
+      "height": 683,
+      "sha256": "2f8554cb007328f9cf0ebc26c4bebdcc0ddf2525dd850c46196a1fd81f0a4185",
+      "width": 820
+    },
+    "heatmap-persisted-refresh-refused-820.png": {
+      "bytes": 116881,
+      "height": 683,
+      "sha256": "b61c84cd905ec9f68390d66b84a8bc5d18536ceb766f61d584ca09bd0514d583",
+      "width": 820
+    },
+    "heatmap-persisted-retried-1440-zh.png": {
+      "bytes": 134829,
+      "height": 728,
+      "sha256": "eb80bdea9ec1b66b5723235bd748245278eb3eef3e8eb844cafe5c7c43f4d8ff",
+      "width": 1380
+    },
+    "heatmap-persisted-retried-1440.png": {
+      "bytes": 129499,
+      "height": 728,
+      "sha256": "57132ba8123570c56f54451a9a6dd316c784fc7388d7b2e9905ae32144d5c1a9",
+      "width": 1380
+    },
+    "heatmap-persisted-retried-390-zh.png": {
+      "bytes": 94366,
+      "height": 687,
+      "sha256": "c76cfa1e157967ae87551792b534cc0c23d08d1095a7e404748ff6a81c556e05",
+      "width": 390
+    },
+    "heatmap-persisted-retried-390.png": {
+      "bytes": 88208,
+      "height": 672,
+      "sha256": "b6279bcba202c7ee3d98b3e493627e1c0c1b4fae0ffa6c2823a2ae2e2728f318",
+      "width": 390
+    },
+    "heatmap-persisted-retried-820-zh.png": {
+      "bytes": 117681,
+      "height": 630,
+      "sha256": "c2fc6a859e6376606a04a41aab10abee69414d2c07714572fdc80efdb26a0ef1",
+      "width": 820
+    },
+    "heatmap-persisted-retried-820.png": {
+      "bytes": 113168,
+      "height": 630,
+      "sha256": "3bb4ad3c11418694d3d769b401623e4d2e6dd80c69ca0983660fc957a8161d8d",
+      "width": 820
+    },
+    "heatmap-retried-1440-zh.png": {
+      "bytes": 134829,
+      "height": 728,
+      "sha256": "eb80bdea9ec1b66b5723235bd748245278eb3eef3e8eb844cafe5c7c43f4d8ff",
+      "width": 1380
+    },
+    "heatmap-retried-1440.png": {
+      "bytes": 129499,
+      "height": 728,
+      "sha256": "57132ba8123570c56f54451a9a6dd316c784fc7388d7b2e9905ae32144d5c1a9",
+      "width": 1380
+    },
+    "heatmap-retried-390-zh.png": {
+      "bytes": 94368,
+      "height": 687,
+      "sha256": "76575272cdde14ac137c358062e759597679afbfd56e5dbedb9610a348f0aa07",
+      "width": 390
+    },
+    "heatmap-retried-390.png": {
+      "bytes": 88209,
+      "height": 672,
+      "sha256": "b28178e4e8a588872ff8f45c2c750b8ad973841ca1a14ae3891f99d3703f0cd0",
+      "width": 390
+    },
+    "heatmap-retried-820-zh.png": {
+      "bytes": 117681,
+      "height": 630,
+      "sha256": "c2fc6a859e6376606a04a41aab10abee69414d2c07714572fdc80efdb26a0ef1",
+      "width": 820
+    },
+    "heatmap-retried-820.png": {
+      "bytes": 113168,
+      "height": 630,
+      "sha256": "3bb4ad3c11418694d3d769b401623e4d2e6dd80c69ca0983660fc957a8161d8d",
+      "width": 820
+    },
+    "heatmap-unavailable-1440-zh.png": {
+      "bytes": 45591,
+      "height": 728,
+      "sha256": "535ed9d72852c9c50108cca6729ba0491759b324b7c01b8f2fa5010abcfbf3c1",
+      "width": 1380
+    },
+    "heatmap-unavailable-1440.png": {
+      "bytes": 41254,
+      "height": 728,
+      "sha256": "c59042385ce5311f31d17fac076e0f3f62eb2e781767a716982cb76b49a98844",
+      "width": 1380
+    },
+    "heatmap-unavailable-390-zh.png": {
+      "bytes": 36175,
+      "height": 276,
+      "sha256": "bb2db186bbde884d837cdbd9baf20ddf5602ddbe52ca5b997807a25ccbacb4c7",
+      "width": 390
+    },
+    "heatmap-unavailable-390.png": {
+      "bytes": 31467,
+      "height": 294,
+      "sha256": "913c458bac88ffa6ceff472067f5824aef054c5392e2c299dbf8824bedabe4aa",
+      "width": 390
+    },
+    "heatmap-unavailable-820-zh.png": {
+      "bytes": 38382,
+      "height": 226,
+      "sha256": "b3e7f1147ac2b548376b542df63723237ed672cbd17edca06ebd8b4a88fe457b",
+      "width": 820
+    },
+    "heatmap-unavailable-820.png": {
+      "bytes": 35373,
+      "height": 244,
+      "sha256": "3e3741f4f882562094e7040fbab7707b85b11e568853cd90251330372c53acc9",
+      "width": 820
+    },
+    "levels-absent-1440-zh.png": {
+      "bytes": 78408,
+      "height": 663,
+      "sha256": "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb",
+      "width": 1380
+    },
+    "levels-absent-1440.png": {
+      "bytes": 68726,
+      "height": 663,
+      "sha256": "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491",
+      "width": 1380
+    },
+    "levels-absent-390-zh.png": {
+      "bytes": 22295,
+      "height": 630,
+      "sha256": "60b21559ea78024916033513c54aa159ae32cff669831a698e8f034154ec9185",
+      "width": 390
+    },
+    "levels-absent-390.png": {
+      "bytes": 18519,
+      "height": 630,
+      "sha256": "7d3fcf4a669125a3fbe85afbfa648301e77d114c226f567b5412499dc4f44497",
+      "width": 390
+    },
+    "levels-absent-820-zh.png": {
+      "bytes": 74716,
+      "height": 646,
+      "sha256": "07932ee814ea2700be2dd3308e7aa9d86158410ce97119b1b1bba17bebb48ac8",
+      "width": 820
+    },
+    "levels-absent-820.png": {
+      "bytes": 65982,
+      "height": 679,
+      "sha256": "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5",
+      "width": 820
+    },
+    "levels-refresh-failed-1440-zh.png": {
+      "bytes": 151980,
+      "height": 663,
+      "sha256": "532c196f5cc135ae52fad58dc5d7e83a3ee56bf7cf0a4c1c2f63dce8dd74fff5",
+      "width": 1380
+    },
+    "levels-refresh-failed-1440.png": {
+      "bytes": 142023,
+      "height": 663,
+      "sha256": "f6d40de25b7b4c1a80a20597d936947bae793dc974fbfd0d0226c025d7e8fc5e",
+      "width": 1380
+    },
+    "levels-refresh-failed-390-zh.png": {
+      "bytes": 58050,
+      "height": 630,
+      "sha256": "1dbecd94402b03d8f55bc98d820c3c247b79c118ded7cd4d88fc07357b6846cd",
+      "width": 390
+    },
+    "levels-refresh-failed-390.png": {
+      "bytes": 55989,
+      "height": 630,
+      "sha256": "80958530ee9512ce3ceaf71772cf8f693ca22d0b8580ecfb96c0c41bee0aeea6",
+      "width": 390
+    },
+    "levels-refresh-failed-820-zh.png": {
+      "bytes": 139410,
+      "height": 842,
+      "sha256": "0b81ce1513d164ce4fe138527f0cbf89f161b73b59a3c9044ceae41fc128323d",
+      "width": 820
+    },
+    "levels-refresh-failed-820.png": {
+      "bytes": 127578,
+      "height": 874,
+      "sha256": "8a573b80cca6cab19541e474c0129ca3f32c720d41d24208eaadcdba6082457a",
+      "width": 820
+    },
+    "levels-retried-1440-zh.png": {
+      "bytes": 153374,
+      "height": 663,
+      "sha256": "e27125a64d8ddf3d4c5e06b63cd6eed041bd08cb1a1456e8676d064b0f549999",
+      "width": 1380
+    },
+    "levels-retried-1440.png": {
+      "bytes": 139104,
+      "height": 663,
+      "sha256": "5824e16b11fabf28f8e54c36c8eac84dbc7e1bbf058f49398098edbdaa2290e2",
+      "width": 1380
+    },
+    "levels-retried-390-zh.png": {
+      "bytes": 59222,
+      "height": 630,
+      "sha256": "b4a648e0210efcf262fcbdb76fca45aef3e60a6c3c34e6b51b34adcafdc04d06",
+      "width": 390
+    },
+    "levels-retried-390.png": {
+      "bytes": 57628,
+      "height": 630,
+      "sha256": "f12409a0552dd7498ea0be4556986e641246aa37cf1ff967894b9fc51098ef2d",
+      "width": 390
+    },
+    "levels-retried-820-zh.png": {
+      "bytes": 135595,
+      "height": 834,
+      "sha256": "035d29b0ae5c081991e7803244ad7ff5f0382e3587c59799b4cd57b8019e3fc4",
+      "width": 820
+    },
+    "levels-retried-820.png": {
+      "bytes": 125001,
+      "height": 866,
+      "sha256": "577562d1b09541ef223821cefcecc8d3b45eeadc36868b2394b6759e77309747",
+      "width": 820
+    },
+    "levels-unavailable-1440-zh.png": {
+      "bytes": 70639,
+      "height": 663,
+      "sha256": "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb",
+      "width": 1380
+    },
+    "levels-unavailable-1440.png": {
+      "bytes": 60205,
+      "height": 663,
+      "sha256": "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961",
+      "width": 1380
+    },
+    "levels-unavailable-390-zh.png": {
+      "bytes": 19763,
+      "height": 630,
+      "sha256": "2ada896285e9f132e8714d2686b3870eb8d02a89f9814609e4d729098c8e3dfc",
+      "width": 390
+    },
+    "levels-unavailable-390.png": {
+      "bytes": 18184,
+      "height": 630,
+      "sha256": "bd6189a660cfb51cf87f09d985e72eddcccc8226918fee5c020cb8bb39e4f59b",
+      "width": 390
+    },
+    "levels-unavailable-820-zh.png": {
+      "bytes": 67103,
+      "height": 646,
+      "sha256": "284b73019b3529db5c2d11085ea4ae442761bea605046eaa692f67e76936d2ac",
+      "width": 820
+    },
+    "levels-unavailable-820.png": {
+      "bytes": 57501,
+      "height": 679,
+      "sha256": "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34",
+      "width": 820
+    }
+  },
+  "indexTreeAtStart": "1b1dc69375cc8f4e49f0925b83252e6a96423c8b",
+  "initialNextLockAbsent": true,
+  "integratedDependency": "d3bd6b2d98c6c23398be0bed6c7450caa47bd665",
+  "kind": "gex",
+  "lifecycle": {
+    "initialLockPresent": false,
+    "serverAbsenceVerifiedAt": "2026-11-09T16:15:54.821180+00:00"
+  },
+  "logSha256": "3cf1928d5c63e10eeec8948be8cc10771afb6fc7cfaa6c80c3c26dd290a40aaf",
+  "manifestSha256": "5caa26d23deb90772d9bd4ecbf16fbed92debe5acf6194fe366b869352cc1112",
+  "nativeReceipt": {
+    "captureId": "terminal-pr768-gex-options-integration-20261109-r1",
+    "capturedAtHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+    "family": "gex",
+    "files": [
+      {
+        "file": "gex-ladder-absent-1440-zh.png",
+        "sha256": "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+      },
+      {
+        "file": "gex-ladder-absent-1440.png",
+        "sha256": "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+      },
+      {
+        "file": "gex-ladder-absent-390-zh.png",
+        "sha256": "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b"
+      },
+      {
+        "file": "gex-ladder-absent-390.png",
+        "sha256": "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1"
+      },
+      {
+        "file": "gex-ladder-absent-820-zh.png",
+        "sha256": "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+      },
+      {
+        "file": "gex-ladder-absent-820.png",
+        "sha256": "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+      },
+      {
+        "file": "gex-ladder-retried-1440-zh.png",
+        "sha256": "a275d3f9a01c823966704bbabb0b2c683173372a953f525f72b0a17a8ea09bd9"
+      },
+      {
+        "file": "gex-ladder-retried-1440.png",
+        "sha256": "5f6f499fc800425e90bc48f46ac30268cd4a4e875e584e3b70b42460c84e7857"
+      },
+      {
+        "file": "gex-ladder-retried-390-zh.png",
+        "sha256": "31b393cffc6767e73521cfba569d571bbfe5056807a6e8f32cf89e4a21a67cc5"
+      },
+      {
+        "file": "gex-ladder-retried-390.png",
+        "sha256": "3dce8c29b285853e55e9e3228912c7fbac12e8ba2895918e24ebef3ccc9de31c"
+      },
+      {
+        "file": "gex-ladder-retried-820-zh.png",
+        "sha256": "8e06e39eda6fb0eb567e50bca612dfa576e102301ce8fcc921e4c5db3111da6a"
+      },
+      {
+        "file": "gex-ladder-retried-820.png",
+        "sha256": "c9c8aaa6909d8dea3ec1fa153ccf598b92979e446193fd58a61987a235b20973"
+      },
+      {
+        "file": "gex-ladder-unavailable-1440-zh.png",
+        "sha256": "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+      },
+      {
+        "file": "gex-ladder-unavailable-1440.png",
+        "sha256": "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4"
+      },
+      {
+        "file": "gex-ladder-unavailable-390-zh.png",
+        "sha256": "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+      },
+      {
+        "file": "gex-ladder-unavailable-390.png",
+        "sha256": "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96"
+      },
+      {
+        "file": "gex-ladder-unavailable-820-zh.png",
+        "sha256": "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+      },
+      {
+        "file": "gex-ladder-unavailable-820.png",
+        "sha256": "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+      },
+      {
+        "file": "gex-live-refresh-failed-1440-zh.png",
+        "sha256": "e7fd42b9b4d9b0e429ff89f0de4cd0296f7e69802b91624411545ee7500684f8"
+      },
+      {
+        "file": "gex-live-refresh-failed-1440.png",
+        "sha256": "611b68cccf228e379c08ce88e836ff6c44aa1a7e5d85c7913214cf64df760b76"
+      },
+      {
+        "file": "gex-live-refresh-failed-390-zh.png",
+        "sha256": "be87f748d4b72b897a0dcd7594336109630e143295d4057e9997252728a2afe0"
+      },
+      {
+        "file": "gex-live-refresh-failed-390.png",
+        "sha256": "4309ea641b5c7fdc734c72268a7479105194c344331b13bafd6f2675d9745111"
+      },
+      {
+        "file": "gex-live-refresh-failed-820-zh.png",
+        "sha256": "566bf25dfbc2d13524d99dd7e4ddef4e00d4d316b00894dc27ba9fce22a2c575"
+      },
+      {
+        "file": "gex-live-refresh-failed-820.png",
+        "sha256": "b74fa8b363d79315d1510e34c76a8e69da4b48abef3dc73fd7c0a1b157e560f7"
+      },
+      {
+        "file": "gex-live-retried-1440-zh.png",
+        "sha256": "7d19bd3b60f980b28bbabea260ef32ba3f9bf71128316260d3a0ca0ff185a8a7"
+      },
+      {
+        "file": "gex-live-retried-1440.png",
+        "sha256": "2d5c92012b5ba7df9685823c5662938cb6a55ded0ace32ceda0e97dff5d0d4d2"
+      },
+      {
+        "file": "gex-live-retried-390-zh.png",
+        "sha256": "e11426257c545197db0aa2e5f4bc17b3736ce08c3314c6604e032b36ad8093a7"
+      },
+      {
+        "file": "gex-live-retried-390.png",
+        "sha256": "8d8ff224c5899abbc528e8247b2e647c8c0bd01a30705c204e27ed4748b41546"
+      },
+      {
+        "file": "gex-live-retried-820-zh.png",
+        "sha256": "12fb958c4b27ff938e55412a0d7ffb2e48e22ff3321f175147b367be022c774f"
+      },
+      {
+        "file": "gex-live-retried-820.png",
+        "sha256": "0168bdfe20e0020543acf9f2e33a5b6726518169de7ce77df530a23aa1d66802"
+      },
+      {
+        "file": "gex-pick-absent-1440-zh.png",
+        "sha256": "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436"
+      },
+      {
+        "file": "gex-pick-absent-1440.png",
+        "sha256": "bbbe1395b2bae4048894b9c47ec46b0b6f1c56d0b77671a4b34b840bc43458b4"
+      },
+      {
+        "file": "gex-pick-absent-390-zh.png",
+        "sha256": "65cf51fe66c4ecd3d8a7ef5c2fe8c8645acefefb82ac5807d5bc565d863719ef"
+      },
+      {
+        "file": "gex-pick-absent-390.png",
+        "sha256": "bb0587e41a5f32abcb1f1ffa81cc7aeeda997b5277bc59d205f7e7f9cee27d06"
+      },
+      {
+        "file": "gex-pick-absent-820-zh.png",
+        "sha256": "7d93f647541edbebfa3913fff6fb59808e041c4888b321cae898a4164f731e70"
+      },
+      {
+        "file": "gex-pick-absent-820.png",
+        "sha256": "11641bc03d83314132214ae90152db3d05d3350578684831d7d2332f5b0fc55d"
+      },
+      {
+        "file": "gex-rail-retried-1440-zh.png",
+        "sha256": "dfe276b451ccb8e33a41c2ef181d585c464a8dcf8741c21305e470d466350b8b"
+      },
+      {
+        "file": "gex-rail-retried-1440.png",
+        "sha256": "7b2785b21061a62432ccbfa92fd96cc67a6e05b7d1f163aa01675ad6b10ec0cd"
+      },
+      {
+        "file": "gex-rail-retried-390-zh.png",
+        "sha256": "f33250ad094f41f5caeb4de20c2461c943980536d203559ef382dc59fa147dc6"
+      },
+      {
+        "file": "gex-rail-retried-390.png",
+        "sha256": "8b260bbe7deccc47e91254498bfbc299111a2c2851645d4c1371d4ad57cef8c6"
+      },
+      {
+        "file": "gex-rail-retried-820-zh.png",
+        "sha256": "5db1735c8958bb172be89742594bdb12b1e25e8a2e4cb4dc910e13ab5a5e92ad"
+      },
+      {
+        "file": "gex-rail-retried-820.png",
+        "sha256": "ea36824aab4a33b6eda5d0bb223f647ccdf088938dc43f78c7030421caf348d1"
+      },
+      {
+        "file": "gex-rail-unavailable-1440-zh.png",
+        "sha256": "f09e7e44b56bcfc79d764293fc700e8cb913c8436db1f3d84c43656f9f8547a1"
+      },
+      {
+        "file": "gex-rail-unavailable-1440.png",
+        "sha256": "e49027d013bc209a135a719a6e78a9d58e21ca6ec68b077d7539448d942ddf8f"
+      },
+      {
+        "file": "gex-rail-unavailable-390-zh.png",
+        "sha256": "46c72d973110bfcc9f9046b1ea62b319ef4e6fa30cf259389c41abb18737985d"
+      },
+      {
+        "file": "gex-rail-unavailable-390.png",
+        "sha256": "e7fb49e1767e95bd8783b47c65f0a144508ee3fb7feb51eafa82453b462010e1"
+      },
+      {
+        "file": "gex-rail-unavailable-820-zh.png",
+        "sha256": "90d48a7bb43f9ed1ddbad54f7db6c0480c668b738c1e798044a22ddb76bad84b"
+      },
+      {
+        "file": "gex-rail-unavailable-820.png",
+        "sha256": "ca17f1840168e70fcd3f865b515683b16820bf9985edb43604f6e24a8973cc22"
+      },
+      {
+        "file": "gex-state-refresh-failed-1440-zh.png",
+        "sha256": "d76e50e0f44210099311f9e4cfffaab7a3efc8a5776e2b7ce6d18dc4cdc71298"
+      },
+      {
+        "file": "gex-state-refresh-failed-1440.png",
+        "sha256": "385156c18861b925f50d25a4bd83847e81fb7dfdb6ba2d25968b2a7620bc9636"
+      },
+      {
+        "file": "gex-state-refresh-failed-390-zh.png",
+        "sha256": "aaad7ab18b15e6d3f649175ededfa19d081abb1cec0db4b094e67a55cfaf8741"
+      },
+      {
+        "file": "gex-state-refresh-failed-390.png",
+        "sha256": "8841cdf002efae4924c0e23bb78e6e25eb027406111407f0a4a60280d9aac946"
+      },
+      {
+        "file": "gex-state-refresh-failed-820-zh.png",
+        "sha256": "d5e286202eea3ded15a3677a690a725dea8cd8b8e3bb521b4806bf463e156fd1"
+      },
+      {
+        "file": "gex-state-refresh-failed-820.png",
+        "sha256": "31d37b92139d6d65c7501df300512053cff8cb6a1e943adc6d8df49e4cb31ca4"
+      },
+      {
+        "file": "heatmap-absent-1440-zh.png",
+        "sha256": "16ece66bb700ab452fb2821be04b45622f904b1b5df75b7b7af71903177e3469"
+      },
+      {
+        "file": "heatmap-absent-1440.png",
+        "sha256": "ea40355c6b22a0ff9ba92a201444ef7715479a7d3ac066ba1e4721178884c4ae"
+      },
+      {
+        "file": "heatmap-absent-390-zh.png",
+        "sha256": "8b5aa5c298fb077f67f2ae51f44fd76fcc17f59b349155981a7be49b2849054e"
+      },
+      {
+        "file": "heatmap-absent-390.png",
+        "sha256": "f747dd621b3b623339ef8754591cb52fcede73018d180e0aba2db09d2ab57bca"
+      },
+      {
+        "file": "heatmap-absent-820-zh.png",
+        "sha256": "da251e7cd2b1de332b0eb20fec64632f43ef6026e99cfd9f271478e1c60152c3"
+      },
+      {
+        "file": "heatmap-absent-820.png",
+        "sha256": "d5c3a996a7b5e5061a3cb258ae06cf2a374080e2c23aafdd8f26d2d05c673ac7"
+      },
+      {
+        "file": "heatmap-persisted-refresh-failed-1440-zh.png",
+        "sha256": "c21979f36508a6d65847d8a07808aab75571b4437648ae8d7544ebf1d8ff3db7"
+      },
+      {
+        "file": "heatmap-persisted-refresh-failed-1440.png",
+        "sha256": "3ba395ebdf6c4052f24c7c20e1cde0000748a9802b060d31982bd1b44a305409"
+      },
+      {
+        "file": "heatmap-persisted-refresh-failed-390-zh.png",
+        "sha256": "d6e11eea8e68faddab33432d38e64670ec7e7c3a8da1fa40a0ed4ae348c36064"
+      },
+      {
+        "file": "heatmap-persisted-refresh-failed-390.png",
+        "sha256": "b1c698a06ff2d42ab64d6110dcb45531d525c60d8572b9f0d98978ff2eeb51ef"
+      },
+      {
+        "file": "heatmap-persisted-refresh-failed-820-zh.png",
+        "sha256": "2f8554cb007328f9cf0ebc26c4bebdcc0ddf2525dd850c46196a1fd81f0a4185"
+      },
+      {
+        "file": "heatmap-persisted-refresh-failed-820.png",
+        "sha256": "b61c84cd905ec9f68390d66b84a8bc5d18536ceb766f61d584ca09bd0514d583"
+      },
+      {
+        "file": "heatmap-persisted-refresh-refused-1440-zh.png",
+        "sha256": "c21979f36508a6d65847d8a07808aab75571b4437648ae8d7544ebf1d8ff3db7"
+      },
+      {
+        "file": "heatmap-persisted-refresh-refused-1440.png",
+        "sha256": "3ba395ebdf6c4052f24c7c20e1cde0000748a9802b060d31982bd1b44a305409"
+      },
+      {
+        "file": "heatmap-persisted-refresh-refused-390-zh.png",
+        "sha256": "d6e11eea8e68faddab33432d38e64670ec7e7c3a8da1fa40a0ed4ae348c36064"
+      },
+      {
+        "file": "heatmap-persisted-refresh-refused-390.png",
+        "sha256": "b1c698a06ff2d42ab64d6110dcb45531d525c60d8572b9f0d98978ff2eeb51ef"
+      },
+      {
+        "file": "heatmap-persisted-refresh-refused-820-zh.png",
+        "sha256": "2f8554cb007328f9cf0ebc26c4bebdcc0ddf2525dd850c46196a1fd81f0a4185"
+      },
+      {
+        "file": "heatmap-persisted-refresh-refused-820.png",
+        "sha256": "b61c84cd905ec9f68390d66b84a8bc5d18536ceb766f61d584ca09bd0514d583"
+      },
+      {
+        "file": "heatmap-persisted-retried-1440-zh.png",
+        "sha256": "eb80bdea9ec1b66b5723235bd748245278eb3eef3e8eb844cafe5c7c43f4d8ff"
+      },
+      {
+        "file": "heatmap-persisted-retried-1440.png",
+        "sha256": "57132ba8123570c56f54451a9a6dd316c784fc7388d7b2e9905ae32144d5c1a9"
+      },
+      {
+        "file": "heatmap-persisted-retried-390-zh.png",
+        "sha256": "c76cfa1e157967ae87551792b534cc0c23d08d1095a7e404748ff6a81c556e05"
+      },
+      {
+        "file": "heatmap-persisted-retried-390.png",
+        "sha256": "b6279bcba202c7ee3d98b3e493627e1c0c1b4fae0ffa6c2823a2ae2e2728f318"
+      },
+      {
+        "file": "heatmap-persisted-retried-820-zh.png",
+        "sha256": "c2fc6a859e6376606a04a41aab10abee69414d2c07714572fdc80efdb26a0ef1"
+      },
+      {
+        "file": "heatmap-persisted-retried-820.png",
+        "sha256": "3bb4ad3c11418694d3d769b401623e4d2e6dd80c69ca0983660fc957a8161d8d"
+      },
+      {
+        "file": "heatmap-retried-1440-zh.png",
+        "sha256": "eb80bdea9ec1b66b5723235bd748245278eb3eef3e8eb844cafe5c7c43f4d8ff"
+      },
+      {
+        "file": "heatmap-retried-1440.png",
+        "sha256": "57132ba8123570c56f54451a9a6dd316c784fc7388d7b2e9905ae32144d5c1a9"
+      },
+      {
+        "file": "heatmap-retried-390-zh.png",
+        "sha256": "76575272cdde14ac137c358062e759597679afbfd56e5dbedb9610a348f0aa07"
+      },
+      {
+        "file": "heatmap-retried-390.png",
+        "sha256": "b28178e4e8a588872ff8f45c2c750b8ad973841ca1a14ae3891f99d3703f0cd0"
+      },
+      {
+        "file": "heatmap-retried-820-zh.png",
+        "sha256": "c2fc6a859e6376606a04a41aab10abee69414d2c07714572fdc80efdb26a0ef1"
+      },
+      {
+        "file": "heatmap-retried-820.png",
+        "sha256": "3bb4ad3c11418694d3d769b401623e4d2e6dd80c69ca0983660fc957a8161d8d"
+      },
+      {
+        "file": "heatmap-unavailable-1440-zh.png",
+        "sha256": "535ed9d72852c9c50108cca6729ba0491759b324b7c01b8f2fa5010abcfbf3c1"
+      },
+      {
+        "file": "heatmap-unavailable-1440.png",
+        "sha256": "c59042385ce5311f31d17fac076e0f3f62eb2e781767a716982cb76b49a98844"
+      },
+      {
+        "file": "heatmap-unavailable-390-zh.png",
+        "sha256": "bb2db186bbde884d837cdbd9baf20ddf5602ddbe52ca5b997807a25ccbacb4c7"
+      },
+      {
+        "file": "heatmap-unavailable-390.png",
+        "sha256": "913c458bac88ffa6ceff472067f5824aef054c5392e2c299dbf8824bedabe4aa"
+      },
+      {
+        "file": "heatmap-unavailable-820-zh.png",
+        "sha256": "b3e7f1147ac2b548376b542df63723237ed672cbd17edca06ebd8b4a88fe457b"
+      },
+      {
+        "file": "heatmap-unavailable-820.png",
+        "sha256": "3e3741f4f882562094e7040fbab7707b85b11e568853cd90251330372c53acc9"
+      },
+      {
+        "file": "levels-absent-1440-zh.png",
+        "sha256": "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb"
+      },
+      {
+        "file": "levels-absent-1440.png",
+        "sha256": "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491"
+      },
+      {
+        "file": "levels-absent-390-zh.png",
+        "sha256": "60b21559ea78024916033513c54aa159ae32cff669831a698e8f034154ec9185"
+      },
+      {
+        "file": "levels-absent-390.png",
+        "sha256": "7d3fcf4a669125a3fbe85afbfa648301e77d114c226f567b5412499dc4f44497"
+      },
+      {
+        "file": "levels-absent-820-zh.png",
+        "sha256": "07932ee814ea2700be2dd3308e7aa9d86158410ce97119b1b1bba17bebb48ac8"
+      },
+      {
+        "file": "levels-absent-820.png",
+        "sha256": "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5"
+      },
+      {
+        "file": "levels-refresh-failed-1440-zh.png",
+        "sha256": "532c196f5cc135ae52fad58dc5d7e83a3ee56bf7cf0a4c1c2f63dce8dd74fff5"
+      },
+      {
+        "file": "levels-refresh-failed-1440.png",
+        "sha256": "f6d40de25b7b4c1a80a20597d936947bae793dc974fbfd0d0226c025d7e8fc5e"
+      },
+      {
+        "file": "levels-refresh-failed-390-zh.png",
+        "sha256": "1dbecd94402b03d8f55bc98d820c3c247b79c118ded7cd4d88fc07357b6846cd"
+      },
+      {
+        "file": "levels-refresh-failed-390.png",
+        "sha256": "80958530ee9512ce3ceaf71772cf8f693ca22d0b8580ecfb96c0c41bee0aeea6"
+      },
+      {
+        "file": "levels-refresh-failed-820-zh.png",
+        "sha256": "0b81ce1513d164ce4fe138527f0cbf89f161b73b59a3c9044ceae41fc128323d"
+      },
+      {
+        "file": "levels-refresh-failed-820.png",
+        "sha256": "8a573b80cca6cab19541e474c0129ca3f32c720d41d24208eaadcdba6082457a"
+      },
+      {
+        "file": "levels-retried-1440-zh.png",
+        "sha256": "e27125a64d8ddf3d4c5e06b63cd6eed041bd08cb1a1456e8676d064b0f549999"
+      },
+      {
+        "file": "levels-retried-1440.png",
+        "sha256": "5824e16b11fabf28f8e54c36c8eac84dbc7e1bbf058f49398098edbdaa2290e2"
+      },
+      {
+        "file": "levels-retried-390-zh.png",
+        "sha256": "b4a648e0210efcf262fcbdb76fca45aef3e60a6c3c34e6b51b34adcafdc04d06"
+      },
+      {
+        "file": "levels-retried-390.png",
+        "sha256": "f12409a0552dd7498ea0be4556986e641246aa37cf1ff967894b9fc51098ef2d"
+      },
+      {
+        "file": "levels-retried-820-zh.png",
+        "sha256": "035d29b0ae5c081991e7803244ad7ff5f0382e3587c59799b4cd57b8019e3fc4"
+      },
+      {
+        "file": "levels-retried-820.png",
+        "sha256": "577562d1b09541ef223821cefcecc8d3b45eeadc36868b2394b6759e77309747"
+      },
+      {
+        "file": "levels-unavailable-1440-zh.png",
+        "sha256": "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb"
+      },
+      {
+        "file": "levels-unavailable-1440.png",
+        "sha256": "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961"
+      },
+      {
+        "file": "levels-unavailable-390-zh.png",
+        "sha256": "2ada896285e9f132e8714d2686b3870eb8d02a89f9814609e4d729098c8e3dfc"
+      },
+      {
+        "file": "levels-unavailable-390.png",
+        "sha256": "bd6189a660cfb51cf87f09d985e72eddcccc8226918fee5c020cb8bb39e4f59b"
+      },
+      {
+        "file": "levels-unavailable-820-zh.png",
+        "sha256": "284b73019b3529db5c2d11085ea4ae442761bea605046eaa692f67e76936d2ac"
+      },
+      {
+        "file": "levels-unavailable-820.png",
+        "sha256": "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34"
+      }
+    ],
+    "history": null,
+    "manifestSha256": "5caa26d23deb90772d9bd4ecbf16fbed92debe5acf6194fe366b869352cc1112"
+  },
+  "nativeServerEvents": [
+    {
+      "observedAt": "2026-11-09T16:11:56.160Z",
+      "pid": 70359
+    },
+    {
+      "observedAt": "2026-11-09T16:11:56.224Z",
+      "serverPid": 70377,
+      "serverRefused": null,
+      "serverReportedStopped": false
+    },
+    {
+      "observedAt": "2026-11-09T16:15:53.605Z",
+      "serverPid": 70377,
+      "serverRefused": null,
+      "serverReportedStopped": true
+    },
+    {
+      "observedAt": "2026-11-09T16:15:53.679Z",
+      "serverPid": 70377,
+      "serverRefused": null,
+      "serverReportedStopped": true,
+      "serverSettled": true
+    }
+  ],
+  "nativeSupervisor": {
+    "closed": true,
+    "error": null,
+    "errorCode": null,
+    "pid": 70359,
+    "serverPid": 70377,
+    "serverRefused": null,
+    "serverReportedStopped": true,
+    "serverSettled": true,
+    "signal": null,
+    "status": 0,
+    "timedOut": false
+  },
+  "nextLockAbsent": true,
+  "operation": "exposure-source-compatibility-20261105",
+  "ownedServerStopped": true,
+  "packet": "gex-levels-heatmap-load-failure",
+  "port": 3864,
+  "portClosed": true,
+  "producerPins": {
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "671062f250f16c812ffdebfb1714d5c62a8c54be0f439fa34dc1e70452c086e9",
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": "dbb92e88972bd39984427d054f431159401fcb16bd49b4479cc1c83456f7777d"
+  },
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "revision": "options-integration-20261109",
+  "schema": "exposure_master_integration_capture.v1",
+  "seconds": 238.16,
+  "sourceAfterSha256": "1b9a01978e2180a6cd2d27a20c7d934a99c46c580d13131000dcae26f7e2f8e2",
+  "sourceBeforeSha256": "1b9a01978e2180a6cd2d27a20c7d934a99c46c580d13131000dcae26f7e2f8e2",
+  "sourceStable": true,
+  "startedAt": "2026-11-09T16:11:56.106422+00:00",
+  "successfulFiles": 114,
+  "supervisionCommand": [
+    "node",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/docs/verification/pr768-options-integration-20261109/native-driver.cjs",
+    "gex",
+    "3864",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/docs/verification/pr768-options-integration-20261109/gex-supervision-r1.json",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/capture.log"
+  ],
+  "supervisionExit": 0,
+  "supervisionReceiptSha256": "32fb636df195fe15b0b30496cf76e65de7a21ffef80fb993c44b76efbc4c83c9",
+  "webpack": false
+}

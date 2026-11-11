@@ -156,6 +156,7 @@
   text-decoration: underline;
 }
 
+.title:focus-visible,
 .btn:focus-visible,
 .btnPrimary:focus-visible,
 .btnText:focus-visible,

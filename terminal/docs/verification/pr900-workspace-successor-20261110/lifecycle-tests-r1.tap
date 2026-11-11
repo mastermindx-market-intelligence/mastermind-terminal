@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: shutdown sends one signal and waits for close, not exit
+ok 1 - shutdown sends one signal and waits for close, not exit
+  ---
+  duration_ms: 1.538375
+  type: 'test'
+  ...
+# Subtest: already closed owned child is not signalled
+ok 2 - already closed owned child is not signalled
+  ---
+  duration_ms: 0.565208
+  type: 'test'
+  ...
+# Subtest: EPERM preserves the original error and cannot retry after later close
+ok 3 - EPERM preserves the original error and cannot retry after later close
+  ---
+  duration_ms: 1.388125
+  type: 'test'
+  ...
+# Subtest: EACCES preserves the original error and cannot retry after later close
+ok 4 - EACCES preserves the original error and cannot retry after later close
+  ---
+  duration_ms: 0.339041
+  type: 'test'
+  ...
+# Subtest: EIO preserves the original error and cannot retry after later close
+ok 5 - EIO preserves the original error and cannot retry after later close
+  ---
+  duration_ms: 0.172459
+  type: 'test'
+  ...
+# Subtest: ESRCH still requires close and never falls back
+ok 6 - ESRCH still requires close and never falls back
+  ---
+  duration_ms: 0.2245
+  type: 'test'
+  ...
+# Subtest: missing close remains failure: signal accepted
+ok 7 - missing close remains failure: signal accepted
+  ---
+  duration_ms: 0.198709
+  type: 'test'
+  ...
+# Subtest: missing close remains failure: ESRCH
+ok 8 - missing close remains failure: ESRCH
+  ---
+  duration_ms: 0.109791
+  type: 'test'
+  ...
+# Subtest: unowned or changed process identity cannot be signalled
+ok 9 - unowned or changed process identity cannot be signalled
+  ---
+  duration_ms: 2.034208
+  type: 'test'
+  ...
+# Subtest: spawn failure preserves the original error without signalling
+ok 10 - spawn failure preserves the original error without signalling
+  ---
+  duration_ms: 1.255459
+  type: 'test'
+  ...
+# Subtest: an owned child error during shutdown remains identifiable
+ok 11 - an owned child error during shutdown remains identifiable
+  ---
+  duration_ms: 0.591125
+  type: 'test'
+  ...
+# Subtest: browser launch failure still waits for the owned server close
+ok 12 - browser launch failure still waits for the owned server close
+  ---
+  duration_ms: 0.465875
+  type: 'test'
+  ...
+# Subtest: capture failure closes browser and settles server before returning failure
+ok 13 - capture failure closes browser and settles server before returning failure
+  ---
+  duration_ms: 0.387417
+  type: 'test'
+  ...
+# Subtest: browser-close failure cannot skip owned-server settlement
+ok 14 - browser-close failure cannot skip owned-server settlement
+  ---
+  duration_ms: 0.330875
+  type: 'test'
+  ...
+# Subtest: capture, browser-close and signal refusal all survive cleanup
+ok 15 - capture, browser-close and signal refusal all survive cleanup
+  ---
+  duration_ms: 1.431958
+  type: 'test'
+  ...
+# Subtest: successful resource scope returns actual close observation
+ok 16 - successful resource scope returns actual close observation
+  ---
+  duration_ms: 1.206334
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.061375

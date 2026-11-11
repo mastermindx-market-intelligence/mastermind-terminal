@@ -121,3 +121,98 @@ describe("current opens separately", () => {
     expect(await reopenCurrent(transport({ current: { kind: "error" } }).t)).toEqual({ state: "retry", reason: "transport_error" });
   });
 });
+
+describe("identity is strict (reviewer S2/S3: each mutant of the identity check must fail a test)", () => {
+  const clone = () => JSON.parse(JSON.stringify(sample)) as SectorPopulationRead;
+  const owner = (body: SectorPopulationRead) => body.page!.capture!.owner_ref as Record<string, unknown>;
+
+  it("same generation with a DIFFERENT content_id is identity_mismatch", async () => {
+    const sameGenerationOtherContent = clone();
+    owner(sameGenerationOtherContent).content_id = "e".repeat(64);
+    expect(captureIdentityOf(sameGenerationOtherContent)!.generation_id).toBe(saved.generation_id);
+    expect(sameCaptureIdentity(saved, captureIdentityOf(sameGenerationOtherContent))).toBe(false);
+    expect(await reopenOriginal(saved, hint, transport({ ctx: { kind: "ok", body: sameGenerationOtherContent } }).t)).toEqual({ state: "original_unavailable", reason: "identity_mismatch" });
+  });
+  it("the saved member set plus ONE extra member is identity_mismatch", async () => {
+    const superset = clone();
+    // "zz/…" sorts AFTER every saved key, so the saved keys are a strict prefix of the answered keys:
+    // only the member-count comparison can tell the sets apart (a key-by-key walk of the saved keys cannot).
+    (owner(superset).member_sha256 as Record<string, string>)["zz/extra-member.json"] = "f".repeat(64);
+    expect([...Object.keys(saved.member_sha256!)].every(key => key < "zz/extra-member.json")).toBe(true);
+    expect(await reopenOriginal(saved, hint, transport({ ctx: { kind: "ok", body: superset } }).t)).toEqual({ state: "original_unavailable", reason: "identity_mismatch" });
+    const middle = clone();
+    (owner(middle).member_sha256 as Record<string, string>)["extra/member.json"] = "f".repeat(64);
+    expect(await reopenOriginal(saved, hint, transport({ ctx: { kind: "ok", body: middle } }).t)).toEqual({ state: "original_unavailable", reason: "identity_mismatch" });
+    // and a saved set that is a superset of the answer is refused too
+    const subset = clone();
+    delete (owner(subset).member_sha256 as Record<string, string>)[Object.keys(saved.member_sha256!)[0]];
+    expect(await reopenOriginal(saved, hint, transport({ ctx: { kind: "ok", body: subset } }).t)).toEqual({ state: "original_unavailable", reason: "identity_mismatch" });
+  });
+  it("durability process_lifetime_only is NOT durable, whatever else the owner_ref says", async () => {
+    for (const value of ["process_lifetime_only", "", undefined, null, "Durable", true]) {
+      expect(contextRefIsDurable({ retained_resolver_ref_durability: value as never })).toBe(false);
+    }
+    const processOnly = clone();
+    owner(processOnly).retained_resolver_ref_durability = "process_lifetime_only";
+    expect(await reopenOriginal(saved, hint, transport({ ctx: { kind: "ok", body: processOnly } }).t)).toMatchObject({ state: "original", contextRefDurable: false });
+  });
+  it("S2: a member entry that is not a sha256 string, or whose key fails the grammar, makes the answer carry NO identity", async () => {
+    const malformed: Array<[string, unknown]> = [
+      ["non-string value", 5], ["null value", null], ["short digest", "abc"], ["uppercase digest", "A".repeat(64)], ["object value", { a: 1 }],
+    ];
+    for (const [label, value] of malformed) {
+      const extra = clone();
+      (owner(extra).member_sha256 as Record<string, unknown>)["m2.json"] = value;
+      expect(captureIdentityOf(extra), label).toBeNull();
+      expect(await reopenOriginal(saved, hint, transport({ ctx: { kind: "ok", body: extra } }).t), label).toEqual({ state: "original_unavailable", reason: "identity_mismatch" });
+    }
+    // a "__proto__" own key (JSON.parse creates it as an own property) fails the grammar, never silently dropped
+    const proto = clone();
+    owner(proto).member_sha256 = JSON.parse(`{${Object.entries(saved.member_sha256!).map(([k, v]) => JSON.stringify(k) + ":" + JSON.stringify(v)).join(",")},"__proto__":"${"e".repeat(64)}"}`);
+    expect(captureIdentityOf(proto)).toBeNull();
+    expect(await reopenOriginal(saved, hint, transport({ ctx: { kind: "ok", body: proto } }).t)).toEqual({ state: "original_unavailable", reason: "identity_mismatch" });
+    // a key outside the MEMBER_PATH grammar
+    const badKey = clone();
+    (owner(badKey).member_sha256 as Record<string, string>)["../escape"] = "f".repeat(64);
+    expect(captureIdentityOf(badKey)).toBeNull();
+    // a non-object member set
+    const notObject = clone();
+    owner(notObject).member_sha256 = ["f".repeat(64)];
+    expect(captureIdentityOf(notObject)).toBeNull();
+  });
+});
+
+describe("N4: a rejected transport promise is inconclusive, never a fallback", () => {
+  it("a thrown/rejected openByContextRef (network, or a 2xx whose body does not parse) becomes retry", async () => {
+    for (const failure of [new Error("net"), new SyntaxError("Unexpected end of JSON input")]) {
+      const calls: string[] = [];
+      const t: SectorReopenTransport = {
+        openByContextRef: async () => { throw failure; },
+        openCurrent: async () => { calls.push("current"); return { kind: "ok", body: latestOther }; },
+      };
+      expect(await reopenOriginal(saved, hint, t)).toEqual({ state: "retry", reason: "transport_error" });
+      expect(calls).toEqual([]); // the current path is never consulted
+    }
+  });
+  it("a rejected openByIdentity becomes retry too, and a rejected openCurrent is retry (never an original)", async () => {
+    const t: SectorReopenTransport = {
+      openByContextRef: async () => ({ kind: "original_unavailable" }),
+      openByIdentity: async () => { throw new Error("net"); },
+      openCurrent: async () => { throw new Error("net"); },
+    };
+    expect(await reopenOriginal(saved, hint, t)).toEqual({ state: "retry", reason: "transport_error" });
+    expect(await reopenCurrent(t)).toEqual({ state: "retry", reason: "transport_error" });
+  });
+  it("a 200 with an empty body, classified by lane 3's hunk WITH the catch, is retry end to end", async () => {
+    const classify = async (res: Response): Promise<TransportAnswer> => {
+      if (res.ok) { const body = await res.json().catch(() => null); return body ? { kind: "ok", body } : { kind: "error" }; }
+      return { kind: "error" };
+    };
+    const t: SectorReopenTransport = {
+      openByContextRef: async () => classify(new Response("", { status: 200 })),
+      openCurrent: async () => classify(new Response("{}", { status: 200 })),
+    };
+    expect(await reopenOriginal(saved, hint, t)).toEqual({ state: "retry", reason: "transport_error" });
+  });
+});
+

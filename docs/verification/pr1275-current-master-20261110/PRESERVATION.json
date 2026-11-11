@@ -1,0 +1,199 @@
+{
+  "schema": "terminal.pr1275.preservation.v1",
+  "preservedFiles": [
+    {
+      "sourceHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/candidate/EVIDENCE.yml",
+      "gitBlob": "6982f6f92fb21a74434f55a95ff8e6a8962c7128",
+      "sha256": "c40774d913d4de1d34fb7f7a52540fe6824390a1f72567ed7c4d82570fddd787",
+      "bytes": 1959
+    },
+    {
+      "sourceHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/candidate/desktop-en.png",
+      "gitBlob": "4b04a78c1a5e18541c42a396edd1147813fcc1f7",
+      "sha256": "de1bb073262425767d57a490915a94697a87ea3feb838dfd4b2c046671d8f38a",
+      "bytes": 72623
+    },
+    {
+      "sourceHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/candidate/desktop-zh.png",
+      "gitBlob": "6fbbea006e02d7a603d6e256ca74c58c66d6f9f0",
+      "sha256": "c630463963f174f277658c5120ff289a38f4f2a76cec34b2bb4056790612f3ef",
+      "bytes": 72562
+    },
+    {
+      "sourceHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/candidate/tablet-en.png",
+      "gitBlob": "c5e0dc167cd9f5f91ce31fc5536abbb9283f4b3f",
+      "sha256": "1bf3b41d3bee882e8ea1495a911b91116447cf00678cfa96b6dc52a42f66ee7d",
+      "bytes": 35514
+    },
+    {
+      "sourceHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/candidate/tablet-zh.png",
+      "gitBlob": "06b076e3edd05cdf949202efb3aa3809c95df6a4",
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833",
+      "bytes": 34375
+    },
+    {
+      "sourceHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/candidate/mobile-en.png",
+      "gitBlob": "c17a4325c3db09dd103652ef3f42daddf272da2b",
+      "sha256": "c9d1b0a3958693432a0a701983ce2e25a84a2446e1f39c9ac21b9596c233628a",
+      "bytes": 25145
+    },
+    {
+      "sourceHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/candidate/mobile-zh.png",
+      "gitBlob": "ad688dc991bcacbeae94a368fe807e5b79ad5579",
+      "sha256": "0d6ea72701eff8cb2ede1fda6c8e239fea848daf2db694a50c571891b2bd367e",
+      "bytes": 26562
+    },
+    {
+      "sourceHead": "9b5716d433393b6b6c917950fea7e39035c6ff29",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/FIXTURE.json",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/candidate/FIXTURE.json",
+      "gitBlob": "60a74aaf07337e201ae0301df00d9183ceeb41af",
+      "sha256": "b5712c40e45623c744d6fedc58d2c8e2fe84bd32aa6c9f1fa8a0ff3a069ba292",
+      "bytes": 65739
+    },
+    {
+      "sourceHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/protected/EVIDENCE.yml",
+      "gitBlob": "4fd25eae0c73cc9fc0f344aff7bd4f7e3184c87e",
+      "sha256": "f847837ba48b69064e9af89c7e4ec9fa39fac581c6a71b7a72573c76ce1d6332",
+      "bytes": 4373
+    },
+    {
+      "sourceHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/protected/desktop-en.png",
+      "gitBlob": "349bd89145a40362cf69547517bf847c4495ed7b",
+      "sha256": "1fd2af8bd1365159ba67972d7af30e57f524af4b42d5bae0ae960b99fdf820d0",
+      "bytes": 65488
+    },
+    {
+      "sourceHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-zh.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/protected/desktop-zh.png",
+      "gitBlob": "6f06d5f0dbfa216145208a6a5bbdd3280a0ca231",
+      "sha256": "2e23f182aa171000dc27393d8fa166b3a18e19b4a2ff18c90099a817330f88a9",
+      "bytes": 65966
+    },
+    {
+      "sourceHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/protected/tablet-en.png",
+      "gitBlob": "abe568389a1ad95c3c37eff487c1e6af78445fd8",
+      "sha256": "78c9dc24efe04f3d85b81c73914fe040b7911bfce365ccfbce38bc6eca114d21",
+      "bytes": 35502
+    },
+    {
+      "sourceHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/protected/tablet-zh.png",
+      "gitBlob": "19796b853dde064c1bb43cf9e887880d05d8d7ba",
+      "sha256": "cc275b6a32c20a6d0e322453319837f8b1859291f7077e8bb1e018f00f2828f6",
+      "bytes": 34353
+    },
+    {
+      "sourceHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/protected/mobile-en.png",
+      "gitBlob": "6fe016caa06196bc058cdd8f890a5b05c66d35d2",
+      "sha256": "2588706457839cc101195447a70ebab4fc7e96c98d187079c132206727dbf325",
+      "bytes": 21838
+    },
+    {
+      "sourceHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+      "sourcePath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+      "historyPath": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-pr1275-current-master-20261110/protected/mobile-zh.png",
+      "gitBlob": "8041c7c6311e3df21d3b36c698cba59ddbcaf780",
+      "sha256": "fc5a929620fe3689c490566bb6e7e3705636cbfde2c2e9a55407548878b50de7",
+      "bytes": 22659
+    }
+  ],
+  "protectedAppendixPreserved": true,
+  "laterProtectedCommit": "6694f9bab28fa3c950c7bd5ec0a5957e736a4708",
+  "laterProtectedPostimages": [
+    {
+      "path": "docs/pr-crops/terminal-preference-continuity-20261109/browser.log",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4ee5cede48974c572fe761bfcc18e65d58701a72",
+      "status": "added"
+    },
+    {
+      "path": "docs/pr-crops/terminal-preference-continuity-20261109/desktop-preferences-return-en.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3fefa4796f1ae94b1cf565852926f24e416d099f",
+      "status": "added"
+    },
+    {
+      "path": "docs/pr-crops/terminal-preference-continuity-20261109/phone-preferences-return-zh.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d1e9fbcaab5278ebef7de1ac438baf6f069def4",
+      "status": "added"
+    },
+    {
+      "path": "docs/pr-crops/terminal-preference-continuity-20261109/polish2-preferences-before.log",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a8b396835aaae7f559baccafcda5d37c02377712",
+      "status": "added"
+    },
+    {
+      "path": "docs/pr-crops/terminal-preference-continuity-20261109/polish2-preferences-final-unit.log",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "46c5297ecab29eb4235ad001b58f8a50515d4bec",
+      "status": "added"
+    },
+    {
+      "path": "docs/pr-crops/terminal-preference-continuity-20261109/source-receipt.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bd08d4e959d02fb1b60b40e59395dec6e024e211",
+      "status": "added"
+    },
+    {
+      "path": "docs/pr-crops/terminal-preference-continuity-20261109/verification.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7f84438aff91be79123e3e425430ae5034cdfc1a",
+      "status": "added"
+    },
+    {
+      "path": "terminal/components/settings/SectionPreferences.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "68c1a312779c56255fe66d660600f2f63866dc9b",
+      "status": "modified"
+    },
+    {
+      "path": "terminal/components/settings/__tests__/SectionPreferencesContinuity.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4df44795a04a4e2ac7fda6e80ef25ef371515bbd",
+      "status": "added"
+    },
+    {
+      "path": "terminal/e2e/preference-section-continuity.spec.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7790042324e47c60688e339307f419fa397612d5",
+      "status": "added"
+    }
+  ]
+}

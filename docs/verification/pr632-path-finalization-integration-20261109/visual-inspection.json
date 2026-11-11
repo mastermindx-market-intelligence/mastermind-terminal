@@ -1,0 +1,11 @@
+{
+  "image": "terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png",
+  "inspectedAt": "2026-11-09T19:21:10.266378+00:00",
+  "observations": [
+    "Current compact desktop chart, quote and Options-axis labels are visible and separated.",
+    "The right-axis badges remain readable beside the active quote; the chart and sidebar do not overlap."
+  ],
+  "schema": "terminal_pr632_visual_self_check.v1",
+  "scope": "One actual current Options-axis image inspected. This visual spot check supplements the exact five-image native packet and browser assertions; it does not establish production data acceptance.",
+  "sha256": "fec0ead8f7702635a90360d0003d132d3c053c8f362734fcbd26a4f131b9fe0b"
+}

@@ -36,7 +36,8 @@ export type FollowState =
   | { state: "closed"; reason: "v3_writes_closed"; notificationClaimed: false }
   | { state: "saved_preference_only"; reason: "no_producer" | "preference_unconfirmed" | "membership_unconfirmed"; notificationClaimed: false; missingStep: string }
   | { state: "configured_unavailable"; reason: "transport_unavailable"; notificationClaimed: false; missingStep: string }
-  | { state: "following"; notificationClaimed: true; transport: Exclude<FollowTransport, "unavailable"> };
+  | { state: "delivery_problem"; reason: "transport_failed" | "transport_unknown"; notificationClaimed: false; transport: "failed" | "unknown"; missingStep: string }
+  | { state: "following"; notificationClaimed: true; transport: "queued" | "sent" };
 
 /** What exists today, in readback form. Producer admission is the single missing owner. */
 export const FOLLOW_PRODUCER_ADMISSION: FollowInputs = {
@@ -66,5 +67,17 @@ export function followState(inputs: FollowInputs = FOLLOW_PRODUCER_ADMISSION, v3
     return { state: "configured_unavailable", reason: "transport_unavailable", notificationClaimed: false,
       missingStep: "The delivery path reports no actual transport status." };
   }
-  return { state: "following", notificationClaimed: true, transport: inputs.transport };
+  // A notification is claimed ONLY by an allow-list: an ACTUAL queued or sent transport ("queued" is not
+  // delivered; "sent" is not read). Everything else - failed, unknown, and any value outside the TypeScript
+  // union that a runtime JSON readback could carry ("delivered", "QUEUED", null, 42...) - names the delivery
+  // problem and claims nothing.
+  if (inputs.transport === "queued" || inputs.transport === "sent") {
+    return { state: "following", notificationClaimed: true, transport: inputs.transport };
+  }
+  if (inputs.transport === "failed") {
+    return { state: "delivery_problem", reason: "transport_failed", notificationClaimed: false, transport: "failed",
+      missingStep: "The delivery path reports a failed transport." };
+  }
+  return { state: "delivery_problem", reason: "transport_unknown", notificationClaimed: false, transport: "unknown",
+    missingStep: "The delivery path reports no usable transport outcome." };
 }

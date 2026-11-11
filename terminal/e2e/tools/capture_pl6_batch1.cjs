@@ -34,6 +34,7 @@ const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
   "terminal/components/StockAnalysis.tsx",
+  "terminal/components/StockAnalysisImpl.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
   "terminal/components/ChartPanel.tsx",
   "terminal/lib/pricePaneSvgScope.ts",

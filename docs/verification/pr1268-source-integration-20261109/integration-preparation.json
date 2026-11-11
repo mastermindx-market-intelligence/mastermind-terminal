@@ -1,0 +1,16 @@
+{
+  "completedAt": "2026-11-09T16:37:25.875346+00:00",
+  "conflicts": [],
+  "head": "f7276cf077b877a54509cba28ab247b5524d8530",
+  "merge": {
+    "exit": 0,
+    "stderr": "Automatic merge went well; stopped before committing as requested\n",
+    "stdout": "Auto-merging terminal/components/ChartFrameBar.tsx\nAuto-merging terminal/components/ChartPane.tsx\nAuto-merging terminal/components/ChartPanel.tsx\n"
+  },
+  "preservationSha256": "ce5d944c8455394bad524750833158fdc2b9419ad0669f04b328e81a2239f817",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr1268_source_integration.v1",
+  "startedAt": "2026-11-09T16:37:23.333506+00:00",
+  "state": "COMPOSED_PENDING_VALIDATION",
+  "takeoverComment": 6745509398
+}

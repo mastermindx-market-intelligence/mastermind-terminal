@@ -474,31 +474,6 @@ def test_review_migration_applier_qualifies_behavior_and_catalog(pg, tmp_path):
         pg(f"drop database {database};")
 
 
-def test_v3_down_block_restores_exact_0052_and_refuses_with_v3_records(v3_pg):
-    text = (ROOT / "supabase/migrations/0053_investigation_v3_prophet_decision_admission.sql").read_text()
-    block = text[text.index("-- down:"):text.index("-- readback:")]
-    down = "\n".join(line[3:] if line.startswith("-- ") else line[2:] for line in block.splitlines()[2:])
-    v2_md5 = "select pg_catalog.md5(prosrc) from pg_proc where oid='public.valid_investigation_manifest_v2(jsonb)'::regprocedure;"
-    v3_manifest = {**manifest(), "schema": "investigation_manifest.v3"}
-    uid = "10000000-0000-4000-8000-0000000000aa"
-    v3_pg("insert into auth.users values (" + quote(uid) + ") on conflict do nothing;")
-    # A stored v3 revision makes the down refuse; the installed dispatcher stays.
-    v3_pg("insert into investigations values ('21000000-0000-4000-8000-000000000001'," + quote(uid) + ",1,'active',now(),now());"
-          "insert into investigation_revisions values ('21000000-0000-4000-8000-000000000001'," + quote(uid) + ",1,'create','active'," + quote(json.dumps(v3_manifest)) + "::jsonb,now());")
-    refused = v3_pg(down, check=False)
-    assert refused.returncode != 0 and "v3 records exist" in refused.stderr, refused.stderr
-    dispatcher = v3_pg(v2_md5)
-    assert dispatcher != "75f2b7feba6b3c9f177f4cda6c3605e9"
-    v3_pg("delete from investigation_revisions where investigation_id='21000000-0000-4000-8000-000000000001'; delete from investigations where id='21000000-0000-4000-8000-000000000001';")
-    v3_pg(down)
-    assert v3_pg(v2_md5) == "75f2b7feba6b3c9f177f4cda6c3605e9"
-    assert v3_pg("select to_regprocedure('public.valid_investigation_manifest_v3(jsonb)') is null, to_regprocedure('public.valid_investigation_manifest_core_v2(jsonb)') is null;") == "t|t"
-    assert v3_pg("select public.investigation_evidence_admitted_v2('prophet.research','today_selection');", role="authenticated") == "f"
-    # Re-apply the carrier: the guard accepts the restored 0052 body and the dispatcher returns.
-    v3_pg(text)
-    assert v3_pg(v2_md5) == dispatcher
-
-
 # --- SP15: account switch during save, late completion, lost response (real PostgreSQL 17) -------------
 # The authenticated actor is auth.uid(); the receipt key is (user_id, operation_id). These tests execute the
 # properties the client journey relies on: another account never reads or mutates the first account's
@@ -565,6 +540,96 @@ def test_sp15_late_completion_lands_once_for_its_own_account_and_never_for_the_n
     other = apply(pg, late_key, "create", 0, manifest("switched own"), target="22000000-0000-4000-8000-0000000000bb", actor=switched)
     assert other["status"] == "committed" and other["id"] == "22000000-0000-4000-8000-0000000000bb"
     assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", A))["manifest"]["intent"]["question"] == "late A"
+
+# --- Production state: 0021/0028/0040/0041 installed; 0042, 0047, 0052 and 0053 NOT installed ---------
+# (catalog read-only 2026-11-10: validator = the 0040 body, probe functions and scenario validator absent).
+# Reads only migration files already on master. Real engine, disposable cluster, no production state.
+SI_SHA = "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+@pytest.fixture(scope="module")
+def prod_state(tmp_path_factory):
+    import test_pinned_research_handoff_postgres as handoff
+    for binary in ("initdb", "pg_ctl", "psql"):
+        if not shutil.which(binary):
+            pytest.skip(f"PostgreSQL binary missing: {binary}")
+    run, data, socket_root = handoff._spawn_postgres(tmp_path_factory, "uninstalled-migrations-pg", 55495)
+    try:
+        handoff._bootstrap_base_schema(run)
+        for sql_file in handoff.PREVIOUS + (ROOT / "supabase/migrations/0040_investigation_review.sql", handoff.SQL):
+            run(sql_file.read_text())
+        yield run
+    finally:
+        subprocess.run(["pg_ctl", "-D", str(data), "-m", "fast", "-w", "stop"], check=True, capture_output=True)
+        socket_root.cleanup()
+
+
+def _uninstalled_manifest(schema, subjects, evidence, **extra):
+    return {"schema": schema, "intent": {"title": "Reading", "question": "Does it hold?", "subjects": subjects},
+            "layout_refs": [], "thesis_refs": [], "evidence_refs": evidence, "continuation": {}, **extra}
+
+
+def _uninstalled_apply(run, key, content, target):
+    return json.loads(run("select public.apply_investigation_revision_v2(" + quote(target) + "::uuid,0,'create'," + quote(key)
+                          + "::uuid," + quote(json.dumps(content)) + "::jsonb,null);", who=A))
+
+
+SECTOR = [{"kind": "sector", "owner": "macro.sector", "object_id": "xlf"}]
+SECTOR_EV = [{"owner": "macro.sector", "object_type": "sector_observation", "object_id": "xlf", "mode": "pinned", "version_ref": "real-g1", "fingerprint": SI_SHA}]
+PROPHET_EV = [{"owner": "prophet.research", "object_type": "today_selection", "object_id": "o", "mode": "pinned", "version_ref": "v", "fingerprint": SI_SHA}]
+
+
+def test_installed_state_is_the_0040_validator_with_no_probes(prod_state):
+    assert prod_state("select to_regprocedure('public.investigation_evidence_admitted_v2(text,text)') is null, "
+                      "to_regprocedure('public.investigation_subject_admitted_v2(text,text)') is null, "
+                      "to_regprocedure('public.valid_investigation_scenario_reference_v1(jsonb)') is null, "
+                      "to_regprocedure('public.valid_investigation_manifest_v3(jsonb)') is null;") == "t|t|t|t"
+    probe = prod_state("select public.investigation_evidence_admitted_v2('macro.sector','sector_observation');", who=A, check=False)
+    assert probe.returncode != 0 and "does not exist" in probe.stderr
+
+
+def test_sector_prophet_and_v3_shapes_are_refused_and_nothing_is_written(prod_state):
+    before = prod_state("select (select count(*) from investigations)||'/'||(select count(*) from investigation_revisions)||'/'||(select count(*) from investigation_mutation_receipts);")
+    cases = {
+        "sector v2": _uninstalled_manifest("investigation_manifest.v2", SECTOR, SECTOR_EV),
+        "sector evidence only": _uninstalled_manifest("investigation_manifest.v2", [], SECTOR_EV),
+        "prophet evidence": _uninstalled_manifest("investigation_manifest.v2", [], PROPHET_EV),
+        "v3 decision": _uninstalled_manifest("investigation_manifest.v3", [], [], user_decision={"disposition": "watch", "reason": "", "decided_at": "2026-11-10T08:00:00Z", "milestones": []}),
+    }
+    for number, (name, content) in enumerate(cases.items(), start=1):
+        result = _uninstalled_apply(prod_state, f"40000000-0000-4000-8000-{number:012d}", content, f"20000000-0000-4000-8000-{number:012d}")
+        assert result["status"] == "invalid_payload", (name, result)
+    after = prod_state("select (select count(*) from investigations)||'/'||(select count(*) from investigation_revisions)||'/'||(select count(*) from investigation_mutation_receipts);")
+    assert after == before  # an invalid payload leaves no record, revision or receipt
+
+
+def test_an_already_admitted_v2_investigation_still_saves(prod_state):
+    ok = _uninstalled_manifest("investigation_manifest.v2", [{"kind": "security", "owner": "terminal.analysis_symbol", "object_id": "AAPL"}], [])
+    result = _uninstalled_apply(prod_state, "40000000-0000-4000-8000-0000000000a1", ok, "20000000-0000-4000-8000-0000000000a1")
+    assert result["status"] == "committed" and result["revision"] == 1
+
+
+def test_v3_down_block_restores_exact_0052_and_refuses_with_v3_records(v3_pg):
+    text = (ROOT / "supabase/migrations/0053_investigation_v3_prophet_decision_admission.sql").read_text()
+    block = text[text.index("-- down:"):text.index("-- readback:")]
+    down = "\n".join(line[3:] if line.startswith("-- ") else line[2:] for line in block.splitlines()[2:])
+    v2_md5 = "select pg_catalog.md5(prosrc) from pg_proc where oid='public.valid_investigation_manifest_v2(jsonb)'::regprocedure;"
+    v3_manifest = {**manifest(), "schema": "investigation_manifest.v3"}
+    uid = "10000000-0000-4000-8000-0000000000aa"
+    v3_pg("insert into auth.users values (" + quote(uid) + ") on conflict do nothing;")
+    # A stored v3 revision makes the down refuse; the installed dispatcher stays.
+    v3_pg("insert into investigations values ('21000000-0000-4000-8000-000000000001'," + quote(uid) + ",1,'active',now(),now());"
+          "insert into investigation_revisions values ('21000000-0000-4000-8000-000000000001'," + quote(uid) + ",1,'create','active'," + quote(json.dumps(v3_manifest)) + "::jsonb,now());")
+    refused = v3_pg(down, check=False)
+    assert refused.returncode != 0 and "v3 records exist" in refused.stderr, refused.stderr
+    dispatcher = v3_pg(v2_md5)
+    assert dispatcher != "75f2b7feba6b3c9f177f4cda6c3605e9"
+    v3_pg("delete from investigation_revisions where investigation_id='21000000-0000-4000-8000-000000000001'; delete from investigations where id='21000000-0000-4000-8000-000000000001';")
+    v3_pg(down)
+    assert v3_pg(v2_md5) == "75f2b7feba6b3c9f177f4cda6c3605e9"
+    assert v3_pg("select to_regprocedure('public.valid_investigation_manifest_v3(jsonb)') is null, to_regprocedure('public.valid_investigation_manifest_core_v2(jsonb)') is null;") == "t|t"
+    assert v3_pg("select public.investigation_evidence_admitted_v2('prophet.research','today_selection');", role="authenticated") == "f"
+    # Re-apply the carrier: the guard accepts the restored 0052 body and the dispatcher returns.
+    v3_pg(text)
+    assert v3_pg(v2_md5) == dispatcher
 
 
 @pytest.fixture(scope="module")

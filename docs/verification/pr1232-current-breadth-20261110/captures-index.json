@@ -1,0 +1,110 @@
+[
+  {
+    "name": "composed-return-en-desktop.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-57372--and-sector-drilldown-in-en-desktop/composed-return-en-desktop.png",
+    "sha256": "aa1a72237b79069286fc90f226ade69291b27ab2147ca07724f4f6711e6dad50",
+    "bytes": 180976
+  },
+  {
+    "name": "composed-return-en-mobile.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-57372--and-sector-drilldown-in-en-mobile/composed-return-en-mobile.png",
+    "sha256": "8a14ae39de81159799d4da95c341a03f1a5d0d302e678d0a35006ffa0b48dcc1",
+    "bytes": 98718
+  },
+  {
+    "name": "composed-return-en-tablet.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-57372--and-sector-drilldown-in-en-tablet/composed-return-en-tablet.png",
+    "sha256": "cc814574d63358b554aa17ed60dff504386e817be64bee0c104acaf2dce284a4",
+    "bytes": 171429
+  },
+  {
+    "name": "composed-return-zh-desktop.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-93e5f--and-sector-drilldown-in-zh-desktop/composed-return-zh-desktop.png",
+    "sha256": "eeba0cf31a459f010a813af6abf581868f911544cc019faa8348915f23383e78",
+    "bytes": 186161
+  },
+  {
+    "name": "composed-return-zh-mobile.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-93e5f--and-sector-drilldown-in-zh-mobile/composed-return-zh-mobile.png",
+    "sha256": "c164c7731b46e2dea74296477890e311ba808593e63f7796878d06ca5161c599",
+    "bytes": 99103
+  },
+  {
+    "name": "composed-return-zh-tablet.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-93e5f--and-sector-drilldown-in-zh-tablet/composed-return-zh-tablet.png",
+    "sha256": "b5e35c96fe6f5d72958193a40c2a18c102a8b5f5cc77fd379e117e6079ade7c8",
+    "bytes": 182904
+  },
+  {
+    "name": "historical-detail-desktop.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/historical-detail-desktop.png",
+    "sha256": "de7e9cba879e0769a23327c008f900795d3679ae0c9dbcfeb5cbecf30d3255d5",
+    "bytes": 66667
+  },
+  {
+    "name": "historical-light-zh-desktop.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/historical-light-zh-desktop.png",
+    "sha256": "450956254431f04c9ec78cf2d01a32c37772ff514a8486034c6d2595c35c4d7b",
+    "bytes": 194315
+  },
+  {
+    "name": "historical-replay-desktop.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/historical-replay-desktop.png",
+    "sha256": "d061c1d5de28bf1e285b4ff2c18df5bcf93e527b3a9832227bf7c19f568cdb6c",
+    "bytes": 187601
+  },
+  {
+    "name": "rotation-groups-desktop.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/rotation-groups-desktop.png",
+    "sha256": "393df99874bb829dfac07847c0b52caa31403b35ec95d3402c48159b19e394d1",
+    "bytes": 61247
+  },
+  {
+    "name": "historical-detail-mobile.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/historical-detail-mobile.png",
+    "sha256": "17de95c3cb8e96219ea9b476428cdb87d8fa588c709d545001cfe0cf9d4b998c",
+    "bytes": 61110
+  },
+  {
+    "name": "historical-light-zh-mobile.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/historical-light-zh-mobile.png",
+    "sha256": "ea81f353d236aad54e79fafa1dd3b0f7da51dba8292f230fc83846bde318cc32",
+    "bytes": 100406
+  },
+  {
+    "name": "historical-replay-mobile.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/historical-replay-mobile.png",
+    "sha256": "722d92758cf30392e872fbd973839b88a85347c38b044a42f2b74f2deb3b62c4",
+    "bytes": 97805
+  },
+  {
+    "name": "rotation-groups-mobile.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/rotation-groups-mobile.png",
+    "sha256": "7013f3b074a7cdd7abdc23b383d57b16b30363fb845019c71aedbdc57b55bb4c",
+    "bytes": 60535
+  },
+  {
+    "name": "historical-detail-tablet.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/historical-detail-tablet.png",
+    "sha256": "56397d4e39a4f983ece755d1a68aab93bae83b056e7b72a28267fa69246d1c34",
+    "bytes": 64918
+  },
+  {
+    "name": "historical-light-zh-tablet.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/historical-light-zh-tablet.png",
+    "sha256": "90c64be9daa35707d70ffaaf304cc14383025c04f57c3e6a9c371b3f320c5369",
+    "bytes": 201273
+  },
+  {
+    "name": "historical-replay-tablet.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/historical-replay-tablet.png",
+    "sha256": "8d813d17aefd4c066488cd30b6127eb463caab23d09a7c2ccda4612d67a90ec0",
+    "bytes": 186153
+  },
+  {
+    "name": "rotation-groups-tablet.png",
+    "source": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/rotation-groups-tablet.png",
+    "sha256": "17e3cc426af7d831c886a2639aa8336afdb5172b1e1e1cbe4c46e0d07feb0e24",
+    "bytes": 62385
+  }
+]

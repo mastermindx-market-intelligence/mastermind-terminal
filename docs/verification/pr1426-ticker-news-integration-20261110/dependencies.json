@@ -1,0 +1,34 @@
+{
+  "browser": {
+    "exists": true,
+    "path": "/Users/chriswong/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+  },
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/lib/node_modules/npm/bin/npm-cli.js",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "completedAt": "2026-11-10T16:54:59.550445+00:00",
+  "exit": 0,
+  "logSha256": "44783a9f155dc66251423bb2a4294385d4c787ea6347ff4e3494fa89f3a1827b",
+  "newerPacketFiles": 103,
+  "nodePath": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "nodeVersion": "v22.23.4",
+  "packageLockSha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "packageLockUnchanged": true,
+  "seconds": 10.031,
+  "sourceHead": "139ec0574b57ecbb59d237dc315c8276dd307794",
+  "sourceTree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957",
+  "startedAt": "2026-11-10T16:54:49.518031+00:00",
+  "state": "MATCHING_DEPENDENCIES_AND_EXISTING_BROWSER_CACHE_READY",
+  "versions": {
+    "@playwright/test": "1.61.1",
+    "next": "16.4.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "typescript": "5.9.3"
+  }
+}

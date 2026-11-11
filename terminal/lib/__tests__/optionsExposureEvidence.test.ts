@@ -68,12 +68,15 @@ describe("current Exposure capture result qualification", () => {
     const omitted = { ...sources }; delete omitted["terminal/lib/matrixAcquisition.ts"];
     expect(() => requireSourceKeys(omitted, inputs)).toThrow("SOURCE_KEY_SET");
   });
-  it("does not fall back to historical captures when the current descriptor is corrupt", () => {
+  it("does not fall back when the retained declared predecessor descriptor is corrupt", () => {
     const temporary = mkdtempSync(join(tmpdir(), "exposure-current-descriptor-"));
     try {
       const packet = join(temporary, "terminal/docs/pr-crops", packets.gex);
       mkdirSync(join(packet, revision), { recursive: true });
-      copyFileSync(join(repo, "terminal/docs/pr-crops", packets.gex, "EVIDENCE.yml"), join(packet, "EVIDENCE.yml"));
+      // The current root now selects the additive Options revision; this case keeps
+      // exercising the immutable indicator predecessor, while owner tests cover the successor.
+      copyFileSync(join(repo, "terminal/docs/pr-crops", packets.gex,
+        "operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/EVIDENCE.before.yml"), join(packet, "EVIDENCE.yml"));
       writeFileSync(join(packet, revision, "native-packet.json"), readFileSync(join(dir("gex"), "native-packet.json"), "utf8") + "\n");
       expect(() => qualifiedOptionsExposurePacket(temporary, "gex", Object.keys(captured("gex").images)))
         .toThrow("INTEGRATION_PACKET_DIGEST");

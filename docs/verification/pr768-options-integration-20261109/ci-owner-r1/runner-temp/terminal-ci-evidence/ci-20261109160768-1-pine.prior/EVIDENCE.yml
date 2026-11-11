@@ -1,0 +1,92 @@
+# Pine engine boot states — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 705e256dd52821e35e7bfab46a4a4fee28da4f63
+# capturedAt: 2026-10-12T07:38:09.373Z
+# capturedAtHead is informational. The lock is layoutFiles.
+# ChartPanel.tsx is not locked: it picks the row's state, which e2e/pine-engine-boot-pending.spec.ts
+# gates; the files below draw the crops and choose their words.
+layoutFiles:
+  terminal/app/globals.css: "06e122f87cc402a9021d3a357e95c9c9a1cd7f4e622a25e2b24e8f7bc7ee6cd9"
+  terminal/components/ChartOverlays.module.css: "06e931d50c67391a1a768553054d514ffdc06d70defc194e233d2890172f174d"
+  terminal/components/ChartOverlays.tsx: "52b28414dc2836ea93744b03447588e24a30cc597f2127c59c68700e6c0783e8"
+  terminal/components/PineEditor.tsx: "8a68b0a8b0d3f0443efe006c131f64516ab2615489fffbaf616818074a717497"
+  terminal/lib/pineChartRun.ts: "460ee8f0d12990e8772b84bc819e2ec76f325c865f1d07181d907581f072100c"
+  terminal/lib/pineRunLex.ts: "a814e31a926ad2f7562eed0716cae2af5ee88f14bbfdf7312bb08c4078963971"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+surface: NVDA daily chart with the fixture script "My Momentum" added; the Pine Worker never boots (host.ts boot timer 30000ms shortened to 8000ms, its one boot retry intact), then Retry with the engine healthy
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_pine_boot_pending.cjs
+# stateText: what each crop's Pine state said when it was taken, in reading order — the legend
+# row's state then its Retry; the console's message then its button. legend-retried says nothing:
+# the row is back to the plain name with its plot.
+stateText:
+  editor-checking-1440-zh.png: ["正在检查 My Momentum…"]
+  editor-checking-1440.png: ["Checking My Momentum…"]
+  editor-checking-390-zh.png: ["正在检查 My Momentum…"]
+  editor-checking-390.png: ["Checking My Momentum…"]
+  editor-checking-820-zh.png: ["正在检查 My Momentum…"]
+  editor-checking-820.png: ["Checking My Momentum…"]
+  editor-unavailable-1440-zh.png: ["脚本引擎不可用——尚未检查此脚本", "重新检查"]
+  editor-unavailable-1440.png: ["Script engine unavailable — this script has not been checked", "Retry check"]
+  editor-unavailable-390-zh.png: ["脚本引擎不可用——尚未检查此脚本", "重新检查"]
+  editor-unavailable-390.png: ["Script engine unavailable — this script has not been checked", "Retry check"]
+  editor-unavailable-820-zh.png: ["脚本引擎不可用——尚未检查此脚本", "重新检查"]
+  editor-unavailable-820.png: ["Script engine unavailable — this script has not been checked", "Retry check"]
+  legend-failed-1440-zh.png: ["引擎启动失败", "重试"]
+  legend-failed-1440.png: ["Engine failed to start", "Retry"]
+  legend-failed-390-zh.png: ["引擎启动失败", "重试"]
+  legend-failed-390.png: ["Engine failed to start", "Retry"]
+  legend-failed-820-zh.png: ["引擎启动失败", "重试"]
+  legend-failed-820.png: ["Engine failed to start", "Retry"]
+  legend-retried-1440-zh.png: []
+  legend-retried-1440.png: []
+  legend-retried-390-zh.png: []
+  legend-retried-390.png: []
+  legend-retried-820-zh.png: []
+  legend-retried-820.png: []
+  legend-wait-1440-zh.png: ["等待引擎…"]
+  legend-wait-1440.png: ["Waiting for engine…"]
+  legend-wait-390-zh.png: ["等待引擎…"]
+  legend-wait-390.png: ["Waiting for engine…"]
+  legend-wait-820-zh.png: ["等待引擎…"]
+  legend-wait-820.png: ["Waiting for engine…"]
+files:
+  - editor-checking-1440-zh.png
+  - editor-checking-1440.png
+  - editor-checking-390-zh.png
+  - editor-checking-390.png
+  - editor-checking-820-zh.png
+  - editor-checking-820.png
+  - editor-unavailable-1440-zh.png
+  - editor-unavailable-1440.png
+  - editor-unavailable-390-zh.png
+  - editor-unavailable-390.png
+  - editor-unavailable-820-zh.png
+  - editor-unavailable-820.png
+  - legend-failed-1440-zh.png
+  - legend-failed-1440.png
+  - legend-failed-390-zh.png
+  - legend-failed-390.png
+  - legend-failed-820-zh.png
+  - legend-failed-820.png
+  - legend-retried-1440-zh.png
+  - legend-retried-1440.png
+  - legend-retried-390-zh.png
+  - legend-retried-390.png
+  - legend-retried-820-zh.png
+  - legend-retried-820.png
+  - legend-wait-1440-zh.png
+  - legend-wait-1440.png
+  - legend-wait-390-zh.png
+  - legend-wait-390.png
+  - legend-wait-820-zh.png
+  - legend-wait-820.png

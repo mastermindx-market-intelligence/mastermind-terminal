@@ -1,0 +1,28 @@
+✔ missing onEnd, missing case and interrupted end never imply complete pass (2.410758ms)
+✔ unique cases, failed attempts, retries and skips remain distinct and truthful (1.71305ms)
+✔ global errors and unstable binding cannot become passing summary (0.837245ms)
+✔ a stale or forged expected outcome never erases an actually failed attempt (0.867034ms)
+✔ actual Playwright interrupted/skipped outcome mapping never means that the body ran (0.627329ms)
+✔ generated titles are always opaque and result payload getters are never touched (0.737573ms)
+✔ finite projects/source files and retry sequence reject malformed or duplicate records (2.31713ms)
+✔ Discover focus journeys retain bounded case identity and validated outcomes (1.400363ms)
+✔ strict projection rejects forged completeness/counts, unknown fields and source drift (20.009975ms)
+✔ actual complete and incomplete snapshots publish only freshly projected safe files (69.028298ms)
+✔ directory substitution and producer file symlink/inode/digest drift refuse readiness (83.781051ms)
+✔ unknown producer JSON cannot leak even with matching custody metadata (27.083645ms)
+✔ producer snapshot marks only its own open FD, never a same-byte replacement inode (14.173023ms)
+✔ binding rejects wrong workflow/job/run/checkouts without arbitrary source disclosure (17.901103ms)
+✔ truncated JSON and forged complete/incomplete assertions cannot earn readiness (22.636336ms)
+✔ fresh output directory and target alias/inode substitution never follows a foreign sentinel (86.601174ms)
+✔ the workflow preserves GitHub reporting, selection and the original responsive artifact (0.590846ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 524.476049
+
+Changed-file ESLint: exit 0; zero output/errors/warnings.
+Workflow parsed successfully; existing opt-in, all three projects, one worker, retries 0 and GitHub/bounded reporters retained.

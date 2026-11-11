@@ -1,0 +1,106 @@
+{
+  "schema": "mastermind.pr1232.current-breadth-qualification.v1",
+  "operation": "terminal-pr-duty-20261110-1232-breadth-current-web4",
+  "state": "LOCAL_SOURCE_AND_BROWSER_QUALIFIED",
+  "sourceHead": "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd",
+  "sourceTree": "1ddc20b2bcc258a4ce1b5f3ff09f4c395b52efe1",
+  "protectedBase": "ea8630f1b059dea7c57eae1a844db9f8b9201b97",
+  "parents": [
+    "81518007ecbd687b09d3b1d7e855582d66489521",
+    "ea8630f1b059dea7c57eae1a844db9f8b9201b97"
+  ],
+  "originalPublicHead": "448a42a29fee765bb01476a9e0b93459ced5a2d4",
+  "preparedSource": "8eb1cbaeb25d9e28d8d814c472c807a8edec0cbf",
+  "preparedEvidenceChild": "81518007ecbd687b09d3b1d7e855582d66489521",
+  "lawPin": "c065e56b4cb7c4487e51249795ca6ebf010e6ffa",
+  "claim": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1232#issuecomment-6771778926",
+  "sourceChanges": {
+    "deltaFromProtected": 48,
+    "sectorCodecBlob": "44916d61dc5bf21c3ac7f01bf48217420fe0ff1e",
+    "workspaceBlob": "a640b115def308f6c27b5469e46de96ab442ee1f",
+    "nativeJobRegressionBlob": "5d6cf1704a9db275e1a77af75415495a0b3c0704",
+    "description": "Preserved prepared breadth contribution and historical evidence; composed breadth props and codec fields into complete current owners. Both breadth state keys are in SECTOR_STATE_KEYS; four new native-job regressions distinguish breadth-only URLs from clean native Brief entry."
+  },
+  "runtime": {
+    "nodeVersion": "v22.23.4",
+    "npmVersion": "10.9.9",
+    "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+    "packageBefore": {
+      "package.json": "0d193d6d0a7685f7ca40ad441c482028cea7e1074d3eea38f9ff1c1525788b91",
+      "package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+    },
+    "packageAfterInstall": {
+      "package.json": "0d193d6d0a7685f7ca40ad441c482028cea7e1074d3eea38f9ff1c1525788b91",
+      "package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+    }
+  },
+  "inputBinding": {
+    "count": 6518,
+    "scope": "All tracked Terminal text/source/evidence files with declared extensions; complete source tree and tracked-clean checks additionally bind the checkout.",
+    "allThreeManifestFilesIdentical": true,
+    "manifestSha256": "c4ec0f274397eb3b5e9d136f166f9e871d7f33a76e5d908e5bba31730094e9b1",
+    "trackedCleanAtCapture": true
+  },
+  "sourceChecks": {
+    "record": "source-checks.json",
+    "initialState": "CHECKS_STOPPED",
+    "initialAffectedLintExit": 1,
+    "vitest": {
+      "numTotalTests": 361,
+      "numPassedTests": 361,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    },
+    "fullTypecheckExit": 0,
+    "noSourceFailureConcealed": true
+  },
+  "lintReconciliation": {
+    "record": "lint-reconciliation.json",
+    "state": "SOURCE_QUALIFIED_WITH_UNCHANGED_CJS_BASELINE",
+    "affectedTsFiles": 13,
+    "affectedTsExit": 0,
+    "unchangedProtectedCjsDiagnostics": 5,
+    "commonjsSyntaxExit": 0,
+    "diffCheckExit": 0
+  },
+  "browser": {
+    "record": "browser-checks.json",
+    "report": "browser-report.json",
+    "producerExit": 0,
+    "seconds": 83.551,
+    "stats": {
+      "startTime": "2026-11-10T16:02:27.235Z",
+      "duration": 82234.336,
+      "expected": 12,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "allRetriesZero": true,
+    "pngFilesProduced": 24,
+    "uniquePngCount": 18,
+    "retainedNamedCaptures": 18,
+    "remainingGroups": [],
+    "port": 47283,
+    "portConnectAfter": 61
+  },
+  "visualReview": "visual-review.json",
+  "recoveryFacts": [
+    "First merge commit refused before dispatch because the protected tracking ref was stale. Original owned merge was reconciled, normal non-force protected fetch observed ea8630, unchanged composition preimages were verified, and the same typed commit carrier succeeded.",
+    "First source-check wrapper stopped before any npm/test producer because ignored next-env.d.ts was initially absent. The same wrapper was corrected for that observed setup state.",
+    "The first actual broad affected lint exited 1. Separate identical-config protected/candidate runs proved the same five inherited CommonJS diagnostics; all 13 affected TypeScript files then passed."
+  ],
+  "publication": {
+    "originalRefMutation": "UNSTARTED_AT_PACKET_CREATION",
+    "carrier": "One native gh Git-data publication, then expected-head non-force original-ref CAS; actual receipt belongs in the canonical PR return.",
+    "noPriorProofRestamped": true
+  },
+  "acceptanceLimits": [
+    "The tested source integrates protected ea8630. Later protected advances, including #1422 at b5afc7, are not represented as these capture inputs; natural exact-head and merge-queue checks retain authority.",
+    "Historical prepared-source proof remains attributed to its original commits.",
+    "Local fixture success is distinct from hosted CI, queue enrollment, merge, deployment and signed-in naturally published-close acceptance.",
+    "Macro #10604 producer custody and P16 production adoption remain with their incumbent owners; no feed, scheduler, SQL apply, deployment, trading permission or external message is created."
+  ]
+}

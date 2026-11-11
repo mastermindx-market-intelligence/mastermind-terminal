@@ -1,0 +1,2272 @@
+{
+  "browser": {
+    "artifacts": {
+      ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "drawing-system-an-indicato-10236-en-the-price-scale-rescales-desktop/attachments/indicator-pane-main-axis-rescale-ca9bcfe19ed0692b2f1f18eb07be7ff83337be90.json": "62935dabd2c5662d4a03f7c977bb3f5b03aef43c9fa5d1f388cc01114d0fe2eb",
+      "drawing-system-an-indicato-10236-en-the-price-scale-rescales-desktop/indicator-pane-main-axis-rescale.json": "62935dabd2c5662d4a03f7c977bb3f5b03aef43c9fa5d1f388cc01114d0fe2eb"
+    },
+    "cases": [
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|chart-view-reset.spec.ts|New chart tickers reserve space between the latest candle and symbol tag",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|chart-view-reset.spec.ts|Reset chart view restores the recent weekly window",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|chart-view-reset.spec.ts|Vertical cursor lock has a clear X and never follows a ticker change",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|chart-view-reset.spec.ts|Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|chart-view-reset.spec.ts|Logarithmic price-axis wheel zoom compounds without corrupting the scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|chart-view-reset.spec.ts|New chart tickers reserve space between the latest candle and symbol tag",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|chart-view-reset.spec.ts|Reset chart view restores the recent weekly window",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|chart-view-reset.spec.ts|Vertical cursor lock has a clear X and never follows a ticker change",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|chart-view-reset.spec.ts|Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|chart-view-reset.spec.ts|Logarithmic price-axis wheel zoom compounds without corrupting the scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|chart-view-reset.spec.ts|New chart tickers reserve space between the latest candle and symbol tag",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|chart-view-reset.spec.ts|Reset chart view restores the recent weekly window",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|chart-view-reset.spec.ts|Vertical cursor lock has a clear X and never follows a ticker change",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|chart-view-reset.spec.ts|Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|chart-view-reset.spec.ts|Logarithmic price-axis wheel zoom compounds without corrupting the scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|extended hours owns the countdown while the static close and crosshair remain collision-free",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|regular hours keeps the bar-close countdown on the current quote",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|the countdown migrates back to the current quote when extended hours ends live",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|a diverged premarket label remains on its true projected price",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|persistent and hover labels follow the price pane when a study moves above it",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|dense option levels use gex_state fallback and fan their badges without moving the active AH quote",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|mounted options levels consume a newly published state snapshot without reloading the chart",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|a four-digit premarket quote expands the compact numeric lane instead of clipping",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|left-side and percentage scales keep the foreground label on the active axis with correct units",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|Magnet follows the nearest transformed price-pane series instead of the raw candle close",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|crosshair-price-label.spec.ts|a stationary foreground label refreshes when the price scale changes underneath it",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|crosshair-price-label.spec.ts|extended hours owns the countdown while the static close and crosshair remain collision-free",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|crosshair-price-label.spec.ts|regular hours keeps the bar-close countdown on the current quote",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|crosshair-price-label.spec.ts|the countdown migrates back to the current quote when extended hours ends live",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|crosshair-price-label.spec.ts|a diverged premarket label remains on its true projected price",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|crosshair-price-label.spec.ts|persistent and hover labels follow the price pane when a study moves above it",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|crosshair-price-label.spec.ts|dense option levels use gex_state fallback and fan their badges without moving the active AH quote",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|crosshair-price-label.spec.ts|mounted options levels consume a newly published state snapshot without reloading the chart",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|crosshair-price-label.spec.ts|a four-digit premarket quote expands the compact numeric lane instead of clipping",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|crosshair-price-label.spec.ts|left-side and percentage scales keep the foreground label on the active axis with correct units",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|crosshair-price-label.spec.ts|Magnet follows the nearest transformed price-pane series instead of the raw candle close",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|crosshair-price-label.spec.ts|a stationary foreground label refreshes when the price scale changes underneath it",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|crosshair-price-label.spec.ts|extended hours owns the countdown while the static close and crosshair remain collision-free",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|crosshair-price-label.spec.ts|regular hours keeps the bar-close countdown on the current quote",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|crosshair-price-label.spec.ts|the countdown migrates back to the current quote when extended hours ends live",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|crosshair-price-label.spec.ts|a diverged premarket label remains on its true projected price",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|crosshair-price-label.spec.ts|persistent and hover labels follow the price pane when a study moves above it",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|crosshair-price-label.spec.ts|dense option levels use gex_state fallback and fan their badges without moving the active AH quote",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|crosshair-price-label.spec.ts|mounted options levels consume a newly published state snapshot without reloading the chart",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|crosshair-price-label.spec.ts|a four-digit premarket quote expands the compact numeric lane instead of clipping",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|crosshair-price-label.spec.ts|left-side and percentage scales keep the foreground label on the active axis with correct units",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|crosshair-price-label.spec.ts|Magnet follows the nearest transformed price-pane series instead of the raw candle close",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|crosshair-price-label.spec.ts|a stationary foreground label refreshes when the price scale changes underneath it",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-professional-editing.spec.ts|professional drawing placement, angle lock, keyboard editing, and cloning stay atomic",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-professional-editing.spec.ts|Fibonacci and position inspectors drive durable analytical settings",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-professional-editing.spec.ts|Replay hard-locks drawings and the quick bar keeps current plus recent colors",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-professional-editing.spec.ts|drawing toolbar and favorite controls retain focus across responsive remounts",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-professional-editing.spec.ts|bulk drawing controls preserve source scopes and lock only user-authored objects",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-professional-editing.spec.ts|detector commands remain scoped to the pane that dispatched them",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-professional-editing.spec.ts|professional drawing placement, angle lock, keyboard editing, and cloning stay atomic",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-professional-editing.spec.ts|Fibonacci and position inspectors drive durable analytical settings",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-professional-editing.spec.ts|Replay hard-locks drawings and the quick bar keeps current plus recent colors",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-professional-editing.spec.ts|drawing toolbar and favorite controls retain focus across responsive remounts",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-professional-editing.spec.ts|bulk drawing controls preserve source scopes and lock only user-authored objects",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-professional-editing.spec.ts|detector commands remain scoped to the pane that dispatched them",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-professional-editing.spec.ts|professional drawing placement, angle lock, keyboard editing, and cloning stay atomic",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-professional-editing.spec.ts|Fibonacci and position inspectors drive durable analytical settings",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-professional-editing.spec.ts|Replay hard-locks drawings and the quick bar keeps current plus recent colors",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-professional-editing.spec.ts|drawing toolbar and favorite controls retain focus across responsive remounts",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-professional-editing.spec.ts|bulk drawing controls preserve source scopes and lock only user-authored objects",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-professional-editing.spec.ts|detector commands remain scoped to the pane that dispatched them",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|drawing registry and precision controls stay complete at every responsive width",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|desktop drawing labels and hover flyouts match the OpenMarket interaction contract",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "desktop|drawing-system.spec.ts|phone drawing chrome keeps one collision-free editing surface",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|chart-type catalog exposes and applies the new line and area families",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|flagship geometry, editing, and path limits survive adversarial interaction",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|each drawing tool keeps its own defaults and fill color contract",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|pane-anchored notes stay fixed while calculated labels never open a text editor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|media tools choose and persist real emoji, icons, and bounded local images",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|dense collections save beyond Chromium's keepalive request quota",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|the drawing cap rejects object 501 without evicting object 1",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|account drawing loads fail closed and retry without issuing a destructive save",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|unavailable account drawings disable tool selection without changing the group's shown tool",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|a symbol change keeps the renderer alive and never leaks the old symbol's drawings",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|a drag released in the future gutter finishes instead of following the cursor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|a price-range drag crossing a pane separator persists an owner-scale value",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|an endpoint handle dragged across a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|dragging a whole range drawing across a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|Shift+Measure crossing a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|a reloaded range drawing is served back unrepaired and still clips to its pane",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|chart-spanning range and vertical tools are still not clipped to the price pane",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|a cross-pane price gesture clamps on a logarithmic price scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|a cross-pane price gesture clamps on an inverted price scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "desktop|drawing-system.spec.ts|a coarse-pointer cross-pane drag keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "desktop|drawing-system.spec.ts|a phone cross-pane drag keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|collapsing the indicator pane moves the clamp to pane 0's new floor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|an indicator-pane drawing holds its place when the price scale rescales",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|an indicator-pane drawing stays in its pane when that pane y-axis rescales",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|legacy indicator-pane drawing coordinates migrate into pane value space",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|selecting a brush stroke shows its bounds, not a handle per sample",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|collapsing an indicator pane hides its plot and drawings until restore",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "desktop|drawing-system.spec.ts|coarse pane collapse hides plot paint and remains restorable",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|a segmented path finishes on a double-click between bar centres",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "desktop|drawing-system.spec.ts|a desktop Path finishes exactly once when its closing double-click has no native dblclick",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|drawing registry and precision controls stay complete at every responsive width",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|desktop drawing labels and hover flyouts match the OpenMarket interaction contract",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|phone drawing chrome keeps one collision-free editing surface",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|chart-type catalog exposes and applies the new line and area families",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|flagship geometry, editing, and path limits survive adversarial interaction",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|each drawing tool keeps its own defaults and fill color contract",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|pane-anchored notes stay fixed while calculated labels never open a text editor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|media tools choose and persist real emoji, icons, and bounded local images",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|dense collections save beyond Chromium's keepalive request quota",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|the drawing cap rejects object 501 without evicting object 1",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|account drawing loads fail closed and retry without issuing a destructive save",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|unavailable account drawings disable tool selection without changing the group's shown tool",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|a symbol change keeps the renderer alive and never leaks the old symbol's drawings",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|a drag released in the future gutter finishes instead of following the cursor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|a price-range drag crossing a pane separator persists an owner-scale value",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|an endpoint handle dragged across a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|dragging a whole range drawing across a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|Shift+Measure crossing a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|a reloaded range drawing is served back unrepaired and still clips to its pane",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|chart-spanning range and vertical tools are still not clipped to the price pane",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|a cross-pane price gesture clamps on a logarithmic price scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|a cross-pane price gesture clamps on an inverted price scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|a coarse-pointer cross-pane drag keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|a phone cross-pane drag keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|collapsing the indicator pane moves the clamp to pane 0's new floor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|an indicator-pane drawing holds its place when the price scale rescales",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|an indicator-pane drawing stays in its pane when that pane y-axis rescales",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|legacy indicator-pane drawing coordinates migrate into pane value space",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|selecting a brush stroke shows its bounds, not a handle per sample",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|collapsing an indicator pane hides its plot and drawings until restore",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "tablet|drawing-system.spec.ts|coarse pane collapse hides plot paint and remains restorable",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|a segmented path finishes on a double-click between bar centres",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "tablet|drawing-system.spec.ts|a desktop Path finishes exactly once when its closing double-click has no native dblclick",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|drawing registry and precision controls stay complete at every responsive width",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|desktop drawing labels and hover flyouts match the OpenMarket interaction contract",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|drawing-system.spec.ts|phone drawing chrome keeps one collision-free editing surface",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|chart-type catalog exposes and applies the new line and area families",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|flagship geometry, editing, and path limits survive adversarial interaction",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|each drawing tool keeps its own defaults and fill color contract",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|pane-anchored notes stay fixed while calculated labels never open a text editor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|media tools choose and persist real emoji, icons, and bounded local images",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|dense collections save beyond Chromium's keepalive request quota",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|the drawing cap rejects object 501 without evicting object 1",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|account drawing loads fail closed and retry without issuing a destructive save",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|unavailable account drawings disable tool selection without changing the group's shown tool",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a symbol change keeps the renderer alive and never leaks the old symbol's drawings",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a drag released in the future gutter finishes instead of following the cursor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a price-range drag crossing a pane separator persists an owner-scale value",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|an endpoint handle dragged across a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|dragging a whole range drawing across a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|Shift+Measure crossing a pane separator keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a reloaded range drawing is served back unrepaired and still clips to its pane",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|chart-spanning range and vertical tools are still not clipped to the price pane",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a cross-pane price gesture clamps on a logarithmic price scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a cross-pane price gesture clamps on an inverted price scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a coarse-pointer cross-pane drag keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|drawing-system.spec.ts|a phone cross-pane drag keeps the owner scale",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|collapsing the indicator pane moves the clamp to pane 0's new floor",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|drawing-system.spec.ts|price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|an indicator-pane drawing holds its place when the price scale rescales",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|an indicator-pane drawing stays in its pane when that pane y-axis rescales",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|legacy indicator-pane drawing coordinates migrate into pane value space",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|selecting a brush stroke shows its bounds, not a handle per sample",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|collapsing an indicator pane hides its plot and drawings until restore",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "passed",
+        "key": "mobile|drawing-system.spec.ts|coarse pane collapse hides plot paint and remains restorable",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "passed"
+          }
+        ],
+        "status": "expected"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a segmented path finishes on a double-click between bar centres",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      },
+      {
+        "expectedStatus": "skipped",
+        "key": "mobile|drawing-system.spec.ts|a desktop Path finishes exactly once when its closing double-click has no native dblclick",
+        "results": [
+          {
+            "error": null,
+            "retry": 0,
+            "status": "skipped"
+          }
+        ],
+        "status": "skipped"
+      }
+    ],
+    "command": [
+      "node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/drawing-system.spec.ts",
+      "e2e/drawing-professional-editing.spec.ts",
+      "e2e/chart-view-reset.spec.ts",
+      "e2e/crosshair-price-label.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/test-results/pr632-protected-drawing-regression-current"
+    ],
+    "exit": 0,
+    "logSha256": "e5cddcbe38859a7632b5055c5c22504133c9cec49594ea1a3cd8bcbefcf2e4d2",
+    "reportErrors": [],
+    "seconds": 1166.52,
+    "sourceStable": true,
+    "stats": {
+      "duration": 1165356.469,
+      "expected": 89,
+      "flaky": 0,
+      "skipped": 94,
+      "startTime": "2026-11-10T08:49:04.361Z",
+      "unexpected": 0
+    }
+  },
+  "completedAt": "2026-11-10T09:08:45.059186+00:00",
+  "currentPhysicalGuardSha256": "3f8327b2693379075901fe9eb8774054b415d463b529653d1951e1e44a1e4a7f",
+  "focusedValidationSha256": "c13b1a5f9150fa9ede2d44eb453cc84810fa086a9beb2508f3c4b3b338dd4641",
+  "head": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f",
+  "historicalProofPolicy": "Prior accepted RED, lint and browser records retain their identities; this is a fresh composed-source browser run.",
+  "integratedDependency": "f6ff4bb4bbde8a162557cd4e15115cb085e7f77d",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr632-protected-successor-20261110/drawing-regression-current-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-10T09:08:44.816129+00:00",
+    "sha256": "8043ab52bc90500788e2ee8400d7e119ec00ae653de6c6e0779d0bc21a8812b4"
+  },
+  "listCommand": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/drawing-system.spec.ts",
+    "e2e/drawing-professional-editing.spec.ts",
+    "e2e/chart-view-reset.spec.ts",
+    "e2e/crosshair-price-label.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--list",
+    "--reporter=json"
+  ],
+  "listedCasesSha256": "7f6e49572e2ba5f63eeac557d53240c902ebfdcfdb733ed33a89f3df5cc58efc",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 47632,
+  "protectedMaster": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "schema": "terminal_pr632_current_drawing_regression.v1",
+  "selectedCaseCount": 183,
+  "sourceEntries": 2006,
+  "startedAt": "2026-11-10T08:49:02.907204+00:00",
+  "state": "QUALIFIED"
+}

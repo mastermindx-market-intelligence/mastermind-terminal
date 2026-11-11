@@ -114,7 +114,7 @@
     padding: 8px 10px;
   }
   .btn {
-    min-height: 36px;
+    min-height: 44px;
   }
   .auth {
     max-width: 100%;
@@ -123,6 +123,6 @@
 
 @media (pointer: coarse) {
   .btn {
-    min-height: 36px;
+    min-height: 44px;
   }
 }

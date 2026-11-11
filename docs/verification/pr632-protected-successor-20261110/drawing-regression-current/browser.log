@@ -1,0 +1,209 @@
+[warmup] /terminal?symbol=NVDA → 200 in 169ms
+[warmup] /options → 200 in 2873ms
+[warmup] /portfolio → 200 in 1620ms
+[warmup] /alerts → 200 in 1484ms
+[warmup] /analysis → 200 in 2066ms
+[warmup] /discover → 200 in 2336ms
+[warmup] /admin → 200 in 872ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 624ms
+[warmup] /login → 200 in 100ms
+[warmup] /reset-password → 200 in 655ms
+[warmup] /api/me → 200 in 536ms
+[warmup] /api/watchlist → 200 in 209ms
+[warmup] /api/layouts → 200 in 193ms
+[warmup] /api/watchlist/annotations → 409 in 147ms
+[warmup] 14 routes compiled in 14s
+[fixture-ready] prophet_idx fixture 200 in 479ms
+
+Running 183 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓    1 [desktop] › e2e/chart-view-reset.spec.ts:46:5 › New chart tickers reserve space between the latest candle and symbol tag (7.0s)
+  ✓    2 [desktop] › e2e/chart-view-reset.spec.ts:57:5 › Reset chart view restores the recent weekly window (9.3s)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓    3 [desktop] › e2e/chart-view-reset.spec.ts:90:5 › Vertical cursor lock has a clear X and never follows a ticker change (18.8s)
+  ✓    4 [desktop] › e2e/chart-view-reset.spec.ts:141:5 › Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp (9.7s)
+  ✓    5 [desktop] › e2e/chart-view-reset.spec.ts:188:5 › Logarithmic price-axis wheel zoom compounds without corrupting the scale (9.3s)
+  ✓    6 [desktop] › e2e/crosshair-price-label.spec.ts:100:5 › extended hours owns the countdown while the static close and crosshair remain collision-free (9.3s)
+  ✓    7 [desktop] › e2e/crosshair-price-label.spec.ts:214:5 › regular hours keeps the bar-close countdown on the current quote (8.8s)
+  ✓    8 [desktop] › e2e/crosshair-price-label.spec.ts:226:5 › the countdown migrates back to the current quote when extended hours ends live (15.5s)
+  ✓    9 [desktop] › e2e/crosshair-price-label.spec.ts:264:5 › a diverged premarket label remains on its true projected price (8.8s)
+  ✓   10 [desktop] › e2e/crosshair-price-label.spec.ts:275:5 › persistent and hover labels follow the price pane when a study moves above it (8.6s)
+  ✓   11 [desktop] › e2e/crosshair-price-label.spec.ts:331:5 › dense option levels use gex_state fallback and fan their badges without moving the active AH quote (7.8s)
+  ✓   12 [desktop] › e2e/crosshair-price-label.spec.ts:456:5 › mounted options levels consume a newly published state snapshot without reloading the chart (9.1s)
+  ✓   13 [desktop] › e2e/crosshair-price-label.spec.ts:516:5 › a four-digit premarket quote expands the compact numeric lane instead of clipping (8.1s)
+  ✓   14 [desktop] › e2e/crosshair-price-label.spec.ts:535:5 › left-side and percentage scales keep the foreground label on the active axis with correct units (8.9s)
+  ✓   15 [desktop] › e2e/crosshair-price-label.spec.ts:633:5 › Magnet follows the nearest transformed price-pane series instead of the raw candle close (9.0s)
+  ✓   16 [desktop] › e2e/crosshair-price-label.spec.ts:668:5 › a stationary foreground label refreshes when the price scale changes underneath it (9.6s)
+  ✓   17 [desktop] › e2e/drawing-professional-editing.spec.ts:41:5 › professional drawing placement, angle lock, keyboard editing, and cloning stay atomic (14.2s)
+  ✓   18 [desktop] › e2e/drawing-professional-editing.spec.ts:100:5 › Fibonacci and position inspectors drive durable analytical settings (17.9s)
+  ✓   19 [desktop] › e2e/drawing-professional-editing.spec.ts:158:5 › Replay hard-locks drawings and the quick bar keeps current plus recent colors (22.0s)
+  ✓   20 [desktop] › e2e/drawing-professional-editing.spec.ts:269:5 › drawing toolbar and favorite controls retain focus across responsive remounts (8.1s)
+  ✓   21 [desktop] › e2e/drawing-professional-editing.spec.ts:301:5 › bulk drawing controls preserve source scopes and lock only user-authored objects (12.9s)
+  ✓   22 [desktop] › e2e/drawing-professional-editing.spec.ts:346:5 › detector commands remain scoped to the pane that dispatched them (27.2s)
+  ✓   23 [desktop] › e2e/drawing-system.spec.ts:266:5 › drawing registry and precision controls stay complete at every responsive width (21.6s)
+  ✓   24 [desktop] › e2e/drawing-system.spec.ts:395:5 › desktop drawing labels and hover flyouts match the OpenMarket interaction contract (10.3s)
+  ✓   25 [desktop] › e2e/drawing-system.spec.ts:493:5 › favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent (19.2s)
+  ✓   26 [desktop] › e2e/drawing-system.spec.ts:576:5 › portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint (11.8s)
+  -   27 [desktop] › e2e/drawing-system.spec.ts:620:5 › phone drawing chrome keeps one collision-free editing surface
+  ✓   28 [desktop] › e2e/drawing-system.spec.ts:709:5 › chart-type catalog exposes and applies the new line and area families (11.8s)
+  ✓   29 [desktop] › e2e/drawing-system.spec.ts:743:5 › drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear (48.3s)
+  ✓   30 [desktop] › e2e/drawing-system.spec.ts:997:5 › flagship geometry, editing, and path limits survive adversarial interaction (26.8s)
+  ✓   31 [desktop] › e2e/drawing-system.spec.ts:1189:5 › each drawing tool keeps its own defaults and fill color contract (17.1s)
+  ✓   32 [desktop] › e2e/drawing-system.spec.ts:1257:5 › pane-anchored notes stay fixed while calculated labels never open a text editor (8.7s)
+  ✓   33 [desktop] › e2e/drawing-system.spec.ts:1310:5 › media tools choose and persist real emoji, icons, and bounded local images (16.6s)
+  ✓   34 [desktop] › e2e/drawing-system.spec.ts:1377:5 › dense collections save beyond Chromium's keepalive request quota (10.2s)
+  ✓   35 [desktop] › e2e/drawing-system.spec.ts:1411:5 › the drawing cap rejects object 501 without evicting object 1 (10.8s)
+  ✓   36 [desktop] › e2e/drawing-system.spec.ts:1442:5 › account drawing loads fail closed and retry without issuing a destructive save (8.6s)
+  ✓   37 [desktop] › e2e/drawing-system.spec.ts:1483:5 › unavailable account drawings disable tool selection without changing the group's shown tool (7.6s)
+  ✓   38 [desktop] › e2e/drawing-system.spec.ts:1514:5 › a symbol change keeps the renderer alive and never leaks the old symbol's drawings (18.1s)
+  ✓   39 [desktop] › e2e/drawing-system.spec.ts:1586:5 › a drag released in the future gutter finishes instead of following the cursor (10.0s)
+  ✓   40 [desktop] › e2e/drawing-system.spec.ts:1873:5 › a price-range drag crossing a pane separator persists an owner-scale value (13.1s)
+  ✓   41 [desktop] › e2e/drawing-system.spec.ts:1909:5 › an endpoint handle dragged across a pane separator keeps the owner scale (16.0s)
+  ✓   42 [desktop] › e2e/drawing-system.spec.ts:1964:5 › dragging a whole range drawing across a pane separator keeps the owner scale (15.8s)
+  ✓   43 [desktop] › e2e/drawing-system.spec.ts:2023:5 › Shift+Measure crossing a pane separator keeps the owner scale (12.0s)
+  ✓   44 [desktop] › e2e/drawing-system.spec.ts:2065:5 › a reloaded range drawing is served back unrepaired and still clips to its pane (19.2s)
+  ✓   45 [desktop] › e2e/drawing-system.spec.ts:2108:5 › chart-spanning range and vertical tools are still not clipped to the price pane (12.1s)
+  ✓   46 [desktop] › e2e/drawing-system.spec.ts:2176:5 › a cross-pane price gesture clamps on a logarithmic price scale (15.8s)
+  ✓   47 [desktop] › e2e/drawing-system.spec.ts:2206:5 › a cross-pane price gesture clamps on an inverted price scale (14.1s)
+  -   48 [desktop] › e2e/drawing-system.spec.ts:2239:5 › a coarse-pointer cross-pane drag keeps the owner scale
+  -   49 [desktop] › e2e/drawing-system.spec.ts:2267:5 › a phone cross-pane drag keeps the owner scale
+  ✓   50 [desktop] › e2e/drawing-system.spec.ts:2301:5 › collapsing the indicator pane moves the clamp to pane 0's new floor (12.3s)
+  ✓   51 [desktop] › e2e/drawing-system.spec.ts:2343:5 › price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height (7.0s)
+  ✓   52 [desktop] › e2e/drawing-system.spec.ts:2392:5 › an indicator-pane drawing holds its place when the price scale rescales (9.5s)
+  ✓   53 [desktop] › e2e/drawing-system.spec.ts:2536:5 › an indicator-pane drawing stays in its pane when that pane y-axis rescales (9.4s)
+  ✓   54 [desktop] › e2e/drawing-system.spec.ts:2628:5 › legacy indicator-pane drawing coordinates migrate into pane value space (9.6s)
+  ✓   55 [desktop] › e2e/drawing-system.spec.ts:2659:5 › legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty) (7.8s)
+  ✓   56 [desktop] › e2e/drawing-system.spec.ts:2659:5 › legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached) (8.2s)
+  ✓   57 [desktop] › e2e/drawing-system.spec.ts:2727:5 › selecting a brush stroke shows its bounds, not a handle per sample (10.3s)
+  ✓   58 [desktop] › e2e/drawing-system.spec.ts:2764:5 › collapsing an indicator pane hides its plot and drawings until restore (9.4s)
+  -   59 [desktop] › e2e/drawing-system.spec.ts:2824:5 › coarse pane collapse hides plot paint and remains restorable
+  ✓   60 [desktop] › e2e/drawing-system.spec.ts:2907:5 › a segmented path finishes on a double-click between bar centres (9.6s)
+  ✓   61 [desktop] › e2e/drawing-system.spec.ts:2980:5 › a desktop Path finishes exactly once when its closing double-click has no native dblclick (15.5s)
+  ✓   62 [tablet] › e2e/chart-view-reset.spec.ts:46:5 › New chart tickers reserve space between the latest candle and symbol tag (15.0s)
+  -   63 [tablet] › e2e/chart-view-reset.spec.ts:57:5 › Reset chart view restores the recent weekly window
+  -   64 [tablet] › e2e/chart-view-reset.spec.ts:90:5 › Vertical cursor lock has a clear X and never follows a ticker change
+  -   65 [tablet] › e2e/chart-view-reset.spec.ts:141:5 › Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp
+  -   66 [tablet] › e2e/chart-view-reset.spec.ts:188:5 › Logarithmic price-axis wheel zoom compounds without corrupting the scale
+  ✓   67 [tablet] › e2e/crosshair-price-label.spec.ts:100:5 › extended hours owns the countdown while the static close and crosshair remain collision-free (13.1s)
+  ✓   68 [tablet] › e2e/crosshair-price-label.spec.ts:214:5 › regular hours keeps the bar-close countdown on the current quote (6.9s)
+  ✓   69 [tablet] › e2e/crosshair-price-label.spec.ts:226:5 › the countdown migrates back to the current quote when extended hours ends live (14.4s)
+  ✓   70 [tablet] › e2e/crosshair-price-label.spec.ts:264:5 › a diverged premarket label remains on its true projected price (7.7s)
+  -   71 [tablet] › e2e/crosshair-price-label.spec.ts:275:5 › persistent and hover labels follow the price pane when a study moves above it
+  ✓   72 [tablet] › e2e/crosshair-price-label.spec.ts:331:5 › dense option levels use gex_state fallback and fan their badges without moving the active AH quote (9.6s)
+  ✓   73 [tablet] › e2e/crosshair-price-label.spec.ts:456:5 › mounted options levels consume a newly published state snapshot without reloading the chart (9.5s)
+  ✓   74 [tablet] › e2e/crosshair-price-label.spec.ts:516:5 › a four-digit premarket quote expands the compact numeric lane instead of clipping (8.3s)
+  ✓   75 [tablet] › e2e/crosshair-price-label.spec.ts:535:5 › left-side and percentage scales keep the foreground label on the active axis with correct units (8.0s)
+  -   76 [tablet] › e2e/crosshair-price-label.spec.ts:633:5 › Magnet follows the nearest transformed price-pane series instead of the raw candle close
+  -   77 [tablet] › e2e/crosshair-price-label.spec.ts:668:5 › a stationary foreground label refreshes when the price scale changes underneath it
+  -   78 [tablet] › e2e/drawing-professional-editing.spec.ts:41:5 › professional drawing placement, angle lock, keyboard editing, and cloning stay atomic
+  -   79 [tablet] › e2e/drawing-professional-editing.spec.ts:100:5 › Fibonacci and position inspectors drive durable analytical settings
+  -   80 [tablet] › e2e/drawing-professional-editing.spec.ts:158:5 › Replay hard-locks drawings and the quick bar keeps current plus recent colors
+  -   81 [tablet] › e2e/drawing-professional-editing.spec.ts:269:5 › drawing toolbar and favorite controls retain focus across responsive remounts
+  -   82 [tablet] › e2e/drawing-professional-editing.spec.ts:301:5 › bulk drawing controls preserve source scopes and lock only user-authored objects
+  -   83 [tablet] › e2e/drawing-professional-editing.spec.ts:346:5 › detector commands remain scoped to the pane that dispatched them
+  ✓   84 [tablet] › e2e/drawing-system.spec.ts:266:5 › drawing registry and precision controls stay complete at every responsive width (16.3s)
+  -   85 [tablet] › e2e/drawing-system.spec.ts:395:5 › desktop drawing labels and hover flyouts match the OpenMarket interaction contract
+  ✓   86 [tablet] › e2e/drawing-system.spec.ts:493:5 › favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent (18.0s)
+  -   87 [tablet] › e2e/drawing-system.spec.ts:576:5 › portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint
+  -   88 [tablet] › e2e/drawing-system.spec.ts:620:5 › phone drawing chrome keeps one collision-free editing surface
+  ✓   89 [tablet] › e2e/drawing-system.spec.ts:709:5 › chart-type catalog exposes and applies the new line and area families (13.1s)
+  -   90 [tablet] › e2e/drawing-system.spec.ts:743:5 › drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear
+  -   91 [tablet] › e2e/drawing-system.spec.ts:997:5 › flagship geometry, editing, and path limits survive adversarial interaction
+  -   92 [tablet] › e2e/drawing-system.spec.ts:1189:5 › each drawing tool keeps its own defaults and fill color contract
+  -   93 [tablet] › e2e/drawing-system.spec.ts:1257:5 › pane-anchored notes stay fixed while calculated labels never open a text editor
+  ✓   94 [tablet] › e2e/drawing-system.spec.ts:1310:5 › media tools choose and persist real emoji, icons, and bounded local images (15.8s)
+  -   95 [tablet] › e2e/drawing-system.spec.ts:1377:5 › dense collections save beyond Chromium's keepalive request quota
+  -   96 [tablet] › e2e/drawing-system.spec.ts:1411:5 › the drawing cap rejects object 501 without evicting object 1
+  ✓   97 [tablet] › e2e/drawing-system.spec.ts:1442:5 › account drawing loads fail closed and retry without issuing a destructive save (8.4s)
+  ✓   98 [tablet] › e2e/drawing-system.spec.ts:1483:5 › unavailable account drawings disable tool selection without changing the group's shown tool (10.1s)
+  ✓   99 [tablet] › e2e/drawing-system.spec.ts:1514:5 › a symbol change keeps the renderer alive and never leaks the old symbol's drawings (19.1s)
+  -  100 [tablet] › e2e/drawing-system.spec.ts:1586:5 › a drag released in the future gutter finishes instead of following the cursor
+  -  101 [tablet] › e2e/drawing-system.spec.ts:1873:5 › a price-range drag crossing a pane separator persists an owner-scale value
+  -  102 [tablet] › e2e/drawing-system.spec.ts:1909:5 › an endpoint handle dragged across a pane separator keeps the owner scale
+  -  103 [tablet] › e2e/drawing-system.spec.ts:1964:5 › dragging a whole range drawing across a pane separator keeps the owner scale
+  -  104 [tablet] › e2e/drawing-system.spec.ts:2023:5 › Shift+Measure crossing a pane separator keeps the owner scale
+  -  105 [tablet] › e2e/drawing-system.spec.ts:2065:5 › a reloaded range drawing is served back unrepaired and still clips to its pane
+  -  106 [tablet] › e2e/drawing-system.spec.ts:2108:5 › chart-spanning range and vertical tools are still not clipped to the price pane
+  -  107 [tablet] › e2e/drawing-system.spec.ts:2176:5 › a cross-pane price gesture clamps on a logarithmic price scale
+  -  108 [tablet] › e2e/drawing-system.spec.ts:2206:5 › a cross-pane price gesture clamps on an inverted price scale
+  ✓  109 [tablet] › e2e/drawing-system.spec.ts:2239:5 › a coarse-pointer cross-pane drag keeps the owner scale (12.8s)
+  -  110 [tablet] › e2e/drawing-system.spec.ts:2267:5 › a phone cross-pane drag keeps the owner scale
+  -  111 [tablet] › e2e/drawing-system.spec.ts:2301:5 › collapsing the indicator pane moves the clamp to pane 0's new floor
+  ✓  112 [tablet] › e2e/drawing-system.spec.ts:2343:5 › price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height (7.9s)
+  -  113 [tablet] › e2e/drawing-system.spec.ts:2392:5 › an indicator-pane drawing holds its place when the price scale rescales
+  -  114 [tablet] › e2e/drawing-system.spec.ts:2536:5 › an indicator-pane drawing stays in its pane when that pane y-axis rescales
+  -  115 [tablet] › e2e/drawing-system.spec.ts:2628:5 › legacy indicator-pane drawing coordinates migrate into pane value space
+  -  116 [tablet] › e2e/drawing-system.spec.ts:2659:5 › legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)
+  -  117 [tablet] › e2e/drawing-system.spec.ts:2659:5 › legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)
+  -  118 [tablet] › e2e/drawing-system.spec.ts:2727:5 › selecting a brush stroke shows its bounds, not a handle per sample
+  -  119 [tablet] › e2e/drawing-system.spec.ts:2764:5 › collapsing an indicator pane hides its plot and drawings until restore
+  ✓  120 [tablet] › e2e/drawing-system.spec.ts:2824:5 › coarse pane collapse hides plot paint and remains restorable (8.6s)
+  -  121 [tablet] › e2e/drawing-system.spec.ts:2907:5 › a segmented path finishes on a double-click between bar centres
+  -  122 [tablet] › e2e/drawing-system.spec.ts:2980:5 › a desktop Path finishes exactly once when its closing double-click has no native dblclick
+  ✓  123 [mobile] › e2e/chart-view-reset.spec.ts:46:5 › New chart tickers reserve space between the latest candle and symbol tag (6.5s)
+  -  124 [mobile] › e2e/chart-view-reset.spec.ts:57:5 › Reset chart view restores the recent weekly window
+  -  125 [mobile] › e2e/chart-view-reset.spec.ts:90:5 › Vertical cursor lock has a clear X and never follows a ticker change
+  -  126 [mobile] › e2e/chart-view-reset.spec.ts:141:5 › Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp
+  -  127 [mobile] › e2e/chart-view-reset.spec.ts:188:5 › Logarithmic price-axis wheel zoom compounds without corrupting the scale
+  ✓  128 [mobile] › e2e/crosshair-price-label.spec.ts:100:5 › extended hours owns the countdown while the static close and crosshair remain collision-free (9.6s)
+  ✓  129 [mobile] › e2e/crosshair-price-label.spec.ts:214:5 › regular hours keeps the bar-close countdown on the current quote (8.7s)
+  ✓  130 [mobile] › e2e/crosshair-price-label.spec.ts:226:5 › the countdown migrates back to the current quote when extended hours ends live (15.5s)
+  ✓  131 [mobile] › e2e/crosshair-price-label.spec.ts:264:5 › a diverged premarket label remains on its true projected price (9.7s)
+  -  132 [mobile] › e2e/crosshair-price-label.spec.ts:275:5 › persistent and hover labels follow the price pane when a study moves above it
+  ✓  133 [mobile] › e2e/crosshair-price-label.spec.ts:331:5 › dense option levels use gex_state fallback and fan their badges without moving the active AH quote (10.7s)
+  ✓  134 [mobile] › e2e/crosshair-price-label.spec.ts:456:5 › mounted options levels consume a newly published state snapshot without reloading the chart (10.1s)
+  ✓  135 [mobile] › e2e/crosshair-price-label.spec.ts:516:5 › a four-digit premarket quote expands the compact numeric lane instead of clipping (10.0s)
+  ✓  136 [mobile] › e2e/crosshair-price-label.spec.ts:535:5 › left-side and percentage scales keep the foreground label on the active axis with correct units (11.1s)
+  -  137 [mobile] › e2e/crosshair-price-label.spec.ts:633:5 › Magnet follows the nearest transformed price-pane series instead of the raw candle close
+  -  138 [mobile] › e2e/crosshair-price-label.spec.ts:668:5 › a stationary foreground label refreshes when the price scale changes underneath it
+  -  139 [mobile] › e2e/drawing-professional-editing.spec.ts:41:5 › professional drawing placement, angle lock, keyboard editing, and cloning stay atomic
+  -  140 [mobile] › e2e/drawing-professional-editing.spec.ts:100:5 › Fibonacci and position inspectors drive durable analytical settings
+  -  141 [mobile] › e2e/drawing-professional-editing.spec.ts:158:5 › Replay hard-locks drawings and the quick bar keeps current plus recent colors
+  -  142 [mobile] › e2e/drawing-professional-editing.spec.ts:269:5 › drawing toolbar and favorite controls retain focus across responsive remounts
+  -  143 [mobile] › e2e/drawing-professional-editing.spec.ts:301:5 › bulk drawing controls preserve source scopes and lock only user-authored objects
+  -  144 [mobile] › e2e/drawing-professional-editing.spec.ts:346:5 › detector commands remain scoped to the pane that dispatched them
+  -  145 [mobile] › e2e/drawing-system.spec.ts:266:5 › drawing registry and precision controls stay complete at every responsive width
+  -  146 [mobile] › e2e/drawing-system.spec.ts:395:5 › desktop drawing labels and hover flyouts match the OpenMarket interaction contract
+  -  147 [mobile] › e2e/drawing-system.spec.ts:493:5 › favorite drawing tools are keyboard-reachable, draggable, responsive, and persistent
+  -  148 [mobile] › e2e/drawing-system.spec.ts:576:5 › portalled drawing surfaces honor reduced motion and keep focus across the mobile breakpoint
+  ✓  149 [mobile] › e2e/drawing-system.spec.ts:620:5 › phone drawing chrome keeps one collision-free editing surface (13.1s)
+  -  150 [mobile] › e2e/drawing-system.spec.ts:709:5 › chart-type catalog exposes and applies the new line and area families
+  -  151 [mobile] › e2e/drawing-system.spec.ts:743:5 › drawing lifecycle supports one-shot, sticky, history, visibility, and scoped clear
+  -  152 [mobile] › e2e/drawing-system.spec.ts:997:5 › flagship geometry, editing, and path limits survive adversarial interaction
+  -  153 [mobile] › e2e/drawing-system.spec.ts:1189:5 › each drawing tool keeps its own defaults and fill color contract
+  -  154 [mobile] › e2e/drawing-system.spec.ts:1257:5 › pane-anchored notes stay fixed while calculated labels never open a text editor
+  -  155 [mobile] › e2e/drawing-system.spec.ts:1310:5 › media tools choose and persist real emoji, icons, and bounded local images
+  -  156 [mobile] › e2e/drawing-system.spec.ts:1377:5 › dense collections save beyond Chromium's keepalive request quota
+  -  157 [mobile] › e2e/drawing-system.spec.ts:1411:5 › the drawing cap rejects object 501 without evicting object 1
+  -  158 [mobile] › e2e/drawing-system.spec.ts:1442:5 › account drawing loads fail closed and retry without issuing a destructive save
+  -  159 [mobile] › e2e/drawing-system.spec.ts:1483:5 › unavailable account drawings disable tool selection without changing the group's shown tool
+  -  160 [mobile] › e2e/drawing-system.spec.ts:1514:5 › a symbol change keeps the renderer alive and never leaks the old symbol's drawings
+  -  161 [mobile] › e2e/drawing-system.spec.ts:1586:5 › a drag released in the future gutter finishes instead of following the cursor
+  -  162 [mobile] › e2e/drawing-system.spec.ts:1873:5 › a price-range drag crossing a pane separator persists an owner-scale value
+  -  163 [mobile] › e2e/drawing-system.spec.ts:1909:5 › an endpoint handle dragged across a pane separator keeps the owner scale
+  -  164 [mobile] › e2e/drawing-system.spec.ts:1964:5 › dragging a whole range drawing across a pane separator keeps the owner scale
+  -  165 [mobile] › e2e/drawing-system.spec.ts:2023:5 › Shift+Measure crossing a pane separator keeps the owner scale
+  -  166 [mobile] › e2e/drawing-system.spec.ts:2065:5 › a reloaded range drawing is served back unrepaired and still clips to its pane
+  -  167 [mobile] › e2e/drawing-system.spec.ts:2108:5 › chart-spanning range and vertical tools are still not clipped to the price pane
+  -  168 [mobile] › e2e/drawing-system.spec.ts:2176:5 › a cross-pane price gesture clamps on a logarithmic price scale
+  -  169 [mobile] › e2e/drawing-system.spec.ts:2206:5 › a cross-pane price gesture clamps on an inverted price scale
+  -  170 [mobile] › e2e/drawing-system.spec.ts:2239:5 › a coarse-pointer cross-pane drag keeps the owner scale
+  ✓  171 [mobile] › e2e/drawing-system.spec.ts:2267:5 › a phone cross-pane drag keeps the owner scale (13.4s)
+  -  172 [mobile] › e2e/drawing-system.spec.ts:2301:5 › collapsing the indicator pane moves the clamp to pane 0's new floor
+  ✓  173 [mobile] › e2e/drawing-system.spec.ts:2343:5 › price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height (6.8s)
+  -  174 [mobile] › e2e/drawing-system.spec.ts:2392:5 › an indicator-pane drawing holds its place when the price scale rescales
+  -  175 [mobile] › e2e/drawing-system.spec.ts:2536:5 › an indicator-pane drawing stays in its pane when that pane y-axis rescales
+  -  176 [mobile] › e2e/drawing-system.spec.ts:2628:5 › legacy indicator-pane drawing coordinates migrate into pane value space
+  -  177 [mobile] › e2e/drawing-system.spec.ts:2659:5 › legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)
+  -  178 [mobile] › e2e/drawing-system.spec.ts:2659:5 › legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)
+  -  179 [mobile] › e2e/drawing-system.spec.ts:2727:5 › selecting a brush stroke shows its bounds, not a handle per sample
+  -  180 [mobile] › e2e/drawing-system.spec.ts:2764:5 › collapsing an indicator pane hides its plot and drawings until restore
+  ✓  181 [mobile] › e2e/drawing-system.spec.ts:2824:5 › coarse pane collapse hides plot paint and remains restorable (7.5s)
+  -  182 [mobile] › e2e/drawing-system.spec.ts:2907:5 › a segmented path finishes on a double-click between bar centres
+  -  183 [mobile] › e2e/drawing-system.spec.ts:2980:5 › a desktop Path finishes exactly once when its closing double-click has no native dblclick
+
+  Slow test file: [desktop] › e2e/drawing-system.spec.ts (8.1m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  94 skipped
+  89 passed (19.4m)

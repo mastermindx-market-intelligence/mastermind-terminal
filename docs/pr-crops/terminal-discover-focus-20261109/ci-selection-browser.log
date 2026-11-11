@@ -1,0 +1,53 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[warmup] /terminal?symbol=NVDA → 200 in 150ms
+[warmup] /options → 200 in 6534ms
+[warmup] /portfolio → 200 in 1154ms
+[warmup] /alerts → 200 in 2479ms
+[warmup] /analysis → 200 in 2603ms
+[warmup] /discover → 200 in 1945ms
+[warmup] /admin → 200 in 811ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 1795ms
+[warmup] /login → 200 in 340ms
+[warmup] /reset-password → 200 in 853ms
+[warmup] /api/me → 200 in 1963ms
+[warmup] /api/watchlist → 200 in 778ms
+[warmup] /api/layouts → 200 in 607ms
+[warmup] /api/watchlist/annotations → 409 in 603ms
+[warmup] 14 routes compiled in 23s
+[fixture-ready] prophet_idx fixture 200 in 770ms
+
+Running 27 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en) (3.0s)
+  ✓   2 [desktop] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.4s)
+  ✓   3 [desktop] › e2e/intl-history-date-intent.spec.ts:19:5 › History accepts real date intent, compares exact reconstruction and returns with supported context (18.5s)
+  ✓   4 [desktop] › e2e/shared-shell-refinement.spec.ts:15:5 › Paper header geometry preserves one mobile owner and a readable company search (1.9s)
+  ✓   5 [desktop] › e2e/shared-shell-refinement.spec.ts:52:5 › light and Chinese presentation stay coherent through the tools directory (1.8s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   6 [desktop] › e2e/shared-shell-refinement.spec.ts:74:5 › mobile chrome keeps every target usable at 320px and contract widths (5.4s)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   7 [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome (4.1s)
+  -   8 [desktop] › e2e/shared-shell-refinement.spec.ts:181:5 › phone company search keeps its scope in both languages and dismisses by touch
+  ✓   9 [desktop] › e2e/shared-shell-refinement.spec.ts:204:5 › Tools opens an admitted public page and Back restores query, scope and selection (3.8s)
+  ✓  10 [tablet] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en) (2.4s)
+  ✓  11 [tablet] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.2s)
+  ✓  12 [tablet] › e2e/intl-history-date-intent.spec.ts:19:5 › History accepts real date intent, compares exact reconstruction and returns with supported context (17.1s)
+  ✓  13 [tablet] › e2e/shared-shell-refinement.spec.ts:15:5 › Paper header geometry preserves one mobile owner and a readable company search (1.6s)
+  ✓  14 [tablet] › e2e/shared-shell-refinement.spec.ts:52:5 › light and Chinese presentation stay coherent through the tools directory (1.8s)
+  -  15 [tablet] › e2e/shared-shell-refinement.spec.ts:74:5 › mobile chrome keeps every target usable at 320px and contract widths
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  16 [tablet] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome (2.3s)
+  -  17 [tablet] › e2e/shared-shell-refinement.spec.ts:181:5 › phone company search keeps its scope in both languages and dismisses by touch
+  ✓  18 [tablet] › e2e/shared-shell-refinement.spec.ts:204:5 › Tools opens an admitted public page and Back restores query, scope and selection (2.8s)
+  ✓  19 [mobile] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en) (2.3s)
+  ✓  20 [mobile] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.3s)
+  ✓  21 [mobile] › e2e/intl-history-date-intent.spec.ts:19:5 › History accepts real date intent, compares exact reconstruction and returns with supported context (16.9s)
+  ✓  22 [mobile] › e2e/shared-shell-refinement.spec.ts:15:5 › Paper header geometry preserves one mobile owner and a readable company search (1.5s)
+  ✓  23 [mobile] › e2e/shared-shell-refinement.spec.ts:52:5 › light and Chinese presentation stay coherent through the tools directory (1.7s)
+  -  24 [mobile] › e2e/shared-shell-refinement.spec.ts:74:5 › mobile chrome keeps every target usable at 320px and contract widths
+  ✓  25 [mobile] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome (2.2s)
+  ✓  26 [mobile] › e2e/shared-shell-refinement.spec.ts:181:5 › phone company search keeps its scope in both languages and dismisses by touch (4.2s)
+  ✓  27 [mobile] › e2e/shared-shell-refinement.spec.ts:204:5 › Tools opens an admitted public page and Back restores query, scope and selection (2.5s)
+
+  4 skipped
+  23 passed (2.4m)

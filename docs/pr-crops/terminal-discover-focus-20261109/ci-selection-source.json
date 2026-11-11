@@ -1,0 +1,75 @@
+{
+  "prior_product_head": "cf0df925a2836b41190577cb48714f87a8e6a52e",
+  "candidate_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha": "ff75d2ad7b8fae53a40f4e6693c69f50725fa0f7"
+    },
+    {
+      "path": "terminal/e2e/tools/sharedShellSafeReporter.cjs",
+      "sha": "54529a78b54152bb551970e6b1c67941b422415f"
+    },
+    {
+      "path": "terminal/e2e/tools/sharedShellSafeReporter.test.cjs",
+      "sha": "8f7e916d0b982120bc2ded8a01af428abe3fe1ad"
+    },
+    {
+      "path": "terminal/e2e/discover-focus-continuity.spec.ts",
+      "sha": "f7a3db7c686ac059ad506179455ffd4dbd58f86e"
+    }
+  ],
+  "verified_files": [
+    {
+      "path": "terminal/components/TerminalShell.tsx",
+      "sha": "46303cc2c47756a88165f1a530e7b8ae5ccb4a67"
+    },
+    {
+      "path": "terminal/components/LayoutMenu.tsx",
+      "sha": "f39202c252d954802273fe2dfd7991a8763025ff"
+    },
+    {
+      "path": "terminal/components/workspaces/DiscoverWorkspace.tsx",
+      "sha": "e61aa1d08d675d9622e1c8a9f682ecf2cec5044f"
+    },
+    {
+      "path": "terminal/components/workspaces/DiscoverLanding.tsx",
+      "sha": "5885b9f5089637d5188c605bfd34af8ae5d619c7"
+    },
+    {
+      "path": "terminal/components/workspaces/DiscoverLanding.module.css",
+      "sha": "ad94ad0a2208551bd3ae8d8c28527424d83507eb"
+    },
+    {
+      "path": "terminal/lib/__tests__/discoverChooserFocus.test.tsx",
+      "sha": "f560fb68101b9b9520c134776feea3984e76fe37"
+    },
+    {
+      "path": "terminal/e2e/discover-focus-continuity.spec.ts",
+      "sha": "f7a3db7c686ac059ad506179455ffd4dbd58f86e"
+    },
+    {
+      "path": "docs/terminal-discover-focus-polish-20261109.md",
+      "sha": "0ddfcf368c414a5fb044abed02d5112734daad3a"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha": "ff75d2ad7b8fae53a40f4e6693c69f50725fa0f7"
+    },
+    {
+      "path": "terminal/e2e/tools/sharedShellSafeReporter.cjs",
+      "sha": "54529a78b54152bb551970e6b1c67941b422415f"
+    },
+    {
+      "path": "terminal/e2e/tools/sharedShellSafeReporter.test.cjs",
+      "sha": "8f7e916d0b982120bc2ded8a01af428abe3fe1ad"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-refinement.spec.ts",
+      "sha": "02ab518665817ed6796e56937968f22312e898fa"
+    },
+    {
+      "path": "terminal/e2e/intl-history-date-intent.spec.ts",
+      "sha": "32928f4fc5d1a9de4aea663006ba03f1684f7601"
+    }
+  ]
+}
