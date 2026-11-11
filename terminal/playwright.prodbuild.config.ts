@@ -13,6 +13,8 @@ import { defineConfig } from "@playwright/test";
 import baseConfig from "./playwright.config";
 
 const port = Number(process.env.TERMINAL_E2E_PORT || 3108);
+// The repository config defines exactly one webServer; the spread below keeps
+// every other field of it untouched for this leg.
 const baseWebServer = Array.isArray(baseConfig.webServer)
   ? baseConfig.webServer[0]
   : baseConfig.webServer;
@@ -22,5 +24,12 @@ export default defineConfig({
   webServer: {
     ...baseWebServer,
     command: `npm run start -- --hostname 127.0.0.1 --port ${port}`,
+    env: {
+      ...baseWebServer?.env,
+      // The ONLY production runtime that may reach the BFF fixture branches:
+      // lib/fixtureSeam.ts requires this exact marker next to NODE_ENV=production.
+      // A fixture variable alone on a real host keeps every route live.
+      TERMINAL_E2E_CANARY: "1",
+    },
   },
 });

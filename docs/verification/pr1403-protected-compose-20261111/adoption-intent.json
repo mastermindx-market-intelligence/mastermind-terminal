@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-11T19:47:38.488608+00:00",
+  "head": "6926746c95cc3ee63a2640ba1015c791efea0869",
+  "index_sha256": "fcd6225d99deb7a808397e5510b822091d6fb471bdf83ad7736a836135523dc7",
+  "index_tree": "7f1821d20a2b29e68a32502de89e1cc68dc50fa0",
+  "merge": "e45912628c85a7632e70cb3915b3ce626e1c905c",
+  "prior_publication_sha256": "12f0e5ccdecb098f793df61ef414727c781da6f4bacbaafd20fa1c1ed7f67118",
+  "protected": "568fa505afb068900424fe4db0da67587d46a114",
+  "published_head": "ef8c4fa946a8c59df4eb1582f35f2fcada288076",
+  "state": "ADOPTION_PREPARED",
+  "workspace": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-1403-ticker-import-20261111-c3"
+}
