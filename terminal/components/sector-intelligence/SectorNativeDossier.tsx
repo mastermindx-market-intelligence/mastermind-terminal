@@ -59,12 +59,15 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
   eventsFeed?: SectorCycleFeed;
   /** The five lane 7 row reads (`confluence` universes + `theme_rows`),
    * computed by the workspace from the admitted generation's carried typed
-   * blocks (round 2 part 2). `null`/absent — the `typed_blocks` map not
-   * carried on the wire — keeps this dossier's exact pre-increment rendering;
-   * a carried map's reads own every state the readers can take. */
+   * blocks (round 2 part 2). `null`/absent — no row block carried on the
+   * wire — keeps this dossier's exact pre-increment rendering; a carried
+   * read owns every state its reader can take. Each field is present only
+   * when that reader's own block is carried (fix r1): an omitted field is
+   * the reader's "prop omitted" path, which is master's typed-unavailable
+   * state — never a fabricated stub. */
   rowBlocks?: {
-    universeBlocks: Partial<Record<UniverseId, UniverseBlockRead>>;
-    themeRows: ThemeRowsRead;
+    universeBlocks?: Partial<Record<UniverseId, UniverseBlockRead>>;
+    themeRows?: ThemeRowsRead;
   } | null;
 }) {
   const t = useSectorT(), { lang } = useLang();
@@ -290,8 +293,8 @@ function FollowLine() {
  * chart runs on real captured history. */
 function DossierDepth({ context, onSelect, rowBlocks }: { context: SectorNativeContext; onSelect?: (sectorId: string) => void;
   rowBlocks?: {
-    universeBlocks: Partial<Record<UniverseId, UniverseBlockRead>>;
-    themeRows: ThemeRowsRead;
+    universeBlocks?: Partial<Record<UniverseId, UniverseBlockRead>>;
+    themeRows?: ThemeRowsRead;
   } | null }) {
   const { lang } = useLang();
   const generation = context.generation;

@@ -37,6 +37,7 @@ import {
   type UniverseBlockRead, type UniverseId,
 } from "@/lib/sectorDepthUniverses";
 import { themeRowsFromCarriedBlock, type ThemeRowsRead } from "@/lib/sectorDepthThemeRows";
+import { classifyEntry } from "@/lib/sectorDepthRows";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -92,33 +93,70 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
 }
 
 /** The five lane 7 row reads for the dossier's Drivers tab (round 2 part 2,
- * the #1448 mount). `null` keeps the dossier's exact pre-increment rendering:
- * the generation decoder maps an ABSENT `typed_blocks` key to the same
+ * the #1448 mount; fix r1 B-1/S-1). `null` keeps the dossier's exact
+ * pre-increment rendering. The raw wire document's own `typed_blocks` map is
+ * the only carrier: the generation decoder maps an absent key to the same
  * all-not_produced shape a carried map may lawfully hold, so carried-vs-absent
- * is decided on the raw wire document's own key — never on the decoded shape.
- * A carried map hands each reader its own typed-block entry verbatim
- * (`{status, reason?, value}`); the readers own every state an entry can take
- * (available rows, per-reason honest unavailable), so this wiring adds no
- * copy, no name and no navigation the readers do not define themselves. */
+ * is decided on the raw map itself, never on the decoded shape. The map
+ * counts only under the decoder's own plain-object rule (non-null,
+ * non-array object — `sectorNativeGeneration.ts` `sectorTypedBlocks`), and a
+ * row-block name is CARRIED only when it is an OWN key of that map. A name
+ * that is not carried stays `undefined` — the readers' "prop omitted" path,
+ * which is master's typed-unavailable state, never a fabricated stub: the
+ * v1.0 producer already serves a seven-key map with none of the five row
+ * blocks, and that document must render exactly as master (B-1). A carried
+ * name hands its reader the carried entry ITSELF, verbatim — the readers
+ * declare `entry: unknown` and re-validate from scratch (`classifyEntry`), so
+ * a malformed entry reads their generic unavailable wording, never a stated
+ * owner fact the producer did not state (S-1). Interim audience rule (fix r1
+ * item 3): the Terminal route requests `audience=preview` for every member
+ * (`SECTOR_GENERATION_PATH`, lib/sectorNativeGeneration.ts:12; the decoder
+ * refuses any other audience at :155/:161), so a carried entry that is
+ * exactly an unavailable `audience_not_entitled` entry is NOT treated as
+ * carried — otherwise every member, paying or not, would read "Not included
+ * in your current subscription." the moment the producer serves the five
+ * blocks. Remove when the route requests the member's real audience
+ * (entitled read increment). */
 export interface SectorRowBlockMounts {
-  universeBlocks: Partial<Record<UniverseId, UniverseBlockRead>>;
-  themeRows: ThemeRowsRead;
+  universeBlocks?: Partial<Record<UniverseId, UniverseBlockRead>>;
+  themeRows?: ThemeRowsRead;
 }
 export function sectorRowBlocksFromFeed(
   feed: FeedPayload | undefined, generation: NativeSectorGeneration | null,
 ): SectorRowBlockMounts | null {
   if (!generation) return null;
-  const data = object(object(object(feed?.data).projection).data);
-  if (!Object.hasOwn(data, "typed_blocks")) return null;
-  const blocks = generation.typedBlocks;
+  const raw = object(object(object(feed?.data).projection).data).typed_blocks;
+  const map = raw !== null && typeof raw === "object" && !Array.isArray(raw)
+    ? raw as Record<string, unknown> : null;
+  if (!map) return null;
+  // undefined = not carried for this reader (own key absent, or the interim
+  // audience rule below swallowed the entry).
+  const carried = (name: string): unknown => {
+    if (!Object.hasOwn(map, name)) return undefined;
+    const entry = map[name];
+    // Interim audience rule — removal condition in the doc comment above.
+    // lane 7's own classifier decides "exactly an audience_not_entitled
+    // unavailable entry"; no second structural admission here.
+    const cls = classifyEntry(entry);
+    return !cls.ok && cls.reason === "audience_not_entitled" ? undefined : entry;
+  };
+  const sp500 = carried("confluence_universe_sp500");
+  const nasdaq = carried("confluence_universe_nasdaq");
+  const russell = carried("confluence_universe_russell");
+  const baskets = carried("confluence_universe_baskets");
+  const theme = carried("theme_rows");
+  if (sp500 === undefined && nasdaq === undefined && russell === undefined
+    && baskets === undefined && theme === undefined) return null;
   return {
-    universeBlocks: {
-      subsectors: confluenceSp500FromCarriedBlock(blocks.confluence_universe_sp500),
-      nasdaq: confluenceNasdaqFromCarriedBlock(blocks.confluence_universe_nasdaq),
-      russell: confluenceRussellFromCarriedBlock(blocks.confluence_universe_russell),
-      baskets: confluenceBasketsFromCarriedBlock(blocks.confluence_universe_baskets),
-    },
-    themeRows: themeRowsFromCarriedBlock(blocks.theme_rows),
+    ...(sp500 !== undefined || nasdaq !== undefined || russell !== undefined || baskets !== undefined ? {
+      universeBlocks: {
+        subsectors: sp500 !== undefined ? confluenceSp500FromCarriedBlock(sp500) : undefined,
+        nasdaq: nasdaq !== undefined ? confluenceNasdaqFromCarriedBlock(nasdaq) : undefined,
+        russell: russell !== undefined ? confluenceRussellFromCarriedBlock(russell) : undefined,
+        baskets: baskets !== undefined ? confluenceBasketsFromCarriedBlock(baskets) : undefined,
+      },
+    } : {}),
+    themeRows: theme !== undefined ? themeRowsFromCarriedBlock(theme) : undefined,
   };
 }
 

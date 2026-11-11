@@ -1,31 +1,43 @@
 // @vitest-environment jsdom
 /**
- * sectorNativeRowMount.test.tsx — round 2 part 2: lane 7's five row readers
- * (`confluence_universe_{sp500,nasdaq,russell,baskets}` + `theme_rows`)
- * mounted in the dossier Drivers tab through the workspace's own carried gate
- * (`sectorRowBlocksFromFeed`).
+ * sectorNativeRowMount.test.tsx — round 2 part 2 + fix r1: lane 7's five row
+ * readers (`confluence_universe_{sp500,nasdaq,russell,baskets}` +
+ * `theme_rows`) mounted in the dossier Drivers tab through the workspace's
+ * own carried gate (`sectorRowBlocksFromFeed`).
  *
  * Laws pinned here:
- *   - ABSENT `typed_blocks` (today's wire): the dossier renders byte-for-byte
- *     the master rendering — proved against a committed golden DOM captured at
- *     the master-equal pre-mount head, never a hand-written expectation.
- *   - The carried gate reads the RAW wire document's own key: the decoder maps
- *     an absent map to the same all-not_produced shape a carried map may hold,
- *     so only the own-key check separates "owner carried blocks" (readers get
- *     their entries) from "nothing carried" (master rendering, reads null).
+ *   - NO ROW BLOCK CARRIED (fix r1 B-1): an absent `typed_blocks` key, a
+ *     non-plain value (null, array, string, number — the decoder's own rule),
+ *     an empty map, a map of only unknown names, the v1.0 producer's seven-key
+ *     map, and a twelve-key map whose five row entries are all preview
+ *     `audience_not_entitled` stubs ALL read null and render the Drivers tab
+ *     byte-for-byte the committed master golden — never five fabricated
+ *     not_produced stubs.
+ *   - PER-READER CARRIAGE: a name that is not an own key of the raw map stays
+ *     `undefined` — the readers' "prop omitted" path, which is master's
+ *     typed-unavailable state. theme_rows alone, and one universe alone, mount
+ *     only their own reader.
+ *   - CARRIED ENTRY VERBATIM (fix r1 S-1): each reader gets the carried entry
+ *     ITSELF, not the decoder's normalised one — a malformed entry (null, the
+ *     string "available", `{status:"bogus"}`, `{status:"unavailable",
+ *     reason:7}`) reads the reader's GENERIC unavailable wording in both
+ *     languages, never "The owner engine did not produce this reading
+ *     tonight."; a carried not_produced entry keeps that wording.
+ *   - INTERIM AUDIENCE RULE (fix r1 item 3): the route reads preview for
+ *     every member, so an exactly-audience_not_entitled entry is not carried
+ *     and the false-for-members subscription wording never renders — a mixed
+ *     map keeps master's state for the stub's reader while carried readers
+ *     still render their rows.
  *   - CARRIED entitled (the five real producer specimens): rows render through
  *     the readers only — S&P 65 subsectors + 11 roll-up rows without links,
  *     Nasdaq's 0-subsector/6-roll-up build-time night, Russell's honest zero,
  *     baskets 49, theme table 49 with its own date. No copy beyond the
  *     readers' own states; no owner identifier becomes visible text.
- *   - STUBS (`status:"unavailable"`, every reason incl. `audience_not_entitled`
- *     and a hostile out-of-set word): the readers' own per-reason states; the
- *     raw reason word never reaches the DOM; no rows, no tables.
  *   - ZH: carried `label_zh`/`name_zh` verbatim; null `label_zh` falls back to
  *     the producer's English label (no consumer-authored names); theme state
  *     words localize with the raw word only in `data-val`.
- *   - The full workspace mounts the same reads (memo → dossier prop) for both
- *     the absent and carried wires.
+ *   - The full workspace mounts the same reads (memo → dossier prop) for the
+ *     absent, seven-key and carried wires.
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -77,16 +89,29 @@ const entitled = JSON.parse(readFileSync(
 
 const ROW_BLOCK_NAMES = ["confluence_universe_sp500", "confluence_universe_nasdaq",
   "confluence_universe_russell", "confluence_universe_baskets", "theme_rows"] as const;
+// The decoder's own closed twelve-name list minus the five row names (fix r1:
+// the v1.0 producer's map shape, taken from lib/sectorNativeGeneration.ts).
+const NO_ROW_NAMES_7 = ["r1_rising_priced_share", "r2_display_order", "r2_hazard_qualification",
+  "etf_flows", "confluence", "bottoming_watch", "theme_table"] as const;
 
 /** A deep clone of the real captured generation with `typed_blocks` set. */
-const carriedWire = (blocks: Record<string, unknown>): Record<string, unknown> => {
+const carriedWire = (blocks: unknown): Record<string, unknown> => {
   const wire = JSON.parse(JSON.stringify(captured)) as typeof captured;
-  wire.projection.data.typed_blocks = blocks;
+  (wire.projection.data as Record<string, unknown>).typed_blocks = blocks;
   return wire as unknown as Record<string, unknown>;
 };
+/** Deep clone per use: the decoder's `bounded()` walk refuses a SHARED object
+ * reference (its seen-set guard), and a wire that arrived as JSON can never
+ * contain one — a test carrying the same malformed shape under two names must
+ * carry two distinct objects, exactly as the real wire would. */
+const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 /** The five row entries as the served surface writes a stub. */
 const stubBlocks = (reason: string): Record<string, unknown> => Object.fromEntries(
   ROW_BLOCK_NAMES.map(name => [name, { status: "unavailable", reason, value: null }]));
+/** The v1.0 producer's seven-key map: no row block, non-row entries inert. */
+const sevenKeyMap = (): Record<string, unknown> => Object.fromEntries(
+  NO_ROW_NAMES_7.map(name => [name, { status: "unavailable", reason: "not_produced", value: null }]));
+const AUDIENCE_STUB = { status: "unavailable", reason: "audience_not_entitled", value: null };
 
 const sector0 = (captured.projection.data.core as { sectors: Array<{
   id: string; ticker: string; name: string; name_zh?: string;
@@ -132,14 +157,29 @@ afterEach(() => {
 });
 
 const GOLDEN_PATH = join(__dirname, "fixtures", "sectorNativeDossierDrivers.master.v1.html");
+// React's useId counter is process-global, never rewinds, and is BASE-32:
+// after 9 it emits `_r_a_`, `_r_b_`, … Only the FIRST mount of a process
+// renders `_r_0_`/`_r_1_`/`_r_2_`; later mounts render `_r_4_`, `_r_a_`,
+// `_r_l_`, … (verified by probe; unmounting does not reset it). Those opaque
+// instance ids are the only difference between a later mount and the captured
+// golden. Normalize an id-valued attribute (`="_r_<base32>_"`) on BOTH sides
+// at comparison — the golden FILE stays unchanged — and pin the id COUNT
+// unmasked so a lost or gained id still fails.
+const ID_ATTR = /="_r_[0-9a-v]+_"/g;
+const expectGolden = (host: HTMLElement) => {
+  const actual = host.querySelector('[data-testid="sector-native-dossier"]')!.innerHTML;
+  const golden = readFileSync(GOLDEN_PATH, "utf8");
+  expect((actual.match(ID_ATTR) ?? []).length).toBe((golden.match(ID_ATTR) ?? []).length);
+  expect(actual.replace(ID_ATTR, '="_r_N_"')).toBe(golden.replace(ID_ATTR, '="_r_N_"'));
+};
 
-describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2)", () => {
+describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2 + fix r1)", () => {
   it("an absent typed_blocks map (today's wire) reads null — the dossier keeps master's rendering", () => {
     const generation = sectorNativeGeneration(captured as unknown as Record<string, unknown>);
     expect(generation).not.toBeNull();
     // The decoded shape cannot tell absent from a carried all-not_produced map…
     expect(generation!.typedBlocks.theme_rows).toEqual({ status: "unavailable", reason: "not_produced", value: null });
-    // …so the gate reads the raw wire document's own key and returns null.
+    // …so the gate reads the raw wire document's own map and returns null.
     expect(sectorRowBlocksFromFeed(feedOf(captured as unknown as Record<string, unknown>), generation)).toBeNull();
   });
 
@@ -149,13 +189,75 @@ describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2)", () => 
     expect(sectorRowBlocksFromFeed({ data: null, receipt: feedOf({}).receipt }, generation)).toBeNull();
   });
 
+  it("a typed_blocks value that is not a plain object reads null — the decoder's own rule (fix r1 B-1)", () => {
+    for (const value of [null, [], "x", 42]) {
+      const wire = carriedWire(value);
+      const generation = sectorNativeGeneration(wire);
+      expect(generation, `generation admits with typed_blocks=${JSON.stringify(value)}`).not.toBeNull();
+      expect(sectorRowBlocksFromFeed(feedOf(wire), generation), `typed_blocks=${JSON.stringify(value)}`).toBeNull();
+    }
+  });
+
+  it("an empty map, and a map of only unknown names, read null", () => {
+    for (const blocks of [{}, { zzz: { status: "available", reason: null, value: {} } }]) {
+      const wire = carriedWire(blocks);
+      const generation = sectorNativeGeneration(wire);
+      expect(generation).not.toBeNull();
+      expect(sectorRowBlocksFromFeed(feedOf(wire), generation)).toBeNull();
+    }
+  });
+
+  it("the v1.0 seven-key producer map — no row block carried — reads null (fix r1 B-1)", () => {
+    const wire = carriedWire(sevenKeyMap());
+    const generation = sectorNativeGeneration(wire);
+    expect(generation).not.toBeNull();
+    // The decoder decodes all seven; none of them is a row block.
+    expect(generation!.typedBlocks.etf_flows).toEqual({ status: "unavailable", reason: "not_produced", value: null });
+    expect(sectorRowBlocksFromFeed(feedOf(wire), generation)).toBeNull();
+  });
+
+  it("a twelve-key map whose five row entries are all preview audience stubs reads null (interim audience rule, fix r1 item 3)", () => {
+    const wire = carriedWire({ ...sevenKeyMap(), ...stubBlocks("audience_not_entitled") });
+    const generation = sectorNativeGeneration(wire);
+    expect(generation).not.toBeNull();
+    expect(sectorRowBlocksFromFeed(feedOf(wire), generation)).toBeNull();
+  });
+
   it("a CARRIED all-not_produced map is not the absent case: the readers get their entries", () => {
     const wire = carriedWire(stubBlocks("not_produced"));
     const generation = sectorNativeGeneration(wire);
     const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
     expect(reads).not.toBeNull();
-    expect(reads!.universeBlocks.subsectors).toEqual({ state: "unavailable", reason: "not_produced" });
+    expect(reads!.universeBlocks!.subsectors).toEqual({ state: "unavailable", reason: "not_produced" });
     expect(reads!.themeRows).toEqual({ state: "unavailable", reason: "not_produced" });
+  });
+
+  it("theme_rows carried alone yields only the theme read; the universes mount stays omitted", () => {
+    const wire = carriedWire({ theme_rows: entitled.theme_rows });
+    const generation = sectorNativeGeneration(wire);
+    const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
+    expect(reads).not.toBeNull();
+    expect(reads!.universeBlocks).toBeUndefined();
+    expect(reads!.themeRows?.state).toBe("available");
+  });
+
+  it("one universe carried alone yields only that reader's read", () => {
+    const wire = carriedWire({ confluence_universe_sp500: entitled.confluence_universe_sp500 });
+    const generation = sectorNativeGeneration(wire);
+    const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
+    expect(reads).not.toBeNull();
+    expect(reads!.universeBlocks?.subsectors?.state).toBe("available");
+    expect(reads!.universeBlocks?.nasdaq).toBeUndefined();
+    expect(reads!.themeRows).toBeUndefined();
+  });
+
+  it("a carried malformed entry flows to the reader RAW — the reader's own classifier reads generic unknown (fix r1 S-1)", () => {
+    for (const entry of [null, "available", { status: "bogus" }, { status: "unavailable", reason: 7 }]) {
+      const wire = carriedWire({ theme_rows: entry });
+      const generation = sectorNativeGeneration(wire);
+      const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
+      expect(reads?.themeRows, `entry=${JSON.stringify(entry)}`).toEqual({ state: "unavailable", reason: "unknown" });
+    }
   });
 
   it("the entitled mapping yields one read per reader from its own block", () => {
@@ -163,32 +265,82 @@ describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2)", () => 
     const generation = sectorNativeGeneration(wire);
     const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
     expect(reads).not.toBeNull();
-    const subsectors = reads!.universeBlocks.subsectors!;
-    const nasdaq = reads!.universeBlocks.nasdaq!;
+    const subsectors = reads!.universeBlocks!.subsectors!;
+    const nasdaq = reads!.universeBlocks!.nasdaq!;
     expect(subsectors.state).toBe("available");
     expect(subsectors.state === "available" && subsectors.asOf).toBe("2026-11-06");
     expect(subsectors.state === "available" && subsectors.asOfField).toBe("as_of");
     expect(nasdaq.state === "available" && nasdaq.asOfField).toBe("generated_utc");
-    expect(reads!.universeBlocks.russell!.state).toBe("available");
-    expect(reads!.universeBlocks.baskets!.state).toBe("available");
-    expect(reads!.themeRows.state).toBe("available");
-    expect(reads!.themeRows.state === "available" && reads!.themeRows.rows).toHaveLength(49);
+    expect(reads!.universeBlocks!.russell!.state).toBe("available");
+    expect(reads!.universeBlocks!.baskets!.state).toBe("available");
+    expect(reads!.themeRows?.state).toBe("available");
+    expect(reads!.themeRows?.state === "available" && reads!.themeRows.rows).toHaveLength(49);
   });
 });
 
-describe("DossierDepth row mounts — absent map (today's wire) equals master", () => {
+describe("DossierDepth row mounts — no row block carried equals master (golden)", () => {
   it("the Drivers tab renders the committed master golden byte-for-byte (captured wire, no typed_blocks)", async () => {
     const host = await mountDrivers(captured as unknown as Record<string, unknown>);
-    const actual = host.querySelector('[data-testid="sector-native-dossier"]')!.innerHTML;
-    // Captured at the master-equal pre-mount head (branch 883b5cbe2: the only
-    // dossier diff vs origin/master was a comment), same harness, same wire.
-    expect(actual).toBe(readFileSync(GOLDEN_PATH, "utf8"));
+    expectGolden(host);
     // The golden's legible core, asserted where it matters most:
     expect(host.querySelector('[data-depth-unavailable="confluence"]')).not.toBeNull();
     expect(host.querySelector('[data-depth-unavailable="theme_table"]')).not.toBeNull();
     expect(host.querySelector("[data-universe]")).toBeNull();
     expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
     expect(host.querySelector("[data-block-state=unavailable]")).toBeNull();
+  });
+
+  // Fix r1 B-1's own cases: every one of these rendered five fabricated
+  // not_produced stubs at the reviewed head; each must equal the SAME golden.
+  it.each([
+    ["typed_blocks null", null],
+    ["typed_blocks an array", []],
+    ["typed_blocks a string", "x"],
+    ["typed_blocks a number", 42],
+    ["an empty map", {}],
+    ["a map of only unknown names", { zzz: { status: "unavailable", reason: "not_produced", value: null } }],
+    ["the v1.0 seven-key producer map (no row block carried)", sevenKeyMap()],
+    ["a twelve-key map whose five row entries are all preview audience stubs",
+      { ...sevenKeyMap(), ...stubBlocks("audience_not_entitled") }],
+  ])("no row block carried — %s: the Drivers tab equals the master golden byte-for-byte", async (_title, value) => {
+    const host = await mountDrivers(carriedWire(value));
+    expectGolden(host);
+    expect(host.querySelector("[data-universe]")).toBeNull();
+    expect(host.querySelector("[data-block-state=unavailable]")).toBeNull();
+    expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
+  });
+});
+
+describe("DossierDepth row mounts — one row block carried alone", () => {
+  it("theme_rows alone: its 49-row table renders; the universes keep master's whole-section state", async () => {
+    const host = await mountDrivers(carriedWire({ theme_rows: entitled.theme_rows }));
+    const table = host.querySelector('[data-theme-rows="true"]');
+    expect(table).not.toBeNull();
+    expect(table!.querySelectorAll("tbody tr")).toHaveLength(49);
+    // No universe block carried: the universes mount is omitted wholesale —
+    // master's whole-section unavailable, no tab shell, nothing else changes.
+    expect(host.querySelector("[data-universe]")).toBeNull();
+    expect(host.querySelector('[data-depth-unavailable="confluence"]')).not.toBeNull();
+    expect(host.querySelector("[data-block-state=unavailable]")).toBeNull();
+  });
+
+  it("confluence_universe_sp500 alone: the S&P tab renders its rows; the other tabs and the theme table keep master's states", async () => {
+    const host = await mountDrivers(carriedWire({ confluence_universe_sp500: entitled.confluence_universe_sp500 }));
+    expect(host.querySelector('[data-universe="subsectors"]')).not.toBeNull();
+    expect(host.textContent).toContain("Software - Application");
+    expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
+    expect(host.querySelector('[data-depth-unavailable="theme_table"]')).not.toBeNull();
+    // Not carried ⇒ the reader's prop-omitted path: master's per-tab state —
+    // never a fabricated stub, never another universe's rows.
+    for (const id of ["nasdaq", "russell", "baskets"]) {
+      await act(async () => { host.querySelector<HTMLButtonElement>(`[data-universe="${id}"]`)!.click(); });
+      expect(host.querySelector('[data-depth-unavailable="confluence"]'), `tab ${id}`).not.toBeNull();
+      expect(host.querySelector("[data-block-state=unavailable]"), `tab ${id}`).toBeNull();
+      expect(host.textContent).not.toContain("Software - Application");
+    }
+    // Returning to the carried tab still renders its rows.
+    await act(async () => { host.querySelector<HTMLButtonElement>('[data-universe="subsectors"]')!.click(); });
+    expect(host.textContent).toContain("Software - Application");
   });
 });
 
@@ -256,9 +408,17 @@ describe("DossierDepth row mounts — carried entitled (the five real specimens)
 });
 
 describe("DossierDepth row mounts — stub entries (status: unavailable)", () => {
+  // Fix r1: audience_not_entitled moved out of this loop — under the interim
+  // audience rule an all-stub map reads null (golden above); a mixed map
+  // keeps master's state for the stub's reader (its own tests below).
+  const REASON_COPY: Record<string, string> = {
+    not_produced: "The owner engine did not produce this reading tonight.",
+    invalid_shape: "This reading arrived in a form we cannot present.",
+    block_too_large: "This reading is too large to deliver and was not carried.",
+  };
   it.each([
-    ["audience_not_entitled"], ["not_produced"], ["invalid_shape"], ["block_too_large"],
-  ])("a %s stub shows the readers' own states — no rows, no tables, no raw reason word", async reason => {
+    ["not_produced"], ["invalid_shape"], ["block_too_large"],
+  ])("a %s stub shows the readers' own per-reason states — no rows, no tables, no raw reason word", async reason => {
     const host = await mountDrivers(carriedWire(stubBlocks(reason)));
     // The universes section renders its tabbed shell; the ACTIVE tab's panel
     // and the theme table each show their own unavailable state.
@@ -267,6 +427,7 @@ describe("DossierDepth row mounts — stub entries (status: unavailable)", () =>
     expect(blocks.length).toBe(2);
     expect(blocks[0].textContent!.length).toBeGreaterThan(0);
     expect(blocks[1].textContent!.length).toBeGreaterThan(0);
+    expect(host.textContent).toContain(REASON_COPY[reason]);
     // Every tab's read is the stub: switching universes keeps the same state.
     for (const id of ["nasdaq", "russell", "baskets"]) {
       await act(async () => { host.querySelector<HTMLButtonElement>(`[data-universe="${id}"]`)!.click(); });
@@ -277,6 +438,60 @@ describe("DossierDepth row mounts — stub entries (status: unavailable)", () =>
     expect(host.textContent).not.toContain(reason);
     expect(host.textContent).not.toContain("Software - Application");
     expect(host.textContent).not.toContain("Memory, HBM & Storage");
+  });
+
+  it("a mixed map — sp500 a preview audience stub, theme carried: the stub is NOT carried, so the universes keep master's whole-section state and the wording never shows", async () => {
+    const host = await mountDrivers(carriedWire({
+      confluence_universe_sp500: AUDIENCE_STUB, theme_rows: entitled.theme_rows,
+    }));
+    // The interim rule swallows the audience stub: that reader's prop is
+    // omitted, no other universe is carried, so the whole universes section
+    // is master's own state — the false-for-members wording never renders.
+    expect(host.querySelector("[data-universe]")).toBeNull();
+    expect(host.querySelector('[data-depth-unavailable="confluence"]')).not.toBeNull();
+    expect(host.querySelector("[data-block-state=unavailable]")).toBeNull();
+    expect(host.textContent).not.toContain("Not included in your current subscription.");
+    // The carried reader is untouched by the rule: its table still renders.
+    const table = host.querySelector('[data-theme-rows="true"]');
+    expect(table).not.toBeNull();
+    expect(table!.querySelectorAll("tbody tr")).toHaveLength(49);
+  });
+
+  it("ZH: the same mixed map keeps master's universes state; the Chinese subscription wording never shows", async () => {
+    const host = await mountDrivers(carriedWire({
+      confluence_universe_sp500: AUDIENCE_STUB, theme_rows: entitled.theme_rows,
+    }), "zh");
+    expect(host.querySelector("[data-universe]")).toBeNull();
+    expect(host.querySelector('[data-depth-unavailable="confluence"]')).not.toBeNull();
+    expect(host.textContent).not.toContain("当前订阅不包含此读数。");
+    expect(host.querySelector('[data-theme-rows="true"]')!.textContent).toContain("内存、HBM 与存储");
+  });
+
+  it.each([
+    ["null", null],
+    ["the string \"available\"", "available"],
+    ["{status:\"bogus\"}", { status: "bogus" }],
+    ["{status:\"unavailable\", reason:7}", { status: "unavailable", reason: 7 }],
+  ])("a carried malformed entry (%s) reads the readers' GENERIC wording — never a stated owner fact (fix r1 S-1)", async (_title, entry) => {
+    const host = await mountDrivers(carriedWire({
+      // Two DISTINCT objects of the same malformed shape (clone): the decoder's
+      // bounded() walk refuses a shared reference, which JSON never produces.
+      confluence_universe_sp500: clone(entry), theme_rows: clone(entry),
+    }));
+    const blocks = host.querySelectorAll("[data-block-state=unavailable]");
+    expect(blocks.length).toBe(2);
+    expect(host.textContent).toContain("This reading is unavailable right now.");
+    expect(host.textContent).not.toContain("The owner engine did not produce this reading tonight.");
+    expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
+    expect(host.textContent).not.toContain("Software - Application");
+  });
+
+  it("ZH: a carried malformed entry reads the Chinese generic wording, never the not_produced line", async () => {
+    const host = await mountDrivers(carriedWire({
+      confluence_universe_sp500: { status: "bogus" }, theme_rows: { status: "unavailable", reason: 7 },
+    }), "zh");
+    expect(host.textContent).toContain("此读数暂不可用。");
+    expect(host.textContent).not.toContain("所有者引擎今晚未生成此读数。");
   });
 
   it("a hostile out-of-set reason falls to the readers' generic state; the word never reaches the DOM", async () => {
@@ -351,6 +566,16 @@ describe("the full workspace mounts the same reads (memo → dossier prop)", () 
     expect(host.querySelector('[data-depth-unavailable="theme_table"]')).not.toBeNull();
     expect(host.querySelector("[data-universe]")).toBeNull();
     expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
+  });
+
+  it("the v1.0 seven-key map keeps master's surfaces through the workspace (fix r1 B-1)", async () => {
+    await renderWorkspace(carriedWire(sevenKeyMap()));
+    expect(host.querySelector('[data-testid="sector-native-dossier-depth"]')).not.toBeNull();
+    expect(host.querySelector('[data-depth-unavailable="confluence"]')).not.toBeNull();
+    expect(host.querySelector('[data-depth-unavailable="theme_table"]')).not.toBeNull();
+    expect(host.querySelector("[data-universe]")).toBeNull();
+    expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
+    expect(host.querySelector("[data-block-state=unavailable]")).toBeNull();
   });
 
   it("a carried entitled wire renders the rows through the same gate", async () => {
