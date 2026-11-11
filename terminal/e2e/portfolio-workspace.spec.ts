@@ -6,6 +6,15 @@ import { computePortfolioRisk } from "../lib/portfolioRisk";
 import type { Position } from "../lib/portfolio";
 test.setTimeout(120_000);
 
+// The portfolio and risk-history route handlers read the book back through `page.request`,
+// so one of them can still be in flight when the test body ends. Playwright then disposes the
+// page, its browser context and the bound request context, and that handler rejects against a
+// disposed request. `unrouteAll({ behavior: "wait" })` is the supported cleanup that drains
+// those in-flight handlers first: it waits for them to finish, it does not ignore their errors.
+test.afterEach(async ({ page }) => {
+  await page.unrouteAll({ behavior: "wait" });
+});
+
 const manifest = { symbols: {
   NVDA: { name: "NVIDIA", zh: "英伟达", last: 180.2, chg: 2.5, currency: "USD" },
   AAPL: { name: "Apple", zh: "苹果", last: 231.4, chg: -0.9, currency: "USD" },

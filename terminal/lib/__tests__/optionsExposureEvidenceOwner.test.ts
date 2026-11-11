@@ -108,7 +108,7 @@ describe("current EOD owner and native reader", () => {
     const file = "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml";
     const text = readFileSync(join(REPO, file), "utf8");
     const root = shadowRepo({ [file]: text.slice(text.indexOf("\n\n") + 2) });
-    expect(() => owner.eodPacket(root)).toThrow(/EXPIRY_INTEGRATION_ROOT:eod/);
+    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:eod/);
   });
 });
 
@@ -116,7 +116,7 @@ describe("paired Options integration proof", () => {
   it("refuses a mixed current family declaration", () => {
     const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml";
     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8").replace("options-integration-20261109", "ui-copy-integration-20261109") });
-    expect(() => owner.eodPacket(root)).toThrow(/EXPIRY_INTEGRATION_ROOT:gex/);
+    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
   });
   it("refuses a complete-image receipt with an incomplete frame matrix", () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
@@ -258,6 +258,88 @@ describe("expiry integration with retained EOD identity", () => {
       }
       if (change === "extra PNG") files["browser-artifacts/extra.png"] = files[first];
       expect(() => requireExpiryGreeksScreenshotSet(files)).toThrow(/EXPIRY_INTEGRATION_JOURNEY_SCREENSHOT_SET/);
+    });
+  }
+});
+
+
+describe("momentum browser successor with retained native evidence", () => {
+  const base = "terminal/docs/verification/exposure-workspace-20261103";
+  const current = base + "/exposure-momentum-integration-20261110";
+  const historical = base + "/expiry-greeks-integration-20261110";
+  const component = "terminal/components/exposure-map/ExposureDivergence.tsx";
+  const json = (file: string) => JSON.parse(readFileSync(join(REPO, file), "utf8"));
+
+  it("extends only the current browser maps while preserving historical input sets", () => {
+    const priorJoint = json(historical + "/qualification.json").currentSources;
+    const priorExpiry = json(historical + "/expiry-journeys/qualification.json").currentSources;
+    const joint = json(current + "/qualification.json").currentSources;
+    const expiry = json(current + "/expiry-journeys/qualification.json").currentSources;
+    expect(Object.keys(priorJoint)).toHaveLength(71);
+    expect(Object.keys(priorExpiry)).toHaveLength(76);
+    expect(Object.keys(joint).sort()).toEqual([...Object.keys(priorJoint), component].sort());
+    expect(Object.keys(expiry).sort()).toEqual([...Object.keys(priorExpiry), component].sort());
+    for (const path of Object.keys(joint)) expect(expiry[path]).toBe(joint[path]);
+  });
+
+  for (const family of ["eod", "gex"] as const) {
+    it("refuses changed momentum runtime source through the " + family + " owner", () => {
+      const root = shadowRepo({ [component]: readFileSync(join(REPO, component), "utf8") + "\n// isolated momentum drift\n" });
+      expect(() => family === "eod" ? owner.eodPacket(root) : owner.gexPacket(root)).toThrow(/NO_QUALIFIED_CAPTURE/);
+    });
+  }
+
+  it("cannot downgrade by removing both successor declarations", () => {
+    const overrides = Object.fromEntries(["eod", "gex"].map(family => [
+      "terminal/docs/pr-crops/" + (family === "eod" ? "eod-heatmap-flowdesk-load-failure" : "gex-levels-heatmap-load-failure") + "/EVIDENCE.yml",
+      readFileSync(join(REPO, current, "prior-roots", family + ".EVIDENCE.yml")),
+    ]));
+    const root = shadowRepo(overrides);
+    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
+    expect(() => owner.gexPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
+  });
+
+  for (const [file, code] of [
+    ["browser-successor.json", "BROWSER_SUCCESSOR_DESCRIPTOR"],
+    ["prior-roots/eod.EVIDENCE.yml", "BROWSER_SUCCESSOR_PRIOR_ROOT:eod"],
+    ["qualification.json", "BROWSER_SUCCESSOR_QUALIFICATION:joint"],
+    ["expiry-journeys/qualification.json", "BROWSER_SUCCESSOR_QUALIFICATION:expiry"],
+    ["browser-report.json", "INTEGRATION_BROWSER_FILE:browser-report.json"],
+    ["expiry-journeys/browser-report.json", "EXPIRY_INTEGRATION_JOURNEY_FILE:browser-report.json"],
+    ["lifecycle.json", "BROWSER_SUCCESSOR_LIFECYCLE:joint"],
+    ["expiry-journeys/lifecycle.json", "BROWSER_SUCCESSOR_LIFECYCLE:expiry"],
+  ]) {
+    it("refuses corrupt successor payload: " + file, () => {
+      const path = current + "/" + file;
+      const root = shadowRepo({ [path]: readFileSync(join(REPO, path), "utf8") + "\n" });
+      expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
+    });
+  }
+
+  for (const [stage, code] of [
+    ["", "INTEGRATION_BROWSER_ARTIFACT"],
+    ["/expiry-journeys", "EXPIRY_INTEGRATION_JOURNEY_ARTIFACT"],
+  ]) {
+    it("binds actual new screenshot bytes: " + (stage || "joint"), () => {
+      const execution = json(current + stage + "/browser-execution.json");
+      const image = Object.keys(execution.artifactFiles).find(path => path.endsWith(".png"));
+      expect(image).toBeDefined();
+      const path = current + stage + "/" + image;
+      const bytes = Buffer.from(readFileSync(join(REPO, path)));
+      bytes[bytes.length - 1] ^= 1;
+      const root = shadowRepo({ [path]: bytes });
+      expect(() => owner.gexPacket(root)).toThrow(new RegExp(code));
+    });
+  }
+
+  for (const [file, code] of [
+    ["browser-report.json", "INTEGRATION_BROWSER_FILE:browser-report.json"],
+    ["expiry-journeys/browser-report.json", "EXPIRY_INTEGRATION_JOURNEY_FILE:browser-report.json"],
+  ]) {
+    it("still validates historical browser payload: " + file, () => {
+      const path = historical + "/" + file;
+      const root = shadowRepo({ [path]: readFileSync(join(REPO, path), "utf8") + "\n" });
+      expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
     });
   }
 });

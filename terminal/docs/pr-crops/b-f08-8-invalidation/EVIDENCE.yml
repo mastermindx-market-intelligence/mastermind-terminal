@@ -1,13 +1,13 @@
 # B-F08-8 event-impact invalidation — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 0f077993fc1a1244531f825d3d829491f47d338c
-# capturedAt: 2026-11-10T07:46:43.484Z
+# capturedAtHead: 1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df
+# capturedAt: 2026-11-10T13:17:02.609Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # All listed images were captured from the source bytes locked below.
 layoutFiles:
   terminal/lib/eventImpact.ts: "beaf21f644aaccc819187ff3ccd628e999e51797b1e75f2171d4194bff6581d8"
-  terminal/components/EventImpactPanel.tsx: "aeb0dd9fa708ab9fa9cec3e4eca3e5f1b5443123eaef6a591653867567c5eba9"
+  terminal/components/EventImpactPanel.tsx: "698d0de0e6b95f2644bee0912215065c566786b4a7bb51f088753e31b1c99e64"
   terminal/components/EventImpactPanel.module.css: "4f9c64066a829d5d33230caa507f8fd2c0d7479f49c8b5eee693b40bdd66cab7"
   terminal/components/PortfolioView.tsx: "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec"
   terminal/components/PortfolioWorkspace.tsx: "9d990ffd5eedfd58f152df7bda75ea3931127f46185bbb83540731aef7f8ba51"

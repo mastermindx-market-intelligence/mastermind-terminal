@@ -788,8 +788,10 @@ test("Financials vNext keeps statement summary, explorer and integrity on one ca
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+  const capturePath = testInfo.outputPath("financials-current-en.png");
+  await page.screenshot({ path: capturePath, animations: "disabled" });
   await testInfo.attach("financials-current-en", {
-    body: await page.screenshot({ animations: "disabled" }), contentType: "image/png",
+    path: capturePath, contentType: "image/png",
   });
 });
 
@@ -816,8 +818,10 @@ test("Financials vNext remains bilingual and overflow-safe on mobile", async ({ 
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+  const capturePath = testInfo.outputPath("financials-current-zh.png");
+  await page.screenshot({ path: capturePath, animations: "disabled" });
   await testInfo.attach("financials-current-zh", {
-    body: await page.screenshot({ animations: "disabled" }), contentType: "image/png",
+    path: capturePath, contentType: "image/png",
   });
 });
 

@@ -1,0 +1,645 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "--config",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/playwright-successor.config.cjs",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1"
+  ],
+  "browser": "chromium",
+  "cases": [
+    {
+      "project": "desktop",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "selected-bucket",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/selected-bucket-1fbfa396d7b0f93952856569cba0125c8b047dd8.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "selected-print-inspector",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/selected-print-inspector-c63126c5df4dab858189654b29229423159d5bf4.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "restored-tape",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/restored-tape-3a6735abb5058654f8b31b1e2f5d003d6a789342.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgImZpeHR1cmUiOiAib3B0aW9ucy1yMS13M2EtZmxvdy5qc29uIiwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgImFsbExvYWRlZENvdmVyYWdlIjogIjg4ICUgb2YgZWxpZ2libGUgcHJlbWl1bSBjbGFzc2lmaWVkIMK3IDEyICUgdW5rbm93bkNhbGxzICQyLjNNIMK3IFB1dHMgJDc1MC4wSyDCtyB1bnNpZ25lZCBwcmVtaXVtLCBub3QgYSBkaXJlY3Rpb24iLAogICJleHBlY3RlZFByZW1pdW1zIjogWwogICAgIiQzNTUuMEsiLAogICAgIiQyNTkuMksiLAogICAgIiQzOTUuMEsiLAogICAgIiQyNjYuOEsiLAogICAgIiQ4MC4wSyIsCiAgICAiJDMxNS4wSyIKICBdLAogICJwYWdlRXJyb3JzIjogW10KfQ==",
+              "contentType": "application/json",
+              "name": "journey"
+            }
+          ],
+          "duration": 2278,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] time buckets preserve canonical cards, filters, coverage and inspector"
+    },
+    {
+      "project": "desktop",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "held-projection",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-desktop/attachments/held-projection-578906e30fd69d0f4ec0acc8b9b2083210d51665.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDEsCiAgICAicG9sbCI6IDAKICB9LAogICJyZXRhaW5lZEZlZWRDb3VudCI6IDksCiAgInNlbGVjdGVkQ291bnQiOiA2LAogICJjb3ZlcmFnZSI6ICI4OCAlIG9mIGVsaWdpYmxlIHByZW1pdW0gY2xhc3NpZmllZCDCtyAxMiAlIHVua25vd25DYWxscyAkMi4zTSDCtyBQdXRzICQ3NTAuMEsgwrcgdW5zaWduZWQgcHJlbWl1bSwgbm90IGEgZGlyZWN0aW9uIiwKICAicGFnZUVycm9ycyI6IFtdCn0=",
+              "contentType": "application/json",
+              "name": "held-journey"
+            }
+          ],
+          "duration": 1472,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] a held feed keeps its reason and projection over the last read"
+    },
+    {
+      "project": "desktop",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "selected-bucket",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/selected-bucket-018bc52da20595aeb670b4c3bf34a3fc34b5306d.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "selected-print-inspector",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/selected-print-inspector-e29cbd2d10b46ddb862a33d5cf8ff3da2ef5959b.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "restored-tape",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/restored-tape-a912e0c809c6903c735164ba86c234fb8612ee37.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgImZpeHR1cmUiOiAib3B0aW9ucy1yMS13M2EtZmxvdy5qc29uIiwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgImFsbExvYWRlZENvdmVyYWdlIjogIjg4ICUg5ZCI5qC85p2D5Yip6YeR5bey5YiG57G7IMK3IDEyICUg5pyq55+l6K6k6LStICQyLjNNIMK3IOiupOayvSAkNzUwLjBLIMK3IOaXoOespuWPt+adg+WIqemHke+8jOmdnuaWueWQkeaMh+ekuiIsCiAgImV4cGVjdGVkUHJlbWl1bXMiOiBbCiAgICAiJDM1NS4wSyIsCiAgICAiJDI1OS4ySyIsCiAgICAiJDM5NS4wSyIsCiAgICAiJDI2Ni44SyIsCiAgICAiJDgwLjBLIiwKICAgICIkMzE1LjBLIgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXQp9",
+              "contentType": "application/json",
+              "name": "journey"
+            }
+          ],
+          "duration": 1817,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] time buckets preserve canonical cards, filters, coverage and inspector"
+    },
+    {
+      "project": "desktop",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "held-projection",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-desktop/attachments/held-projection-c1d823f2f7ff1666a3eceb3548b835a991f849d2.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDEsCiAgICAicG9sbCI6IDAKICB9LAogICJyZXRhaW5lZEZlZWRDb3VudCI6IDksCiAgInNlbGVjdGVkQ291bnQiOiA2LAogICJjb3ZlcmFnZSI6ICI4OCAlIOWQiOagvOadg+WIqemHkeW3suWIhuexuyDCtyAxMiAlIOacquefpeiupOi0rSAkMi4zTSDCtyDorqTmsr0gJDc1MC4wSyDCtyDml6DnrKblj7fmnYPliKnph5HvvIzpnZ7mlrnlkJHmjIfnpLoiLAogICJwYWdlRXJyb3JzIjogW10KfQ==",
+              "contentType": "application/json",
+              "name": "held-journey"
+            }
+          ],
+          "duration": 1102,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] a held feed keeps its reason and projection over the last read"
+    },
+    {
+      "project": "tablet",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "selected-bucket",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/selected-bucket-ed49b20d52a70e5c1f37df56bc5b0f4559d3cd6c.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "selected-print-inspector",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/selected-print-inspector-4f7b37e0d746915af69998419587e66ab62a79f7.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "restored-tape",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/restored-tape-71cc9659e24612d6fc54fac25b289f8f15faa86d.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgImZpeHR1cmUiOiAib3B0aW9ucy1yMS13M2EtZmxvdy5qc29uIiwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgImFsbExvYWRlZENvdmVyYWdlIjogIjg4ICUgb2YgZWxpZ2libGUgcHJlbWl1bSBjbGFzc2lmaWVkIMK3IDEyICUgdW5rbm93bkNhbGxzICQyLjNNIMK3IFB1dHMgJDc1MC4wSyDCtyB1bnNpZ25lZCBwcmVtaXVtLCBub3QgYSBkaXJlY3Rpb24iLAogICJleHBlY3RlZFByZW1pdW1zIjogWwogICAgIiQzNTUuMEsiLAogICAgIiQyNTkuMksiLAogICAgIiQzOTUuMEsiLAogICAgIiQyNjYuOEsiLAogICAgIiQ4MC4wSyIsCiAgICAiJDMxNS4wSyIKICBdLAogICJwYWdlRXJyb3JzIjogW10KfQ==",
+              "contentType": "application/json",
+              "name": "journey"
+            }
+          ],
+          "duration": 1811,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] time buckets preserve canonical cards, filters, coverage and inspector"
+    },
+    {
+      "project": "tablet",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "held-projection",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-tablet/attachments/held-projection-1088d0b806ccf04a31a759cbbe5258b6a2ed48e6.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDEsCiAgICAicG9sbCI6IDAKICB9LAogICJyZXRhaW5lZEZlZWRDb3VudCI6IDksCiAgInNlbGVjdGVkQ291bnQiOiA2LAogICJjb3ZlcmFnZSI6ICI4OCAlIG9mIGVsaWdpYmxlIHByZW1pdW0gY2xhc3NpZmllZCDCtyAxMiAlIHVua25vd25DYWxscyAkMi4zTSDCtyBQdXRzICQ3NTAuMEsgwrcgdW5zaWduZWQgcHJlbWl1bSwgbm90IGEgZGlyZWN0aW9uIiwKICAicGFnZUVycm9ycyI6IFtdCn0=",
+              "contentType": "application/json",
+              "name": "held-journey"
+            }
+          ],
+          "duration": 994,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] a held feed keeps its reason and projection over the last read"
+    },
+    {
+      "project": "tablet",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "selected-bucket",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/selected-bucket-3ac8652c2b69eb1985b2c761dfb8105a9d2c7ff5.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "selected-print-inspector",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/selected-print-inspector-17fcb9ce73f9b2c3869961f611af7eadfc848990.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "restored-tape",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/restored-tape-795951f1de1c04d41e7caf078399b9f767213fbd.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgImZpeHR1cmUiOiAib3B0aW9ucy1yMS13M2EtZmxvdy5qc29uIiwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgImFsbExvYWRlZENvdmVyYWdlIjogIjg4ICUg5ZCI5qC85p2D5Yip6YeR5bey5YiG57G7IMK3IDEyICUg5pyq55+l6K6k6LStICQyLjNNIMK3IOiupOayvSAkNzUwLjBLIMK3IOaXoOespuWPt+adg+WIqemHke+8jOmdnuaWueWQkeaMh+ekuiIsCiAgImV4cGVjdGVkUHJlbWl1bXMiOiBbCiAgICAiJDM1NS4wSyIsCiAgICAiJDI1OS4ySyIsCiAgICAiJDM5NS4wSyIsCiAgICAiJDI2Ni44SyIsCiAgICAiJDgwLjBLIiwKICAgICIkMzE1LjBLIgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXQp9",
+              "contentType": "application/json",
+              "name": "journey"
+            }
+          ],
+          "duration": 1767,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] time buckets preserve canonical cards, filters, coverage and inspector"
+    },
+    {
+      "project": "tablet",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "held-projection",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-tablet/attachments/held-projection-5d3878419ffdc66a9e2c7898dfa0a308b91e01fd.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDEsCiAgICAicG9sbCI6IDAKICB9LAogICJyZXRhaW5lZEZlZWRDb3VudCI6IDksCiAgInNlbGVjdGVkQ291bnQiOiA2LAogICJjb3ZlcmFnZSI6ICI4OCAlIOWQiOagvOadg+WIqemHkeW3suWIhuexuyDCtyAxMiAlIOacquefpeiupOi0rSAkMi4zTSDCtyDorqTmsr0gJDc1MC4wSyDCtyDml6DnrKblj7fmnYPliKnph5HvvIzpnZ7mlrnlkJHmjIfnpLoiLAogICJwYWdlRXJyb3JzIjogW10KfQ==",
+              "contentType": "application/json",
+              "name": "held-journey"
+            }
+          ],
+          "duration": 1135,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] a held feed keeps its reason and projection over the last read"
+    },
+    {
+      "project": "mobile",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "selected-bucket",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/selected-bucket-287fdb520169e1cddf896b65f686d2f56b068384.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "selected-print-inspector",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/selected-print-inspector-d611b0e1bdaf672d8b271962458f5db688b9c922.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "restored-tape",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/restored-tape-0d7519e723f4c50d10220ee76f9aa28e6a583c1b.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAiZml4dHVyZSI6ICJvcHRpb25zLXIxLXczYS1mbG93Lmpzb24iLAogICJyZWFkcyI6IHsKICAgICJzdHJlYW0iOiAxLAogICAgInBvbGwiOiAwCiAgfSwKICAiYWxsTG9hZGVkQ292ZXJhZ2UiOiAiODggJSBvZiBlbGlnaWJsZSBwcmVtaXVtIGNsYXNzaWZpZWQgwrcgMTIgJSB1bmtub3duQ2FsbHMgJDIuM00gwrcgUHV0cyAkNzUwLjBLIMK3IHVuc2lnbmVkIHByZW1pdW0sIG5vdCBhIGRpcmVjdGlvbiIsCiAgImV4cGVjdGVkUHJlbWl1bXMiOiBbCiAgICAiJDM1NS4wSyIsCiAgICAiJDI1OS4ySyIsCiAgICAiJDM5NS4wSyIsCiAgICAiJDI2Ni44SyIsCiAgICAiJDgwLjBLIiwKICAgICIkMzE1LjBLIgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXQp9",
+              "contentType": "application/json",
+              "name": "journey"
+            }
+          ],
+          "duration": 1958,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] time buckets preserve canonical cards, filters, coverage and inspector"
+    },
+    {
+      "project": "mobile",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "held-projection",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-mobile/attachments/held-projection-ed4fcf69a94921ef0eaf1a1a798507c4ebeeb47a.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogImVuIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgInJldGFpbmVkRmVlZENvdW50IjogOSwKICAic2VsZWN0ZWRDb3VudCI6IDYsCiAgImNvdmVyYWdlIjogIjg4ICUgb2YgZWxpZ2libGUgcHJlbWl1bSBjbGFzc2lmaWVkIMK3IDEyICUgdW5rbm93bkNhbGxzICQyLjNNIMK3IFB1dHMgJDc1MC4wSyDCtyB1bnNpZ25lZCBwcmVtaXVtLCBub3QgYSBkaXJlY3Rpb24iLAogICJwYWdlRXJyb3JzIjogW10KfQ==",
+              "contentType": "application/json",
+              "name": "held-journey"
+            }
+          ],
+          "duration": 954,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] a held feed keeps its reason and projection over the last read"
+    },
+    {
+      "project": "mobile",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "selected-bucket",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/selected-bucket-bacd506f1ec48d2d38008e08711562a30dc209a5.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "selected-print-inspector",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/selected-print-inspector-b60e98cb0a19a0798bc77a85656d225cd141de58.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "restored-tape",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/restored-tape-c186c8af809eb8f60c7bba7127849b75eb81aa8d.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAiZml4dHVyZSI6ICJvcHRpb25zLXIxLXczYS1mbG93Lmpzb24iLAogICJyZWFkcyI6IHsKICAgICJzdHJlYW0iOiAxLAogICAgInBvbGwiOiAwCiAgfSwKICAiYWxsTG9hZGVkQ292ZXJhZ2UiOiAiODggJSDlkIjmoLzmnYPliKnph5Hlt7LliIbnsbsgwrcgMTIgJSDmnKrnn6XorqTotK0gJDIuM00gwrcg6K6k5rK9ICQ3NTAuMEsgwrcg5peg56ym5Y+35p2D5Yip6YeR77yM6Z2e5pa55ZCR5oyH56S6IiwKICAiZXhwZWN0ZWRQcmVtaXVtcyI6IFsKICAgICIkMzU1LjBLIiwKICAgICIkMjU5LjJLIiwKICAgICIkMzk1LjBLIiwKICAgICIkMjY2LjhLIiwKICAgICIkODAuMEsiLAogICAgIiQzMTUuMEsiCiAgXSwKICAicGFnZUVycm9ycyI6IFtdCn0=",
+              "contentType": "application/json",
+              "name": "journey"
+            }
+          ],
+          "duration": 1953,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] time buckets preserve canonical cards, filters, coverage and inspector"
+    },
+    {
+      "project": "mobile",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "held-projection",
+              "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-mobile/attachments/held-projection-3613df9abfdc83907a673abdd1849e40895637db.png"
+            },
+            {
+              "body": "ewogICJsYW5nIjogInpoIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAicmVhZHMiOiB7CiAgICAic3RyZWFtIjogMSwKICAgICJwb2xsIjogMAogIH0sCiAgInJldGFpbmVkRmVlZENvdW50IjogOSwKICAic2VsZWN0ZWRDb3VudCI6IDYsCiAgImNvdmVyYWdlIjogIjg4ICUg5ZCI5qC85p2D5Yip6YeR5bey5YiG57G7IMK3IDEyICUg5pyq55+l6K6k6LStICQyLjNNIMK3IOiupOayvSAkNzUwLjBLIMK3IOaXoOespuWPt+adg+WIqemHke+8jOmdnuaWueWQkeaMh+ekuiIsCiAgInBhZ2VFcnJvcnMiOiBbXQp9",
+              "contentType": "application/json",
+              "name": "held-journey"
+            }
+          ],
+          "duration": 969,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] a held feed keeps its reason and projection over the last read"
+    }
+  ],
+  "exitCode": 0,
+  "expectedCases": 12,
+  "finishedAt": "2026-11-10T17:29:04.312691+00:00",
+  "fixtureContract": "Unchanged protected Playwright server/warmup. Actual /options?tab=desk route, incumbent synthetic W3A feed over existing EventSource/poll consumers; non-feed routes untouched. Fixed desktop/tablet/phone viewports, EN/ZH.",
+  "generatedTypesRestored": true,
+  "images": [
+    {
+      "bytes": 306256,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-desktop/attachments/held-projection-578906e30fd69d0f4ec0acc8b9b2083210d51665.png",
+      "sha256": "bc0ec294500eb39de8bdfada1adfa8a85c398d199a6c1010bd6e1bccff758552"
+    },
+    {
+      "bytes": 306256,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-desktop/held-projection.png",
+      "sha256": "bc0ec294500eb39de8bdfada1adfa8a85c398d199a6c1010bd6e1bccff758552"
+    },
+    {
+      "bytes": 118973,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-mobile/attachments/held-projection-ed4fcf69a94921ef0eaf1a1a798507c4ebeeb47a.png",
+      "sha256": "8d6697263653345d82a0632eae3565c4915db75ae224f8f80b5c2b275e27c475"
+    },
+    {
+      "bytes": 118973,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-mobile/held-projection.png",
+      "sha256": "8d6697263653345d82a0632eae3565c4915db75ae224f8f80b5c2b275e27c475"
+    },
+    {
+      "bytes": 210426,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-tablet/attachments/held-projection-1088d0b806ccf04a31a759cbbe5258b6a2ed48e6.png",
+      "sha256": "c47a8e8dd69724d03a7f9fa1410f486c04324fb338eb2fbd7ef042c13f605205"
+    },
+    {
+      "bytes": 210426,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-a-held-ca5ff-ojection-over-the-last-read-tablet/held-projection.png",
+      "sha256": "c47a8e8dd69724d03a7f9fa1410f486c04324fb338eb2fbd7ef042c13f605205"
+    },
+    {
+      "bytes": 314757,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/restored-tape-3a6735abb5058654f8b31b1e2f5d003d6a789342.png",
+      "sha256": "133b03b8a437f11d20f714e2479082b75ab04998365809be6aa18cc36f792179"
+    },
+    {
+      "bytes": 305693,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/selected-bucket-1fbfa396d7b0f93952856569cba0125c8b047dd8.png",
+      "sha256": "99dc8add50ff8c1af92c08bac97716e9fe3d8cd4fa8bbaae07e2c429c43bf772"
+    },
+    {
+      "bytes": 290379,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/attachments/selected-print-inspector-c63126c5df4dab858189654b29229423159d5bf4.png",
+      "sha256": "2d301ae27fcdfcc983eca1eb00160ff9b2af60f764d90503ce378c4c7192b5df"
+    },
+    {
+      "bytes": 314757,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/restored-tape.png",
+      "sha256": "133b03b8a437f11d20f714e2479082b75ab04998365809be6aa18cc36f792179"
+    },
+    {
+      "bytes": 305693,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/selected-bucket.png",
+      "sha256": "99dc8add50ff8c1af92c08bac97716e9fe3d8cd4fa8bbaae07e2c429c43bf772"
+    },
+    {
+      "bytes": 290379,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-desktop/selected-print-inspector.png",
+      "sha256": "2d301ae27fcdfcc983eca1eb00160ff9b2af60f764d90503ce378c4c7192b5df"
+    },
+    {
+      "bytes": 115414,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/restored-tape-0d7519e723f4c50d10220ee76f9aa28e6a583c1b.png",
+      "sha256": "7eec0454347699c8e48ca062e55739a31e6e947d92c1b035258d938c9eed2de4"
+    },
+    {
+      "bytes": 116697,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/selected-bucket-287fdb520169e1cddf896b65f686d2f56b068384.png",
+      "sha256": "6844c1a096b5c89cdee650b65cfc17ad29ceb7eb34476d34fcb36ac9cbb4d73d"
+    },
+    {
+      "bytes": 123981,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/attachments/selected-print-inspector-d611b0e1bdaf672d8b271962458f5db688b9c922.png",
+      "sha256": "8b2f2c714c483b7477ac9ed898ba6240dd2e318ebb2c9f0a0c520a11367eaa7f"
+    },
+    {
+      "bytes": 115414,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/restored-tape.png",
+      "sha256": "7eec0454347699c8e48ca062e55739a31e6e947d92c1b035258d938c9eed2de4"
+    },
+    {
+      "bytes": 116697,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/selected-bucket.png",
+      "sha256": "6844c1a096b5c89cdee650b65cfc17ad29ceb7eb34476d34fcb36ac9cbb4d73d"
+    },
+    {
+      "bytes": 123981,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-mobile/selected-print-inspector.png",
+      "sha256": "8b2f2c714c483b7477ac9ed898ba6240dd2e318ebb2c9f0a0c520a11367eaa7f"
+    },
+    {
+      "bytes": 211356,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/restored-tape-71cc9659e24612d6fc54fac25b289f8f15faa86d.png",
+      "sha256": "9fc5a86870ea7b5685cbbdf0612b0b20ed79ccdeaa9609403a0968c2c775f010"
+    },
+    {
+      "bytes": 209967,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/selected-bucket-ed49b20d52a70e5c1f37df56bc5b0f4559d3cd6c.png",
+      "sha256": "d51fa06e554632269cf91242c071c24f609af00dc26d7d92f399c44b224c093b"
+    },
+    {
+      "bytes": 254684,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/attachments/selected-print-inspector-4f7b37e0d746915af69998419587e66ab62a79f7.png",
+      "sha256": "6567360e0828b6d81f55be92357d950156bce87d54c4e6ef15d8b4f141b2d3f9"
+    },
+    {
+      "bytes": 211356,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/restored-tape.png",
+      "sha256": "9fc5a86870ea7b5685cbbdf0612b0b20ed79ccdeaa9609403a0968c2c775f010"
+    },
+    {
+      "bytes": 209967,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/selected-bucket.png",
+      "sha256": "d51fa06e554632269cf91242c071c24f609af00dc26d7d92f399c44b224c093b"
+    },
+    {
+      "bytes": 254684,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--en-time-b-10302-ters-coverage-and-inspector-tablet/selected-print-inspector.png",
+      "sha256": "6567360e0828b6d81f55be92357d950156bce87d54c4e6ef15d8b4f141b2d3f9"
+    },
+    {
+      "bytes": 312881,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-desktop/attachments/held-projection-c1d823f2f7ff1666a3eceb3548b835a991f849d2.png",
+      "sha256": "4c5f019718640141aa1ed8b04767895672d5a1c928d266219ccdb580af92f8d7"
+    },
+    {
+      "bytes": 312881,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-desktop/held-projection.png",
+      "sha256": "4c5f019718640141aa1ed8b04767895672d5a1c928d266219ccdb580af92f8d7"
+    },
+    {
+      "bytes": 119799,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-mobile/attachments/held-projection-3613df9abfdc83907a673abdd1849e40895637db.png",
+      "sha256": "ed2446d882c1f5957f461426a6aa65e183a9994140c1df14d0274135a4be87df"
+    },
+    {
+      "bytes": 119799,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-mobile/held-projection.png",
+      "sha256": "ed2446d882c1f5957f461426a6aa65e183a9994140c1df14d0274135a4be87df"
+    },
+    {
+      "bytes": 211810,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-tablet/attachments/held-projection-5d3878419ffdc66a9e2c7898dfa0a308b91e01fd.png",
+      "sha256": "2fff454a7361c29d6ec77ad8b2f3a8f5a67213641c5fdd602804823cb06d0bca"
+    },
+    {
+      "bytes": 211810,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-a-held-d248b-ojection-over-the-last-read-tablet/held-projection.png",
+      "sha256": "2fff454a7361c29d6ec77ad8b2f3a8f5a67213641c5fdd602804823cb06d0bca"
+    },
+    {
+      "bytes": 323515,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/restored-tape-a912e0c809c6903c735164ba86c234fb8612ee37.png",
+      "sha256": "43a7650629c207affbddbefb1bad3b99e0f782a125b5813c7ad28508c4cda9d5"
+    },
+    {
+      "bytes": 310698,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/selected-bucket-018bc52da20595aeb670b4c3bf34a3fc34b5306d.png",
+      "sha256": "950f8fe7e1493a798f2006c011eb505f6c9ce26a4cd3d4d5b7b282520db23eed"
+    },
+    {
+      "bytes": 298965,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/attachments/selected-print-inspector-e29cbd2d10b46ddb862a33d5cf8ff3da2ef5959b.png",
+      "sha256": "69028b5f8f5e02ec5b5e67c7d2df079607302b2ff792f47148bc11ef0dfb6766"
+    },
+    {
+      "bytes": 323515,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/restored-tape.png",
+      "sha256": "43a7650629c207affbddbefb1bad3b99e0f782a125b5813c7ad28508c4cda9d5"
+    },
+    {
+      "bytes": 310698,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/selected-bucket.png",
+      "sha256": "950f8fe7e1493a798f2006c011eb505f6c9ce26a4cd3d4d5b7b282520db23eed"
+    },
+    {
+      "bytes": 298965,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-desktop/selected-print-inspector.png",
+      "sha256": "69028b5f8f5e02ec5b5e67c7d2df079607302b2ff792f47148bc11ef0dfb6766"
+    },
+    {
+      "bytes": 122789,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/restored-tape-c186c8af809eb8f60c7bba7127849b75eb81aa8d.png",
+      "sha256": "4c7ee6a4b7b1e43c52f0a9bd2006a82f87cda2af07dd436ec39e3d22f4f712c9"
+    },
+    {
+      "bytes": 116430,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/selected-bucket-bacd506f1ec48d2d38008e08711562a30dc209a5.png",
+      "sha256": "2eaf446996929ebf0f21ad5240f2c44f01f0369193a2590dea72fbdc384372a1"
+    },
+    {
+      "bytes": 134942,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/attachments/selected-print-inspector-b60e98cb0a19a0798bc77a85656d225cd141de58.png",
+      "sha256": "52b3d55b3af17d153cc4c5cb2fe7c3898f40726ddc6e73f6ab7dc504f84e4a81"
+    },
+    {
+      "bytes": 122789,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/restored-tape.png",
+      "sha256": "4c7ee6a4b7b1e43c52f0a9bd2006a82f87cda2af07dd436ec39e3d22f4f712c9"
+    },
+    {
+      "bytes": 116430,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/selected-bucket.png",
+      "sha256": "2eaf446996929ebf0f21ad5240f2c44f01f0369193a2590dea72fbdc384372a1"
+    },
+    {
+      "bytes": 134942,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-mobile/selected-print-inspector.png",
+      "sha256": "52b3d55b3af17d153cc4c5cb2fe7c3898f40726ddc6e73f6ab7dc504f84e4a81"
+    },
+    {
+      "bytes": 208005,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/restored-tape-795951f1de1c04d41e7caf078399b9f767213fbd.png",
+      "sha256": "78f7a65eeace83f49f2c0e1adc6ab92465328dd31b533971708923ec04618403"
+    },
+    {
+      "bytes": 207388,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/selected-bucket-3ac8652c2b69eb1985b2c761dfb8105a9d2c7ff5.png",
+      "sha256": "1c6d908d87090a6cc423b8298199681407c41b457aefc8d3714bc7b6633dff86"
+    },
+    {
+      "bytes": 267191,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/attachments/selected-print-inspector-17fcb9ce73f9b2c3869961f611af7eadfc848990.png",
+      "sha256": "441608e45fc881d577163e232c1e11822b7d33ba75875d7bbc3662ec4f14655d"
+    },
+    {
+      "bytes": 208005,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/restored-tape.png",
+      "sha256": "78f7a65eeace83f49f2c0e1adc6ab92465328dd31b533971708923ec04618403"
+    },
+    {
+      "bytes": 207388,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/selected-bucket.png",
+      "sha256": "1c6d908d87090a6cc423b8298199681407c41b457aefc8d3714bc7b6633dff86"
+    },
+    {
+      "bytes": 267191,
+      "path": "docs/verification/pr687-flow-projection-successor-20261110/browser-chromium/artifacts/flow-projection--zh-time-b-aeaf1-ters-coverage-and-inspector-tablet/selected-print-inspector.png",
+      "sha256": "441608e45fc881d577163e232c1e11822b7d33ba75875d7bbc3662ec4f14655d"
+    }
+  ],
+  "logSha256": "edde0b88fbbf657d48db2583c2071360983b9607431aa6f617b17003a3985582",
+  "ownedPortClosed": true,
+  "pid": 51483,
+  "port": 47687,
+  "protectedOwnerCount": 13,
+  "protectedOwnersUnchanged": true,
+  "reportSha256": "de5e14424c6b6d9a492bcb0bf47ad1c156eb8b762150cfc251425a59c69654f6",
+  "retries": 0,
+  "schema": "terminal_pr687_browser_execution.v1",
+  "seconds": 33.682,
+  "sourceFileCount": 3432,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T17:28:30.630689+00:00",
+  "state": "BROWSER_MATRIX_PASSED",
+  "stats": {
+    "duration": 33117.176,
+    "expected": 12,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T17:28:31.183Z",
+    "unexpected": 0
+  },
+  "topLevelErrors": []
+}

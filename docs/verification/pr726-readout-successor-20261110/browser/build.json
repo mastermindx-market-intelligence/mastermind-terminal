@@ -1,0 +1,66 @@
+{
+  "schema": "terminal_pr726_component_browser_build.v1",
+  "state": "BUILT",
+  "sourceStable": true,
+  "sourceFiles": {
+    "terminal/lib/precisionEntryReadout.ts": "dcce0df7f5c6e77ac031036be83900813105af863b694bfeb5433e8187ed68e5",
+    "terminal/components/PrecisionEntryStrip.tsx": "5bb04af3112e4033ca9737ccbc52c2981389b03ad6e68657cb5b01cc076f3218",
+    "terminal/components/PrecisionEntryStrip.module.css": "16667427c6db9383339e782136811ccbe07d105784ccd2e460d989087b801c36",
+    "terminal/lib/precisionEntry.ts": "d717931d6f2cc3e8fc23b5ebc4c35f4a6289b263572feb97959ca6a98ee92333",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "2b3417366f58b0d25588b6d6bf6a2346f47ad84403885066946c5a2f18b1c116",
+    "terminal/app/layout.tsx": "15e971bf7e568c1e0d2e7f6aac0a43e49c385123a532dbd0f1e9f13a9ed588f3",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    "docs/verification/pr726-readout-successor-20261110/fixture.tsx": "3079d827c5ef681cf201e587a9dfd085a71d45cc310de6d54ae06f0b82948e01",
+    "docs/verification/pr726-readout-successor-20261110/build-browser.cjs": "b61e452349626a6ecafbd1099bdcdc060177479c1c1b8b66315b76acd295f4d1",
+    "docs/verification/pr726-readout-successor-20261110/browser-proof.cjs": "3e2510d5ede61df5ccb315e5eb2daec2072b556761e5360777dd636ef3084fca"
+  },
+  "fontInputs": [
+    {
+      "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/static/chunks/[next]_internal_font_google_inter_7b064e0d_module_css_1igg3k2._.single.css",
+      "sha256": "13027c1bb196d30bb32ac3d594886b2cf1cdc16251548c2bfbe14489e4a145b4"
+    },
+    {
+      "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/static/media/2c55a0e60120577a-s.0-dom-5bn10r2.woff2",
+      "bytes": 25844,
+      "sha256": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5"
+    },
+    {
+      "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/static/media/9c72aa0f40e4eef8-s.1y4-pdgsjb-pw.woff2",
+      "bytes": 18744,
+      "sha256": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6"
+    },
+    {
+      "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/static/media/ad66f9afd8947f86-s.3lvt2whj97whp.woff2",
+      "bytes": 11272,
+      "sha256": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271"
+    },
+    {
+      "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/static/media/5476f68d60460930-s.2uwcyprjm3xu3.woff2",
+      "bytes": 19044,
+      "sha256": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf"
+    },
+    {
+      "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/static/media/2bbe8d2671613f1f-s.0k62hbripvv8p.woff2",
+      "bytes": 10280,
+      "sha256": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931"
+    },
+    {
+      "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/static/media/1bffadaabf893a1e-s.3-6t-g6q0vh0a.woff2",
+      "bytes": 85272,
+      "sha256": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2"
+    },
+    {
+      "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
+      "bytes": 48432,
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+    }
+  ],
+  "fontOrigin": "Actual Inter CSS and seven font subsets from this principal's completed PR1427 Next capture; root layout font request remains unchanged.",
+  "themeOwner": "Unchanged shared-shell.css chart appearance token rules, data-terminal-appearance=1; dark uses globals.css.",
+  "node": "v22.23.4",
+  "esbuild": "0.21.5",
+  "react": "19.2.4",
+  "warnings": []
+}

@@ -1,0 +1,349 @@
+{
+  "operation": "terminal-pr-estate-support-20261111-c3-737",
+  "recorded_at": "2026-11-11",
+  "law_pin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pull_request": 737,
+  "original_head": "56230d1835911ac18da974ef028ec53b7068cab1",
+  "protected_base": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "tested_tree": "6b1899d6b20b696aa1e5cbb89469aa83a7f47543",
+  "retention_repair": {
+    "operation": "terminal-pr-estate-support-20261111-c3-737",
+    "original_head": "56230d1835911ac18da974ef028ec53b7068cab1",
+    "protected_base": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "candidate_tree": "6b1899d6b20b696aa1e5cbb89469aa83a7f47543",
+    "source_file": "terminal/e2e/research-workspace-nav.spec.ts",
+    "preimage_sha256": "dbae88c2f58bb6a4b53d9b1672fcc06dae5889de0da5ab048d95b1c74b81cacf",
+    "sha256": "8dc40aee2d80d7b01f04fd0e9649f75bc1289019188fe21c61ae7b7279be9109",
+    "evidence_fix": "Persist each existing screenshot at its test-owned outputPath, then attach that file; no assertion or fixture changes."
+  },
+  "source_input_snapshot": {
+    "count": 6649,
+    "sha256": "e5bc081c33e83c40a0e4085ce582b0b0d10e43d7d24faacbaa5732da7bab9e1c",
+    "selection": "git ls-files -z; terminal/ paths with suffix .ts .tsx .js .jsx .mjs .cjs .json .css .yaml .yml; SHA256 of exact bytes; Python json.dumps(mapping,sort_keys=True,indent=2) plus newline",
+    "after_changed_paths": []
+  },
+  "source_entries": [
+    {
+      "path": "terminal/app/fin.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b280020ca834ed7933ed43fa603dc2f02e69f192"
+    },
+    {
+      "path": "terminal/components/fin/StatementsPage.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9d420e25d72fb17bf71eb5d9bb449926b2c0f365"
+    },
+    {
+      "path": "terminal/docs/pr-crops/research-financials-vnext-20260925/EVIDENCE.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "27683b95afa4cd6f1d3613df9d2cdd8cc4c2cf6a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/research-financials-vnext-20260925/desktop-en.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2133d41ec82a383b73e1977a0424f66eaa72e103"
+    },
+    {
+      "path": "terminal/docs/pr-crops/research-financials-vnext-20260925/mobile-en.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2a736606644129b7571178f62acd0a80594e8a0b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/research-financials-vnext-20260925/mobile-zh.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "25bd536a9498e0a521d3a1321231546809c9da9f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/research-financials-vnext-20260925/tablet-en.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ab0d5bb7fde45b7ec183ccf4ac529e12b9699013"
+    },
+    {
+      "path": "terminal/e2e/fin-compare.spec.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4ea778f5792778ad26eef34f41837882db19d3ae"
+    },
+    {
+      "path": "terminal/e2e/financial-row-disclosure.spec.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "62f224cd9e1f418a58571e444db69483a10313fb"
+    },
+    {
+      "path": "terminal/e2e/research-workspace-nav.spec.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "94749a4bf6aa41f08e769e2cacc2894043734211"
+    },
+    {
+      "path": "terminal/lib/__tests__/finComparablePeriods.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e52fef4cfb03adaadcfd4411d9e2a1b081f6c731"
+    },
+    {
+      "path": "terminal/lib/__tests__/finCompare.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9cdbcc337f2231728c0cbfc12ed81dafdc8c1688"
+    },
+    {
+      "path": "terminal/lib/__tests__/finCumulativeQuarterGap.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "55c999705670344b46600192425c7e66f8fa7cc4"
+    },
+    {
+      "path": "terminal/lib/__tests__/financialsSnapshotAlignment.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f3738ac3383c74b85407987c0df5bfff74643483"
+    },
+    {
+      "path": "terminal/lib/__tests__/statementsTranscriptIdentity.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "59fb0362ddd7fa70507a1fe8e6b2e6128bf9c4a2"
+    },
+    {
+      "path": "terminal/lib/finStatementMath.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "392a4d1faaec3e088cd26fa5cc2ffbfa2b7276c0"
+    },
+    {
+      "path": "terminal/lib/finStatements.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8a26fab012e0939281383ffc77988e048d27d437"
+    }
+  ],
+  "tests": [
+    {
+      "title": "Financials vNext keeps statement summary, explorer and integrity on one canonical page",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 2242
+        }
+      ]
+    },
+    {
+      "title": "Financials vNext remains bilingual and overflow-safe on mobile",
+      "project": "desktop",
+      "status": "skipped",
+      "attempts": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "duration": 93
+        }
+      ]
+    },
+    {
+      "title": "Financials snapshot preserves period columns when a metric is incomplete",
+      "project": "desktop",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1172
+        }
+      ]
+    },
+    {
+      "title": "Financials vNext keeps statement summary, explorer and integrity on one canonical page",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 2819
+        }
+      ]
+    },
+    {
+      "title": "Financials vNext remains bilingual and overflow-safe on mobile",
+      "project": "tablet",
+      "status": "skipped",
+      "attempts": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "duration": 191
+        }
+      ]
+    },
+    {
+      "title": "Financials snapshot preserves period columns when a metric is incomplete",
+      "project": "tablet",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1866
+        }
+      ]
+    },
+    {
+      "title": "Financials vNext keeps statement summary, explorer and integrity on one canonical page",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1265
+        }
+      ]
+    },
+    {
+      "title": "Financials vNext remains bilingual and overflow-safe on mobile",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1777
+        }
+      ]
+    },
+    {
+      "title": "Financials snapshot preserves period columns when a metric is incomplete",
+      "project": "mobile",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1099
+        }
+      ]
+    }
+  ],
+  "browser_stats": {
+    "startTime": "2026-11-11T08:47:22.736Z",
+    "duration": 49402.212,
+    "expected": 7,
+    "skipped": 2,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "execution": {
+    "returncode": 0,
+    "seconds": 56.5,
+    "source_count": 6649,
+    "source_changed": [],
+    "port": 57728,
+    "port_open_after": false,
+    "lock_path_exists": true,
+    "lock_open_handles": false,
+    "lock_observation": "",
+    "lock_stderr": ""
+  },
+  "checks": [
+    {
+      "name": "scoped-lint",
+      "returncode": 0,
+      "seconds": 12.92,
+      "log": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-737/docs/verification/pr737-financials-integration-20261111/scoped-lint.log"
+    },
+    {
+      "name": "typegen",
+      "returncode": 0,
+      "seconds": 5.46,
+      "log": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-737/docs/verification/pr737-financials-integration-20261111/typegen.log"
+    },
+    {
+      "name": "typecheck",
+      "returncode": 0,
+      "seconds": 130.43,
+      "log": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-737/docs/verification/pr737-financials-integration-20261111/typecheck.log"
+    }
+  ],
+  "captures": [
+    {
+      "name": "desktop-en",
+      "viewport": [
+        1440,
+        900
+      ],
+      "language": "en",
+      "bytes": 195901,
+      "sha256": "6565d4ec0acdd7bd2ac10efcef6355ac25b3ff15033aca521827eeaca6ea5204",
+      "git_blob": "135493d64b006ab6e8adfe52d696db90196405ba",
+      "path": "captures/desktop-en.png",
+      "visually_inspected": true
+    },
+    {
+      "name": "tablet-en",
+      "viewport": [
+        820,
+        1180
+      ],
+      "language": "en",
+      "bytes": 125060,
+      "sha256": "fe3be20c09a9313deb9a6776ded24b62d3e0f76139f382791ee05845a6c6915a",
+      "git_blob": "789549e2e4dc57dcf4dbf9f6121eceeea7f0e492",
+      "path": "captures/tablet-en.png",
+      "visually_inspected": true
+    },
+    {
+      "name": "mobile-en",
+      "viewport": [
+        390,
+        844
+      ],
+      "language": "en",
+      "bytes": 83756,
+      "sha256": "539c30c607a6d30794d7d71bfc80a50e1e5da2b1a83a52d8e049adb75e1d698a",
+      "git_blob": "e0643f68acca5769aea3e46dc1153c64acd07b2f",
+      "path": "captures/mobile-en.png",
+      "visually_inspected": true
+    },
+    {
+      "name": "mobile-zh",
+      "viewport": [
+        390,
+        844
+      ],
+      "language": "zh",
+      "bytes": 76242,
+      "sha256": "6737b662afa6a53ce2e5e2300210e6dd4dba884146911b93635b2a80b6af6024",
+      "git_blob": "222df56ca56e33d43a1f346f8bcd002b95b0e6e6",
+      "path": "captures/mobile-zh.png",
+      "visually_inspected": true
+    }
+  ],
+  "visual_review": {
+    "desktop": "Summary, trajectory, snapshot and integrity panels rendered coherently; Annual and statement controls visible; fixture values and periods aligned.",
+    "tablet": "Two-column summary and stacked trajectory/snapshot fit 820px; current lower navigation remains visible.",
+    "mobile_en": "Header and statement controls wrap within390px; source values remain aligned; existing summary-label ellipsis retained.",
+    "mobile_zh": "Chinese Financials heading, statement controls, summary and trajectory render within390px; financial codes/currency identifiers retained."
+  },
+  "qualification": {
+    "runtime": "Existing loopback fixture route /analysis?symbol=NVDA&page=statements with existing ANALYSIS_LOCAL_PREVIEW seam; no production authentication or installed-data proof claimed",
+    "historical_run": "42866082633 remains successful historical proof at actual checkout104e619f60b031840d1f34a470a48757418383c5; its in-memory frames were not retained",
+    "historical_financial_tests": "205 previously accepted affected cases have source-identical financial math/consumer bytes; not re-executed in this capture-retention repair",
+    "whole_pr_whitespace_check": "Five existing blank-line-at-EOF findings retained in untouched Financials files; newly modified spec passes scoped diff check",
+    "workspace_acquire": "Original response WORKSPACE_ACQUISITION_UNQUALIFIED reconciled APPLIED on the same operation through locked registered workspace, exact head and clean native status; no reacquisition/re-home",
+    "install_recovery": "Initial npm ci254 shared-cache rename ENOENT/EEXIST with extraction warnings; no ACL/ownership denial established by bounded reads. One materially changed attempt with operation-local npm cache succeeded0; no permission/shared-cache modification",
+    "release": "Fresh published-head required CI/native merge/deployment/live acceptance remain separate"
+  }
+}

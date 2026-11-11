@@ -1,0 +1,70 @@
+{
+  "schema": "terminal.pr1426.news-composition.v1",
+  "head": "f5a79cafb2ed3776f2919fc49d29babc7445f7e4",
+  "protected": "3ba8e1a663a752c7de42c717c3826e722dda416d",
+  "common": "839bace1e89dd6def9311d3a410786c73a6332aa",
+  "tree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957",
+  "candidateChangedCount": 6,
+  "protectedChangedCount": 3038,
+  "overlap": [],
+  "unequalOverlaps": [],
+  "allUnoverlappedPostimagesPreserved": true,
+  "deltaFromProtected": [
+    "terminal/app/not-found-actions.tsx",
+    "terminal/app/not-found.module.css",
+    "terminal/components/TerminalShell.tsx",
+    "terminal/e2e/shared-shell-refinement.spec.ts",
+    "terminal/e2e/watchlist-ownership.spec.ts",
+    "terminal/lib/__tests__/sharedShellLazyFocus.test.tsx"
+  ],
+  "keyInputs": {
+    "terminal/components/TerminalShell.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bef091489c242c30ff6fc9d2794358b54c6bd75b",
+      "sha256": "9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc"
+    },
+    "terminal/components/news/TickerNewsPanel.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7ff805873a4926a5e8b28ac27bf6012457524019",
+      "sha256": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2"
+    },
+    "terminal/components/news/TickerNewsPanel.module.css": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4df463f632a5a404254f4e7141de0694b387e1c6",
+      "sha256": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358"
+    },
+    "terminal/e2e/ticker-news.spec.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "09edca20e9d77e26306936f125a73305d67fc71a",
+      "sha256": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a"
+    },
+    "terminal/lib/__tests__/tickerNewsEvidence.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bad46f97cc821a56b1be48ec7c888d17e9b88aa9",
+      "sha256": "18e014810439152117b9506d6a39b0907266323fc206434597c9f5baffde687a"
+    },
+    "terminal/package.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "df2e635a0abab248c90e33e3f89bd1f2581f6376",
+      "sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf"
+    },
+    "terminal/package-lock.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "43172affa9516ddcbd6e8f7a59bb54888baa7e3b",
+      "sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+    },
+    "terminal/next.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f4798dfc98ef5f2870c98332acfb02d9fe8f71ad",
+      "sha256": "1e6bd09901ee90d2242ca50a394dcae97d4b0b4fa37227e8463289355313f870"
+    }
+  }
+}

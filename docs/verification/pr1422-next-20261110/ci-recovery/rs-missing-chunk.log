@@ -1,0 +1,20 @@
+[warmup] /terminal?symbol=NVDA → 200 in 135ms
+[warmup] /options → 200 in 3117ms
+[warmup] /portfolio → 200 in 1570ms
+[warmup] /alerts → 200 in 1329ms
+[warmup] /analysis → 200 in 2460ms
+[warmup] /discover → 200 in 2613ms
+[warmup] /admin → 200 in 855ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 837ms
+[warmup] /login → 200 in 221ms
+[warmup] /reset-password → 200 in 830ms
+[warmup] /api/me → 200 in 848ms
+[warmup] /api/watchlist → 200 in 339ms
+[warmup] /api/layouts → 200 in 338ms
+[warmup] /api/watchlist/annotations → 409 in 268ms
+[warmup] 14 routes compiled in 16s
+[fixture-ready] prophet_idx fixture 200 in 854ms
+Error: No tests found.
+Make sure that arguments are regular expressions matching test files.
+You may need to escape symbols like "$" or "*" and quote the arguments.
+

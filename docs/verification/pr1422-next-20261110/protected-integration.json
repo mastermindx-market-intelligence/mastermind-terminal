@@ -1,0 +1,75 @@
+{
+  "schema": "terminal_pr1422_protected_integration.v1",
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "sourceTree": "e8de358b7dfd35280337492cefead4d30a2a4a9b",
+  "integratedProtected": "839bace1e89dd6def9311d3a410786c73a6332aa",
+  "originalPublicHead": "34b232f1ffd62e6bdcc5712c307a38cb93a52ee2",
+  "sourceOwnerReturn": {
+    "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1422#issuecomment-6765814281",
+    "createdAt": "2026-11-10T11:11:25Z",
+    "patchSha256": "5f90c23dcb066949a9de6c247207c36f4db426258cdf5cb77ff3bf76e8c7273d",
+    "bytes": 14966,
+    "input": "18a0cbd8014cd5a064e4107c624de2d75322d9f2",
+    "exactJoin": "01812bdc57234f6decc61eac5ca7d1b5c5284a51",
+    "formalApprovalClaim": false
+  },
+  "qualification": {
+    "configCases": {
+      "passed": 25,
+      "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+      "receipt": "protected-config-tests-execution.json"
+    },
+    "affectedLint": {
+      "passed": true,
+      "files": 8,
+      "receipt": "protected-affected-lint-execution.json"
+    },
+    "browser": {
+      "receipt": "protected-browser-qualification.json",
+      "distinctCases": 18,
+      "passed": 14,
+      "originalSkipped": 4,
+      "runs": 2,
+      "retries": 0,
+      "flaky": 0,
+      "failed": 0,
+      "initialObserverSelectionErrorRetained": true
+    },
+    "intelligence": {
+      "receipt": "intelligence-r5-execution.json",
+      "cells": 6,
+      "images": 9,
+      "sourceInputs": 3532,
+      "sourceStable": true,
+      "seconds": 35.628,
+      "closedChild": true,
+      "closedFixture": true,
+      "portClosed": 34228,
+      "lockAbsent": true
+    },
+    "fullTypes": {
+      "passed": true,
+      "seconds": 179.494,
+      "receipt": "full-typecheck-protected-execution.json"
+    },
+    "priorPortfolioUnits": {
+      "passed": 116,
+      "actualSource": "fdb54a8a2092c6b42ce3d35493665805b8e14bdb",
+      "reasonReusable": "EventImpactPanel and its unit regression postimages unchanged through 3f6",
+      "receipt": "initial-qualification/portfolio-six-suites.json"
+    },
+    "ownerFivePathProofs": {
+      "disposition": "Retained with original exact-source attribution; not rerun or restamped",
+      "canonicalReturn": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1422#issuecomment-6765814281"
+    }
+  },
+  "limits": [
+    "Local fixture proof on 3f6 with protected839 integrated; not a claim against every later master commit.",
+    "Natural exact-head hosted CI and protected queue acceptance remain required.",
+    "No production deployment, production CSP, formal GitHub approval or merge acceptance is asserted.",
+    "Both expansion-retired screenshots are blurred/dimmed; the runtime DOM assertions passed but these frames do not independently establish their visual state.",
+    "Desktop light-ZH Intelligence toolbar only shows its avatar in the crop; no toolbar parity or hydration acceptance is asserted.",
+    "After-Back Sector actions below the screenshot crop are established by browser assertions, not the image."
+  ],
+  "recordedAt": "2026-11-10T12:11:24.758533+00:00"
+}

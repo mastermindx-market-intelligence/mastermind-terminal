@@ -1,0 +1,128 @@
+{
+  "schema": "mastermind.pr1232.current-breadth-visual-review.v1",
+  "sourceHead": "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd",
+  "sourceTree": "1ddc20b2bcc258a4ce1b5f3ff09f4c395b52efe1",
+  "reviewedAt": "2026-11-10T16:14:15.015610+00:00",
+  "reviewer": "Assigned principal; direct image inspection in ChatGPT; Web 5A self-check",
+  "scope": "18 actual PNG captures from the unchanged 12-case breadth browser owner, across desktop1440/tablet820/mobile390.",
+  "observations": [
+    "English/dark and Chinese/light views are legible; selected sector, session window, sorting and return state remain coherent.",
+    "Historical replay shows eleven ranked sectors and 501/503 matched stocks. The close/date and one-versus-five-session windows are explicit.",
+    "Utilities detail shows six dated closes, advancing/declining/unchanged counts, fixed scale and the dated peer-overtake comparison.",
+    "Rotation groups retain the two-axis membership and counts (2/7/1/1) with readable layouts at each viewport.",
+    "Mobile views deliberately scroll vertically and the wide ranking table scrolls horizontally; these frames do not claim all rows/columns are visible at once."
+  ],
+  "limits": [
+    "Local fixture browser evidence; no signed-in live production, naturally emitted close, physical-device certification, new axe scan, or full-site visual acceptance is claimed."
+  ],
+  "captures": [
+    {
+      "path": "captures/composed-return-en-desktop.png",
+      "sha256": "aa1a72237b79069286fc90f226ade69291b27ab2147ca07724f4f6711e6dad50",
+      "bytes": 180976,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/composed-return-en-mobile.png",
+      "sha256": "8a14ae39de81159799d4da95c341a03f1a5d0d302e678d0a35006ffa0b48dcc1",
+      "bytes": 98718,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/composed-return-en-tablet.png",
+      "sha256": "cc814574d63358b554aa17ed60dff504386e817be64bee0c104acaf2dce284a4",
+      "bytes": 171429,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/composed-return-zh-desktop.png",
+      "sha256": "eeba0cf31a459f010a813af6abf581868f911544cc019faa8348915f23383e78",
+      "bytes": 186161,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/composed-return-zh-mobile.png",
+      "sha256": "c164c7731b46e2dea74296477890e311ba808593e63f7796878d06ca5161c599",
+      "bytes": 99103,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/composed-return-zh-tablet.png",
+      "sha256": "b5e35c96fe6f5d72958193a40c2a18c102a8b5f5cc77fd379e117e6079ade7c8",
+      "bytes": 182904,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-detail-desktop.png",
+      "sha256": "de7e9cba879e0769a23327c008f900795d3679ae0c9dbcfeb5cbecf30d3255d5",
+      "bytes": 66667,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-light-zh-desktop.png",
+      "sha256": "450956254431f04c9ec78cf2d01a32c37772ff514a8486034c6d2595c35c4d7b",
+      "bytes": 194315,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-replay-desktop.png",
+      "sha256": "d061c1d5de28bf1e285b4ff2c18df5bcf93e527b3a9832227bf7c19f568cdb6c",
+      "bytes": 187601,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/rotation-groups-desktop.png",
+      "sha256": "393df99874bb829dfac07847c0b52caa31403b35ec95d3402c48159b19e394d1",
+      "bytes": 61247,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-detail-mobile.png",
+      "sha256": "17de95c3cb8e96219ea9b476428cdb87d8fa588c709d545001cfe0cf9d4b998c",
+      "bytes": 61110,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-light-zh-mobile.png",
+      "sha256": "ea81f353d236aad54e79fafa1dd3b0f7da51dba8292f230fc83846bde318cc32",
+      "bytes": 100406,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-replay-mobile.png",
+      "sha256": "722d92758cf30392e872fbd973839b88a85347c38b044a42f2b74f2deb3b62c4",
+      "bytes": 97805,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/rotation-groups-mobile.png",
+      "sha256": "7013f3b074a7cdd7abdc23b383d57b16b30363fb845019c71aedbdc57b55bb4c",
+      "bytes": 60535,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-detail-tablet.png",
+      "sha256": "56397d4e39a4f983ece755d1a68aab93bae83b056e7b72a28267fa69246d1c34",
+      "bytes": 64918,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-light-zh-tablet.png",
+      "sha256": "90c64be9daa35707d70ffaaf304cc14383025c04f57c3e6a9c371b3f320c5369",
+      "bytes": 201273,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/historical-replay-tablet.png",
+      "sha256": "8d813d17aefd4c066488cd30b6127eb463caab23d09a7c2ccda4612d67a90ec0",
+      "bytes": 186153,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    },
+    {
+      "path": "captures/rotation-groups-tablet.png",
+      "sha256": "17e3cc426af7d831c886a2639aa8336afdb5172b1e1e1cbe4c46e0d07feb0e24",
+      "bytes": 62385,
+      "verdict": "PASS_BOUNDED_VISUAL_REVIEW"
+    }
+  ]
+}

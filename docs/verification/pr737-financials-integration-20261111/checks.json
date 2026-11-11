@@ -1,0 +1,20 @@
+[
+  {
+    "name": "scoped-lint",
+    "returncode": 0,
+    "seconds": 12.92,
+    "log": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-737/docs/verification/pr737-financials-integration-20261111/scoped-lint.log"
+  },
+  {
+    "name": "typegen",
+    "returncode": 0,
+    "seconds": 5.46,
+    "log": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-737/docs/verification/pr737-financials-integration-20261111/typegen.log"
+  },
+  {
+    "name": "typecheck",
+    "returncode": 0,
+    "seconds": 130.43,
+    "log": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-737/docs/verification/pr737-financials-integration-20261111/typecheck.log"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "state": "CAPTURE_POSTCONDITIONS_VERIFIED_READER_NOT_PREVIOUSLY_STARTED",
+  "at": "2026-11-10T14:21:05.320695+00:00",
+  "head": "8d3a375e6d7cba8f03afc65594d3937857230442",
+  "tree": "f94078ea88979ee1aed630b013f303c6d20bbe0f",
+  "originalObserverPid": 74932,
+  "originalObserverExit": "NOT_OBSERVED",
+  "originalReturnChannel": "Studio Direct read_process_output returned No session found for PID 74932",
+  "originalObserverAbsence": "Exact ps read returned 1 with no stdout/stderr before this continuation",
+  "causeOfLostReturn": "NOT_PROVEN",
+  "originalProducerExit": 0,
+  "originalCaptureSeconds": 285.744,
+  "captureCases": 6,
+  "sourceInputsStable": 43,
+  "fixtureBindingsMatch": 15,
+  "serverGroupsClosedAndAbsent": true,
+  "generatedTypesRestored": true,
+  "originalPortFreeReceipt": {
+    "exitCode": 1,
+    "stderr": "",
+    "stdout": ""
+  },
+  "runtimeRerunOrProbe": false,
+  "continuedAction": "Only unexecuted existing evidence-reader checks and final file/source verification"
+}

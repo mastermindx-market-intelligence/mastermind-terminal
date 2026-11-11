@@ -187,6 +187,26 @@ export function sessionToBarTime(
 /** OHLC bar shared by the price chart and completed-timeframe readers. */
 export type SessionOhlcBar = { time: string; o: number; h: number; l: number; c: number; v: number; closeTime?: string };
 
+/** A real daily session date, without accepting timestamp suffixes or Date's rollover. */
+export function isCalendarSessionDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value + "T00:00:00Z");
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+/** Shared calendar identity; malformed dates and non-calendar timeframes have no bucket. */
+export function calendarBarKey(tf: string, time: unknown): string | null {
+  if (!isCalendarSessionDate(time)) return null;
+  if (tf === "1M") return time.slice(0, 7);
+  if (tf === "3M") return `${time.slice(0, 4)}-Q${Math.floor((+time.slice(5, 7) - 1) / 3)}`;
+  if (tf !== "W" && tf !== "2W") return null;
+  const monday = new Date(time + "T00:00:00Z");
+  monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
+  // Keep the complete date if a valid year-0000 session's week starts in year -1.
+  // The fortnight uses the numeric week start, never a truncated/reparsed ISO string.
+  return tf === "W" ? monday.toISOString().split("T")[0] : "b" + Math.floor(monday.getTime() / 86_400_000 / 14);
+}
+
 export function resampleTf(rows: SessionOhlcBar[], tf: string, anchor?: SessionAnchor | null): SessionOhlcBar[] {
   if (tf === "D" || rows.length === 0) return rows;
   // ── daily multiples (2D / 3D) ─ ONE canonical grid, shared with the signal engine ──────
@@ -212,21 +232,32 @@ export function resampleTf(rows: SessionOhlcBar[], tf: string, anchor?: SessionA
       return { o: first.o, h, l, c: rows[to].c, v };
     });
   }
-  // ── calendar units (W / 2W / 1M / 3M) ─ unchanged ──────────────────────────────────────
-  // A calendar bucket has no phase to get wrong and its key is its LAST session; every
-  // consumer (lib/barSnap, lib/pine-engine/runtime, TechnicalsPage) is written to that.
-  const out: SessionOhlcBar[] = []; let cur: SessionOhlcBar | null = null; let key: any = null;
-  const isoWeek = (d: string) => { const dt = new Date(d + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return dt.toISOString().slice(0, 10); };
+  // ── calendar units (W / 2W / 1M / 3M) ──────────────────────────────────────────────────
+  // This resampler keeps the LAST included session as the output timestamp.
+  const out: SessionOhlcBar[] = []; let cur: SessionOhlcBar | null = null; let key: string | null = null;
   // 2W / 3M use ABSOLUTE-calendar bucketing (anchored to a fixed epoch, not the data's first bar), so
   // buckets are stable across a month/quarter boundary regardless of where the window starts:
   //   2W → floor(days-since-epoch of the bar's ISO-week-start / 14)   (fixed fortnight blocks)
   //   3M → year + calendar quarter (Q0=Jan-Mar … Q3=Oct-Dec)
-  const biWeek = (d: string) => { const dt = new Date(isoWeek(d) + "T00:00:00Z"); return Math.floor(dt.getTime() / 86400_000 / 14); };
-  const quarter = (d: string) => { const y = d.slice(0, 4); const m = +d.slice(5, 7) - 1; return `${y}-Q${Math.floor(m / 3)}`; };
   // The daily-derived set is exactly {D, 2D, 3D, W, 2W, 1M, 3M} (TerminalShell.DAILY_FUNCTIONAL);
   // D and the two daily multiples returned above, so only calendar units reach here. An
   // unrecognised unit keys per row — one bar in, one bar out — rather than silently falling into
   // a 3-row bucket, which is what the old trailing `Math.floor(i / 3)` default did.
-  for (let i = 0; i < rows.length; i++) { const r = rows[i]; const k = tf === "W" ? isoWeek(r.time) : tf === "2W" ? biWeek(r.time) : tf === "1M" ? r.time.slice(0, 7) : tf === "3M" ? quarter(r.time) : r.time; if (k !== key) { if (cur) out.push(cur); key = k; cur = { ...r }; } else { cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.time = r.time; cur!.v += r.v; } }
+  const calendar = tf === "W" || tf === "2W" || tf === "1M" || tf === "3M";
+  for (const r of rows) {
+    const k = calendar ? calendarBarKey(tf, r.time) : r.time;
+    if (k === null) continue;
+    if (k !== key) {
+      if (cur) out.push(cur);
+      key = k;
+      cur = { ...r };
+    } else {
+      cur!.h = Math.max(cur!.h, r.h);
+      cur!.l = Math.min(cur!.l, r.l);
+      cur!.c = r.c;
+      cur!.time = r.time;
+      cur!.v += r.v;
+    }
+  }
   if (cur) out.push(cur); return out;
 }

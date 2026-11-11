@@ -1,0 +1,401 @@
+{
+  "excludedSelf": "INVENTORY.json",
+  "files": [
+    {
+      "bytes": 6711,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/QUALIFICATION.md",
+      "sha256": "c733cc6d0bf861f4363190898a2b0bbd8d871a44cbbb335b90f8c6e8426ae8e4"
+    },
+    {
+      "bytes": 5408,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/bind-and-validate.py",
+      "sha256": "c1f4f0ae7d6a3d2576b7b4d5affd70bd013af9db5fa5e6aefd72db01b6828326"
+    },
+    {
+      "bytes": 11132,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/capture-workspaces-r1.py",
+      "sha256": "266de1d291cbf6f9baf19c3cdc214f22bcc15caf81bf9f4beb9313d95963551c"
+    },
+    {
+      "bytes": 11132,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/capture-workspaces.py",
+      "sha256": "c10949f21304fb3c010b4c2ae1c534392a86f0af3bee1e886dacce43ae56727f"
+    },
+    {
+      "bytes": 16275,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/composition.json",
+      "sha256": "ead0e8c72cb4487cb957ef4ef05839423fdf9462ba9e548c330a7ea8db1531a7"
+    },
+    {
+      "bytes": 751,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/dependencies.json",
+      "sha256": "b33305bd2875d16b36b80c22913e2d0728ec36ed7502b3162ed52df6a317258d"
+    },
+    {
+      "bytes": 287,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/diff-check.json",
+      "sha256": "2046e5411c6a1fc7782273ed0916d6ca2e5c96abedfc80af84715c51b45e8167"
+    },
+    {
+      "bytes": 0,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 15513,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/final-preservation.json",
+      "sha256": "ff2727552a8e58a52545c124d8e51633d9748e195247789bd7fd23bca7e8f800"
+    },
+    {
+      "bytes": 635,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/lifecycle-tests-r1.json",
+      "sha256": "268b14c9d69b2c6e46533111dfbb5fce87f48c0cf12fbb18010a75a33062fff5"
+    },
+    {
+      "bytes": 3097,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/lifecycle-tests-r1.tap",
+      "sha256": "1d9b6d8c4ed80aba7434e5360f217787a0e221f02116ee89d2f627ff4c679628"
+    },
+    {
+      "bytes": 787,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/lifecycle-tests-r2.json",
+      "sha256": "346468cd2ff6ec2ece841c5957638e5e95ee949f8a4b4f766a90b08e8b8ebf29"
+    },
+    {
+      "bytes": 3090,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/lifecycle-tests-r2.tap",
+      "sha256": "0bc68abcdeab687c2a03519736649a529b269deef5ae5bbf6e163079fe8924ef"
+    },
+    {
+      "bytes": 787,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/lifecycle-tests.json",
+      "sha256": "9b9f6e46408fc0fc3990d67bb94a351441293772ba2c70fae694e8d6ea3bfedc"
+    },
+    {
+      "bytes": 3899,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/lifecycle-tests.tap",
+      "sha256": "8538d9ef7f282e10b5009ca41e7057c5da817d8d57e70d26de207de7d8c7004f"
+    },
+    {
+      "bytes": 3682,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/manifest-binding.json",
+      "sha256": "3d7dd131d4bb789cd607e7ef7727c2def81ad9feed197c4ae285a3dd0f19618a"
+    },
+    {
+      "bytes": 10970,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/parent-packet-preservation.json",
+      "sha256": "0554f0fe158db9be0a098d97c00bd5238850c41a59e06108fcdb21673496d4a8"
+    },
+    {
+      "bytes": 587,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/CAPTURE_HISTORY.md",
+      "sha256": "01fc486b4e6f4b4b9e2ea9b92c85eea38dd5de0d8c313dd37584ef2c42eb2698"
+    },
+    {
+      "bytes": 4304,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/EVIDENCE.yml",
+      "sha256": "2d9c15357dca74d533b07a4055fcebbed90429c4ff9c05664d1bcddc3cbc76e7"
+    },
+    {
+      "bytes": 38562,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-en-member-read-only.png",
+      "sha256": "672ba23e3da67f22fa41d45bdf64d4865747ec20f20d81994211c4cd2a4b46d6"
+    },
+    {
+      "bytes": 45236,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-en-share-confirm.png",
+      "sha256": "bdcb2ce5e2f9b01ce8db165a2812e28c99621084090ec59f7a1f71bd02d17e94"
+    },
+    {
+      "bytes": 36531,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-en-team-grouped.png",
+      "sha256": "41d3b5efdeb81ece303fb27d81ee39b3fd91a72d980fe2bd52edaf4cd5dc50e9"
+    },
+    {
+      "bytes": 39234,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-zh-member-read-only.png",
+      "sha256": "8a1b0eac60a71558eb8cd280ea0afef5f61d1d98062954b464873328f1df53d4"
+    },
+    {
+      "bytes": 46667,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-zh-share-confirm.png",
+      "sha256": "939753321bf460df4a9e8076f3f34d73b9acd544f51e4472bf12c22a1d04a5bc"
+    },
+    {
+      "bytes": 36072,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/desktop-zh-team-grouped.png",
+      "sha256": "2b8395fb5090fa61b2234b9d2009e7677608267d5b6dbba30e7760b534dd4142"
+    },
+    {
+      "bytes": 33191,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-en-member-read-only.png",
+      "sha256": "aff3e5cc7d79e4e2389521a3913848e394bf88de6a803194c9970a5f5e0ad07b"
+    },
+    {
+      "bytes": 38214,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-en-share-confirm.png",
+      "sha256": "8897e9b0161ae55c99fc16ba1f89d948eb42cd8a643f5ac5ba05e44b8b9c109b"
+    },
+    {
+      "bytes": 31513,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-en-team-grouped.png",
+      "sha256": "b8bc0552bbfa16ae2c5489ce41617b610507926753bb30e568a92897f740ee86"
+    },
+    {
+      "bytes": 34293,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-zh-member-read-only.png",
+      "sha256": "ca44df213e8c080beb32db80a409826c402f00d920f86c7db004cfd995719e52"
+    },
+    {
+      "bytes": 41569,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-zh-share-confirm.png",
+      "sha256": "01fd9e2c2e659871402b7b3b507f08fcb1f864b3740c3b393565f553aab037df"
+    },
+    {
+      "bytes": 31176,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-pr/mobile-zh-team-grouped.png",
+      "sha256": "bfb991232832c4878e4fccba023cf8d156db61d4f9ee0583aeeda531c2ad7080"
+    },
+    {
+      "bytes": 6830,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/EVIDENCE.yml",
+      "sha256": "45d8a9f5f7fd7faa91a8ea7e5ff86c712ee222f14a34c03eda5532182bc71e75"
+    },
+    {
+      "bytes": 38562,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-en-member-read-only.png",
+      "sha256": "672ba23e3da67f22fa41d45bdf64d4865747ec20f20d81994211c4cd2a4b46d6"
+    },
+    {
+      "bytes": 45236,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-en-share-confirm.png",
+      "sha256": "bdcb2ce5e2f9b01ce8db165a2812e28c99621084090ec59f7a1f71bd02d17e94"
+    },
+    {
+      "bytes": 36531,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-en-team-grouped.png",
+      "sha256": "41d3b5efdeb81ece303fb27d81ee39b3fd91a72d980fe2bd52edaf4cd5dc50e9"
+    },
+    {
+      "bytes": 38934,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-zh-member-read-only.png",
+      "sha256": "c3858b26de4acaa11c28aa98e9218bac0dbcc898d33a42e1e0660b59c28b47d3"
+    },
+    {
+      "bytes": 45854,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-zh-share-confirm.png",
+      "sha256": "d682f6de1d8e5556bc05198daeeeaf007d9ad0b6aecab0cbdc62a07f5aa7310e"
+    },
+    {
+      "bytes": 35689,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/desktop-zh-team-grouped.png",
+      "sha256": "8c22735d5898f9ff399bcad19f3e190b4aaebca4b4c8ae24559972b759160b5f"
+    },
+    {
+      "bytes": 33191,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-en-member-read-only.png",
+      "sha256": "aff3e5cc7d79e4e2389521a3913848e394bf88de6a803194c9970a5f5e0ad07b"
+    },
+    {
+      "bytes": 38214,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-en-share-confirm.png",
+      "sha256": "8897e9b0161ae55c99fc16ba1f89d948eb42cd8a643f5ac5ba05e44b8b9c109b"
+    },
+    {
+      "bytes": 31513,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-en-team-grouped.png",
+      "sha256": "b8bc0552bbfa16ae2c5489ce41617b610507926753bb30e568a92897f740ee86"
+    },
+    {
+      "bytes": 33930,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-zh-member-read-only.png",
+      "sha256": "50e05920ad6d7ab5cc715a3a190ee8514706ea2a1304fd81a96b8e9bb7e5f612"
+    },
+    {
+      "bytes": 40521,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-zh-share-confirm.png",
+      "sha256": "28714475a265bcba74a5dc29c6711cfd63e73bbdb1d95d530dbe2cea575d6d74"
+    },
+    {
+      "bytes": 30748,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/prior-protected/mobile-zh-team-grouped.png",
+      "sha256": "46a9fa29f3e07e6c638b6af6c292c0ebf826477a4d685b576298c01cd19b2755"
+    },
+    {
+      "bytes": 1537,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/producer-lifecycle-change.json",
+      "sha256": "848479606e2b9183d600e158a091186918f96497647fba0d91ca8bee95c2522e"
+    },
+    {
+      "bytes": 2393,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/source-consumers-current/execution.json",
+      "sha256": "827850159a21548fdfed3a6d0dd4263557229ce00f45e577abb1754cdf15e045"
+    },
+    {
+      "bytes": 6109,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/source-consumers-current/guards.json",
+      "sha256": "8c1f0d25fbb0718ba1092e4846a5e5bfb3e5b742095fa9c95da8a9dbdf0905b2"
+    },
+    {
+      "bytes": 377,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/source-consumers-current/guards.log",
+      "sha256": "41e78e3f92ce33dfceb23a248cd78e037e3dabd3fd42aaae9378707cf5d7587e"
+    },
+    {
+      "bytes": 0,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/source-consumers-current/lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 244377,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/source-consumers-current/source-after.json",
+      "sha256": "178057888a5a45e0302d7b9afecd0cfac55d860da3f1962be3ccb7ea6dfb3bf7"
+    },
+    {
+      "bytes": 244377,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/source-consumers-current/source-before.json",
+      "sha256": "178057888a5a45e0302d7b9afecd0cfac55d860da3f1962be3ccb7ea6dfb3bf7"
+    },
+    {
+      "bytes": 0,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/source-consumers-current/typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 748,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/visual-review.json",
+      "sha256": "d26ded3f872753c7649d38d3d65672ed5acbb5836b8d4bc7aa6e917c6686a108"
+    },
+    {
+      "bytes": 772,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-current/capture.log",
+      "sha256": "f80cacd0ea6295936254f1839dd4dc01479bbf2d7e1bb4155143328a39d6aba8"
+    },
+    {
+      "bytes": 5782,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-current/execution.json",
+      "sha256": "7677615e410a0c55fd60bd848724ab97322f604575d7b2e3be6af0349b895194"
+    },
+    {
+      "bytes": 269,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-current/packet-source-drift.json",
+      "sha256": "b2d226c98af7abc2a9c8e87ba1397b39bd57cde54ffaaa47968f3333dbc725c3"
+    },
+    {
+      "bytes": 3971,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-current/preserved-packets-before.json",
+      "sha256": "be0b04c9f0576e49d4fc8577ece3eb3a73bff9a91e2ad2f279ad2d619f0b1ba7"
+    },
+    {
+      "bytes": 238305,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-current/source-after.json",
+      "sha256": "830c4be5beb2d9e03c2324dae540dfeaaad8153119c3b7a4861a2456d91a23f6"
+    },
+    {
+      "bytes": 238305,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-current/source-before.json",
+      "sha256": "830c4be5beb2d9e03c2324dae540dfeaaad8153119c3b7a4861a2456d91a23f6"
+    },
+    {
+      "bytes": 693,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/capture.log",
+      "sha256": "6115bb191858daaff7ce2e3a3d0313d3dc0878f40f14818e7733d432bd025941"
+    },
+    {
+      "bytes": 5785,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/execution.json",
+      "sha256": "bb2e1321caced7393603edd82a423bde5cd7f7be1397767be2e4b4f6f72bd67d"
+    },
+    {
+      "bytes": 269,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/packet-source-drift.json",
+      "sha256": "b2d226c98af7abc2a9c8e87ba1397b39bd57cde54ffaaa47968f3333dbc725c3"
+    },
+    {
+      "bytes": 3971,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/preserved-packets-before.json",
+      "sha256": "be0b04c9f0576e49d4fc8577ece3eb3a73bff9a91e2ad2f279ad2d619f0b1ba7"
+    },
+    {
+      "bytes": 587,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/CAPTURE_HISTORY.md",
+      "sha256": "01fc486b4e6f4b4b9e2ea9b92c85eea38dd5de0d8c313dd37584ef2c42eb2698"
+    },
+    {
+      "bytes": 4304,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/EVIDENCE.yml",
+      "sha256": "5a267267e82d8eaf42e15d08b8b699da613d864f812b4e57fbc729d4d17d282a"
+    },
+    {
+      "bytes": 38562,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/desktop-en-member-read-only.png",
+      "sha256": "672ba23e3da67f22fa41d45bdf64d4865747ec20f20d81994211c4cd2a4b46d6"
+    },
+    {
+      "bytes": 45236,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/desktop-en-share-confirm.png",
+      "sha256": "bdcb2ce5e2f9b01ce8db165a2812e28c99621084090ec59f7a1f71bd02d17e94"
+    },
+    {
+      "bytes": 36531,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/desktop-en-team-grouped.png",
+      "sha256": "41d3b5efdeb81ece303fb27d81ee39b3fd91a72d980fe2bd52edaf4cd5dc50e9"
+    },
+    {
+      "bytes": 39234,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/desktop-zh-member-read-only.png",
+      "sha256": "8a1b0eac60a71558eb8cd280ea0afef5f61d1d98062954b464873328f1df53d4"
+    },
+    {
+      "bytes": 46667,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/desktop-zh-share-confirm.png",
+      "sha256": "939753321bf460df4a9e8076f3f34d73b9acd544f51e4472bf12c22a1d04a5bc"
+    },
+    {
+      "bytes": 36072,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/desktop-zh-team-grouped.png",
+      "sha256": "2b8395fb5090fa61b2234b9d2009e7677608267d5b6dbba30e7760b534dd4142"
+    },
+    {
+      "bytes": 33191,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/mobile-en-member-read-only.png",
+      "sha256": "aff3e5cc7d79e4e2389521a3913848e394bf88de6a803194c9970a5f5e0ad07b"
+    },
+    {
+      "bytes": 38214,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/mobile-en-share-confirm.png",
+      "sha256": "8897e9b0161ae55c99fc16ba1f89d948eb42cd8a643f5ac5ba05e44b8b9c109b"
+    },
+    {
+      "bytes": 31513,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/mobile-en-team-grouped.png",
+      "sha256": "b8bc0552bbfa16ae2c5489ce41617b610507926753bb30e568a92897f740ee86"
+    },
+    {
+      "bytes": 34293,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/mobile-zh-member-read-only.png",
+      "sha256": "ca44df213e8c080beb32db80a409826c402f00d920f86c7db004cfd995719e52"
+    },
+    {
+      "bytes": 41569,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/mobile-zh-share-confirm.png",
+      "sha256": "01fd9e2c2e659871402b7b3b507f08fcb1f864b3740c3b393565f553aab037df"
+    },
+    {
+      "bytes": 31176,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/returned-packet/mobile-zh-team-grouped.png",
+      "sha256": "bfb991232832c4878e4fccba023cf8d156db61d4f9ee0583aeeda531c2ad7080"
+    },
+    {
+      "bytes": 238305,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/source-after.json",
+      "sha256": "a0d05ce7f875f4a907ea1c135e5164cbb1472421077af753ec60850d1b269941"
+    },
+    {
+      "bytes": 238305,
+      "path": "terminal/docs/verification/pr900-workspace-successor-20261110/workspace-r1/source-before.json",
+      "sha256": "a0d05ce7f875f4a907ea1c135e5164cbb1472421077af753ec60850d1b269941"
+    }
+  ],
+  "schema": "terminal.pr900.proof-inventory.v1"
+}

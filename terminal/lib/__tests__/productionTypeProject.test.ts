@@ -40,11 +40,16 @@ describe("strict production TypeScript project", () => {
   it.each([
     ["production", "0", "0", "tsconfig.build.json", undefined],
     ["development", "0", "0", "tsconfig.json", undefined],
-    ["development", "1", "1", "tsconfig.json", undefined],
+    ["development", "1", "1", "tsconfig.f11.json", ".next/f11"],
+    ["development", "0", "1", "tsconfig.json", undefined],
+    ["development", "1", "0", "tsconfig.json", undefined],
+    ["production", "1", "1", "tsconfig.build.json", undefined],
+    ["test", "1", "1", "tsconfig.json", undefined],
   ])("preserves actual config selection for %s fixture=%s providerClosed=%s", async (mode, fixture, closed, project, distDir) => {
     vi.stubEnv("NODE_ENV", mode);
     vi.stubEnv("TERMINAL_E2E_FIXTURE", fixture);
     vi.stubEnv("TERMINAL_F11_PROVIDER_CLOSED", closed);
+    vi.stubEnv("TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT", "");
     try {
       vi.resetModules();
       const { default: config } = await import("../../next.config");
@@ -53,24 +58,29 @@ describe("strict production TypeScript project", () => {
     } finally { vi.unstubAllEnvs(); vi.resetModules(); }
   });
   it.each([
-    ["development", "1", "intl-fixture-v1", false],
-    ["production", "1", "intl-fixture-v1", undefined],
-    ["test", "1", "intl-fixture-v1", undefined],
-    ["development", "0", "intl-fixture-v1", undefined],
-    ["development", "true", "intl-fixture-v1", undefined],
-    ["development", "1", "other", undefined],
-    ["development", "1", "", undefined],
-  ])("keeps closed transport debug selection exact for %s/%s/%s", async (mode, fixture, transport, debug) => {
+    ["development", "1", "0", "intl-fixture-v1", false, "tsconfig.json", undefined],
+    ["development", "1", "1", "intl-fixture-v1", false, "tsconfig.f11.json", ".next/f11"],
+    ["production", "1", "0", "intl-fixture-v1", undefined, "tsconfig.build.json", undefined],
+    ["production", "1", "1", "intl-fixture-v1", undefined, "tsconfig.build.json", undefined],
+    ["test", "1", "0", "intl-fixture-v1", undefined, "tsconfig.json", undefined],
+    ["development", "0", "0", "intl-fixture-v1", undefined, "tsconfig.json", undefined],
+    ["development", "true", "0", "intl-fixture-v1", undefined, "tsconfig.json", undefined],
+    ["development", "1", "0", "other", undefined, "tsconfig.json", undefined],
+    ["development", "1", "0", "", undefined, "tsconfig.json", undefined],
+  ])("keeps closed transport and F11 selection exact for %s/%s/%s/%s", async (mode, fixture, f11, transport, debug, project, distDir) => {
     vi.stubEnv("NODE_ENV", mode);
     vi.stubEnv("TERMINAL_E2E_FIXTURE", fixture);
+    vi.stubEnv("TERMINAL_F11_PROVIDER_CLOSED", f11);
     vi.stubEnv("TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT", transport);
     try {
       vi.resetModules();
       const { default: config } = await import("../../next.config");
       expect(config.experimental?.reactDebugChannel).toBe(debug);
-      expect(config.typescript?.tsconfigPath).toBe(mode === "production" ? "tsconfig.build.json" : "tsconfig.json");
-      expect(config.distDir).toBeUndefined();
-      if (debug === undefined) expect(config).not.toHaveProperty("experimental");
+      const fixtureDev = mode === "development" && fixture === "1";
+      expect(config.experimental?.turbopackFileSystemCacheForDev).toBe(fixtureDev ? false : undefined);
+      expect(config.typescript?.tsconfigPath).toBe(project);
+      expect(config.distDir).toBe(distDir);
+      if (debug === undefined && !fixtureDev) expect(config).not.toHaveProperty("experimental");
     } finally { vi.unstubAllEnvs(); vi.resetModules(); }
   });
   it("inherits every full-project compiler option unchanged", () => {
@@ -107,7 +117,7 @@ describe("strict production TypeScript project", () => {
     const workflow = fs.readFileSync(path.join(root, "../.github/workflows/ci.yml"), "utf8");
     expect(workflow).toMatch(/run: npx next typegen[\s\S]*run: npx tsc --noEmit/);
     const config = fs.readFileSync(path.join(root, "next.config.ts"), "utf8");
-    expect(config).toContain('tsconfigPath: isProd ? "tsconfig.build.json" : "tsconfig.json"');
+    expect(config).toContain('tsconfigPath: isProd ? "tsconfig.build.json" : isF11Capture ? "tsconfig.f11.json" : "tsconfig.json"');
     expect(config).not.toMatch(/ignoreBuildErrors\s*:\s*true/);
   });
   it("still rejects an ordinary application error", () => fixture(dir => {

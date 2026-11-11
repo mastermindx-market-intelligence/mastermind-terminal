@@ -178,6 +178,19 @@
 .exactTable td[data-sign="up"] { color: var(--sn-up); }
 .exactTable td[data-sign="down"] { color: var(--sn-down); }
 
+/* ---- Basket member list (population route; counts-only, never "all members") ---- */
+.populationControls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.populationLabel { color: var(--sn-muted); font-size: 12px; white-space: nowrap; }
+.populationSearch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.populationInput { min-width: 180px; padding: 8px 10px; border: 1px solid var(--sn-line); border-radius: 8px;
+  background: transparent; color: var(--sn-text); font: inherit; }
+.populationTableWrap { overflow-x: auto; }
+.populationTable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.populationTable th { color: var(--sn-muted); font-size: 11px; font-weight: 500; text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--sn-line); white-space: nowrap; }
+.populationTable td { text-align: left; padding: 10px; border-bottom: 1px solid var(--sn-line); font-size: 13px; white-space: nowrap; }
+.populationTable td:first-child { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.populationUnserved { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+
 /* ---- Responsive (guide rule 14: no horizontal page overflow; inspector stacks) ---- */
 @media (max-width: 1180px) {
   .inspector { flex-basis: 300px; }

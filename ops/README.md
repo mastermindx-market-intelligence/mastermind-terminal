@@ -96,3 +96,10 @@ artifact (`calendar_unreadable`).
 
 No deploy action is required beyond setting `MACRO_DATA_DIR` in `/etc/*.env` on the VPS if the
 default `/opt/macro/site/data` ever diverges from macro's actual `REPO` path.
+
+## terminal-e2e-lane/
+
+Host files of the self-hosted Terminal e2e lane: the per-slot loop, its systemd unit
+and slice, the JIT minting tool and the provisioning script. The installed copies must
+be byte-identical to these files; install them only through `provision.sh`. Contract
+and operator procedure: [`docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md`](../docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md).

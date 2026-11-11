@@ -1,0 +1,45 @@
+{
+  "branchHead": "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7",
+  "browser": {
+    "expiry": {
+      "lifecycleSha256": "47315af82dc5e75813a914ac74d8001371e6f8fe38d0775c5a7aa090f77531f4",
+      "qualification": "expiry-journeys/qualification.json",
+      "sha256": "caffdecc46531a7da8f0173f6ccde0b43db30be16c7e91a2b6970e789c2b32e7"
+    },
+    "joint": {
+      "lifecycleSha256": "638a684351368d6bfe0bf9faddc9dbdd6dee2d8731debd4f9149a62ed44f24d4",
+      "qualification": "qualification.json",
+      "sha256": "fdb68045af826d208615fd3b2d54955961053312ba57d60895fdfa116b394c12"
+    }
+  },
+  "capturedSourceTree": "28755f8133c5208c38ca7af4645e0eaee1610187",
+  "history": {
+    "expiryQualificationSha256": "436bbf7bdbee1bb9d7e5d8043878a286093a59f8a54690f71b2b7ae1eff39303",
+    "jointQualificationSha256": "fee8ee7eb79e7a1a680c51b2121e94f78708fba5b14551c3ea701a42556f8210",
+    "roots": {
+      "eod": {
+        "path": "prior-roots/eod.EVIDENCE.yml",
+        "sha256": "cd5eb7169f9cd7c1be2cb12f30b0c92dfa3c856bc5c0bb47e562bfdf56de20b7"
+      },
+      "gex": {
+        "path": "prior-roots/gex.EVIDENCE.yml",
+        "sha256": "5092c3cfff5b1245aecce7750fca2adb845c04e97f164a6330293b7ddbf19ad9"
+      }
+    }
+  },
+  "integratedDependency": "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185",
+  "native": {
+    "eod": {
+      "descriptorSha256": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+      "revision": "options-integration-20261109"
+    },
+    "gex": {
+      "descriptorSha256": "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453",
+      "revision": "expiry-greeks-integration-20261110"
+    }
+  },
+  "operation": "pr1427-exposure-momentum-integration-20261110",
+  "protectedMaster": "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185",
+  "revision": "exposure-momentum-integration-20261110",
+  "schema": "exposure_browser_successor.v1"
+}
