@@ -224,177 +224,180 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
         ))}
       </div>
 
-      {shown.length === 0 || !cursorDate ? (
-        <p role="status">{t("scNoHistory")}</p>
-      ) : props.view === "table" ? (
-        <div className={s.scrollTable}>
-          <table>
-            <caption>{chartLabel}</caption>
-            <thead>
-              <tr>
-                <th>{t("scObservationDate")}</th>
-                {shown.map((x) => (
-                  <th key={x.subjectId + x.label} scope="col">
-                    {x.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[...dates].reverse().map((date) => (
-                <tr key={date}>
-                  <th scope="row">{date}</th>
-                  {shown.map((x) => {
-                    const point = x.points.find((p) => p.date === date);
-                    return (
-                      <td key={x.subjectId + x.label}>
-                        {point ? fmtSeries(point.value) : "—"}
-                      </td>
-                    );
-                  })}
+      {/* Keep the measured host mounted across chart, table, and empty states. */}
+      <div ref={wrapRef}>
+        {shown.length === 0 || !cursorDate ? (
+          <p role="status">{t("scNoHistory")}</p>
+        ) : props.view === "table" ? (
+          <div className={s.scrollTable}>
+            <table>
+              <caption>{chartLabel}</caption>
+              <thead>
+                <tr>
+                  <th>{t("scObservationDate")}</th>
+                  {shown.map((x) => (
+                    <th key={x.subjectId + x.label} scope="col">
+                      {x.label}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <>
-          <div className={s.metrics} data-testid="cycle-observation" aria-live="polite">
-            {cursorPoint.map((r) => (
-              <div key={r.label}>
-                <span>{r.label}</span>
-                <strong>{fmtSeries(r.p!.value)}</strong>
-              </div>
-            ))}
-            <time dateTime={cursorDate}>{cursorDate}</time>
+              </thead>
+              <tbody>
+                {[...dates].reverse().map((date) => (
+                  <tr key={date}>
+                    <th scope="row">{date}</th>
+                    {shown.map((x) => {
+                      const point = x.points.find((p) => p.date === date);
+                      return (
+                        <td key={x.subjectId + x.label}>
+                          {point ? fmtSeries(point.value) : "—"}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div ref={wrapRef} className={s.graphWrap}>
-            <svg
-              viewBox={`0 0 ${w} ${h}`}
-              width={w}
-              height={h}
-              role="img"
-              aria-label={chartLabel}
-            >
-              {ticks.values.map((v) => {
-                const value = logScale ? Math.pow(10, v) : v;
-                return (
-                  <g key={v}>
-                    <line
-                      x1={padL}
-                      x2={w - padR}
-                      y1={y(value)}
-                      y2={y(value)}
-                      className={s.grid}
-                    />
-                    <text
-                      x={padL - 6}
-                      y={y(value) + 3.5}
-                      textAnchor="end"
-                      className={s.tickLabel}
-                    >
-                      {logScale
-                        ? formatValue(value, value >= 10 ? 0 : 1)
-                        : fmtTick(v, ticks.step)}
-                    </text>
-                  </g>
-                );
-              })}
-              {straddle && !logScale && (
-                <line x1={padL} x2={w - padR} y1={y(0)} y2={y(0)} className={s.zeroLine} />
-              )}
-              {shown.map((x, i) => (
-                <path
-                  key={x.subjectId + x.label}
-                  d={path(x.points)}
-                  className={i === 0 ? s.lineA : i === 1 ? s.lineB : s.lineC}
-                />
+        ) : (
+          <>
+            <div className={s.metrics} data-testid="cycle-observation" aria-live="polite">
+              {cursorPoint.map((r) => (
+                <div key={r.label}>
+                  <span>{r.label}</span>
+                  <strong>{fmtSeries(r.p!.value)}</strong>
+                </div>
               ))}
-              {props.turns.map((turn) => {
-                const t0 = stamp(turn.date);
-                if (!Number.isFinite(t0) || t0 < domain[0] || t0 > domain[1]) return null;
-                const cx = x(t0);
-                return (
-                  <g
-                    key={turn.date + turn.kind}
-                    className={turn.provisional ? s.turnProv : s.turnConfirmed}
-                  >
-                    <title>{`${turn.date} · ${turn.kind}${turn.provisional ? " · " + t("scProvisional") : ""}`}</title>
-                    <path
-                      d={
-                        turn.kind === "peak"
-                          ? `M${cx - 4} ${padT + 4} L${cx} ${padT - 2} L${cx + 4} ${padT + 4} Z`
-                          : `M${cx - 4} ${padT + 8} L${cx} ${padT + 2} L${cx + 4} ${padT + 8} Z`
-                      }
-                    />
-                  </g>
-                );
-              })}
-              {labelledTurns.map((d) => {
-                const turn = props.turns.find((v) => v.date === d);
-                if (!turn) return null;
-                return (
-                  <text
-                    key={"lbl-" + d}
-                    x={x(stamp(d))}
-                    y={padT - 8}
-                    textAnchor="middle"
-                    className={s.turnLabel}
-                  >
-                    {`${t(turn.kind === "peak" ? "scTurnWordPeak" : "scTurnWordTrough")} ${d}`}
-                  </text>
-                );
-              })}
-              {cursorT !== null && (
-                <line
-                  x1={x(cursorT)}
-                  x2={x(cursorT)}
-                  y1={padT - 4}
-                  y2={h - padB}
-                  className={s.cursor}
-                />
-              )}
-              {cursorPoint.map((r, i) =>
-                r.p ? (
-                  <circle
-                    key={r.label}
-                    cx={x(r.p.t)}
-                    cy={y(r.p.value)}
-                    r={3}
-                    className={i === 0 ? s.dotA : s.dotB}
+              <time dateTime={cursorDate}>{cursorDate}</time>
+            </div>
+            <div className={s.graphWrap}>
+              <svg
+                viewBox={`0 0 ${w} ${h}`}
+                width={w}
+                height={h}
+                role="img"
+                aria-label={chartLabel}
+              >
+                {ticks.values.map((v) => {
+                  const value = logScale ? Math.pow(10, v) : v;
+                  return (
+                    <g key={v}>
+                      <line
+                        x1={padL}
+                        x2={w - padR}
+                        y1={y(value)}
+                        y2={y(value)}
+                        className={s.grid}
+                      />
+                      <text
+                        x={padL - 6}
+                        y={y(value) + 3.5}
+                        textAnchor="end"
+                        className={s.tickLabel}
+                      >
+                        {logScale
+                          ? formatValue(value, value >= 10 ? 0 : 1)
+                          : fmtTick(v, ticks.step)}
+                      </text>
+                    </g>
+                  );
+                })}
+                {straddle && !logScale && (
+                  <line x1={padL} x2={w - padR} y1={y(0)} y2={y(0)} className={s.zeroLine} />
+                )}
+                {shown.map((x, i) => (
+                  <path
+                    key={x.subjectId + x.label}
+                    d={path(x.points)}
+                    className={i === 0 ? s.lineA : i === 1 ? s.lineB : s.lineC}
                   />
-                ) : null,
-              )}
-              {labelDates.map((d) => (
-                <text
-                  key={d}
-                  x={x(stamp(d))}
-                  y={h - 6}
-                  textAnchor="middle"
-                  className={s.tickLabel}
-                >
-                  {d}
-                </text>
-              ))}
-            </svg>
-          </div>
-          <input
-            aria-label={t("scObservationDate")}
-            aria-valuetext={cursorDate}
-            type="range"
-            min={0}
-            max={Math.max(0, dates.length - 1)}
-            step={1}
-            disabled={dates.length < 2}
-            value={Math.max(0, dates.indexOf(cursorDate))}
-            onChange={(e) => props.onCursor(dates[Number(e.target.value)] ?? null)}
-          />
-          <div className={s.dates}>
-            <span>{dates[0]}</span>
-            <span>{dates[dates.length - 1]}</span>
-          </div>
-        </>
-      )}
+                ))}
+                {props.turns.map((turn) => {
+                  const t0 = stamp(turn.date);
+                  if (!Number.isFinite(t0) || t0 < domain[0] || t0 > domain[1]) return null;
+                  const cx = x(t0);
+                  return (
+                    <g
+                      key={turn.date + turn.kind}
+                      className={turn.provisional ? s.turnProv : s.turnConfirmed}
+                    >
+                      <title>{`${turn.date} · ${turn.kind}${turn.provisional ? " · " + t("scProvisional") : ""}`}</title>
+                      <path
+                        d={
+                          turn.kind === "peak"
+                            ? `M${cx - 4} ${padT + 4} L${cx} ${padT - 2} L${cx + 4} ${padT + 4} Z`
+                            : `M${cx - 4} ${padT + 8} L${cx} ${padT + 2} L${cx + 4} ${padT + 8} Z`
+                        }
+                      />
+                    </g>
+                  );
+                })}
+                {labelledTurns.map((d) => {
+                  const turn = props.turns.find((v) => v.date === d);
+                  if (!turn) return null;
+                  return (
+                    <text
+                      key={"lbl-" + d}
+                      x={x(stamp(d))}
+                      y={padT - 8}
+                      textAnchor="middle"
+                      className={s.turnLabel}
+                    >
+                      {`${t(turn.kind === "peak" ? "scTurnWordPeak" : "scTurnWordTrough")} ${d}`}
+                    </text>
+                  );
+                })}
+                {cursorT !== null && (
+                  <line
+                    x1={x(cursorT)}
+                    x2={x(cursorT)}
+                    y1={padT - 4}
+                    y2={h - padB}
+                    className={s.cursor}
+                  />
+                )}
+                {cursorPoint.map((r, i) =>
+                  r.p ? (
+                    <circle
+                      key={r.label}
+                      cx={x(r.p.t)}
+                      cy={y(r.p.value)}
+                      r={3}
+                      className={i === 0 ? s.dotA : s.dotB}
+                    />
+                  ) : null,
+                )}
+                {labelDates.map((d) => (
+                  <text
+                    key={d}
+                    x={x(stamp(d))}
+                    y={h - 6}
+                    textAnchor="middle"
+                    className={s.tickLabel}
+                  >
+                    {d}
+                  </text>
+                ))}
+              </svg>
+            </div>
+            <input
+              aria-label={t("scObservationDate")}
+              aria-valuetext={cursorDate}
+              type="range"
+              min={0}
+              max={Math.max(0, dates.length - 1)}
+              step={1}
+              disabled={dates.length < 2}
+              value={Math.max(0, dates.indexOf(cursorDate))}
+              onChange={(e) => props.onCursor(dates[Number(e.target.value)] ?? null)}
+            />
+            <div className={s.dates}>
+              <span>{dates[0]}</span>
+              <span>{dates[dates.length - 1]}</span>
+            </div>
+          </>
+        )}
+      </div>
 
       <div className={s.turns} data-testid="cycle-turns">
         <h4>{t("scTurns")}</h4>
