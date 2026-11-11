@@ -431,6 +431,12 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      - name: Capture current-source E18 alert-management evidence
+        timeout-minutes: 8
+        env:
+          TERMINAL_CROP_PORT: "47283"
+          TMPDIR: ${{ runner.temp }}/terminal-ci-evidence
+        run: node e2e/tools/capture_e18_alert_management.cjs
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 85
@@ -580,6 +586,7 @@ jobs:
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
             terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
+            terminal/docs/pr-crops/e18-alert-management/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
