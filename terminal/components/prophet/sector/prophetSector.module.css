@@ -23,17 +23,9 @@
   border-radius: 14px;
   background: linear-gradient(112deg, rgba(41, 98, 255, 0.10), rgba(255, 255, 255, 0.02));
 }
-.laneTitle {
-  margin: 0;
-  font: 760 18px/1.2 var(--font-ui);
-  letter-spacing: -0.02em;
-  color: var(--text);
-}
-.laneCaption {
-  margin: 2px 0 0;
-  font: 500 11px/1.3 var(--font-ui);
-  color: var(--muted);
-}
+/* The in-lane title card (.laneTitle/.laneCaption) was folded away in review:
+   the active lane tab already carries the lane name and caption; .laneHead now
+   hosts only the labelled return control, and only when there is one. */
 .returnControl {
   display: inline-flex;
   align-items: center;
@@ -340,7 +332,11 @@
   white-space: nowrap;
 }
 .memberTable tr:last-child td { border-bottom: none; }
-.symbolCell { display: flex; flex-direction: column; gap: 2px; }
+/* One row rule per row: NO display override on the td itself (a flex td leaves
+   table-cell layout and its border-bottom draws at its own content height —
+   the stepped dividers). The stacked content lives in this inner block. */
+.cellStack { display: flex; flex-direction: column; gap: 2px; }
+.symbolCell, .stateCell { vertical-align: top; }
 .symbolButton {
   align-self: flex-start;
   min-height: 36px;
@@ -366,8 +362,8 @@
 .nameCell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
 .alsoIn { color: var(--text-dim); font-size: 10.5px; }
 .sinceCell { font-variant-numeric: tabular-nums; color: var(--muted); }
-.stateCell { display: flex; flex-direction: column; gap: 2px; white-space: normal; max-width: 240px; }
-.stateCell > span:first-child { font-weight: 600; }
+.stateCell .cellStack { white-space: normal; max-width: 240px; }
+.stateCell .cellStack > span:first-child { font-weight: 600; }
 .stateOpen { color: var(--up); }
 .stateResolved { color: var(--text-2); }
 .stateUnavailable { color: var(--text-dim); }

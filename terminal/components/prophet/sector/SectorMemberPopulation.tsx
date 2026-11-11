@@ -141,16 +141,23 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
                 return (
                   <tr key={member.symbol} className={styles.memberRow}>
                     <td className={styles.symbolCell}>
-                      <button
-                        type="button"
-                        className={styles.symbolButton}
-                        aria-label={prophetSectorFill(t("setupAria"), { symbol: member.symbol })}
-                        data-testid={`prophet-sector-open-${member.symbol}`}
-                        onClick={() => onOpenMember(member.symbol, planId)}
-                      >
-                        {member.symbol}
-                      </button>
-                      <span className={styles.setupHint}>{t("openSetup")}</span>
+                      {/* The stack lives INSIDE the td: a td with display:flex
+                          opts out of table-cell layout, so its row rule drew at
+                          its own content height — the stepped dividers the
+                          review caught. Every td stays a table-cell; the rule
+                          is one line per row at the common row bottom. */}
+                      <div className={styles.cellStack}>
+                        <button
+                          type="button"
+                          className={styles.symbolButton}
+                          aria-label={prophetSectorFill(t("setupAria"), { symbol: member.symbol })}
+                          data-testid={`prophet-sector-open-${member.symbol}`}
+                          onClick={() => onOpenMember(member.symbol, planId)}
+                        >
+                          {member.symbol}
+                        </button>
+                        <span className={styles.setupHint}>{t("openSetup")}</span>
+                      </div>
                     </td>
                     <td className={styles.nameCell}>
                       {member.name ?? "—"}
@@ -167,14 +174,16 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
                       {member.firstKnown !== null ? prophetSectorFill(t("sinceAtLeast"), { date: member.firstKnown }) : "—"}
                     </td>
                     <td className={styles.stateCell}>
-                      <span className={stateToneClass(member.prophet.state)} data-testid={`prophet-sector-state-${member.symbol}`}>
-                        {t(PROPHET_STATE_LABEL_KEY[member.prophet.state])}
-                      </span>
-                      {member.prophet.state === "none" || member.prophet.state === "unavailable" ? (
-                        <span className={styles.stateReason}>{t(prophetReasonKey(member.prophet.reason))}</span>
-                      ) : member.prophet.observation !== null ? (
-                        <span className={styles.stateReason}>{prophetSectorFill(t("setupObservation"), { asof: member.prophet.observation.asof })}</span>
-                      ) : null}
+                      <div className={styles.cellStack}>
+                        <span className={stateToneClass(member.prophet.state)} data-testid={`prophet-sector-state-${member.symbol}`}>
+                          {t(PROPHET_STATE_LABEL_KEY[member.prophet.state])}
+                        </span>
+                        {member.prophet.state === "none" || member.prophet.state === "unavailable" ? (
+                          <span className={styles.stateReason}>{t(prophetReasonKey(member.prophet.reason))}</span>
+                        ) : member.prophet.observation !== null ? (
+                          <span className={styles.stateReason}>{prophetSectorFill(t("setupObservation"), { asof: member.prophet.observation.asof })}</span>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 );

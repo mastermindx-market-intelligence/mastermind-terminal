@@ -1102,9 +1102,12 @@ html[data-mmx-shared-shell="1"][data-theme="light"] .obs-options-alpha-candidate
   .obs-options-alpha-context-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
-  .obs-prophet-lane-nav { display:flex; align-self:stretch; width:auto; overflow-x:auto; scrollbar-width:none; }
-  .obs-prophet-lane-nav::-webkit-scrollbar { display:none; }
-  .obs-prophet-lane-nav button { flex:0 0 max-content; min-height:42px; padding:7px 11px; }
+  /* Four lanes, all reachable and all VISIBLE: a 2×2 grid. The previous
+     flex + hidden-scrollbar row clipped the fourth lane ("Sector context")
+     off-screen at 390/320 with no affordance showing it exists. */
+  .obs-prophet-lane-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); align-self: stretch; width: auto; margin: 10px 12px 0; }
+  .obs-prophet-lane-nav button { min-height: 44px; }
+  .obs-prophet-lane-nav button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .obs-prophet-lane-nav button small { display:none; }
   .obs-options-alpha { padding: 8px 8px 12px; overflow-y: auto; }
   .obs-options-alpha-head { padding: 11px 12px; }

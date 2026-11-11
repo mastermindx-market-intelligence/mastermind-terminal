@@ -138,12 +138,13 @@ export function ProphetSectorView({ state, update }: {
 
   return (
     <div className={`obs-prophet ${styles.lane}`} data-testid="prophet-sector-lane">
-      <header className={styles.laneHead}>
-        <div>
-          <h2 className={styles.laneTitle}>{t("laneSector")}</h2>
-          <p className={styles.laneCaption}>{t("laneSectorCaption")}</p>
-        </div>
-        {state.from !== null ? (
+      {/* Review fold: the active lane tab already names "Sector context /
+          members · descriptive" — repeating it as a full-width in-lane card
+          duplicated that heading (and cost a third of mobile's first screen).
+          The lane opens directly on its content; only the labelled return
+          control remains here, and only when there is somewhere to return to. */}
+      {state.from !== null ? (
+        <header className={styles.laneHead}>
           <a
             className={styles.returnControl}
             data-testid="prophet-sector-return"
@@ -152,8 +153,8 @@ export function ProphetSectorView({ state, update }: {
           >
             ← {t("returnToSector")}
           </a>
-        ) : null}
-      </header>
+        </header>
+      ) : null}
 
       <div className={styles.laneBody}>
         {state.view === "overview" ? (
