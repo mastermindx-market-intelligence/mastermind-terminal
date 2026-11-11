@@ -191,7 +191,12 @@ function fmtDate(iso: string | null | undefined, lang: "en" | "zh"): string | nu
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export function ProphetView() {
+export function ProphetView({ selectedPlanId, onSelectPlan }: {
+  /** Address-carried selection (deep link / sector Setup): when set it wins. */
+  selectedPlanId?: string | null;
+  /** Local picks report out so the address follows the board selection. */
+  onSelectPlan?: (planId: string | null) => void;
+} = {}) {
   const { lang } = useLang();
   const t = makeProphetT(lang);
   const { view: cohortView } = useSelectionCohort();
@@ -200,7 +205,10 @@ export function ProphetView() {
   const [payload,     setPayload]     = useState<ProphetIndexPayload | null>(null);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState<string | null>(null);
-  const [selectedId,  setSelectedId]  = useState<string | null>(null);
+  // URL-carried selection wins over the local default; local picks flow out to
+  // the address via onSelectPlan and come back through selectedPlanId.
+  const [localId,     setLocalId]     = useState<string | null>(null);
+  const selectedId    = selectedPlanId ?? localId;
   const [sortMode,    setSortMode]    = useState<SortMode>("new");
   const [subTab,      setSubTab]      = useState<SubTab>("signals");
   const [marks,       setMarks]       = useState<ProphetMarksPayload | null>(null);
@@ -220,7 +228,7 @@ export function ProphetView() {
       if (!data) throw new Error("fetch error");
       setPayload(data);
       if (data.plans?.length > 0) {
-        setSelectedId((id) => id ?? data.plans[0].id);
+        setLocalId((id) => id ?? data.plans[0].id);
       }
     } catch (err) {
       if ((err as Error).name === "AbortError") return;
@@ -399,7 +407,7 @@ export function ProphetView() {
                     plan={plan}
                     lang={lang}
                     selected={plan.id === selected?.id}
-                    onSelect={(p) => setSelectedId(p.id)}
+                    onSelect={(p) => { setLocalId(p.id); onSelectPlan?.(p.id); }}
                   />
                 ))
               )}

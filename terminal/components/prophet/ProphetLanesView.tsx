@@ -1,24 +1,30 @@
 "use client";
 
-import { useState } from "react";
 import { flowPrefetch } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import { OptionsAlphaView } from "./OptionsAlphaView";
 import { OptionsIssueDeskView } from "./OptionsIssueDeskView";
 import { ProphetView as MacroPlansView } from "./ProphetView";
 import { makeProphetT } from "./prophetStrings";
+import { makeProphetSectorT } from "./sector/prophetSectorStrings";
+import { ProphetSectorView } from "./sector/ProphetSectorView";
+import { useProphetUrlState } from "./useProphetUrlState";
 
-type ProphetLane = "macro" | "options" | "issue";
+type ProphetLane = "macro" | "options" | "issue" | "sector";
 
 export function ProphetLanesView() {
   const { lang } = useLang();
   const t = makeProphetT(lang);
-  const [lane, setLane] = useState<ProphetLane>("macro");
+  const sectorT = makeProphetSectorT(lang);
+  // Lane (and the sector lane's whole investigation) lives in the address:
+  // deep links, refresh and back/forward restore the same view.
+  const { state, update } = useProphetUrlState();
+  const lane = state.lane;
 
   const selectLane = (next: ProphetLane) => {
     if (next === "options") flowPrefetch("options_prophet_idx");
     else if (next === "macro") flowPrefetch("prophet_idx");
-    setLane(next);
+    update({ lane: next });
   };
 
   return (
@@ -64,6 +70,19 @@ export function ProphetLanesView() {
           <span>{t("laneIssueDesk")}</span>
           <small>{t("laneIssueDeskCaption")}</small>
         </button>
+        <button
+          id="prophet-lane-sector"
+          type="button"
+          role="tab"
+          aria-selected={lane === "sector"}
+          aria-controls="prophet-panel-sector"
+          className={lane === "sector" ? "on" : ""}
+          data-testid="prophet-lane-sector"
+          onClick={() => selectLane("sector")}
+        >
+          <span>{sectorT("laneSector")}</span>
+          <small>{sectorT("laneSectorCaption")}</small>
+        </button>
       </nav>
 
       <div
@@ -73,7 +92,12 @@ export function ProphetLanesView() {
         className="obs-prophet-lane-panel"
         hidden={lane !== "macro"}
       >
-        {lane === "macro" && <MacroPlansView />}
+        {lane === "macro" && (
+          <MacroPlansView
+            selectedPlanId={state.plan}
+            onSelectPlan={planId => update({ plan: planId })}
+          />
+        )}
       </div>
       <div
         id="prophet-panel-options"
@@ -92,6 +116,15 @@ export function ProphetLanesView() {
         hidden={lane !== "issue"}
       >
         {lane === "issue" && <OptionsIssueDeskView />}
+      </div>
+      <div
+        id="prophet-panel-sector"
+        role="tabpanel"
+        aria-labelledby="prophet-lane-sector"
+        className="obs-prophet-lane-panel"
+        hidden={lane !== "sector"}
+      >
+        {lane === "sector" && <ProphetSectorView state={state} update={update} />}
       </div>
     </div>
   );

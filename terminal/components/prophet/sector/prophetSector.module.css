@@ -1,0 +1,624 @@
+/* Prophet × Sector lane — reuses observatory.css's Prophet grammar (panels,
+   radius, quiet chips, tabular numbers) and globals.css tokens. No new token
+   root, no colored container edges (2026-10-18 ruling): hierarchy comes from
+   spacing, type and surface depth; status is labeled text in semantic ink.
+   Responsive contract: desktop grid → single column at narrow widths, 44px
+   touch targets, zero horizontal overflow at 320px. */
+
+.lane {
+  gap: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ── Lane head + persistent return ─────────────────────────────────────── */
+.laneHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: linear-gradient(112deg, rgba(41, 98, 255, 0.10), rgba(255, 255, 255, 0.02));
+}
+.laneTitle {
+  margin: 0;
+  font: 760 18px/1.2 var(--font-ui);
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.laneCaption {
+  margin: 2px 0 0;
+  font: 500 11px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.returnControl {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--r-pill);
+  background: rgba(5, 7, 12, 0.45);
+  font: 600 12.5px/1 var(--font-ui);
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out);
+}
+.returnControl:hover {
+  border-color: rgba(77, 130, 255, 0.5);
+  background: rgba(41, 98, 255, 0.12);
+}
+@media (max-width: 640px) {
+  .returnControl { min-height: 44px; }
+}
+
+.laneBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.crumbs { display: flex; }
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: transparent;
+  font: 600 12.5px/1 var(--font-ui);
+  color: var(--link);
+  cursor: pointer;
+}
+.backButton:hover { text-decoration: underline; }
+@media (max-width: 640px) {
+  .backButton { min-height: 44px; }
+}
+
+/* ── Context strip (SX01) ──────────────────────────────────────────────── */
+.contextStrip {
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+}
+.contextHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.contextTitle {
+  margin: 0;
+  font: 700 15px/1.2 var(--font-ui);
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.contextWindowLabel {
+  font: 500 11px/1.2 var(--font-ui);
+  color: var(--muted);
+}
+.contextOwnerLabel {
+  margin: 6px 0 0;
+  font: 500 12.5px/1.45 var(--font-ui);
+  color: var(--text-2);
+}
+.contextStats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.contextStat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 86px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(5, 7, 12, 0.3);
+}
+.contextStat span {
+  font: 600 9px/1 var(--font-ui);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.contextStat b {
+  font: 700 13px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.contextClocks {
+  margin: 10px 0 0;
+  font: 500 11px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.contextVerdict {
+  margin: 8px 0 0;
+  font: 600 12.5px/1.45 var(--font-ui);
+  color: var(--warn);
+}
+.contextVerdictQuiet {
+  margin: 8px 0 0;
+  font: 500 11.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+
+/* ── Group picker (SX02) ───────────────────────────────────────────────── */
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pickerHead { padding: 0 2px; }
+.pickerTitle {
+  margin: 0;
+  font: 700 14px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.pickerIntro {
+  margin: 3px 0 0;
+  font: 500 11.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.pickerList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+}
+.pickerItem { display: flex; }
+.pickerCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out);
+}
+.pickerCard:hover { border-color: rgba(255, 255, 255, 0.2); }
+.pickerCardOn {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(41, 98, 255, 0.10);
+}
+.pickerCardOn .pickerName { color: #dce6ff; }
+.pickerName {
+  font: 700 13px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.pickerCounts {
+  font: 500 11px/1.2 var(--font-ui);
+  color: var(--text-2);
+}
+.pickerCoverage {
+  font: 500 10.5px/1.35 var(--font-ui);
+  color: var(--muted);
+}
+.pickerAction {
+  margin-top: 2px;
+  font: 600 10.5px/1 var(--font-ui);
+  color: var(--link);
+}
+
+/* ── Member population (SX04) ──────────────────────────────────────────── */
+.population {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.populationHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 2px;
+}
+.populationTitle {
+  margin: 0;
+  font: 700 14px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.populationCounts {
+  margin: 0;
+  font: 500 11px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.populationControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.populationSearch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.searchInput {
+  min-width: 0;
+  width: clamp(140px, 22vw, 220px);
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--inset);
+  font: 500 12.5px/1 var(--font-ui);
+  color: var(--text);
+}
+.searchInput::placeholder { color: var(--text-dim); }
+.stateChips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.stateChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  font: 600 11px/1 var(--font-ui);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.stateChip:hover { border-color: var(--line-3); }
+.stateChipOn {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(41, 98, 255, 0.14);
+  color: var(--text);
+}
+.stateChipCount {
+  font: 600 10.5px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.stateChipOn .stateChipCount { color: var(--text-2); }
+@media (max-width: 640px) {
+  .stateChip, .searchInput { min-height: 44px; }
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.22);
+}
+.memberTable {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 12px/1.35 var(--font-ui);
+  color: var(--text-2);
+}
+.memberTable th {
+  position: sticky;
+  top: 0;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(13, 15, 19, 0.96);
+  font: 600 9.5px/1 var(--font-ui);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+.memberTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-2);
+  vertical-align: top;
+  white-space: nowrap;
+}
+.memberTable tr:last-child td { border-bottom: none; }
+.symbolCell { display: flex; flex-direction: column; gap: 2px; }
+.symbolButton {
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 8px 8px;
+  margin: -8px 0;
+  border: none;
+  border-radius: var(--r);
+  background: transparent;
+  font: 700 12.5px/1 var(--font-num);
+  color: var(--link);
+  cursor: pointer;
+}
+.symbolButton:hover { text-decoration: underline; }
+.setupHint {
+  font: 500 9.5px/1 var(--font-ui);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+@media (max-width: 640px) {
+  .symbolButton { min-height: 44px; }
+}
+.nameCell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.alsoIn { color: var(--text-dim); font-size: 10.5px; }
+.sinceCell { font-variant-numeric: tabular-nums; color: var(--muted); }
+.stateCell { display: flex; flex-direction: column; gap: 2px; white-space: normal; max-width: 240px; }
+.stateCell > span:first-child { font-weight: 600; }
+.stateOpen { color: var(--up); }
+.stateResolved { color: var(--text-2); }
+.stateUnavailable { color: var(--text-dim); }
+.statePlain { color: var(--text-2); }
+.stateReason {
+  font: 500 10.5px/1.35 var(--font-ui);
+  color: var(--muted);
+}
+
+.pagerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 2px;
+}
+.shownLabel {
+  font: 500 11px/1.3 var(--font-ui);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.pagerButtons { display: flex; gap: 6px; }
+.smallButton {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.03);
+  font: 600 11.5px/1 var(--font-ui);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.smallButton:hover:not(:disabled) { border-color: var(--line-3); color: var(--text); }
+.smallButton:disabled { opacity: 0.45; cursor: default; }
+@media (max-width: 640px) {
+  .smallButton { min-height: 44px; }
+}
+
+.unserved {
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.18);
+}
+.unservedTitle {
+  margin: 0;
+  font: 700 12px/1.2 var(--font-ui);
+  color: var(--text-2);
+}
+.unservedNote {
+  margin: 3px 0 8px;
+  font: 500 11px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.unservedList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.unservedItem {
+  display: flex;
+  gap: 10px;
+  font: 500 11.5px/1.4 var(--font-ui);
+  color: var(--text-2);
+}
+.unservedSymbol {
+  min-width: 56px;
+  font: 700 11.5px/1.4 var(--font-num);
+  color: var(--text);
+}
+
+/* ── Setup (SX03) ──────────────────────────────────────────────────────── */
+.setup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.setupHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 2px;
+}
+.setupTitle {
+  margin: 0;
+  font: 760 17px/1.2 var(--font-ui);
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.setupName {
+  font: 500 12px/1.2 var(--font-ui);
+  color: var(--muted);
+}
+.setupMembership {
+  margin: 0;
+  padding: 0 2px;
+  font: 500 11.5px/1.4 var(--font-ui);
+  color: var(--text-2);
+}
+.setupSectionTitle {
+  margin: 0 0 6px;
+  font: 700 13.5px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.setupSubTitle {
+  margin: 0 0 3px;
+  font: 700 12px/1.2 var(--font-ui);
+  color: var(--text-2);
+}
+.setupPlan, .setupNoPlan {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.setupPlan :global(.obs-prophet-analysis) { border-radius: 12px; }
+.setupGroupBlock, .setupWhy {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.22);
+}
+.setupGroupStats {
+  margin: 0;
+  font: 700 13px/1.2 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.setupWhy p {
+  margin: 0;
+  font: 500 12px/1.45 var(--font-ui);
+  color: var(--text-2);
+}
+.setupObservation {
+  margin: 0;
+  font: 600 12px/1.4 var(--font-ui);
+  color: var(--text-2);
+}
+.chartLink {
+  align-self: flex-start;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.03);
+  font: 600 12px/1 var(--font-ui);
+  color: var(--link);
+  text-decoration: none;
+}
+.chartLink:hover { border-color: var(--line-3); }
+@media (max-width: 640px) {
+  .chartLink { min-height: 44px; }
+}
+.reportedLine {
+  margin: 0;
+  font: 500 10.5px/1.4 var(--font-ui);
+  color: var(--text-dim);
+}
+
+/* ── Sources disclosure ────────────────────────────────────────────────── */
+.sources {
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.18);
+}
+.sourcesSummary {
+  padding: 10px 12px;
+  font: 600 12px/1.2 var(--font-ui);
+  color: var(--text-2);
+  cursor: pointer;
+  list-style-position: inside;
+}
+.sourcesSummary:hover { color: var(--text); }
+.sourcesBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 2px 12px 12px;
+}
+.sourceBlock h4 {
+  margin: 0 0 4px;
+  font: 700 11.5px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.sourceLine {
+  margin: 0 0 3px;
+  font: 500 11px/1.45 var(--font-ui);
+  color: var(--text-2);
+}
+.sourceValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+.sourceLabel {
+  font: 600 9.5px/1 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sourceHash {
+  font: 500 11px/1 var(--font-code);
+  color: var(--text-2);
+}
+.copyButton {
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: transparent;
+  font: 600 10.5px/1 var(--font-ui);
+  color: var(--muted);
+  cursor: pointer;
+}
+.copyButton:hover { color: var(--text); border-color: var(--line-3); }
+.disclosureList {
+  margin: 0;
+  padding-left: 16px;
+  font: 500 11px/1.6 var(--font-ui);
+  color: var(--muted);
+}
+
+/* ── Shared copy states ────────────────────────────────────────────────── */
+.stateCopy {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.18);
+  font: 500 12.5px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+.stateCopy p { margin: 0 0 8px; }
+.stateCopy .smallButton { margin-top: 2px; }
+.emptyCopy {
+  margin: 0;
+  padding: 14px;
+  font: 500 12.5px/1.5 var(--font-ui);
+  color: var(--muted);
+}
+.a11yLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
