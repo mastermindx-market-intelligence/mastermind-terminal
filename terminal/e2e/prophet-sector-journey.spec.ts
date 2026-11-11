@@ -32,18 +32,63 @@ const enterSectorLane = async (page: Page) => {
   await expect(page.getByTestId("prophet-sector-lane")).toBeVisible();
 };
 
-/** The board read extended by the industrials fixture's own CARR plan row —
- * same synthetic-board class as the committed prophet fixture, extended at the
- * browser seam so the Setup's plan join has a real board row to select. */
+/** The REAL CARR-BULL-20261016 board row, byte-for-byte from the Prophet index
+ * capture the v1 member fixtures were generated from (Macro `prophet-si`
+ * `site/prophet/index.json`, asof 2026-11-09, source_asof 2026-11-06; plan row
+ * sha256 bcdb39369d807417503c65e25dc3ad62fe4b64d0b9f513a0e75678f2847e7808),
+ * projected onto exactly the 19 keys the committed board rows carry — every
+ * value verbatim, nothing invented. The committed fixture board is the
+ * 2026-07-07 generation and does not contain this plan; the review caught the
+ * previous stub relabelling the SBUX template row as CARR, which put
+ * Starbucks' levels and thesis on Carrier's setup. */
+const REAL_CARR_BOARD_PLAN = {
+  id: "CARR-BULL-20261016",
+  asset: "CARR",
+  direction: "BULL",
+  entry: 56.47,
+  invalidation: 52.26,
+  targets: [62.785, 69.1],
+  trigger: 56.77,
+  option_contract: null,
+  _r_unit: 4.21,
+  _conviction_score: 53,
+  _signal_date: "2026-10-20",
+  phase: "pre_trigger",
+  management_confidence: 32.3,
+  recommended_action: "wait",
+  last_price: 52.38,
+  state: {
+    phase: "pre_trigger",
+    management_confidence: 32.3,
+    recommended_action: "wait",
+    components: { validity: 0.1, progress: 0.0, pace: 24.9, retention: 50.0, overlay: 27.0 },
+    geometry: {
+      dist_to_stop_r: 0.029, dist_to_t1_r: 1.5, dist_to_t2_r: 3.0, horizon_pct_used: 42.2,
+      p1: -0.6477, p2: -0.3238, p3: null, move_r: -0.971, mfe_r: 0.002, mae_r: -0.971,
+    },
+    change_reason: "",
+  },
+  what_to_do_now: [
+    "A PIT price range or closing print touched the $55.72–$56.47 zone. This is not proof of order execution or of the separate closing trigger confirming.",
+    "Any position remains conditional on the plan's separate trigger and risk rules, including the $52.26 invalidation boundary.",
+  ],
+  profit_plan: [
+    { level: 62.785, label: "T1", action: "Scale out 40%, trail stop to entry", status: "ACTIVE" },
+    { level: 69.1, label: "T2", action: "Close remaining 60%, exit full position", status: "PENDING" },
+  ],
+  thesis: "CARR — conviction 53/100 (neutral) Entry grade: strong. Drivers: entry. Cautions: Earnings in 5 days. The result can override the setup, so size down.; Its Industrials (Equal-Weight) basket is below its long-term trend. Size down: the tape is rewarding leaders, and this basket is not one.. Trust tier: Event edge: insider buying (lone FDR survivor) + earnings-surprise PEAD context + revisions — a confluence read, not a standalone alpha. Options positioning (as of 2026-10-21): the heaviest call open interest sat at $57.00, about 0.9% above the entry — dealer hedging tends to add friction into that level, which is a place price stalls, not a target. DISPLAY-ONLY: machine-generated from factor scores; no forward return guarantee; display-tier artifact.",
+};
+
+/** The board read extended by the REAL CARR plan row (above) at the browser
+ * seam, so the Setup's plan join selects genuine 2026-11-09 evidence. */
 async function stubBoardWithCarr(page: Page) {
   await page.route(
     url => url.pathname === "/api/flow" && url.searchParams.get("f") === "prophet_idx",
     async route => {
       const response = await route.fetch();
       const board = await response.json() as { plans: Record<string, unknown>[] };
-      const template = board.plans.find(plan => typeof plan.id === "string" && String(plan.id).startsWith("SBUX"));
-      if (template && !board.plans.some(plan => plan.id === "CARR-BULL-20261016")) {
-        board.plans.push({ ...template, id: "CARR-BULL-20261016", asset: "CARR" });
+      if (!board.plans.some(plan => plan.id === "CARR-BULL-20261016")) {
+        board.plans.push(REAL_CARR_BOARD_PLAN);
       }
       await route.fulfill({ response, json: board });
     },
@@ -115,9 +160,23 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // Both membership clocks, labeled — lower bound and roster date.
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("at least 2026-08-13");
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("Roster effective 2023-05-09");
-    // AnalysisPanel renders the board's own plan body (not a recomposed copy).
+    // AnalysisPanel renders the board's own plan body (not a recomposed copy) —
+    // and the body must be CARR's OWN: asset, thesis, conviction and every
+    // price level below are the real 2026-11-09 row's values. A relabelled
+    // template of any other plan (the old bug: SBUX's numbers on Carrier's
+    // setup) fails every check from here down.
     await expect(setup.locator(".obs-prophet-analysis").first()).toBeVisible();
-    await expect(setup).toContainText("CARR");
+    const setupText = await setup.innerText();
+    expect(setupText).toContain("CARR");
+    expect(setupText).toContain("conviction 53/100"); // the SBUX template reads 42/100
+    expect(setupText).toContain("Industrials (Equal-Weight) basket"); // CARR's own basket clause
+    expect(setupText).toContain(`$${(56.47).toFixed(2)}`); // entry
+    expect(setupText).toContain(`$${(52.26).toFixed(2)}`); // invalidation
+    expect(setupText).toContain(`$${(62.785).toFixed(2)}`); // T1
+    expect(setupText).toContain(`$${(69.1).toFixed(2)}`); // T2
+    // The template's own markers must be absent.
+    expect(setupText).not.toContain("SBUX");
+    expect(setupText).not.toContain(`${(104.3).toFixed(2)}`);
 
     // Sources: both generations, one destination, the A2 disclosure vocabulary.
     await page.getByTestId("prophet-sector-sources").locator("summary").click();
