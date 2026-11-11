@@ -1,0 +1,11 @@
+{
+  "state": "OWNED_ISOLATED_CURRENT_SOURCE",
+  "operation": "terminal-cycle-width-support-20261111-c3",
+  "parentDuty": "mastermindx-market-intelligence/Mastermind#2028",
+  "baseSha": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "branch": "sol/web-terminal-cycle-width-support-20261111-c3",
+  "sourceLawPin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "macroDesignPin": "c58c69bf42786f29c8857550bdb244d08da35240",
+  "residual": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249#issuecomment-6775303344",
+  "original1249CarrierUntouched": true
+}

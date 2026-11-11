@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python3",
+    "-m",
+    "pytest",
+    "tests/test_trusted_migration_ownership.py",
+    "-q",
+    "--junitxml=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-python-loader-support-20261111-c3/docs/verification/python-loader-20261111/ownership-suite.xml"
+  ],
+  "exit": 0,
+  "seconds": 4.301,
+  "sourceUnchangedDuringTest": true
+}

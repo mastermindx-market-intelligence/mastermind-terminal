@@ -160,16 +160,20 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
     assert set(aggregate["needs"]) == {
-        "pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e",
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-typecheck",
+        "terminal-unit-shards", "terminal-e2e",
         "terminal-e2e-build", "terminal-e2e-prodbuild",
     }
     run = next(step["run"] for step in aggregate["steps"]
                if step["name"] == "Assert all event-required Terminal checks passed")
-    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-e2e:$E2E",
+    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-typecheck:$TYPECHECK",
+                "terminal-unit-shards:$UNITS", "terminal-e2e:$E2E",
                 "terminal-e2e-build:$BUILD", "terminal-e2e-prodbuild:$PRODBUILD"]:
         assert dep in run
     assert '[ "$fail" -eq 0 ] || exit 1' in run
     assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-typecheck"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-unit-shards"]["needs"] == ["pr_scope", "e2e-scope"]
     assert jobs["terminal-e2e"]["needs"] == ["pr_scope", "e2e-scope"]
     # Full audited PR matrix or safe focused subset; a native merge group
     # skips the full dev matrix but requires the production-build browser lane.
@@ -704,7 +708,8 @@ def _execute_required_aggregate(**overrides):
     env = {
         **os.environ,
         "EVENT": "pull_request", "PR_SCOPE": "success", "PR_MODE": "full",
-        "SCOPE": "success", "UNIT": "success", "E2E": "success",
+        "SCOPE": "success", "UNIT": "success", "TYPECHECK": "success",
+        "UNITS": "success", "E2E": "success",
         # The production-build lane of an ordinary full run: built, four shards.
         "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
         **overrides,
@@ -722,6 +727,17 @@ def _execute_required_aggregate(**overrides):
 def test_qualified_docs_pr_can_skip_each_test_job(unit, e2e):
     result = _execute_required_aggregate(PR_MODE="docs", UNIT=unit, E2E=e2e)
     assert result.returncode == 0, result.stdout
+
+
+@pytest.mark.parametrize("lane", ["UNIT", "TYPECHECK", "UNITS", "E2E"])
+def test_qualified_docs_pr_can_skip_each_split_lane(lane):
+    # The split typecheck/unit-shard lanes earn the same docs-only skip as the
+    # evidence lane; any non-success result still fails the required context.
+    result = _execute_required_aggregate(PR_MODE="docs", **{lane: "skipped"})
+    assert result.returncode == 0, result.stdout
+    for status in ("failure", "cancelled", ""):
+        result = _execute_required_aggregate(PR_MODE="docs", **{lane: status})
+        assert result.returncode != 0, (lane, status, result.stdout)
 
 
 @pytest.mark.parametrize("pr_scope,mode", [

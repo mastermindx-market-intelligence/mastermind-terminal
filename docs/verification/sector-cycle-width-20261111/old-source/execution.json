@@ -1,0 +1,68 @@
+{
+  "state": "OLD_SOURCE_GEOMETRY_REGRESSION_CONFIRMED",
+  "stage": "old-source",
+  "actualHead": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "actualTree": "6971516465096849a2edbf449a8589bd3ea23a7e",
+  "indexTreeAtStart": "6971516465096849a2edbf449a8589bd3ea23a7e",
+  "panelBlob": "20b8e035409153a6ce2e4b1216a62ac75646c480",
+  "sourceFiles": 24630,
+  "initial": {
+    "port": 57735,
+    "listenerExit": 1,
+    "listeners": "",
+    "lockPathExists": false,
+    "lockHandles": "",
+    "workspaceCwdHolders": []
+  },
+  "node": "v26.5.0",
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/sector-cycle-lens.spec.ts",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/old-source/artifacts",
+    "--grep",
+    "cycles chart measurement survives table transitions en dark",
+    "--project=desktop",
+    "--reporter=list,json"
+  ],
+  "startedAt": "2026-11-11T13:33:58.764203+00:00",
+  "productionProof": false,
+  "exit": 1,
+  "seconds": 88.234,
+  "stats": {
+    "startTime": "2026-11-11T13:33:59.750Z",
+    "duration": 65953.51,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "project": "desktop",
+      "title": "cycles chart measurement survives table transitions en dark",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "errors": [
+            "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m340\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:148:24"
+          ]
+        }
+      ]
+    }
+  ],
+  "sourceStable": true,
+  "lifecycle": {
+    "port": 57735,
+    "listenerExit": 1,
+    "listeners": "",
+    "lockPathExists": true,
+    "lockHandles": "",
+    "workspaceCwdHolders": []
+  },
+  "completedAt": "2026-11-11T13:35:27.004123+00:00"
+}

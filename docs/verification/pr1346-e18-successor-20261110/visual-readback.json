@@ -1,0 +1,33 @@
+{
+  "additionalReadOnlyReasoningScope": "All12 review/results images across desktop/tablet/mobile and EN/ZH",
+  "canonicalImages": {
+    "results-desktop-en.png": "f5f3aa12c84cd071764525e690a86ca8b60a6c815e565c96b7a5d91807392341",
+    "results-desktop-zh.png": "b9100d042ef29d7cb7cfd0139a3fe56953da539ce07a2f5a1276989ee652ed08",
+    "results-mobile-en.png": "14205e697b54178021ff7c7435cf6ccd7dcb9c2640eb1168e0512dad6de3919d",
+    "results-mobile-zh.png": "967aa0a8e8e7859f40792883b5db319cce2e927a2c61950d4eee70b5ca764229",
+    "results-tablet-en.png": "7421b91002fa4a067fff352139a271c8693cff4fe194d3d2d569856a87f3b0a0",
+    "results-tablet-zh.png": "abba7bc13a1a70c675e5f481084af22b3be1f2f780f216a604066e6bf3954f66",
+    "review-desktop-en.png": "7b7eb94e2a28cdcbb0d4766847e0f7c7d1913a23f9647715688d6809ace599ab",
+    "review-desktop-zh.png": "09d397b0c967b43551b4ee834c1bb6beb126606b1ad326b7d94b4ed316c3997b",
+    "review-mobile-en.png": "c52ea5d4e4b0a54ac666ad53d4e6f50376f1787e8739632e1e1eb4f7006e2c7f",
+    "review-mobile-zh.png": "fb2fba694ffa373ee6c940efe54a5339d5cd9c1069ae37c3d3a3bbdf9841892c",
+    "review-tablet-en.png": "d069e49efcfce8a316f69ec2a398e36dd728a33a9757fc998116f07e24a4fdb5",
+    "review-tablet-zh.png": "85f01ad5b129ccfacc0a9059d46f2580ecada055ffff8e5179ed8fbec2b4ef1e"
+  },
+  "checkedAt": "2026-11-10T06:31:31.521138+00:00",
+  "findings": {
+    "layout": "Primary card/actions visible on all viewports. Phone English badges wrap inside the card; Chinese characters remain complete. No primary-control overlap or horizontal spill observed.",
+    "results": "One paused, one refused, two not confirmed, one skipped. AAPL remains unconfirmed despite latest saved Paused; TSLA remains unconfirmed/Armed.",
+    "review": "Four actionable alerts plus AMD already paused; Pause4 and Cancel are visible."
+  },
+  "officialGitHubReview": false,
+  "rootVisualScope": [
+    "review-mobile-en.png",
+    "results-mobile-zh.png",
+    "review-tablet-zh.png",
+    "results-tablet-en.png",
+    "review-desktop-en.png",
+    "results-desktop-zh.png"
+  ],
+  "schema": "terminal_pr1346_visual_readback.v1"
+}
