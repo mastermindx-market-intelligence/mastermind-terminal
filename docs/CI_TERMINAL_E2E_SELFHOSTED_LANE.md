@@ -1,10 +1,13 @@
-# Terminal e2e self-hosted lane (ubuntu0)
+# Terminal e2e self-hosted lane
 
 Mastermind #917, phase 9. The `terminal-e2e` matrix job in `.github/workflows/ci.yml`
-can route its selected Playwright shards to ubuntu0 instead of the GitHub-hosted
-`ubuntu-24.04` runner.
+can route its selected Playwright shards to a self-hosted lane pool instead of the
+GitHub-hosted `ubuntu-24.04` runner. The lane spans several identical hosts; host
+identity lives in the runner NAME (`ubuntuH-e2e-N`: one host digit, one slot number),
+never in labels — every host's slots carry the same shared `terminal-e2e` label.
 The accepted dynamic selector chooses the matrix; a full selection has twelve shards.
-Trusted docs-only and native merge-group skips retain their existing separate rules.
+Trusted docs-only and native merge-group skips retain their existing separate rules
+(merge-group jobs never route to the pool).
 The switch is a repository variable, so the lane is **inert until an administrator
 sets it**. Unsetting the variable restores hosted routing; stopping the runner slots
 is the full rollback (see Rollback). No PR is needed to turn it on or off.
@@ -34,18 +37,23 @@ group qualification below remain unproved by that historical Default-group run.
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TERMINAL_E2E_LANE` | unset / anything else → hosted; `ubuntu0` → host | chooses `runs-on` |
-| `TERMINAL_E2E_WORKERS` | integer 1..16, default 4 | Playwright `--workers` on the host lane only |
+| `TERMINAL_E2E_LANE` | unset / anything else → hosted; `selfhosted` → the self-hosted pool | chooses `runs-on` |
+| `TERMINAL_E2E_WORKERS` | integer 1..16, default 4 | Playwright `--workers` on the self-hosted lane only |
 
 `runs-on` is
 
 ```
-${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0'
+${{ (vars.TERMINAL_E2E_LANE == 'selfhosted'
      && (github.event_name != 'pull_request'
          || github.event.pull_request.head.repo.full_name == github.repository))
-    && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]')
+    && fromJSON('["self-hosted","linux","x64","terminal-e2e"]')
     || 'ubuntu-24.04' }}
 ```
+
+The value was renamed from `ubuntu0` when the lane grew to several hosts: the old
+name would have pointed an incident operator at one host. The job's accepted scope
+condition skips native merge-group jobs outright, so a merge group can never route to
+the pool however the variable is set.
 
 Safety properties, each pinned by `tests/test_ci_e2e_selfhosted_lane.py` unless
 marked otherwise:
@@ -66,44 +74,71 @@ marked otherwise:
   the fleet runners also carry that label, so it sent "hosted" shards to a shared
   fleet host (2026-11-10: 16/26 fleet shard jobs failed versus 11/273 hosted).
   GitHub compares the variable case-insensitively, so
-  `Ubuntu0` also selects the host; the exported lane env is always the literal
-  `ubuntu0`.
+  `Selfhosted` also selects the pool; the exported lane env is always the literal
+  `selfhosted`.
 - **No workflow expression is spliced into a `run:` block.** The job exports
   `TERMINAL_E2E_LANE` and `TERMINAL_E2E_LANE_WORKERS` as env; the step
   `Bind lane workers and ports` runs `.github/scripts/terminal_e2e_lane.sh`, which
   validates them and writes `lane`, `workers`, `port`, `port_investor`,
   `port_shared`, `browsers_path`, `cache_suffix` to `$GITHUB_OUTPUT`. Invalid
-  input exits 2 and writes nothing.
-- **Per-slot Playwright store.** On the host lane the script exports
-  `PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright-ubuntu0-e2e-N` through
-  `$GITHUB_ENV` and suffixes the `actions/cache` key with the slot name, so
+  input exits 2 and writes nothing; the retired token `ubuntu0` is refused there
+  like any unknown value, because the workflow and the script always come from the
+  same commit.
+- **Per-slot Playwright store.** On the self-hosted lane the script exports
+  `PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright-<runner-name>` through
+  `$GITHUB_ENV` and suffixes the `actions/cache` key with the FULL runner name
+  (`ubuntuH-e2e-N`), which is globally unique across the lane, so
   concurrent shards never restore a cache tar into a store another slot's Chromium
-  is running from, and the host never shares a cache entry with the hosted lane.
+  is running from, two hosts can never collide on a shared cache entry even when
+  their slots share port numbers, the lane never shares a cache entry with the
+  hosted lane, and an existing slot's warm entries keep their keys unchanged.
+- **Label transition (one release).** The shared label is `terminal-e2e`. For one
+  release after the rename, the pre-rename host's slots (still named `ubuntu0-e2e-N`)
+  additionally carry the legacy `ubuntu0-e2e` label, so pre-change workflow
+  revisions — stale PRs carrying an old ci.yml, re-runs of old runs, old refs —
+  keep finding a runner. Hosts added for the multi-host lane never carry the legacy
+  label: a pre-change checkout routed there fails its bind step loudly (exit 2, a
+  red job) instead of silently hanging on a label no runner has.
 - **Check names are unchanged.** `Terminal e2e <shard> (shard)` and the frozen
   `terminal` aggregator keep their names on both lanes, so branch protection and
   the merge sweeper see the same required checks.
 
-## Runner slots on ubuntu0
+## Runner slots on the lane hosts
 
 Twelve shards run in parallel on the hosted lane. One self-hosted runner executes
 one job at a time, so a single runner would serialize twelve shards (~12 × 8 min).
-The lane therefore expects **N runner slots**, one runner per slot, named
-`ubuntu0-e2e-N` (N in 1..9), each registered per job with a JIT config (see
-*Registering a slot*). The bind script derives per-slot ports from the
-runner name so concurrent shards on one host never share a dev-server port:
+The lane therefore runs **several hosts, several runner slots each** (the scheme
+allows host digits 0..9 and slots 1..9; `provision.sh` installs slots 1..4 per
+host), one runner per slot, named `ubuntuH-e2e-N`, each registered per job with a
+JIT config (see *Registering a slot*). Every host runs the identical slot loop,
+derives its runner names from its own short hostname (`hostname -s`, asserted by
+`provision.sh` and the slot loop) and registers under the shared `terminal-e2e`
+label — no host name is hardcoded anywhere in this repository.
 
-| slot | dev server | investor opt-in | shared opt-in |
-| --- | --- | --- | --- |
-| `ubuntu0-e2e-1` | 3201 | 32011 | 32012 |
-| `ubuntu0-e2e-N` | 3200+N | 32000+10N+1 | 32000+10N+2 |
+The bind script derives per-slot ports from the SLOT number only, so concurrent
+shards on one host never share a dev-server port. Slots on different hosts reuse
+the same numbers by design: no two hosts share a network namespace. The Playwright
+store and cache key use the FULL runner name, which is globally unique across the
+lane:
 
-A runner not named `ubuntu0-e2e-N` (for example the canary's `ubuntu0-canary-*`
+| slot | dev server | investor opt-in | shared opt-in | cache suffix |
+| --- | --- | --- | --- | --- |
+| `ubuntu0-e2e-1` | 3201 | 32011 | 32012 | `-ubuntu0-e2e-1` |
+| `ubuntuH-e2e-N` | 3200+N | 32000+10N+1 | 32000+10N+2 | `-ubuntuH-e2e-N` |
+
+Same slot number on two hosts → same ports (distinct network namespaces; allowed),
+different cache suffix (globally unique name; required).
+
+A runner not named `ubuntuH-e2e-N` (for example the canary's `ubuntu0-canary-*`
 JIT runners) is rejected with exit 2, so a mislabelled runner fails the job
 loudly instead of colliding on ports.
 
-Four slots × four workers is an initial sizing proposal, subject to measured CPU,
-memory, storage contention and queue behavior under the qualified host policy.
-The simple estimate of three eight-minute rounds is about 25 minutes before other
+Slots × workers per host is an initial sizing proposal, subject to measured CPU,
+memory, storage contention and queue behavior under the qualified host policy
+(memory bounds in the slice and unit are PER HOST, so each added host adds
+capacity linearly with no source change beyond provisioning; a concurrent shard
+beyond the installed slots queues behind them). The simple estimate of three
+eight-minute rounds is about 25 minutes before other
 required paths and scheduling costs; it is not observed whole-matrix performance.
 The 431-second canary command already exceeds the complete 300-second target, so
 fixture work and smaller qualified scheduling units remain necessary. Increasing
@@ -111,7 +146,7 @@ slots alone cannot establish the five-minute architecture's acceptance.
 
 ### Registering a slot (host operator)
 
-**One OS user per slot, no sudo, no login.** Every slot `ubuntu0-e2e-N` runs as
+**One OS user per slot, no sudo, no login.** Every slot `ubuntuH-e2e-N` runs as
 its own unprivileged user `ghrunner-N` with its own home, created with
 `useradd -m -s /usr/sbin/nologin ghrunner-N` (locked password, no shell, its private
 group only, no sudo) and listed in `DenyUsers ghrunner ghrunner-*` in `sshd_config`
@@ -254,11 +289,13 @@ is in doubt run `mint-jitconfig status <group-id>` as `ghmint` before
 deletes the old registration only when it is provably the slot's own stale one: exactly
 one runner of that name in the organization (every page read; a partial list is never
 used), in the lane's group, with an integer id, explicitly not busy, offline, and with
-exactly the lane's four labels. Anything else exits 3 and the slot stays down. The
+exactly the labels the lane derives for that name (the base four, plus the legacy
+`ubuntu0-e2e` transition label on the pre-rename host only). Anything else exits 3
+and the slot stays down. The
 recovery never deletes a busy or online runner, so it cannot cancel a live job.
 
-The JIT config must carry **all four labels**; `runs-on` requires every label in
-the array. The JIT config blob is never on a command line, but job processes can
+The JIT config must carry **every label the lane derives for the runner's name**;
+`runs-on` requires each label in the array. The JIT config blob is never on a command line, but job processes can
 still carry tokens in theirs (for example `git` given an auth header): never list runner processes with their arguments
 (`ps -f`, `pgrep -a`) or dump a process environment in a shared transcript.
 
@@ -272,34 +309,67 @@ file into a later job on its own slot. It can still read anything world-readable
 the host's network position, and exhaust the host; those are the residual trust
 decision. Running this lane is a recorded administrator decision that every
 approved run of this repository (including a maintainer-approved fork run that
-edits the workflow file) executes on ubuntu0 inside that boundary.
+edits the workflow file) executes on a lane host inside that boundary.
 
-### Turning the lane on
+### Turning the lane on (rollout order)
 
-1. Install the org credential and group id for `ghmint` and run `provision.sh`.
-   Before any slot starts, `mint-jitconfig check <group-id>` (as `ghmint`) must show
-   the group with selected-repository visibility, this repository as its only
-   repository, and public repositories allowed (this repository is public). Then
-   `systemctl enable --now terminal-e2e-slot@N` for each slot and confirm with
-   `mint-jitconfig status <group-id>` that each `ubuntu0-e2e-N` shows online and idle
-   with the four labels. A slot whose runner does not consume the configuration exits
-   at once and stops (step 7 above), so an online, idle runner also proves the
-   environment handoff on that host.
-2. Set the repository variable `TERMINAL_E2E_LANE=ubuntu0` (and optionally
-   `TERMINAL_E2E_WORKERS`).
-3. Watch the next same-repository pull request, merge-group or dispatch run: every
-   `Terminal e2e <shard>` job should report the runner name `ubuntu0-e2e-N` in its
-   "Set up job" step and the bind step should print `lane=ubuntu0`.
+Every interleaving of these steps is safe: before the variable flip the new
+workflow expression never selects the pool, after it the old expression never does,
+and either expression falls back hosted — no interleaving can strand a run on a
+label no runner carries.
+
+1. Preconditions: the org runner group is restricted to this repository (see
+   *Administrator precondition*), and every lane host has — or is ready to receive —
+   its per-host mint credential (`/etc/ghmint/token`, `group_id`; one credential per
+   host allows revoking a single host without touching the others).
+2. **Merge the source change.** The new expression does not match the pre-rename
+   variable value, so master runs hosted until the flip in step 5. Pre-change refs
+   still evaluate the old expression and route to the pre-rename host's slots,
+   exactly as today. (Provisioning the additional hosts before merging shrinks the
+   hosted window to minutes but runs branch bytes on them; merge-first keeps
+   installed == master.)
+3. **Provision each additional lane host from master**: set the host's short
+   hostname to the next free `ubuntu<H>` shape (provision and the slot loop assert
+   it), run `provision.sh` (its step 1 retires the host's fleet runner services —
+   disable/stop, with per-unit rollback commands logged; it installs
+   `mint-jitconfig`), install the mint credential, and run
+   `npx playwright install-deps chromium` once. Before any slot starts,
+   `mint-jitconfig check <group-id>` (as `ghmint`) must show the group with
+   selected-repository visibility, this repository as its only repository, and
+   public repositories allowed (this repository is public). **Re-provision the
+   pre-rename host from master** as well: the new slot script and mint add the
+   shared `terminal-e2e` label beside the kept legacy one; restart its slot units
+   only while idle. Additional hosts must never carry the legacy label.
+4. **Start the new slots**: `systemctl enable --now terminal-e2e-slot@{1..4}` per
+   host. Confirm with `mint-jitconfig status <group-id>` that every `ubuntuH-e2e-N`
+   shows online and idle — the pre-rename host's four with the base labels plus the
+   legacy one, every other host's with the base labels only. A slot whose runner
+   does not consume the configuration exits at once and stops (step 7 above), so an
+   online, idle runner also proves the environment handoff on that host.
+5. **Flip the variable** to `TERMINAL_E2E_LANE=selfhosted` (and optionally
+   `TERMINAL_E2E_WORKERS`). **Canary**: workflow_dispatch on master; each
+   `Terminal e2e <shard>` job should report a distinct `ubuntuH-e2e-N` in its
+   "Set up job" step, the bind step should print `lane=selfhosted`, each newly
+   provisioned slot takes one cold browser install (bounded by the existing
+   12-minute step), and `Terminal typecheck + tests` aggregates green under the
+   unchanged check names.
+6. **Cleanup one release later**: drop the legacy `ubuntu0-e2e` transition label
+   (slot script, mint allowance, both lane test files, this runbook) and
+   re-provision the pre-rename host once more.
 
 ### Rollback
 
-1. Delete the `TERMINAL_E2E_LANE` repository variable (or set it to anything but
-   `ubuntu0`). The next run of this unmodified job is hosted. This restores
-   **routing only**.
-2. Stop the slot units (`systemctl disable --now terminal-e2e-slot@N`; `svc.sh stop`
-   for any service-installed runner) so no runner is listening for the four labels. A JIT
-   runner that is mid-job finishes that job and deregisters itself. Until this step
-   a workflow that names the labels can still reach the host.
+1. Delete the `TERMINAL_E2E_LANE` repository variable (or set it to any value other
+   than `selfhosted`). The next run of this unmodified job is hosted. This restores
+   **routing only**. After the rename, setting the variable BACK to the retired
+   pre-rename value is **not** the rollback: the new expression ignores it (those
+   runs are hosted too, but misleadingly) — unset it instead.
+2. Full stop per host: `systemctl disable --now terminal-e2e-slot@N` (`svc.sh stop`
+   for any service-installed runner) so no runner is listening for the lane labels.
+   A JIT runner that is mid-job finishes that job and deregisters itself.
+   Re-enable a host's retired fleet units only if the lane is abandoned; the
+   commands are in each host's provision log. Until this step a workflow that
+   names the labels can still reach the hosts.
 
 No workflow change or PR is needed for either step.
 

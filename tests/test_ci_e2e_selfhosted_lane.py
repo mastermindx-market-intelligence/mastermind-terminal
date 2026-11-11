@@ -6,11 +6,14 @@
   one worker and ports 3108 / 31991 / 31992;
 * this unchanged workflow routes a fork pull_request to hosted runners,
   regardless of the variable; the runbook retains the separate host boundary;
+* native merge-group jobs never route to the self-hosted pool: the job's accepted
+  scope condition skips them even with the variable set to `selfhosted`;
 * the hosted fallback is a literal, so a broken expression cannot land on the host,
   and a fallback label the fleet also carries is rejected;
 * only the accepted protected selector's matrix.projects and matrix.specs fields
   are spliced into browser run blocks; lane values travel as env and are bound by
-  .github/scripts/terminal_e2e_lane.sh, which rejects bad input.
+  .github/scripts/terminal_e2e_lane.sh, which rejects bad input, including the
+  retired `ubuntu0` token.
 """
 from __future__ import annotations
 
@@ -32,8 +35,8 @@ SAME_REPO_GUARD = (
     "(github.event_name != 'pull_request' "
     "|| github.event.pull_request.head.repo.full_name == github.repository)"
 )
-LANE_CONDITION = f"(vars.TERMINAL_E2E_LANE == 'ubuntu0' && {SAME_REPO_GUARD})"
-HOST_LABELS = '["self-hosted","linux","x64","ubuntu0-e2e"]'
+LANE_CONDITION = f"(vars.TERMINAL_E2E_LANE == 'selfhosted' && {SAME_REPO_GUARD})"
+HOST_LABELS = '["self-hosted","linux","x64","terminal-e2e"]'
 
 
 def ci() -> dict[str, Any]:
@@ -96,10 +99,18 @@ def test_check_names_are_unchanged_on_both_lanes() -> None:
     assert "terminal-e2e" in jobs["terminal"]["needs"]
 
 
+def test_merge_group_never_routes_to_the_selfhosted_pool() -> None:
+    # The runs-on guard alone does not exclude a merge_group (event_name is not
+    # pull_request there); the job's accepted scope condition does. A merge_group run
+    # must be skipped outright, so it can never land on the self-hosted pool however
+    # the variable is set.
+    assert "github.event_name != 'merge_group'" in e2e_job()["if"]
+
+
 def test_lane_env_mirrors_the_runs_on_condition() -> None:
     env = e2e_job()["env"]
     lane = env["TERMINAL_E2E_LANE"]
-    assert lane == f"${{{{ {LANE_CONDITION} && 'ubuntu0' || 'hosted' }}}}"
+    assert lane == f"${{{{ {LANE_CONDITION} && 'selfhosted' || 'hosted' }}}}"
     assert env["TERMINAL_E2E_LANE_WORKERS"] == "${{ vars.TERMINAL_E2E_WORKERS }}"
 
 
@@ -176,56 +187,95 @@ def test_hosted_lane_is_todays_behaviour(tmp_path: Path) -> None:
     assert rc == 0 and out2 == out
 
 
+# Host digits are scheme samples for the runner name ubuntu<H>-e2e-<N>: the tests pin
+# the naming SCHEME (host digit + slot), not which hosts the lane happens to run on.
+# Only host digit 0 additionally carries the one-release `ubuntu0-e2e` transition label.
+HOST_DIGITS = ("0", "1", "2")
+
+
+def lane_env(host: str, slot: int) -> dict[str, str]:
+    return {"TERMINAL_E2E_LANE": "selfhosted", "RUNNER_NAME": f"ubuntu{host}-e2e-{slot}"}
+
+
+@pytest.mark.parametrize("host", HOST_DIGITS)
 @pytest.mark.parametrize("slot", [1, 3, 9])
-def test_ubuntu0_slot_binds_distinct_ports_and_default_workers(tmp_path: Path, slot: int) -> None:
-    rc, out, _ = run_lane({"TERMINAL_E2E_LANE": "ubuntu0", "RUNNER_NAME": f"ubuntu0-e2e-{slot}"}, tmp_path)
+def test_selfhosted_slot_binds_distinct_ports_and_default_workers(tmp_path: Path, host: str, slot: int) -> None:
+    rc, out, _ = run_lane(lane_env(host, slot), tmp_path)
     assert rc == 0
-    store = f"/home/ghrunner/.cache/ms-playwright-ubuntu0-e2e-{slot}"
+    store = f"/home/ghrunner/.cache/ms-playwright-ubuntu{host}-e2e-{slot}"
     assert out == {
-        "lane": "ubuntu0",
+        "lane": "selfhosted",
         "workers": "4",
         "port": str(3200 + slot),
         "port_investor": str(32000 + 10 * slot + 1),
         "port_shared": str(32000 + 10 * slot + 2),
         "browsers_path": store,
-        "cache_suffix": f"-ubuntu0-e2e-{slot}",
+        "cache_suffix": f"-ubuntu{host}-e2e-{slot}",
         "__github_env__": f"PLAYWRIGHT_BROWSERS_PATH={store}\n",
     }
 
 
-def test_ubuntu0_slot_ports_never_collide_across_slots(tmp_path: Path) -> None:
+def test_same_slot_on_different_hosts_shares_ports_but_not_cache_keys(tmp_path: Path) -> None:
+    # The cross-host collision invariant. Ports derive from the slot number only, and
+    # hosts never share a network namespace, so the same slot on different hosts reuses
+    # the numbers by design. The Playwright store and cache suffix derive from the FULL
+    # runner name, which is globally unique across the lane, so two hosts can never
+    # collide on a shared repo cache entry: a suffix regression fails here before it
+    # can poison the store.
+    outs = [run_lane(lane_env(host, 4), tmp_path)[1] for host in HOST_DIGITS]
+    for field in ("port", "port_investor", "port_shared"):
+        assert len({out[field] for out in outs}) == 1, f"{field} must derive from the slot only"
+    for field in ("browsers_path", "cache_suffix"):
+        assert len({out[field] for out in outs}) == len(HOST_DIGITS), f"{field} must be per runner name"
+
+
+def test_selfhosted_slot_ports_never_collide_across_slots(tmp_path: Path) -> None:
     seen: set[str] = set()
     for slot in range(1, 10):
-        _, out, _ = run_lane({"TERMINAL_E2E_LANE": "ubuntu0", "RUNNER_NAME": f"ubuntu0-e2e-{slot}"}, tmp_path)
+        _, out, _ = run_lane(lane_env("0", slot), tmp_path)
         ports = {out["port"], out["port_investor"], out["port_shared"], out["browsers_path"], out["cache_suffix"]}
         assert len(ports) == 5 and not (ports & seen)
         seen |= ports
 
 
 @pytest.mark.parametrize("workers", ["1", "8", "16"])
-def test_ubuntu0_workers_variable_is_honoured(tmp_path: Path, workers: str) -> None:
-    rc, out, _ = run_lane(
-        {"TERMINAL_E2E_LANE": "ubuntu0", "RUNNER_NAME": "ubuntu0-e2e-2", "TERMINAL_E2E_LANE_WORKERS": workers}, tmp_path
-    )
+def test_selfhosted_workers_variable_is_honoured(tmp_path: Path, workers: str) -> None:
+    rc, out, _ = run_lane({**lane_env("0", 2), "TERMINAL_E2E_LANE_WORKERS": workers}, tmp_path)
     assert rc == 0 and out["workers"] == workers
 
 
 @pytest.mark.parametrize("workers", ["0", "17", "100", "-1", "4; rm -rf /", "four", "08", " 4"])
-def test_ubuntu0_rejects_bad_workers_and_writes_nothing(tmp_path: Path, workers: str) -> None:
-    rc, out, err = run_lane(
-        {"TERMINAL_E2E_LANE": "ubuntu0", "RUNNER_NAME": "ubuntu0-e2e-2", "TERMINAL_E2E_LANE_WORKERS": workers}, tmp_path
-    )
+def test_selfhosted_rejects_bad_workers_and_writes_nothing(tmp_path: Path, workers: str) -> None:
+    rc, out, err = run_lane({**lane_env("0", 2), "TERMINAL_E2E_LANE_WORKERS": workers}, tmp_path)
     assert rc == 2 and out == {} and "::error::" in err
 
 
-@pytest.mark.parametrize("runner", ["", "ubuntu0-canary-4", "ubuntu0-e2e-0", "ubuntu0-e2e-10", "ubuntu0-e2e-1;id", "GitHub Actions 7"])
-def test_ubuntu0_rejects_unslotted_runner_names(tmp_path: Path, runner: str) -> None:
-    rc, out, err = run_lane({"TERMINAL_E2E_LANE": "ubuntu0", "RUNNER_NAME": runner}, tmp_path)
-    assert rc == 2 and out == {} and "ubuntu0-e2e-N" in err
+@pytest.mark.parametrize(
+    "runner",
+    [
+        "",
+        "ubuntu0-canary-4",
+        "ubuntu0-e2e-0",
+        "ubuntu0-e2e-10",
+        "ubuntu0-e2e-1;id",
+        "GitHub Actions 7",
+        "ubuntu-e2e-1",
+        "ubuntu10-e2e-1",
+        "terminal-e2e-2",
+        "Ubuntu1-e2e-2",
+    ],
+)
+def test_selfhosted_rejects_unslotted_runner_names(tmp_path: Path, runner: str) -> None:
+    rc, out, err = run_lane({"TERMINAL_E2E_LANE": "selfhosted", "RUNNER_NAME": runner}, tmp_path)
+    assert rc == 2 and out == {} and "ubuntuH-e2e-N" in err
 
 
-def test_unknown_lane_is_rejected(tmp_path: Path) -> None:
-    rc, out, err = run_lane({"TERMINAL_E2E_LANE": "ubuntu1"}, tmp_path)
+@pytest.mark.parametrize("lane", ["ubuntu1", "ubuntu0"])
+def test_unknown_lane_is_rejected(tmp_path: Path, lane: str) -> None:
+    # `ubuntu0` is the RETIRED token: this script and the workflow always come from the
+    # same commit, so a revision that still resolves it carries the old script too. The
+    # new script must refuse it loudly — never half-activate a lane it cannot bind.
+    rc, out, err = run_lane({"TERMINAL_E2E_LANE": lane}, tmp_path)
     assert rc == 2 and out == {} and "::error::" in err
 
 
@@ -234,6 +284,9 @@ def test_runbook_names_the_variable_labels_slots_and_rollback() -> None:
     for needle in (
         "TERMINAL_E2E_LANE",
         "TERMINAL_E2E_WORKERS",
+        "selfhosted",
+        "terminal-e2e",
+        "ubuntuH-e2e-N",
         "ubuntu0-e2e-N",
         "ubuntu0-e2e",
         "42029519496",

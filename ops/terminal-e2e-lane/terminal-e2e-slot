@@ -9,10 +9,22 @@
 set -euo pipefail
 N="${1:-}"
 case "$N" in [1-9]) ;; *) echo "slot: slot number must be 1-9" >&2; exit 1 ;; esac
+# Every lane host runs this identical loop: the runner NAME ubuntu<H>-e2e-<N> derives
+# from the host's own short hostname, so host identity lives in the runner name and
+# never in the labels (every host's slots carry the same shared terminal-e2e label).
+host="$(hostname -s)"
+case "$host" in ubuntu[0-9]) ;; *) echo "slot: hostname -s must match ubuntu[0-9]; the runner name derives from it" >&2; exit 1 ;; esac
 u="ghrunner-$N"
-name="ubuntu0-e2e-$N"
+name="$host-e2e-$N"
 slot="/opt/actions-runner/slots/$name"
-labels="self-hosted,linux,x64,ubuntu0-e2e"
+labels="self-hosted,linux,x64,terminal-e2e"
+# Transition, one release (cleanup marker: remove this case, the legacy label allowance
+# in mint-jitconfig and the runbook mentions when the release after the
+# TERMINAL_E2E_LANE=selfhosted flip ships): only host digit 0 appends the legacy label,
+# so pre-change workflow revisions (stale PRs, re-runs of old runs) that still demand
+# it keep finding these slots. Other lane hosts must NEVER carry it: a pre-change
+# checkout routed there fails its bind step loudly (exit 2) instead of hanging.
+case "$host" in ubuntu0) labels="$labels,ubuntu0-e2e" ;; esac
 tarball=/opt/actions-runner/actions-runner-linux-x64.tar.gz
 crontab_file="/var/spool/cron/crontabs/$u"
 # World-writable directories a job can write. /tmp and /var/tmp are the unit's private

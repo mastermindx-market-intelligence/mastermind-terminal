@@ -1,9 +1,12 @@
-"""Host files of the ubuntu0 Terminal e2e lane (ops/terminal-e2e-lane/).
+"""Host files of the self-hosted Terminal e2e lane (ops/terminal-e2e-lane/).
 
-The slot loop and unit run as root on the host, so they are not executed here; these
-tests pin the invariants a careless edit would break. mint-jitconfig is exercised
-against a fake GitHub API: its 409 recovery must delete only a provably stale
-registration and its exit codes decide whether a slot retries or stops.
+The lane spans several hosts: every host runs the identical slot loop and derives its
+runner names (ubuntu<H>-e2e-<N>) from its own short hostname, and host identity never
+reaches the labels. The slot loop and unit run as root on the host, so they are not
+executed here; these tests pin the invariants a careless edit would break.
+mint-jitconfig is exercised against a fake GitHub API: its 409 recovery must delete
+only a provably stale registration and its exit codes decide whether a slot retries
+or stops.
 """
 from __future__ import annotations
 
@@ -27,8 +30,15 @@ MINT = LANE / "mint-jitconfig"
 PROVISION = LANE / "provision.sh"
 RUNBOOK = ROOT / "docs" / "CI_TERMINAL_E2E_SELFHOSTED_LANE.md"
 ORG = "mastermindx-market-intelligence"
+# Host digits are scheme samples. Digit 0 is the pre-multihost host: for one release
+# after the TERMINAL_E2E_LANE rename its slots carry the legacy label beside the base
+# four, so pre-change workflow revisions keep finding them. Any other host digit
+# carries the base four only.
 NAME = "ubuntu0-e2e-1"
-LABELS = "self-hosted,linux,x64,ubuntu0-e2e"
+NAME_B = "ubuntu7-e2e-1"
+BASE_LABELS = "self-hosted,linux,x64,terminal-e2e"
+LABELS_A = BASE_LABELS + ",ubuntu0-e2e"
+LABELS_B = BASE_LABELS
 GID = 8
 
 
@@ -105,6 +115,26 @@ def test_provision_retires_other_runners_and_the_canary_account() -> None:
     assert '|| die "cannot list actions runner services"' in text
     assert "mapfile -t runner_units < <(" not in text
     assert 'cg="$(systemctl show -p ControlGroup --value "$1")" || die' in text
+
+
+def test_slot_derives_runner_identity_from_the_hostname() -> None:
+    # No host name is baked into the slot script: every lane host runs the identical
+    # loop, derives ubuntu<H>-e2e-<N> from `hostname -s`, and registers under the
+    # shared host-agnostic label.
+    text = SLOT.read_text(encoding="utf-8")
+    assert 'host="$(hostname -s)"' in text
+    assert 'case "$host" in ubuntu[0-9]) ;; *)' in text
+    assert 'name="$host-e2e-$N"' in text
+    assert 'labels="self-hosted,linux,x64,terminal-e2e"' in text
+    assert "ubuntu0-e2e-$N" not in text
+    # one-release transition: ONLY host digit 0 appends the legacy label
+    assert 'case "$host" in ubuntu0) labels="$labels,ubuntu0-e2e" ;; esac' in text
+
+
+def test_provision_asserts_the_hostname_shape() -> None:
+    text = PROVISION.read_text(encoding="utf-8")
+    assert 'host="$(hostname -s)"' in text
+    assert 'case "$host" in ubuntu[0-9]) ;; *) die' in text
 
 
 DENY_PATTERNS = re.compile(r"grep -qiE '(\^denyusers[^']*)' <<<\"\$sshd_cfg\"")
@@ -206,7 +236,10 @@ def test_runbook_points_at_the_host_files() -> None:
 MISSING = object()
 
 
-def runner(rid=7, name=NAME, status="offline", busy=False, labels=("self-hosted", "Linux", "X64", "ubuntu0-e2e")):
+BASE_LABEL_TUPLE = ("self-hosted", "Linux", "X64", "terminal-e2e")
+
+
+def runner(rid=7, name=NAME, status="offline", busy=False, labels=BASE_LABEL_TUPLE + ("ubuntu0-e2e",)):
     r = {"id": rid, "name": name, "status": status, "labels": [{"name": label} for label in labels]}
     if busy is not MISSING:
         r["busy"] = busy
@@ -253,7 +286,7 @@ def load_mint():
     return module
 
 
-def run_mint(api, capsys, name=NAME, labels=LABELS, per_page=None):
+def run_mint(api, capsys, name=NAME, labels=LABELS_A, per_page=None):
     mint = load_mint()
     mint._call = api
     if per_page:
@@ -276,9 +309,24 @@ def test_mint_writes_only_the_config(capsys) -> None:
     assert run_mint(api, capsys) == (0, "JIT-BLOB")
 
 
+def test_mint_accepts_both_label_shapes(capsys) -> None:
+    # Host digit 0 mints with the one-release transition label appended; every other
+    # host digit mints with the base four only.
+    assert run_mint(FakeAPI([OK]), capsys) == (0, "JIT-BLOB")
+    assert run_mint(FakeAPI([OK]), capsys, name=NAME_B, labels=LABELS_B) == (0, "JIT-BLOB")
+
+
 def test_409_deletes_the_one_stale_offline_idle_registration(capsys) -> None:
     api = FakeAPI([CONFLICT, OK], org=[runner()])
     assert run_mint(api, capsys) == (0, "JIT-BLOB")
+    assert api.deletes == [f"/orgs/{ORG}/actions/runners/7"]
+
+
+def test_409_deletes_a_stale_registration_on_the_base_label_shape(capsys) -> None:
+    # The stale-candidate exact-label test derives the expected set from the runner
+    # NAME: a non-digit-0 registration carries the base four, not the transition shape.
+    api = FakeAPI([CONFLICT, OK], org=[runner(name=NAME_B, labels=BASE_LABEL_TUPLE)])
+    assert run_mint(api, capsys, name=NAME_B, labels=LABELS_B) == (0, "JIT-BLOB")
     assert api.deletes == [f"/orgs/{ORG}/actions/runners/7"]
 
 
@@ -298,13 +346,14 @@ def test_409_candidate_found_on_a_later_page(capsys) -> None:
         ([runner(status="online")], None),
         ([runner(), runner(rid=8)], None),
         ([runner()], []),  # not in this lane's group
-        ([runner(labels=("self-hosted", "Linux", "X64", "ubuntu0-e2e", "extra"))], None),
+        ([runner(labels=BASE_LABEL_TUPLE + ("ubuntu0-e2e", "extra"))], None),
+        ([runner(labels=BASE_LABEL_TUPLE)], None),  # digit-0 name without its transition label
         ([runner(labels=("self-hosted", "Linux", "X64"))], None),
         ([runner(rid=True)], None),
         ([runner(rid="7")], None),
     ],
     ids=["busy", "busy-missing", "busy-null", "online", "duplicate", "foreign-group",
-         "extra-label", "missing-label", "bool-id", "string-id"],
+         "extra-label", "missing-transition-label", "missing-label", "bool-id", "string-id"],
 )
 def test_409_never_deletes_an_unproven_registration(capsys, org, group) -> None:
     api = FakeAPI([CONFLICT, OK], org=org, group=group)
@@ -375,7 +424,18 @@ def test_failed_delete_backs_off_without_reminting(capsys) -> None:
     assert len(api.posts) == 1
 
 
-@pytest.mark.parametrize("name, labels", [("ubuntu0-e2e-0", LABELS), ("ghrunner-1", LABELS), (NAME, "self-hosted,linux")])
+@pytest.mark.parametrize(
+    "name, labels",
+    [
+        ("ubuntu0-e2e-0", LABELS_A),
+        ("ubuntu10-e2e-1", LABELS_B),  # two-digit host: outside the name scheme
+        ("ghrunner-1", LABELS_A),
+        (NAME, "self-hosted,linux"),
+        (NAME, LABELS_B),  # host digit 0 must send its transition label
+        (NAME_B, LABELS_A),  # any other host must NOT send digit 0's transition label
+    ],
+    ids=["slot-zero", "two-digit-host", "wrong-name", "partial-labels", "missing-transition-label", "wrong-shape-labels"],
+)
 def test_bad_input_is_refused_before_any_call(capsys, name, labels) -> None:
     api = FakeAPI([OK])
     assert run_mint(api, capsys, name=name, labels=labels) == (2, "")
@@ -391,6 +451,6 @@ def test_network_error_is_transient(capsys, monkeypatch) -> None:
 
     monkeypatch.setattr(mint.urllib.request, "urlopen", refuse)
     with pytest.raises(SystemExit) as exc:
-        mint.mint(NAME, LABELS, GID)
+        mint.mint(NAME, LABELS_A, GID)
     assert exc.value.code == 75
     assert capsys.readouterr().out == ""

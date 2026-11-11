@@ -21,7 +21,11 @@ kmaj=$(uname -r | cut -d. -f1); kmin=$(uname -r | cut -d. -f2)
 sv=$(systemctl --version | awk 'NR==1{print $2}')
 [ "$sv" -ge 249 ] && [ "$sv" -le 256 ] || die "systemd $sv outside 249-256"
 command -v setpriv >/dev/null || die "util-linux setpriv missing"
-log "prerequisites OK (cgroup v2, kernel $(uname -r), systemd $sv, setpriv)"
+# The lane derives runner names (ubuntu<H>-e2e-N) from the host's short hostname; every
+# lane host must already carry a name of that shape before provisioning.
+host="$(hostname -s)"
+case "$host" in ubuntu[0-9]) ;; *) die "hostname -s must match ubuntu[0-9]: the slot script builds runner names from it" ;; esac
+log "prerequisites OK (cgroup v2, kernel $(uname -r), systemd $sv, setpriv, host name shape ubuntu[0-9])"
 
 # 1. dedicate the host: retire every other actions runner service on it. Disable first so
 #    nothing restarts it; refuse while a job runs; stop an idle listener; read both back.
