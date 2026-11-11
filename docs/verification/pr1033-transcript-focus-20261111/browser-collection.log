@@ -1,0 +1,44 @@
+Listing tests:
+  [desktop] › transcript-compare.spec.ts:237:7 › E12 two-call transcript comparison › binds each column to its exact call and revision, side by side on wide screens and switchable on phones
+  [desktop] › transcript-compare.spec.ts:303:7 › E12 two-call transcript comparison › keyboard topic search filters both calls literally and jumps to the exact source segment
+  [desktop] › transcript-compare.spec.ts:348:7 › E12 two-call transcript comparison › shared wording pairs passages on words only, and re-verification catches a corrected source
+  [desktop] › transcript-compare.spec.ts:411:7 › E12 two-call transcript comparison › an absent, stale or foreign call is reported in place and never substituted
+  [desktop] › transcript-compare.spec.ts:452:7 › E12 two-call transcript comparison › a stalled ticker index gives way to the committed archive at the deadline, and Retry asks again
+  [desktop] › transcript-compare.spec.ts:480:7 › E12 two-call transcript comparison › the deadline notice reads in Chinese
+  [desktop] › transcript-compare.spec.ts:495:7 › E12 two-call transcript comparison › a copied comparison link restores the exact calls and filters and carries no transcript text
+  [desktop] › transcript-compare.spec.ts:536:7 › E12 two-call transcript comparison › switching company away and back closes a linked comparison for good
+  [desktop] › transcript-compare.spec.ts:568:7 › E12 two-call transcript comparison › the comparison reads in Chinese while transcript text stays labeled as untranslated source
+  [desktop] › transcript-compare.spec.ts:591:7 › E12 two-call transcript comparison › E12 evidence capture
+  [desktop] › transcript-compare.spec.ts:632:7 › E12 two-call transcript comparison › E12 deadline evidence capture
+  [desktop] › transcript-compare.spec.ts:711:9 › Transcript drawer copy feedback › failed copy offers a manual retry in en
+  [desktop] › transcript-compare.spec.ts:711:9 › Transcript drawer copy feedback › failed copy offers a manual retry in zh
+  [desktop] › transcript-compare.spec.ts:771:7 › Transcript drawer copy feedback › only the latest copy attempt owns feedback and its full success lifetime
+  [tablet] › transcript-compare.spec.ts:237:7 › E12 two-call transcript comparison › binds each column to its exact call and revision, side by side on wide screens and switchable on phones
+  [tablet] › transcript-compare.spec.ts:303:7 › E12 two-call transcript comparison › keyboard topic search filters both calls literally and jumps to the exact source segment
+  [tablet] › transcript-compare.spec.ts:348:7 › E12 two-call transcript comparison › shared wording pairs passages on words only, and re-verification catches a corrected source
+  [tablet] › transcript-compare.spec.ts:411:7 › E12 two-call transcript comparison › an absent, stale or foreign call is reported in place and never substituted
+  [tablet] › transcript-compare.spec.ts:452:7 › E12 two-call transcript comparison › a stalled ticker index gives way to the committed archive at the deadline, and Retry asks again
+  [tablet] › transcript-compare.spec.ts:480:7 › E12 two-call transcript comparison › the deadline notice reads in Chinese
+  [tablet] › transcript-compare.spec.ts:495:7 › E12 two-call transcript comparison › a copied comparison link restores the exact calls and filters and carries no transcript text
+  [tablet] › transcript-compare.spec.ts:536:7 › E12 two-call transcript comparison › switching company away and back closes a linked comparison for good
+  [tablet] › transcript-compare.spec.ts:568:7 › E12 two-call transcript comparison › the comparison reads in Chinese while transcript text stays labeled as untranslated source
+  [tablet] › transcript-compare.spec.ts:591:7 › E12 two-call transcript comparison › E12 evidence capture
+  [tablet] › transcript-compare.spec.ts:632:7 › E12 two-call transcript comparison › E12 deadline evidence capture
+  [tablet] › transcript-compare.spec.ts:711:9 › Transcript drawer copy feedback › failed copy offers a manual retry in en
+  [tablet] › transcript-compare.spec.ts:711:9 › Transcript drawer copy feedback › failed copy offers a manual retry in zh
+  [tablet] › transcript-compare.spec.ts:771:7 › Transcript drawer copy feedback › only the latest copy attempt owns feedback and its full success lifetime
+  [mobile] › transcript-compare.spec.ts:237:7 › E12 two-call transcript comparison › binds each column to its exact call and revision, side by side on wide screens and switchable on phones
+  [mobile] › transcript-compare.spec.ts:303:7 › E12 two-call transcript comparison › keyboard topic search filters both calls literally and jumps to the exact source segment
+  [mobile] › transcript-compare.spec.ts:348:7 › E12 two-call transcript comparison › shared wording pairs passages on words only, and re-verification catches a corrected source
+  [mobile] › transcript-compare.spec.ts:411:7 › E12 two-call transcript comparison › an absent, stale or foreign call is reported in place and never substituted
+  [mobile] › transcript-compare.spec.ts:452:7 › E12 two-call transcript comparison › a stalled ticker index gives way to the committed archive at the deadline, and Retry asks again
+  [mobile] › transcript-compare.spec.ts:480:7 › E12 two-call transcript comparison › the deadline notice reads in Chinese
+  [mobile] › transcript-compare.spec.ts:495:7 › E12 two-call transcript comparison › a copied comparison link restores the exact calls and filters and carries no transcript text
+  [mobile] › transcript-compare.spec.ts:536:7 › E12 two-call transcript comparison › switching company away and back closes a linked comparison for good
+  [mobile] › transcript-compare.spec.ts:568:7 › E12 two-call transcript comparison › the comparison reads in Chinese while transcript text stays labeled as untranslated source
+  [mobile] › transcript-compare.spec.ts:591:7 › E12 two-call transcript comparison › E12 evidence capture
+  [mobile] › transcript-compare.spec.ts:632:7 › E12 two-call transcript comparison › E12 deadline evidence capture
+  [mobile] › transcript-compare.spec.ts:711:9 › Transcript drawer copy feedback › failed copy offers a manual retry in en
+  [mobile] › transcript-compare.spec.ts:711:9 › Transcript drawer copy feedback › failed copy offers a manual retry in zh
+  [mobile] › transcript-compare.spec.ts:771:7 › Transcript drawer copy feedback › only the latest copy attempt owns feedback and its full success lifetime
+Total: 42 tests in 1 file

@@ -1,0 +1,93 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1033-focus/terminal
+
+ ❯ lib/__tests__/transcriptDrawerFocus.test.tsx (4 tests | 2 failed) 150ms
+   × verified transcript focus waits for its own portal > focuses a fast reopened response after its first frame and ignores the prior copy (foreign target=false) 44ms
+     → expected <button class="x" …(1)></button> to be <article …(3)>…(2)</article> // Object.is equality
+   × verified transcript focus waits for its own portal > focuses a fast reopened response after its first frame and ignores the prior copy (foreign target=true) 19ms
+     → expected <article …(3)></article> to be <button></button> // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/transcriptDrawerFocus.test.tsx > verified transcript focus waits for its own portal > focuses a fast reopened response after its first frame and ignores the prior copy (foreign target=false)
+AssertionError: expected <button class="x" …(1)></button> to be <article …(3)>…(2)</article> // Object.is equality
+
+- Expected
++ Received
+
+- <article
+-   class="fin-tx-seg"
+-   data-segment="3"
+-   tabindex="-1"
+- >
+-   <header>
+-     <span>
+-       <b
+-         class="fin-tx-speaker"
+-       >
+-         Management
+-       </b>
+-       <em
+-         title="Role inferred by Mastermind from source text; not independently verified."
+-       >
+-         inferred
+-          ·
+-         CFO
+-       </em>
+-     </span>
+  <button
+-       aria-label="Copy segment 3"
++   aria-label="Close transcript"
++   class="x"
+  >
+-       ⧉
++   ×
+  </button>
+-   </header>
+-   <p
+-     class="fin-tx-text"
+-   >
+-     Verified segment selected by the source result.
+-   </p>
+- </article>
+
+ ❯ lib/__tests__/transcriptDrawerFocus.test.tsx:111:36
+    109|     expect(scroll).not.toHaveBeenCalled();
+    110|     await frame();
+    111|     expect(document.activeElement).toBe(target());
+       |                                    ^
+    112|     expect(scroll.mock.instances).toEqual([target()]);
+    113|     await act(async () => copy.reject(new Error("old copy failed")));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/transcriptDrawerFocus.test.tsx > verified transcript focus waits for its own portal > focuses a fast reopened response after its first frame and ignores the prior copy (foreign target=true)
+AssertionError: expected <article …(3)></article> to be <button></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button>
+-   Open verified source
+- </button>
++ <article
++   class="fin-tx-seg"
++   data-segment="3"
++   tabindex="-1"
++ />
+
+ ❯ lib/__tests__/transcriptDrawerFocus.test.tsx:108:65
+    106|     scroll.mockClear();
+    107|     await open(); await act(async () => { await revision.promise; });
+    108|     expect(drawer()).toBeNull(); expect(document.activeElement).toBe(o…
+       |                                                                 ^
+    109|     expect(scroll).not.toHaveBeenCalled();
+    110|     await frame();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  06:10:59
+   Duration  1.44s (transform 421ms, setup 0ms, collect 525ms, tests 150ms, environment 339ms, prepare 76ms)
