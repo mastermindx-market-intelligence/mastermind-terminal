@@ -130,6 +130,30 @@ def test_split_typecheck_and_unit_shards_run_on_every_qualified_event() -> None:
         )
 
 
+def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
+    """The evidence suites run only in records mode after capture. Every suite
+    that calls selectedComposition() must be in the evidence-lane command and
+    excluded from the shards, and nothing else may be excluded."""
+    import re
+    root = Path(__file__).resolve().parents[1]
+    suites = sorted(
+        "lib/__tests__/" + path.name
+        for path in (root / "terminal" / "lib" / "__tests__").glob("*.test.ts")
+        if "selectedComposition(" in path.read_text(encoding="utf-8")
+    )
+    assert suites
+    lane = next(
+        str(step["run"]) for step in jobs()["terminal-unit"]["steps"]
+        if "npx vitest run lib/__tests__" in str(step.get("run", ""))
+    )
+    assert sorted(re.findall(r"lib/__tests__/\S+\.test\.ts", lane)) == suites
+    shard = next(
+        str(step["run"]) for step in jobs()["terminal-unit-shards"]["steps"]
+        if str(step.get("run", "")).startswith("npx vitest run --shard=")
+    )
+    assert sorted(re.findall(r"--exclude (\S+)", shard)) == suites
+
+
 def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
     """Evidence-lock drift in a PR's own diff must fail the PR, not only the
     merge group: one workflow step records the PR-touched paths (from the

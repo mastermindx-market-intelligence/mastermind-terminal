@@ -660,12 +660,12 @@ jobs:
           cache-dependency-path: terminal/package-lock.json
       - run: npm ci
       # vitest's native --shard deterministically splits the matched test-file
-      # set (1257 files when this split landed: ~419 per shard). These shards
-      # run without TERMINAL_EVIDENCE_*: the two evidence-composition suites
-      # fall back to their bounded incumbent checks, exactly like a local
-      # `npm test`; the records-mode validation of this run's fresh capture
-      # stays in the terminal-unit evidence lane after capture.
-      - run: npx vitest run --shard=${{ matrix.shard }}/3
+      # set (sha1-ordered contiguous slices). The two evidence-composition
+      # suites are excluded here: they validate this run's fresh capture in
+      # records mode in the terminal-unit evidence lane (the only mode they
+      # ran in CI before this split), and their incumbent-mode source lock is
+      # not a CI gate.
+      - run: npx vitest run --shard=${{ matrix.shard }}/3 --exclude lib/__tests__/b_pl_6Batch1Evidence.test.ts --exclude lib/__tests__/visualIntelligenceEvidence.test.ts
         timeout-minutes: 20
 
   terminal-e2e:
