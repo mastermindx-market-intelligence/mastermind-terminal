@@ -1,0 +1,107 @@
+{
+  "after": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "11a9b9c6e4cfb2b4a1fe00c7ca7e630c9f495b3e8af08f35021db10b760f4ea8",
+    "terminal/e2e/tools/optionsExposureEvidence.d.cts": "25324f7b1f06f211c13568212690ddd03f7b34c3487757fb14222849759322f3",
+    "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts": "ab6677b86fa6df0989bda6406b5297bf94ec4b3b0b01d97b79eb1f953c055bcb",
+    "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts": "09029512e404db1f3b95f8f6a5d79d586baf9955d859018113e7cd82f5588cb9",
+    "terminal/lib/__tests__/optionsExposureD06Successor.test.ts": "2c481123780caa1dfaabee6fe5dd05376a57c8a2887668d2f394ab1737ef35ac",
+    "terminal/lib/__tests__/optionsExposureEvidence.test.ts": "da24dd92b317c14216bded55e7cfde9ce3171f401e3c741a4b57d7c1d5830a66",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "14e555c8b51800b8cd80fd92522948122ed8351aa3a25c37cd71636f3cc129bd",
+    "terminal/lib/__tests__/optionsExposureHeatmapCopy.test.ts": "2928a014de529c253dcdedb2f438b1b064f681ce8bb264e072998e5c16b002a0",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": "877eed438b54c3fd537dbc1af639b9656c3ed27c331632674a5dcf15e7c41a21"
+  },
+  "before": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "11a9b9c6e4cfb2b4a1fe00c7ca7e630c9f495b3e8af08f35021db10b760f4ea8",
+    "terminal/e2e/tools/optionsExposureEvidence.d.cts": "25324f7b1f06f211c13568212690ddd03f7b34c3487757fb14222849759322f3",
+    "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts": "ab6677b86fa6df0989bda6406b5297bf94ec4b3b0b01d97b79eb1f953c055bcb",
+    "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts": "09029512e404db1f3b95f8f6a5d79d586baf9955d859018113e7cd82f5588cb9",
+    "terminal/lib/__tests__/optionsExposureD06Successor.test.ts": "2c481123780caa1dfaabee6fe5dd05376a57c8a2887668d2f394ab1737ef35ac",
+    "terminal/lib/__tests__/optionsExposureEvidence.test.ts": "da24dd92b317c14216bded55e7cfde9ce3171f401e3c741a4b57d7c1d5830a66",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "14e555c8b51800b8cd80fd92522948122ed8351aa3a25c37cd71636f3cc129bd",
+    "terminal/lib/__tests__/optionsExposureHeatmapCopy.test.ts": "2928a014de529c253dcdedb2f438b1b064f681ce8bb264e072998e5c16b002a0",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": "877eed438b54c3fd537dbc1af639b9656c3ed27c331632674a5dcf15e7c41a21"
+  },
+  "checks": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "e2e/tools/optionsExposureEvidence.cjs"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "reader-syntax",
+      "seconds": 0.075
+    },
+    {
+      "command": [
+        "node",
+        "-e",
+        "const assert=require('node:assert/strict'); const owner=require('./e2e/tools/capture_ci_evidence.cjs'); const root=require('node:path').resolve('..'); const out={}; for(const [kind,pin] of Object.entries({eod:'46b35e7f1bf23454dede63797644bb4d8082bdb484dfa7918e377f9b3e1c6a90',gex:'076271811c0cedfec4ad4d0344ec3594aa20c9d44e30cd1287fc94179ebe471c'})){const packet=kind==='eod'?owner.eodPacket(root):owner.gexPacket(root); assert.equal(packet.selection,'qualified'); assert.equal(packet.capturedAtHead,'357c32f1a330dda9362955361ae0ab30a3e54048'); assert.equal(packet.captureRevision,'d06-r5-copy-20261111'); assert.equal(packet.descriptorSha256,pin); assert.deepEqual(packet.plan,{required:false,changed:[]}); out[kind]={path:packet.path,sha256:packet.sha256,capturedAtHead:packet.capturedAtHead,captureRevision:packet.captureRevision,descriptorSha256:packet.descriptorSha256,plan:packet.plan};} console.log(JSON.stringify(out));"
+      ],
+      "exit": 0,
+      "logSha256": "e1814accb0eb7f23d4fc308e3de7980dff29ee65fbd772173fddef615fa5af60",
+      "name": "current-owner-probe",
+      "seconds": 6.433
+    },
+    {
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/optionsExposureD06Successor.test.ts",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureHeatmapCopy.test.ts",
+        "lib/__tests__/optionsExposureR5Successor.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/docs/verification/pr1270-d06-successor-20261111/reader-adoption/vitest-report.json"
+      ],
+      "exit": 0,
+      "logSha256": "d1a963f7ff2d7e7963834be0c6699825fdbdd3ce66b21a18bd26f25d9192ea1a",
+      "name": "affected-consumers",
+      "seconds": 165.77
+    },
+    {
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typescript",
+      "seconds": 11.046
+    },
+    {
+      "command": [
+        "./node_modules/.bin/eslint",
+        "--max-warnings=0",
+        "lib/__tests__/optionsExposureD06Successor.test.ts",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureHeatmapCopy.test.ts",
+        "lib/__tests__/optionsExposureR5Successor.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "affected-lint",
+      "seconds": 2.959
+    }
+  ],
+  "completedAt": "2026-11-11T14:26:00.446763+00:00",
+  "currentApplicability": {
+    "eod": "validated through both current owner entry points",
+    "expiry": 77,
+    "gex": "validated through both current owner entry points",
+    "joint": 72
+  },
+  "diffCheckExit": 0,
+  "startedAt": "2026-11-11T14:22:53.953556+00:00",
+  "state": "ALL_AFFECTED_CONSUMERS_PASSED"
+}

@@ -1,0 +1,59 @@
+{
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "65482",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "listener": {
+    "command": [
+      "lsof",
+      "-nP",
+      "-iTCP:57736",
+      "-sTCP:LISTEN"
+    ],
+    "exit": 1,
+    "stderr": "",
+    "stdout": ""
+  },
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://127.0.0.1:57736",
+    "hostname": "127.0.0.1",
+    "pid": 65482,
+    "port": 57736,
+    "startedAt": 1794406076548
+  },
+  "lockAbsent": true,
+  "lockIdentityAfterChecks": {
+    "device": 16777252,
+    "inode": 356177952
+  },
+  "lockIdentityBeforeUnlink": {
+    "device": 16777252,
+    "inode": 356177952
+  },
+  "lockPresent": true,
+  "lockSha256": "862d6d4a8a59375389e9ce17bf3cd7ec3606c9dc80e9b30806cf7ea1a464f9b7",
+  "lockUnlinked": true,
+  "port": 57736,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

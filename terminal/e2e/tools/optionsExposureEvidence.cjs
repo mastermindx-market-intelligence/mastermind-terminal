@@ -4,6 +4,7 @@
 const { createHash } = require("node:crypto");
 const { existsSync, readFileSync, readdirSync } = require("node:fs");
 const { join } = require("node:path");
+const { isDeepStrictEqual } = require("node:util");
 const BASE = "11531481b0a540ee96bcd86df418fd1e42715363";
 const CURRENT_REVISION = "options-navigation-r4";
 
@@ -15,6 +16,68 @@ const MOMENTUM_BROWSER_SOURCE_TREE = "28755f8133c5208c38ca7af4645e0eaee1610187";
 const MOMENTUM_BROWSER_DESCRIPTOR = "077a5a84a160e64f340dc326ee834d9408d35b822782df16f8f70125b1b6abf2";
 const MOMENTUM_BROWSER_QUALIFICATION = "fdb68045af826d208615fd3b2d54955961053312ba57d60895fdfa116b394c12";
 const MOMENTUM_EXPIRY_QUALIFICATION = "caffdecc46531a7da8f0173f6ccde0b43db30be16c7e91a2b6970e789c2b32e7";
+
+// Hosted R5 successor; its capture and later import identities are distinct.
+const R5_BROWSER_REVISION = "r5-alignment-20261110";
+const R5_BROWSER_HEAD = "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93";
+const R5_BROWSER_MASTER = "8967f977fc156fff6b3f849568d84e49ba61f7d6";
+const R5_BROWSER_CHECKOUT = "cb9722189b1a37e742a10aeff0c86cf6f30be7bf";
+const R5_BROWSER_SOURCE_TREE = "1a825666dc49b30e3288f4bf4f9d69cce8248898";
+const R5_BROWSER_EVENT_BASE = "18fabe9d3c1439c4185559ba5ce491518fe999c9";
+const R5_BROWSER_DESCRIPTOR = "0da98d3fa6a70e752421d2156552a41cf68e6be22bf86ec932f5833a71fe5193";
+const R5_RAW_EXPORT_INVENTORY = "c55db437247c442129e8b26b27afdc082d80a0f206d2b59478f12de9e8affd19";
+const R5_BROWSER_QUALIFICATION = "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d";
+const R5_EXPIRY_QUALIFICATION = "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e";
+const R5_BROWSER_EXPORTER = "terminal/e2e/tools/qualify_r5_alignment_browser.py";
+const R5_BROWSER_EXPORTER_SHA = "51a56f988c76e8db33c6e8ff2e0a2af04c8cc33f3d98a8b929ceea8596c3d44e";
+const R5_BROWSER_SNAPSHOT = "6776d53923408ddb8568f86f47b3925effb134c2511757ccbfa66150ad392d72";
+
+// Fresh #609 native captures; browser identity records the composed working tree.
+const HEATMAP_COPY_REVISION = "heatmap-copy-20261111";
+const HEATMAP_COPY_HEAD = "d3e7ba61f7021d65571b9bcde279409168f4173d";
+const HEATMAP_COPY_NATIVE_BASE = "18fabe9d3c1439c4185559ba5ce491518fe999c9";
+const HEATMAP_COPY_NATIVE_TREE = "1e34eff65895a0d266a94e408a9da19aa68b0003";
+const HEATMAP_COPY_DEPENDENCY = "707b4d509dd4f0922cbb6a45c0661399641e606f";
+const HEATMAP_COPY_NATIVE = {
+    eod: "274aa30a9c0466523b307d3709072c6dc80835fdd737f43aa387bfe9286c47ac",
+    gex: "286527601cb417b34e5e1899bb19a71518d43e0d630eb456a5634e6c23a2b3db",
+};
+const HEATMAP_COPY_R5_ROOTS = {
+    gex: "0ffb688481f64075b6a07181900c709d4c58afe60cd6dce0e1e1c948bc6abf9e",
+    eod: "398ee08642c4db5eb7ee1648e5865e42146fd98aec9f96a208727bfe003d832d",
+};
+// Pins bind the completed attended browser run; its actual checkout and source identity stay immutable.
+const HEATMAP_COPY_CAPTURE_INDEX = "cc212d86b5debe4b0093a2551aa34ed65731d1c4";
+const HEATMAP_COPY_DESCRIPTOR = "8f648c3e4a4ed41bd773453903dd82bf71683097732665c4a86101e3fb13c143";
+const HEATMAP_COPY_BROWSER_QUALIFICATION = "c715c1620ded67bc57ab63fabbf6499f727c7bcda2503c75d31b696b685100fc";
+const HEATMAP_COPY_EXPIRY_QUALIFICATION = "d7aa9de38a105f7e9263f35c77d7718b2faddd71e06c6d22b46c4a335ce722fe";
+const HEATMAP_COPY_BROWSER_PORT = 57732;
+const HEATMAP_COPY_HISTORICAL_NATIVE = Symbol("heatmap-copy predecessor native");
+
+// Fresh D06 proof binds an observed working tree, not a synthetic capture commit.
+const D06_REVISION = "d06-r5-copy-20261111";
+const D06_ACTUAL_GIT = {
+    head: "357c32f1a330dda9362955361ae0ab30a3e54048",
+    headTree: "e0071b0769420d5837e6a6767b696752462c449a",
+    indexTree: "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+    mergeHead: "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+};
+const D06_PUBLISHED_BASIS = "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e";
+const D06_INTEGRATED_HEADS = ["707b4d509dd4f0922cbb6a45c0661399641e606f", "d3e7ba61f7021d65571b9bcde279409168f4173d"];
+const D06_NATIVE_SNAPSHOT = "88352b45e2cc783a8f1de73f455e1c0d962156b716f00eb4744dbca69b71169d";
+const D06_NATIVE = {
+    eod: "46b35e7f1bf23454dede63797644bb4d8082bdb484dfa7918e377f9b3e1c6a90",
+    gex: "076271811c0cedfec4ad4d0344ec3594aa20c9d44e30cd1287fc94179ebe471c",
+};
+const D06_COPY_ROOTS = {
+    eod: "ca8665106dd6d220449b3ba4acfe668bd4204b07e185569225bd2574ddb998fe",
+    gex: "9262263b3b4adbb3de79362dab910429331b0b4ef2f937cb02cb299a8a50ff40",
+};
+// Public qualification remains closed until the actual browser receipts are bound.
+const D06_DESCRIPTOR = "d26b3be1499cd9cea18ba4566f017fc4994541115bf77b535268021874635246";
+const D06_BROWSER_QUALIFICATION = "2ef456820e2eaff5fd53cc5dbe87f97a11e3e5a96c61180ca140d55e71a4be36";
+const D06_EXPIRY_QUALIFICATION = "9f3931d99b5e66100f627619413cfdd29c19a0d93eac2e64cc2bf38c57f32857";
+const D06_BROWSER_PORT = 57736;
 
 const PREVIOUS_PACKET_INVENTORY = {
     gex: "c9f0aa2c43cb06d0590fb065d7b0a97f019e247c13757cc9a672f665eed12670",
@@ -429,6 +492,13 @@ function qualifiedOptionsExposurePacket(repo, kind, crops) {
         crops.every(name => /^[a-z0-9-]+\.png$/.test(name)), "EXPECTED_CROP_SET");
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
     const text = readFileSync(join(root, "EVIDENCE.yml"), "utf8");
+    if (hasD06History(repo) || text.includes("exposureD06Successor20261111") || text.includes(D06_REVISION))
+        return readD06Successor(repo, kind, crops, text);
+    if (hasHeatmapCopyHistory(repo) || text.includes("exposureHeatmapCopy20261111") || text.includes(HEATMAP_COPY_REVISION))
+        return readHeatmapCopySuccessor(repo, kind, crops, text);
+    if (text.includes(R5_BROWSER_REVISION) || text.includes("exposureR5Browser20261111") ||
+        existsSync(r5BrowserDirectory(repo)))
+        return readR5BrowserSuccessor(repo, kind, crops, text);
     if (text.includes(MOMENTUM_BROWSER_REVISION) || text.includes("exposureMomentumBrowser20261110") ||
         existsSync(momentumBrowserDirectory(repo)))
         return readMomentumBrowserSuccessor(repo, kind, crops, text);
@@ -601,18 +671,20 @@ const momentumBrowserInputs = () => [...new Set([...optionsIntegrationBrowserInp
 const momentumExpiryInputs = () => [...new Set([...expiryGreeksJourneyInputs(), MOMENTUM_COMPONENT])].sort();
 /** A failed full GEX run may still emit a manifest; its actual result is decisive. */
 function requireIntegrationExecution(value, kind, crops, identity = "indicator-guard") {
-    check(["master-integration", "indicator-guard", "ui-copy-integration", "options-integration", "expiry-greeks-integration"].includes(identity), "INTEGRATION_CAPTURE_IDENTITY_KIND");
+    check(["master-integration", "indicator-guard", "ui-copy-integration", "options-integration", "expiry-greeks-integration", "heatmap-copy-integration", "d06-integration"].includes(identity), "INTEGRATION_CAPTURE_IDENTITY_KIND");
     const historical = identity === "master-integration", successor = identity === "ui-copy-integration";
-    const expiry = identity === "expiry-greeks-integration", options = identity === "options-integration" || expiry;
+    const copy = identity === "heatmap-copy-integration", d06 = identity === "d06-integration";
+    const expiry = identity === "expiry-greeks-integration", options = identity === "options-integration" || expiry || copy || d06;
     if (expiry) check(kind === "gex", "EXPIRY_INTEGRATION_RETAINS_EOD_IDENTITY");
     const producerPins = options ? OPTIONS_INTEGRATION_PRODUCERS : INDICATOR_PRODUCERS;
     check(value.schema === "exposure_master_integration_capture.v1" && value.operation === OP.exposure &&
-        value.revision === (expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : historical ? MASTER_REVISION : successor ? UI_COPY_REVISION : INDICATOR_REVISION) &&
+        value.revision === (d06 ? D06_REVISION : copy ? HEATMAP_COPY_REVISION : expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : historical ? MASTER_REVISION : successor ? UI_COPY_REVISION : INDICATOR_REVISION) &&
         value.kind === kind && value.packet === PACKETS[kind] &&
-        value.branchHead === (expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : historical ? MASTER_PRIOR : successor ? UI_COPY_PRIOR : INDICATOR_PRIOR) &&
-        value.protectedMaster === (expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
-        (!options || value.integratedDependency === (expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
+        value.branchHead === (d06 ? D06_ACTUAL_GIT.head : copy ? HEATMAP_COPY_HEAD : expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : historical ? MASTER_PRIOR : successor ? UI_COPY_PRIOR : INDICATOR_PRIOR) &&
+        value.protectedMaster === (d06 ? D06_ACTUAL_GIT.mergeHead : copy ? HEATMAP_COPY_NATIVE_BASE : expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        (d06 || !options || value.integratedDependency === (copy ? HEATMAP_COPY_NATIVE_BASE : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
         (!successor || (kind === "eod" && value.integratedDependency === UI_COPY_DEPENDENCY)), "INTEGRATION_CAPTURE_IDENTITY");
+    if (d06) requireD06WorktreeIdentity(value);
     if (!historical) {
         check(value.portClosed === true && value.nextLockAbsent === true, "INTEGRATION_CAPTURE_LIFECYCLE");
         requireSourceKeys(value.producerPins ?? {}, [harness("gex"), harness("eod")]);
@@ -640,7 +712,7 @@ function requireIntegrationExecution(value, kind, crops, identity = "indicator-g
     check(sameKeys(Object.keys(value.images), crops), "INTEGRATION_IMAGE_SET");
     for (const image of Object.values(value.images))
         check(/^[0-9a-f]{64}$/.test(image.sha256) &&
-            Number.isInteger(image.bytes) && image.bytes > 1000 && Number.isInteger(image.width) && image.width > 0 &&
+            (d06 ? image.bytes === undefined : Number.isInteger(image.bytes) && image.bytes > 1000) && Number.isInteger(image.width) && image.width > 0 &&
             Number.isInteger(image.height) && image.height > 0, "INTEGRATION_IMAGE_RECORD");
     check(/^[0-9a-f]{64}$/.test(value.logSha256), "INTEGRATION_LOCAL_LOG_PROVENANCE");
 }
@@ -658,7 +730,10 @@ function verifyIntegrationImages(cropDir, execution, crops) {
     check(sameKeys(readdirSync(cropDir).filter(name => name.endsWith(".png")), crops), "INTEGRATION_NATIVE_CROPS");
     for (const name of crops) {
         const bytes = readFileSync(join(cropDir, name)), record = execution.images[name];
-        check(sha(join(cropDir, name)) === record.sha256 && bytes.length === record.bytes &&
+        // D06 uses the existing nativeImages receipt, which records hash and dimensions.
+        // Check its actual file size here; older execution formats retain their recorded byte-count contract.
+        const sizeMatches = execution.revision === D06_REVISION ? record.bytes === undefined && bytes.length > 1000 : bytes.length === record.bytes;
+        check(sha(join(cropDir, name)) === record.sha256 && sizeMatches &&
             bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) &&
             bytes.readUInt32BE(16) === record.width && bytes.readUInt32BE(20) === record.height, "INTEGRATION_NATIVE_IMAGE:" + name);
     }
@@ -674,54 +749,10 @@ function exposurePrefix(dir) {
             qualifiedPacket: folder + "/native-packet.json", qualifiedPacketSha256: sha(join(dir, "native-packet.json")),
         }) + "\n";
 }
-function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
-    check(["master", "ui-copy", "options-integration", "expiry-greeks", "exposure-momentum"].includes(revision), "INTEGRATION_BROWSER_REVISION");
-    const successor = revision === "ui-copy", momentum = revision === "exposure-momentum", expiry = revision === "expiry-greeks", options = revision === "options-integration" || expiry || momentum;
-    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", momentum ? MOMENTUM_BROWSER_REVISION : expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
-    check(sha(join(dir, "qualification.json")) === (momentum ? MOMENTUM_BROWSER_QUALIFICATION : expiry ? EXPIRY_INTEGRATION_BROWSER : options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
-    const proof = json(join(dir, "qualification.json"));
-    check(proof.schema === "exposure_master_integration_browser.v1" &&
-        proof.branchHead === (momentum ? MOMENTUM_BROWSER_HEAD : expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
-        proof.protectedMaster === (momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
-        (!options || proof.integratedDependency === (momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
-        (!successor || proof.integratedDependency === UI_COPY_DEPENDENCY), "INTEGRATION_BROWSER_IDENTITY");
-    requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json",
-        ...((successor || options) ? ["browser.log"] : [])]);
-    for (const [name, digest] of Object.entries(proof.files))
-        check(sha(join(dir, name)) === digest, "INTEGRATION_BROWSER_FILE:" + name);
-    const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
-    check(proof.files["source-before.json"] === proof.files["source-after.json"], "INTEGRATION_BROWSER_SOURCE_STABILITY");
-    const currentInputs = momentum ? momentumBrowserInputs() : options ? optionsIntegrationBrowserInputs() : successor ? uiCopyIntegrationBrowserInputs() : masterIntegrationBrowserInputs();
-    requireSourceKeys(proof.currentSources, currentInputs);
-    for (const [path, digest] of Object.entries(proof.currentSources))
-        check(before[path] === digest && after[path] === digest, "INTEGRATION_BROWSER_RECORDED_SOURCE:" + path);
-    if (requireCurrent && (successor || options)) {
-        const current = Object.fromEntries(currentInputs.map(path => [path, sha(join(repo, path))]));
-        selectWholeFingerprint([{ sources: proof.currentSources }], current);
-    }
-    const execution = json(join(dir, "browser-execution.json"));
-    check(execution.schema === "exposure_master_integration_browser_execution.v1" &&
-        execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
-        (!(successor || options) || (execution.integratedDependency === (momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY) &&
-            execution.logSha256 === proof.files["browser.log"])), "INTEGRATION_BROWSER_EXECUTION_IDENTITY");
-    const overrideKeys = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
-        "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
-    check(sameKeys(Object.keys(execution.fixtureOverrides), overrideKeys) &&
-        overrideKeys.every(key => execution.fixtureOverrides[key] === null), "INTEGRATION_BROWSER_BUNDLED_FIXTURES");
-    check(execution.exit === 0 && execution.retries === 0 && execution.sourceStable && execution.ownedServerStopped &&
-        execution.failed === 0 && execution.flaky === 0 && execution.passed === proof.expectedPassed.length &&
-        execution.skipped === proof.expectedSkipped.length &&
-        (options ? OPTIONS_INTEGRATION_BROWSER_SPECS : MASTER_BROWSER_SPECS).every(path => execution.command.includes(path.replace(/^terminal\//, ""))), "INTEGRATION_BROWSER_RESULT");
-    if (options) check(execution.passed === 144 && execution.skipped === 0 &&
-        sameKeys(execution.command.filter(arg => arg.endsWith(".spec.ts")),
-            OPTIONS_INTEGRATION_BROWSER_SPECS.map(path => path.replace(/^terminal\//, ""))), "OPTIONS_INTEGRATION_BROWSER_COMMAND");
-    check(Object.keys(execution.artifactFiles).length > 0, "INTEGRATION_BROWSER_ARTIFACTS");
-    for (const [path, digest] of Object.entries(execution.artifactFiles))
-        check(path.startsWith("browser-artifacts/") && !path.split("/").includes("..") &&
-            /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "INTEGRATION_BROWSER_ARTIFACT:" + path);
-    const report = json(join(dir, "browser-report.json"));
-    check(!report.errors?.length && report.stats.expected === execution.passed && report.stats.unexpected === 0 &&
-        report.stats.skipped === execution.skipped && report.stats.flaky === 0, "INTEGRATION_BROWSER_REPORT");
+/** Shared report checks for immutable readers and the bounded capture exporter. */
+function requireIntegrationBrowserReport(report, proof) {
+    check(!report.errors?.length && report.stats.expected === proof.expectedPassed.length && report.stats.unexpected === 0 &&
+        report.stats.skipped === proof.expectedSkipped.length && report.stats.flaky === 0, "INTEGRATION_BROWSER_REPORT");
     const passed = [], skipped = [], chartCases = [];
     function visit(suite) {
         for (const spec of suite.specs ?? [])
@@ -756,6 +787,64 @@ function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
     check(sameKeys(passed, proof.expectedPassed) && new Set(passed).size === passed.length &&
         sameKeys(skipped, proof.expectedSkipped), "INTEGRATION_BROWSER_CASE_SET");
     check(sameKeys(chartCases, ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang => project + "|Connected exposure workspace " + lang + ": chart, comparison scopes, scanner and return"))), "INTEGRATION_CHART_CASE_SET");
+}
+function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
+    check(["master", "ui-copy", "options-integration", "expiry-greeks", "exposure-momentum", "r5-alignment", "heatmap-copy", "d06"].includes(revision), "INTEGRATION_BROWSER_REVISION");
+    const r5 = revision === "r5-alignment", copy = revision === "heatmap-copy", d06 = revision === "d06";
+    const successor = revision === "ui-copy", momentum = revision === "exposure-momentum", expiry = revision === "expiry-greeks", options = revision === "options-integration" || expiry || momentum || r5 || copy || d06;
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", d06 ? D06_REVISION : copy ? HEATMAP_COPY_REVISION : r5 ? R5_BROWSER_REVISION : momentum ? MOMENTUM_BROWSER_REVISION : expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
+    check(sha(join(dir, "qualification.json")) === (d06 ? D06_BROWSER_QUALIFICATION : copy ? HEATMAP_COPY_BROWSER_QUALIFICATION : r5 ? R5_BROWSER_QUALIFICATION : momentum ? MOMENTUM_BROWSER_QUALIFICATION : expiry ? EXPIRY_INTEGRATION_BROWSER : options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
+    const proof = json(join(dir, "qualification.json"));
+    check(proof.schema === "exposure_master_integration_browser.v1" &&
+        proof.branchHead === (d06 ? D06_ACTUAL_GIT.head : copy ? HEATMAP_COPY_HEAD : r5 ? R5_BROWSER_HEAD : momentum ? MOMENTUM_BROWSER_HEAD : expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
+        proof.protectedMaster === (d06 ? D06_ACTUAL_GIT.mergeHead : (copy || r5) ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        (d06 || !options || proof.integratedDependency === (copy ? HEATMAP_COPY_DEPENDENCY : r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
+        (!successor || proof.integratedDependency === UI_COPY_DEPENDENCY), "INTEGRATION_BROWSER_IDENTITY");
+    if (r5) requireR5HostedIdentity(proof);
+    if (copy) requireHeatmapCopyBrowserIdentity(proof);
+    if (d06) requireD06BrowserIdentity(proof);
+    requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json",
+        ...((successor || options) ? ["browser.log"] : [])]);
+    for (const [name, digest] of Object.entries(proof.files))
+        check(sha(join(dir, name)) === digest, "INTEGRATION_BROWSER_FILE:" + name);
+    const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
+    check(proof.files["source-before.json"] === proof.files["source-after.json"], "INTEGRATION_BROWSER_SOURCE_STABILITY");
+    const currentInputs = (d06 || copy || momentum || r5) ? momentumBrowserInputs() : options ? optionsIntegrationBrowserInputs() : successor ? uiCopyIntegrationBrowserInputs() : masterIntegrationBrowserInputs();
+    requireSourceKeys(proof.currentSources, currentInputs);
+    for (const [path, digest] of Object.entries(proof.currentSources))
+        check(before[path] === digest && after[path] === digest, "INTEGRATION_BROWSER_RECORDED_SOURCE:" + path);
+    if (requireCurrent && (successor || options)) {
+        const current = Object.fromEntries(currentInputs.map(path => [path, sha(join(repo, path))]));
+        selectWholeFingerprint([{ sources: proof.currentSources }], current);
+    }
+    const execution = json(join(dir, "browser-execution.json"));
+    check(execution.schema === "exposure_master_integration_browser_execution.v1" &&
+        execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
+        (!(successor || options) || ((d06 || execution.integratedDependency === (copy ? HEATMAP_COPY_DEPENDENCY : r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY)) &&
+            execution.logSha256 === proof.files["browser.log"])), "INTEGRATION_BROWSER_EXECUTION_IDENTITY");
+    if (r5) requireR5HostedIdentity(execution);
+    if (copy) requireHeatmapCopyBrowserIdentity(execution);
+    if (d06) requireD06BrowserIdentity(execution);
+    const overrideKeys = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
+        "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
+    check(sameKeys(Object.keys(execution.fixtureOverrides), overrideKeys) &&
+        overrideKeys.every(key => execution.fixtureOverrides[key] === null), "INTEGRATION_BROWSER_BUNDLED_FIXTURES");
+    check(execution.exit === 0 && execution.retries === 0 && execution.sourceStable && execution.ownedServerStopped &&
+        execution.failed === 0 && execution.flaky === 0 && execution.passed === proof.expectedPassed.length &&
+        execution.skipped === proof.expectedSkipped.length &&
+        (options ? OPTIONS_INTEGRATION_BROWSER_SPECS : MASTER_BROWSER_SPECS).every(path => execution.command.includes(path.replace(/^terminal\//, ""))), "INTEGRATION_BROWSER_RESULT");
+    if (options) check(execution.passed === 144 && execution.skipped === 0 &&
+        sameKeys(execution.command.filter(arg => arg.endsWith(".spec.ts")),
+            OPTIONS_INTEGRATION_BROWSER_SPECS.map(path => path.replace(/^terminal\//, ""))), "OPTIONS_INTEGRATION_BROWSER_COMMAND");
+    check(Object.keys(execution.artifactFiles).length > 0, "INTEGRATION_BROWSER_ARTIFACTS");
+    for (const [path, digest] of Object.entries(execution.artifactFiles))
+        check(path.startsWith("browser-artifacts/") && !path.split("/").includes("..") &&
+            /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "INTEGRATION_BROWSER_ARTIFACT:" + path);
+    const report = json(join(dir, "browser-report.json"));
+    if (r5) requireR5ReportOwner(report);
+    if (copy) requireHeatmapCopyReportOwner(report);
+    if (d06) requireHeatmapCopyReportOwner(report, D06_ACTUAL_GIT.head);
+    requireIntegrationBrowserReport(report, proof);
     return proof;
 }
 function verifyIntegrationBrowser(repo, requireCurrent = true) {
@@ -765,12 +854,15 @@ function verifyIntegrationBrowser(repo, requireCurrent = true) {
         sameKeys(current.expectedSkipped, historical.expectedSkipped), "INTEGRATION_BROWSER_ORIGINAL_CASE_SET");
     return current;
 }
+function expectedNativeFiles(kind) {
+    return require("./" + harness(kind).split("/").at(-1)).expectedFiles();
+}
 function readIntegrationNativePayload(repo, dir, kind, crops, descriptor, identity, requireCurrent) {
     const execution = json(join(dir, "capture-execution.json"));
     requireIntegrationExecution(execution, kind, crops, identity);
     check(execution.logSha256 === descriptor.files["capture.log"], "INTEGRATION_CAPTURE_LOG");
     const contract = json(join(dir, "source-contract.json"));
-    const options = identity === "options-integration" || identity === "expiry-greeks-integration", pins = options ? OPTIONS_INTEGRATION_PRODUCERS : INDICATOR_PRODUCERS;
+    const options = identity === "options-integration" || identity === "expiry-greeks-integration" || identity === "heatmap-copy-integration" || identity === "d06-integration", pins = options ? OPTIONS_INTEGRATION_PRODUCERS : INDICATOR_PRODUCERS;
     const paths = options ? optionsIntegrationInputs(kind) : identity === "ui-copy-integration" ? uiCopyIntegrationInputs(kind) : masterIntegrationInputs(kind);
     check(contract.schema === "exposure_master_capture_sources.v1" && contract.kind === kind &&
         sameKeys(contract.currentInputs, paths) && new Set(contract.currentInputs).size === paths.length, "INTEGRATION_SOURCE_CONTRACT");
@@ -979,7 +1071,7 @@ function readOptionsIntegrationPair(repo, kind, crops, rootTexts, requireCurrent
     const selected = {};
     for (const family of ["gex", "eod"]) {
         const packet = packets[family];
-        const expected = family === kind ? crops : require("./" + harness(family).split("/").at(-1)).expectedFiles();
+        const expected = family === kind ? crops : expectedNativeFiles(family);
         const prior = readExposureMasterIntegration(repo, packet.root, family, expected,
             readFileSync(join(packet.dir, "EVIDENCE.before.yml"), "utf8"), false);
         const current = readIntegrationNativePayload(repo, packet.dir, family, expected, packet.descriptor, "options-integration", requireCurrent);
@@ -1064,25 +1156,30 @@ function requireExpiryGreeksScreenshotSet(artifactFiles) {
     check(screenshots.length === 27 && new Set(screenshots).size === 27 && sameKeys(screenshots, expectedScreenshots),
         "EXPIRY_INTEGRATION_JOURNEY_SCREENSHOT_SET");
 }
-function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, momentum = false) {
-    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", momentum ? MOMENTUM_BROWSER_REVISION : EXPIRY_INTEGRATION_REVISION, "expiry-journeys");
-    check(sha(join(dir, "qualification.json")) === (momentum ? MOMENTUM_EXPIRY_QUALIFICATION : EXPIRY_INTEGRATION_JOURNEYS), "EXPIRY_INTEGRATION_JOURNEY_QUALIFICATION");
+function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, revision = "expiry-greeks") {
+    check(["expiry-greeks", "exposure-momentum", "r5-alignment", "heatmap-copy", "d06"].includes(revision), "EXPIRY_BROWSER_REVISION");
+    const momentum = revision === "exposure-momentum", r5 = revision === "r5-alignment", copy = revision === "heatmap-copy", d06 = revision === "d06";
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", d06 ? D06_REVISION : copy ? HEATMAP_COPY_REVISION : r5 ? R5_BROWSER_REVISION : momentum ? MOMENTUM_BROWSER_REVISION : EXPIRY_INTEGRATION_REVISION, "expiry-journeys");
+    check(sha(join(dir, "qualification.json")) === (d06 ? D06_EXPIRY_QUALIFICATION : copy ? HEATMAP_COPY_EXPIRY_QUALIFICATION : r5 ? R5_EXPIRY_QUALIFICATION : momentum ? MOMENTUM_EXPIRY_QUALIFICATION : EXPIRY_INTEGRATION_JOURNEYS), "EXPIRY_INTEGRATION_JOURNEY_QUALIFICATION");
     const proof = json(join(dir, "qualification.json"));
-    check(proof.schema === "exposure_expiry_greeks_browser.v1" && proof.branchHead === (momentum ? MOMENTUM_BROWSER_HEAD : EXPIRY_INTEGRATION_PRIOR) &&
-        proof.protectedMaster === (momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_PROTECTED) &&
-        proof.integratedDependency === (momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_DEPENDENCY),
+    check(proof.schema === "exposure_expiry_greeks_browser.v1" && proof.branchHead === (d06 ? D06_ACTUAL_GIT.head : copy ? HEATMAP_COPY_HEAD : r5 ? R5_BROWSER_HEAD : momentum ? MOMENTUM_BROWSER_HEAD : EXPIRY_INTEGRATION_PRIOR) &&
+        proof.protectedMaster === (d06 ? D06_ACTUAL_GIT.mergeHead : (copy || r5) ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_PROTECTED) &&
+        (d06 || proof.integratedDependency === (copy ? HEATMAP_COPY_DEPENDENCY : r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_DEPENDENCY)),
         "EXPIRY_INTEGRATION_JOURNEY_IDENTITY");
+    if (r5) requireR5HostedIdentity(proof);
+    if (copy) requireHeatmapCopyBrowserIdentity(proof);
+    if (d06) requireD06BrowserIdentity(proof);
     requireExpiryGreeksBrowserCases(proof);
     requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json", "browser.log"]);
     for (const [name, digest] of Object.entries(proof.files))
         check(sha(join(dir, name)) === digest, "EXPIRY_INTEGRATION_JOURNEY_FILE:" + name);
     const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
-    const inputs = momentum ? momentumExpiryInputs() : expiryGreeksJourneyInputs();
+    const inputs = (d06 || copy || momentum || r5) ? momentumExpiryInputs() : expiryGreeksJourneyInputs();
     requireSourceKeys(proof.currentSources, inputs);
     check(proof.files["source-before.json"] === proof.files["source-after.json"], "EXPIRY_INTEGRATION_JOURNEY_SOURCE_STABILITY");
     for (const [path, digest] of Object.entries(proof.currentSources))
         check(before[path] === digest && after[path] === digest, "EXPIRY_INTEGRATION_JOURNEY_RECORDED_SOURCE:" + path);
-    for (const path of momentum ? momentumBrowserInputs() : optionsIntegrationBrowserInputs())
+    for (const path of (d06 || copy || momentum || r5) ? momentumBrowserInputs() : optionsIntegrationBrowserInputs())
         check(proof.currentSources[path] === joint.currentSources[path], "EXPIRY_INTEGRATION_JOINT_SOURCE:" + path);
     if (requireCurrent) selectWholeFingerprint([{ sources: proof.currentSources }], Object.fromEntries(inputs.map(path => [path, sha(join(repo, path))])));
     const execution = json(join(dir, "browser-execution.json"));
@@ -1090,6 +1187,9 @@ function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, momentum
         execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
         execution.integratedDependency === proof.integratedDependency && execution.logSha256 === proof.files["browser.log"],
         "EXPIRY_INTEGRATION_JOURNEY_EXECUTION");
+    if (r5) requireR5HostedIdentity(execution);
+    if (copy) requireHeatmapCopyBrowserIdentity(execution);
+    if (d06) requireD06BrowserIdentity(execution);
     const overrides = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
         "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
     check(sameKeys(Object.keys(execution.fixtureOverrides ?? {}), overrides) &&
@@ -1104,6 +1204,9 @@ function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, momentum
             /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "EXPIRY_INTEGRATION_JOURNEY_ARTIFACT:" + path);
     requireExpiryGreeksScreenshotSet(execution.artifactFiles);
     const report = json(join(dir, "browser-report.json")), passed = [];
+    if (r5) requireR5ReportOwner(report);
+    if (copy) requireHeatmapCopyReportOwner(report);
+    if (d06) requireHeatmapCopyReportOwner(report, D06_ACTUAL_GIT.head);
     check(!report.errors?.length && report.stats.expected === 9 && report.stats.unexpected === 0 &&
         report.stats.flaky === 0 && report.stats.skipped === 0, "EXPIRY_INTEGRATION_JOURNEY_REPORT");
     function visit(suite) {
@@ -1119,7 +1222,8 @@ function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, momentum
     check(sameKeys(passed, proof.expectedPassed), "EXPIRY_INTEGRATION_JOURNEY_REPORT_CASES");
     return proof;
 }
-function readExpiryIntegrationPair(repo, kind, crops, rootTexts, requireCurrentBrowser) {
+function readExpiryIntegrationPair(repo, kind, crops, rootTexts, requireCurrentBrowser, historicalNativeMode) {
+    requireHistoricalNativeMode(historicalNativeMode);
     const packet = readExpiryIntegrationDescriptor(repo);
     const roots = Object.fromEntries(["gex", "eod"].map(family => [family, packet.history.predecessors[family].rootText]));
     const historical = readOptionsIntegrationPair(repo, kind, crops, roots, false);
@@ -1129,11 +1233,11 @@ function readExpiryIntegrationPair(repo, kind, crops, rootTexts, requireCurrentB
     }
     const eod = readOptionsIntegrationDescriptor(repo, "eod");
     const retainedEod = readIntegrationNativePayload(repo, eod.dir, "eod",
-        kind === "eod" ? crops : require("./" + harness("eod").split("/").at(-1)).expectedFiles(),
-        eod.descriptor, "options-integration", true);
+        kind === "eod" ? crops : expectedNativeFiles("eod"),
+        eod.descriptor, "options-integration", historicalNativeMode !== HEATMAP_COPY_HISTORICAL_NATIVE);
     const freshGex = readIntegrationNativePayload(repo, packet.dir, "gex",
-        kind === "gex" ? crops : require("./" + harness("gex").split("/").at(-1)).expectedFiles(),
-        packet.descriptor, "expiry-greeks-integration", true);
+        kind === "gex" ? crops : expectedNativeFiles("gex"),
+        packet.descriptor, "expiry-greeks-integration", historicalNativeMode !== HEATMAP_COPY_HISTORICAL_NATIVE);
     const browser = verifyIntegrationBrowserRecord(repo, "expiry-greeks", requireCurrentBrowser);
     requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
     verifyExpiryGreeksJourneys(repo, browser, requireCurrentBrowser);
@@ -1162,7 +1266,8 @@ function momentumBrowserDeclaration(kind) {
             expiryQualificationSha256: MOMENTUM_EXPIRY_QUALIFICATION,
         }) + "\n";
 }
-function readMomentumBrowserSuccessor(repo, kind, crops, text) {
+function readMomentumBrowserPair(repo, kind, crops, rootTexts, requireCurrentBrowser, historicalNativeMode) {
+    requireHistoricalNativeMode(historicalNativeMode);
     const dir = momentumBrowserDirectory(repo), file = join(dir, "browser-successor.json");
     check(sha(file) === MOMENTUM_BROWSER_DESCRIPTOR, "BROWSER_SUCCESSOR_DESCRIPTOR");
     const descriptor = json(file);
@@ -1187,12 +1292,12 @@ function readMomentumBrowserSuccessor(repo, kind, crops, text) {
             /^[0-9a-f]{64}$/.test(prior.sha256) && sha(join(dir, prior.path)) === prior.sha256,
             "BROWSER_SUCCESSOR_PRIOR_ROOT:" + family);
         roots[family] = readFileSync(join(dir, prior.path), "utf8");
-        const actual = family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8");
+        const actual = rootTexts[family];
         check(actual === momentumBrowserDeclaration(family) + roots[family], "BROWSER_SUCCESSOR_ROOT:" + family);
     }
-    // Only prior browser applicability is historical. Both retained native
-    // current fingerprints, producers, images and settlement checks still run.
-    const selected = readExpiryIntegrationPair(repo, kind, crops, roots, false);
+    // Default callers require both retained natives to be current. Only the
+    // named copy successor may traverse them after validating its fresh pair.
+    const selected = readExpiryIntegrationPair(repo, kind, crops, roots, false, historicalNativeMode);
     check(sameKeys(Object.keys(descriptor.browser ?? {}), ["joint", "expiry"]), "BROWSER_SUCCESSOR_BROWSER_SET");
     for (const stage of ["joint", "expiry"]) {
         const binding = descriptor.browser[stage], relative = stage === "joint" ? "qualification.json" : "expiry-journeys/qualification.json";
@@ -1208,21 +1313,576 @@ function readMomentumBrowserSuccessor(repo, kind, crops, text) {
         check(lifecycle.state === "OWNED_SERVER_STOPPED" && lifecycle.listenerClosed === true &&
             lifecycle.port === execution.port, "BROWSER_SUCCESSOR_SETTLEMENT:" + stage);
     }
-    const browser = verifyIntegrationBrowserRecord(repo, "exposure-momentum");
+    const browser = verifyIntegrationBrowserRecord(repo, "exposure-momentum", requireCurrentBrowser);
     requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
-    verifyExpiryGreeksJourneys(repo, browser, true, true);
+    verifyExpiryGreeksJourneys(repo, browser, requireCurrentBrowser, "exposure-momentum");
     return selected;
+}
+function readMomentumBrowserSuccessor(repo, kind, crops, text) {
+    const roots = Object.fromEntries(["gex", "eod"].map(family => [family,
+        family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    return readMomentumBrowserPair(repo, kind, crops, roots, true);
+}
+function r5BrowserDirectory(repo) {
+    return join(repo, "terminal/docs/verification/exposure-workspace-20261103", R5_BROWSER_REVISION);
+}
+function r5BrowserDeclaration(kind) {
+    return "# Current browser proof is the hosted R5 successor; native capture identities are retained.\n" +
+        yamlBlock("exposureR5Browser20261111", {
+            revision: R5_BROWSER_REVISION, selectedFamily: kind,
+            descriptorSha256: R5_BROWSER_DESCRIPTOR,
+            retainedEodDescriptorSha256: OPTIONS_INTEGRATION_PACKET.eod,
+            retainedGexDescriptorSha256: EXPIRY_INTEGRATION_PACKET,
+            branchHead: R5_BROWSER_HEAD, protectedMaster: R5_BROWSER_MASTER,
+            integratedDependency: R5_BROWSER_MASTER,
+            checkoutCommit: R5_BROWSER_CHECKOUT, checkoutTree: R5_BROWSER_SOURCE_TREE,
+            browserQualificationSha256: R5_BROWSER_QUALIFICATION,
+            expiryQualificationSha256: R5_EXPIRY_QUALIFICATION,
+        }) + "\n";
+}
+function requireR5HostedIdentity(value) {
+    check(value.branchHead === R5_BROWSER_HEAD && value.protectedMaster === R5_BROWSER_MASTER &&
+        value.integratedDependency === R5_BROWSER_MASTER && value.checkoutCommit === R5_BROWSER_CHECKOUT &&
+        value.checkoutTree === R5_BROWSER_SOURCE_TREE &&
+        JSON.stringify(value.checkoutParents) === JSON.stringify([R5_BROWSER_MASTER, R5_BROWSER_HEAD]) &&
+        value.observedEventHead === R5_BROWSER_HEAD && value.observedEventBase === R5_BROWSER_EVENT_BASE &&
+        value.workflowRunId === "43000912478" && value.workflowRunAttempt === "1" &&
+        value.workflowJob === "terminal-e2e" && value.shard === "serial" &&
+        value.workflowUrl === "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43000912478" &&
+        value.exporter === R5_BROWSER_EXPORTER && value.exporterSha256 === R5_BROWSER_EXPORTER_SHA,
+        "R5_HOSTED_CHECKOUT_IDENTITY");
+    // The event base preceded the actual first parent. Preserve the exporter's
+    // successful ancestry proof instead of rewriting either immutable identity.
+    const relationship = value.baseRelationship;
+    check(relationship?.state === "EVENT_BASE_ANCESTOR" && relationship.ancestryExit === 0 &&
+        relationship.fetchAttempted === true && relationship.fetchExit === 0 &&
+        relationship.initialAncestryExit === 128, "R5_EVENT_BASE_ANCESTRY");
+}
+function requireR5ReportOwner(report) {
+    check(report.config?.workers === 1 && report.config.metadata?.actualWorkers === 1 &&
+        report.config.metadata.gitCommit?.hash === R5_BROWSER_CHECKOUT,
+        "R5_REPORT_EXECUTION_OWNER");
+}
+function requireR5Lifecycle(lifecycle, execution) {
+    check(lifecycle.state === "OWNED_SERVER_STOPPED" && lifecycle.listenerClosed === true &&
+        lifecycle.port === execution.port && lifecycle.port === 3108 && lifecycle.lockAbsent === true &&
+        Array.isArray(lifecycle.workspaceCwdHolders) && lifecycle.workspaceCwdHolders.length === 0 &&
+        lifecycle.error === undefined, "R5_BROWSER_SETTLEMENT");
+    if (lifecycle.lockPresent) {
+        const lock = lifecycle.lock, checks = lifecycle.checks;
+        check(lifecycle.lockUnlinked === true && /^[0-9a-f]{64}$/.test(lifecycle.lockSha256) &&
+            Number.isInteger(lock?.pid) && lock.pid > 1 && lock.port === execution.port &&
+            lock.hostname === "127.0.0.1" && lock.appUrl === "http://127.0.0.1:3108" &&
+            JSON.stringify(checks?.pid?.command) === JSON.stringify(["ps", "-p", String(lock.pid), "-o", "pid=,ppid=,comm="]) &&
+            checks.pid.exit === 1 && checks.pid.stdout === "" && checks.pid.stderr === "" &&
+            Array.isArray(checks.lock?.command) && checks.lock.command.length === 2 && checks.lock.command[0] === "lsof" &&
+            checks.lock.command[1].endsWith("/terminal/.next/dev/lock") &&
+            checks.lock.exit === 1 && checks.lock.stdout === "" && checks.lock.stderr === "",
+            "R5_BROWSER_LOCK_SETTLEMENT");
+    }
+}
+function readR5BrowserPair(repo, kind, crops, rootTexts, requireCurrentBrowser, historicalNativeMode) {
+    requireHistoricalNativeMode(historicalNativeMode);
+    const dir = r5BrowserDirectory(repo), file = join(dir, "browser-successor.json");
+    check(sha(file) === R5_BROWSER_DESCRIPTOR, "R5_SUCCESSOR_DESCRIPTOR");
+    const descriptor = json(file);
+    check(descriptor.schema === "exposure_browser_successor.v1" &&
+        descriptor.operation === "pr646-r5-alignment-successor-20261111" &&
+        descriptor.revision === R5_BROWSER_REVISION && descriptor.capturedSourceTree === R5_BROWSER_SOURCE_TREE,
+        "R5_SUCCESSOR_IDENTITY");
+    requireR5HostedIdentity(descriptor);
+    check(descriptor.native?.eod?.revision === OPTIONS_INTEGRATION_REVISION &&
+        descriptor.native.eod.descriptorSha256 === OPTIONS_INTEGRATION_PACKET.eod &&
+        descriptor.native?.gex?.revision === EXPIRY_INTEGRATION_REVISION &&
+        descriptor.native.gex.descriptorSha256 === EXPIRY_INTEGRATION_PACKET,
+        "R5_RETAINED_NATIVE_IDENTITY");
+    check(descriptor.history?.descriptorSha256 === MOMENTUM_BROWSER_DESCRIPTOR &&
+        descriptor.history.jointQualificationSha256 === MOMENTUM_BROWSER_QUALIFICATION &&
+        descriptor.history.expiryQualificationSha256 === MOMENTUM_EXPIRY_QUALIFICATION &&
+        sameKeys(Object.keys(descriptor.history.roots ?? {}), ["gex", "eod"]), "R5_SUCCESSOR_HISTORY");
+    const roots = {};
+    for (const family of ["gex", "eod"]) {
+        const prior = descriptor.history.roots[family];
+        check(prior.path === "prior-roots/" + family + ".EVIDENCE.yml" &&
+            /^[0-9a-f]{64}$/.test(prior.sha256) && sha(join(dir, prior.path)) === prior.sha256,
+            "R5_PRIOR_ROOT:" + family);
+        roots[family] = readFileSync(join(dir, prior.path), "utf8");
+        check(rootTexts[family] === r5BrowserDeclaration(family) + roots[family], "R5_CURRENT_ROOT:" + family);
+    }
+    // Default R5 callers still require BOTH retained native source maps. The
+    // private copy mode is supplied only after its fresh current pair passes.
+    const selected = readMomentumBrowserPair(repo, kind, crops, roots, false, historicalNativeMode);
+    const exported = descriptor.rawExport;
+    check(exported?.inventory === "raw-export-inventory.json" && exported.sha256 === R5_RAW_EXPORT_INVENTORY &&
+        sha(join(dir, exported.inventory)) === R5_RAW_EXPORT_INVENTORY, "R5_RAW_EXPORT_INVENTORY");
+    const inventory = json(join(dir, exported.inventory));
+    check(inventory.schema === "exposure_r5_hosted_export_inventory.v1" && inventory.artifactId === 13847929343 &&
+        inventory.workflowRunId === "43000912478" && inventory.workflowRunAttempt === "1" &&
+        inventory.archiveSha256 === "7cd74142011c889a0b3662cbd48a2160287ae30b9e6d97c567ac3b2cf40f75f2" &&
+        inventory.archiveBytes === 50189276 && Object.keys(inventory.files ?? {}).length === 545,
+        "R5_RAW_EXPORT_IDENTITY");
+    const capturePrefix = "terminal/docs/verification/exposure-workspace-20261103/" + R5_BROWSER_REVISION + "/";
+    const proofPrefix = "docs/verification/pr646-r5-browser-ci-20261110/";
+    for (const [relative, binding] of Object.entries(inventory.files)) {
+        check((relative.startsWith(capturePrefix) || relative.startsWith(proofPrefix)) &&
+            !relative.split("/").includes("..") && !relative.includes("\\") &&
+            /^[0-9a-f]{64}$/.test(binding.sha256) && Number.isInteger(binding.bytes) && binding.bytes > 0,
+            "R5_RAW_EXPORT_MEMBER");
+        const bytes = readFileSync(join(repo, relative));
+        check(bytes.length === binding.bytes && sha(join(repo, relative)) === binding.sha256,
+            "R5_RAW_EXPORT_BYTES:" + relative);
+    }
+    const hidden = [capturePrefix + "browser-artifacts/playwright/.last-run.json",
+        capturePrefix + "expiry-journeys/browser-artifacts/playwright/.last-run.json",
+        proofPrefix + "prior-browser-root-integration/.last-run.json",
+        proofPrefix + "prior-browser-root-expiry/.last-run.json"];
+    for (const relative of hidden) {
+        check(Object.hasOwn(inventory.files, relative), "R5_HIDDEN_EXPORT_MEMBER");
+        const lastRun = json(join(repo, relative));
+        check(lastRun.status === "passed" && Array.isArray(lastRun.failedTests) && lastRun.failedTests.length === 0,
+            "R5_HIDDEN_EXPORT_RESULT");
+    }
+    check(exported.validation === proofPrefix + "browser-validation.json" &&
+        exported.validationSha256 === inventory.files[exported.validation]?.sha256,
+        "R5_EXPORT_VALIDATION_BINDING");
+    const validation = json(join(repo, exported.validation));
+    requireR5HostedIdentity(validation);
+    check(validation.schema === "terminal_pr646_browser_successor_validation.v1" &&
+        validation.state === "BROWSER_PROOFS_QUALIFIED_PENDING_SUCCESSOR_READER" &&
+        validation.results?.integration?.state === "CAPTURE_QUALIFIED_PENDING_SUCCESSOR_READER" &&
+        validation.results.integration.passed === 144 && validation.results.integration.artifacts === 374 &&
+        validation.results.integration.qualificationSha256 === R5_BROWSER_QUALIFICATION &&
+        validation.results?.expiry?.state === "CAPTURE_QUALIFIED_PENDING_SUCCESSOR_READER" &&
+        validation.results.expiry.passed === 9 && validation.results.expiry.artifacts === 37 &&
+        validation.results.expiry.qualificationSha256 === R5_EXPIRY_QUALIFICATION, "R5_EXPORT_VALIDATION_RESULT");
+    check(sameKeys(Object.keys(descriptor.browser ?? {}), ["joint", "expiry"]), "R5_BROWSER_SET");
+    for (const stage of ["joint", "expiry"]) {
+        const binding = descriptor.browser[stage], relative = stage === "joint" ? "qualification.json" : "expiry-journeys/qualification.json";
+        const expected = stage === "joint" ? R5_BROWSER_QUALIFICATION : R5_EXPIRY_QUALIFICATION;
+        const stageDir = stage === "joint" ? dir : join(dir, "expiry-journeys");
+        check(binding.qualification === relative && binding.sha256 === expected && sha(join(dir, relative)) === expected,
+            "R5_BROWSER_QUALIFICATION:" + stage);
+        const execution = json(join(stageDir, "browser-execution.json"));
+        check(binding.lifecycleSha256 === execution.lifecycleSha256 &&
+            sha(join(stageDir, "lifecycle.json")) === binding.lifecycleSha256, "R5_LIFECYCLE_BINDING:" + stage);
+        requireR5Lifecycle(json(join(stageDir, "lifecycle.json")), execution);
+        for (const name of ["source-before.json", "source-after.json"]) {
+            check(sha(join(stageDir, name)) === R5_BROWSER_SNAPSHOT, "R5_WHOLE_SOURCE_STABILITY");
+            const snapshot = json(join(stageDir, name));
+            check(Object.keys(snapshot).length === 3716 && snapshot[R5_BROWSER_EXPORTER] === R5_BROWSER_EXPORTER_SHA &&
+                Object.values(snapshot).every(value => /^[0-9a-f]{64}$/.test(value)), "R5_WHOLE_SOURCE_SET");
+        }
+        if (stage === "expiry") check(Object.keys(execution.artifactFiles).filter(path => path.endsWith("/trace.zip")).length === 9,
+            "R5_EXPIRY_TRACE_SET");
+    }
+    const browser = verifyIntegrationBrowserRecord(repo, "r5-alignment", requireCurrentBrowser);
+    requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
+    verifyExpiryGreeksJourneys(repo, browser, requireCurrentBrowser, "r5-alignment");
+    return selected;
+}
+function readR5BrowserSuccessor(repo, kind, crops, text) {
+    const roots = Object.fromEntries(["gex", "eod"].map(family => [family,
+        family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    return readR5BrowserPair(repo, kind, crops, roots, true);
+}
+
+// One named successor owns fresh native captures and fresh browser proof.
+// Historical-native traversal is private and is reached only after BOTH fresh
+// current native families have passed their complete contracts.
+function heatmapCopyDirectory(repo) {
+    return join(repo, "terminal/docs/verification/exposure-workspace-20261103", HEATMAP_COPY_REVISION);
+}
+function heatmapCopyNativeDirectory(repo, kind) {
+    return join(repo, "terminal/docs/pr-crops", PACKETS[kind], "operations", OP.exposure, "revisions", HEATMAP_COPY_REVISION);
+}
+function hasHeatmapCopyHistory(repo) {
+    return existsSync(heatmapCopyDirectory(repo)) || ["gex", "eod"].some(kind => existsSync(heatmapCopyNativeDirectory(repo, kind)));
+}
+function requireHistoricalNativeMode(mode) {
+    check(mode === undefined || mode === HEATMAP_COPY_HISTORICAL_NATIVE, "HISTORICAL_NATIVE_MODE");
+}
+function readHeatmapCopyNativeDescriptor(repo, kind) {
+    const dir = heatmapCopyNativeDirectory(repo, kind), file = join(dir, "native-packet.json");
+    check(sha(file) === HEATMAP_COPY_NATIVE[kind], "HEATMAP_COPY_NATIVE_DESCRIPTOR:" + kind);
+    const descriptor = json(file);
+    check(descriptor.schema === "options_exposure_master_packet.v1" && descriptor.kind === kind &&
+        descriptor.profile === "exposure" && descriptor.operation === OP.exposure &&
+        descriptor.captureRevision === HEATMAP_COPY_REVISION && descriptor.branchHead === HEATMAP_COPY_HEAD &&
+        descriptor.protectedMaster === HEATMAP_COPY_NATIVE_BASE && descriptor.integratedDependency === HEATMAP_COPY_NATIVE_BASE &&
+        descriptor.capturedSourceTree === HEATMAP_COPY_NATIVE_TREE, "HEATMAP_COPY_NATIVE_IDENTITY:" + kind);
+    const files = ["EVIDENCE.before.yml", "attempt.json", "capture-execution.json", "capture-sources-after.json",
+        "capture-sources-before.json", "capture.log", "history.json", "qualified-root/EVIDENCE.yml", "source-contract.json", "supervision.json"];
+    requireSourceKeys(descriptor.files, files);
+    for (const [name, digest] of Object.entries(descriptor.files))
+        check(/^[0-9a-f]{64}$/.test(digest) && sha(join(dir, name)) === digest, "HEATMAP_COPY_NATIVE_FILE:" + kind + ":" + name);
+    const execution = json(join(dir, "capture-execution.json")), attempt = json(join(dir, "attempt.json"));
+    const supervision = json(join(dir, "supervision.json")), history = json(join(dir, "history.json"));
+    check(execution.capturedSourceTree === HEATMAP_COPY_NATIVE_TREE && execution.headStable === true &&
+        execution.attemptReceiptSha256 === descriptor.files["attempt.json"] &&
+        execution.supervisionReceiptSha256 === descriptor.files["supervision.json"], "HEATMAP_COPY_RECEIPT_BINDING:" + kind);
+    check(attempt.kind === kind && attempt.exit === 0 && attempt.seconds === execution.seconds &&
+        attempt.sourceStable === true && attempt.headStable === true && attempt.supervisionState === "CLOSED" &&
+        sameKeys(Object.keys(attempt.lifecycle), Object.keys(execution.lifecycle)) &&
+        Object.keys(attempt.lifecycle).every(key => attempt.lifecycle[key] === execution.lifecycle[key]), "HEATMAP_COPY_ATTEMPT:" + kind);
+    const lifecycle = execution.lifecycle;
+    check(lifecycle.port === execution.port && lifecycle.listenerReturncode === 1 && lifecycle.listeners === "" &&
+        lifecycle.listenerStderr === "" && lifecycle.nextLockPathExists === false && lifecycle.nextLockOpenHandles === "",
+        "HEATMAP_COPY_NATIVE_LIFECYCLE:" + kind);
+    check(supervision.schema === "terminal_pr1458_native_supervision.v1" && supervision.kind === kind &&
+        supervision.captureId === execution.captureId && supervision.port === execution.port && supervision.state === "CLOSED" &&
+        JSON.stringify(supervision.command) === JSON.stringify(execution.actualCommand) &&
+        sameKeys(Object.keys(supervision.result), Object.keys(execution.nativeSupervisor)) &&
+        Object.keys(supervision.result).every(key => supervision.result[key] === execution.nativeSupervisor[key]) &&
+        supervision.events.length === execution.nativeServerEvents.length && supervision.events.every((event, index) =>
+            sameKeys(Object.keys(event), Object.keys(execution.nativeServerEvents[index])) &&
+            Object.keys(event).every(key => event[key] === execution.nativeServerEvents[index][key])), "HEATMAP_COPY_SUPERVISION:" + kind);
+    check(history.schema === "exposure_heatmap_copy_history.v1" && history.kind === kind && history.packet === PACKETS[kind] &&
+        history.operation === OP.exposure && history.revision === HEATMAP_COPY_REVISION && history.branchHead === HEATMAP_COPY_HEAD &&
+        history.capturedSourceTree === HEATMAP_COPY_NATIVE_TREE && history.protectedMaster === HEATMAP_COPY_NATIVE_BASE &&
+        history.integratedDependency === HEATMAP_COPY_NATIVE_BASE && history.producerHistory === null && execution.nativeReceipt.history === null &&
+        history.captureRootPreimageSha256 === descriptor.files["EVIDENCE.before.yml"] &&
+        history.browserPredecessor?.revision === MOMENTUM_BROWSER_REVISION &&
+        history.browserPredecessor.descriptorSha256 === MOMENTUM_BROWSER_DESCRIPTOR &&
+        history.nativePredecessors?.eod?.revision === OPTIONS_INTEGRATION_REVISION &&
+        history.nativePredecessors.eod.descriptorSha256 === OPTIONS_INTEGRATION_PACKET.eod &&
+        history.nativePredecessors.eod.capturedAtHead === OPTIONS_INTEGRATION_PRIOR &&
+        history.nativePredecessors?.gex?.revision === EXPIRY_INTEGRATION_REVISION &&
+        history.nativePredecessors.gex.descriptorSha256 === EXPIRY_INTEGRATION_PACKET &&
+        history.nativePredecessors.gex.capturedAtHead === EXPIRY_INTEGRATION_PRIOR, "HEATMAP_COPY_NATIVE_HISTORY:" + kind);
+    check(readFileSync(join(dir, "EVIDENCE.before.yml"), "utf8") ===
+        readFileSync(join(r5BrowserDirectory(repo), "prior-roots", kind + ".EVIDENCE.yml"), "utf8"),
+        "HEATMAP_COPY_CAPTURE_PREIMAGE:" + kind);
+    return { dir, descriptor };
+}
+function readHeatmapCopyNativePair(repo, selectedKind, crops, historicalNativeMode) {
+    requireHistoricalNativeMode(historicalNativeMode);
+    return Object.fromEntries(["gex", "eod"].map(kind => {
+        const packet = readHeatmapCopyNativeDescriptor(repo, kind);
+        const expected = kind === selectedKind ? crops : expectedNativeFiles(kind);
+        // Default copy entry points require both families to match current source.
+        return [kind, readIntegrationNativePayload(repo, packet.dir, kind, expected,
+            packet.descriptor, "heatmap-copy-integration", historicalNativeMode === undefined)];
+    }));
+}
+function readHeatmapCopyPredecessor(repo, kind, crops) {
+    const roots = {};
+    for (const family of ["gex", "eod"]) {
+        const path = join(heatmapCopyDirectory(repo), "prior-roots", family + ".EVIDENCE.yml");
+        check(sha(path) === HEATMAP_COPY_R5_ROOTS[family], "HEATMAP_COPY_PRIOR_ROOT:" + family);
+        roots[family] = readFileSync(path, "utf8");
+    }
+    // Callers validate the fresh pair first. Default R5 callers never receive this token.
+    const selected = readR5BrowserPair(repo, kind, crops, roots, false, HEATMAP_COPY_HISTORICAL_NATIVE);
+    return { roots, selected };
+}
+function requireHeatmapCopyBrowserIdentity(value) {
+    check(value.operation === "terminal-pr1458-heatmap-copy-browser-20261111" &&
+        value.branchHead === HEATMAP_COPY_HEAD && value.protectedMaster === R5_BROWSER_MASTER &&
+        value.integratedDependency === HEATMAP_COPY_DEPENDENCY && value.checkoutCommit === HEATMAP_COPY_HEAD &&
+        value.checkoutTree === HEATMAP_COPY_NATIVE_TREE && value.mergeHead === HEATMAP_COPY_DEPENDENCY &&
+        value.indexTreeAtStart === HEATMAP_COPY_CAPTURE_INDEX && value.indexTreeAtEnd === HEATMAP_COPY_CAPTURE_INDEX &&
+        value.sourceIdentity === "stable-composed-working-tree" && value.workflowRunId === undefined &&
+        value.workflowRunAttempt === undefined && value.workflowJob === undefined && value.exporter === undefined,
+        "HEATMAP_COPY_BROWSER_IDENTITY");
+}
+function requireHeatmapCopyReportOwner(report, head = HEATMAP_COPY_HEAD) {
+    check(report.config?.workers === 1 && report.config.metadata?.actualWorkers === 1 &&
+        (report.config.metadata.gitCommit === undefined || report.config.metadata.gitCommit.hash === head),
+        "HEATMAP_COPY_REPORT_OWNER");
+}
+function requireHeatmapCopyLifecycle(lifecycle, execution, port = HEATMAP_COPY_BROWSER_PORT) {
+    check(lifecycle.state === "OWNED_SERVER_STOPPED" && lifecycle.listenerClosed === true &&
+        lifecycle.port === execution.port && lifecycle.port === port && lifecycle.lockAbsent === true &&
+        Array.isArray(lifecycle.workspaceCwdHolders) && lifecycle.workspaceCwdHolders.length === 0 &&
+        lifecycle.error === undefined, "HEATMAP_COPY_BROWSER_SETTLEMENT");
+    if (lifecycle.lockPresent) {
+        const lock = lifecycle.lock, checks = lifecycle.checks;
+        check(lifecycle.lockUnlinked === true && /^[0-9a-f]{64}$/.test(lifecycle.lockSha256) &&
+            Number.isInteger(lock?.pid) && lock.pid > 1 && lock.port === execution.port &&
+            lock.hostname === "127.0.0.1" && lock.appUrl === "http://127.0.0.1:" + execution.port &&
+            JSON.stringify(checks?.pid?.command) === JSON.stringify(["ps", "-p", String(lock.pid), "-o", "pid=,ppid=,comm="]) &&
+            checks?.pid?.exit === 1 && checks.pid.stdout === "" && checks.pid.stderr === "" &&
+            Array.isArray(checks?.lock?.command) && checks.lock.command.length === 2 && checks.lock.command[0] === "lsof" &&
+            checks.lock.command[1].endsWith("/terminal/.next/dev/lock") &&
+            checks?.lock?.exit === 1 && checks.lock.stdout === "" && checks.lock.stderr === "" &&
+            Number.isInteger(lifecycle.lockIdentityBeforeUnlink?.inode) && lifecycle.lockIdentityBeforeUnlink.inode > 0 &&
+            Number.isInteger(lifecycle.lockIdentityBeforeUnlink?.device) && lifecycle.lockIdentityBeforeUnlink.device >= 0 &&
+            lifecycle.lockIdentityBeforeUnlink.inode === lifecycle.lockIdentityAfterChecks?.inode &&
+            lifecycle.lockIdentityBeforeUnlink.device === lifecycle.lockIdentityAfterChecks?.device,
+            "HEATMAP_COPY_BROWSER_LOCK_SETTLEMENT");
+    }
+}
+function heatmapCopyDeclaration(kind) {
+    return "# Current proof is the heatmap copy successor; capture identities remain immutable.\n" +
+        yamlBlock("exposureHeatmapCopy20261111", {
+            revision: HEATMAP_COPY_REVISION, selectedFamily: kind, descriptorSha256: HEATMAP_COPY_DESCRIPTOR,
+            eodDescriptorSha256: HEATMAP_COPY_NATIVE.eod, gexDescriptorSha256: HEATMAP_COPY_NATIVE.gex,
+            nativeCapturedAtHead: HEATMAP_COPY_HEAD, integratedDependency: HEATMAP_COPY_DEPENDENCY,
+            browserQualificationSha256: HEATMAP_COPY_BROWSER_QUALIFICATION, expiryQualificationSha256: HEATMAP_COPY_EXPIRY_QUALIFICATION,
+        }) + "\n";
+}
+function readHeatmapCopySuccessor(repo, kind, crops, text) {
+    const currentRoots = Object.fromEntries(["gex", "eod"].map(family => [family,
+        family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    return readHeatmapCopyPair(repo, kind, crops, currentRoots);
+}
+function readHeatmapCopyPair(repo, kind, crops, currentRoots, requireCurrentBrowser = true, historicalNativeMode) {
+    requireHistoricalNativeMode(historicalNativeMode);
+    const native = readHeatmapCopyNativePair(repo, kind, crops, historicalNativeMode);
+    const { roots, selected } = readHeatmapCopyPredecessor(repo, kind, crops);
+    const dir = heatmapCopyDirectory(repo), path = join(dir, "browser-successor.json");
+    check(sha(path) === HEATMAP_COPY_DESCRIPTOR, "HEATMAP_COPY_SUCCESSOR_DESCRIPTOR");
+    const descriptor = json(path);
+    check(descriptor.schema === "exposure_heatmap_copy_successor.v1" && descriptor.revision === HEATMAP_COPY_REVISION &&
+        descriptor.capturedSourceTree === HEATMAP_COPY_CAPTURE_INDEX, "HEATMAP_COPY_SUCCESSOR_IDENTITY");
+    requireHeatmapCopyBrowserIdentity(descriptor);
+    check(sameKeys(Object.keys(descriptor.native ?? {}), ["gex", "eod"]) &&
+        ["gex", "eod"].every(family => descriptor.native[family].revision === HEATMAP_COPY_REVISION &&
+            descriptor.native[family].descriptorSha256 === HEATMAP_COPY_NATIVE[family]), "HEATMAP_COPY_SUCCESSOR_NATIVE");
+    check(descriptor.history?.descriptorSha256 === R5_BROWSER_DESCRIPTOR &&
+        descriptor.history.jointQualificationSha256 === R5_BROWSER_QUALIFICATION &&
+        descriptor.history.expiryQualificationSha256 === R5_EXPIRY_QUALIFICATION &&
+        sameKeys(Object.keys(descriptor.history.roots ?? {}), ["gex", "eod"]), "HEATMAP_COPY_SUCCESSOR_HISTORY");
+    for (const family of ["gex", "eod"]) {
+        const prior = descriptor.history.roots[family];
+        check(prior.path === "prior-roots/" + family + ".EVIDENCE.yml" && prior.sha256 === HEATMAP_COPY_R5_ROOTS[family],
+            "HEATMAP_COPY_HISTORY_ROOT:" + family);
+        const current = currentRoots[family];
+        check(current === heatmapCopyDeclaration(family) + roots[family], "HEATMAP_COPY_CURRENT_ROOT:" + family);
+    }
+    check(sameKeys(Object.keys(descriptor.browser ?? {}), ["joint", "expiry"]), "HEATMAP_COPY_BROWSER_SET");
+    for (const stage of ["joint", "expiry"]) {
+        const binding = descriptor.browser[stage], relative = stage === "joint" ? "qualification.json" : "expiry-journeys/qualification.json";
+        const expected = stage === "joint" ? HEATMAP_COPY_BROWSER_QUALIFICATION : HEATMAP_COPY_EXPIRY_QUALIFICATION;
+        const stageDir = stage === "joint" ? dir : join(dir, "expiry-journeys");
+        check(binding.qualification === relative && binding.sha256 === expected && sha(join(dir, relative)) === expected,
+            "HEATMAP_COPY_BROWSER_QUALIFICATION:" + stage);
+        const execution = json(join(stageDir, "browser-execution.json"));
+        check(binding.lifecycleSha256 === execution.lifecycleSha256 && sha(join(stageDir, "lifecycle.json")) === binding.lifecycleSha256,
+            "HEATMAP_COPY_LIFECYCLE_BINDING:" + stage);
+        requireHeatmapCopyLifecycle(json(join(stageDir, "lifecycle.json")), execution);
+        for (const name of ["source-before.json", "source-after.json"]) {
+            check(sha(join(stageDir, name)) === descriptor.sourceSnapshot.sha256, "HEATMAP_COPY_WHOLE_SOURCE_STABILITY");
+            const snapshot = json(join(stageDir, name));
+            check(Object.keys(snapshot).length === descriptor.sourceSnapshot.files &&
+                Object.values(snapshot).every(value => /^[0-9a-f]{64}$/.test(value)), "HEATMAP_COPY_WHOLE_SOURCE_SET");
+        }
+        const lastRun = json(join(stageDir, "browser-artifacts/playwright/.last-run.json"));
+        check(lastRun.status === "passed" && lastRun.failedTests?.length === 0 &&
+            Object.hasOwn(execution.artifactFiles, "browser-artifacts/playwright/.last-run.json"), "HEATMAP_COPY_HIDDEN_RESULT");
+        if (stage === "expiry") check(Object.keys(execution.artifactFiles).filter(file => file.endsWith("/trace.zip")).length === 9,
+            "HEATMAP_COPY_EXPIRY_TRACES");
+    }
+    const browser = verifyIntegrationBrowserRecord(repo, "heatmap-copy", requireCurrentBrowser);
+    requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
+    verifyExpiryGreeksJourneys(repo, browser, requireCurrentBrowser, "heatmap-copy");
+    return { ...selected, ...native[kind], captureRevision: HEATMAP_COPY_REVISION, descriptorSha256: HEATMAP_COPY_NATIVE[kind] };
+}
+
+// D06 retains the actual worktree provenance and replaces both current native families.
+function d06Directory(repo) {
+    return join(repo, "terminal/docs/verification/exposure-workspace-20261103", D06_REVISION);
+}
+function d06NativeDirectory(repo, kind) {
+    return join(repo, "terminal/docs/pr-crops", PACKETS[kind], "operations", OP.exposure, "revisions", D06_REVISION);
+}
+function hasD06History(repo) {
+    return existsSync(d06Directory(repo)) || ["gex", "eod"].some(kind => existsSync(d06NativeDirectory(repo, kind)));
+}
+function requireD06WorktreeIdentity(value) {
+    check(value.sourceIdentity === "stable-composed-working-tree" &&
+        isDeepStrictEqual(value.actualGit, D06_ACTUAL_GIT) &&
+        value.publishedBasis === D06_PUBLISHED_BASIS &&
+        isDeepStrictEqual(value.integratedSourceHeads, D06_INTEGRATED_HEADS) &&
+        value.capturedSourceTree === undefined && value.integratedDependency === undefined,
+        "D06_WORKTREE_IDENTITY");
+}
+function readD06NativeDescriptor(repo, kind) {
+    const dir = d06NativeDirectory(repo, kind), file = join(dir, "native-packet.json");
+    check(sha(file) === D06_NATIVE[kind], "D06_NATIVE_DESCRIPTOR:" + kind);
+    const descriptor = json(file);
+    requireD06WorktreeIdentity(descriptor);
+    check(descriptor.schema === "options_exposure_master_packet.v1" && descriptor.kind === kind &&
+        descriptor.profile === "exposure" && descriptor.operation === OP.exposure &&
+        descriptor.captureRevision === D06_REVISION && descriptor.branchHead === D06_ACTUAL_GIT.head &&
+        descriptor.protectedMaster === D06_ACTUAL_GIT.mergeHead &&
+        descriptor.capturedSourceSnapshotSha256 === D06_NATIVE_SNAPSHOT, "D06_NATIVE_IDENTITY:" + kind);
+    const files = ["EVIDENCE.before.yml", "attempt.json", "capture-execution.json", "capture-sources-after.json",
+        "capture-sources-before.json", "capture.log", "command.json", "driver.log", "history.json",
+        "qualified-root/EVIDENCE.yml", "source-contract.json", "supervision.json"];
+    requireSourceKeys(descriptor.files, files);
+    for (const [name, digest] of Object.entries(descriptor.files))
+        check(/^[0-9a-f]{64}$/.test(digest) && sha(join(dir, name)) === digest, "D06_NATIVE_FILE:" + kind + ":" + name);
+    const execution = json(join(dir, "capture-execution.json")), attempt = json(join(dir, "attempt.json"));
+    const supervision = json(join(dir, "supervision.json")), history = json(join(dir, "history.json"));
+    requireD06WorktreeIdentity(execution);
+    requireD06WorktreeIdentity(history);
+    check(execution.capturedSourceSnapshotSha256 === D06_NATIVE_SNAPSHOT &&
+        descriptor.files["capture-sources-before.json"] === D06_NATIVE_SNAPSHOT &&
+        descriptor.files["capture-sources-after.json"] === D06_NATIVE_SNAPSHOT &&
+        execution.headStable === true && execution.frameInventorySource ===
+            "nativeEvidence.files emitted after successful producer matrix verification" &&
+        execution.attemptReceiptSha256 === descriptor.files["attempt.json"] &&
+        execution.supervisionReceiptSha256 === descriptor.files["supervision.json"], "D06_RECEIPT_BINDING:" + kind);
+    check(attempt.kind === kind && attempt.exit === 0 && attempt.seconds === execution.seconds &&
+        attempt.sourceStable === true && attempt.headStable === true && attempt.supervisionState === "CLOSED" &&
+        isDeepStrictEqual(attempt.lifecycle, execution.lifecycle), "D06_ATTEMPT:" + kind);
+    const lifecycle = execution.lifecycle;
+    check(lifecycle.port === execution.port && lifecycle.listenerReturncode === 1 && lifecycle.listeners === "" &&
+        lifecycle.listenerStderr === "" && lifecycle.nextLockPathExists === false && lifecycle.nextLockHandlesExit === 1 &&
+        lifecycle.nextLockOpenHandles === "" && Array.isArray(lifecycle.workspaceCwdHolders) &&
+        lifecycle.workspaceCwdHolders.length === 0, "D06_NATIVE_LIFECYCLE:" + kind);
+    check(supervision.schema === "terminal_pr645_native_supervision.v1" && supervision.kind === kind &&
+        supervision.captureId === execution.captureId && supervision.port === execution.port && supervision.state === "CLOSED" &&
+        isDeepStrictEqual(supervision.command, execution.actualCommand) &&
+        isDeepStrictEqual(supervision.result, execution.nativeSupervisor) &&
+        isDeepStrictEqual(supervision.events, execution.nativeServerEvents), "D06_SUPERVISION:" + kind);
+    check(history.schema === "exposure_d06_native_capture_history.v1" && history.kind === kind &&
+        history.packet === PACKETS[kind] && history.operation === OP.exposure && history.revision === D06_REVISION &&
+        history.capturedSourceSnapshotSha256 === D06_NATIVE_SNAPSHOT &&
+        history.producerHistory === null && execution.nativeReceipt.history === null &&
+        history.captureRootPreimageSha256 === descriptor.files["EVIDENCE.before.yml"], "D06_NATIVE_HISTORY:" + kind);
+    check(readFileSync(join(dir, "EVIDENCE.before.yml"), "utf8") ===
+        readFileSync(join(r5BrowserDirectory(repo), "prior-roots", kind + ".EVIDENCE.yml"), "utf8"),
+        "D06_CAPTURE_PREIMAGE:" + kind);
+    const contract = json(join(dir, "source-contract.json"));
+    check(contract.observedInputs.length === 5415 && new Set(contract.observedInputs).size === 5415,
+        "D06_OBSERVED_SOURCE_SET:" + kind);
+    return { dir, descriptor };
+}
+function readD06NativePair(repo, selectedKind, crops) {
+    return Object.fromEntries(["gex", "eod"].map(kind => {
+        const packet = readD06NativeDescriptor(repo, kind);
+        const expected = kind === selectedKind ? crops : expectedNativeFiles(kind);
+        return [kind, readIntegrationNativePayload(repo, packet.dir, kind, expected,
+            packet.descriptor, "d06-integration", true)];
+    }));
+}
+function readD06Predecessor(repo, kind, crops) {
+    const roots = {};
+    for (const family of ["gex", "eod"]) {
+        const file = join(d06Directory(repo), "prior-roots", family + ".EVIDENCE.yml");
+        check(sha(file) === D06_COPY_ROOTS[family], "D06_PRIOR_ROOT:" + family);
+        roots[family] = readFileSync(file, "utf8");
+    }
+    // Reachable only after the complete fresh D06 pair has passed current applicability.
+    const selected = readHeatmapCopyPair(repo, kind, crops, roots, false, HEATMAP_COPY_HISTORICAL_NATIVE);
+    return { roots, selected };
+}
+function requireD06BrowserIdentity(value) {
+    requireD06WorktreeIdentity(value);
+    check(value.operation === "terminal-pr1270-d06-browser-current-20261111" &&
+        value.branchHead === D06_ACTUAL_GIT.head && value.protectedMaster === D06_ACTUAL_GIT.mergeHead &&
+        value.checkoutCommit === D06_ACTUAL_GIT.head && value.checkoutTree === D06_ACTUAL_GIT.headTree &&
+        value.mergeHead === D06_ACTUAL_GIT.mergeHead &&
+        value.indexTreeAtStart === D06_ACTUAL_GIT.indexTree && value.indexTreeAtEnd === D06_ACTUAL_GIT.indexTree &&
+        value.workflowRunId === undefined && value.workflowRunAttempt === undefined &&
+        value.workflowJob === undefined && value.exporter === undefined, "D06_BROWSER_IDENTITY");
+}
+function d06Declaration(kind) {
+    return "# Current proof is the D06 successor; actual worktree capture identities remain immutable.\n" +
+        yamlBlock("exposureD06Successor20261111", {
+            revision: D06_REVISION, selectedFamily: kind, descriptorSha256: D06_DESCRIPTOR,
+            eodDescriptorSha256: D06_NATIVE.eod, gexDescriptorSha256: D06_NATIVE.gex,
+            nativeCapturedAtHead: D06_ACTUAL_GIT.head, publishedBasis: D06_PUBLISHED_BASIS,
+            browserQualificationSha256: D06_BROWSER_QUALIFICATION, expiryQualificationSha256: D06_EXPIRY_QUALIFICATION,
+        }) + "\n";
+}
+function readD06Successor(repo, kind, crops, text) {
+    const native = readD06NativePair(repo, kind, crops);
+    const { roots, selected } = readD06Predecessor(repo, kind, crops);
+    const dir = d06Directory(repo), path = join(dir, "browser-successor.json");
+    check(sha(path) === D06_DESCRIPTOR, "D06_SUCCESSOR_DESCRIPTOR");
+    const descriptor = json(path);
+    check(descriptor.schema === "exposure_d06_successor.v1" && descriptor.revision === D06_REVISION,
+        "D06_SUCCESSOR_IDENTITY");
+    requireD06BrowserIdentity(descriptor);
+    check(sameKeys(Object.keys(descriptor.native ?? {}), ["gex", "eod"]) &&
+        ["gex", "eod"].every(family => descriptor.native[family].revision === D06_REVISION &&
+            descriptor.native[family].descriptorSha256 === D06_NATIVE[family]), "D06_SUCCESSOR_NATIVE");
+    check(descriptor.history?.descriptorSha256 === HEATMAP_COPY_DESCRIPTOR &&
+        descriptor.history.jointQualificationSha256 === HEATMAP_COPY_BROWSER_QUALIFICATION &&
+        descriptor.history.expiryQualificationSha256 === HEATMAP_COPY_EXPIRY_QUALIFICATION &&
+        sameKeys(Object.keys(descriptor.history.roots ?? {}), ["gex", "eod"]), "D06_SUCCESSOR_HISTORY");
+    for (const family of ["gex", "eod"]) {
+        const prior = descriptor.history.roots[family];
+        check(prior.path === "prior-roots/" + family + ".EVIDENCE.yml" && prior.sha256 === D06_COPY_ROOTS[family],
+            "D06_HISTORY_ROOT:" + family);
+        const current = family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8");
+        check(current === d06Declaration(family) + roots[family], "D06_CURRENT_ROOT:" + family);
+    }
+    check(sameKeys(Object.keys(descriptor.browser ?? {}), ["joint", "expiry"]), "D06_BROWSER_SET");
+    check(/^[0-9a-f]{64}$/.test(descriptor.sourceSnapshot?.sha256) &&
+        Number.isInteger(descriptor.sourceSnapshot.files) && descriptor.sourceSnapshot.files > 0, "D06_BROWSER_SNAPSHOT");
+    for (const stage of ["joint", "expiry"]) {
+        const binding = descriptor.browser[stage], relative = stage === "joint" ? "qualification.json" : "expiry-journeys/qualification.json";
+        const expected = stage === "joint" ? D06_BROWSER_QUALIFICATION : D06_EXPIRY_QUALIFICATION;
+        const stageDir = stage === "joint" ? dir : join(dir, "expiry-journeys");
+        check(binding.qualification === relative && binding.sha256 === expected && sha(join(dir, relative)) === expected,
+            "D06_BROWSER_QUALIFICATION:" + stage);
+        const execution = json(join(stageDir, "browser-execution.json"));
+        check(binding.lifecycleSha256 === execution.lifecycleSha256 && sha(join(stageDir, "lifecycle.json")) === binding.lifecycleSha256,
+            "D06_LIFECYCLE_BINDING:" + stage);
+        requireHeatmapCopyLifecycle(json(join(stageDir, "lifecycle.json")), execution, D06_BROWSER_PORT);
+        for (const name of ["source-before.json", "source-after.json"]) {
+            check(sha(join(stageDir, name)) === descriptor.sourceSnapshot.sha256, "D06_WHOLE_SOURCE_STABILITY");
+            const snapshot = json(join(stageDir, name));
+            check(Object.keys(snapshot).length === descriptor.sourceSnapshot.files &&
+                Object.values(snapshot).every(value => /^[0-9a-f]{64}$/.test(value)), "D06_WHOLE_SOURCE_SET");
+        }
+        const lastRun = json(join(stageDir, "browser-artifacts/playwright/.last-run.json"));
+        check(lastRun.status === "passed" && lastRun.failedTests?.length === 0 &&
+            Object.hasOwn(execution.artifactFiles, "browser-artifacts/playwright/.last-run.json"), "D06_HIDDEN_RESULT");
+        if (stage === "expiry") check(Object.keys(execution.artifactFiles).filter(file => file.endsWith("/trace.zip")).length === 9,
+            "D06_EXPIRY_TRACES");
+    }
+    const browser = verifyIntegrationBrowserRecord(repo, "d06", true);
+    requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
+    verifyExpiryGreeksJourneys(repo, browser, true, "d06");
+    return { ...selected, ...native[kind], captureRevision: D06_REVISION, descriptorSha256: D06_NATIVE[kind] };
+}
+
+
+/** Validate retained native/history prerequisites; this never qualifies current browser proof. */
+function verifyExpiryIntegrationNativePrerequisites(repo) {
+    const kind = "gex", crops = expectedNativeFiles(kind);
+    const roots = Object.fromEntries(["gex", "eod"].map(family => [family,
+        readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    if (hasD06History(repo) || Object.values(roots).some(text => text.includes("exposureD06Successor20261111"))) {
+        readD06NativePair(repo, kind, crops);
+        readD06Predecessor(repo, kind, crops);
+        return { state: "NATIVE_ONLY_VALIDATED", currentBrowserQualified: false,
+            gex: { revision: D06_REVISION, descriptorSha256: D06_NATIVE.gex },
+            eod: { revision: D06_REVISION, descriptorSha256: D06_NATIVE.eod } };
+    }
+    if (hasHeatmapCopyHistory(repo) || Object.values(roots).some(text => text.includes("exposureHeatmapCopy20261111"))) {
+        readHeatmapCopyNativePair(repo, kind, crops);
+        readHeatmapCopyPredecessor(repo, kind, crops);
+        return { state: "NATIVE_ONLY_VALIDATED", currentBrowserQualified: false,
+            gex: { revision: HEATMAP_COPY_REVISION, descriptorSha256: HEATMAP_COPY_NATIVE.gex },
+            eod: { revision: HEATMAP_COPY_REVISION, descriptorSha256: HEATMAP_COPY_NATIVE.eod } };
+    }
+    if (existsSync(r5BrowserDirectory(repo)) || Object.values(roots).some(text =>
+        text.includes(R5_BROWSER_REVISION) || text.includes("exposureR5Browser20261111")))
+        readR5BrowserPair(repo, kind, crops, roots, false);
+    else readMomentumBrowserPair(repo, kind, crops, roots, false);
+    return {
+        state: "NATIVE_ONLY_VALIDATED",
+        currentBrowserQualified: false,
+        gex: { revision: EXPIRY_INTEGRATION_REVISION, descriptorSha256: EXPIRY_INTEGRATION_PACKET },
+        eod: { revision: OPTIONS_INTEGRATION_REVISION, descriptorSha256: OPTIONS_INTEGRATION_PACKET.eod },
+    };
 }
 
 /** Legacy is eligible only when neither a declaration nor any qualified operation history exists. */
 function optionalQualifiedOptionsExposurePacket(repo, kind, crops) {
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
-    const history = existsSync(momentumBrowserDirectory(repo)) || Object.values(OP).some(operation => existsSync(join(root, "operations", operation)));
+    const history = hasD06History(repo) || hasHeatmapCopyHistory(repo) || existsSync(r5BrowserDirectory(repo)) || existsSync(momentumBrowserDirectory(repo)) || Object.values(OP).some(operation => existsSync(join(root, "operations", operation)));
     let text;
     try { text = readFileSync(join(root, "EVIDENCE.yml"), "utf8"); }
     catch (error) { if (error.code === "ENOENT" && !history) return null; throw error; }
-    const declared = /exposureMomentumBrowser20261110|exposureExpiryGreeksIntegration20261110|exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
+    const declared = /exposureD06Successor20261111|d06-r5-copy-20261111|exposureHeatmapCopy20261111|heatmap-copy-20261111|exposureR5Browser20261111|r5-alignment-20261110|exposureMomentumBrowser20261110|exposureExpiryGreeksIntegration20261110|exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
     return declared || history ? qualifiedOptionsExposurePacket(repo, kind, crops) : null;
 }
 
-module.exports = { requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases, expiryGreeksJourneyInputs, EXPIRY_JOURNEY_SPECS, requireExpiryGreeksBrowserCases, requireExpiryGreeksScreenshotSet };
+module.exports = { verifyExpiryIntegrationNativePrerequisites, requireIntegrationBrowserReport, momentumBrowserInputs, momentumExpiryInputs, requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases, expiryGreeksJourneyInputs, EXPIRY_JOURNEY_SPECS, requireExpiryGreeksBrowserCases, requireExpiryGreeksScreenshotSet };

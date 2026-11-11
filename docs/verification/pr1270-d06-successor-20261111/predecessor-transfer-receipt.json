@@ -1,0 +1,24 @@
+{
+  "state": "PREDECESSOR_BYTES_COPIED_AND_CURRENT_NATIVE_DESCRIPTORS_SEALED",
+  "sourceReaderSha256": "a8ab33a2eb49af5a3b878d4437bbd439ac536abb6c623663157c3987ace80515",
+  "copiedFiles": 1248,
+  "verifiedFiles": 1248,
+  "verifiedBytes": 128254410,
+  "priorRoots": {
+    "eod": "ca8665106dd6d220449b3ba4acfe668bd4204b07e185569225bd2574ddb998fe",
+    "gex": "9262263b3b4adbb3de79362dab910429331b0b4ef2f937cb02cb299a8a50ff40"
+  },
+  "priorGlobalsSha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+  "native": {
+    "eod": {
+      "descriptorSha256": "46b35e7f1bf23454dede63797644bb4d8082bdb484dfa7918e377f9b3e1c6a90",
+      "manifestSha256": "b2b3c9c198f134e7e22aec3790530a4b96158859b6adc0dc4bcb91f65b3ac325",
+      "executionSha256": "c5e97847cdb7a9c19cc8f8df7e385f22df1dc2d6680744f7063af72ff441f159"
+    },
+    "gex": {
+      "descriptorSha256": "076271811c0cedfec4ad4d0344ec3594aa20c9d44e30cd1287fc94179ebe471c",
+      "manifestSha256": "a2d007c57443721b1ec16fbc6ec154430b71569ec8dfc6a19d0185a26cb61a42",
+      "executionSha256": "30eeacb655acbbecd6ff58157be5664bc9ee8fe9102dc4ade59c3eb2badcadb6"
+    }
+  }
+}

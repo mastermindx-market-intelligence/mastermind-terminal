@@ -1,0 +1,24 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > qualifies both fresh native families while leaving browser acceptance unclaimed 5446ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/components/eodcontext/DarkPoolMini.tsx 397ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/components/gexdesk/StrikeLadder.tsx
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs 449ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: attempt.json 372ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: supervision.json 393ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: command.json 583ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: driver.log 409ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > validates complete immutable copy history: terminal/docs/verification/exposure-workspace-20261103/d06-r5-copy-20261111/prior-roots/eod.EVIDENCE.yml 454ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > validates complete immutable copy history: terminal/docs/verification/exposure-workspace-20261103/heatmap-copy-20261111/browser-artifacts/playwright/.last-run.json 4724ms
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > keeps ordinary copy qualification strict when D06 history is absent
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > retains the actual eod worktree identity and rejects a fabricated source tree
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > retains the actual gex worktree identity and rejects a fabricated source tree
+
+ Test Files  1 passed (1)
+      Tests  14 passed | 8 skipped (22)
+   Start at  05:46:41
+   Duration  14.55s (transform 92ms, setup 0ms, collect 116ms, tests 13.86s, environment 0ms, prepare 92ms)
+

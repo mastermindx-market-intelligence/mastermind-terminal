@@ -1,0 +1,53 @@
+{
+  "captureContext": {
+    "actualGit": {
+      "head": "357c32f1a330dda9362955361ae0ab30a3e54048",
+      "headTree": "e0071b0769420d5837e6a6767b696752462c449a",
+      "indexTree": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+      "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9"
+    },
+    "branchHead": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "checkoutCommit": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "checkoutTree": "e0071b0769420d5837e6a6767b696752462c449a",
+    "indexTreeAtEnd": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+    "indexTreeAtStart": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+    "integratedSourceHeads": [
+      "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "d3e7ba61f7021d65571b9bcde279409168f4173d"
+    ],
+    "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "operation": "terminal-pr1270-d06-browser-current-20261111",
+    "protectedMaster": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "publishedBasis": "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e",
+    "sourceIdentity": "stable-composed-working-tree"
+  },
+  "ownerTests": {
+    "afterBlob": "fb5b8930c39e0b57f4b9f3a73ee5d78369565c7c",
+    "afterSha256": "14e555c8b51800b8cd80fd92522948122ed8351aa3a25c37cd71636f3cc129bd",
+    "beforeSha256": "6521af03a3ba257f796308e7d3b00a2ee57351b727da0a3a37c6fbb5806885cf"
+  },
+  "pins": {
+    "D06_BROWSER_QUALIFICATION": "2ef456820e2eaff5fd53cc5dbe87f97a11e3e5a96c61180ca140d55e71a4be36",
+    "D06_DESCRIPTOR": "d26b3be1499cd9cea18ba4566f017fc4994541115bf77b535268021874635246",
+    "D06_EXPIRY_QUALIFICATION": "9f3931d99b5e66100f627619413cfdd29c19a0d93eac2e64cc2bf38c57f32857"
+  },
+  "reader": {
+    "afterSha256": "11a9b9c6e4cfb2b4a1fe00c7ca7e630c9f495b3e8af08f35021db10b760f4ea8",
+    "beforeSha256": "70a3225e2b2bfa31499d818995368528c8a9ccf0bc9fae81e46756a3f2452122"
+  },
+  "roots": {
+    "eod": {
+      "actualPreimageSha256": "e15b56f902accfb01d28ac63e7dd2c86ed8956765c0f8e0a6a799dd9c89f6e3e",
+      "afterSha256": "53a883a50a857aa40aa919c850f2d76fbf9ad659abcec9473ee5b57602c57af6",
+      "qualifiedCopyPriorSha256": "ca8665106dd6d220449b3ba4acfe668bd4204b07e185569225bd2574ddb998fe"
+    },
+    "gex": {
+      "actualPreimageSha256": "c112249d1e79ec47b3ae7dbf2996fdc6f7c15727a3dbc540d7d96f0678263929",
+      "afterSha256": "9fec8a19e5479a81fe532534790c7f81fa13ee691d4a204290c413e2f67499b0",
+      "qualifiedCopyPriorSha256": "9262263b3b4adbb3de79362dab910429331b0b4ef2f937cb02cb299a8a50ff40"
+    }
+  },
+  "sourceFiles": 3751,
+  "sourceSnapshotSha256": "cd546d86bf053ac071d4ddf78b9c090994b5841d46789e2848dea64d032b2749",
+  "state": "QUALIFIED_D06_PINS_ADOPTED_AWAITING_CONSUMER_CHECKS"
+}

@@ -94,13 +94,15 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
     }
   });
 
-  it("retains historical layout hashes through the exact recorded D06 dependency delta", () => {
+  it("validates current layout hashes or the exact recorded historical D06 dependency delta", () => {
     const recorded = layoutFileMap(evidenceText());
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      if (rel === "terminal/app/globals.css") assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
-        else expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      const current = sha256Of(abs);
+      if (rel === "terminal/app/globals.css" && current !== expected)
+        assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
+      else expect(current, `${rel} changed without a recapture`).toBe(expected);
     }
   });
 

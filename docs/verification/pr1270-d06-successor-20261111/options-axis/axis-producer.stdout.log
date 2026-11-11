@@ -1,0 +1,8 @@
+[dev] ✓ Ready in 688ms
+{
+  "sourceHead": "357c32f1a330dda9362955361ae0ab30a3e54048",
+  "captures": 5,
+  "allPass": true
+}
+{"optionsEvidence":{"captureId":"terminal-pr1270-options-axis-current-20261111-options","capturedAtHead":"357c32f1a330dda9362955361ae0ab30a3e54048","manifestSha256":"90961430da6ca4c48f1f6811d22418d8c5bb07c8f798be458d21e60597ebc8a1","files":[{"file":"desktop.png","sha256":"8c0ab919b4776c42d9db23de0fbae34580b0a06d4491f0cffdae9d7046b4a9e8"},{"file":"tablet.png","sha256":"037c7a73a7ad4f242a55bd2a39f297d6c1efb1e6a4080844a51cad779a244e65"},{"file":"mobile.png","sha256":"b956e734db3e5f3425c255235168a445029f6aaf578d9419cdbca2cb11926ebe"},{"file":"desktop-left-percentage.png","sha256":"46880207dc04714d0ddf82b60c8c2de9132908a3d1cdc9998b3fab58c196d3f8"},{"file":"desktop-compact.png","sha256":"b7e7be9f0779121fe7c8aff70611f75a0cd4d54596b9a1ae8b96c17865bd59f9"}]}}
+{"state":"CAPTURED_AWAITING_UNIT_VALIDATION","manifestSha256":"90961430da6ca4c48f1f6811d22418d8c5bb07c8f798be458d21e60597ebc8a1","images":5,"actualCheckout":{"commit":"357c32f1a330dda9362955361ae0ab30a3e54048","tree":"e0071b0769420d5837e6a6767b696752462c449a"},"server":{"pid":78878,"pgid":78878,"port":57737,"baseURL":"http://127.0.0.1:57737","ready":true,"settled":true,"exitCode":0,"signalCode":null}}

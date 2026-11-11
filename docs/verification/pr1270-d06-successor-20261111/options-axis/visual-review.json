@@ -1,0 +1,20 @@
+{
+  "findings": [
+    "All six option badges are visible and separated in the standard desktop/tablet/mobile views.",
+    "Left-percentage view preserves its intended scale mode and moves the option badges away from axis/chrome collisions.",
+    "Compact desktop view retains the six badges within the shortened chart.",
+    "Extended-hours timer remains separate from the option badges."
+  ],
+  "images": {
+    "desktop-compact.png": "b7e7be9f0779121fe7c8aff70611f75a0cd4d54596b9a1ae8b96c17865bd59f9",
+    "desktop-left-percentage.png": "46880207dc04714d0ddf82b60c8c2de9132908a3d1cdc9998b3fab58c196d3f8",
+    "desktop.png": "8c0ab919b4776c42d9db23de0fbae34580b0a06d4491f0cffdae9d7046b4a9e8",
+    "mobile.png": "b956e734db3e5f3425c255235168a445029f6aaf578d9419cdbca2cb11926ebe",
+    "tablet.png": "037c7a73a7ad4f242a55bd2a39f297d6c1efb1e6a4080844a51cad779a244e65"
+  },
+  "manifestSha256": "90961430da6ca4c48f1f6811d22418d8c5bb07c8f798be458d21e60597ebc8a1",
+  "productionProof": false,
+  "recordedAt": "2026-11-11T14:50:21.084660+00:00",
+  "scope": "All five deterministic axis fixture images",
+  "state": "ROOT_VISUAL_REVIEW_COMPLETED"
+}

@@ -1,0 +1,49 @@
+{
+  "completedAt": "2026-11-11T14:09:51.909516+00:00",
+  "context": {
+    "actualGit": {
+      "head": "357c32f1a330dda9362955361ae0ab30a3e54048",
+      "headTree": "e0071b0769420d5837e6a6767b696752462c449a",
+      "indexTree": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+      "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9"
+    },
+    "branchHead": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "checkoutCommit": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "checkoutTree": "e0071b0769420d5837e6a6767b696752462c449a",
+    "indexTreeAtEnd": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+    "indexTreeAtStart": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+    "integratedSourceHeads": [
+      "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "d3e7ba61f7021d65571b9bcde279409168f4173d"
+    ],
+    "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "operation": "terminal-pr1270-d06-browser-current-20261111",
+    "protectedMaster": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "publishedBasis": "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e",
+    "sourceIdentity": "stable-composed-working-tree"
+  },
+  "results": {
+    "expiry": {
+      "artifacts": 37,
+      "lifecycleSha256": "29312c0cf50fb34a3e2c08c0849338f88cb6fcd482baaa14f581e4554c45741e",
+      "passed": 9,
+      "qualificationSha256": "9f3931d99b5e66100f627619413cfdd29c19a0d93eac2e64cc2bf38c57f32857",
+      "seconds": 88.608,
+      "sourceFiles": 3751,
+      "state": "D06_BROWSER_STAGE_QUALIFIED"
+    },
+    "joint": {
+      "artifacts": 374,
+      "lifecycleSha256": "0b8b01978fd5fde74e25e8c792cff1a2f992c4bdf4a5d3821882ef45e6a27c03",
+      "passed": 144,
+      "qualificationSha256": "2ef456820e2eaff5fd53cc5dbe87f97a11e3e5a96c61180ca140d55e71a4be36",
+      "seconds": 1089.858,
+      "sourceFiles": 3751,
+      "state": "D06_BROWSER_STAGE_QUALIFIED"
+    }
+  },
+  "snapshotSha256": "cd546d86bf053ac071d4ddf78b9c090994b5841d46789e2848dea64d032b2749",
+  "sourceFiles": 3751,
+  "startedAt": "2026-11-11T13:49:31.150528+00:00",
+  "state": "BOTH_D06_BROWSER_STAGES_QUALIFIED_PENDING_READER_PINS"
+}

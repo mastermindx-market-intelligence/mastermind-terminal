@@ -67,8 +67,10 @@ describe("Options-level coverage and axis-label browser evidence", () => {
     for (const [relative, expected] of Object.entries(MANIFEST.sourceFiles)) {
       const absolute = join(TERMINAL, relative);
       expect(existsSync(absolute), relative).toBe(true);
-      if (relative === "components/ChartPanel.tsx") assertD06CapturedFile("terminal/" + relative, readFileSync(absolute, "utf8"), expected);
-      else expect(sha256(absolute), `${relative} changed without recapturing browser evidence`).toBe(expected);
+      const current = sha256(absolute);
+      if (relative === "components/ChartPanel.tsx" && current !== expected)
+        assertD06CapturedFile("terminal/" + relative, readFileSync(absolute, "utf8"), expected);
+      else expect(current, `${relative} changed without recapturing browser evidence`).toBe(expected);
     }
   });
 

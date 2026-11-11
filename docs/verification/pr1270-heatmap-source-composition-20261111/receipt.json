@@ -1,0 +1,148 @@
+{
+  "cssSha256": "fbc2f2f636039a7c15328b508e1f8f70e13d81a6d8b6a8ab99f41e5862a85a0b",
+  "identityPreserved": true,
+  "initialLockPathPresent": true,
+  "localIdentity": {
+    "head": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "headTree": "e0071b0769420d5837e6a6767b696752462c449a",
+    "indexTree": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+    "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9"
+  },
+  "proofAcceptance": false,
+  "publishedBasis": "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e",
+  "sourceLawPin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "sources": [
+    {
+      "baseSha256": "649ba3f2d700a58e72ad1d8028bd580de6066b0b0047d0bf63c4cdcbc5d411af",
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "f2498634f1c3964a0bdf57fd2cf38562f53e6565",
+      "incomingSha256": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "649ba3f2d700a58e72ad1d8028bd580de6066b0b0047d0bf63c4cdcbc5d411af",
+      "path": "terminal/app/observatory.css"
+    },
+    {
+      "baseSha256": "d7d8334366047e4b838dab6e04b1c0ab3bcd3780000ee02c91347c143fbf26e0",
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "743beea3e99479a3e255532b5918ef44ebb61234",
+      "incomingSha256": "194638305205d1ee4b2adc29eae0368c53b998f6f0ed106865cb223a014eb503",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "d7d8334366047e4b838dab6e04b1c0ab3bcd3780000ee02c91347c143fbf26e0",
+      "path": "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts"
+    },
+    {
+      "baseSha256": "cbbe2c00a9b99569f05dc876860d14b1659bd3fa3dd309ab9e86f2a82334e08c",
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "324da3c018ed49ec4997976bfbb99964bc854a52",
+      "incomingSha256": "753ff1d32da23b7e0b95268aeb20b08b2e6934f6a48cdfda08199bdb38749972",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "cbbe2c00a9b99569f05dc876860d14b1659bd3fa3dd309ab9e86f2a82334e08c",
+      "path": "terminal/e2e/tools/optionsExposureEvidence.cjs"
+    },
+    {
+      "baseSha256": "f2c2a8537e5a322f40716c88e91436e719e4ac927e8571ac58ad16970f6ddaed",
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "7f05ae72c48ad760e484ea5f400c213eab31d378",
+      "incomingSha256": "1af14a94c149698c13f57cc9152a230ea5dd60f84145cfc9e58b02a4bbb11c4a",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "f2c2a8537e5a322f40716c88e91436e719e4ac927e8571ac58ad16970f6ddaed",
+      "path": "terminal/e2e/tools/optionsExposureEvidence.d.cts"
+    },
+    {
+      "baseSha256": null,
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "00f0758be894f9f25bb4f3705cbfd2003b1d8cee",
+      "incomingSha256": "51a56f988c76e8db33c6e8ff2e0a2af04c8cc33f3d98a8b929ceea8596c3d44e",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": null,
+      "path": "terminal/e2e/tools/qualify_r5_alignment_browser.py"
+    },
+    {
+      "baseSha256": "cc7f742837723004c121d803058ee6a7cc89840cde2d3733526f15ac457903e3",
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "41576664a7975c77d89fc282986992812a3990d8",
+      "incomingSha256": "424bdafc83898303b09a3d21694b39fb1cc54c7bb55f5b06b0505184e68c2fa9",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "cc7f742837723004c121d803058ee6a7cc89840cde2d3733526f15ac457903e3",
+      "path": "terminal/lib/__tests__/marketStructure.test.ts"
+    },
+    {
+      "baseSha256": null,
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "be353bce95985dc2e9d3b54f8959449bb59e98c4",
+      "incomingSha256": "0a29c07c791660313e5bfc6f83a4822d476db1eb969df01be6ec992e271c7eaf",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": null,
+      "path": "terminal/lib/__tests__/optionsExposureBrowserReport.test.ts"
+    },
+    {
+      "baseSha256": "5a3df55585ff183721639ca9cf91fa26962d647a2dcade59fac8fadc3f63846a",
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "c3e5ece027bcbb35b904dbc0a99ced87f97d0765",
+      "incomingSha256": "6521af03a3ba257f796308e7d3b00a2ee57351b727da0a3a37c6fbb5806885cf",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "5a3df55585ff183721639ca9cf91fa26962d647a2dcade59fac8fadc3f63846a",
+      "path": "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts"
+    },
+    {
+      "baseSha256": null,
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "279aa962aa725b3165659b77bca7210eab072dcc",
+      "incomingSha256": "706794aaf871a7682398052bbd65885a8a8917bfeda7daea39ec87fa8bb7c929",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": null,
+      "path": "terminal/lib/__tests__/optionsExposureR5Successor.test.ts"
+    },
+    {
+      "baseSha256": "1b308753ab57dde28bab3cf05c4cf9d521566b491c52dd04d59c75a58574021d",
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "df86b849ebb13ba69d59ca0782d57922575f0f2c",
+      "incomingSha256": "bd4af47c39979ca72de02b7b741d41dc22938bed7d9722a20e2017c692c07484",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "1b308753ab57dde28bab3cf05c4cf9d521566b491c52dd04d59c75a58574021d",
+      "path": "terminal/lib/marketStructure.ts"
+    },
+    {
+      "baseSha256": null,
+      "head": "707b4d509dd4f0922cbb6a45c0661399641e606f",
+      "incomingBlob": "5644eaf1633b27a12ac33cdbc9d5b344fe000172",
+      "incomingSha256": "3d73f5a6e7f9ba7c35d23d736a1de474aeb2dada360d47294c1ecb7f6c56c6a0",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": null,
+      "path": "tests/test_r5_browser_checkout_identity.py"
+    },
+    {
+      "baseSha256": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+      "head": "d3e7ba61f7021d65571b9bcde279409168f4173d",
+      "incomingBlob": "185f6444b276344e1cc009aea051a00d0e248365",
+      "incomingSha256": "1f43e9c1a8a4a92f4692bacc3835d5783b05b48078f65fead404776df357af94",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+      "path": "terminal/components/heatmap/HeatmapView.tsx"
+    },
+    {
+      "baseSha256": "74b45e9451f04d50806c86b13ea9a4cc97d92ae0cbea32b3389f4c56e9ed7e02",
+      "head": "d3e7ba61f7021d65571b9bcde279409168f4173d",
+      "incomingBlob": "f633b81298088f0baf269a54ea3db6cb525a85fe",
+      "incomingSha256": "224e1bf00ae165fe8c17fcb68068c612a838c691f127ffd3e0685a6e8c425c34",
+      "localEqualsBase": true,
+      "localEqualsIncoming": false,
+      "localSha256": "74b45e9451f04d50806c86b13ea9a4cc97d92ae0cbea32b3389f4c56e9ed7e02",
+      "path": "terminal/lib/__tests__/heatmapCapDisclosure.test.tsx"
+    }
+  ],
+  "state": "SOURCE_COMPOSED_AWAITING_D06_NATIVE_AND_BROWSER_PROOF",
+  "workspaceCwdHolders": []
+}

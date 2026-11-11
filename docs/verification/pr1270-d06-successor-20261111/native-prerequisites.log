@@ -1,0 +1,138 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > qualifies both fresh native families while leaving browser acceptance unclaimed
+   → Options/Exposure evidence: INTEGRATION_IMAGE_RECORD
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/components/eodcontext/DarkPoolMini.tsx
+   → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE|INTEGRATION_CURR…/ but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/components/gexdesk/StrikeLadder.tsx
+   → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE|INTEGRATION_CURR…/ but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs 347ms
+   → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE|INTEGRATION_CURR…/ but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs 342ms
+   → expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE|INTEGRATION_CURR…/ but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: attempt.json
+   → expected [Function] to throw error including 'D06_NATIVE_FILE:eod:' but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: supervision.json
+   → expected [Function] to throw error including 'D06_NATIVE_FILE:eod:' but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: command.json
+   → expected [Function] to throw error including 'D06_NATIVE_FILE:eod:' but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: driver.log 306ms
+   → expected [Function] to throw error including 'D06_NATIVE_FILE:eod:' but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > validates complete immutable copy history: terminal/docs/verification/exposure-workspace-20261103/d06-r5-copy-20261111/prior-roots/eod.EVIDENCE.yml
+   → expected [Function] to throw error matching /D06_PRIOR_ROOT:eod|INTEGRATION_BROWSE…/ but got 'Options/Exposure evidence: INTEGRATIO…'
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > validates complete immutable copy history: terminal/docs/verification/exposure-workspace-20261103/heatmap-copy-20261111/browser-artifacts/playwright/.last-run.json
+   → expected [Function] to throw error matching /D06_PRIOR_ROOT:eod|INTEGRATION_BROWSE…/ but got 'Options/Exposure evidence: INTEGRATIO…'
+ ✓ lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > keeps ordinary copy qualification strict when D06 history is absent 385ms
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > retains the actual eod worktree identity and rejects a fabricated source tree
+   → expected [Function] to not throw an error but 'Error: Options/Exposure evidence: INT…' was thrown
+ × lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > retains the actual gex worktree identity and rejects a fabricated source tree
+   → expected [Function] to not throw an error but 'Error: Options/Exposure evidence: INT…' was thrown
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > qualifies both fresh native families while leaving browser acceptance unclaimed
+Error: Options/Exposure evidence: INTEGRATION_IMAGE_RECORD
+ ❯ check e2e/tools/optionsExposureEvidence.cjs:170:15
+    168| function check(value, code) {
+    169|     if (!value)
+    170|         throw new Error("Options/Exposure evidence: " + code);
+       |               ^
+    171| }
+    172| const sha = (path) => createHash("sha256").update(readFileSync(path)).…
+ ❯ requireIntegrationExecution e2e/tools/optionsExposureEvidence.cjs:714:9
+ ❯ readIntegrationNativePayload e2e/tools/optionsExposureEvidence.cjs:859:5
+ ❯ e2e/tools/optionsExposureEvidence.cjs:1754:23
+ ❯ readD06NativePair e2e/tools/optionsExposureEvidence.cjs:1751:46
+ ❯ Module.verifyExpiryIntegrationNativePrerequisites e2e/tools/optionsExposureEvidence.cjs:1849:9
+ ❯ lib/__tests__/optionsExposureD06Successor.test.ts:45:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/components/eodcontext/DarkPoolMini.tsx
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/components/gexdesk/StrikeLadder.tsx
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects current drift in either family or producer: terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+AssertionError: expected [Function] to throw error matching /NO_QUALIFIED_CAPTURE|INTEGRATION_CURR…/ but got 'Options/Exposure evidence: INTEGRATIO…'
+
+- Expected: 
+/NO_QUALIFIED_CAPTURE|INTEGRATION_CURRENT_PRODUCER/
+
++ Received: 
+"Options/Exposure evidence: INTEGRATION_IMAGE_RECORD"
+
+ ❯ lib/__tests__/optionsExposureD06Successor.test.ts:59:68
+     57|   ])("rejects current drift in either family or producer: %s", path =>…
+     58|     const root = shadow({ [path]: readFileSync(join(repo, path), "utf8…
+     59|     expect(() => verifyExpiryIntegrationNativePrerequisites(root)).toT…
+       |                                                                    ^
+     60|   }, 30_000);
+     61| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: attempt.json
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: supervision.json
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: command.json
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > rejects changed native custody: driver.log
+AssertionError: expected [Function] to throw error including 'D06_NATIVE_FILE:eod:' but got 'Options/Exposure evidence: INTEGRATIO…'
+
+Expected: "D06_NATIVE_FILE:eod:"
+Received: "Options/Exposure evidence: INTEGRATION_IMAGE_RECORD"
+
+ ❯ lib/__tests__/optionsExposureD06Successor.test.ts:65:68
+     63|     const path = nativePath("eod") + "/" + file;
+     64|     const root = shadow({ [path]: readFileSync(join(repo, path), "utf8…
+     65|     expect(() => verifyExpiryIntegrationNativePrerequisites(root)).toT…
+       |                                                                    ^
+     66|   }, 30_000);
+     67| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > validates complete immutable copy history: terminal/docs/verification/exposure-workspace-20261103/d06-r5-copy-20261111/prior-roots/eod.EVIDENCE.yml
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > validates complete immutable copy history: terminal/docs/verification/exposure-workspace-20261103/heatmap-copy-20261111/browser-artifacts/playwright/.last-run.json
+AssertionError: expected [Function] to throw error matching /D06_PRIOR_ROOT:eod|INTEGRATION_BROWSE…/ but got 'Options/Exposure evidence: INTEGRATIO…'
+
+- Expected: 
+/D06_PRIOR_ROOT:eod|INTEGRATION_BROWSER_ARTIFACT:/
+
++ Received: 
+"Options/Exposure evidence: INTEGRATION_IMAGE_RECORD"
+
+ ❯ lib/__tests__/optionsExposureD06Successor.test.ts:73:68
+     71|   ])("validates complete immutable copy history: %s", path => {
+     72|     const root = shadow({ [path]: readFileSync(join(repo, path), "utf8…
+     73|     expect(() => verifyExpiryIntegrationNativePrerequisites(root)).toT…
+       |                                                                    ^
+     74|   }, 30_000);
+     75| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > retains the actual eod worktree identity and rejects a fabricated source tree
+ FAIL  lib/__tests__/optionsExposureD06Successor.test.ts > D06 native prerequisites > retains the actual gex worktree identity and rejects a fabricated source tree
+AssertionError: expected [Function] to not throw an error but 'Error: Options/Exposure evidence: INT…' was thrown
+
+- Expected: 
+undefined
+
++ Received: 
+"Error: Options/Exposure evidence: INTEGRATION_IMAGE_RECORD"
+
+ ❯ lib/__tests__/optionsExposureD06Successor.test.ts:91:100
+     89|     expect(execution.actualGit?.head).toBe("357c32f1a330dda9362955361a…
+     90|     expect(execution.publishedBasis).toBe("4deaa727aa862eb6d004b35dbcf…
+     91|     expect(() => requireIntegrationExecution(execution, kind, crops(ki…
+       |                                                                                                    ^
+     92|     expect(() => requireIntegrationExecution({ ...execution, capturedS…
+     93|       kind, crops(kind), "d06-integration")).toThrow("D06_WORKTREE_IDE…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯
+
+ Test Files  1 failed (1)
+      Tests  13 failed | 1 passed | 8 skipped (22)
+   Start at  05:45:42
+   Duration  3.33s (transform 116ms, setup 0ms, collect 144ms, tests 2.65s, environment 0ms, prepare 110ms)
+

@@ -1,0 +1,49 @@
+{
+  "schema": "terminal_pr1458_native_supervision.v1",
+  "kind": "eod",
+  "captureId": "terminal-pr1458-eod-copy-20261111-r1",
+  "command": [
+    "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+    "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  ],
+  "port": 57730,
+  "events": [
+    {
+      "observedAt": "2026-11-11T10:11:54.644Z",
+      "pid": 86943
+    },
+    {
+      "observedAt": "2026-11-11T10:11:54.757Z",
+      "serverPid": 86958,
+      "serverReportedStopped": false,
+      "serverRefused": null
+    },
+    {
+      "observedAt": "2026-11-11T10:18:57.797Z",
+      "serverPid": 86958,
+      "serverReportedStopped": true,
+      "serverRefused": null
+    },
+    {
+      "observedAt": "2026-11-11T10:18:57.935Z",
+      "serverPid": 86958,
+      "serverReportedStopped": true,
+      "serverRefused": null,
+      "serverSettled": true
+    }
+  ],
+  "state": "CLOSED",
+  "result": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "closed": true,
+    "pid": 86943,
+    "serverPid": 86958,
+    "serverReportedStopped": true,
+    "serverRefused": null,
+    "serverSettled": true,
+    "errorCode": null
+  }
+}

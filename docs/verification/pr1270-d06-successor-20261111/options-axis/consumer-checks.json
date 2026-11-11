@@ -1,0 +1,20 @@
+{
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/docs/verification/pr1270-d06-successor-20261111/options-axis/consumer-report.json"
+  ],
+  "exit": 0,
+  "failed": 0,
+  "manifestSha256": "90961430da6ca4c48f1f6811d22418d8c5bb07c8f798be458d21e60597ebc8a1",
+  "passed": 3,
+  "pending": 0,
+  "seconds": 2.837,
+  "sourceHead": "357c32f1a330dda9362955361ae0ab30a3e54048",
+  "state": "AXIS_CONSUMER_PASSED"
+}

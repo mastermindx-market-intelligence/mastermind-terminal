@@ -1,0 +1,44 @@
+{
+  "captureSelection": "Use the later current-axis snapshot for overlapping source inputs. Original native/browser snapshots and identities remain unchanged.",
+  "currentCodeControlInputs": 4489,
+  "excludedObservedRuntimeCacheFiles": 928,
+  "interpretation": "The publication plan matches all4489 current code/control inputs. Of those,4488 match the union of immutable native and later current-axis snapshots; the remaining type declaration was an explicit post-native adoption and is bound before/after the successful full TypeScript and198-consumer validation. No claim is made that the final reader or type declaration existed during the earlier native capture.",
+  "laterCurrentAxisSnapshot": "docs/verification/pr1270-d06-successor-20261111/options-axis/source-before.json",
+  "latestCaptureUnionMatches": 4488,
+  "nativeSnapshot": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/d06-r5-copy-20261111/capture-sources-before.json",
+  "postNativeChangesRecordedInLaterAxisSnapshot": [
+    {
+      "current": "11a9b9c6e4cfb2b4a1fe00c7ca7e630c9f495b3e8af08f35021db10b760f4ea8",
+      "laterAxis": "11a9b9c6e4cfb2b4a1fe00c7ca7e630c9f495b3e8af08f35021db10b760f4ea8",
+      "native": "753ff1d32da23b7e0b95268aeb20b08b2e6934f6a48cdfda08199bdb38749972",
+      "path": "terminal/e2e/tools/optionsExposureEvidence.cjs"
+    },
+    {
+      "current": "14e555c8b51800b8cd80fd92522948122ed8351aa3a25c37cd71636f3cc129bd",
+      "laterAxis": "14e555c8b51800b8cd80fd92522948122ed8351aa3a25c37cd71636f3cc129bd",
+      "native": "6521af03a3ba257f796308e7d3b00a2ee57351b727da0a3a37c6fbb5806885cf",
+      "path": "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts"
+    },
+    {
+      "current": "877eed438b54c3fd537dbc1af639b9656c3ed27c331632674a5dcf15e7c41a21",
+      "laterAxis": "877eed438b54c3fd537dbc1af639b9656c3ed27c331632674a5dcf15e7c41a21",
+      "native": "706794aaf871a7682398052bbd65885a8a8917bfeda7daea39ec87fa8bb7c929",
+      "path": "terminal/lib/__tests__/optionsExposureR5Successor.test.ts"
+    }
+  ],
+  "postNativeTypeDeclaration": {
+    "capturedByEarlierNativeSnapshot": false,
+    "consumerBeforeAndAfterMatch": true,
+    "consumerReceipt": "docs/verification/pr1270-d06-successor-20261111/reader-adoption/consumer-checks.json",
+    "consumerReceiptSha256": "939ce70e438e1d44fd257a44472bd0c98b634ac510f68e25a0f3d47c8471390b",
+    "coveredByLaterAxisSnapshot": false,
+    "fullTypeScriptExit": 0,
+    "path": "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+    "sha256": "25324f7b1f06f211c13568212690ddd03f7b34c3487757fb14222849759322f3"
+  },
+  "rawObservedPathUnion": 5417,
+  "rawUnionAuditSha256": "031fe14c8cc8ecaa99ce140ebb100d5537c22c5c377678b66dd3181cde7b91f2",
+  "recordedAt": "2026-11-11T15:23:43.550496+00:00",
+  "schema": "terminal.pr1270.capture_and_consumer_source_binding.v1",
+  "state": "ALL_CURRENT_PUBLICATION_INPUTS_HAVE_QUALIFIED_BINDING"
+}

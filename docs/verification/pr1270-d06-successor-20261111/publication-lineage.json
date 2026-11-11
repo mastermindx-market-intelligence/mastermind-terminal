@@ -1,0 +1,104 @@
+{
+  "actualCaptureContext": {
+    "head": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "headTree": "e0071b0769420d5837e6a6767b696752462c449a",
+    "indexTree": "eb208c788e69f4d3c03416edf2fe96a6bf7dcddd",
+    "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9"
+  },
+  "branch": "sol/web-d06-terminal-reader-resilience-20261103-c4",
+  "excludedPendingLocalMerge": true,
+  "expectedPublishedHead": "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e",
+  "historicalEvidence": {
+    "interpretation": "Immutable qualified predecessor evidence is included for the strict reader history. This does not assert that PR1458 publication or merge succeeded, or that its unknown tree request applied.",
+    "paths": 1248,
+    "planSha256": "aaf6185c718fa4c4f7db9251c5e78600525b1177f2040bcb4a2af2ab365a6325",
+    "transferPlan": "docs/verification/pr1270-d06-successor-20261111/predecessor-transfer-plan.json"
+  },
+  "hostIndexOrCheckoutMutation": false,
+  "importedPublishedSourceHeads": [
+    "707b4d509dd4f0922cbb6a45c0661399641e606f",
+    "d3e7ba61f7021d65571b9bcde279409168f4173d"
+  ],
+  "intendedParents": [
+    "4deaa727aa862eb6d004b35dbcfba7d86ecb2a4e"
+  ],
+  "lawPin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "parentMission": "terminal-pr-estate-support-20261111-c3",
+  "preLineageCandidateTree": "af58d5553f2084f4ba7c926b5520a627b899e8df",
+  "preservedPublishedPaths": [
+    "terminal/components/fin/TranscriptDrawer.tsx",
+    "terminal/e2e/embed-fullscreen.spec.ts",
+    "terminal/lib/__tests__/transcriptDrawerFocus.test.tsx"
+  ],
+  "proofPrefixes": [
+    "docs/verification/pr1270-d06-successor-20261111/",
+    "docs/verification/pr1270-heatmap-source-composition-20261111/",
+    "docs/verification/pr1270-current-source-reader-20261111/",
+    "docs/verification/pr1270-native-current-20261111/",
+    "terminal/docs/verification/exposure-workspace-20261103/d06-r5-copy-20261111/",
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/d06-r5-copy-20261111/",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/d06-r5-copy-20261111/"
+  ],
+  "provenanceStatement": "This is a post-capture publication candidate assembled from the full published D06 head and the explicit owned overlay. It was not the Git tree present during capture. Raw capture identity, source snapshots and receipts remain unchanged.",
+  "publishedBaseTree": "049b85df8d94cf18bce9a318cc371ff9ecdefbd0",
+  "pullRequest": 1270,
+  "qualification": {
+    "axisConsumerTests": 3,
+    "axisManifestSha256": "90961430da6ca4c48f1f6811d22418d8c5bb07c8f798be458d21e60597ebc8a1",
+    "axisViews": 5,
+    "browserExpiryCases": 9,
+    "browserFailures": 0,
+    "browserFlaky": 0,
+    "browserJointCases": 144,
+    "browserRetries": 0,
+    "browserSkipped": 0,
+    "nativeEodCases": 126,
+    "nativeGexCases": 114,
+    "readerConsumerSuites": 7,
+    "readerConsumerTests": 198
+  },
+  "recordedAt": "2026-11-11T15:15:16.765768+00:00",
+  "releaseDisposition": {
+    "autoMerge": false,
+    "draft": true,
+    "remainingAcceptance": "Physical WK/Escape, authenticated and installed RLS/upload, and the broader D06/F01/F02 acceptance remain held. This publication does not clear those holds."
+  },
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "schema": "terminal.pr1270.d06_publication_lineage.v1",
+  "sourceAllowlist": [
+    "terminal/app/observatory.css",
+    "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts",
+    "terminal/e2e/tools/optionsExposureEvidence.cjs",
+    "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+    "terminal/e2e/tools/qualify_r5_alignment_browser.py",
+    "terminal/lib/__tests__/marketStructure.test.ts",
+    "terminal/lib/__tests__/optionsExposureBrowserReport.test.ts",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts",
+    "terminal/lib/marketStructure.ts",
+    "tests/test_r5_browser_checkout_identity.py",
+    "terminal/components/heatmap/HeatmapView.tsx",
+    "terminal/lib/__tests__/heatmapCapDisclosure.test.tsx",
+    "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "terminal/lib/__tests__/optionsLevelAxisEvidence.test.ts",
+    "terminal/lib/__tests__/optionsExposureD06Successor.test.ts",
+    "terminal/lib/__tests__/optionsExposureHeatmapCopy.test.ts"
+  ],
+  "sourceBinding": {
+    "excludedCachePrefix": ".npm-cache-1270/",
+    "excludedObservedCacheFiles": 928,
+    "matchedCodeControlInputs": 4489,
+    "nonCacheMismatches": 0,
+    "observedPathUnion": 5417,
+    "preparationPlanSha256": "b24073ddb9bdc595adfdb5b6b837304ef8fbb1943b693e6f3be546ee228a2c8f",
+    "preserveRawSnapshots": true,
+    "sourceReconciliationSha256": "4d7e0aec14b62ab7beedae96c476940f43b77f3f69e97914a3468250dddb263c"
+  },
+  "state": "QUALIFIED_D06_POST_CAPTURE_PUBLICATION_CANDIDATE",
+  "unresolvedIndependent609Effect": {
+    "disposition": "Remains EFFECT_UNKNOWN. No replay, carrier switch, dependency on this object, or PR1458 ref advance is part of D06 publication.",
+    "expectedTree": "c7bacbf5655845823ab97c49315e308b43a6ff02",
+    "requestSha256": "d57090df55d9363c768c97931f853c388586d0d45c2c850f67523ae28d9c7345"
+  }
+}
