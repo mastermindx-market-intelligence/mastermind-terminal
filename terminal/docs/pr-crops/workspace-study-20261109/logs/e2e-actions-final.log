@@ -1,0 +1,28 @@
+[warmup] /terminal?symbol=NVDA → 200 in 224ms
+[warmup] /options → 200 in 439ms
+[warmup] /portfolio → 200 in 465ms
+[warmup] /alerts → 200 in 181ms
+[warmup] /analysis → 200 in 212ms
+[warmup] /discover → 200 in 116ms
+[warmup] /admin → 200 in 60ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 66ms
+[warmup] /login → 200 in 109ms
+[warmup] /reset-password → 200 in 111ms
+[warmup] /api/me → 200 in 88ms
+[warmup] /api/watchlist → 200 in 42ms
+[warmup] /api/layouts → 200 in 41ms
+[warmup] /api/watchlist/annotations → 409 in 40ms
+[warmup] 14 routes compiled in 2s
+[fixture-ready] prophet_idx fixture 200 in 244ms
+
+Running 6 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (en) (11.4s)
+  ✓  2 [desktop] › e2e/scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (zh) (11.1s)
+  ✓  3 [tablet] › e2e/scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (en) (15.2s)
+  ✓  4 [tablet] › e2e/scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (zh) (12.2s)
+  ✓  5 [mobile] › e2e/scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (en) (15.5s)
+  ✓  6 [mobile] › e2e/scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (zh) (13.4s)
+
+  6 passed (1.5m)

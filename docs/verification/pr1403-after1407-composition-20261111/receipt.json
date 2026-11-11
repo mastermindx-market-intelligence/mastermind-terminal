@@ -1,0 +1,348 @@
+{
+  "schema": "terminal.pr1403.protected_composition.v1",
+  "operation": "terminal-pr-estate-support-20261111-c3",
+  "expectedHead": "2b8b045a4a368a3a44e69322a301abd20d36993c",
+  "protectedBase": "d366205c45c6e6585bb0cc83f8d022b3617345ff",
+  "commonBase": "bb3bfaae0f5b3cfe3c736e240b79879312f27cc3",
+  "preservedPrPaths": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "blob": "bee2f293619ceed7404cbe0a145b74228243fa8c"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/desktop-display-en.png",
+      "blob": "8fad801816d22f79cf4e64db1b0e6383a028cb51"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/polish2-watchlist-final-unit.log",
+      "blob": "c9175417acd74e82357a2baf08038333c543857e"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/short-coarse-display-en.png",
+      "blob": "d326f4a8ea93a8ce622512f92776e36adb187708"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/short-display-zh.png",
+      "blob": "ed3fb6069cb0445668cad5ad7681bf7480b0cbfb"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/verification.md",
+      "blob": "754ba4fe04cc6f6ffc86d222d94e1d606144c813"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-before-browser.log",
+      "blob": "2f1f6cdf7e1b140ef880978415c06711728a2830"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-final-browser.log",
+      "blob": "a558023a535f1c1ad8be17d0490e3471dc3a5c1e"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-fit-coarse-browser.log",
+      "blob": "484afba97c2ab275dd24b07817aa45ef57444257"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-fit-desktop-browser.log",
+      "blob": "488ec804e0f55bdfc2c1ee38ea3c0227074a2f7e"
+    },
+    {
+      "path": "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-fit-source-receipt.json",
+      "blob": "d515b014e6e5868c1ec1648f8acf38e3ade2e499"
+    },
+    {
+      "path": "docs/verification/pr1403-hosted-routing-integration-20261110/qualified-source-contracts.log",
+      "blob": "e7e3d8b2168ded838623627ffb1e95c0d1e3f51d"
+    },
+    {
+      "path": "docs/verification/pr1403-hosted-routing-integration-20261110/qualified-source-contracts.xml",
+      "blob": "20f41d162e7b8b9dc34f0ceaee225a50ae92243b"
+    },
+    {
+      "path": "docs/verification/pr1403-hosted-routing-integration-20261110/receipt.json",
+      "blob": "98eedc4e1e5d46c4ae092d3dec9a70d331345c67"
+    },
+    {
+      "path": "docs/verification/pr1403-next-lock-observation-20261111/README.md",
+      "blob": "aed0c29889ecc6a05a06c5b7b9022a072d851f3d"
+    },
+    {
+      "path": "docs/verification/pr1403-next-lock-observation-20261111/focused-checks.log",
+      "blob": "2479649146310b29f33e4d1086c7bb26618f0081"
+    },
+    {
+      "path": "docs/verification/pr1403-next-lock-observation-20261111/receipt.json",
+      "blob": "566815e38c4fe463747293b19e1f70360dc93553"
+    },
+    {
+      "path": "docs/verification/pr1403-protected-composition-20261111/README.md",
+      "blob": "61e684a05d9cb88d0ea436e5d0236e1888df2b5d"
+    },
+    {
+      "path": "docs/verification/pr1403-protected-composition-20261111/receipt.json",
+      "blob": "e49f83451faec5bdf5d62d02e391109132ae973d"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/README.md",
+      "blob": "b09e36166a04811009e9c84a6ebea76e4c988990"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/checks.json",
+      "blob": "9bfb0da08c4af0d64a7152bb121201b8ff1ede93"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/ci-contracts.log",
+      "blob": "1aa9b8e75e0fcc167b475229bc4411fe567c211d"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/eslint-repair.log",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/hosted-recovery-trace.json",
+      "blob": "01dd0908578bd2bf0d74b30056794604928effc2"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/owner-tests.log",
+      "blob": "a9f062b4311b64aa0e02c0986e3c08c54f2c77b5"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/plain-language.json",
+      "blob": "a83076431a0c28be21a2aab522862edb6118bf6f"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/receipt-tests.log",
+      "blob": "b9c2a849c9611783a44488ed6b6b1ee12fa70d66"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/recovery-collection.log",
+      "blob": "b835966ed05ad78796e760cda1c8494d2af61fb0"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/shell-lint-disposition.json",
+      "blob": "56a020f275dfa5ba459befef775c58fdb11333a9"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/ticker-collection.log",
+      "blob": "19c7c0a7f3e6d3522a6f2cec00497c0830db9ebf"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/ticker-gate.log",
+      "blob": "d69ef825afde4124fe7bd463489d7a7d6a9c2877"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/typecheck.log",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "docs/verification/pr1403-recovery-and-ticker-capture-20261111/typegen.log",
+      "blob": "4bcaf04c07e1c5369325564105c6fc034fb2044f"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/README.md",
+      "blob": "f9c3429ef805f65e5ff1eaca7d71ca40b7ff225d"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/canonical-checkout.json",
+      "blob": "85ff787955e43187c5d1dc89be7d71f86d0f3ad7"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/capture.json",
+      "blob": "7e1037a5bf5da20bd2d33e62e6bb3dbd3acb7101"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/consumer-tests.log",
+      "blob": "b3cdedc0abde6627d065b9f0501c159e45150946"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/images-cleared.json",
+      "blob": "5cdaa4b1bb69640a476050e5549aac32d00f3978"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/prepared.json",
+      "blob": "90017a0cb0bbcf380a8f175778d67ad515bb9642"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/prior-EVIDENCE.yml",
+      "blob": "5a16c974505f1d5e3ac7f2c260a4e69367f3e27f"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/qualification.json",
+      "blob": "1f773a570b13785fc46895659d88973047934a33"
+    },
+    {
+      "path": "docs/verification/pr1403-ticker-hosted-import-20261111/report.json.gz",
+      "blob": "cc44e23597fb22f6a949f709daac51cd9cdf56e3"
+    },
+    {
+      "path": "terminal/components/TerminalShell.tsx",
+      "blob": "0f259cd79b04789fbae598e62416ef818287477c"
+    },
+    {
+      "path": "terminal/components/WatchlistDisplaySettings.module.css",
+      "blob": "ebe49d0c8030cb128cb2f1ec07cc3df66b955bc1"
+    },
+    {
+      "path": "terminal/components/WatchlistDisplaySettings.tsx",
+      "blob": "fdeb72a561b7555ed56cedb3c95c23ae3dd9accf"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+      "blob": "c163368674849afa1a9b45544b850229b1d2a485"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+      "blob": "068eca4706b720309f5740c53ce753d1f1c2591e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+      "blob": "457495ba7e14209f19561c08cf6f368fe6e1aea4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+      "blob": "e72196d5c8fef06b31b94efdc920c586c9bf896c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+      "blob": "73b1a0ea869cc1d4fc92122ab42b4793d572b032"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+      "blob": "95574e57bc371ac3052ef51f290a84ef73cf84a6"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+      "blob": "f87008e2b518e7a015934883bab68e568e49ebd3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png",
+      "blob": "d6ecc814bd37be77bd935fa67b76f95e0f9ec960"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-desktop-zh-dark.png",
+      "blob": "319b2a23f1704ff1d1a0cf5b89a928f46c625ac9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-mobile-en-dark.png",
+      "blob": "06a5eceb236f12658857fb84662fe3c31f763c36"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-mobile-zh-dark.png",
+      "blob": "f832691a896faa8c54501214559fbd73b468234a"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-refinement.spec.ts",
+      "blob": "013aace241b1ca27edc5aaed43d317b5c59d2661"
+    },
+    {
+      "path": "terminal/e2e/tools/ticker_news_capture_receipt.cjs",
+      "blob": "1de0756a431edfd0dd6a6f0cb7771855630979b2"
+    },
+    {
+      "path": "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs",
+      "blob": "0aa6a9be73e2744f7e722b63ffccc19efac65881"
+    },
+    {
+      "path": "terminal/e2e/watchlist-display-settings.spec.ts",
+      "blob": "d47808c30c97ecc7f9e288eeee06a9a3fe7a369d"
+    },
+    {
+      "path": "terminal/lib/__tests__/watchlistDisplaySettings.test.tsx",
+      "blob": "7c43a4d10b4e33a74d8b589eadb91da230f9f6b6"
+    },
+    {
+      "path": "tests/test_ci_e2e_shards.py",
+      "blob": "0913f5f9dc25d3218259494cb0e411927bfa83c2"
+    },
+    {
+      "path": "tests/test_ci_ticker_news_capture.py",
+      "blob": "b9fb75956bc6d40b0940d6c84fb3eb7ecc284131"
+    }
+  ],
+  "sourceResolution": {
+    "path": "terminal/components/TerminalShell.tsx",
+    "priorBlob": "0f259cd79b04789fbae598e62416ef818287477c",
+    "protectedBlob": "19078e154c2785c30c8c854e0bf1617b7bfd1136",
+    "added": [
+      "import layoutMenuStyles from \"./LayoutMenu.module.css\";",
+      "className={`phone-workspaces-sheet ${layoutMenuStyles.phoneSheet}`}"
+    ],
+    "inverseReadbackExact": true
+  },
+  "sharedShellTestBlob": "013aace241b1ca27edc5aaed43d317b5c59d2661",
+  "historicalProtectedTicker": [
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+      "blob": "678e136ab564b12b6eb285c0810f21eec628a9c5",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/EVIDENCE.yml"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+      "blob": "7b00c2e8537c5bf61d704c49ac67f1ec270c95ae",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/desktop-en-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+      "blob": "ac228c0f6cfdf9378150a1eec31bfdae10dbc3ae",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/desktop-zh-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+      "blob": "57456c351835f9360c217666a4a227b59316d988",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/mobile-en-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+      "blob": "75f1f2aa1b05eb16fa25f1ebb58f78d3be9acbf2",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/mobile-zh-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+      "blob": "7bcff2eff82320397e513c4abb831f59590415fe",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/tablet-en-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+      "blob": "5b9e018df27c719458300ef62ca5ea24e0144c7e",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/tablet-zh-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png",
+      "blob": "735246889963d3d2dfbd66366d38fd59b858ee31",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/unavailable-desktop-en-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-desktop-zh-dark.png",
+      "blob": "a010ec2ea1c81ac24abdafa09519c41acbbc18ae",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/unavailable-desktop-zh-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-mobile-en-dark.png",
+      "blob": "49618f4b0171eb5a5af9814a24be5415ac5ea700",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/unavailable-mobile-en-dark.png"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-mobile-zh-dark.png",
+      "blob": "2b319893ee9011bdcb66f5e8a0415e0ca50b1743",
+      "archivePath": "docs/verification/pr1403-after1407-composition-20261111/prior-protected-ticker/unavailable-mobile-zh-dark.png"
+    }
+  ],
+  "state": "COMPOSED_SOURCE_AWAITING_FRESH_HOSTED_TICKER_PROOF",
+  "tickerSourceInputsChanged": [
+    "terminal/components/TerminalShell.tsx"
+  ],
+  "unchangedCaptureRoute": {
+    "workflowBlob": "bee2f293619ceed7404cbe0a145b74228243fa8c",
+    "step": "Capture current ticker News evidence",
+    "matrixShard": "serial",
+    "trigger": "natural pull_request CI",
+    "images": 10,
+    "sourceInputs": 18,
+    "passed": 14,
+    "authoredSkipped": 7
+  },
+  "holds": [
+    "existing CI merge-blocked",
+    "no old-image rebinding",
+    "existing auto request preserved"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "action": [
+    "git",
+    "merge",
+    "--quit"
+  ],
+  "afterHead": "2759f63a1890b1e746d3e3ad02e20fab6f74f901",
+  "afterIndexTree": "0d966c5776752025670eb7f1af7ff1c9b384b826",
+  "censusScope": "Bounded same-host cwd metadata; not a claim of global worker absence. Root retains the existing managed operation.",
+  "knownPublication": "APPLIED and exact current local/remote head matched before cleanup",
+  "mergeHeadAbsent": true,
+  "priorIndexTree": "0d966c5776752025670eb7f1af7ff1c9b384b826",
+  "publishedHead": "2759f63a1890b1e746d3e3ad02e20fab6f74f901",
+  "publishedProtectedParent": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "recordedAt": "2026-11-10T09:59:38.995111+00:00",
+  "retainedMarkers": {
+    "MERGE_HEAD": {
+      "sha256": "bca94e4479885c06f80704f5ebf67ce7d83351af0bab44e7d973be09d0d7feb2",
+      "text": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39\n"
+    },
+    "MERGE_MODE": {
+      "sha256": "5940fba849655f7fd20878b451607d8f40866326bde6753ac71ebc855b646a55",
+      "text": "no-ff"
+    },
+    "MERGE_MSG": {
+      "sha256": "e8ae81f0704884251fa89fbe700051614454153db578f2cb535f677d203a347d",
+      "text": "Merge commit '04989d7a9b4e235b9a4c056c9f2f60c5d5008d39' into sol/web-terminal-experience-refinement-20261109-sol-01\n"
+    },
+    "ORIG_HEAD": {
+      "sha256": "b2c318c0f1d64a8f03e396858a0881dd118f9f1a7b07061d8d30af0d4b64c02b",
+      "text": "c0810319e70ab04da776b651580c7f35873088df\n"
+    }
+  },
+  "sameHostCwdHolders": [],
+  "schema": "terminal_pr1407_completed_merge_state_reconciliation.v1",
+  "worktreeAndIndexUnchanged": true
+}

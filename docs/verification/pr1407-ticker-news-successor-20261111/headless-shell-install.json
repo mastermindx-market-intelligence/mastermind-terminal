@@ -1,0 +1,35 @@
+{
+  "schema": "terminal.pr1407.news-browser-dependency-repair.v1",
+  "state": "MISSING_ARTIFACT_INSTALLED",
+  "startedAt": "2026-11-11T08:53:35.766128+00:00",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/node_modules/@playwright/test/cli.js",
+    "install",
+    "chromium",
+    "--only-shell"
+  ],
+  "nodeVersion": "v22.23.4",
+  "missingTarget": "/Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell",
+  "cachePresentBefore": false,
+  "cacheEntriesBefore": [],
+  "browserGcDisabled": true,
+  "installedGcFlagSource": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/node_modules/playwright-core/lib/coreBundle.js"
+  ],
+  "lifecycleReceipt": "initial-failed-capture-lifecycle.json",
+  "priorPreparationStop": "Installer was not launched: recording cache inventory raised ENOENT because the previously observed cache directory was now absent. Cause of disappearance unproven; completed lifecycle cleanup was read back and not replayed.",
+  "installerPid": 29831,
+  "exit": 0,
+  "completedAt": "2026-11-11T08:53:56.263593+00:00",
+  "targetPresent": true,
+  "cacheEntriesAfter": [
+    ".links",
+    "chromium_headless_shell-1228",
+    "ffmpeg-1011"
+  ],
+  "logSha256": "f0411384500388e9fce513353359babec7d9d55c5920399c90163a5dd1cd147e",
+  "targetSha256": "11e393326c7d20a7c56641a7c65def33ea9c280da3b0b74cf8563b07989a0ee3",
+  "targetBytes": 159293248,
+  "targetExecutable": true
+}

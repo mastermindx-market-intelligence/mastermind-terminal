@@ -1,0 +1,233 @@
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-chart-final-unit.log:14: new blank line at EOF.
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:13: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:39: trailing whitespace.
++- Expected: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:42: trailing whitespace.
+++ Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:58: trailing whitespace.
++- Expected: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:61: trailing whitespace.
+++ Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:90: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:117: trailing whitespace.
++- Expected: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:120: trailing whitespace.
+++ Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:149: trailing whitespace.
++- Expected: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:152: trailing whitespace.
+++ Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:287: trailing whitespace.
+++            
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-goto-before.log:376: new blank line at EOF.
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:9: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:26: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:58: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:84: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:128: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:156: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:183: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:225: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:261: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:315: trailing whitespace.
++Received: 
+docs/pr-crops/terminal-chart-keyboard-20261109/polish2-shortcuts-before.log:398: new blank line at EOF.
+docs/pr-crops/terminal-comparison-settings-20261109/unit-before.log:50: trailing whitespace.
++- Expected: 
+docs/pr-crops/terminal-comparison-settings-20261109/unit-before.log:53: trailing whitespace.
+++ Received: 
+docs/pr-crops/terminal-comparison-settings-20261109/unit-before.log:89: trailing whitespace.
++     60| 
+docs/pr-crops/terminal-comparison-settings-20261109/unit-before.log:100: new blank line at EOF.
+docs/pr-crops/terminal-comparison-settings-20261109/unit-final.log:13: new blank line at EOF.
+docs/pr-crops/terminal-discover-focus-20261109/ci-selection-initial-local.log:38: trailing whitespace.
++  1) [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome 
+docs/pr-crops/terminal-discover-focus-20261109/ci-selection-initial-local.log:75: trailing whitespace.
++    [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome 
+docs/pr-crops/terminal-search-return-focus-20261109/annotation-before.log:41: new blank line at EOF.
+docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-before.log:39: trailing whitespace.
++     61| 
+docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-before.log:186: trailing whitespace.
++     38| 
+docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-before.log:194: new blank line at EOF.
+docs/pr-crops/terminal-search-return-focus-20261109/qualification.log:45: new blank line at EOF.
+docs/verification/drawing-control-readiness-20261109/baseline.log:114: new blank line at EOF.
+docs/verification/drawing-control-readiness-20261109/focused.log:14: new blank line at EOF.
+docs/verification/pr768-options-integration-20261109/product-unit-r1.log:15: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/boundary-compatibility-20261105/original/evidence.log:13: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/boundary-compatibility-20261105/original/unit-final.log:13: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105/baseline/browser.log:32: trailing whitespace.
++  1) [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return 
+terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105/baseline/browser.log:66: trailing whitespace.
++    [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return 
+terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105/baseline/playwright-artifacts/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/error-context.md:458: trailing whitespace.
++  383 | 
+terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105/baseline/playwright-artifacts/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/error-context.md:486: trailing whitespace.
++  411 | 
+terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105/baseline/playwright-artifacts/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/error-context.md:511: trailing whitespace.
++  436 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md:128: trailing whitespace.
++  3   | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md:140: trailing whitespace.
++  15  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md:159: trailing whitespace.
++  33  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md:194: trailing whitespace.
++  68  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md:211: trailing whitespace.
++  85  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md:217: trailing whitespace.
++  91  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md:227: trailing whitespace.
++  101 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md:238: trailing whitespace.
++  112 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md:127: trailing whitespace.
++  3   | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md:139: trailing whitespace.
++  15  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md:158: trailing whitespace.
++  33  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md:193: trailing whitespace.
++  68  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md:210: trailing whitespace.
++  85  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md:216: trailing whitespace.
++  91  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md:226: trailing whitespace.
++  101 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md:237: trailing whitespace.
++  112 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:332: trailing whitespace.
++  4   | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:339: trailing whitespace.
++  11  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:360: trailing whitespace.
++  31  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:393: trailing whitespace.
++  64  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:399: trailing whitespace.
++  70  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:408: trailing whitespace.
++  79  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:420: trailing whitespace.
++  91  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:437: trailing whitespace.
++  108 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md:448: trailing whitespace.
++  119 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:218: trailing whitespace.
++  5   | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:223: trailing whitespace.
++  10  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:224: trailing whitespace.
++  11  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:251: trailing whitespace.
++  37  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:279: trailing whitespace.
++  65  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:292: trailing whitespace.
++  78  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:303: trailing whitespace.
++  89  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:313: trailing whitespace.
++  99  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:334: trailing whitespace.
++  120 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md:335: trailing whitespace.
++  121 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:298: trailing whitespace.
++  37  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:326: trailing whitespace.
++  65  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:339: trailing whitespace.
++  78  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:350: trailing whitespace.
++  89  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:360: trailing whitespace.
++  99  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:382: trailing whitespace.
++  120 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:383: trailing whitespace.
++  121 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:408: trailing whitespace.
++  146 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:428: trailing whitespace.
++  166 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:435: trailing whitespace.
++  173 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md:452: trailing whitespace.
++  190 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md:261: trailing whitespace.
++  3  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md:265: trailing whitespace.
++  7  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md:281: trailing whitespace.
++  23 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md:334: trailing whitespace.
++  75 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md:261: trailing whitespace.
++  3  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md:265: trailing whitespace.
++  7  | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md:281: trailing whitespace.
++  23 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md:334: trailing whitespace.
++  75 | 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/composed/final-evidence.log:14: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/composed/unit.log:41: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/after-packaging-evidence.log:12: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log:23: trailing whitespace.
++  1) [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log:62: trailing whitespace.
++  2) [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log:102: trailing whitespace.
++    [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log:103: trailing whitespace.
++    [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/final-evidence.log:12: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/unit.log:29: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:193: trailing whitespace.
++  1) [desktop] › e2e/exposure-partial-totals.spec.ts:35:7 › Exposure 0DTE unknown cell withholds the total 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:231: trailing whitespace.
++  2) [desktop] › e2e/exposure-partial-totals.spec.ts:35:7 › Exposure 0DTE complete grid shows its total 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:269: trailing whitespace.
++  3) [desktop] › e2e/options-research-continuity.spec.ts:12:5 › saved research keeps the Options references and reports each source's state on every reopen 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:305: trailing whitespace.
++  4) [desktop] › e2e/sector-exposure-journey.spec.ts:12:5 › a holding opens its exposure with a bounded sector origin and returns to the exact selection 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:341: trailing whitespace.
++  5) [desktop] › e2e/sector-exposure-journey.spec.ts:100:5 › the main chart carries the origin and Return to Exposure brings it back 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:381: trailing whitespace.
++    [desktop] › e2e/exposure-partial-totals.spec.ts:35:7 › Exposure 0DTE unknown cell withholds the total 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:382: trailing whitespace.
++    [desktop] › e2e/exposure-partial-totals.spec.ts:35:7 › Exposure 0DTE complete grid shows its total 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:383: trailing whitespace.
++    [desktop] › e2e/options-research-continuity.spec.ts:12:5 › saved research keeps the Options references and reports each source's state on every reopen 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:384: trailing whitespace.
++    [desktop] › e2e/sector-exposure-journey.spec.ts:12:5 › a holding opens its exposure with a bounded sector origin and returns to the exact selection 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log:385: trailing whitespace.
++    [desktop] › e2e/sector-exposure-journey.spec.ts:100:5 › the main chart carries the origin and Return to Exposure brings it back 
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/evidence-historical-current-split-20261104.log:12: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/evidence-reconciled-20261104.log:13: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/ladder-guard-3viewport-20261104.log:29: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/original-carrier-evidence-guards.log:12: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/unit-qualified.log:22: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-evidence.log:12: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-lint.log:80: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/focused-unit.log:26: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/mounted-unit.log:12: new blank line at EOF.
+terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/affected-upstream-unit.log:24: new blank line at EOF.
+terminal/docs/verification/options-workspace-20261103/final-delivery-20261105/current-base-acd/protected-runtime-delta.diff:70: trailing whitespace.
++ 
+terminal/docs/verification/pr650-exposure-integration-20261109/final-native.log:19: new blank line at EOF.

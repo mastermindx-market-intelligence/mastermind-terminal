@@ -1,0 +1,16 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal
+
+ ✓ lib/__tests__/layoutRenameFocus.test.tsx (25 tests) 325ms
+ ✓ lib/__tests__/indicatorsScriptRename.test.tsx (12 tests) 530ms
+ ✓ lib/__tests__/chartObjectTree.test.tsx (10 tests) 107ms
+ ✓ lib/__tests__/layoutMenuTeamRead.test.ts (3 tests) 34ms
+ ✓ lib/__tests__/workspaceMenuOps.test.ts (29 tests) 22ms
+ ✓ lib/__tests__/workspaceMenuLex.test.ts (49 tests) 5ms
+
+ Test Files  6 passed (6)
+      Tests  128 passed (128)
+   Start at  16:18:08
+   Duration  4.48s (transform 582ms, setup 0ms, collect 1.03s, tests 1.02s, environment 1.13s, prepare 254ms)
+

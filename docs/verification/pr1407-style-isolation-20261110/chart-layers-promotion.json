@@ -1,0 +1,72 @@
+{
+  "at": "2026-11-10T04:59:16.572937+00:00",
+  "historicalBeforeSha256": "176c85f217f248e6d3e69f028940c6176cf66707cd5747aef4a5861d1bc9fecc",
+  "newPacketSha256": "35dafffb669e0fcf935b6a0d7677e71893ebb3a41391537fb1202a8c726ea0ef",
+  "previousPacketSha256": "df938d574652f72e73a922edf63657c31b61b812955ef861c9005058b196ad49",
+  "promoted": {
+    "desktop-open.png": {
+      "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-desktop/desktop-layers-open.png",
+      "frameSnapshots": 62,
+      "height": 900,
+      "sha256": "a4fbde06cb17002bab697277ed1d0014c166f5f2d517bb1c4fa0f45fa2bc05e2",
+      "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-desktop/trace.zip",
+      "traceSha256": "25d52f819ad2e685a22e5298be9facc27eb8cb7f39be023347b26f7cf64cda63",
+      "traceTheme": "dark",
+      "width": 1440
+    },
+    "desktop-zh.png": {
+      "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-desktop/desktop-layers-zh.png",
+      "frameSnapshots": 29,
+      "height": 900,
+      "sha256": "decce7c9789f2ac0f0f3892e6894ccf5a2832d956e7b8e80715e7f06863e5138",
+      "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-desktop/trace.zip",
+      "traceSha256": "cd654ce5a06339d305f9762ba5ce3e4612d86a089cbefd4922f9894c23f79bda",
+      "traceTheme": "dark",
+      "width": 1440
+    },
+    "mobile-open.png": {
+      "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/mobile-layers-open.png",
+      "frameSnapshots": 62,
+      "height": 844,
+      "sha256": "22e888b194c81b580d981b4b115a188402710267e5d652239258591f776a9273",
+      "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-mobile/trace.zip",
+      "traceSha256": "8f31ca691c819f1558221bba194c81fa4babb522a29281ab0e4f1e82ee7a5b7a",
+      "traceTheme": "dark",
+      "width": 390
+    },
+    "mobile-zh.png": {
+      "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-mobile/mobile-layers-zh.png",
+      "frameSnapshots": 119,
+      "height": 844,
+      "sha256": "4bbc429596f2a56312c249026d9dae4da4aea0d8fed81f95f15f87320425c052",
+      "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-mobile/trace.zip",
+      "traceSha256": "eaa65fe1576941748c8100495241775d41282d37872fca500c8558b4b5d197dd",
+      "traceTheme": "dark",
+      "width": 390
+    },
+    "tablet-open.png": {
+      "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-tablet/tablet-layers-open.png",
+      "frameSnapshots": 62,
+      "height": 1180,
+      "sha256": "4f02c6c0dda7ce4612edd258c2392a58f2f78e8b1b676382ca4f6b830559d7ca",
+      "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree-chart-la-0d81a-thout-losing-keyboard-focus-tablet/trace.zip",
+      "traceSha256": "1012a437cf3c63ef8426b327b92790c1619590bdc99ca6555b1728919bcf5c5a",
+      "traceTheme": "dark",
+      "width": 820
+    },
+    "tablet-zh.png": {
+      "artifact": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/tablet-layers-zh.png",
+      "frameSnapshots": 119,
+      "height": 1180,
+      "sha256": "9d386d4186ede0fc44d026ad24925afd42c7a38eb20776af8ff3a7cb1ff207df",
+      "trace": "docs/verification/pr1407-style-isolation-20261110/chart-layers/artifacts/chart-object-tree--zh-laye-8c7c6-ithout-hiding-their-meaning-tablet/trace.zip",
+      "traceSha256": "63d92777d644a83ee97713a0904a7f9b27bed8bca6d29d2b6e24e0f54cff6e49",
+      "traceTheme": "dark",
+      "width": 820
+    }
+  },
+  "schema": "terminal_pr1407_chart_layers_promotion.v1",
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "sourceStable": true,
+  "state": "APPLIED"
+}

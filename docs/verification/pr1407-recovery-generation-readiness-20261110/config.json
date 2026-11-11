@@ -1,0 +1,17 @@
+{
+  "expected": 6,
+  "folder": "pr1407-recovery-generation-readiness-20261110",
+  "grep": "failure stays stable, then explicit retry transfers keyboard focus into the new workspace|light Chinese recovery remains usable on short screens and preserves a newer focus choice",
+  "port": 47417,
+  "pr": 1407,
+  "projects": [
+    "desktop",
+    "tablet",
+    "mobile"
+  ],
+  "publishedParent": "075f470ba78cc35e5dc2279222466835146d970a",
+  "sharedShell": 1,
+  "target": "terminal/e2e/shared-shell-refinement.spec.ts",
+  "validationHead": "32dd9f4540046573b0facf8701780d36cc3e3ab7",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1407-generation-readiness"
+}

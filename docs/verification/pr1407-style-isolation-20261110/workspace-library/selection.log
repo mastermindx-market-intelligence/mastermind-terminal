@@ -1,0 +1,20 @@
+Listing tests:
+  [desktop] › scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (en)
+  [desktop] › scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (zh)
+  [desktop] › workspace-rename-focus.spec.ts:7:7 › workspace rename keeps the keyboard task intact (en)
+  [desktop] › workspace-rename-focus.spec.ts:7:7 › workspace rename keeps the keyboard task intact (zh)
+  [desktop] › workspace-rename-focus.spec.ts:76:5 › late rename success never replays while a newer draft is being typed
+  [desktop] › workspace-rename-focus.spec.ts:118:5 › unreadable workspace actions stay keyboard accessible without opening the workspace
+  [tablet] › scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (en)
+  [tablet] › scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (zh)
+  [tablet] › workspace-rename-focus.spec.ts:7:7 › workspace rename keeps the keyboard task intact (en)
+  [tablet] › workspace-rename-focus.spec.ts:7:7 › workspace rename keeps the keyboard task intact (zh)
+  [tablet] › workspace-rename-focus.spec.ts:76:5 › late rename success never replays while a newer draft is being typed
+  [tablet] › workspace-rename-focus.spec.ts:118:5 › unreadable workspace actions stay keyboard accessible without opening the workspace
+  [mobile] › scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (en)
+  [mobile] › scripts-library.spec.ts:89:7 › script rename and touch actions keep the whole task intact (zh)
+  [mobile] › workspace-rename-focus.spec.ts:7:7 › workspace rename keeps the keyboard task intact (en)
+  [mobile] › workspace-rename-focus.spec.ts:7:7 › workspace rename keeps the keyboard task intact (zh)
+  [mobile] › workspace-rename-focus.spec.ts:76:5 › late rename success never replays while a newer draft is being typed
+  [mobile] › workspace-rename-focus.spec.ts:118:5 › unreadable workspace actions stay keyboard accessible without opening the workspace
+Total: 18 tests in 2 files

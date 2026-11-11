@@ -21,6 +21,7 @@ const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f12-b5-2-team-workspaces");
 const LAYOUT_FILES = [
   "terminal/components/LayoutMenu.tsx",
+  "terminal/components/LayoutMenu.module.css",
   "terminal/lib/teamSharedWorkflow.ts",
   "terminal/lib/i18n.tsx",
   "terminal/app/dev/workspaces/page.tsx",
