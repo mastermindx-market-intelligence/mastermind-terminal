@@ -36,13 +36,18 @@ export function nativeFill(template: string, values: Record<string, string>): st
 }
 
 /** The real transport cause for a surface without an admitted generation — the
- * same honest naming everywhere, never a generic fallback title. */
-export function nativeCause(t: ReturnType<typeof useSectorT>, transport: SectorNativeContext["transport"]): { title: string; copy: string } {
+ * same honest naming everywhere, never a generic fallback title. The R2
+ * subscription denial precedes the generic access state: it is its own cause,
+ * and signing in is not its remedy. */
+export function nativeCause(t: ReturnType<typeof useSectorT>, transport: SectorNativeContext["transport"],
+  accessCause?: "entitlement_required"): { title: string; copy: string } {
   return transport === "loading" ? { title: t("siDossierLoading"), copy: t("siSourceRecordCopy") }
-    : transport === "access" ? { title: t("siDossierAccess"), copy: t("siDossierAccessCopy") }
-    : transport === "invalid" ? { title: t("siDossierInvalid"), copy: t("siDossierInvalidCopy") }
-    : transport === "error" ? { title: t("siDossierError"), copy: t("siDossierErrorCopy") }
-    : { title: t("siDossierUnavailable"), copy: t("siDossierUnavailableCopy") };
+    : transport === "access" && accessCause === "entitlement_required"
+      ? { title: t("siDossierEntitlement"), copy: t("siDossierEntitlementCopy") }
+      : transport === "access" ? { title: t("siDossierAccess"), copy: t("siDossierAccessCopy") }
+      : transport === "invalid" ? { title: t("siDossierInvalid"), copy: t("siDossierInvalidCopy") }
+      : transport === "error" ? { title: t("siDossierError"), copy: t("siDossierErrorCopy") }
+      : { title: t("siDossierUnavailable"), copy: t("siDossierUnavailableCopy") };
 }
 
 /** The honest body for a native surface without an admitted generation: the
@@ -52,12 +57,16 @@ export function NativeUnavailable({ context, onRetry, onSources }: {
 }) {
   const t = useSectorT();
   const transport = context.transport;
-  const { title, copy } = nativeCause(t, transport);
+  const { title, copy } = nativeCause(t, transport, context.accessCause);
   return <section className={`${styles.card} ${styles.stateCard}`} data-testid="sector-native-unavailable">
     <h2 className={styles.stateTitle}>{title}</h2>
     <p className={styles.stateCopy}>{copy}</p>
     <div className={styles.heroActions}>
-      {transport === "access" && <Link className={styles.primaryButton} href="/login">{t("siSignIn")}</Link>}
+      {/* R2: the subscription denial offers no sign-in remedy — signing in
+          does not restore a declined entitlement, and no button or link here
+          may imply that it does. Other access states keep the sign-in path. */}
+      {transport === "access" && context.accessCause !== "entitlement_required"
+        && <Link className={styles.primaryButton} href="/login">{t("siSignIn")}</Link>}
       {(transport === "error" || transport === "unavailable") &&
         <button type="button" className={styles.secondaryButton} onClick={onRetry}>{t("siRetry")}</button>}
       <button type="button" className={styles.secondaryButton} onClick={onSources}>{t("siNativeSources")}</button>
