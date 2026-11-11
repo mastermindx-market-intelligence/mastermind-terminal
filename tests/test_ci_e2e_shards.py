@@ -1013,7 +1013,7 @@ def test_prod_shards_run_only_this_runs_build_through_the_prodbuild_config():
     assert len(runs) == 1
     assert runs[0].split() == (
         "npm run test:e2e:responsive -- -c playwright.prodbuild.config.ts "
-        "${{ matrix.projects }} ${{ matrix.specs }} --workers=1"
+        "${{ matrix.projects }} ${{ matrix.specs }} --workers=2"
     ).split()
     config = (ROOT / "terminal" / "playwright.prodbuild.config.ts").read_text(encoding="utf-8")
     assert "...baseConfig" in config

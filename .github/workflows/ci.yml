@@ -1044,7 +1044,7 @@ jobs:
       - name: Run allowlisted specs against next start
         run: >-
           npm run test:e2e:responsive -- -c playwright.prodbuild.config.ts
-          ${{ matrix.projects }} ${{ matrix.specs }} --workers=1
+          ${{ matrix.projects }} ${{ matrix.specs }} --workers=2
         env:
           CI: "1"
           TERMINAL_E2E_PORT: "3108"
