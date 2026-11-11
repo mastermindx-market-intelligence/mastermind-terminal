@@ -1267,12 +1267,14 @@ describe("S1 — rendered hrefs are published routes; the S&P sector roll-up doe
       await act(async () => {
         tab!.click();
       });
-      // Expand the first table row so its detail link renders too (rows are
-      // collapsed by default; the roll-up cards link unconditionally).
-      const expand = host.querySelector<HTMLButtonElement>("button[aria-expanded][aria-controls]");
-      if (expand) {
+      // SF-1 (r2): expand EVERY collapsed row on the tab — the same loop the
+      // hostile-key test uses — so every composed href is collected. The old
+      // first-only expansion checked 57 of the 169 hrefs (it never looked at
+      // any non-first subsector or basket detail link).
+      const expands = host.querySelectorAll<HTMLButtonElement>("button[aria-expanded][aria-controls]");
+      for (const b of expands) {
         await act(async () => {
-          expand.click();
+          b.click();
         });
       }
       for (const a of host.querySelectorAll("a[href]")) hrefs.push(a.getAttribute("href")!);
@@ -1281,7 +1283,12 @@ describe("S1 — rendered hrefs are published routes; the S&P sector roll-up doe
       <SectorThemeCompare history={capturedHistory} labels={{}} themeRows={themeRowsFromCarriedBlock(servedRows.theme_rows)} />,
     );
     for (const m of themeMarkup.matchAll(/href="([^"]+)"/g)) hrefs.push(m[1]!);
-    expect(hrefs.length).toBeGreaterThan(50); // 65 subsectors + 6 nasdaq + 49 theme after the fix
+    // SF-1: every row expanded on every tab — 65 S&P subsector detail + 6
+    // Nasdaq roll-up + 49 basket detail + 49 theme-table hrefs = 169 (the
+    // old first-only expansion collected 57: 1 + 6 + 0 + 1 + 49). The exact
+    // count pins that the expansion actually happened; the registry check
+    // below then covers every composed href, not a first-row sample.
+    expect(hrefs.length).toBe(169);
     const missing = hrefs.filter((h) => !registry.has(h));
     expect(missing).toEqual([]);
   });
