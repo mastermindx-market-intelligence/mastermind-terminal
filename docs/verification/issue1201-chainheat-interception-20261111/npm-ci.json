@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "startedAt": "2026-11-11T07:05:26.581163+00:00",
+  "exitCode": 0,
+  "seconds": 123.107,
+  "credentialsInherited": false
+}

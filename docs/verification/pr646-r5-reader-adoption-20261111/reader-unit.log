@@ -1,0 +1,126 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr646-stage0-integration-20261109-c4/terminal
+
+ ✓ lib/__tests__/optionsExposureBrowserReport.test.ts (11 tests) 32ms
+ ✓ lib/__tests__/optionsExposureEvidence.test.ts (54 tests) 2126ms
+   ✓ Chart proof across independently composed branches > validates the captured original chart with the already verified original observer 728ms
+   ✓ Chart proof across independently composed branches > validates the captured preview chart with the already verified original observer 312ms
+ ✓ lib/__tests__/optionsExposureR5Successor.test.ts (17 tests) 66409ms
+   ✓ hosted R5 browser successor > accepts the complete actual packet and retains the eod native identity 14209ms
+   ✓ hosted R5 browser successor > accepts the complete actual packet and retains the gex native identity 10421ms
+   ✓ hosted R5 browser successor > keeps native preflight distinct from current browser acceptance 6212ms
+   ✓ hosted R5 browser successor > rejects current EOD drift in native preflight, including the nonselected family 4048ms
+   ✓ hosted R5 browser successor > rejects current GEX drift in native preflight, including the nonselected family 2506ms
+   ✓ hosted R5 browser successor > rejects current producer drift in native preflight, including the nonselected family 3251ms
+   ✓ hosted R5 browser successor > does not accept a predecessor declaration as the current root 351ms
+   ✓ hosted R5 browser successor > rejects a missing hidden exporter member: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/.last-run.json 3847ms
+   ✓ hosted R5 browser successor > rejects a missing hidden exporter member: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/.last-run.json 3881ms
+   ✓ hosted R5 browser successor > rejects a missing hidden exporter member: docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-integration/.last-run.json 3056ms
+   ✓ hosted R5 browser successor > rejects a missing hidden exporter member: docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/.last-run.json 2719ms
+   ✓ hosted R5 browser successor > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-execution.json 3111ms
+   ✓ hosted R5 browser successor > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/lifecycle.json 3779ms
+   ✓ hosted R5 browser successor > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-report.json 4414ms
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts (60 tests | 3 failed) 117844ms
+   ✓ current EOD owner and native reader > selects the same qualified manifest and preserves its actual capture identity 24548ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx 2441ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx 1411ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/gexdesk/GexSummaryBar.tsx 1807ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/lib/dte.ts 4549ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/e2e/exposure-partial-totals.spec.ts 4511ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/public/data/gex_fixture.json 5236ms
+   ✓ current EOD owner and native reader > refuses a corrupted selected image through the actual owner 6466ms
+   ✓ current EOD owner and native reader > refuses a changed descriptor rather than recapturing over history 3550ms
+   × current EOD owner and native reader > refuses a removed declaration even when the historical root remains a valid raw manifest 390ms
+     → expected [Function] to throw error matching /BROWSER_SUCCESSOR_ROOT:eod/ but got 'Options/Exposure evidence: R5_CURRENT…'
+   × paired Options integration proof > refuses a mixed current family declaration 366ms
+     → expected [Function] to throw error matching /BROWSER_SUCCESSOR_ROOT:gex/ but got 'Options/Exposure evidence: R5_CURRENT…'
+   ✓ paired Options integration proof > refuses a complete-image receipt with an incomplete frame matrix 3284ms
+   ✓ paired Options integration proof > refuses a current receipt without settled native-server proof 3896ms
+   ✓ expiry integration with retained EOD identity > selects the fresh GEX packet through the shared owner without relabeling EOD 8481ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExpiryBars.tsx 3657ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExposureExpiryDrawer.tsx 2837ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/lib/expiryTermStructure.ts 2918ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/exposure-expiry-greeks.spec.ts 3586ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/responsive.spec.ts 2947ms
+   ✓ expiry integration with retained EOD identity > keeps validating the prior Options GEX descriptor 403ms
+   ✓ expiry integration with retained EOD identity > refuses to assign the fresh GEX identity to EOD 2441ms
+   ✓ momentum browser successor with retained native evidence > refuses changed momentum runtime source through the eod owner 2254ms
+   ✓ momentum browser successor with retained native evidence > refuses changed momentum runtime source through the gex owner 2379ms
+   × momentum browser successor with retained native evidence > cannot downgrade by removing both successor declarations 343ms
+     → expected [Function] to throw error matching /BROWSER_SUCCESSOR_ROOT:gex/ but got 'Options/Exposure evidence: R5_CURRENT…'
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: qualification.json 3075ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/qualification.json 2228ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-report.json 3119ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/browser-report.json 2923ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: lifecycle.json 1934ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/lifecycle.json 2114ms
+   ✓ momentum browser successor with retained native evidence > binds actual new screenshot bytes: joint 2006ms
+   ✓ momentum browser successor with retained native evidence > binds actual new screenshot bytes: /expiry-journeys 2038ms
+   ✓ momentum browser successor with retained native evidence > still validates historical browser payload: browser-report.json 1432ms
+   ✓ momentum browser successor with retained native evidence > still validates historical browser payload: expiry-journeys/browser-report.json 1954ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > current EOD owner and native reader > refuses a removed declaration even when the historical root remains a valid raw manifest
+AssertionError: expected [Function] to throw error matching /BROWSER_SUCCESSOR_ROOT:eod/ but got 'Options/Exposure evidence: R5_CURRENT…'
+
+- Expected: 
+/BROWSER_SUCCESSOR_ROOT:eod/
+
++ Received: 
+"Options/Exposure evidence: R5_CURRENT_ROOT:eod"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:111:41
+    109|     const text = readFileSync(join(REPO, file), "utf8");
+    110|     const root = shadowRepo({ [file]: text.slice(text.indexOf("\n\n") …
+    111|     expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROO…
+       |                                         ^
+    112|   });
+    113| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > paired Options integration proof > refuses a mixed current family declaration
+AssertionError: expected [Function] to throw error matching /BROWSER_SUCCESSOR_ROOT:gex/ but got 'Options/Exposure evidence: R5_CURRENT…'
+
+- Expected: 
+/BROWSER_SUCCESSOR_ROOT:gex/
+
++ Received: 
+"Options/Exposure evidence: R5_CURRENT_ROOT:gex"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:119:41
+    117|     const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failu…
+    118|     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "…
+    119|     expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROO…
+       |                                         ^
+    120|   });
+    121|   it("refuses a complete-image receipt with an incomplete frame matrix…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  lib/__tests__/optionsExposureEvidenceOwner.test.ts > momentum browser successor with retained native evidence > cannot downgrade by removing both successor declarations
+AssertionError: expected [Function] to throw error matching /BROWSER_SUCCESSOR_ROOT:gex/ but got 'Options/Exposure evidence: R5_CURRENT…'
+
+- Expected: 
+/BROWSER_SUCCESSOR_ROOT:gex/
+
++ Received: 
+"Options/Exposure evidence: R5_CURRENT_ROOT:gex"
+
+ ❯ lib/__tests__/optionsExposureEvidenceOwner.test.ts:298:41
+    296|     ]));
+    297|     const root = shadowRepo(overrides);
+    298|     expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROO…
+       |                                         ^
+    299|     expect(() => owner.gexPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROO…
+    300|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  3 failed | 139 passed (142)
+   Start at  03:26:39
+   Duration  121.82s (transform 2.14s, setup 0ms, collect 4.06s, tests 186.41s, environment 1ms, prepare 2.34s)
+

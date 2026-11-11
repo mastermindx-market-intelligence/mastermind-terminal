@@ -1,3 +1,18 @@
+# Current browser proof is the hosted R5 successor; native capture identities are retained.
+exposureR5Browser20261111:
+  revision: "r5-alignment-20261110"
+  selectedFamily: "eod"
+  descriptorSha256: "0da98d3fa6a70e752421d2156552a41cf68e6be22bf86ec932f5833a71fe5193"
+  retainedEodDescriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  retainedGexDescriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453"
+  branchHead: "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93"
+  protectedMaster: "8967f977fc156fff6b3f849568d84e49ba61f7d6"
+  integratedDependency: "8967f977fc156fff6b3f849568d84e49ba61f7d6"
+  checkoutCommit: "cb9722189b1a37e742a10aeff0c86cf6f30be7bf"
+  checkoutTree: "1a825666dc49b30e3288f4bf4f9d69cce8248898"
+  browserQualificationSha256: "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d"
+  expiryQualificationSha256: "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e"
+
 # Current browser proof is the momentum successor; prior native captures retain their identities.
 exposureMomentumBrowser20261110:
   revision: "exposure-momentum-integration-20261110"

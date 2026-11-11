@@ -1,0 +1,2190 @@
+{
+  "archiveBytes": 50189276,
+  "archiveSha256": "7cd74142011c889a0b3662cbd48a2160287ae30b9e6d97c567ac3b2cf40f75f2",
+  "artifactId": 13847929343,
+  "files": {
+    "docs/verification/pr646-r5-browser-ci-20261110/browser-validation.json": {
+      "bytes": 1888,
+      "sha256": "44a790d2e846f8c6d0956ee060974167b8f56b890dd017528dd888cd19946207"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/expiry-selection.log": {
+      "bytes": 1157,
+      "sha256": "416f8410bf5e0ac92b9c71a29e0e96d4739aa335ff697f0ade0167c85b160f36"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/integration-selection.log": {
+      "bytes": 17800,
+      "sha256": "6f81c1c436d9324f35ef738b376575a8d8a9728714ea6ee19cc7f8eab7f05900"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/native-prerequisites.json": {
+      "bytes": 19834,
+      "sha256": "4fe1c160e218f78b024e63d47d36d753d4c401cf7563379622168f2d4beb0707"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry.json": {
+      "bytes": 21632,
+      "sha256": "2f3e3639992537a5f5edaea2b4201bb6b47cb666f59818b493cbc8093b96ed5d"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-archive-memory-desktop-en.png": {
+      "bytes": 16808,
+      "sha256": "6628eeee94423aad0b493bf945660e33a913291c8a5932815edf3c604a34340b"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-archive-memory-desktop-zh.png": {
+      "bytes": 21761,
+      "sha256": "84d28f389b2f794838085aa4d4873f84c6f1d7f4d07da3f85910d828f367f3e4"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-archive-memory-mobile-en.png": {
+      "bytes": 15977,
+      "sha256": "a99cd594df166c0ed28adfb0564ff8f84e4b2769d2dd7b68c330c8350fe5e2e4"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-archive-memory-mobile-zh.png": {
+      "bytes": 21264,
+      "sha256": "c268eb7364576ff8b2980a4e05caeff5275b5b052984b2f36ef350ff5f215cd5"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-archive-memory-tablet-en.png": {
+      "bytes": 16192,
+      "sha256": "bcb38cbb6cbd0eef8b3293acc0c873edc263ed1a15b9cb668e4e111cbfe951bb"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-archive-memory-tablet-zh.png": {
+      "bytes": 21871,
+      "sha256": "a02392ca668febe350fa31086d65c05f3dba1b78ca23d96962079458878447fe"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-comparison-desktop-en.png": {
+      "bytes": 98169,
+      "sha256": "c76707a6b200bc22a5397cac4847c98611433bb6c40e911a9de5a10070e403c5"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-comparison-desktop-zh.png": {
+      "bytes": 113473,
+      "sha256": "d5de4b4bdb8bdf25b8256ceafb64550c9d8f297a3519eccfc82ae62285278f22"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-comparison-fullscreen-en.png": {
+      "bytes": 98073,
+      "sha256": "25123e8c1c928a7a913e574bd094330bddd82a6cc4ce408c6037c6b8b3c4075e"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-comparison-fullscreen-zh.png": {
+      "bytes": 107026,
+      "sha256": "6030d3de1477a97391b76408c3a199a1ed478ea13a790ccf2874e45745ba5fff"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-comparison-mobile-en.png": {
+      "bytes": 45939,
+      "sha256": "2a8dc80770340cf3620b9640c2836460538dec0524cafe2ec9d907774eaebf13"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-comparison-mobile-zh.png": {
+      "bytes": 58409,
+      "sha256": "cec9e042ddf668f6fe18617fc3e0dbeea8da87cfa70bd86ee8eb67f21530ab16"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-comparison-tablet-en.png": {
+      "bytes": 99553,
+      "sha256": "a541364a0c4a278daa4381fda02bc5b8f9f0f57fa77d20b8aea4cfc1d726e7b5"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-comparison-tablet-zh.png": {
+      "bytes": 112121,
+      "sha256": "5aac60ca8d9b6f77198f1f03d6bbfc024650628eac48f45dcfd1fec8e5e9e4b9"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-main-chart-desktop-en.png": {
+      "bytes": 248664,
+      "sha256": "2a4da9e261e61927ffa153d1a9b1e9e6fd26f4f0c53c29373435770ee8713c8c"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-main-chart-desktop-zh.png": {
+      "bytes": 266443,
+      "sha256": "d8a85cfc10bb9cf13d7abc6fda488aa8b48a7010f87ec38d7ed9388424ac3cf6"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-main-chart-mobile-en.png": {
+      "bytes": 88572,
+      "sha256": "2fbca854ab1380d7e5220c88fda4a448fe87d488d84497eca26a7a6fe6096398"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-main-chart-mobile-zh.png": {
+      "bytes": 103754,
+      "sha256": "9214380b787ebf7ed78a4fe4e2b2ffc002625567da16bcbbc9e1180bf58168f8"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-main-chart-tablet-en.png": {
+      "bytes": 136909,
+      "sha256": "afa61fdde7128c2d0333c96bcfe1fe328aef6357210d5c00185ae06cc0f7b184"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-main-chart-tablet-zh.png": {
+      "bytes": 147144,
+      "sha256": "39aa00742090273bec55530c574fe94edad9562df0346a4fee8fb963faffbf60"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-desktop-en.png": {
+      "bytes": 106135,
+      "sha256": "a3b64270e0110e671592e5c296874ec56283a46700ee1df323ad36783735deba"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-desktop-zh.png": {
+      "bytes": 126777,
+      "sha256": "2ce30dc5618e4fb841e979f7822a47872dfe8c14840381f29af3f34683c2e6cb"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-expanded-desktop-en.png": {
+      "bytes": 175299,
+      "sha256": "ffd4231fe8d2f0388c0d3d718dcfeacfeadd9218f6d4c98c8f627f1d2c84aac9"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-expanded-desktop-zh.png": {
+      "bytes": 194651,
+      "sha256": "4e434c76e276009309e313867bfb9762203c300d8c6a443cac06e482a61029b9"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-expanded-mobile-en.png": {
+      "bytes": 102363,
+      "sha256": "55310721d691edeabd9eab391c117e3f6bae65cef7a89adaba013b03328a2924"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-expanded-mobile-zh.png": {
+      "bytes": 145063,
+      "sha256": "d556f6f41f4c4bfea3cbf7feaec1097cd344f9a9170923d94c3b9aad53b40fe3"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-expanded-tablet-en.png": {
+      "bytes": 97484,
+      "sha256": "ae824b7640affb61a848aba8d82a163bc95d697984883c9d111ea5729e4c6394"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-expanded-tablet-zh.png": {
+      "bytes": 140542,
+      "sha256": "d2e3a645e3409a1e83dd5746c4cbeb4f96b464477e5ffdfaefe66557dd7a9a4a"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-mobile-en.png": {
+      "bytes": 58540,
+      "sha256": "06d9818f45aef37e1175c974df8135087466036b596194cbcc50667c1408770b"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-mobile-zh.png": {
+      "bytes": 73876,
+      "sha256": "f0a2cda3eda10063a8c6397c2eca9ffd0feaae79c77072245264dedc611c5645"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-tablet-en.png": {
+      "bytes": 62220,
+      "sha256": "1e0eb7a63051bd3033fd981f256b4c2ae8e3ad80c6495fbf8ec40eecd46888b2"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-matched-gamma-tablet-zh.png": {
+      "bytes": 79684,
+      "sha256": "ce541c4d2a74000d8b23617c5e470e2c6200d6b7b1c133544b0e4a7432147b02"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-partial-desktop-en.png": {
+      "bytes": 191952,
+      "sha256": "c6fc8501205a8635a24621cca8d677ab7ece85ff5d2f66ac325fb152750f3da2"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-partial-desktop-zh.png": {
+      "bytes": 212698,
+      "sha256": "7b2b90c4bfd3a2fc0e94c219833384d4db7a5b79d3a1f2e5b0f056d901787320"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-partial-mobile-en.png": {
+      "bytes": 47151,
+      "sha256": "4c52a4470e2d4c07e1246bc67ac94daf45154d1d6816f1fc8db4048e5a7418ee"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-partial-mobile-zh.png": {
+      "bytes": 59162,
+      "sha256": "5c9ff49ea8ec850a12ef290ff5723f943af3eb1325afae89fd5b76cedaa10c92"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-partial-tablet-en.png": {
+      "bytes": 71077,
+      "sha256": "908397096e2e3d64f4998b79fdba66af378f0d2ebb5c5ba5c69fd2174aae8762"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-partial-tablet-zh.png": {
+      "bytes": 87722,
+      "sha256": "425c841bafb09c7201ad2b3eef5ea28aea2618ce1f153c5cde74ba22b2603efb"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-projected-memory-desktop-en.png": {
+      "bytes": 42144,
+      "sha256": "39c5df08b1b21821c7c42b13d0cd6d27de93693cfcd8d84f119cf445c630ff2a"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-projected-memory-desktop-zh.png": {
+      "bytes": 69126,
+      "sha256": "50496a0256cc5a387dbf628db746385d73b0571226ff41a1836086149981d81f"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-projected-memory-mobile-en.png": {
+      "bytes": 42338,
+      "sha256": "9425d5ea7be343ad9b99af6700f04a9ac99c2eb3c1417bab909182a378701adb"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-projected-memory-mobile-zh.png": {
+      "bytes": 73789,
+      "sha256": "4ea3ff5da1b5db5ca2218ca7a9a1cdf96a52f7211589b492b352750e2ec64be6"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-projected-memory-tablet-en.png": {
+      "bytes": 44502,
+      "sha256": "68caf8639af2d7f90138266199298f72a0b6832efa6c1f78d76788d3cf5a48fb"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-projected-memory-tablet-zh.png": {
+      "bytes": 75831,
+      "sha256": "991d0678dedaddeed6e5f00ae4f77e52f83b01c69b549e97955a5d0d73a5058c"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-scanner-desktop-en.png": {
+      "bytes": 109165,
+      "sha256": "0018e3702db51deb3ab438cea75df111916c4471fc0b51f1e7d2bbbec62cc6b0"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-scanner-desktop-zh.png": {
+      "bytes": 152777,
+      "sha256": "c2b0f9a6fcfca65ed22bf6d0b55423746d13f3b53d7ddaa9ad5cef211970d606"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-scanner-mobile-en.png": {
+      "bytes": 48278,
+      "sha256": "be960d9b3f669faa1c2573902c1abcc73ec788b3b0c0a3c15243b07fe92f4de1"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-scanner-mobile-zh.png": {
+      "bytes": 77292,
+      "sha256": "b0cc7540807156e07af3270a13a7aeb7f58eb936ba86949991dfe55191698ab2"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-scanner-tablet-en.png": {
+      "bytes": 110719,
+      "sha256": "e39a7eaebdcc21d435f301a0075eebe5244052dd9c9d01015f2cd16050e86d92"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-scanner-tablet-zh.png": {
+      "bytes": 156398,
+      "sha256": "6c7e5ae9899b4801aca1b5478fbfcb24ec0f1b3f8f2f34b43d49007d42677668"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-desktop-en-dark.png": {
+      "bytes": 195252,
+      "sha256": "a5ee3ec5d2ef4daa13381cb56f8ac62d2b6192d8b0214c88f6ef9aabd0c94e7d"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-desktop-en-light.png": {
+      "bytes": 133962,
+      "sha256": "3c32d3bbd6e31b5a45e4b5921e6b63dbaf6a9a7855bb2040d432d94134aab44b"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-desktop-zh-dark.png": {
+      "bytes": 216423,
+      "sha256": "80efc72df7dcd8ea02993428915f62427ba1dc25a2d0e288663ba0c575009c6a"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-desktop-zh-light.png": {
+      "bytes": 158615,
+      "sha256": "d7b1c73ca3c2f721c0a204fd38a5fafc0b1815ac12a6778de3cdaaea8cbcfcf9"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-mobile-en-dark.png": {
+      "bytes": 104619,
+      "sha256": "cafa28f86d40ec2ce3847b5371c0db2339e2430eebc6f784008c2cb9c7b1d39c"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-mobile-en-light.png": {
+      "bytes": 65512,
+      "sha256": "9bd4331f8b1767ffb269c20ed1565b36715116423f514c51b9a81feea6315059"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-mobile-zh-dark.png": {
+      "bytes": 116364,
+      "sha256": "626c78c3cb22e05304550b8ce08828c6ca46220c5849f31195f492b9ef92cbfc"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-mobile-zh-light.png": {
+      "bytes": 78387,
+      "sha256": "68aff10fcdfa603a552b0f4d78bad458eab31dc92ce2f5d7124e3f33e2fed9a5"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-tablet-en-dark.png": {
+      "bytes": 159227,
+      "sha256": "921fa3e01f4c1976436c3ffdb14812896d8e6cd9902a686a059086130f5aaee5"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-tablet-en-light.png": {
+      "bytes": 112160,
+      "sha256": "e0a04211b10579c6b3e8882298e845061ac0c8e09d717a1675d1bac9459caf5c"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-tablet-zh-dark.png": {
+      "bytes": 178298,
+      "sha256": "2364767d1db2b8a98309c07931ffdd27381067203b8930ef771f471f776b03e5"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/exposure-workspace-tablet-zh-light.png": {
+      "bytes": 133455,
+      "sha256": "b26c5e251d5b64d294b3b3976eefe30b4671a71c5427f5ecb97f40913375ef0c"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-en-chart-reference.png": {
+      "bytes": 186894,
+      "sha256": "a34c151af66e0e6bfce6f71938a1a532143774103d3eb8765767f7792e3529cb"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-en-keyboard-cell.png": {
+      "bytes": 168279,
+      "sha256": "948fdd68a4960f6f802bcfcc418f1ae25324bbd2592744ed9944953ac4394304"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-en-overview.png": {
+      "bytes": 185538,
+      "sha256": "9910a73013051915023995e4f461a539437733517beead508e93768beff33a03"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-en-return.png": {
+      "bytes": 186382,
+      "sha256": "ea298a0b735aa7edb2d8b1ec7572a004a5feafc5e6f4d359198d0ece818e442a"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-en-selected-node.png": {
+      "bytes": 154130,
+      "sha256": "c05c1814bc3a29f09beb08d164e64ee26d4f701e5ccc59f670f3e99bc67ab5f3"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-en-surface-cell.png": {
+      "bytes": 170138,
+      "sha256": "c01b9aeb7794a2fc5dba74a96230e26d68214c330056a90cc034fa0005c4fe9c"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-en-surface-field.png": {
+      "bytes": 170138,
+      "sha256": "c01b9aeb7794a2fc5dba74a96230e26d68214c330056a90cc034fa0005c4fe9c"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-zh-chart-reference.png": {
+      "bytes": 205353,
+      "sha256": "da2d4d84b8c8765d84859c3a477a456ff8b214829797a9931cd6e068aae4e0c0"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-zh-overview.png": {
+      "bytes": 154261,
+      "sha256": "0d96fb50397dc32951c24e9c2a0b08b4d5b5dd3027bb5d202451a1204fba81fc"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-zh-return.png": {
+      "bytes": 209020,
+      "sha256": "8b9c6ca95ad6783f34a5eb5d465b5059a9bdf35ca6b61c6d5d8fdf70e94acfd0"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-zh-selected-node.png": {
+      "bytes": 155667,
+      "sha256": "66d9a64110764f91a49552bc22171a6f3c120f60f9d65f3f8b42edd39548ebbe"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-zh-surface-cell.png": {
+      "bytes": 128918,
+      "sha256": "7fd31bd83cfd8c6de796795acf9e1ff35808c633948ff73ca4ef8dadb4d36bc7"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-desktop-zh-surface-field.png": {
+      "bytes": 128918,
+      "sha256": "7fd31bd83cfd8c6de796795acf9e1ff35808c633948ff73ca4ef8dadb4d36bc7"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-chart-reference-fullscreen.png": {
+      "bytes": 43926,
+      "sha256": "9a783dc1135605a4d938ca0fa948eefbac39c3a25df3736d70c16ee59d3cae75"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-chart-reference-narrow320-fullscreen.png": {
+      "bytes": 40188,
+      "sha256": "e55e198ce75b5c6ae073291888ccf4ecffd8b3073e90a46313cd8cc0abcf8101"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-chart-reference-narrow320.png": {
+      "bytes": 58478,
+      "sha256": "6e2e148fe114cfdeb35bd9a41dccc6b1aed9e6e6439a5aaa6006a47137e05b34"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-chart-reference.png": {
+      "bytes": 61886,
+      "sha256": "22db7d964d905cc30da1682a414538c97a6786a14e151de8028ebc7cf166201d"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-overview-narrow320.png": {
+      "bytes": 48446,
+      "sha256": "7c72306d6486fbd2051cddde813aa8385e2f5ff1693d81d91b8413b072db01a8"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-overview.png": {
+      "bytes": 54614,
+      "sha256": "17bcd6cf60b487d7d94fbd47a3f2027e037e7504a3990305d7f7c4124fc30757"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-return.png": {
+      "bytes": 85348,
+      "sha256": "c83aadbfff8d4f40facad96ba00b0df0e2d1e34d9205d54577a8c293581cb02c"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-selected-node.png": {
+      "bytes": 41571,
+      "sha256": "839f9a20dd2a1bc65276713c82c2c7013b6c643d4576601e569ef50a843abd86"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-surface-cell.png": {
+      "bytes": 51298,
+      "sha256": "8bec9652f141cbd23bf93b78aaae60cc99fec7adebf4c4665cd6fa2c12bcdfaa"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-surface-field.png": {
+      "bytes": 49243,
+      "sha256": "11ead3d5c94653e1a15fe25d53fd45ae291989cc311fad19d47f1ead1ecbabba"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-en-surface-narrow320.png": {
+      "bytes": 40172,
+      "sha256": "4a77671762e7688a2eafa5a95af49499eaf331e328b9e9f81edb1d3f6de2da59"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-chart-reference-fullscreen.png": {
+      "bytes": 46266,
+      "sha256": "836c67ff4f1db0fd2d0d8556fff7d7f5a07c6b4db749b56b8a4b5b544d1da22f"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-chart-reference-narrow320-fullscreen.png": {
+      "bytes": 42089,
+      "sha256": "7bb203f12189b714ec3a91beb117ffe10df048896bd6dc7e18d8829b78521e8a"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-chart-reference-narrow320.png": {
+      "bytes": 72947,
+      "sha256": "be8685ac758157b1c7f63994cc9b6cb0cfc2cb715d1211c3826cb08657829f4d"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-chart-reference.png": {
+      "bytes": 77452,
+      "sha256": "a2ce019a4b3489d760bf313bf446d5513c7297ebec698e97df29c64f1ef3378f"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-overview-narrow320.png": {
+      "bytes": 58726,
+      "sha256": "703a771669107a4283c24145de5e3c75090ee00bf56937499934037bd2746cd2"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-overview.png": {
+      "bytes": 62393,
+      "sha256": "d785c216287868818e88e2f4cdd473467c2a0abf4f0000267f249c66f69acd66"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-return.png": {
+      "bytes": 96137,
+      "sha256": "9696032ecba832a3e1664b2a63dca4015a287c8dfc7576bf96e76d8c5460f149"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-selected-node.png": {
+      "bytes": 50378,
+      "sha256": "e8ce1cb645c412c20958ed4a66543ed459c2d83ec31c1b2c9dcf0056faff3687"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-surface-cell.png": {
+      "bytes": 54917,
+      "sha256": "50de0421d3bc5e3f52c2c9e32a5e9566dc29c47e40fd69f036c271091e7fc09e"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-mobile-zh-surface-field.png": {
+      "bytes": 51463,
+      "sha256": "15a27a55df27116d826570c7b80f9492e732885489300351f13183bf1c76e18d"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-en-chart-reference-fullscreen.png": {
+      "bytes": 84199,
+      "sha256": "f6e0beed6dbc48eceae35fad371a6cd8f8860ed74769f81fbf4b30a99165973a"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-en-chart-reference.png": {
+      "bytes": 92121,
+      "sha256": "75aff1ebfcbb5818e04485c8ef231ee1ffe1aab1658c0491c34392ca0b25f096"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-en-overview.png": {
+      "bytes": 151458,
+      "sha256": "14a26bef1f563db0dbb591d5b9502679bf05c7dfc91015ca60aea3593dbf6ba8"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-en-return.png": {
+      "bytes": 89066,
+      "sha256": "5b7a95bb73dd90ef5e3e86787c501ee5c5647da8996b2189fbadce6dec786575"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-en-selected-node.png": {
+      "bytes": 80890,
+      "sha256": "846554e76acb08450e99aa687458a79c02c045f2810e4b8d77f8ba5d263c62d2"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-en-surface-cell.png": {
+      "bytes": 88061,
+      "sha256": "008548ab300447b6334d596776cb7ac4d6e2ae78efb84fde0d327afc21869b90"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-en-surface-field.png": {
+      "bytes": 88061,
+      "sha256": "008548ab300447b6334d596776cb7ac4d6e2ae78efb84fde0d327afc21869b90"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-zh-chart-reference-fullscreen.png": {
+      "bytes": 85023,
+      "sha256": "05ce0a5d7359c11da6572613b308e0fcc1bf4ea00a054fb7ad309bea29fedc59"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-zh-chart-reference.png": {
+      "bytes": 102031,
+      "sha256": "dde8600e8541f03b6c842552aa22b3048493e6bbfad23c1ebaaec8714a22dbff"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-zh-overview.png": {
+      "bytes": 123329,
+      "sha256": "f9542b5d47e678258f6426439200adce5dd11cc0b48809def821ecf65e2adee4"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-zh-return.png": {
+      "bytes": 113134,
+      "sha256": "b651d9b1f0abebb2e7b7a8c48047591ddeea2f677ff5f750a06e62bb325617d2"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-zh-selected-node.png": {
+      "bytes": 109656,
+      "sha256": "3174c3326bdca16d7398ddb2a2b59a38461548af39d7687982bf06bf5d4d33ad"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-zh-surface-cell.png": {
+      "bytes": 110963,
+      "sha256": "b1410542336f2013f0600368ae417ff89ecae9279e900018995e2d7e695b21b9"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/synthetic-exposure-surface-tablet-zh-surface-field.png": {
+      "bytes": 110963,
+      "sha256": "b1410542336f2013f0600368ae417ff89ecae9279e900018995e2d7e695b21b9"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-integration.json": {
+      "bytes": 164,
+      "sha256": "aededb09bde05fa7fcaf023c1d5f4e68fe45c429f8847909f56cf352a080457a"
+    },
+    "docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-integration/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-archive-memory-desktop-en.png": {
+      "bytes": 16808,
+      "sha256": "6628eeee94423aad0b493bf945660e33a913291c8a5932815edf3c604a34340b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-archive-memory-desktop-zh.png": {
+      "bytes": 21761,
+      "sha256": "84d28f389b2f794838085aa4d4873f84c6f1d7f4d07da3f85910d828f367f3e4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-archive-memory-mobile-en.png": {
+      "bytes": 15977,
+      "sha256": "a99cd594df166c0ed28adfb0564ff8f84e4b2769d2dd7b68c330c8350fe5e2e4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-archive-memory-mobile-zh.png": {
+      "bytes": 21264,
+      "sha256": "c268eb7364576ff8b2980a4e05caeff5275b5b052984b2f36ef350ff5f215cd5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-archive-memory-tablet-en.png": {
+      "bytes": 16192,
+      "sha256": "bcb38cbb6cbd0eef8b3293acc0c873edc263ed1a15b9cb668e4e111cbfe951bb"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-archive-memory-tablet-zh.png": {
+      "bytes": 21871,
+      "sha256": "a02392ca668febe350fa31086d65c05f3dba1b78ca23d96962079458878447fe"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-comparison-desktop-en.png": {
+      "bytes": 98169,
+      "sha256": "c76707a6b200bc22a5397cac4847c98611433bb6c40e911a9de5a10070e403c5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-comparison-desktop-zh.png": {
+      "bytes": 113473,
+      "sha256": "d5de4b4bdb8bdf25b8256ceafb64550c9d8f297a3519eccfc82ae62285278f22"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-comparison-fullscreen-en.png": {
+      "bytes": 98073,
+      "sha256": "25123e8c1c928a7a913e574bd094330bddd82a6cc4ce408c6037c6b8b3c4075e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-comparison-fullscreen-zh.png": {
+      "bytes": 107026,
+      "sha256": "6030d3de1477a97391b76408c3a199a1ed478ea13a790ccf2874e45745ba5fff"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-comparison-mobile-en.png": {
+      "bytes": 45939,
+      "sha256": "2a8dc80770340cf3620b9640c2836460538dec0524cafe2ec9d907774eaebf13"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-comparison-mobile-zh.png": {
+      "bytes": 58409,
+      "sha256": "cec9e042ddf668f6fe18617fc3e0dbeea8da87cfa70bd86ee8eb67f21530ab16"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-comparison-tablet-en.png": {
+      "bytes": 99553,
+      "sha256": "a541364a0c4a278daa4381fda02bc5b8f9f0f57fa77d20b8aea4cfc1d726e7b5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-comparison-tablet-zh.png": {
+      "bytes": 112121,
+      "sha256": "5aac60ca8d9b6f77198f1f03d6bbfc024650628eac48f45dcfd1fec8e5e9e4b9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-main-chart-desktop-en.png": {
+      "bytes": 248664,
+      "sha256": "2a4da9e261e61927ffa153d1a9b1e9e6fd26f4f0c53c29373435770ee8713c8c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-main-chart-desktop-zh.png": {
+      "bytes": 266443,
+      "sha256": "d8a85cfc10bb9cf13d7abc6fda488aa8b48a7010f87ec38d7ed9388424ac3cf6"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-main-chart-mobile-en.png": {
+      "bytes": 88572,
+      "sha256": "2fbca854ab1380d7e5220c88fda4a448fe87d488d84497eca26a7a6fe6096398"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-main-chart-mobile-zh.png": {
+      "bytes": 103754,
+      "sha256": "9214380b787ebf7ed78a4fe4e2b2ffc002625567da16bcbbc9e1180bf58168f8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-main-chart-tablet-en.png": {
+      "bytes": 136909,
+      "sha256": "afa61fdde7128c2d0333c96bcfe1fe328aef6357210d5c00185ae06cc0f7b184"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-main-chart-tablet-zh.png": {
+      "bytes": 147144,
+      "sha256": "39aa00742090273bec55530c574fe94edad9562df0346a4fee8fb963faffbf60"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-desktop-en.png": {
+      "bytes": 106135,
+      "sha256": "a3b64270e0110e671592e5c296874ec56283a46700ee1df323ad36783735deba"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-desktop-zh.png": {
+      "bytes": 126777,
+      "sha256": "2ce30dc5618e4fb841e979f7822a47872dfe8c14840381f29af3f34683c2e6cb"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-expanded-desktop-en.png": {
+      "bytes": 175299,
+      "sha256": "ffd4231fe8d2f0388c0d3d718dcfeacfeadd9218f6d4c98c8f627f1d2c84aac9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-expanded-desktop-zh.png": {
+      "bytes": 194651,
+      "sha256": "4e434c76e276009309e313867bfb9762203c300d8c6a443cac06e482a61029b9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-expanded-mobile-en.png": {
+      "bytes": 102363,
+      "sha256": "55310721d691edeabd9eab391c117e3f6bae65cef7a89adaba013b03328a2924"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-expanded-mobile-zh.png": {
+      "bytes": 145063,
+      "sha256": "d556f6f41f4c4bfea3cbf7feaec1097cd344f9a9170923d94c3b9aad53b40fe3"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-expanded-tablet-en.png": {
+      "bytes": 97484,
+      "sha256": "ae824b7640affb61a848aba8d82a163bc95d697984883c9d111ea5729e4c6394"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-expanded-tablet-zh.png": {
+      "bytes": 140542,
+      "sha256": "d2e3a645e3409a1e83dd5746c4cbeb4f96b464477e5ffdfaefe66557dd7a9a4a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-mobile-en.png": {
+      "bytes": 58540,
+      "sha256": "06d9818f45aef37e1175c974df8135087466036b596194cbcc50667c1408770b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-mobile-zh.png": {
+      "bytes": 73876,
+      "sha256": "f0a2cda3eda10063a8c6397c2eca9ffd0feaae79c77072245264dedc611c5645"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-tablet-en.png": {
+      "bytes": 62220,
+      "sha256": "1e0eb7a63051bd3033fd981f256b4c2ae8e3ad80c6495fbf8ec40eecd46888b2"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-matched-gamma-tablet-zh.png": {
+      "bytes": 79684,
+      "sha256": "ce541c4d2a74000d8b23617c5e470e2c6200d6b7b1c133544b0e4a7432147b02"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-partial-desktop-en.png": {
+      "bytes": 191952,
+      "sha256": "c6fc8501205a8635a24621cca8d677ab7ece85ff5d2f66ac325fb152750f3da2"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-partial-desktop-zh.png": {
+      "bytes": 212698,
+      "sha256": "7b2b90c4bfd3a2fc0e94c219833384d4db7a5b79d3a1f2e5b0f056d901787320"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-partial-mobile-en.png": {
+      "bytes": 47151,
+      "sha256": "4c52a4470e2d4c07e1246bc67ac94daf45154d1d6816f1fc8db4048e5a7418ee"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-partial-mobile-zh.png": {
+      "bytes": 59162,
+      "sha256": "5c9ff49ea8ec850a12ef290ff5723f943af3eb1325afae89fd5b76cedaa10c92"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-partial-tablet-en.png": {
+      "bytes": 71077,
+      "sha256": "908397096e2e3d64f4998b79fdba66af378f0d2ebb5c5ba5c69fd2174aae8762"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-partial-tablet-zh.png": {
+      "bytes": 87722,
+      "sha256": "425c841bafb09c7201ad2b3eef5ea28aea2618ce1f153c5cde74ba22b2603efb"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-projected-memory-desktop-en.png": {
+      "bytes": 42144,
+      "sha256": "39c5df08b1b21821c7c42b13d0cd6d27de93693cfcd8d84f119cf445c630ff2a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-projected-memory-desktop-zh.png": {
+      "bytes": 69126,
+      "sha256": "50496a0256cc5a387dbf628db746385d73b0571226ff41a1836086149981d81f"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-projected-memory-mobile-en.png": {
+      "bytes": 42338,
+      "sha256": "9425d5ea7be343ad9b99af6700f04a9ac99c2eb3c1417bab909182a378701adb"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-projected-memory-mobile-zh.png": {
+      "bytes": 73789,
+      "sha256": "4ea3ff5da1b5db5ca2218ca7a9a1cdf96a52f7211589b492b352750e2ec64be6"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-projected-memory-tablet-en.png": {
+      "bytes": 44502,
+      "sha256": "68caf8639af2d7f90138266199298f72a0b6832efa6c1f78d76788d3cf5a48fb"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-projected-memory-tablet-zh.png": {
+      "bytes": 75831,
+      "sha256": "991d0678dedaddeed6e5f00ae4f77e52f83b01c69b549e97955a5d0d73a5058c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-scanner-desktop-en.png": {
+      "bytes": 109165,
+      "sha256": "0018e3702db51deb3ab438cea75df111916c4471fc0b51f1e7d2bbbec62cc6b0"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-scanner-desktop-zh.png": {
+      "bytes": 152777,
+      "sha256": "c2b0f9a6fcfca65ed22bf6d0b55423746d13f3b53d7ddaa9ad5cef211970d606"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-scanner-mobile-en.png": {
+      "bytes": 48278,
+      "sha256": "be960d9b3f669faa1c2573902c1abcc73ec788b3b0c0a3c15243b07fe92f4de1"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-scanner-mobile-zh.png": {
+      "bytes": 77292,
+      "sha256": "b0cc7540807156e07af3270a13a7aeb7f58eb936ba86949991dfe55191698ab2"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-scanner-tablet-en.png": {
+      "bytes": 110719,
+      "sha256": "e39a7eaebdcc21d435f301a0075eebe5244052dd9c9d01015f2cd16050e86d92"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-scanner-tablet-zh.png": {
+      "bytes": 156398,
+      "sha256": "6c7e5ae9899b4801aca1b5478fbfcb24ec0f1b3f8f2f34b43d49007d42677668"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-desktop-en-dark.png": {
+      "bytes": 195252,
+      "sha256": "a5ee3ec5d2ef4daa13381cb56f8ac62d2b6192d8b0214c88f6ef9aabd0c94e7d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-desktop-en-light.png": {
+      "bytes": 133962,
+      "sha256": "3c32d3bbd6e31b5a45e4b5921e6b63dbaf6a9a7855bb2040d432d94134aab44b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-desktop-zh-dark.png": {
+      "bytes": 216423,
+      "sha256": "80efc72df7dcd8ea02993428915f62427ba1dc25a2d0e288663ba0c575009c6a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-desktop-zh-light.png": {
+      "bytes": 158615,
+      "sha256": "d7b1c73ca3c2f721c0a204fd38a5fafc0b1815ac12a6778de3cdaaea8cbcfcf9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-mobile-en-dark.png": {
+      "bytes": 104619,
+      "sha256": "cafa28f86d40ec2ce3847b5371c0db2339e2430eebc6f784008c2cb9c7b1d39c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-mobile-en-light.png": {
+      "bytes": 65512,
+      "sha256": "9bd4331f8b1767ffb269c20ed1565b36715116423f514c51b9a81feea6315059"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-mobile-zh-dark.png": {
+      "bytes": 116364,
+      "sha256": "626c78c3cb22e05304550b8ce08828c6ca46220c5849f31195f492b9ef92cbfc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-mobile-zh-light.png": {
+      "bytes": 78387,
+      "sha256": "68aff10fcdfa603a552b0f4d78bad458eab31dc92ce2f5d7124e3f33e2fed9a5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-tablet-en-dark.png": {
+      "bytes": 159227,
+      "sha256": "921fa3e01f4c1976436c3ffdb14812896d8e6cd9902a686a059086130f5aaee5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-tablet-en-light.png": {
+      "bytes": 112160,
+      "sha256": "e0a04211b10579c6b3e8882298e845061ac0c8e09d717a1675d1bac9459caf5c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-tablet-zh-dark.png": {
+      "bytes": 178298,
+      "sha256": "2364767d1db2b8a98309c07931ffdd27381067203b8930ef771f471f776b03e5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/exposure-workspace-tablet-zh-light.png": {
+      "bytes": 133455,
+      "sha256": "b26c5e251d5b64d294b3b3976eefe30b4671a71c5427f5ecb97f40913375ef0c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-en-chart-reference.png": {
+      "bytes": 186894,
+      "sha256": "a34c151af66e0e6bfce6f71938a1a532143774103d3eb8765767f7792e3529cb"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-en-keyboard-cell.png": {
+      "bytes": 168279,
+      "sha256": "948fdd68a4960f6f802bcfcc418f1ae25324bbd2592744ed9944953ac4394304"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-en-overview.png": {
+      "bytes": 185538,
+      "sha256": "9910a73013051915023995e4f461a539437733517beead508e93768beff33a03"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-en-return.png": {
+      "bytes": 186382,
+      "sha256": "ea298a0b735aa7edb2d8b1ec7572a004a5feafc5e6f4d359198d0ece818e442a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-en-selected-node.png": {
+      "bytes": 154130,
+      "sha256": "c05c1814bc3a29f09beb08d164e64ee26d4f701e5ccc59f670f3e99bc67ab5f3"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-en-surface-cell.png": {
+      "bytes": 170138,
+      "sha256": "c01b9aeb7794a2fc5dba74a96230e26d68214c330056a90cc034fa0005c4fe9c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-en-surface-field.png": {
+      "bytes": 170138,
+      "sha256": "c01b9aeb7794a2fc5dba74a96230e26d68214c330056a90cc034fa0005c4fe9c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-zh-chart-reference.png": {
+      "bytes": 205353,
+      "sha256": "da2d4d84b8c8765d84859c3a477a456ff8b214829797a9931cd6e068aae4e0c0"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-zh-overview.png": {
+      "bytes": 154261,
+      "sha256": "0d96fb50397dc32951c24e9c2a0b08b4d5b5dd3027bb5d202451a1204fba81fc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-zh-return.png": {
+      "bytes": 209020,
+      "sha256": "8b9c6ca95ad6783f34a5eb5d465b5059a9bdf35ca6b61c6d5d8fdf70e94acfd0"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-zh-selected-node.png": {
+      "bytes": 155667,
+      "sha256": "66d9a64110764f91a49552bc22171a6f3c120f60f9d65f3f8b42edd39548ebbe"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-zh-surface-cell.png": {
+      "bytes": 128918,
+      "sha256": "7fd31bd83cfd8c6de796795acf9e1ff35808c633948ff73ca4ef8dadb4d36bc7"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-desktop-zh-surface-field.png": {
+      "bytes": 128918,
+      "sha256": "7fd31bd83cfd8c6de796795acf9e1ff35808c633948ff73ca4ef8dadb4d36bc7"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-chart-reference-fullscreen.png": {
+      "bytes": 43926,
+      "sha256": "9a783dc1135605a4d938ca0fa948eefbac39c3a25df3736d70c16ee59d3cae75"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-chart-reference-narrow320-fullscreen.png": {
+      "bytes": 40188,
+      "sha256": "e55e198ce75b5c6ae073291888ccf4ecffd8b3073e90a46313cd8cc0abcf8101"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-chart-reference-narrow320.png": {
+      "bytes": 58478,
+      "sha256": "6e2e148fe114cfdeb35bd9a41dccc6b1aed9e6e6439a5aaa6006a47137e05b34"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-chart-reference.png": {
+      "bytes": 61886,
+      "sha256": "22db7d964d905cc30da1682a414538c97a6786a14e151de8028ebc7cf166201d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-overview-narrow320.png": {
+      "bytes": 48446,
+      "sha256": "7c72306d6486fbd2051cddde813aa8385e2f5ff1693d81d91b8413b072db01a8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-overview.png": {
+      "bytes": 54614,
+      "sha256": "17bcd6cf60b487d7d94fbd47a3f2027e037e7504a3990305d7f7c4124fc30757"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-return.png": {
+      "bytes": 85348,
+      "sha256": "c83aadbfff8d4f40facad96ba00b0df0e2d1e34d9205d54577a8c293581cb02c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-selected-node.png": {
+      "bytes": 41571,
+      "sha256": "839f9a20dd2a1bc65276713c82c2c7013b6c643d4576601e569ef50a843abd86"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-surface-cell.png": {
+      "bytes": 51298,
+      "sha256": "8bec9652f141cbd23bf93b78aaae60cc99fec7adebf4c4665cd6fa2c12bcdfaa"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-surface-field.png": {
+      "bytes": 49243,
+      "sha256": "11ead3d5c94653e1a15fe25d53fd45ae291989cc311fad19d47f1ead1ecbabba"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-en-surface-narrow320.png": {
+      "bytes": 40172,
+      "sha256": "4a77671762e7688a2eafa5a95af49499eaf331e328b9e9f81edb1d3f6de2da59"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-chart-reference-fullscreen.png": {
+      "bytes": 46266,
+      "sha256": "836c67ff4f1db0fd2d0d8556fff7d7f5a07c6b4db749b56b8a4b5b544d1da22f"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-chart-reference-narrow320-fullscreen.png": {
+      "bytes": 42089,
+      "sha256": "7bb203f12189b714ec3a91beb117ffe10df048896bd6dc7e18d8829b78521e8a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-chart-reference-narrow320.png": {
+      "bytes": 72947,
+      "sha256": "be8685ac758157b1c7f63994cc9b6cb0cfc2cb715d1211c3826cb08657829f4d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-chart-reference.png": {
+      "bytes": 77452,
+      "sha256": "a2ce019a4b3489d760bf313bf446d5513c7297ebec698e97df29c64f1ef3378f"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-overview-narrow320.png": {
+      "bytes": 58726,
+      "sha256": "703a771669107a4283c24145de5e3c75090ee00bf56937499934037bd2746cd2"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-overview.png": {
+      "bytes": 62393,
+      "sha256": "d785c216287868818e88e2f4cdd473467c2a0abf4f0000267f249c66f69acd66"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-return.png": {
+      "bytes": 96137,
+      "sha256": "9696032ecba832a3e1664b2a63dca4015a287c8dfc7576bf96e76d8c5460f149"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-selected-node.png": {
+      "bytes": 50378,
+      "sha256": "e8ce1cb645c412c20958ed4a66543ed459c2d83ec31c1b2c9dcf0056faff3687"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-surface-cell.png": {
+      "bytes": 54917,
+      "sha256": "50de0421d3bc5e3f52c2c9e32a5e9566dc29c47e40fd69f036c271091e7fc09e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-mobile-zh-surface-field.png": {
+      "bytes": 51463,
+      "sha256": "15a27a55df27116d826570c7b80f9492e732885489300351f13183bf1c76e18d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-en-chart-reference-fullscreen.png": {
+      "bytes": 84199,
+      "sha256": "f6e0beed6dbc48eceae35fad371a6cd8f8860ed74769f81fbf4b30a99165973a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-en-chart-reference.png": {
+      "bytes": 92121,
+      "sha256": "75aff1ebfcbb5818e04485c8ef231ee1ffe1aab1658c0491c34392ca0b25f096"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-en-overview.png": {
+      "bytes": 151458,
+      "sha256": "14a26bef1f563db0dbb591d5b9502679bf05c7dfc91015ca60aea3593dbf6ba8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-en-return.png": {
+      "bytes": 89066,
+      "sha256": "5b7a95bb73dd90ef5e3e86787c501ee5c5647da8996b2189fbadce6dec786575"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-en-selected-node.png": {
+      "bytes": 80890,
+      "sha256": "846554e76acb08450e99aa687458a79c02c045f2810e4b8d77f8ba5d263c62d2"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-en-surface-cell.png": {
+      "bytes": 88061,
+      "sha256": "008548ab300447b6334d596776cb7ac4d6e2ae78efb84fde0d327afc21869b90"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-en-surface-field.png": {
+      "bytes": 88061,
+      "sha256": "008548ab300447b6334d596776cb7ac4d6e2ae78efb84fde0d327afc21869b90"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-zh-chart-reference-fullscreen.png": {
+      "bytes": 85023,
+      "sha256": "05ce0a5d7359c11da6572613b308e0fcc1bf4ea00a054fb7ad309bea29fedc59"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-zh-chart-reference.png": {
+      "bytes": 102031,
+      "sha256": "dde8600e8541f03b6c842552aa22b3048493e6bbfad23c1ebaaec8714a22dbff"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-zh-overview.png": {
+      "bytes": 123329,
+      "sha256": "f9542b5d47e678258f6426439200adce5dd11cc0b48809def821ecf65e2adee4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-zh-return.png": {
+      "bytes": 113134,
+      "sha256": "b651d9b1f0abebb2e7b7a8c48047591ddeea2f677ff5f750a06e62bb325617d2"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-zh-selected-node.png": {
+      "bytes": 109656,
+      "sha256": "3174c3326bdca16d7398ddb2a2b59a38461548af39d7687982bf06bf5d4d33ad"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-zh-surface-cell.png": {
+      "bytes": 110963,
+      "sha256": "b1410542336f2013f0600368ae417ff89ecae9279e900018995e2d7e695b21b9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/direct/synthetic-exposure-surface-tablet-zh-surface-field.png": {
+      "bytes": 110963,
+      "sha256": "b1410542336f2013f0600368ae417ff89ecae9279e900018995e2d7e695b21b9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--e-0b13a-ts-date-only-source-session-desktop/exposure-source-en-complete.png": {
+      "bytes": 192497,
+      "sha256": "a908fec52b8d0e0c9f1d59c38ef5dacaa78d696fcdf0b6c1064e68291ff6aa91"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--e-0b13a-ts-date-only-source-session-mobile/exposure-source-en-complete.png": {
+      "bytes": 104121,
+      "sha256": "e264c6c8f9702ed590e0a8a48a9b02e9e32765c68c41c83bbcca58713e3e3b5c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--e-0b13a-ts-date-only-source-session-tablet/exposure-source-en-complete.png": {
+      "bytes": 130248,
+      "sha256": "87ef148997a6026f1539331b347ffd3b2a4f84c3bb6dfbf81e019b2fca859156"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--e-a134e-ts-date-only-source-session-desktop/exposure-source-en-partial.png": {
+      "bytes": 192542,
+      "sha256": "a727e0ce86519b5ea2b616f2d5fe05c22d0a346a663bfc66c9b5a417d16d2ff1"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--e-a134e-ts-date-only-source-session-mobile/exposure-source-en-partial.png": {
+      "bytes": 105484,
+      "sha256": "64641742fc86ce49c53989365a34a79eb7236db5cf31c4aba5d244eee08d181f"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--e-a134e-ts-date-only-source-session-tablet/exposure-source-en-partial.png": {
+      "bytes": 130394,
+      "sha256": "7e81ce0e9c683f8c858d8eca8165e0a8d3e8b80364576e0ea4472c96562c908f"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--z-0e253-ts-date-only-source-session-desktop/exposure-source-zh-complete.png": {
+      "bytes": 218851,
+      "sha256": "0424c2a5112319b8fda74f4c6ef9f0deaa250ef6b92d5d94e5827f40756217a1"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--z-0e253-ts-date-only-source-session-mobile/exposure-source-zh-complete.png": {
+      "bytes": 117140,
+      "sha256": "97baa5cc75d5643c02e7c346c454a9055cb5f5307041518863a08098fca7c77e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--z-0e253-ts-date-only-source-session-tablet/exposure-source-zh-complete.png": {
+      "bytes": 154370,
+      "sha256": "9a0f0e1cd677cbcd310ac95280bc67e0fa507a9690c813db5eb030412e40712c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--z-67935-ts-date-only-source-session-desktop/exposure-source-zh-partial.png": {
+      "bytes": 222754,
+      "sha256": "3b856b50fcdf51e3f940f256c064a771dd713cc5e0fb49c848155a514724722b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--z-67935-ts-date-only-source-session-mobile/exposure-source-zh-partial.png": {
+      "bytes": 121767,
+      "sha256": "316916ff985ebdbbc410cfc12e76d9e86960083902c4e1378199fc831437d7e8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals--z-67935-ts-date-only-source-session-tablet/exposure-source-zh-partial.png": {
+      "bytes": 158217,
+      "sha256": "7a77e9a61f74b50a0ab2127bcc3af582d825ec313fbdf1df461a5fe48ef7049d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop/desktop-exposure-partial.png": {
+      "bytes": 155128,
+      "sha256": "c7769ba08d609cb72d50a353a82074d5920d03de12b3c51a8088f18f376c785b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-mobile/mobile-exposure-partial.png": {
+      "bytes": 58467,
+      "sha256": "371267f1ba8e77c22288ffb11b5fd22ff4499b773c5a4ce1042bf9fad8edbfbf"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-tablet/tablet-exposure-partial.png": {
+      "bytes": 134335,
+      "sha256": "ebce24b1c8a2d8e774145e99c854219a08465eceaa6bd023a42fcb48847f1429"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-bdcae-ion-is-outside-the-snapshot-desktop/desktop-exposure-chain-outside.png": {
+      "bytes": 189615,
+      "sha256": "d2d6309aa3f8aedfc6ad1af0579864ffc16143f2fef4679e3cdf0068de60e4af"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-bdcae-ion-is-outside-the-snapshot-mobile/mobile-exposure-chain-outside.png": {
+      "bytes": 104019,
+      "sha256": "079f5dc25ce82ffe4d7688218615f210a2ea7d7e7b72f08bfbf2fb5abc644ca9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-bdcae-ion-is-outside-the-snapshot-tablet/tablet-exposure-chain-outside.png": {
+      "bytes": 157647,
+      "sha256": "fda2db510922cc4b6e7af842774b6ce01b3488638c6073e3899820396ca33761"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop/desktop-exposure-complete.png": {
+      "bytes": 155128,
+      "sha256": "c7769ba08d609cb72d50a353a82074d5920d03de12b3c51a8088f18f376c785b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-mobile/mobile-exposure-complete.png": {
+      "bytes": 58467,
+      "sha256": "371267f1ba8e77c22288ffb11b5fd22ff4499b773c5a4ce1042bf9fad8edbfbf"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-tablet/tablet-exposure-complete.png": {
+      "bytes": 134335,
+      "sha256": "ebce24b1c8a2d8e774145e99c854219a08465eceaa6bd023a42fcb48847f1429"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/exposure-entry.png": {
+      "bytes": 238186,
+      "sha256": "1dae36ff4e75940b05dae5c26dedd0f4ebf52e6c0c3c479506c450071c973601"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/history-controls.png": {
+      "bytes": 207235,
+      "sha256": "f292660af543843087e873b9c85a3905517c7c37daef46fb37508349762cfbac"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-details.png": {
+      "bytes": 241056,
+      "sha256": "ce88e91c06f88de50b32a9e82a5bc662eb6f58de5da2b8a56b0de32075c62e62"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-passport.png": {
+      "bytes": 191956,
+      "sha256": "8b468ad90aa1c69f0d07976ec59baa64864c43d0f0322a49b3695c4d6d810c56"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/exposure-entry.png": {
+      "bytes": 101832,
+      "sha256": "b13897288bb76a6f3696ddb676af63cd17646ac6d0ec88c66f4524561cf3e414"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/history-controls.png": {
+      "bytes": 62196,
+      "sha256": "7b517fa89aaedf9f46014f291590e40de0f317450ef7aefa70d7dbcca289de71"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-details.png": {
+      "bytes": 64110,
+      "sha256": "f3657b3f1701cdb7da74ce78b2817f8cafb58232731c8642d3bcaf06b734c649"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-passport.png": {
+      "bytes": 61233,
+      "sha256": "f293a2b29febc65141a89659c8b0c884a6555e3738fa617d54e1687a88050fb5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/exposure-entry.png": {
+      "bytes": 202633,
+      "sha256": "f393d29544979def27e411053ec7274f7a9cbe1c9400c6e021c022c7a14477dc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/history-controls.png": {
+      "bytes": 140409,
+      "sha256": "9884ea5ecf45030a80c2e96c980a34a04b498140eb3e10a773e2d0ea42f16eaf"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-details.png": {
+      "bytes": 139810,
+      "sha256": "b38ed1f28d2ec3456529a6e93b3356cb3cfd5c37461970e60d0e6ec3df6f1353"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-passport.png": {
+      "bytes": 139992,
+      "sha256": "c301c7da0c456bd19f4b123f9fc9106e0e953bad38371f55011f02c22ce3f0f3"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/attachments/saved-theme-cold-return-json-2325bbb7aa047d528d62e65f26eb0a88d6e93b8d.json": {
+      "bytes": 2990,
+      "sha256": "2e5653f632df3b7054063472db18871026f32bc0a85dad0a548c90836d14a27c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/attachments/synthetic-light-control-s14-dark-control-json-b6964f998478a7ad25841da259f9b300c1c36470.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/attachments/synthetic-light-control-s14-first-intent-json-5a080654d59ee5a48b5792dbe113aaa5e763efa0.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/saved-theme-cold-return.json": {
+      "bytes": 2990,
+      "sha256": "2e5653f632df3b7054063472db18871026f32bc0a85dad0a548c90836d14a27c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/saved-theme-main-reloaded.png": {
+      "bytes": 173419,
+      "sha256": "9fdc96230c2081dea70671213966fcb4273dba0423018ca453831486b45e2180"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/saved-theme-return-reloaded.png": {
+      "bytes": 150342,
+      "sha256": "6fbc65a2a13d633952e812249fea849bb001eb8b7717356377f1f2d38acec35c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/synthetic-light-control-s14-dark-control.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/synthetic-light-control-s14-first-intent.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/attachments/saved-theme-cold-return-json-d7b1926be919552208e7d552c76ab151ba70c208.json": {
+      "bytes": 2990,
+      "sha256": "bc2300dfda968d3664bef2da9ed1699aec9dc4d3e5319b8fbf95ef48d627a9f9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/attachments/synthetic-light-control-s14-dark-control-json-31fb5873acd078351c20cd0f5047d44876fa68b3.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/attachments/synthetic-light-control-s14-first-intent-json-550eb736951769aa0acbe521869f130742794d20.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/saved-theme-cold-return.json": {
+      "bytes": 2990,
+      "sha256": "bc2300dfda968d3664bef2da9ed1699aec9dc4d3e5319b8fbf95ef48d627a9f9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/saved-theme-main-reloaded.png": {
+      "bytes": 74461,
+      "sha256": "bc5c2d9b8d21b53d4fb177d1edd22ab235da550f62163dee9d5967701283ce4d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/saved-theme-return-reloaded.png": {
+      "bytes": 59806,
+      "sha256": "74b40006fd2c80abe9c8c3333e0a45dc68a46b004bc422a488f585eaa8d91b9d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/synthetic-light-control-s14-dark-control.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/synthetic-light-control-s14-first-intent.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/attachments/saved-theme-cold-return-json-ac311e388d7c8c1b337330ed62cf52568e46be30.json": {
+      "bytes": 2990,
+      "sha256": "dd61e2f915e3a5c8f43cd5bb11b974dea56b63ae58e914751da8805a50d7feee"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/attachments/synthetic-light-control-s14-dark-control-json-49954940358e35dc35607c63b2f854c80ada3038.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/attachments/synthetic-light-control-s14-first-intent-json-a4b580d27430f1ba98f32b6eeec616ff95b319f4.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/saved-theme-cold-return.json": {
+      "bytes": 2990,
+      "sha256": "dd61e2f915e3a5c8f43cd5bb11b974dea56b63ae58e914751da8805a50d7feee"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/saved-theme-main-reloaded.png": {
+      "bytes": 96811,
+      "sha256": "bcac58725c929cafa805461eec3d2a2bc4184736464521448889eef1dd36998a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/saved-theme-return-reloaded.png": {
+      "bytes": 112676,
+      "sha256": "b79d85af6580a2c8dab8e81eafd73b98097e08188b674fbd314a09e4195a2b0e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/synthetic-light-control-s14-dark-control.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/synthetic-light-control-s14-first-intent.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/saved-theme-cold-return-json-f7e31b4bc598044bc9e7f65f46ba686a3957e4cf.json": {
+      "bytes": 2990,
+      "sha256": "b1976124c265d096cf7908e8906bffd1963d3544b4ce28823c1ead0234214fcf"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/synthetic-light-control-s14-dark-control-json-5af3e8cc8e63ea4398e0c9a2449ec152f49f2c34.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/synthetic-light-control-s14-first-intent-json-f8dd13d5b87a8cebac32441b1b6034d65786c65c.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-cold-return.json": {
+      "bytes": 2990,
+      "sha256": "b1976124c265d096cf7908e8906bffd1963d3544b4ce28823c1ead0234214fcf"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-main-reloaded.png": {
+      "bytes": 191683,
+      "sha256": "4cf8a56042557029ce3caa5847f8319df83f95262c10efe8182477a859a208e7"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-return-reloaded.png": {
+      "bytes": 124688,
+      "sha256": "ecea3272308f59d226c264f9fbb91b0bc2d53be62c3a149de68ae7722c9db020"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/synthetic-light-control-s14-dark-control.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/synthetic-light-control-s14-first-intent.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/saved-theme-cold-return-json-1945bc2a0f3e48f0ca2a4fdf563d608ebaa0f437.json": {
+      "bytes": 2990,
+      "sha256": "b2f2a39c8501098c16faf6ecf4555efb08c90f663a37bac24abc51e4af103939"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/synthetic-light-control-s14-dark-control-json-011d6500bd1a9a05234b4e37a0476c820b9f360a.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/synthetic-light-control-s14-first-intent-json-31da798a063d1d84c0d116bfcb8a12f432551a9f.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-cold-return.json": {
+      "bytes": 2990,
+      "sha256": "b2f2a39c8501098c16faf6ecf4555efb08c90f663a37bac24abc51e4af103939"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-main-reloaded.png": {
+      "bytes": 62515,
+      "sha256": "779377c1754bef34b2236ec2d501c1524b5814174f9c215ad254836e6c37814a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-return-reloaded.png": {
+      "bytes": 47559,
+      "sha256": "614a30cbef4e437dcc11980464517696e595345d03fb99f618d759ab2670dc6e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/synthetic-light-control-s14-dark-control.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/synthetic-light-control-s14-first-intent.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/saved-theme-cold-return-json-f6219c07f8a6eaeeeed64e303c652d172eef77f5.json": {
+      "bytes": 2990,
+      "sha256": "907b7ef77f5aeb9de84e07123c9c6c140515e88fb4951e2d7d1a38598de6af11"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/synthetic-light-control-s14-dark-control-json-d8e2cdc491c23a3f9e23e2fa2ed8f1ade21b823a.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/synthetic-light-control-s14-first-intent-json-745f8d44f6450db44a7ee0a7a69ef6872471a783.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-cold-return.json": {
+      "bytes": 2990,
+      "sha256": "907b7ef77f5aeb9de84e07123c9c6c140515e88fb4951e2d7d1a38598de6af11"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-main-reloaded.png": {
+      "bytes": 90923,
+      "sha256": "50a7c8933cc7c9503182a80fd9ebd1b34fb1f100ebc1d41bf3d9e82cb0861557"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-return-reloaded.png": {
+      "bytes": 88130,
+      "sha256": "6780359f8abdad62265fd6bc0d2c579ca196eb4516920d98b4aa5ea3e77b7cc6"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/synthetic-light-control-s14-dark-control.json": {
+      "bytes": 224,
+      "sha256": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/synthetic-light-control-s14-first-intent.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-exposure-surface-context-json-dc52d71ccef54b17a4f9122692704303588887e6.json": {
+      "bytes": 1488,
+      "sha256": "88b3ad396682bd4a4b2ed9b4db4a17869416ab3672c2d8b0bb07a73bec46e22c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-ma-paint-contract-json-43bda655d38e3a6b3aba103acddf2d931b9d2d4c.json": {
+      "bytes": 774,
+      "sha256": "c59e757f099a1d65e46e46aec724230dc733cc2204b6f8f01101589e75a21eaf"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-ma-strip-contract-json-b33829ee4c58970ce77b451906a889502782831b.json": {
+      "bytes": 1123,
+      "sha256": "efc8aca59ee197bbd764ca2fed8fcc75bd506918c0e8f9a3d0cb94ea9536ae9c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-main-chart-owner-json-4885f09b161ebf906211acd1f79ffca88620ea0b.json": {
+      "bytes": 73104,
+      "sha256": "3d4444b6c4f84b533da2a9d10b4836b39449988eb9d330618f97f573548c019c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-main-chart-reveal-json-282f4c2f7c020232ace5e38dec1ee1298db87d8a.json": {
+      "bytes": 156562,
+      "sha256": "f510ff12bab09593f90fdaed0838c37576342726db5e034b8c8c5f5556d340a8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-network-isolation-json-582354b40ec965df39faea2c8eab8c1859915ab3.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-reference-badge-contract-json-9c8c21ea0ec4f3c168f39d5dd3186ebd39f52b8c.json": {
+      "bytes": 230,
+      "sha256": "c781c9829a1882518479308c8f34b3525ae733afe494b68c6d266508fc3cea2b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/attachments/synthetic-surface-screen-geometry-json-181025cf552e66a3e899705a509179913455b18a.json": {
+      "bytes": 6127,
+      "sha256": "73545dfe4b1c4d141b1a4dfe32f04858c5238506b5593c3285afb6d246367956"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-exposure-surface-context.json": {
+      "bytes": 1488,
+      "sha256": "88b3ad396682bd4a4b2ed9b4db4a17869416ab3672c2d8b0bb07a73bec46e22c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-ma-paint-contract.json": {
+      "bytes": 774,
+      "sha256": "c59e757f099a1d65e46e46aec724230dc733cc2204b6f8f01101589e75a21eaf"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-ma-strip-contract.json": {
+      "bytes": 1123,
+      "sha256": "efc8aca59ee197bbd764ca2fed8fcc75bd506918c0e8f9a3d0cb94ea9536ae9c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-main-chart-owner.json": {
+      "bytes": 73104,
+      "sha256": "3d4444b6c4f84b533da2a9d10b4836b39449988eb9d330618f97f573548c019c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-main-chart-reveal.json": {
+      "bytes": 156562,
+      "sha256": "f510ff12bab09593f90fdaed0838c37576342726db5e034b8c8c5f5556d340a8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-network-isolation.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-reference-badge-contract.json": {
+      "bytes": 230,
+      "sha256": "c781c9829a1882518479308c8f34b3525ae733afe494b68c6d266508fc3cea2b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-desktop/synthetic-surface-screen-geometry.json": {
+      "bytes": 6127,
+      "sha256": "73545dfe4b1c4d141b1a4dfe32f04858c5238506b5593c3285afb6d246367956"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-exposure-surface-context-json-fa898f867703e2e421e72e7bb8739ac0c4e8ef74.json": {
+      "bytes": 2134,
+      "sha256": "f5745325ae88da8e8c3e51688c42fee03afe336abb511101db7155d7446a3c63"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-contract-json-186975b4bc4aeed32a02301991fd093c19ff3a62.json": {
+      "bytes": 768,
+      "sha256": "320d155f4281d04a2e3c181884c31ba5e2734c6d24bd564ed972072aad393bcc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-narrow320-json-c8ba721038c52d85ddf6c642a35e1da1d301c543.json": {
+      "bytes": 770,
+      "sha256": "3aa116d94d3a25a9c0865b965f00525934433a183abfd3dec31f753906ff9eef"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-paint-restored390-json-6b23ca4547bf8f04fcfd3d60005ceefaa675258a.json": {
+      "bytes": 770,
+      "sha256": "231e8414e52c5b06b66c288406f55fc8b201a4692cacb695dbd29dc15e7cebcc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-contract-json-61b8f033cc9caa4396fa00678782280c006678df.json": {
+      "bytes": 1110,
+      "sha256": "27e36e9a08345022ace33a5694ce5e2bb0867cb3c6c3aab939272c1e99b4ad8e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-narrow320-json-e964a719a8473dda7f3b1837b71b3feaea65df29.json": {
+      "bytes": 1110,
+      "sha256": "69494b368a87b325d7ee7b11d582420c26a7fe99bd5d5bd0137b3d4273bbf266"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-ma-strip-restored390-json-6e7ccc91db04b6786f34588b28faea71e69206df.json": {
+      "bytes": 1110,
+      "sha256": "486829ecfa702fd6b7a7916dab3d7f2021407869f1cbe39450976c8e374a4458"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-main-chart-owner-json-16bf25a36b06b6b4684685a093b99845cf9e2420.json": {
+      "bytes": 73104,
+      "sha256": "5dfad9f8b3fda3a531db367d315164ccd15b4dc5cc01388dbe0c1013b18406a4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-main-chart-reveal-json-fecde99b9af4bb7c3a33f59aaf1e03e75860d1cf.json": {
+      "bytes": 156561,
+      "sha256": "846876cd00296023d27494a341638f954c1aad20c2e5fcee3c0a53610902ade0"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-network-isolation-json-7f743c01ae4b999cb1ffb82e27dc64723e0680a0.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-exit-json-b70e4c2ae04726285c40af63ff698043bea67823.json": {
+      "bytes": 299,
+      "sha256": "26a5c4bb123f4739c58808a0ef8ce90638e80e44f3c389b85af158c993e7b2f8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-fullscreen-json-2fb0e7eb660512e77044e15b7035f984fa925a2d.json": {
+      "bytes": 292,
+      "sha256": "b3add188cd59d4a654c6c19bb5bf0c6a9f69dceb0ad54bc03ecdf7b379a7a62d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-narrow320-exit-json-4325132801b4a792d5432c9db247060041e25135.json": {
+      "bytes": 301,
+      "sha256": "1dfe6e076329121b0fff7f9f06d2b1dbd3159551c7d451a6a77e58a1612c2cba"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-chart-reference-narrow320-fullscreen-json-58796f5030dd3df7e5edb755786de865d7717062.json": {
+      "bytes": 293,
+      "sha256": "6674bf0fdc57b3f42a0b632ebe477688ec146c9bd47f7bd9abe8e2668526ce98"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-contract-json-bba8264433c0bd791a5ff228f918a95786b25d2f.json": {
+      "bytes": 299,
+      "sha256": "26a5c4bb123f4739c58808a0ef8ce90638e80e44f3c389b85af158c993e7b2f8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-narrow320-json-7983bc029601d986c7bcebee76f68da8c9e6df0f.json": {
+      "bytes": 301,
+      "sha256": "1dfe6e076329121b0fff7f9f06d2b1dbd3159551c7d451a6a77e58a1612c2cba"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-reference-badge-restored390-json-0e4e8630aceefb154ee9539f34a8707b02db16db.json": {
+      "bytes": 299,
+      "sha256": "26a5c4bb123f4739c58808a0ef8ce90638e80e44f3c389b85af158c993e7b2f8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-surface-320-geometry-json-2f14bce7b8f98fce8b70a75fd5a0a0e9fa7c370d.json": {
+      "bytes": 4084,
+      "sha256": "1870844f85b9e69e2af341a5bd243c3f95cc51c7d4551e48ffb0da2adb730ee1"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/attachments/synthetic-surface-screen-geometry-json-ccfda3253ee56e22ec1ee2906811d603b313741d.json": {
+      "bytes": 5906,
+      "sha256": "f01a3cafe38588ccf70801664583417f56453b92bf27ded2ddee4fa813f4fb93"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-exposure-surface-context.json": {
+      "bytes": 2134,
+      "sha256": "f5745325ae88da8e8c3e51688c42fee03afe336abb511101db7155d7446a3c63"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-paint-contract.json": {
+      "bytes": 768,
+      "sha256": "320d155f4281d04a2e3c181884c31ba5e2734c6d24bd564ed972072aad393bcc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-paint-narrow320.json": {
+      "bytes": 770,
+      "sha256": "3aa116d94d3a25a9c0865b965f00525934433a183abfd3dec31f753906ff9eef"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-paint-restored390.json": {
+      "bytes": 770,
+      "sha256": "231e8414e52c5b06b66c288406f55fc8b201a4692cacb695dbd29dc15e7cebcc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-strip-contract.json": {
+      "bytes": 1110,
+      "sha256": "27e36e9a08345022ace33a5694ce5e2bb0867cb3c6c3aab939272c1e99b4ad8e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-strip-narrow320.json": {
+      "bytes": 1110,
+      "sha256": "69494b368a87b325d7ee7b11d582420c26a7fe99bd5d5bd0137b3d4273bbf266"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-ma-strip-restored390.json": {
+      "bytes": 1110,
+      "sha256": "486829ecfa702fd6b7a7916dab3d7f2021407869f1cbe39450976c8e374a4458"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-main-chart-owner.json": {
+      "bytes": 73104,
+      "sha256": "5dfad9f8b3fda3a531db367d315164ccd15b4dc5cc01388dbe0c1013b18406a4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-main-chart-reveal.json": {
+      "bytes": 156561,
+      "sha256": "846876cd00296023d27494a341638f954c1aad20c2e5fcee3c0a53610902ade0"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-network-isolation.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-chart-reference-exit.json": {
+      "bytes": 299,
+      "sha256": "26a5c4bb123f4739c58808a0ef8ce90638e80e44f3c389b85af158c993e7b2f8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-chart-reference-fullscreen.json": {
+      "bytes": 292,
+      "sha256": "b3add188cd59d4a654c6c19bb5bf0c6a9f69dceb0ad54bc03ecdf7b379a7a62d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-chart-reference-narrow320-exit.json": {
+      "bytes": 301,
+      "sha256": "1dfe6e076329121b0fff7f9f06d2b1dbd3159551c7d451a6a77e58a1612c2cba"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-chart-reference-narrow320-fullscreen.json": {
+      "bytes": 293,
+      "sha256": "6674bf0fdc57b3f42a0b632ebe477688ec146c9bd47f7bd9abe8e2668526ce98"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-contract.json": {
+      "bytes": 299,
+      "sha256": "26a5c4bb123f4739c58808a0ef8ce90638e80e44f3c389b85af158c993e7b2f8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-narrow320.json": {
+      "bytes": 301,
+      "sha256": "1dfe6e076329121b0fff7f9f06d2b1dbd3159551c7d451a6a77e58a1612c2cba"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-reference-badge-restored390.json": {
+      "bytes": 299,
+      "sha256": "26a5c4bb123f4739c58808a0ef8ce90638e80e44f3c389b85af158c993e7b2f8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-surface-320-geometry.json": {
+      "bytes": 4084,
+      "sha256": "1870844f85b9e69e2af341a5bd243c3f95cc51c7d4551e48ffb0da2adb730ee1"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-mobile/synthetic-surface-screen-geometry.json": {
+      "bytes": 5906,
+      "sha256": "f01a3cafe38588ccf70801664583417f56453b92bf27ded2ddee4fa813f4fb93"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-exposure-surface-context-json-52bba3b56b3c7acb2b729b8fb69ee07663b5457d.json": {
+      "bytes": 1519,
+      "sha256": "f6657aa9d5edec32e85fdf58f23b4066aa84b7b06efccea793c832ea33a33ecc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-ma-paint-contract-json-d5c82494d33e9997570fbf7f098150f7d14c1e21.json": {
+      "bytes": 761,
+      "sha256": "b9d2336dc1a7dc27e79533ce59b2d7a53cb25665eec868a3c0294a1597cc1d34"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-ma-strip-contract-json-5925a16a9a3fc12839af9d6eb0586ee86d07ebfc.json": {
+      "bytes": 1131,
+      "sha256": "9640f4f33a47e592692c23f33030de3b494d93acc025afd21483999cb35b79ff"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-main-chart-owner-json-3f7b3993a288a0971b247de0147406a7691e1c7c.json": {
+      "bytes": 73102,
+      "sha256": "339aba53b837aa94aede15ed78941e4ac89c53308f000c3d83e4d18c02342cce"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-main-chart-reveal-json-2d347247c75bcee030fdb50bf817faca0a00ed42.json": {
+      "bytes": 156559,
+      "sha256": "40713690a4e1a7e08c2f41b1dcff5feca6ee4f6ff4b3b3e3887b41e81fb4b9af"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-network-isolation-json-12d9e309c74a3e9e07098906911b9e902b4d5f30.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-chart-reference-exit-json-46c177e75bb6362a84e17c0bc23b9ddbe2c71da2.json": {
+      "bytes": 292,
+      "sha256": "c17b1770b69730ef25369f88273ced5f9e58b4a6ce6c2e6abd0a63df768be276"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-chart-reference-fullscreen-json-0f82a13208a8460b17af477d7f123897f93bcef5.json": {
+      "bytes": 290,
+      "sha256": "1d486d98663ffdcec1db8d4bf3853319eddad44335d6a20434cc448239f3be92"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-reference-badge-contract-json-76a2ef53b02c220bb3eaaa1e1508926b91aa6ea7.json": {
+      "bytes": 292,
+      "sha256": "c17b1770b69730ef25369f88273ced5f9e58b4a6ce6c2e6abd0a63df768be276"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/attachments/synthetic-surface-screen-geometry-json-997915de9b34438d3d090e426cc950ed948fb132.json": {
+      "bytes": 6140,
+      "sha256": "fbb65506ce3e6228401827a11b63e5c85646605fa56fcb06e0dc208963c22f88"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-exposure-surface-context.json": {
+      "bytes": 1519,
+      "sha256": "f6657aa9d5edec32e85fdf58f23b4066aa84b7b06efccea793c832ea33a33ecc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-ma-paint-contract.json": {
+      "bytes": 761,
+      "sha256": "b9d2336dc1a7dc27e79533ce59b2d7a53cb25665eec868a3c0294a1597cc1d34"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-ma-strip-contract.json": {
+      "bytes": 1131,
+      "sha256": "9640f4f33a47e592692c23f33030de3b494d93acc025afd21483999cb35b79ff"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-main-chart-owner.json": {
+      "bytes": 73102,
+      "sha256": "339aba53b837aa94aede15ed78941e4ac89c53308f000c3d83e4d18c02342cce"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-main-chart-reveal.json": {
+      "bytes": 156559,
+      "sha256": "40713690a4e1a7e08c2f41b1dcff5feca6ee4f6ff4b3b3e3887b41e81fb4b9af"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-network-isolation.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-reference-badge-chart-reference-exit.json": {
+      "bytes": 292,
+      "sha256": "c17b1770b69730ef25369f88273ced5f9e58b4a6ce6c2e6abd0a63df768be276"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-reference-badge-chart-reference-fullscreen.json": {
+      "bytes": 290,
+      "sha256": "1d486d98663ffdcec1db8d4bf3853319eddad44335d6a20434cc448239f3be92"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-reference-badge-contract.json": {
+      "bytes": 292,
+      "sha256": "c17b1770b69730ef25369f88273ced5f9e58b4a6ce6c2e6abd0a63df768be276"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-7e659-exposure-surface-journey-en-tablet/synthetic-surface-screen-geometry.json": {
+      "bytes": 6140,
+      "sha256": "fbb65506ce3e6228401827a11b63e5c85646605fa56fcb06e0dc208963c22f88"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-exposure-surface-context-json-21c9541ebf01355e2f7c3398a30f7dea34e76966.json": {
+      "bytes": 1371,
+      "sha256": "6fed568d0752d4d5a3992704373d3933f5a702598a8349297883bb6d3de2caae"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-light-control-overview-json-b0d2268d1cef064a921c8f80ffcaa3e5d28df3e0.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-ma-paint-contract-json-40aca56114871d34a651b63a42d01f2b8ca8bb63.json": {
+      "bytes": 774,
+      "sha256": "d7b3f71dd560c6bbae346abadbfcda4ebdde45df7ebfa49acb4872668a839639"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-ma-strip-contract-json-a742c3bd524c08ca6407e04cd8eb42da14d5e183.json": {
+      "bytes": 1123,
+      "sha256": "3e0b12984fc0252e20cd6dc6f4ecf5bdebedfef1500349d07cdcee0a1d2cf9ed"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-main-chart-owner-json-9e284a615aed0005eb90ec1eb50046fe19850996.json": {
+      "bytes": 73104,
+      "sha256": "3d4444b6c4f84b533da2a9d10b4836b39449988eb9d330618f97f573548c019c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-main-chart-reveal-json-b9b1e9db66f5b7720c1f5165f7645776744cc3e2.json": {
+      "bytes": 156562,
+      "sha256": "f510ff12bab09593f90fdaed0838c37576342726db5e034b8c8c5f5556d340a8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-network-isolation-json-5dbc7db25aa0c172f8ea12beae7547c97f68cd40.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-reference-badge-contract-json-8e4850b53671dfdcb1db2d9781d4c298a21543c7.json": {
+      "bytes": 234,
+      "sha256": "38b79a9483575e65c628bdeb7835530db60251e2c05ca48f3f3b3519df1db556"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/attachments/synthetic-surface-screen-geometry-json-1baa30e96ff641cf591f9f7d0284c6f4e8a41fdc.json": {
+      "bytes": 6162,
+      "sha256": "44e317b99fe22dbf147c451866c89a891eb7cb0d24172931be6add6bb3a1db90"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-exposure-surface-context.json": {
+      "bytes": 1371,
+      "sha256": "6fed568d0752d4d5a3992704373d3933f5a702598a8349297883bb6d3de2caae"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-light-control-overview.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-ma-paint-contract.json": {
+      "bytes": 774,
+      "sha256": "d7b3f71dd560c6bbae346abadbfcda4ebdde45df7ebfa49acb4872668a839639"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-ma-strip-contract.json": {
+      "bytes": 1123,
+      "sha256": "3e0b12984fc0252e20cd6dc6f4ecf5bdebedfef1500349d07cdcee0a1d2cf9ed"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-main-chart-owner.json": {
+      "bytes": 73104,
+      "sha256": "3d4444b6c4f84b533da2a9d10b4836b39449988eb9d330618f97f573548c019c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-main-chart-reveal.json": {
+      "bytes": 156562,
+      "sha256": "f510ff12bab09593f90fdaed0838c37576342726db5e034b8c8c5f5556d340a8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-network-isolation.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-reference-badge-contract.json": {
+      "bytes": 234,
+      "sha256": "38b79a9483575e65c628bdeb7835530db60251e2c05ca48f3f3b3519df1db556"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-desktop/synthetic-surface-screen-geometry.json": {
+      "bytes": 6162,
+      "sha256": "44e317b99fe22dbf147c451866c89a891eb7cb0d24172931be6add6bb3a1db90"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-exposure-surface-context-json-58cae7c7639eaaee0254c3c89746e92f269d124c.json": {
+      "bytes": 2007,
+      "sha256": "52dd3cdd40bfeeab3ad392380de3a6a4b390f0c0577e60b7239acf1c94bd8c7e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-light-control-overview-json-156b63f2b653f337c215d23d1326f3c9c21d465d.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-ma-paint-contract-json-0365fda9da967eee95ff403ac1ee8587bb7f4e3d.json": {
+      "bytes": 770,
+      "sha256": "549a108cb1538da9a10d9e0982dc54c3392aa72845fa35ab9cf230e34cbf00fd"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-ma-paint-narrow320-json-552946f8f4ed2c88c532481d33dceecef61f283d.json": {
+      "bytes": 770,
+      "sha256": "a7ec793b9e662e7ba229c355dc04a7db21a8524f7af594b21beeb5cec512f2ef"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-ma-paint-restored390-json-29dc7446ab6a6f6458ccc3055873021c7caa17b2.json": {
+      "bytes": 770,
+      "sha256": "efdc7d91e8e3979beee8440f565e4b1c0a6f86f802b45cddee88123fd7826c5c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-ma-strip-contract-json-52af2c17be788cf3d4e322dc9065d05008d67441.json": {
+      "bytes": 1110,
+      "sha256": "7541dcbea8073f63b85da1ccd443e9ad20a12b36436bc2d1711415b0358efde7"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-ma-strip-narrow320-json-22e1f9015b4eae28f46a4f1d6feb55c53a5b3a4b.json": {
+      "bytes": 1098,
+      "sha256": "9d6f15d5201a03e3e6e85f52f39240e2b4d5b5964ec9107fe8a3cd6f1ae79f7d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-ma-strip-restored390-json-7fdecc137d5764aa6f9d75928c954dfe5226cedc.json": {
+      "bytes": 1110,
+      "sha256": "f78dc2a241aa96630ac33a12f689ec2ae964615da1afdd0056f596cae14499d5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-main-chart-owner-json-db4ccc2266d13a0f2b34018e8a98503fdd5336f7.json": {
+      "bytes": 73102,
+      "sha256": "f733367925536d46fa98384502ef7b4650e0141b67f1112d3cc2301aac72802a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-main-chart-reveal-json-02d2118e4a649002531529576908482e969ff08b.json": {
+      "bytes": 156558,
+      "sha256": "084e7eecefd8dded759d6e42dc7338de6d9bb64f0046d1acc46c768caf58cb10"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-network-isolation-json-7195cc3b9ab568cd91a26ba1902a63584c203433.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-reference-badge-chart-reference-exit-json-3fb989c1ba7e559dcb8bcb0100bc7029cb026fc7.json": {
+      "bytes": 303,
+      "sha256": "3d839e1f81c31fe68618d0cf689b1300220dc1003fe41c30b8aa3fec43899e21"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-reference-badge-chart-reference-fullscreen-json-1d2ace17b05eccf24637287b82993d26b4b3c3fa.json": {
+      "bytes": 296,
+      "sha256": "5a6f81bc9d0b6f738ca5d18c0eadc280ef1d8aefa6f1790b41931d9e7b546a54"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-reference-badge-chart-reference-narrow320-exit-json-2418f72d5901be29ddf3da407170f47bf1fdde76.json": {
+      "bytes": 305,
+      "sha256": "8151f24468ed515cb84e94e77aa9c56838e693fa51030ea1aa3d04a8a2f0980d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-reference-badge-chart-reference-narrow320-fullscreen-json-e942c3f94fd828cc3010a9a5b6c64d8cbe759434.json": {
+      "bytes": 297,
+      "sha256": "248c3ca994a41e3adccf984d616abd9df5799310e4f25027806c36b51ec5f716"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-reference-badge-contract-json-0c90d117941f5754c0e0171c0dbdd149473ee4cb.json": {
+      "bytes": 303,
+      "sha256": "3d839e1f81c31fe68618d0cf689b1300220dc1003fe41c30b8aa3fec43899e21"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-reference-badge-narrow320-json-7e4e3579c7bf0a13920c7d3cbbde3113a4f0553d.json": {
+      "bytes": 305,
+      "sha256": "8151f24468ed515cb84e94e77aa9c56838e693fa51030ea1aa3d04a8a2f0980d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-reference-badge-restored390-json-d4ffc077acab27b53905b6bac5730c4d4650d670.json": {
+      "bytes": 303,
+      "sha256": "3d839e1f81c31fe68618d0cf689b1300220dc1003fe41c30b8aa3fec43899e21"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/attachments/synthetic-surface-screen-geometry-json-5b20aa6c41abc3b3d5ed442a8f5972d9cb6ee1f8.json": {
+      "bytes": 5926,
+      "sha256": "a5e6201b2676330757d6e62f419bc5d49c628c9bf761b33348b79d43ff8a0011"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-exposure-surface-context.json": {
+      "bytes": 2007,
+      "sha256": "52dd3cdd40bfeeab3ad392380de3a6a4b390f0c0577e60b7239acf1c94bd8c7e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-light-control-overview.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-ma-paint-contract.json": {
+      "bytes": 770,
+      "sha256": "549a108cb1538da9a10d9e0982dc54c3392aa72845fa35ab9cf230e34cbf00fd"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-ma-paint-narrow320.json": {
+      "bytes": 770,
+      "sha256": "a7ec793b9e662e7ba229c355dc04a7db21a8524f7af594b21beeb5cec512f2ef"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-ma-paint-restored390.json": {
+      "bytes": 770,
+      "sha256": "efdc7d91e8e3979beee8440f565e4b1c0a6f86f802b45cddee88123fd7826c5c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-ma-strip-contract.json": {
+      "bytes": 1110,
+      "sha256": "7541dcbea8073f63b85da1ccd443e9ad20a12b36436bc2d1711415b0358efde7"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-ma-strip-narrow320.json": {
+      "bytes": 1098,
+      "sha256": "9d6f15d5201a03e3e6e85f52f39240e2b4d5b5964ec9107fe8a3cd6f1ae79f7d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-ma-strip-restored390.json": {
+      "bytes": 1110,
+      "sha256": "f78dc2a241aa96630ac33a12f689ec2ae964615da1afdd0056f596cae14499d5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-main-chart-owner.json": {
+      "bytes": 73102,
+      "sha256": "f733367925536d46fa98384502ef7b4650e0141b67f1112d3cc2301aac72802a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-main-chart-reveal.json": {
+      "bytes": 156558,
+      "sha256": "084e7eecefd8dded759d6e42dc7338de6d9bb64f0046d1acc46c768caf58cb10"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-network-isolation.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-reference-badge-chart-reference-exit.json": {
+      "bytes": 303,
+      "sha256": "3d839e1f81c31fe68618d0cf689b1300220dc1003fe41c30b8aa3fec43899e21"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-reference-badge-chart-reference-fullscreen.json": {
+      "bytes": 296,
+      "sha256": "5a6f81bc9d0b6f738ca5d18c0eadc280ef1d8aefa6f1790b41931d9e7b546a54"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-reference-badge-chart-reference-narrow320-exit.json": {
+      "bytes": 305,
+      "sha256": "8151f24468ed515cb84e94e77aa9c56838e693fa51030ea1aa3d04a8a2f0980d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-reference-badge-chart-reference-narrow320-fullscreen.json": {
+      "bytes": 297,
+      "sha256": "248c3ca994a41e3adccf984d616abd9df5799310e4f25027806c36b51ec5f716"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-reference-badge-contract.json": {
+      "bytes": 303,
+      "sha256": "3d839e1f81c31fe68618d0cf689b1300220dc1003fe41c30b8aa3fec43899e21"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-reference-badge-narrow320.json": {
+      "bytes": 305,
+      "sha256": "8151f24468ed515cb84e94e77aa9c56838e693fa51030ea1aa3d04a8a2f0980d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-reference-badge-restored390.json": {
+      "bytes": 303,
+      "sha256": "3d839e1f81c31fe68618d0cf689b1300220dc1003fe41c30b8aa3fec43899e21"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-mobile/synthetic-surface-screen-geometry.json": {
+      "bytes": 5926,
+      "sha256": "a5e6201b2676330757d6e62f419bc5d49c628c9bf761b33348b79d43ff8a0011"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-exposure-surface-context-json-76f6e2b42532092ead5af7ead075323a8ddd8531.json": {
+      "bytes": 1524,
+      "sha256": "2c5a651b4ddc373bfa2724bfb9d72308c767c227ba872a1377f9a8ded3401e31"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-light-control-overview-json-b5f5e68c7710bde8342fae61ccafc1b86ca47fcb.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-ma-paint-contract-json-09cd27d4e76903a0e5f7742b9e5ba4f9c2dd0ba8.json": {
+      "bytes": 754,
+      "sha256": "fda7368933e6910294bc29c8b3ff49022369165dfe585c4a091d3ee3a1c56413"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-ma-strip-contract-json-2091e0cfa3d7b5028cb7b76504042d2c7a420cab.json": {
+      "bytes": 1131,
+      "sha256": "a569462bcdf9ea46cb4d9612f74bc3eece698f3f7b3b2662af828775089a7f97"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-main-chart-owner-json-8fd01a45506e123cd600650685163f7b64fc8a7e.json": {
+      "bytes": 73102,
+      "sha256": "339aba53b837aa94aede15ed78941e4ac89c53308f000c3d83e4d18c02342cce"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-main-chart-reveal-json-dd7f9f310ad0fb0e4874ec889255a4a3329bd15f.json": {
+      "bytes": 156559,
+      "sha256": "40713690a4e1a7e08c2f41b1dcff5feca6ee4f6ff4b3b3e3887b41e81fb4b9af"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-network-isolation-json-4211f28e8c67d324bc201f49f8f85ecda033e5db.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-reference-badge-chart-reference-exit-json-a7e58619d1a674b5ceff6027326b4a589bdf44ca.json": {
+      "bytes": 296,
+      "sha256": "f73ad550fdc86650404a869eff63f25aa1883e65f0cba1005beb9a5295a86431"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-reference-badge-chart-reference-fullscreen-json-c5e32c6c31558884afbc8f739dd9c9e2b4a3b5e6.json": {
+      "bytes": 294,
+      "sha256": "0cc73e7872689581de529ca0ef92f5ceb96699ee62f5171dfbb28e8c5ed0884a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-reference-badge-contract-json-2f0076548e94cf5df8acbe4af65890b191e0a71f.json": {
+      "bytes": 296,
+      "sha256": "f73ad550fdc86650404a869eff63f25aa1883e65f0cba1005beb9a5295a86431"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/attachments/synthetic-surface-screen-geometry-json-7c1b783626714c1f7f2cb3f992477172dc8c2dbf.json": {
+      "bytes": 6137,
+      "sha256": "8adf2da7d119be61b25f1ea543ddf83dbe370fcfc5743bf914f2a31ba8c0f8a6"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-exposure-surface-context.json": {
+      "bytes": 1524,
+      "sha256": "2c5a651b4ddc373bfa2724bfb9d72308c767c227ba872a1377f9a8ded3401e31"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-light-control-overview.json": {
+      "bytes": 228,
+      "sha256": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-ma-paint-contract.json": {
+      "bytes": 754,
+      "sha256": "fda7368933e6910294bc29c8b3ff49022369165dfe585c4a091d3ee3a1c56413"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-ma-strip-contract.json": {
+      "bytes": 1131,
+      "sha256": "a569462bcdf9ea46cb4d9612f74bc3eece698f3f7b3b2662af828775089a7f97"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-main-chart-owner.json": {
+      "bytes": 73102,
+      "sha256": "339aba53b837aa94aede15ed78941e4ac89c53308f000c3d83e4d18c02342cce"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-main-chart-reveal.json": {
+      "bytes": 156559,
+      "sha256": "40713690a4e1a7e08c2f41b1dcff5feca6ee4f6ff4b3b3e3887b41e81fb4b9af"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-network-isolation.json": {
+      "bytes": 328,
+      "sha256": "036810d7a17fa9d5ebe3dcff80e56add3b6960f8baeb9f080b8033168e535283"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-reference-badge-chart-reference-exit.json": {
+      "bytes": 296,
+      "sha256": "f73ad550fdc86650404a869eff63f25aa1883e65f0cba1005beb9a5295a86431"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-reference-badge-chart-reference-fullscreen.json": {
+      "bytes": 294,
+      "sha256": "0cc73e7872689581de529ca0ef92f5ceb96699ee62f5171dfbb28e8c5ed0884a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-reference-badge-contract.json": {
+      "bytes": 296,
+      "sha256": "f73ad550fdc86650404a869eff63f25aa1883e65f0cba1005beb9a5295a86431"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-exposure-surface-j-ec069-exposure-surface-journey-zh-tablet/synthetic-surface-screen-geometry.json": {
+      "bytes": 6137,
+      "sha256": "8adf2da7d119be61b25f1ea543ddf83dbe370fcfc5743bf914f2a31ba8c0f8a6"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png": {
+      "bytes": 26017,
+      "sha256": "1a249ed56126c9274db96b71ce772445e49432054920afef29c787058672d7b6"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png": {
+      "bytes": 65985,
+      "sha256": "6e0b9a8f7b29177b5f05f6d9bb098df2c40bc9072936d274a94c9b90cf633e0e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png": {
+      "bytes": 25751,
+      "sha256": "ad1828ddf0ed1a9b847a9941feab9ec753ceb357d54986841bcf9a3a92359dd4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png": {
+      "bytes": 113192,
+      "sha256": "bec5564c04ee8455e4051d36a53c457db8ba876e6e8cb39c72b42ba084c48288"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png": {
+      "bytes": 23419,
+      "sha256": "d9bd75224e3306c98d60ac39adfc3207fc19b8e99610f7151010cee1a9f1dde8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png": {
+      "bytes": 112144,
+      "sha256": "01325582e57e2611b8f2faf1d2a295482ab8846fa1da497130a23bc0fb804c6a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png": {
+      "bytes": 26017,
+      "sha256": "1a249ed56126c9274db96b71ce772445e49432054920afef29c787058672d7b6"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png": {
+      "bytes": 65985,
+      "sha256": "6e0b9a8f7b29177b5f05f6d9bb098df2c40bc9072936d274a94c9b90cf633e0e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png": {
+      "bytes": 25751,
+      "sha256": "ad1828ddf0ed1a9b847a9941feab9ec753ceb357d54986841bcf9a3a92359dd4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png": {
+      "bytes": 113192,
+      "sha256": "bec5564c04ee8455e4051d36a53c457db8ba876e6e8cb39c72b42ba084c48288"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png": {
+      "bytes": 23419,
+      "sha256": "d9bd75224e3306c98d60ac39adfc3207fc19b8e99610f7151010cee1a9f1dde8"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png": {
+      "bytes": 112144,
+      "sha256": "01325582e57e2611b8f2faf1d2a295482ab8846fa1da497130a23bc0fb804c6a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png": {
+      "bytes": 64087,
+      "sha256": "b57d1f1542c11b52d13032c38bc46d432e3bcd067b34a038d8d1eca504a95ee9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png": {
+      "bytes": 81175,
+      "sha256": "2c398e7c2fedc390431a2621ce2a10b83940aa2ef2bd97693174bd44e499a30c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png": {
+      "bytes": 77072,
+      "sha256": "743f06ffbca2a5d91694f5ea93343fdc1f22f5762c846d63793c18901289b2e4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png": {
+      "bytes": 25777,
+      "sha256": "e0d840e5997ac216de42fca4f2ff72050b09d48d1f2f5bbcdbfece7007113fe1"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png": {
+      "bytes": 25520,
+      "sha256": "de5a7d5e52398829444225b61e5ab6124bfa809f8a42c8a20fbddcae96b044e7"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png": {
+      "bytes": 23301,
+      "sha256": "0c52c13e25ee9cb5d6df82cc0ca57a330d92befba7fc72d764a0ae4243472fe3"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--8cfbf-tage-and-withdrawal-zh-dark-desktop/question-zh-dark.png": {
+      "bytes": 16100,
+      "sha256": "90f9143ebd650080d152615706cf031d4ed13c2591e01a931d70d3344a46cf15"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--8cfbf-tage-and-withdrawal-zh-dark-mobile/question-zh-dark.png": {
+      "bytes": 16279,
+      "sha256": "4d42d2876a3fb1b3bec6599c85b2066b6005f43319a62f8d73040d438e6dc70d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--8cfbf-tage-and-withdrawal-zh-dark-tablet/question-zh-dark.png": {
+      "bytes": 15554,
+      "sha256": "77739c25573a8c25adaea0a332832f9f6633fc83571b705a1656236e5af9a3a5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--a14c0-age-and-withdrawal-en-light-desktop/question-en-light.png": {
+      "bytes": 8721,
+      "sha256": "1ef969a82549b22eecb0ca0387ca4c3bb678eaf00de2b70539cd69574f3735bf"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--a14c0-age-and-withdrawal-en-light-mobile/question-en-light.png": {
+      "bytes": 8172,
+      "sha256": "a4e6e17ff6b988f86165fa7f9b9b51a545033e6a8c7761854249eddad38effc5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--a14c0-age-and-withdrawal-en-light-tablet/question-en-light.png": {
+      "bytes": 9212,
+      "sha256": "6bedd147d27c76cad15bcda26f7c698e24076d86f31113a0476afeef6d456ec3"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--dd0b9-age-and-withdrawal-zh-light-desktop/question-zh-light.png": {
+      "bytes": 16006,
+      "sha256": "72fa74fe93723eafe76769ebba6a0ca55b2832cedbfe77e79df58c9441852966"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--dd0b9-age-and-withdrawal-zh-light-mobile/question-zh-light.png": {
+      "bytes": 16177,
+      "sha256": "df4577dabf2f97d7844b5f0fafb5d789dc437051a6cbb8a69b310b17e3ff6d91"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--dd0b9-age-and-withdrawal-zh-light-tablet/question-zh-light.png": {
+      "bytes": 16627,
+      "sha256": "1e6f670d8b4465745cf1c19b0eb9b6efb9ae318719cb371befeddd607c234a4a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--f13d9-tage-and-withdrawal-en-dark-desktop/question-en-dark.png": {
+      "bytes": 9020,
+      "sha256": "135f1a084ba0990c7a66658ae0aaac5785a3f656bb020f104a51ba4e7691d322"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--f13d9-tage-and-withdrawal-en-dark-mobile/question-en-dark.png": {
+      "bytes": 8496,
+      "sha256": "e570d09f63282520821e1e47bad779cd030b0ce3c0d51c2929e2176c7f258e1c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/options-research-question--f13d9-tage-and-withdrawal-en-dark-tablet/question-en-dark.png": {
+      "bytes": 8820,
+      "sha256": "df33bb1720f4f60bdbe3c00c5e204aa36addd963b3d68a767586866587b4303d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-execution.json": {
+      "bytes": 78987,
+      "sha256": "91bae85384c9ad74428eb8f15cf8d8e55a59153c6ffbdee20bce24944cf9badc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-report.json": {
+      "bytes": 1188773,
+      "sha256": "a9cdc1f4d178a2336b4fff0b5a29903ac5ed0e5d8b106ae502e28dc3aa86968f"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser.log": {
+      "bytes": 134328,
+      "sha256": "387c3fc671e5aca388dc9cf8f9a5ce84674aa683db36c01ffcff86405b12d4f2"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expected-cases.json": {
+      "bytes": 11340,
+      "sha256": "3a69f7a46af66fb722a01eb9c784a62a6fa43900c2baa19188e9fba4ef01e452"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/.last-run.json": {
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/desktop-en-expiry-charm-bars.png": {
+      "bytes": 178547,
+      "sha256": "7e8d96d05914d16f3dce1e38b0a9c8bfb0f4d93a4de4a392c81ad71fbc65937c"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/desktop-en-expiry-charm-drawer.png": {
+      "bytes": 160407,
+      "sha256": "fefa2983137c64809a709eba2d86114feeb5fdf1e5cc2bdebed04a08c7e280dc"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/desktop-en-expiry-vanna-bars.png": {
+      "bytes": 179646,
+      "sha256": "706eaf06535aeb421f516c440961cb3c9a0305b18533309b30fe232a05794ee5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/desktop-en-expiry-vanna-drawer.png": {
+      "bytes": 153057,
+      "sha256": "50df204213ff3b26068dad54c5aaff41eced9915445902a1b703cac5c230fe6a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/trace.zip": {
+      "bytes": 2906807,
+      "sha256": "17d7ea3bbd738e6253d4958f36900ee9e0f9d423957e946ee2c03346731f5401"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/mobile-en-expiry-charm-bars.png": {
+      "bytes": 58999,
+      "sha256": "265548235d94a0576a46cab8ef5fef427a435d292c9aca94af2590f0c322ba51"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/mobile-en-expiry-charm-drawer.png": {
+      "bytes": 52521,
+      "sha256": "dd66395998e1b31190f084e758e5ee542489e65dff921f77bd27e0c6f78a0591"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/mobile-en-expiry-vanna-bars.png": {
+      "bytes": 61900,
+      "sha256": "65d5c0af85a249da6f66a10e29fb0a196d006700bc0ba8be57e63a3675139c21"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/mobile-en-expiry-vanna-drawer.png": {
+      "bytes": 36940,
+      "sha256": "99818bbb7569fb1bf8444521a71a94e19c62265677f2577eaac56737b5037f99"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/trace.zip": {
+      "bytes": 1969980,
+      "sha256": "f0109e5cc8b49234670eb7992e66d600f0ce98feb76ebb40e6cf925977c50605"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-tablet/tablet-en-expiry-charm-bars.png": {
+      "bytes": 112208,
+      "sha256": "249f71e9120c5878009b75d68217ff6a7e41488383a00408c0163ee691010976"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-tablet/tablet-en-expiry-charm-drawer.png": {
+      "bytes": 72538,
+      "sha256": "20585dc176d4196035910f967d49539da82bfd095e81e4ac5f3c37ddecef1784"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-tablet/tablet-en-expiry-vanna-bars.png": {
+      "bytes": 113603,
+      "sha256": "b08b3599ff9502f5b2a11ee61b84f821d1395908c242ad0aa22d1d72e25453ac"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-tablet/tablet-en-expiry-vanna-drawer.png": {
+      "bytes": 66557,
+      "sha256": "03938ca6b39bd6d9fd02f701cc14434a624ba9b78d95c6292b6cc06a67d4a66b"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-tablet/trace.zip": {
+      "bytes": 1991255,
+      "sha256": "3e166e1de03c0edd8e2eeaebbc049e03d857f0d64277c185c8794812d987ca56"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-desktop/desktop-zh-expiry-charm-bars.png": {
+      "bytes": 205058,
+      "sha256": "c59b1f1a2d231acd6ddbb038cf9a99532ed55add9dc8d297355534aea5135894"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-desktop/desktop-zh-expiry-charm-drawer.png": {
+      "bytes": 176238,
+      "sha256": "798f9aea43343d1c7d298853eda0f7bd82a579e541403fea9ff26b6fcf7ec320"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-desktop/desktop-zh-expiry-vanna-bars.png": {
+      "bytes": 209638,
+      "sha256": "4acdf7f1e944132b1cc4b50a5717b111dcec724072e5b38edb9212efca3f3f25"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-desktop/desktop-zh-expiry-vanna-drawer.png": {
+      "bytes": 169776,
+      "sha256": "f7e1f93cbb6be2a86001784a3f2280188b163e5091d2b4c68716c9909a187054"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-desktop/trace.zip": {
+      "bytes": 2460166,
+      "sha256": "20fdcde1e3f367fb3c8955bccd976d94c60907d24de428b33dc810269079030a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/mobile-zh-expiry-charm-bars.png": {
+      "bytes": 65962,
+      "sha256": "5b2ab27aabcb9136b87fb86a088743c378cfd9074d7d75f619db3ad91ed5b0cb"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/mobile-zh-expiry-charm-drawer.png": {
+      "bytes": 65462,
+      "sha256": "12a34523e9ec257da1fefe16735f90628b4b581e17e17e5037f04b985583598e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/mobile-zh-expiry-vanna-bars.png": {
+      "bytes": 71733,
+      "sha256": "552884b4e8cd4a89722ebb536eaa11f4ae04a5357c510cd5a41fb20773a26077"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/mobile-zh-expiry-vanna-drawer.png": {
+      "bytes": 41813,
+      "sha256": "b002a1ff02a9e672470b14b6de3cf2da166515f2a03ac40da8956966aeb81361"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/trace.zip": {
+      "bytes": 1822573,
+      "sha256": "e47bcc94339603ac58bc5d9d7f9a532ebe18d955d81d20c666289117c646d4d3"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-tablet/tablet-zh-expiry-charm-bars.png": {
+      "bytes": 123455,
+      "sha256": "53c2775e4dfb28df32cebaa166f0928636e4173a04ecf77ef7f6564ad8d8bc3e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-tablet/tablet-zh-expiry-charm-drawer.png": {
+      "bytes": 89717,
+      "sha256": "31cae950b24a79cffeee1cf3f9b0d5d6e910ca2f3f1f6d3834dae9243a71f8c9"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-tablet/tablet-zh-expiry-vanna-bars.png": {
+      "bytes": 128308,
+      "sha256": "b99df80d91a4f2efebc7bd5b54dd23a5f894e9a12fb5843bf9e653578d450340"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-tablet/tablet-zh-expiry-vanna-drawer.png": {
+      "bytes": 85449,
+      "sha256": "f859d005484ce75be3dd370b01fa2a0fb4ee55294a7b485670bf161f8c65757e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-tablet/trace.zip": {
+      "bytes": 1873909,
+      "sha256": "c8bc589ea4021e2266db6f781f3c3ce689741b830e008cbdb9eb476bcad8307e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-desktop/desktop-expiry-vex-chex.png": {
+      "bytes": 193364,
+      "sha256": "fabf92190bb6843c5191099e0877dda4022fb532e5eb3506d77986d52bc2aa19"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-desktop/trace.zip": {
+      "bytes": 2000543,
+      "sha256": "759d482b893a245f93bf7f10fb035dfee4d4acee19cca8be3ee8aea865fd8cc3"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-mobile/mobile-expiry-vex-chex.png": {
+      "bytes": 79807,
+      "sha256": "e0a9c34b619cf8f4f1b631f74e1a498f59e17ef98d3c43e548ae69e52a09031e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-mobile/trace.zip": {
+      "bytes": 1417173,
+      "sha256": "157c4ef409a7cbc130255eb85d035d9e3ce33041b22aa700fcd8589acbe9a489"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-tablet/tablet-expiry-vex-chex.png": {
+      "bytes": 125213,
+      "sha256": "e7511573db58019d9a4a50d66e1a7dcfb8820085510e19e1ba2dd8173ee685c0"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/responsive-Exposure-desk-r-3b64f--the-enriched-owner-payload-tablet/trace.zip": {
+      "bytes": 1749525,
+      "sha256": "dd14e0aede374a2c0e252e1250a6e8708909eb43ef507cde6f013bb0a71f58d4"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-execution.json": {
+      "bytes": 9879,
+      "sha256": "741367414a51a009b56f1d19859d59d73794ab823e02554d9235a7b2ebc1b998"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-report.json": {
+      "bytes": 975095,
+      "sha256": "6d099131b8f44981fa45ad99c78d5df337bc836ba7c384f40f186921328ea0a5"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser.log": {
+      "bytes": 1969,
+      "sha256": "6ca2a89a6d381496dc88f107b2dfa16215e055680706a61029baa73a2cdfc5eb"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/expected-cases.json": {
+      "bytes": 831,
+      "sha256": "d2a4e70c26ecfee92787115d720ae6544c41bab21771bbf021b26971ac4e049a"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/lifecycle.json": {
+      "bytes": 1025,
+      "sha256": "3dc48aed7cf88906fd62d06731e6158b52c5425a22b64c3ce70ffd47906a66ec"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/qualification.json": {
+      "bytes": 11740,
+      "sha256": "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/source-after.json": {
+      "bytes": 446552,
+      "sha256": "6776d53923408ddb8568f86f47b3925effb134c2511757ccbfa66150ad392d72"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/source-before.json": {
+      "bytes": 446552,
+      "sha256": "6776d53923408ddb8568f86f47b3925effb134c2511757ccbfa66150ad392d72"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/lifecycle.json": {
+      "bytes": 1023,
+      "sha256": "2f16a8ee85b925173a9db737113f505ea2f78a16c917acb2268d2ee0252fc293"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/qualification.json": {
+      "bytes": 21671,
+      "sha256": "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/source-after.json": {
+      "bytes": 446552,
+      "sha256": "6776d53923408ddb8568f86f47b3925effb134c2511757ccbfa66150ad392d72"
+    },
+    "terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/source-before.json": {
+      "bytes": 446552,
+      "sha256": "6776d53923408ddb8568f86f47b3925effb134c2511757ccbfa66150ad392d72"
+    }
+  },
+  "schema": "exposure_r5_hosted_export_inventory.v1",
+  "workflowRunAttempt": "1",
+  "workflowRunId": "43000912478"
+}

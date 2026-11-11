@@ -1,0 +1,74 @@
+{
+  "baseRelationship": {
+    "ancestryExit": 0,
+    "fetchAttempted": true,
+    "fetchExit": 0,
+    "initialAncestryExit": 128,
+    "state": "EVENT_BASE_ANCESTOR"
+  },
+  "branchHead": "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93",
+  "browser": {
+    "expiry": {
+      "lifecycleSha256": "3dc48aed7cf88906fd62d06731e6158b52c5425a22b64c3ce70ffd47906a66ec",
+      "qualification": "expiry-journeys/qualification.json",
+      "sha256": "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e"
+    },
+    "joint": {
+      "lifecycleSha256": "2f16a8ee85b925173a9db737113f505ea2f78a16c917acb2268d2ee0252fc293",
+      "qualification": "qualification.json",
+      "sha256": "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d"
+    }
+  },
+  "capturedSourceTree": "1a825666dc49b30e3288f4bf4f9d69cce8248898",
+  "checkoutCommit": "cb9722189b1a37e742a10aeff0c86cf6f30be7bf",
+  "checkoutParents": [
+    "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+    "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93"
+  ],
+  "checkoutTree": "1a825666dc49b30e3288f4bf4f9d69cce8248898",
+  "exporter": "terminal/e2e/tools/qualify_r5_alignment_browser.py",
+  "exporterSha256": "51a56f988c76e8db33c6e8ff2e0a2af04c8cc33f3d98a8b929ceea8596c3d44e",
+  "history": {
+    "descriptorSha256": "077a5a84a160e64f340dc326ee834d9408d35b822782df16f8f70125b1b6abf2",
+    "expiryQualificationSha256": "caffdecc46531a7da8f0173f6ccde0b43db30be16c7e91a2b6970e789c2b32e7",
+    "jointQualificationSha256": "fdb68045af826d208615fd3b2d54955961053312ba57d60895fdfa116b394c12",
+    "roots": {
+      "eod": {
+        "path": "prior-roots/eod.EVIDENCE.yml",
+        "sha256": "e15b56f902accfb01d28ac63e7dd2c86ed8956765c0f8e0a6a799dd9c89f6e3e"
+      },
+      "gex": {
+        "path": "prior-roots/gex.EVIDENCE.yml",
+        "sha256": "c112249d1e79ec47b3ae7dbf2996fdc6f7c15727a3dbc540d7d96f0678263929"
+      }
+    }
+  },
+  "integratedDependency": "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+  "native": {
+    "eod": {
+      "descriptorSha256": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+      "revision": "options-integration-20261109"
+    },
+    "gex": {
+      "descriptorSha256": "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453",
+      "revision": "expiry-greeks-integration-20261110"
+    }
+  },
+  "observedEventBase": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "observedEventHead": "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93",
+  "operation": "pr646-r5-alignment-successor-20261111",
+  "protectedMaster": "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+  "rawExport": {
+    "inventory": "raw-export-inventory.json",
+    "sha256": "c55db437247c442129e8b26b27afdc082d80a0f206d2b59478f12de9e8affd19",
+    "validation": "docs/verification/pr646-r5-browser-ci-20261110/browser-validation.json",
+    "validationSha256": "44a790d2e846f8c6d0956ee060974167b8f56b890dd017528dd888cd19946207"
+  },
+  "revision": "r5-alignment-20261110",
+  "schema": "exposure_browser_successor.v1",
+  "shard": "serial",
+  "workflowJob": "terminal-e2e",
+  "workflowRunAttempt": "1",
+  "workflowRunId": "43000912478",
+  "workflowUrl": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43000912478"
+}

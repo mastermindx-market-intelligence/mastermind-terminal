@@ -1,0 +1,47 @@
+{
+  "baseRelationship": {
+    "ancestryExit": 0,
+    "fetchAttempted": true,
+    "fetchExit": 0,
+    "initialAncestryExit": 128,
+    "state": "EVENT_BASE_ANCESTOR"
+  },
+  "branchHead": "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93",
+  "checkoutCommit": "cb9722189b1a37e742a10aeff0c86cf6f30be7bf",
+  "checkoutParents": [
+    "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+    "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93"
+  ],
+  "checkoutTree": "1a825666dc49b30e3288f4bf4f9d69cce8248898",
+  "completedAt": "2026-11-11T10:49:47.342778+00:00",
+  "exporter": "terminal/e2e/tools/qualify_r5_alignment_browser.py",
+  "exporterSha256": "51a56f988c76e8db33c6e8ff2e0a2af04c8cc33f3d98a8b929ceea8596c3d44e",
+  "integratedDependency": "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+  "observedEventBase": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "observedEventHead": "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93",
+  "protectedMaster": "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+  "results": {
+    "expiry": {
+      "artifacts": 37,
+      "passed": 9,
+      "qualificationSha256": "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e",
+      "seconds": 65.24,
+      "state": "CAPTURE_QUALIFIED_PENDING_SUCCESSOR_READER"
+    },
+    "integration": {
+      "artifacts": 374,
+      "passed": 144,
+      "qualificationSha256": "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d",
+      "seconds": 1261.64,
+      "state": "CAPTURE_QUALIFIED_PENDING_SUCCESSOR_READER"
+    }
+  },
+  "schema": "terminal_pr646_browser_successor_validation.v1",
+  "shard": "serial",
+  "startedAt": "2026-11-11T10:27:33.486598+00:00",
+  "state": "BROWSER_PROOFS_QUALIFIED_PENDING_SUCCESSOR_READER",
+  "workflowJob": "terminal-e2e",
+  "workflowRunAttempt": "1",
+  "workflowRunId": "43000912478",
+  "workflowUrl": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43000912478"
+}
