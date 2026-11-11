@@ -1,0 +1,250 @@
+{
+  "operation": "terminal-pr-duty-20261110-1232-breadth-current-web4",
+  "sourceHead": "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd",
+  "sourceTree": "1ddc20b2bcc258a4ce1b5f3ff09f4c395b52efe1",
+  "protectedBase": "ea8630f1b059dea7c57eae1a844db9f8b9201b97",
+  "startedAt": "2026-11-10T15:55:51.646877+00:00",
+  "state": "CHECKS_STOPPED",
+  "steps": [
+    {
+      "name": "npm-ci",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/lib/node_modules/npm/bin/npm-cli.js",
+        "ci",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "startedAt": "2026-11-10T15:55:55.629276+00:00",
+      "producerPid": 3603,
+      "exit": 0,
+      "seconds": 28.801,
+      "finishedAt": "2026-11-10T15:56:24.434526+00:00",
+      "logSha256": "c5c46a766bdd498c04010acd0b38bdeac149c09843f77d550470b786da74a396",
+      "observedPids": [
+        3603,
+        5561,
+        5563,
+        5567,
+        5571,
+        5572,
+        5573,
+        5899,
+        6019,
+        6081,
+        6110
+      ],
+      "observedGroups": [
+        3603
+      ],
+      "remainingGroups": []
+    },
+    {
+      "name": "focused-vitest",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/sectorBreadth.test.ts",
+        "lib/__tests__/sectorCentralDiscovery.test.tsx",
+        "lib/__tests__/sectorDepthReturn.test.ts",
+        "lib/__tests__/sectorPortfolioContext.test.ts",
+        "lib/__tests__/sectorAmalgamationNavigation.test.ts",
+        "lib/__tests__/sectorNativeJobs.test.ts",
+        "lib/__tests__/sectorWorkspaceRefresh.test.tsx",
+        "lib/__tests__/sectorNativeGeneration.test.ts",
+        "lib/__tests__/sectorDossiers.test.ts",
+        "lib/__tests__/sectorDossiersValidator.test.ts",
+        "--reporter=json",
+        "--outputFile=/tmp/mastermind-terminal-pr1232-current-qualification-20261110/vitest.json"
+      ],
+      "startedAt": "2026-11-10T15:56:24.447048+00:00",
+      "producerPid": 6290,
+      "exit": 0,
+      "seconds": 32.204,
+      "finishedAt": "2026-11-10T15:56:56.653260+00:00",
+      "logSha256": "0979c663dba6b8cda15824d20e3616f8c416a0585c14fc4e89223031eb1fb630",
+      "observedPids": [
+        6290,
+        6388,
+        6406,
+        6407,
+        6408,
+        6410,
+        6411,
+        6412,
+        6413,
+        6414,
+        6415,
+        6416,
+        6417,
+        6418,
+        6419,
+        6420,
+        6422,
+        6426,
+        6430,
+        6431,
+        6432,
+        6433,
+        6436,
+        6437,
+        6438,
+        6719,
+        6746,
+        6770,
+        6792,
+        6807,
+        6815,
+        6824,
+        7082,
+        7165,
+        7403
+      ],
+      "observedGroups": [
+        6290
+      ],
+      "remainingGroups": []
+    },
+    {
+      "name": "next-typegen",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "startedAt": "2026-11-10T15:56:56.657931+00:00",
+      "producerPid": 8770,
+      "exit": 0,
+      "seconds": 5.19,
+      "finishedAt": "2026-11-10T15:57:01.848298+00:00",
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "observedPids": [
+        8770
+      ],
+      "observedGroups": [
+        8770
+      ],
+      "remainingGroups": []
+    },
+    {
+      "name": "full-typecheck",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "startedAt": "2026-11-10T15:57:01.848999+00:00",
+      "producerPid": 9564,
+      "exit": 0,
+      "seconds": 164.145,
+      "finishedAt": "2026-11-10T15:59:45.993792+00:00",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "observedPids": [
+        9564
+      ],
+      "observedGroups": [
+        9564
+      ],
+      "remainingGroups": []
+    },
+    {
+      "name": "affected-eslint",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/sector-intelligence/BreadthRotationGroups.tsx",
+        "components/sector-intelligence/BreadthSectorDetail.tsx",
+        "components/sector-intelligence/SectorBreadthBoard.tsx",
+        "components/sector-intelligence/SectorCentralDiscovery.tsx",
+        "components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "e2e/sector-breadth.spec.ts",
+        "e2e/tools/qualify_sector_discovery.cjs",
+        "lib/__tests__/sectorBreadth.test.ts",
+        "lib/__tests__/sectorCentralDiscovery.test.tsx",
+        "lib/__tests__/sectorDepthReturn.test.ts",
+        "lib/__tests__/sectorNativeJobs.test.ts",
+        "lib/__tests__/sectorPortfolioContext.test.ts",
+        "lib/sectorBreadth.ts",
+        "lib/sectorIntelligence.ts"
+      ],
+      "startedAt": "2026-11-10T15:59:46.047460+00:00",
+      "producerPid": 21737,
+      "exit": 1,
+      "seconds": 14.34,
+      "finishedAt": "2026-11-10T16:00:00.387846+00:00",
+      "logSha256": "9d112ad138e0d59aaf33fa9e1f5546695a5be12fba01150f68b16726416d083b",
+      "observedPids": [
+        21737
+      ],
+      "observedGroups": [
+        21737
+      ],
+      "remainingGroups": []
+    }
+  ],
+  "inputCount": 6518,
+  "inputScope": "All tracked Terminal text/source/evidence files with declared extensions; complete source tree and tracked-clean checks additionally bind the checkout.",
+  "nodeVersion": "v22.23.4",
+  "npmVersion": "10.9.9",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "packageBefore": {
+    "package.json": "0d193d6d0a7685f7ca40ad441c482028cea7e1074d3eea38f9ff1c1525788b91",
+    "package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+  },
+  "nextEnvInitiallyPresent": false,
+  "setupRecovery": {
+    "earlierFailure": "FileNotFoundError for untracked next-env.d.ts before any producer/test dispatch",
+    "sameNativeProducerPath": true,
+    "preexistingInputManifestOnly": true
+  },
+  "packageAfterInstall": {
+    "package.json": "0d193d6d0a7685f7ca40ad441c482028cea7e1074d3eea38f9ff1c1525788b91",
+    "package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+  },
+  "testFiles": [
+    "lib/__tests__/sectorBreadth.test.ts",
+    "lib/__tests__/sectorCentralDiscovery.test.tsx",
+    "lib/__tests__/sectorDepthReturn.test.ts",
+    "lib/__tests__/sectorPortfolioContext.test.ts",
+    "lib/__tests__/sectorAmalgamationNavigation.test.ts",
+    "lib/__tests__/sectorNativeJobs.test.ts",
+    "lib/__tests__/sectorWorkspaceRefresh.test.tsx",
+    "lib/__tests__/sectorNativeGeneration.test.ts",
+    "lib/__tests__/sectorDossiers.test.ts",
+    "lib/__tests__/sectorDossiersValidator.test.ts"
+  ],
+  "vitest": {
+    "numTotalTests": 361,
+    "numPassedTests": 361,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "numTodoTests": 0,
+    "success": true
+  },
+  "lintFiles": [
+    "components/sector-intelligence/BreadthRotationGroups.tsx",
+    "components/sector-intelligence/BreadthSectorDetail.tsx",
+    "components/sector-intelligence/SectorBreadthBoard.tsx",
+    "components/sector-intelligence/SectorCentralDiscovery.tsx",
+    "components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+    "e2e/sector-breadth.spec.ts",
+    "e2e/tools/qualify_sector_discovery.cjs",
+    "lib/__tests__/sectorBreadth.test.ts",
+    "lib/__tests__/sectorCentralDiscovery.test.tsx",
+    "lib/__tests__/sectorDepthReturn.test.ts",
+    "lib/__tests__/sectorNativeJobs.test.ts",
+    "lib/__tests__/sectorPortfolioContext.test.ts",
+    "lib/sectorBreadth.ts",
+    "lib/sectorIntelligence.ts"
+  ],
+  "error": "STEP_NOT_QUALIFIED affected-eslint",
+  "generatedTypeRestoration": [],
+  "changedInputs": [],
+  "inputHashesStable": true,
+  "headAfter": "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd",
+  "trackedStatusAfter": "",
+  "finishedAt": "2026-11-10T16:00:02.944524+00:00"
+}

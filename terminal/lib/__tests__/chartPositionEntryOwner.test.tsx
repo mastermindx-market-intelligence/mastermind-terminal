@@ -130,6 +130,9 @@ async function remount(props: ShellProps) {
 }
 async function openForm(testid = "open") {
   await act(async () => { (container.querySelector(`[data-testid="${testid}"]`) as HTMLButtonElement).click(); });
+  // The controller stays mounted while its real form loads on demand. Settle that
+  // module boundary before driving the form; do not replace the form with a mock.
+  await act(async () => { await vi.dynamicImportSettled(); });
   await flush();
 }
 function dialog() { return container.querySelector<HTMLDialogElement>("dialog"); }

@@ -1,0 +1,22 @@
+{
+  "source": "18a0cbd8014cd5a064e4107c624de2d75322d9f2",
+  "tree": "c9b195be4e8afd061865fb56a365e819c837cd13",
+  "protected": "6694f9bab28fa3c950c7bd5ec0a5957e736a4708",
+  "publicHead": "34b232f1ffd62e6bdcc5712c307a38cb93a52ee2",
+  "paths": {
+    "terminal/components/EventImpactPanel.tsx": "5ede8b3306e4147831d40c5517f572028d60f79a",
+    "terminal/e2e/tools/qualify_shared_shell_intelligence.cjs": "68390da6ea7e4083ac1d11af5dbbe27b01f62904",
+    "terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx": "9f1f0235df9d4cb37604d47b28ff066ef3ef9ab5",
+    "terminal/lib/__tests__/nextConfigDevIndicator.test.ts": "21f0a9c66037c457020368ef87724f09c8adedd9",
+    "terminal/lib/__tests__/prophetFixtureReadiness.test.tsx": "0160ee26673fd1f7b8b56423281c285df47d2130",
+    "terminal/next.config.ts": "98a50a5d764ad7071f3b8873189255c49162b08a",
+    "terminal/package-lock.json": "43172affa9516ddcbd6e8f7a59bb54888baa7e3b",
+    "terminal/package.json": "d9a47a03bfda0b9f539903b1c545cfbfec241d20"
+  },
+  "originalPostimagesPreserved": {
+    "terminal/package.json": true,
+    "terminal/package-lock.json": true,
+    "terminal/lib/__tests__/prophetFixtureReadiness.test.tsx": true
+  },
+  "publication": "NO_PR_REF_CAS_STARTED_PENDING_ACTIVE_OWNER_SIX_PATH_JOIN"
+}

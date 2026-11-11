@@ -1,0 +1,175 @@
+{
+  "after": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3561",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:58:48.381720+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "observedAt": "2026-11-09T15:58:48.386991+00:00",
+      "state": "fileAbsent"
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T15:58:49.505870+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "43932",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:58:48.386892+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "before": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3561",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:58:43.434148+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:58:44.913048+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T15:58:45.996704+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "43932",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:58:43.441694+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-09T15:58:49.507261+00:00",
+  "immediatelyBeforeUnlink": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3561",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:58:46.127237+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:58:47.171502+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T15:58:48.247280+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "43932",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:58:46.135637+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "initialLock": {
+    "content": {
+      "appUrl": "http://localhost:3561",
+      "hostname": "localhost",
+      "pid": 43932,
+      "port": 3561,
+      "startedAt": 1794239337626
+    },
+    "dev": 16777252,
+    "ino": 343774557,
+    "mtimeNs": 1794239337626738499,
+    "sha256": "be89092998ec627530dfe0fcb02683d3c224f83dd78f7db299ce7e1703a80e3a",
+    "size": 107
+  },
+  "initialLockPresent": true,
+  "label": "drawing-save-concurrency",
+  "schema": "terminal_pr654_drawing_lifecycle_reconciliation.v1",
+  "startedAt": "2026-11-09T15:58:43.296397+00:00",
+  "state": "STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED"
+}

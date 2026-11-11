@@ -1,0 +1,27 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[warmup] /terminal?symbol=NVDA → 200 in 67ms
+[warmup] /options → 200 in 134ms
+[warmup] /portfolio → 200 in 135ms
+[warmup] /alerts → 200 in 70ms
+[warmup] /analysis → 200 in 138ms
+[warmup] /discover → 200 in 79ms
+[warmup] /admin → 200 in 41ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 42ms
+[warmup] /login → 200 in 47ms
+[warmup] /reset-password → 200 in 67ms
+[warmup] /api/me → 200 in 50ms
+[warmup] /api/watchlist → 200 in 24ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 22ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 113ms
+
+Running 4 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/chart-go-to-date-polish.spec.ts:5:7 › en: go-to-date supports deliberate focus, dismissal and command handoff (8.2s)
+  ✓  2 [desktop] › e2e/chart-go-to-date-polish.spec.ts:5:7 › zh: go-to-date supports deliberate focus, dismissal and command handoff (6.4s)
+  ✓  3 [desktop] › e2e/chart-shortcut-ownership.spec.ts:51:7 › en: keyboard navigation belongs to the active chart and current control (14.2s)
+  ✓  4 [desktop] › e2e/chart-shortcut-ownership.spec.ts:51:7 › zh: keyboard navigation belongs to the active chart and current control (13.2s)
+
+  4 passed (46.4s)

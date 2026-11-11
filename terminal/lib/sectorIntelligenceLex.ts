@@ -1,6 +1,7 @@
 "use client";
 import { useCallback } from "react";
 import { useLang, useT } from "./i18n";
+import type { FollowState } from "./investigationFollow";
 /** Feature-local EN/ZH tuples. Language state remains the shared LangProvider.
  * Keeping feature copy out of global LEX avoids loading this workspace on every
  * route and preserves unrelated screen evidence. No mutable registration/store.
@@ -213,6 +214,12 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siSnapshotDate: ["Market as-of", "市场数据截至"], siFetched: ["Fetched at", "抓取时间"],
   siReceipt: ["Technical receipt", "技术凭据"], siSourcePath: ["Owner path", "来源路径"],
   siHash: ["Snapshot SHA-256", "快照SHA-256"], siFeedSector: ["Sector Central", "板块中心"],
+  siFeedGeneration: ["Leadership evidence", "领涨证据"],
+  siGenerationPublished: ["Generation published", "版本发布时间"],
+  siGenerationSource: ["Generation source", "版本来源"],
+  siGenerationHash: ["Generation content SHA-256", "版本内容SHA-256"],
+  siGenerationStale: ["The source marks this generation as stale. Check the source date before using these measurements.", "来源将此版本标记为陈旧。使用这些测量前，请核对来源日期。"],
+  siGenerationDegraded: ["The source reports degraded evidence for this generation. Check its qualifications before using these measurements.", "来源将此版本的证据标记为降级。使用这些测量前，请核对其限制说明。"],
   siFeedConfluence: ["Subsector confluence", "子行业共振"], siFeedThemes: ["Theme state", "主题状态"],
   siFeedFinviz: ["Finviz themes (internal)", "Finviz 主题（内部）"],
   siFeedRisk: ["Market backdrop and rotation", "市场背景与轮动"],
@@ -529,6 +536,182 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siConstituentEvidenceFeedUnqualified: ["The sector fund holdings source was not qualified.", "板块基金持仓来源未通过校验。"],
   siConstituentEvidenceNoFund: ["This sector has no listed fund holdings.", "该板块没有已列出的基金持仓。"],
   siConstituentEvidenceNoMembers: ["This fund lists no holding.", "该基金没有列出持仓。"],
+
+  // Native Sector Intelligence jobs (Paper R4: S01 Brief, S02 Explore, S03 dossier, L01 light ZH).
+  // Every sentence states what the admitted generation measured or why a panel is absent —
+  // the fixture's tiny synthetic values are rendered exactly, never specimen numbers.
+  siNativeBreadcrumb: ["Markets / United States", "市场 / 美国"],
+  siNativeRegionUs: ["United States", "美国"],
+  siNativeCloseSuffix: ["· Close", "· 收盘"],
+  siNativeTitle: ["Sector Intelligence", "板块情报"],
+  siNativeJobTabs: ["Sector Intelligence views", "板块情报视图"],
+  siNativeJobBrief: ["Brief", "简报"],
+  siNativeJobExplore: ["Explore", "探索"],
+  siNativeJobResearch: ["Research", "研究"],
+  siNativeJobWatches: ["Watches", "关注"],
+  siNativeCycles: ["Cycles", "周期"],
+  siNativeSavePending: ["Saving, watching and notes are not connected yet.", "板块保存、关注与笔记尚未连接。"],
+  siNativeComparePending: ["A rotation comparison is unavailable.", "一项轮动比较暂不可用。"],
+  siNativeBreadthMissing: ["Constituent membership is not supplied by this source.", "此来源未提供成分股名单。"],
+  siNativeSources: ["Sources and method", "来源与方法"],
+
+  siBriefHeroLead: ["{sector} leads.", "{sector}领先。"],
+  siBriefHeroSub: ["{sector} and {second} lead the 63-session comparison.", "{sector}与{second}在63日比较中领先。"],
+  siBriefLeadOverBenchmark: ["Lead over {benchmark} · 63 sessions", "领先{benchmark} · 63个交易日"],
+  siBriefSectorsAhead: ["Sectors ahead of {benchmark}", "领先{benchmark}的板块"],
+  siBriefOfMeasured: ["{ahead} of {measured}", "{measured}个中的{ahead}个"],
+  siBriefDataStatus: ["Data status", "数据状态"],
+  siBriefSectorWindowFoot: ["Sectors · 63 trading sessions", "板块 · 63个交易日"],
+  siBriefMeasuredFoot: ["{measured} sectors measured · total return vs {benchmark}", "已测量{measured}个板块 · 总回报相对{benchmark}"],
+  siBriefExplore: ["Explore sectors", "探索板块"],
+  siBriefLeaders: ["Leaders and laggards", "领先与落后"],
+  siBriefLeadersFoot: ["63 trading sessions · total return vs {benchmark}", "63个交易日 · 总回报相对{benchmark}"],
+  siBriefChartNote: ["Relative wealth growth vs {benchmark}.", "相对{benchmark}财富增长。"],
+  siBriefLeadersShown: ["{shown} shown · {measured} measured", "展示{shown}个 · 已测量{measured}个"],
+  siBriefAllSectors: ["All sectors", "全部板块"],
+  siBriefWorthALook: ["Worth a closer look", "值得深入查看"],
+  siBriefWindowsDisagree: ["Windows disagree", "区间表现不同"],
+  siBriefLookDivergeCopy: ["{sector} leads one measured window and lags the other.", "{sector}在一个区间领先，在另一个区间落后。"],
+  siBriefLaggingBothCopy: ["Lagging {benchmark} in both windows.", "两个区间均落后{benchmark}。"],
+  siBriefCompareWindows: ["Compare windows", "比较区间"],
+  siBriefLookNone: ["No measured sector disagrees between its 21- and 63-session windows.", "已测量板块的21日与63日区间方向一致。"],
+  siBriefNext: ["Continue investigating", "继续调查"],
+  siBriefInvestigateCyclesCopy: ["Confirmed turns live in the rotation map.", "已确认拐点位于轮动图。"],
+  siBriefInvestigateCyclesAction: ["See confirmed turns", "查看已确认拐点"],
+  siBriefInvestigateWatches: ["My watches", "我的关注"],
+  siBriefInvestigateWatchesCopy: ["Saved sector context is not connected yet.", "已保存的板块上下文尚未连接。"],
+  siBriefInvestigateWatchesAction: ["Reopen saved context", "重看已存上下文"],
+  siBriefInvestigateResearch: ["Sector research", "行业研究"],
+  siBriefInvestigateResearchCopy: ["The research surface is not connected yet.", "研究界面尚未连接。"],
+  siBriefInvestigateResearchAction: ["Open research", "打开研究"],
+
+  siExploreColSector: ["Sector", "板块"],
+  siExploreCol63: ["63 sessions ↓", "63个交易日 ↓"],
+  siExploreCol21: ["21 sessions", "21个交易日"],
+  siExploreColParticipation: ["Rising · 1M", "上涨 · 1个月"],
+  siExploreFoot: ["{measured} measured of {expected} · source order", "已测量{measured}个，共{expected}个 · 来源顺序"],
+  siExploreSelectSector: ["Select sector: {sector}", "选择板块：{sector}"],
+  siExploreSelected: ["Selected", "已选择"],
+  siExploreInspector: ["Selected sector", "所选板块"],
+  siExploreNoneSelected: ["Select a sector to inspect it.", "选择板块以查看详情。"],
+  siExploreViewSector: ["View sector", "查看板块"],
+  siExploreRank: ["No. {rank} of {measured} · 63 sessions", "63个交易日第{rank}名 · 共{measured}个"],
+  siExploreUnmeasured: ["Not measured", "未测量"],
+
+  siSectorDossierBack: ["Back to US sectors", "返回美国板块"],
+  siSectorDossierSub: ["{ticker} sector proxy · relative wealth vs {benchmark}, total return", "{ticker}板块代理 · 相对{benchmark}的财富变化 · 总回报"],
+  siSectorDossierTabs: ["Sector dossier views", "板块档案视图"],
+  siSectorDossierAheadBoth: ["Ahead of {benchmark} in both measured windows.", "两个已测量区间均领先{benchmark}。"],
+  siSectorDossierBehindBoth: ["Behind {benchmark} in both measured windows.", "两个已测量区间均落后{benchmark}。"],
+  siSectorDossierWindowsDisagree: ["The measured windows disagree — read them separately.", "两个已测量区间方向不同，请分别解读。"],
+  siSectorDossierParticipation: ["Constituent participation", "成分股参与度"],
+  siSectorDossierExactFoot: ["Coverage shows observed/expected session observations per window.", "覆盖度为各区间已观测/预期的交易日观测数。"],
+  siSectorDossierResearch: ["Research questions", "研究问题"],
+  siSectorDossierCompaniesCopy: ["The native source does not supply constituent membership, so no company rows are shown.", "此来源未提供成分股名单，因此未显示公司行。"],
+  siSectorDossierCyclesCopy: ["The cycles lens is not connected yet; the live rotation map remains available.", "周期透镜尚未连接，实时轮动图仍可用。"],
+  siSectorDossierOpenRotation: ["Open the rotation map", "打开轮动图"],
+
+  /* Lane 6 — save / watch / note action copy (appended verbatim from
+     returns/lane6.md; the props-only components receive these as copy records). */
+  siActionSave: ["Save", "保存"],
+  siActionSaving: ["Saving…", "保存中…"],
+  siActionUnconfirmed: ["Save unconfirmed", "保存未确认"],
+  siActionRetry: ["Retry", "重试"],
+  siActionSaved: ["Saved revision {r}", "已保存版本 {r}"],
+  siActionRejected: ["Not saved: {reason}", "未保存：{reason}"],
+  siActionSignedOut: ["Sign in to save", "登录后保存"],
+  siActionCheck: ["Check save status", "检查保存状态"],
+  siActionChecking: ["Checking…", "检查中…"],
+  siActionCommitted: ["Committed revision {r}", "已提交版本 {r}"],
+  siActionStillUnconfirmed: ["Still unconfirmed", "仍未确认"],
+  siWatchDirection: ["Direction", "方向"],
+  siWatchThreshold: ["Price threshold", "价格阈值"],
+  siWatchArm: ["Watch", "监测"],
+  siWatchArming: ["Arming…", "创建中…"],
+  siWatchArmed: ["Watching {symbol} · {plain}", "正在监测 {symbol} · {plain}"],
+  siWatchUnavailable: ["Alerts unavailable right now; nothing was armed.", "提醒系统暂不可用；未创建任何监测。"],
+  siNoteTitle: ["Note", "笔记"],
+  siNotePlaceholder: ["Note on this reading", "对这次阅读的笔记"],
+  siNoteSaved: ["Saved", "已保存"],
+  siNoteConflict: ["Changed elsewhere: {text}", "已在别处修改：{text}"],
+  siNoteInvalid: ["Note not accepted", "笔记未被接受"],
+  siNotePending: ["Not synced yet — kept as a draft", "尚未同步——已保留为草稿"],
+  siActionsCard: ["Keep this reading", "保存这次阅读"],
+  siPopulationTitle: ["Basket members", "篮子成员"],
+  siPopulationIntro: ["Measured members of the curated baskets, as carried by the sector generation. This sector's own constituent list is not produced yet.", "由行业生成源携带的精选篮子已测量成员。此行业自身的成分股名单尚未产出。"],
+  siPopulationCounts: ["Measured {served} of {configured} configured members", "已测量 {served} / {configured} 名配置成员"],
+  siPopulationCountsNotStated: ["Measured {served} members · configured roster not stated by the owner", "已测量 {served} 名成员 · 所有者未给出配置名单"],
+  siPopulationCountsUnserved: ["{n} owner-explained unserved", "{n} 名未测量（所有者已说明）"],
+  siPopulationCountsUnaccounted: ["{n} unaccounted", "{n} 名未说明"],
+  siPopulationGroups: ["{n} groups", "{n} 个分组"],
+  siPopulationAsOf: ["observed {session}", "观察于 {session}"],
+  siPopulationGroupLabel: ["Group", "分组"],
+  siPopulationGroupAll: ["All groups", "全部分组"],
+  siPopulationGroupOption: ["{name} · {n} listed", "{name} · 已列 {n} 名"],
+  siPopulationRefusedGroupOption: ["{name} · refused by owner", "{name} · 所有者已拒绝"],
+  // N-B (r2): a group the owner did not name reads as unnamed — never its raw id.
+  siPopulationGroupNameUnnamed: ["Unnamed group", "未命名分组"],
+  siPopulationSearchLabel: ["Search symbol or name", "搜索代码或名称"],
+  siPopulationSearchSubmit: ["Search", "搜索"],
+  siPopulationSearchClear: ["Clear", "清除"],
+  siPopulationSearchInvalid: ["Search accepts letters, digits, spaces and . & ' - characters, up to 64.", "搜索仅接受字母、数字、空格及 . & ' - 字符，最长 64 位。"],
+  siPopulationRefusedBanner: ["Refused by the group owner: the members of this basket are unmeasured, not missing.", "该篮子所有者拒绝观察：成员未测量，并非缺失。"],
+  siPopulationCursorReset: ["The member list changed while paging; restarted from the first page.", "翻页时成员名单已变化；已从第一页重新开始。"],
+  siPopulationColumnSymbol: ["Symbol", "代码"],
+  siPopulationColumnName: ["Name", "名称"],
+  siPopulationColumnGroupName: ["Group", "分组"],
+  siPopulationColumnIndustry: ["Industry (GICS)", "行业（GICS）"],
+  siPopulationColumnSubIndustry: ["Sub-industry", "子行业"],
+  siPopulationColumnMemberSince: ["Effective on", "生效日"],
+  siPopulationColumnAlsoIn: ["Also in", "同时属于"],
+  siPopulationColumnReason: ["Reason", "原因"],
+  siPopulationTaxonomyNotClassified: ["Not in current classification", "不在当前分类中"],
+  siPopulationTaxonomyNotProduced: ["Not produced for this reading", "本次读取未产出"],
+  // SF-4 (r2): an unavailable taxonomy value never shows the owner's raw
+  // reason code. The wire's row-level reasons are exactly
+  // not_in_current_classification and not_produced (LANE1_WIRE_V11 §2); both
+  // map to their own copy, and anything else reads this generic pair — the
+  // reason code is not a reader-facing word on either surface.
+  siPopulationTaxonomyUnavailable: ["Unavailable", "不可用"],
+  siPopulationMemberSinceCurrent: ["Current", "当前"],
+  siPopulationShown: ["Showing {shown} of {total} matching.", "显示 {shown} / {total} 个匹配项。"],
+  siPopulationLoadMore: ["Load more", "加载更多"],
+  siPopulationPageFailed: ["Could not load more members.", "无法加载更多成员。"],
+  siPopulationUnservedTitle: ["Accounted but unmeasured ({n})", "已计入但未测量（{n}）"],
+  siPopulationUnservedNote: ["These members belong to a basket but have no measured reading; they are never hidden from the counts.", "这些成员属于某个篮子但没有测量读数；计数中从不隐藏他们。"],
+  siPopulationUnservedMatchingNote: ["Unserved members matching this search.", "匹配此搜索的未测量成员。"],
+  siPopulationReasonAbsentPanel: ["Absent from price panel", "不在价格面板中"],
+  siPopulationReasonNotObserved: ["Not observed at the effective date", "在生效日期未被观察"],
+  siPopulationReasonOwnerRefused: ["Group refused by owner observation", "分组被所有者拒绝观察"],
+  siPopulationReasonUnaccounted: ["Unaccounted by owner", "所有者未说明"],
+  siPopulationMoreHidden: ["+{n} more not shown here.", "另有 {n} 名未在此显示。"],
+  siPopulationRemovedNote: ["{n} members removed before this observation (list {version}) are not shown as gaps.", "{n} 名成员在本观察前已被移除（名单版本 {version}），不会显示为空缺。"],
+  siPopulationRemovedUnavailable: ["Removed-member list unavailable for this reading.", "本次读取无法获得已移除成员名单。"],
+  // Item 5 (COO 19:15Z) — lane 1 point-in-time facts. The first-known date is a
+  // LOWER BOUND (the store may lack earlier snapshots), never a join date; a
+  // null pair means no stored snapshot holds it, never "not a member".
+  siPopulationFirstKnown: ["First seen in stored snapshots on or before {date}", "不晚于 {date} 已见于存储成员快照"],
+  siPopulationFirstKnownAbsentPair: ["No stored snapshot holds this pair", "存储快照中没有该配对的记录"],
+  siPopulationRosterClockMismatch: ["The roster clock does not agree with the capture session — configured counts are not stated.", "名册时钟与采集会话不一致——未列明配置成员数。"],
+  siPopulationSnapshotLine: ["Stored membership snapshot {date}: {n} members", "存储成员快照 {date}：{n} 名成员"],
+  siPopulationSnapshotMatches: ["matches the current roster", "与当前名册一致"],
+  siPopulationSnapshotDiffers: ["differs from the current roster", "与当前名册不一致"],
+  siPopulationSnapshotCompareUnavailable: ["current-roster comparison unavailable", "无法与当前名册比较"],
+  siPopulationSnapshotUnavailable: ["Point-in-time membership snapshot unavailable.", "时点成员快照不可用。"],
+  siPopulationTaxonomyBasisCurrent: ["Classifications are current-basis, not point-in-time.", "分类为当前口径，非时点口径。"],
+  siPopulationEmpty: ["No members match this filter.", "没有成员匹配此筛选。"],
+  siPopulationLoading: ["Loading members…", "正在加载成员…"],
+  siPopulationSignedOut: ["Sign in to view basket members.", "登录后查看篮子成员。"],
+  siPopulationDenied: ["This account cannot read the member list.", "此账户无法读取成员名单。"],
+  siPopulationRetry: ["The member list is temporarily unavailable. Try again.", "成员名单暂时不可用，请重试。"],
+  siPopulationRetryAction: ["Retry", "重试"],
+  siFollowLabel: ["Follow", "关注"],
+  siFollowClosed: ["Follow is closed while investigation writes are paused; no notification is claimed.", "调查写入暂停期间关注关闭；不承诺任何通知。"],
+  siFollowPreferenceOnly: ["Follow saves a preference only — no event producer exists yet, so no notification is claimed.", "关注仅保存偏好——尚无事件生产者，不承诺任何通知。"],
+  siFollowUnavailable: ["Follow is configured but its delivery path is unavailable; no notification is claimed.", "关注已配置但投递路径不可用；不承诺任何通知。"],
+  siFollowActive: ["Following — delivery rides the existing alert path.", "已关注——投递走既有提醒通道。"],
+  siFollowDeliveryFailed: ["Follow has a delivery problem — the last transport failed; no notification was sent.", "关注出现投递问题——最近一次投递失败；未发送任何通知。"],
+  siFollowDeliveryUnknown: ["Follow has a delivery problem — the transport outcome is unknown; no notification is claimed as sent.", "关注出现投递问题——投递结果未知；不声称已发送任何通知。"],
 };
 
 export function useSectorT() {
@@ -538,4 +721,25 @@ export function useSectorT() {
     const pair = SECTOR_INTELLIGENCE_LEX[key];
     return pair ? pair[lang === "zh" ? 1 : 0] : sharedT(key, fallback);
   }, [lang, sharedT]);
+}
+
+/** The Follow line's copy decision (COO 19:15Z item 2): the machine's own state
+ * names the reader-facing line. A delivery problem gets its own named line —
+ * failed and unknown are distinguished — and is NEVER the "following" line;
+ * lane 6's followState owns the rule, this only maps its output.
+ * SF-1 (third review): "Following" is a claim, so it is returned ONLY for the
+ * exact following shape — `state === "following"` with transport `queued` or
+ * `sent`. Anything the mapper does not recognise fails closed to the closed,
+ * non-claiming line. */
+export function followCopyKey(follow: FollowState): string {
+  if (follow.state === "delivery_problem") {
+    return follow.reason === "transport_failed" ? "siFollowDeliveryFailed" : "siFollowDeliveryUnknown";
+  }
+  if (follow.state === "closed") return "siFollowClosed";
+  if (follow.state === "saved_preference_only") return "siFollowPreferenceOnly";
+  if (follow.state === "configured_unavailable") return "siFollowUnavailable";
+  if (follow.state === "following" && (follow.transport === "queued" || follow.transport === "sent")) {
+    return "siFollowActive";
+  }
+  return "siFollowClosed";
 }

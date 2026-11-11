@@ -1,0 +1,67 @@
+[warmup] /terminal?symbol=NVDA → 200 in 183ms
+[warmup] /options → 200 in 3733ms
+[warmup] /portfolio → 200 in 1748ms
+[warmup] /alerts → 200 in 1402ms
+[warmup] /analysis → 200 in 2657ms
+[warmup] /discover → 200 in 2729ms
+[warmup] /admin → 200 in 860ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 396ms
+[warmup] /login → 200 in 150ms
+[warmup] /reset-password → 200 in 368ms
+[warmup] /api/me → 200 in 665ms
+[warmup] /api/watchlist → 200 in 206ms
+[warmup] /api/layouts → 200 in 236ms
+[warmup] /api/watchlist/annotations → 409 in 170ms
+[warmup] 14 routes compiled in 16s
+[fixture-ready] prophet_idx fixture 200 in 497ms
+
+Running 1 test using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✘  1 [mobile] › e2e/watchlist-annotation-sync.spec.ts:324:5 › AC-E05-04 — a failed save never shows Synced and never overwrites the local edit (35.7s)
+
+
+  1) [mobile] › e2e/watchlist-annotation-sync.spec.ts:324:5 › AC-E05-04 — a failed save never shows Synced and never overwrites the local edit 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('[data-testid="wl-annotation-sync"]')
+    Expected: "retrying"
+    Received: "synced"
+    Timeout:  20000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 20000ms
+      - waiting for locator('[data-testid="wl-annotation-sync"]')
+        - locator resolved to <span data-sync-state="saving" title="Saving to your account…" data-testid="wl-annotation-sync" aria-label="Saving to your account…" class="WatchlistAnnotationSync-module__N-zqmW__chip WatchlistAnnotationSync-module__N-zqmW__busy">…</span>
+        - unexpected value "saving"
+        36 × locator resolved to <span data-sync-state="synced" title="Notes & flags synced" data-testid="wl-annotation-sync" aria-label="Notes & flags synced" class="WatchlistAnnotationSync-module__N-zqmW__chip WatchlistAnnotationSync-module__N-zqmW__ok">…</span>
+           - unexpected value "synced"
+
+
+      173 |
+      174 | const expectSync = (page: Page, state: string, timeout = 20_000) =>
+    > 175 |   expect(page.locator(SYNC)).toHaveAttribute("data-sync-state", state, { timeout });
+          |                              ^
+      176 |
+      177 | // ── desktop rail controls (the existing context menu, unchanged by E05) ──
+      178 | const row = (page: Page, symbol: string) => page.locator(`[data-watchlist-symbol="${symbol}"]`);
+        at expectSync (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts:175:30)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts:350:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace ../.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [mobile] › e2e/watchlist-annotation-sync.spec.ts:324:5 › AC-E05-04 — a failed save never shows Synced and never overwrites the local edit 

@@ -1,0 +1,57 @@
+{
+  "completedAt": "2026-11-09T17:45:17.639037+00:00",
+  "results": {
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/ticker-news.spec.ts",
+        "lib/__tests__/tickerNewsEvidence.test.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 2.84
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 43.87
+    },
+    "units": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/tickerNewsEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/docs/verification/pr910-ticker-news-integration-20261109/source-consumers-r1/units.json"
+      ],
+      "exit": 0,
+      "logSha256": "1475be120d44434dd2527fc9235620f2f89549af89ad2c4345eab738512ebe11",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 4,
+        "numPendingTests": 0,
+        "numTotalTests": 4,
+        "success": true
+      },
+      "seconds": 1.46
+    }
+  },
+  "schema": "terminal_pr910_final_source_consumers.v1",
+  "sourceAndPacketEntries": 1949,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:44:28.645924+00:00",
+  "state": "QUALIFIED"
+}

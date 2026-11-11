@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import DiscoverLanding from "./DiscoverLanding";
@@ -63,6 +63,38 @@ export default function DiscoverWorkspace() {
   // Tickers view (the hub's internal drill flips LOCAL state we don't otherwise
   // reset). Cheap: it's only used as a React `key` on the two hub mounts.
   const [nonce, setNonce] = useState(0);
+  const [focusRevision, setFocusRevision] = useState(0);
+  // Server-rendered chooser controls become available only after this owner can handle them.
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const chooserHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const focusIntent = useRef<{ tab: string | null; pathname: string; from: Element | null } | null>(null);
+  const recordFocusIntent = (target: string | null) => {
+    focusIntent.current = { tab: target, pathname: window.location.pathname, from: document.activeElement };
+    // Return requests need a commit even if a subsequent navigation restores
+    // the same tool. Keep this separate from the hub-remount nonce.
+    setFocusRevision(revision => revision + 1);
+  };
+
+  useLayoutEffect(() => {
+    const intent = focusIntent.current;
+    if (!intent) return;
+    // The router may commit after the local nonce update. Keep only the intent
+    // for this explicit workspace/tab transition; unrelated navigation cancels it.
+    const destination = new URL(window.location.href);
+    if (destination.pathname !== intent.pathname || destination.searchParams.get("tab") !== intent.tab) {
+      focusIntent.current = null;
+      return;
+    }
+    if (intent.tab === null ? !chooser : chooser || tab !== intent.tab) return;
+    focusIntent.current = null;
+    // A newer interaction outside the disappearing view owns its focus.
+    if (document.activeElement !== document.body && document.activeElement !== intent.from) return;
+    const target = intent.tab === null ? chooserHeadingRef.current
+      : workspaceRef.current?.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]');
+    target?.focus({ preventScroll: true });
+  }, [chooser, tab, nonce, focusRevision]);
 
   const onSelect = useCallback((key: string) => {
     if (!KEYS.has(key)) return;
@@ -73,17 +105,22 @@ export default function DiscoverWorkspace() {
     window.dispatchEvent(new Event("mmx:shell-location"));
   }, []);
 
-  if (chooser) return <div className="main2 ws-shell discover-chooser-shell">
-    <DiscoverLanding onSelect={onSelect} onSearchCompanies={() => window.dispatchEvent(new Event("mmx:shell-company-search"))} />
+  if (chooser) return <div ref={workspaceRef} className="main2 ws-shell discover-chooser-shell">
+    <DiscoverLanding ready={ready} headingRef={chooserHeadingRef} onSelect={key => {
+      if (!KEYS.has(key)) return;
+      recordFocusIntent(key);
+      onSelect(key);
+    }} onSearchCompanies={() => window.dispatchEvent(new Event("mmx:shell-company-search"))} />
   </div>;
 
   return (
-    <div className="main2 ws-shell" role={tab === "leaders" || tab === "radar" ? "main" : undefined}
+    <div ref={workspaceRef} className="main2 ws-shell" role={tab === "leaders" || tab === "radar" ? "main" : undefined}
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* Scoped: let the nested view .main2 fill the cell (see layout note). */}
       <style>{".ws-shell > .ws-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.ws-shell .ws-body > .main2{flex:1;min-height:0}"}</style>
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
         {presentation && <button className="discover-chooser-back" type="button" onClick={() => {
+          recordFocusIntent(null);
           const u = new URL(window.location.href); u.searchParams.delete("tab");
           window.history.pushState(null, "", u.toString());
           window.dispatchEvent(new Event("mmx:shell-location"));

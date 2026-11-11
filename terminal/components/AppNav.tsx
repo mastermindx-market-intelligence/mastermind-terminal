@@ -69,17 +69,17 @@ export const TOP = [
 // reads params (active key is pure path-prefix), but the Suspense boundary is retained so the
 // nav keeps rendering a stable fallback while the shell hydrates.
 type AppNavPresentation = { labelled?: boolean; id?: string; overviewBridge?: boolean;
-  sharedShell?: boolean; onOpenDirectory?: () => void };
+  sharedShell?: boolean; onOpenDirectory?: () => void; intentPrefetch?: boolean };
 
-export function AppNav({ labelled = false, id, overviewBridge = false, sharedShell = false, onOpenDirectory }: AppNavPresentation = {}) {
+export function AppNav({ labelled = false, id, overviewBridge = false, sharedShell = false, onOpenDirectory, intentPrefetch = false }: AppNavPresentation = {}) {
   return (
     <Suspense fallback={<nav id={id} className="appnav" aria-label="Primary" />}>
-      <AppNavInner labelled={labelled} id={id} overviewBridge={overviewBridge} sharedShell={sharedShell} onOpenDirectory={onOpenDirectory} />
+      <AppNavInner labelled={labelled} id={id} overviewBridge={overviewBridge} sharedShell={sharedShell} onOpenDirectory={onOpenDirectory} intentPrefetch={intentPrefetch} />
     </Suspense>
   );
 }
 
-function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell = false, onOpenDirectory }: AppNavPresentation) {
+function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell = false, onOpenDirectory, intentPrefetch = false }: AppNavPresentation) {
   const path = usePathname();
   const router = useRouter();
   const t = useSharedShellT();
@@ -121,10 +121,16 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
       {sharedShell ? <SharedShellPrimaryNav mode="rail" labelled={labelled} activeSymbol={activeSymbol}
         renderGlyph={key => <Glyph k={key} />} /> : TOP.map((it) => {
         const on = it.k === activeKey;
+        const href = navHref(it, activeSymbol, path);
+        const prefetchOnIntent = intentPrefetch ? () => router.prefetch(href) : undefined;
         return (
           <Tip key={it.k} label={t(it.k, it.label)} side="right" size="mini" disabled={sharedShell && labelled}>
             <Link
-              href={navHref(it, activeSymbol, path)}
+              href={href}
+              prefetch={intentPrefetch ? false : undefined}
+              onMouseEnter={prefetchOnIntent}
+              onFocus={prefetchOnIntent}
+              onTouchStart={prefetchOnIntent}
               onClick={path.startsWith("/terminal") && it.k === "chart" ? () => window.dispatchEvent(new CustomEvent("mm:close-pane")) : undefined}
               className={`navbtn${on ? " on" : ""}`}
               aria-current={on ? sharedShell && path !== it.href ? "location" : "page" : undefined}

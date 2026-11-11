@@ -1,0 +1,35 @@
+{
+  "state": "LOCAL_SOURCE_COMMIT_APPLIED",
+  "candidate": "a827949a2e09bb5c0e3da6c7212c2f7e83d91a82",
+  "protected": "533778d2928cfc64d79faa52ddd9bb7b760debb7",
+  "merge_base": "735eb66dd0446d1b4ee82c97fe87fce21757371a",
+  "tree": "f94078ea88979ee1aed630b013f303c6d20bbe0f",
+  "candidate_changed_paths": 144,
+  "protected_changed_paths": 2606,
+  "shared_paths": [
+    ".github/workflows/ci.yml",
+    "terminal/next.config.ts",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "composed_blobs": {
+    ".github/workflows/ci.yml": "63fed28111509aed3bc440f916e75931912a97bd",
+    "terminal/next.config.ts": "910dae036ba4546936fcf071303581f3f6e79461",
+    "tests/test_merge_group_fast_lane_contract.py": "310620f00466f1c09b3bc255aaea2ebfae8e72ec"
+  },
+  "all_other_postimages_preserved": true,
+  "proof_inputs_changed": [
+    ".github/workflows/ci.yml",
+    "terminal/app/(shell)/analysis/page.tsx",
+    "terminal/next.config.ts",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "at": "2026-11-10T14:09:31.412695+00:00",
+  "commit_returncode": 0,
+  "commit_stdout": "[sol/web-terminal-pr-duty-20261110-1275-drift-integration-web4 8d3a375e6] fix(ci): integrate protected evidence drift gate with F11 routing\n",
+  "commit_stderr": "",
+  "head": "8d3a375e6d7cba8f03afc65594d3937857230442",
+  "parents": [
+    "a827949a2e09bb5c0e3da6c7212c2f7e83d91a82",
+    "533778d2928cfc64d79faa52ddd9bb7b760debb7"
+  ]
+}

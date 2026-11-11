@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/tmp/mastermind-terminal-pr1275-next-composition-qualification-20261110/r2/evidence-reader-report.json"
+  ],
+  "exitCode": 0,
+  "failed": 0,
+  "finishedAt": "2026-11-10T16:32:45.086514+00:00",
+  "groupAbsent": true,
+  "logSha256": "c333e9e59f0bd2748dadc32ad20f6a7f76025bfc2fa7432479afd93501cb5a63",
+  "passed": 5,
+  "pid": 18609,
+  "seconds": 1.677,
+  "skipped": 0,
+  "sourceHead": "17f1e9cf88728b60f7366484dac6799569c50ed3",
+  "sourceInputsUnchanged": true,
+  "sourceTree": "ebee9a9c9d7d752662f4839d4ec228c0c6f7ca2a",
+  "startedAt": "2026-11-10T16:32:43.409483+00:00",
+  "state": "PASSED",
+  "tests": 5
+}

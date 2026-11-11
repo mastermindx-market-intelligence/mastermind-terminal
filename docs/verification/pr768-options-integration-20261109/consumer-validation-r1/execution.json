@@ -1,0 +1,46 @@
+{
+  "completedAt": "2026-11-09T16:32:50.113476+00:00",
+  "results": {
+    "native-readers": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapScopedRecapture.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/docs/verification/pr768-options-integration-20261109/consumer-validation-r1/native-readers.json"
+      ],
+      "exit": 0,
+      "logSha256": "8105871432cb0e198e7baaf065a85b03d6c3134148d9c65dc4575c153936c4b5",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 101,
+        "numPendingTests": 0,
+        "numTotalTests": 101,
+        "success": true
+      },
+      "reportSha256": "be86db6ea935f7cd6fa5c01f2df82dff2524394a99ff9522bd50c03f082ef8ac",
+      "seconds": 8.75
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 43.94
+    }
+  },
+  "schema": "terminal_pr768_current_consumers.v1",
+  "startedAt": "2026-11-09T16:31:57.421169+00:00",
+  "state": "QUALIFIED"
+}

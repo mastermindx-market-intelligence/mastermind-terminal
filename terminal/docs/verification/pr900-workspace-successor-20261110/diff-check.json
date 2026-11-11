@@ -1,0 +1,9 @@
+{
+  "base": "f8d88cb9b3872b76031597e6a024b47251761381",
+  "fullExit": 0,
+  "fullLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nonRawOwnedDiffExit": 0,
+  "rawLogPaths": [],
+  "rawLogsRetained": true,
+  "schema": "terminal.pr900.owned-diff-check.v1"
+}

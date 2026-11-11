@@ -1,0 +1,11 @@
+
+Running 6 tests using 1 worker
+
+  -  1 [desktop] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en)
+  -  2 [desktop] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh)
+  -  3 [tablet] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en)
+  -  4 [tablet] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh)
+  -  5 [mobile] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en)
+  -  6 [mobile] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh)
+
+  6 skipped

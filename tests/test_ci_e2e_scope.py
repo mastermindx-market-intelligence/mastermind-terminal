@@ -17,12 +17,12 @@ MERGE_REF = "refs/pull/123/merge"
 
 
 def test_full_and_focused_shard_contracts():
-    assert len(scope.FULL_MATRIX) == 14
+    assert len(scope.FULL_MATRIX) == 17
     assert {x["shard"] for x in scope.FULL_MATRIX} == {
         *(f"desktop-{i}" for i in range(1, 7)),
         *(f"tablet-{i}" for i in range(1, 5)),
-        *(f"mobile-{i}" for i in range(1, 4)),
-        "serial",
+        *(f"mobile-{i}" for i in range(1, 6)),
+        "serial", "serial-standalone",
     }
     assert all(item["specs"] == "" for item in scope.FULL_MATRIX)
     assert [x["shard"] for x in scope.FOCUSED_MATRIX] == [
@@ -33,6 +33,17 @@ def test_full_and_focused_shard_contracts():
         for name in scope.SCREENER_SPECS:
             assert name in item["specs"].split()
             assert (ROOT / "terminal" / name).is_file(), name
+
+
+def test_shared_screener_layout_covers_all_contract_viewports():
+    assert [row["projects"] for row in scope.SCREENER_LAYOUT_MATRIX] == [
+        "--project=desktop", "--project=tablet", "--project=mobile"
+    ]
+    assert [row["shard"] for row in scope.SCREENER_LAYOUT_MATRIX] == [
+        "screener-desktop", "screener-tablet", "screener-mobile"
+    ]
+    assert all(row["specs"].split() == list(scope.SCREENER_SPECS)
+               for row in scope.SCREENER_LAYOUT_MATRIX)
 
 
 @pytest.mark.parametrize("path", sorted(scope.SCOPED_PATHS))
@@ -133,7 +144,14 @@ def test_dynamic_matrix_output_can_be_parsed(monkeypatch, tmp_path):
     scope.main()
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
     assert fields["mode"] == "full"
-    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
+    expected_dev, expected_prod = scope.split_lanes(scope.FULL_MATRIX, scope.read_prodbuild_allowlist())
+    assert json.loads(fields["matrix"]) == {"include": expected_dev}
+    assert json.loads(fields["prodbuild_matrix"]) == {"include": expected_prod}
+    assert fields["prodbuild_count"] == "4"
+    assert [row["shard"] for row in expected_prod] == [
+        "prodbuild-desktop-1", "prodbuild-desktop-2",
+        "prodbuild-tablet-1", "prodbuild-mobile-1",
+    ]
 
 
 def test_required_check_never_launders_skipped_or_failed_scope():
@@ -141,16 +159,20 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     aggregate = jobs["terminal"]
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
-    assert set(aggregate["needs"]) == {"pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e"}
+    assert set(aggregate["needs"]) == {
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e",
+        "terminal-e2e-build", "terminal-e2e-prodbuild",
+    }
     run = next(step["run"] for step in aggregate["steps"]
                if step["name"] == "Assert all event-required Terminal checks passed")
-    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-e2e:$E2E"]:
+    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-e2e:$E2E",
+                "terminal-e2e-build:$BUILD", "terminal-e2e-prodbuild:$PRODBUILD"]:
         assert dep in run
     assert '[ "$fail" -eq 0 ] || exit 1' in run
     assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope"]
     assert jobs["terminal-e2e"]["needs"] == ["pr_scope", "e2e-scope"]
-    # Full audited PR matrix or safe focused subset; native merge_group must
-    # not duplicate the separately proven browser work.
+    # Full audited PR matrix or safe focused subset; a native merge group
+    # skips the full dev matrix but requires the production-build browser lane.
     docs = ("github.event_name == 'pull_request' && "
             "needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs'")
     assert jobs["terminal-unit"]["if"] == (
@@ -166,13 +188,15 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     )
     assert jobs["e2e-scope"]["steps"][0]["with"]["fetch-depth"] == 2
     assert "ci_e2e_scope.py" in jobs["e2e-scope"]["steps"][-1]["run"]
-    for step in jobs["terminal-unit"]["steps"]:
-        if step.get("name") in ("Prepare Chromium for original mock captures",
-                                "Capture and validate evidence on this checkout"):
-            assert step["if"] == (
-                "github.event_name != 'merge_group' || "
-                "steps.evidence_plan.outputs.capture == 'true'"
-            )
+    by_name = {step["name"]: step for step in jobs["terminal-unit"]["steps"] if "name" in step}
+    condition = (
+        "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+    )
+    assert by_name["Capture and validate evidence on this checkout"]["if"] == condition
+    for name in ("Prepare Chromium for original mock captures",
+                 "Capture provider-closed F11 theses entry on this checkout"):
+        assert "if" not in by_name[name]
+        assert not by_name[name].get("continue-on-error", False)
     command = next(step["run"] for step in jobs["terminal-e2e"]["steps"]
                    if "test:e2e:responsive" in step.get("run", ""))
     assert "${{ matrix.projects }}" in command
@@ -217,14 +241,15 @@ def test_real_synthetic_pr_merge_uses_exact_parent_and_source_diff(tmp_path, mon
     merge_sha = call("rev-parse", "HEAD")
     monkeypatch.chdir(repo)
     assert scope.select("pull_request", MERGE_REF, merge_sha, head_sha) == (
-        "focused", "reviewed_screener_presentation_or_tests"
+        "focused", "reviewed_screener_shared_layout"
     )
     assert scope.select("merge_group", MERGE_REF, merge_sha, head_sha)[0] == "full"
 
 
 def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
                                            tamper_with_selector=False, delete_css=False,
-                                           base_selector_source=None, expected_exit=0):
+                                           base_selector_source=None, expected_exit=0,
+                                           modified_paths=None):
     """Run actual GitHub Actions shell after a synthetic two-parent PR merge."""
     import os
 
@@ -242,6 +267,12 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
     css = repo / "terminal" / "components" / "screener" / "CrossMarketStrip.module.css"
     css.parent.mkdir(parents=True)
     css.write_text(".x { padding: 1px; }\n")
+    if modified_paths is None:
+        modified_paths = ("terminal/components/screener/CrossMarketStrip.module.css",)
+    for relative in modified_paths:
+        source = repo / relative
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("baseline source\n")
     (repo / "README.md").write_text("root\n")
     if install_base_selector:
         script = repo / "scripts" / "ci_e2e_scope.py"
@@ -254,7 +285,8 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
     if delete_css:
         css.unlink()
     else:
-        css.write_text(".x { padding: 2px; }\n")
+        for relative in modified_paths:
+            (repo / relative).write_text("modified source\n")
     if tamper_with_selector:
         assert install_base_selector
         # Candidate script deliberately lies; immutable protected script must
@@ -289,6 +321,9 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
         assert output.read_text() == ""
         return None, None, result.stderr
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    if fields["mode"] == "focused":
+        assert json.loads(fields["prodbuild_matrix"]) == {"include": []}
+        assert fields["prodbuild_count"] == "0"
     return fields["mode"], json.loads(fields["matrix"])["include"], result.stdout
 
 
@@ -301,13 +336,61 @@ def test_real_workflow_bootstrap_cannot_use_new_unprotected_selector(tmp_path):
     assert "immutable protected selector unavailable" in stdout
 
 
-def test_real_workflow_uses_protected_selector_for_scoped_css(tmp_path):
+@pytest.mark.parametrize("path", [
+    "terminal/components/screener/fundamentalScreen.module.css",
+    "terminal/components/screener/CrossMarketStrip.module.css",
+    "terminal/components/screener/TechnicalScreenBar.module.css",
+])
+def test_real_workflow_uses_protected_selector_for_scoped_css(tmp_path, path):
     mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
-        tmp_path, install_base_selector=True
+        tmp_path, install_base_selector=True, modified_paths=(path,)
+    )
+    assert mode == "focused"
+    assert [row["projects"] for row in matrix] == [
+        "--project=desktop", "--project=tablet", "--project=mobile"
+    ]
+    assert "reviewed_screener_shared_layout" in stdout
+
+
+@pytest.mark.parametrize("path", [f"terminal/{name}" for name in scope.SCREENER_SPECS])
+def test_real_workflow_keeps_spec_only_changes_narrow(tmp_path, path):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, modified_paths=(path,)
     )
     assert mode == "focused"
     assert matrix == scope.FOCUSED_MATRIX
     assert "reviewed_screener_presentation_or_tests" in stdout
+
+
+@pytest.mark.parametrize("other,expected_mode", [
+    ("terminal/e2e/screener-cross-market.spec.ts", "focused"),
+    ("terminal/app/globals.css", "full"),
+])
+def test_real_workflow_shared_css_mixed_diff_preserves_scope(tmp_path, other, expected_mode):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, modified_paths=(
+            "terminal/components/screener/CrossMarketStrip.module.css", other,
+        ),
+    )
+    assert mode == expected_mode
+    if expected_mode == "focused":
+        assert matrix == scope.SCREENER_LAYOUT_MATRIX
+        assert "reviewed_screener_shared_layout" in stdout
+    else:
+        assert matrix == scope.FULL_MATRIX
+        assert "unknown_or_elevated_path" in stdout
+
+
+def test_unrecognized_focused_classification_falls_back_to_full(monkeypatch, tmp_path):
+    output = tmp_path / "output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    monkeypatch.setattr(scope, "select", lambda *args: ("focused", "unknown_reason"))
+    monkeypatch.setattr(scope, "ALLOWLIST_PATH", tmp_path / "no-allowlist")
+    scope.main()
+    fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    assert fields["mode"] == "full"
+    assert fields["reason"] == "unrecognized_focused_reason"
+    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
 
 
 def test_real_workflow_rejects_candidate_selector_tampering(tmp_path):
@@ -318,6 +401,66 @@ def test_real_workflow_rejects_candidate_selector_tampering(tmp_path):
     assert matrix == scope.FULL_MATRIX
     assert "unknown_or_elevated_path" in stdout
 
+
+
+def _legacy_full_serial_matrix():
+    rows = [dict(row) for row in scope.FULL_MATRIX
+            if row["shard"] not in ("serial", "serial-standalone")]
+    rows.append({
+        "shard": "serial",
+        "projects": " ".join(f"--project={project}" for project in (
+            "company-intelligence-desktop", "company-intelligence-tablet",
+            "company-intelligence-mobile", "terminal-chrome-intermediate",
+            "w2a-workspaces",
+        )),
+        "specs": "",
+    })
+    return rows
+
+
+def test_real_workflow_splits_old_protected_serial_output_without_running_candidate(tmp_path):
+    old = _legacy_full_serial_matrix()
+    extra = {"shard": "future-owner", "projects": "--project=future-owner",
+             "specs": "", "owner_metadata": {"preserve": True}}
+    old.append(extra)
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source("full", old),
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX + [extra]
+    assert "split protected full serial row" in stdout
+
+
+@pytest.mark.parametrize("variant", [
+    "focused", "already-split", "filtered", "metadata", "duplicate",
+    "extra-serial", "overlapping-project", "custom-projects",
+])
+def test_real_workflow_preserves_other_protected_serial_topologies(tmp_path, variant):
+    old = _legacy_full_serial_matrix()
+    mode = "focused" if variant == "focused" else "full"
+    serial = next(row for row in old if row["shard"] == "serial")
+    if variant == "already-split":
+        old = [dict(row) for row in scope.FULL_MATRIX]
+    elif variant == "filtered":
+        serial["specs"] = "e2e/future.spec.ts"
+    elif variant == "metadata":
+        serial["owner_metadata"] = "preserve"
+    elif variant == "duplicate":
+        old.append(dict(serial))
+    elif variant == "extra-serial":
+        old.append({"shard": "serial-standalone", "projects": "--project=future-owner", "specs": ""})
+    elif variant == "overlapping-project":
+        old.append({"shard": "future-company", "projects": "--project=company-intelligence-desktop", "specs": ""})
+    elif variant == "custom-projects":
+        serial["projects"] += " --project=future-owner"
+    actual_mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source(mode, old),
+    )
+    assert actual_mode == mode
+    assert matrix == old
+    assert "split protected full serial row" not in stdout
 
 def _legacy_full_tablet_matrix():
     # Model the immutable protected selector that the first repaired PR run
@@ -417,9 +560,33 @@ def test_real_workflow_expands_old_protected_desktop_without_losing_other_rows(t
     assert "split protected full desktop fifths into sixths" in stdout
 
 
-def test_real_workflow_expands_both_old_protected_classifier_partitions(tmp_path):
+def _legacy_full_mobile_matrix():
+    rows = [dict(row) for row in scope.FULL_MATRIX
+            if "--project=mobile" not in row["projects"].split()]
+    first = next(i for i, row in enumerate(scope.FULL_MATRIX) if row["shard"] == "mobile-1")
+    rows[first:first] = [
+        {"shard": f"mobile-{i}", "projects": f"--project=mobile --shard={i}/3", "specs": ""}
+        for i in range(1, 4)
+    ]
+    return rows
+
+
+def test_real_workflow_expands_old_protected_mobile_thirds_into_fifths(tmp_path):
+    old = _legacy_full_mobile_matrix()
+    old.append({"shard": "future-owner", "projects": "--project=future-owner",
+                "specs": "", "owner_metadata": {"preserve": True}})
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source("full", old),
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX + [old[-1]]
+    assert "split protected full mobile thirds into fifths" in stdout
+
+
+def test_real_workflow_expands_every_old_protected_classifier_partition(tmp_path):
     source = (ROOT / "scripts" / "ci_e2e_scope.py").read_text()
-    for project, old_count, new_count in [("desktop", 5, 6), ("tablet", 3, 4)]:
+    for project, old_count, new_count in [("desktop", 5, 6), ("tablet", 3, 4), ("mobile", 3, 5)]:
         current = ('{"shard": f"' + project + '-{i}", "projects": f"--project=' + project
                    + ' --shard={i}/' + str(new_count) + '", "specs": ""}\n'
                    + '    for i in range(1, ' + str(new_count + 1) + ')')
@@ -434,6 +601,7 @@ def test_real_workflow_expands_both_old_protected_classifier_partitions(tmp_path
     assert matrix == scope.FULL_MATRIX
     assert "split protected full desktop fifths into sixths" in stdout
     assert "split protected full tablet thirds into quarters" in stdout
+    assert "split protected full mobile thirds into fifths" in stdout
 
 
 @pytest.mark.parametrize("variant", ["focused", "extra-desktop", "filtered", "incomplete", "metadata"])
@@ -482,7 +650,10 @@ def test_real_workflow_merge_group_always_bootstraps_full(tmp_path, monkeypatch)
     assert result.returncode == 0, (result.stdout, result.stderr)
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
     assert fields["mode"] == "full"
-    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
+    expected_dev, expected_prod = scope.split_lanes(scope.FULL_MATRIX, scope.read_prodbuild_allowlist())
+    assert json.loads(fields["matrix"]) == {"include": expected_dev}
+    assert json.loads(fields["prodbuild_matrix"]) == {"include": expected_prod}
+    assert fields["prodbuild_count"] == "4"
 
 
 @pytest.mark.parametrize("status", ["A", "D", "T", "R100", "M100"])
@@ -533,7 +704,10 @@ def _execute_required_aggregate(**overrides):
     env = {
         **os.environ,
         "EVENT": "pull_request", "PR_SCOPE": "success", "PR_MODE": "full",
-        "SCOPE": "success", "UNIT": "success", "E2E": "success", **overrides,
+        "SCOPE": "success", "UNIT": "success", "E2E": "success",
+        # The production-build lane of an ordinary full run: built, four shards.
+        "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
+        **overrides,
     }
     return subprocess.run(
         ["bash", "-e", "-o", "pipefail", "-c", step["run"]],
@@ -587,11 +761,17 @@ def test_docs_qualification_never_excuses_a_failed_or_cancelled_test(status, job
     assert result.returncode != 0, result.stdout
 
 
-def test_native_merge_group_keeps_only_its_accepted_browser_skip():
+def test_native_merge_group_keeps_only_its_development_matrix_skip():
     result = _execute_required_aggregate(
         EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped",
     )
     assert result.returncode == 0, result.stdout
+    for status in ("failure", "cancelled", "skipped", ""):
+        result = _execute_required_aggregate(
+            EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped",
+            BUILD="skipped", PRODBUILD=status, PRODBUILD_COUNT="4",
+        )
+        assert result.returncode != 0, (status, result.stdout)
     result = _execute_required_aggregate(
         EVENT="merge_group", PR_MODE="docs", UNIT="skipped", E2E="skipped",
     )

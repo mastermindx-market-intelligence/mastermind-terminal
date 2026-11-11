@@ -1,0 +1,784 @@
+TAP version 13
+# Subtest: thesis entry observes the 1440px en presentation and leaves its real disclosure closed
+ok 1 - thesis entry observes the 1440px en presentation and leaves its real disclosure closed
+  ---
+  duration_ms: 8.954708
+  type: 'test'
+  ...
+# Subtest: thesis entry observes the 1440px zh presentation and leaves its real disclosure closed
+ok 2 - thesis entry observes the 1440px zh presentation and leaves its real disclosure closed
+  ---
+  duration_ms: 1.642167
+  type: 'test'
+  ...
+# Subtest: thesis entry observes the 820px en presentation and leaves its real disclosure closed
+ok 3 - thesis entry observes the 820px en presentation and leaves its real disclosure closed
+  ---
+  duration_ms: 1.349292
+  type: 'test'
+  ...
+# Subtest: thesis entry observes the 820px zh presentation and leaves its real disclosure closed
+ok 4 - thesis entry observes the 820px zh presentation and leaves its real disclosure closed
+  ---
+  duration_ms: 1.024333
+  type: 'test'
+  ...
+# Subtest: thesis entry observes the 390px en presentation and leaves its real disclosure closed
+ok 5 - thesis entry observes the 390px en presentation and leaves its real disclosure closed
+  ---
+  duration_ms: 1.338541
+  type: 'test'
+  ...
+# Subtest: thesis entry observes the 390px zh presentation and leaves its real disclosure closed
+ok 6 - thesis entry observes the 390px zh presentation and leaves its real disclosure closed
+  ---
+  duration_ms: 0.847458
+  type: 'test'
+  ...
+# Subtest: thesis entry refuses a different destination, symbol, view or localized identity
+ok 7 - thesis entry refuses a different destination, symbol, view or localized identity
+  ---
+  duration_ms: 2.631958
+  type: 'test'
+  ...
+# Subtest: visible English SSR at 1440px waits for Chinese hydration in the original budget
+ok 8 - visible English SSR at 1440px waits for Chinese hydration in the original budget
+  ---
+  duration_ms: 2.891542
+  type: 'test'
+  ...
+# Subtest: visible English SSR at 390px waits for Chinese hydration in the original budget
+ok 9 - visible English SSR at 390px waits for Chinese hydration in the original budget
+  ---
+  duration_ms: 1.203834
+  type: 'test'
+  ...
+# Subtest: a visible SSR entry without localized hydration remains ineligible
+ok 10 - a visible SSR entry without localized hydration remains ineligible
+  ---
+  duration_ms: 1.122084
+  type: 'test'
+  ...
+# Subtest: compact thesis capture refuses an already open or ambiguous research disclosure
+ok 11 - compact thesis capture refuses an already open or ambiguous research disclosure
+  ---
+  duration_ms: 2.246375
+  type: 'test'
+  ...
+# Subtest: new F11 evidence retains the complete prior appendix after the six-file boundary
+ok 12 - new F11 evidence retains the complete prior appendix after the six-file boundary
+  ---
+  duration_ms: 4.845083
+  type: 'test'
+  ...
+# Subtest: an unrecognized evidence appendix refuses without changing historical bytes
+ok 13 - an unrecognized evidence appendix refuses without changing historical bytes
+  ---
+  duration_ms: 4.173834
+  type: 'test'
+  ...
+# Subtest: indicator observation preserves the page and accepts an empty portal host
+ok 14 - indicator observation preserves the page and accepts an empty portal host
+  ---
+  duration_ms: 2.068208
+  type: 'test'
+  ...
+# Subtest: indicator observation preserves the page and refuses a visible control
+ok 15 - indicator observation preserves the page and refuses a visible control
+  ---
+  duration_ms: 0.775666
+  type: 'test'
+  ...
+# Subtest: owned runtime startup or cleanup error leaves only a sanitized failure outcome
+ok 16 - owned runtime startup or cleanup error leaves only a sanitized failure outcome
+  ---
+  duration_ms: 9.969709
+  type: 'test'
+  ...
+# Subtest: runtime failure recorder preserves unexpected outcome objects and does not follow them
+ok 17 - runtime failure recorder preserves unexpected outcome objects and does not follow them
+  ---
+  duration_ms: 2.941375
+  type: 'test'
+  ...
+# Subtest: fixture child never inherits provider credentials, auth controls, NODE_OPTIONS or host flags
+ok 18 - fixture child never inherits provider credentials, auth controls, NODE_OPTIONS or host flags
+  ---
+  duration_ms: 0.196416
+  type: 'test'
+  ...
+# Subtest: each Next development dotenv entrance refuses before any values are read
+ok 19 - each Next development dotenv entrance refuses before any values are read
+  ---
+  duration_ms: 2.979792
+  type: 'test'
+  ...
+# Subtest: boundary refuses unsupported WebSocket control rather than silently weakening
+ok 20 - boundary refuses unsupported WebSocket control rather than silently weakening
+  ---
+  duration_ms: 0.785166
+  type: 'test'
+  ...
+# Subtest: API/data requests never reach the app/server/provider; typed unavailable is a failing HTTP status
+ok 21 - API/data requests never reach the app/server/provider; typed unavailable is a failing HTTP status
+  ---
+  duration_ms: 0.976167
+  type: 'test'
+  ...
+# Subtest: qualified real app/static responses use maxRedirects0 and preserve response; redirects abort
+ok 22 - qualified real app/static responses use maxRedirects0 and preserve response; redirects abort
+  ---
+  duration_ms: 2.540583
+  type: 'test'
+  ...
+# Subtest: foreign routes and optimizer URLs abort without fetching, and sockets close without connecting
+ok 23 - foreign routes and optimizer URLs abort without fetching, and sockets close without connecting
+  ---
+  duration_ms: 0.417416
+  type: 'test'
+  ...
+# Subtest: boundary owns and rejects the allowed-fetch callback failure without retaining raw error text
+ok 24 - boundary owns and rejects the allowed-fetch callback failure without retaining raw error text
+  ---
+  duration_ms: 1.315917
+  type: 'test'
+  ...
+# Subtest: boundary owns and rejects the script-body callback failure without retaining raw error text
+ok 25 - boundary owns and rejects the script-body callback failure without retaining raw error text
+  ---
+  duration_ms: 0.4235
+  type: 'test'
+  ...
+# Subtest: boundary owns and rejects the allowed-fulfill callback failure without retaining raw error text
+ok 26 - boundary owns and rejects the allowed-fulfill callback failure without retaining raw error text
+  ---
+  duration_ms: 0.895042
+  type: 'test'
+  ...
+# Subtest: boundary owns and rejects the unavailable-fulfill callback failure without retaining raw error text
+ok 27 - boundary owns and rejects the unavailable-fulfill callback failure without retaining raw error text
+  ---
+  duration_ms: 0.272417
+  type: 'test'
+  ...
+# Subtest: boundary owns and rejects the bad-status-abort callback failure without retaining raw error text
+ok 28 - boundary owns and rejects the bad-status-abort callback failure without retaining raw error text
+  ---
+  duration_ms: 0.606375
+  type: 'test'
+  ...
+# Subtest: boundary owns and rejects the blocked-abort callback failure without retaining raw error text
+ok 29 - boundary owns and rejects the blocked-abort callback failure without retaining raw error text
+  ---
+  duration_ms: 0.2245
+  type: 'test'
+  ...
+# Subtest: boundary owns and rejects the websocket-close callback failure without retaining raw error text
+ok 30 - boundary owns and rejects the websocket-close callback failure without retaining raw error text
+  ---
+  duration_ms: 0.132292
+  type: 'test'
+  ...
+# Subtest: boundary drain has a bounded failure while preserving ownership of a late callback
+ok 31 - boundary drain has a bounded failure while preserving ownership of a late callback
+  ---
+  duration_ms: 15.899083
+  type: 'test'
+  ...
+# Subtest: actual owned runtime settles browser/server before returning the pending-fetch outcome
+ok 32 - actual owned runtime settles browser/server before returning the pending-fetch outcome
+  ---
+  duration_ms: 51.497792
+  type: 'test'
+  ...
+# Subtest: actual owned runtime settles browser/server before returning the primary-and-pending-fetch outcome
+ok 33 - actual owned runtime settles browser/server before returning the primary-and-pending-fetch outcome
+  ---
+  duration_ms: 47.989292
+  type: 'test'
+  ...
+# Subtest: actual owned runtime settles browser/server before returning the primary-http-200 outcome
+ok 34 - actual owned runtime settles browser/server before returning the primary-http-200 outcome
+  ---
+  duration_ms: 38.723625
+  type: 'test'
+  ...
+# Subtest: actual owned runtime settles browser/server before returning the context-close outcome
+ok 35 - actual owned runtime settles browser/server before returning the context-close outcome
+  ---
+  duration_ms: 13.451375
+  type: 'test'
+  ...
+# Subtest: actual owned runtime settles browser/server before returning the context-close-undefined outcome
+ok 36 - actual owned runtime settles browser/server before returning the context-close-undefined outcome
+  ---
+  duration_ms: 9.341833
+  type: 'test'
+  ...
+# Subtest: actual owned runtime settles browser/server before returning the server-stop outcome
+ok 37 - actual owned runtime settles browser/server before returning the server-stop outcome
+  ---
+  duration_ms: 3.594375
+  type: 'test'
+  ...
+# Subtest: actual owned runtime settles browser/server before returning the success outcome
+ok 38 - actual owned runtime settles browser/server before returning the success outcome
+  ---
+  duration_ms: 2.902125
+  type: 'test'
+  ...
+# Subtest: startup waits for the normal component interception event, without issuing a request
+ok 39 - startup waits for the normal component interception event, without issuing a request
+  ---
+  duration_ms: 5.228416
+  type: 'test'
+  ...
+# Subtest: no-interception and blocked-script cases keep the positive guard failing
+ok 40 - no-interception and blocked-script cases keep the positive guard failing
+  ---
+  duration_ms: 1.979625
+  type: 'test'
+  ...
+# Subtest: chrome, foreign and other-symbol reads never substitute for the actual NVDA component event
+ok 41 - chrome, foreign and other-symbol reads never substitute for the actual NVDA component event
+  ---
+  duration_ms: 2.149958
+  type: 'test'
+  ...
+# Subtest: failed allowed responses retain bounded public resource family/type/status only
+ok 42 - failed allowed responses retain bounded public resource family/type/status only
+  ---
+  duration_ms: 1.606041
+  type: 'test'
+  ...
+# Subtest: failed allowed response diagnostic cap never weakens200/redirect rejection or eventguard
+ok 43 - failed allowed response diagnostic cap never weakens200/redirect rejection or eventguard
+  ---
+  duration_ms: 2.20825
+  type: 'test'
+  ...
+# Subtest: local script identity diagnostic strips origin query and fragment, accepts only static script names
+ok 44 - local script identity diagnostic strips origin query and fragment, accepts only static script names
+  ---
+  duration_ms: 0.388917
+  type: 'test'
+  ...
+# Subtest: console diagnostics retain fixed classifications, never console content
+ok 45 - console diagnostics retain fixed classifications, never console content
+  ---
+  duration_ms: 0.714208
+  type: 'test'
+  ...
+# Subtest: failure artifact is distinct from success and excludes raw error message
+ok 46 - failure artifact is distinct from success and excludes raw error message
+  ---
+  duration_ms: 1.605042
+  type: 'test'
+  ...
+# Subtest: F11 source-component server explicitly selects supported webpack, without changing app or boundary flags
+ok 47 - F11 source-component server explicitly selects supported webpack, without changing app or boundary flags
+  ---
+  duration_ms: 0.349208
+  type: 'test'
+  ...
+# Subtest: invocation start outcome invalidation clears only known stale outcome manifests, preserving images and evidence
+ok 48 - invocation start outcome invalidation clears only known stale outcome manifests, preserving images and evidence
+  ---
+  duration_ms: 6.100167
+  type: 'test'
+  ...
+# Subtest: partial two-desktop-then-forced-tablet-failure outcome leaves no eligible success and only the current FAILURE
+ok 49 - partial two-desktop-then-forced-tablet-failure outcome leaves no eligible success and only the current FAILURE
+  ---
+  duration_ms: 5.2075
+  type: 'test'
+  ...
+# Subtest: stable all-six outcome success publishes atomically via exclusive temp and clears stale failure
+ok 50 - stable all-six outcome success publishes atomically via exclusive temp and clears stale failure
+  ---
+  duration_ms: 31.387167
+  type: 'test'
+  ...
+# Subtest: actual Next config composes exact F11 and closed-canonical modes without changing ordinary defaults
+ok 51 - actual Next config composes exact F11 and closed-canonical modes without changing ordinary defaults
+  ---
+  duration_ms: 483.561208
+  type: 'test'
+  ...
+# Subtest: outcome unknown temporary preimage refuses without deleting or overwriting it
+ok 52 - outcome unknown temporary preimage refuses without deleting or overwriting it
+  ---
+  duration_ms: 13.7735
+  type: 'test'
+  ...
+# Subtest: outcome failure-cleanup refusal cannot leave an eligible success
+ok 53 - outcome failure-cleanup refusal cannot leave an eligible success
+  ---
+  duration_ms: 3.112875
+  type: 'test'
+  ...
+# Subtest: outcome atomic publisher does not promote one short write into success
+ok 54 - outcome atomic publisher does not promote one short write into success
+  ---
+  duration_ms: 83.779333
+  type: 'test'
+  ...
+# Subtest: outcome invalidation precedes dependency-loader failure in the actual main
+ok 55 - outcome invalidation precedes dependency-loader failure in the actual main
+  ---
+  duration_ms: 17.458042
+  type: 'test'
+  ...
+# Subtest: outcome failure writer refuses a linked marker without changing its target
+ok 56 - outcome failure writer refuses a linked marker without changing its target
+  ---
+  duration_ms: 8.485291
+  type: 'test'
+  ...
+# Subtest: outcome publisher refuses an already present success instead of overwriting it
+ok 57 - outcome publisher refuses an already present success instead of overwriting it
+  ---
+  duration_ms: 5.216834
+  type: 'test'
+  ...
+# Subtest: single-case diagnostic can never produce eligible six-case success or caller-chosen status
+ok 58 - single-case diagnostic can never produce eligible six-case success or caller-chosen status
+  ---
+  duration_ms: 3.911166
+  type: 'test'
+  ...
+# Subtest: default canonical entrypoint remains exact6; diagnostic entrypoint has one named bounded case
+ok 59 - default canonical entrypoint remains exact6; diagnostic entrypoint has one named bounded case
+  ---
+  duration_ms: 1.002791
+  type: 'test'
+  ...
+# Subtest: only diagnostic interception copies public-script bytes and emits typed metadata
+ok 60 - only diagnostic interception copies public-script bytes and emits typed metadata
+  ---
+  duration_ms: 1.243292
+  type: 'test'
+  ...
+# Subtest: bootstrap diagnosis exposes only bounded script pathname/registration facts
+ok 61 - bootstrap diagnosis exposes only bounded script pathname/registration facts
+  ---
+  duration_ms: 1.997792
+  type: 'test'
+  ...
+# Subtest: diagnostic delivery observations separate browser decode failures from upstream200 without leaking error text
+ok 62 - diagnostic delivery observations separate browser decode failures from upstream200 without leaking error text
+  ---
+  duration_ms: 0.544667
+  type: 'test'
+  ...
+# Subtest: exact six cases use serial fully-settled independent runtime invocations
+ok 63 - exact six cases use serial fully-settled independent runtime invocations
+  ---
+  duration_ms: 0.81875
+  type: 'test'
+  ...
+# Subtest: a pending first-case settlement prevents even starting the second runtime
+ok 64 - a pending first-case settlement prevents even starting the second runtime
+  ---
+  duration_ms: 0.219208
+  type: 'test'
+  ...
+# Subtest: failed or unclosed case stops sequence and cannot yield partial success
+ok 65 - failed or unclosed case stops sequence and cannot yield partial success
+  ---
+  duration_ms: 0.703417
+  type: 'test'
+  ...
+# Subtest: owned server close and group absence precede eligible success; repeated stop signals once
+ok 66 - owned server close and group absence precede eligible success; repeated stop signals once
+  ---
+  duration_ms: 4.083042
+  type: 'test'
+  ...
+# Subtest: exit without stdio close cannot qualify success
+ok 67 - exit without stdio close cannot qualify success
+  ---
+  duration_ms: 7.188916
+  type: 'test'
+  ...
+# Subtest: already closed child never receives termination (PID may have been reused)
+ok 68 - already closed child never receives termination (PID may have been reused)
+  ---
+  duration_ms: 0.327667
+  type: 'test'
+  ...
+# Subtest: ESRCH termination alone does not prove close
+ok 69 - ESRCH termination alone does not prove close
+  ---
+  duration_ms: 4.390583
+  type: 'test'
+  ...
+# Subtest: postclose group alive prevents success
+ok 70 - postclose group alive prevents success
+  ---
+  duration_ms: 5.648334
+  type: 'test'
+  ...
+# Subtest: postclose group EPERM prevents success
+ok 71 - postclose group EPERM prevents success
+  ---
+  duration_ms: 0.813333
+  type: 'test'
+  ...
+# Subtest: postclose group unknown prevents success
+ok 72 - postclose group unknown prevents success
+  ---
+  duration_ms: 0.165791
+  type: 'test'
+  ...
+# Subtest: child close may precede group disappearance, but success still requires actual ESRCH
+ok 73 - child close may precede group disappearance, but success still requires actual ESRCH
+  ---
+  duration_ms: 26.830667
+  type: 'test'
+  ...
+# Subtest: group settlement uses only the original stop deadline remaining after close
+ok 74 - group settlement uses only the original stop deadline remaining after close
+  ---
+  duration_ms: 3.942083
+  type: 'test'
+  ...
+# Subtest: changed child identity is refused before a delayed group probe
+ok 75 - changed child identity is refused before a delayed group probe
+  ---
+  duration_ms: 26.992792
+  type: 'test'
+  ...
+# Subtest: group probing never retries permission errors and releases every own timer
+ok 76 - group probing never retries permission errors and releases every own timer
+  ---
+  duration_ms: 27.598916
+  type: 'test'
+  ...
+# Subtest: signal refusal stops without a fallback or repeated signal
+ok 77 - signal refusal stops without a fallback or repeated signal
+  ---
+  duration_ms: 0.79425
+  type: 'test'
+  ...
+# Subtest: capture child error cannot become success even after close
+ok 78 - capture child error cannot become success even after close
+  ---
+  duration_ms: 0.608875
+  type: 'test'
+  ...
+# Subtest: timer cleanup occurs on close and timeout
+ok 79 - timer cleanup occurs on close and timeout
+  ---
+  duration_ms: 5.497625
+  type: 'test'
+  ...
+# Subtest: invalid spawn identity refuses and keeps error event handled
+ok 80 - invalid spawn identity refuses and keeps error event handled
+  ---
+  duration_ms: 0.870459
+  type: 'test'
+  ...
+# Subtest: isolated compiler directory and generated types restore exact preimage without changing default output
+ok 81 - isolated compiler directory and generated types restore exact preimage without changing default output
+  ---
+  duration_ms: 107.147709
+  type: 'test'
+  ...
+# Subtest: original absent generated type file remains absent
+ok 82 - original absent generated type file remains absent
+  ---
+  duration_ms: 11.482625
+  type: 'test'
+  ...
+# Subtest: changed unknown generated bytes are retained and refuse restoration
+ok 83 - changed unknown generated bytes are retained and refuse restoration
+  ---
+  duration_ms: 4.666125
+  type: 'test'
+  ...
+# Subtest: tracked TypeScript mutation refuses before generated restoration
+ok 84 - tracked TypeScript mutation refuses before generated restoration
+  ---
+  duration_ms: 4.079625
+  type: 'test'
+  ...
+# Subtest: unknown restoration temporary remains untouched
+ok 85 - unknown restoration temporary remains untouched
+  ---
+  duration_ms: 5.301042
+  type: 'test'
+  ...
+# Subtest: linked namespace or generated file refuses without following
+ok 86 - linked namespace or generated file refuses without following
+  ---
+  duration_ms: 5.155292
+  type: 'test'
+  ...
+# Subtest: namespace replacement is refused before any generated mutation
+ok 87 - namespace replacement is refused before any generated mutation
+  ---
+  duration_ms: 4.125416
+  type: 'test'
+  ...
+# Subtest: actual pinned Next type emitter matches restoration predicate
+ok 88 - actual pinned Next type emitter matches restoration predicate
+  ---
+  duration_ms: 14.421125
+  type: 'test'
+  ...
+# Subtest: historical signal-only finalizer can publish before close; current owned promise fences publication
+ok 89 - historical signal-only finalizer can publish before close; current owned promise fences publication
+  ---
+  duration_ms: 0.240542
+  type: 'test'
+  ...
+# Subtest: actual capture main awaits stop and generated restoration before writing eligibility
+ok 90 - actual capture main awaits stop and generated restoration before writing eligibility
+  ---
+  duration_ms: 0.462
+  type: 'test'
+  ...
+# Subtest: F11 TypeScript config retains enforced defaults and pinned Next does not rewrite it
+ok 91 - F11 TypeScript config retains enforced defaults and pinned Next does not rewrite it
+  ---
+  duration_ms: 247.708958
+  type: 'test'
+  ...
+# Subtest: policy module surface: dependency-free, network-free, frozen exports
+ok 92 - policy module surface: dependency-free, network-free, frozen exports
+  ---
+  duration_ms: 6.403708
+  type: 'test'
+  ...
+# Subtest: allowed app documents: exact /analysis?symbol=NVDA&lang=en|zh document GETs continue
+ok 93 - allowed app documents: exact /analysis?symbol=NVDA&lang=en|zh document GETs continue
+  ---
+  duration_ms: 3.072
+  type: 'test'
+  ...
+# Subtest: document negatives: wrong/missing params, duplicates, path aliases, traversal
+ok 94 - document negatives: wrong/missing params, duplicates, path aliases, traversal
+  ---
+  duration_ms: 1.278542
+  type: 'test'
+  ...
+# Subtest: allowed Next static assets and root icons: script/css/font/image/manifest continue
+ok 95 - allowed Next static assets and root icons: script/css/font/image/manifest continue
+  ---
+  duration_ms: 1.239625
+  type: 'test'
+  ...
+# Subtest: static negatives: wrong type/path pairs and non-allowlisted same-origin paths abort
+ok 96 - static negatives: wrong type/path pairs and non-allowlisted same-origin paths abort
+  ---
+  duration_ms: 0.2155
+  type: 'test'
+  ...
+# Subtest: provider/data routes: xhr/fetch fulfill typed-unavailable BEFORE origin/path checks
+ok 97 - provider/data routes: xhr/fetch fulfill typed-unavailable BEFORE origin/path checks
+  ---
+  duration_ms: 0.349792
+  type: 'test'
+  ...
+# Subtest: streaming and non-essential resources abort (dev HMR, realtime, media)
+ok 98 - streaming and non-essential resources abort (dev HMR, realtime, media)
+  ---
+  duration_ms: 0.13175
+  type: 'test'
+  ...
+# Subtest: origin negatives: foreign hosts, other ports, other schemes, prefix look-alikes
+ok 99 - origin negatives: foreign hosts, other ports, other schemes, prefix look-alikes
+  ---
+  duration_ms: 0.541333
+  type: 'test'
+  ...
+# Subtest: scheme-relative and credential-bearing URLs fail closed
+ok 100 - scheme-relative and credential-bearing URLs fail closed
+  ---
+  duration_ms: 1.55125
+  type: 'test'
+  ...
+# Subtest: unsupported methods fail closed everywhere
+ok 101 - unsupported methods fail closed everywhere
+  ---
+  duration_ms: 0.554416
+  type: 'test'
+  ...
+# Subtest: unknown resource types and non-http(s) schemes fail closed
+ok 102 - unknown resource types and non-http(s) schemes fail closed
+  ---
+  duration_ms: 0.269625
+  type: 'test'
+  ...
+# Subtest: unparseable URLs fail closed
+ok 103 - unparseable URLs fail closed
+  ---
+  duration_ms: 0.165708
+  type: 'test'
+  ...
+# Subtest: unsafe base origins make every request fail closed
+ok 104 - unsafe base origins make every request fail closed
+  ---
+  duration_ms: 0.096542
+  type: 'test'
+  ...
+# Subtest: typedUnavailablePayload is constant, frozen, and invents no data
+ok 105 - typedUnavailablePayload is constant, frozen, and invents no data
+  ---
+  duration_ms: 0.151334
+  type: 'test'
+  ...
+# Subtest: headers and postData are never consumed; input is not mutated; results deterministic
+ok 106 - headers and postData are never consumed; input is not mutated; results deterministic
+  ---
+  duration_ms: 0.467959
+  type: 'test'
+  ...
+# Subtest: corpus sweep: every decision is typed, and continue implies the independent allowlist
+ok 107 - corpus sweep: every decision is typed, and continue implies the independent allowlist
+  ---
+  duration_ms: 10.087125
+  type: 'test'
+  ...
+# Subtest: no Next image optimizer path can forward an upstream/provider request
+ok 108 - no Next image optimizer path can forward an upstream/provider request
+  ---
+  duration_ms: 0.292666
+  type: 'test'
+  ...
+# Subtest: encoded path separators cannot be forwarded as static files, while encoded Next bracket names remain allowed
+ok 109 - encoded path separators cannot be forwarded as static files, while encoded Next bracket names remain allowed
+  ---
+  duration_ms: 0.1045
+  type: 'test'
+  ...
+# Subtest: static path decoding ambiguities refuse without a blanket percent ban
+ok 110 - static path decoding ambiguities refuse without a blanket percent ban
+  ---
+  duration_ms: 0.219
+  type: 'test'
+  ...
+# Subtest: projects exact sha256, byte count, mime, and durations for a known buffer
+ok 111 - projects exact sha256, byte count, mime, and durations for a known buffer
+  ---
+  duration_ms: 4.137208
+  type: 'test'
+  ...
+# Subtest: empty body is a valid observable with zero bytes and the empty digest
+ok 112 - empty body is a valid observable with zero bytes and the empty digest
+  ---
+  duration_ms: 0.594875
+  type: 'test'
+  ...
+# Subtest: binary buffer keeps its exact byte count and digest without interpretation
+ok 113 - binary buffer keeps its exact byte count and digest without interpretation
+  ---
+  duration_ms: 0.833166
+  type: 'test'
+  ...
+# Subtest: mime whitelist maps exact tokens and normalizes case, spaces, parameters
+ok 114 - mime whitelist maps exact tokens and normalizes case, spaces, parameters
+  ---
+  duration_ms: 0.939792
+  type: 'test'
+  ...
+# Subtest: hostile free-form content types sanitize to other and never echo input
+ok 115 - hostile free-form content types sanitize to other and never echo input
+  ---
+  duration_ms: 0.326458
+  type: 'test'
+  ...
+# Subtest: absent content type projects missing
+ok 116 - absent content type projects missing
+  ---
+  duration_ms: 0.270459
+  type: 'test'
+  ...
+# Subtest: unknown caller fields are never projected and input is never mutated
+ok 117 - unknown caller fields are never projected and input is never mutated
+  ---
+  duration_ms: 0.464958
+  type: 'test'
+  ...
+# Subtest: pure: repeated calls are deterministic fresh objects
+ok 118 - pure: repeated calls are deterministic fresh objects
+  ---
+  duration_ms: 0.117042
+  type: 'test'
+  ...
+# Subtest: public pathnames including encoded brackets and parens are accepted
+ok 119 - public pathnames including encoded brackets and parens are accepted
+  ---
+  duration_ms: 1.137583
+  type: 'test'
+  ...
+# Subtest: non-public pathnames: origins, queries, fragments, case, prefix
+ok 120 - non-public pathnames: origins, queries, fragments, case, prefix
+  ---
+  duration_ms: 3.08775
+  type: 'test'
+  ...
+# Subtest: traversal and encoded-separator ambiguity is rejected, raw and encoded
+ok 121 - traversal and encoded-separator ambiguity is rejected, raw and encoded
+  ---
+  duration_ms: 0.446625
+  type: 'test'
+  ...
+# Subtest: pathname length bound is 240 characters
+ok 122 - pathname length bound is 240 characters
+  ---
+  duration_ms: 0.135292
+  type: 'test'
+  ...
+# Subtest: body must be a Buffer; other typed bodies are rejected
+ok 123 - body must be a Buffer; other typed bodies are rejected
+  ---
+  duration_ms: 0.261125
+  type: 'test'
+  ...
+# Subtest: body size bound is 32 MiB inclusive
+ok 124 - body size bound is 32 MiB inclusive
+  ---
+  duration_ms: 48.187792
+  type: 'test'
+  ...
+# Subtest: each duration is independently typed and bounded to [0, 600000]
+ok 125 - each duration is independently typed and bounded to [0, 600000]
+  ---
+  duration_ms: 3.760875
+  type: 'test'
+  ...
+# Subtest: a valid sibling duration does not rescue an invalid one
+ok 126 - a valid sibling duration does not rescue an invalid one
+  ---
+  duration_ms: 0.481625
+  type: 'test'
+  ...
+# Subtest: input must be one plain object of named fields
+ok 127 - input must be one plain object of named fields
+  ---
+  duration_ms: 0.318917
+  type: 'test'
+  ...
+# Subtest: byte-0 observable record carries no boot or success signal
+ok 128 - byte-0 observable record carries no boot or success signal
+  ---
+  duration_ms: 0.162375
+  type: 'test'
+  ...
+# Subtest: parent: residual nested percent traversal refuses; normal encoded brackets remain valid
+ok 129 - parent: residual nested percent traversal refuses; normal encoded brackets remain valid
+  ---
+  duration_ms: 0.193958
+  type: 'test'
+  ...
+1..129
+# tests 129
+# suites 0
+# pass 129
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1100.621625

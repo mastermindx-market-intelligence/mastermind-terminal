@@ -41,7 +41,7 @@ on:
   workflow_dispatch:
     inputs:
       shard:
-        description: ci.yml terminal-e2e shard label (desktop-1..6, tablet-1..4, mobile-1..3, serial); mapped to its exact Playwright selector by .github/scripts/selfhosted_canary_inputs.sh
+        description: ci.yml terminal-e2e shard label (desktop-1..6, tablet-1..4, mobile-1..5, serial); mapped to its exact Playwright selector by .github/scripts/selfhosted_canary_inputs.sh
         default: desktop-1
         type: string
       workers:

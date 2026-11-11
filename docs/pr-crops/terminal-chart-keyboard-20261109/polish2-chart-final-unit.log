@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ✓ lib/__tests__/commandPaletteCatalog.test.ts (30 tests) 163ms
+ ✓ lib/__tests__/chartGotoDateDisclosure.test.tsx (6 tests) 159ms
+ ✓ lib/__tests__/chartQuickSettings.test.tsx (5 tests) 229ms
+ ✓ lib/__tests__/chartShortcutOwnership.test.tsx (10 tests) 277ms
+
+ Test Files  4 passed (4)
+      Tests  51 passed (51)
+   Start at  09:06:18
+   Duration  2.50s (transform 1.13s, setup 0ms, collect 3.62s, tests 827ms, environment 2.28s, prepare 395ms)
+

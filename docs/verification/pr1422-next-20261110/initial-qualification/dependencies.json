@@ -1,0 +1,12 @@
+{
+  "source": "fdb54a8a2092c6b42ce3d35493665805b8e14bdb",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "exit": 0,
+  "seconds": 14.483,
+  "logSha256": "c42673975c7b9fbe257f6cff1a1babe25657070a9001965964bdf350e15e7092"
+}

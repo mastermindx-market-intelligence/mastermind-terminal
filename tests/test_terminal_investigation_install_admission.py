@@ -1876,6 +1876,141 @@ def test_trusted_manager_defaults_and_npm_injected_metadata_remain_supported(ver
     assert capsys.readouterr().out.strip() == "explicitly-closed"
 
 
+# ── npm 10 lifecycle-injected config on production serving children ─────────
+# The verified /usr/bin/npm run start launcher injects npm's built-in config
+# defaults into every lifecycle child (sh -c "next start" and next-server).
+# The launcher environ itself never carries them, so their presence on a
+# descendant proves injection only when the launcher proves absence and each
+# value equals npm's default derived from verified launch facts.
+
+NPM10_LAUNCHER_ENVIRON = (
+    b"INVESTIGATION_API_ADMISSION=closed\0NODE_ENV=production\0"
+    b"HOME=/root\0PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin\0"
+)
+# The exact key set observed on the live production serving children (npm
+# 10.8.2, node v20.20.2): every npm_* lifecycle key, with the three
+# override-listed config keys at npm's built-in default values.
+NPM10_LIFECYCLE_ENVIRON = NPM10_LAUNCHER_ENVIRON + (
+    b"npm_command=run-script\0"
+    b"npm_config_cache=/root/.npm\0"
+    b"npm_config_global_prefix=/usr\0"
+    b"npm_config_globalconfig=/usr/etc/npmrc\0"
+    b"npm_config_init_module=/root/.npm-init.js\0"
+    b"npm_config_local_prefix=/opt/terminal/terminal\0"
+    b"npm_config_node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js\0"
+    b"npm_config_noproxy=\0"
+    b"npm_config_npm_version=10.8.2\0"
+    b"npm_config_prefix=/usr\0"
+    b"npm_config_user_agent=npm/10.8.2 node/v20.20.2 linux x64\0"
+    b"npm_config_userconfig=/root/.npmrc\0"
+    b"npm_execpath=/usr/lib/node_modules/npm/bin/npm-cli.js\0"
+    b"npm_lifecycle_event=start\0"
+    b"npm_lifecycle_script=next start\0"
+    b"npm_node_execpath=/usr/bin/node\0"
+    b"npm_package_json=/opt/terminal/terminal/package.json\0"
+    b"npm_package_name=terminal\0"
+    b"npm_package_version=1.0.0\0"
+)
+
+
+def npm10_serving_fixture(launcher_environ=NPM10_LAUNCHER_ENVIRON,
+                          child_environ=NPM10_LIFECYCLE_ENVIRON):
+    procs = serving_fixture()
+    procs[MAIN_PID]["environ"] = launcher_environ
+    procs[SHIM_PID]["environ"] = child_environ
+    procs[SERVER_PID]["environ"] = child_environ
+    return procs
+
+
+def _poststart_production(verifier, procs):
+    install_proc_fakes(verifier, procs, (7, 99))
+    FakeGitHost(tree_listing=primitive_entry(),
+                unit=closed_prod_unit(ActiveState="active",
+                                      MainPID=str(MAIN_PID))).install(verifier)
+    return verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                             "/tmp", "production"])
+
+
+def test_npm10_lifecycle_children_with_injected_defaults_are_admitted(
+        verifier, capsys):
+    assert _poststart_production(verifier, npm10_serving_fixture()) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_npm_injected_config_on_the_npm_launcher_proves_inheritance(verifier):
+    # Even a correctly valued key on the launcher means the unit/manager, not
+    # npm, supplied it; the injection proof fails and nothing is admitted.
+    procs = npm10_serving_fixture(
+        launcher_environ=NPM10_LAUNCHER_ENVIRON + b"npm_config_prefix=/usr\0")
+    with pytest.raises(verifier["Refused"]) as raised:
+        _poststart_production(verifier, procs)
+    assert raised.value.code == "npm-injected-config-on-launcher"
+
+
+@pytest.mark.parametrize(("correct", "deviating"), [
+    (b"npm_config_userconfig=/root/.npmrc\0", b"npm_config_userconfig=/tmp/x/.npmrc\0"),
+    (b"npm_config_globalconfig=/usr/etc/npmrc\0", b"npm_config_globalconfig=/etc/npmrc\0"),
+    (b"npm_config_prefix=/usr\0", b"npm_config_prefix=/usr/local\0"),
+])
+def test_deviating_npm_injected_values_refuse(verifier, correct, deviating):
+    assert correct in NPM10_LIFECYCLE_ENVIRON
+    procs = npm10_serving_fixture(
+        child_environ=NPM10_LIFECYCLE_ENVIRON.replace(correct, deviating))
+    with pytest.raises(verifier["Refused"]) as raised:
+        _poststart_production(verifier, procs)
+    assert raised.value.code == "npm-injected-config-unexpected-value"
+
+
+def test_userconfig_default_follows_the_verified_launcher_home(verifier):
+    # The expected userconfig is derived from the launcher's verified HOME,
+    # not hardcoded: a different HOME must not admit /root/.npmrc.
+    procs = npm10_serving_fixture(
+        launcher_environ=NPM10_LAUNCHER_ENVIRON.replace(
+            b"HOME=/root\0", b"HOME=/home/deploy\0"))
+    with pytest.raises(verifier["Refused"]) as raised:
+        _poststart_production(verifier, procs)
+    assert raised.value.code == "npm-injected-config-unexpected-value"
+
+
+@pytest.mark.parametrize("token", [
+    b"NODE_OPTIONS=--require=fixture-preload\0",
+    b"NODE_PATH=/fixture\0",
+    b"LD_PRELOAD=/fixture.so\0",
+    b"npm_config_node_options=--require=fixture-preload\0",
+    b"npm_config_script_shell=/bin/fixture\0",
+    b"NPM_CONFIG_USERCONFIG=/root/.npmrc\0",
+])
+def test_override_channels_on_npm_children_stay_refused(verifier, token):
+    procs = npm10_serving_fixture(
+        child_environ=NPM10_LIFECYCLE_ENVIRON + token)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _poststart_production(verifier, procs)
+    assert raised.value.code == "unsupported-launch-environment-override"
+
+
+def test_beta_serving_processes_never_admit_npm_injected_config(
+        verifier, tmp_path):
+    # Beta launches next directly (no npm launcher), so the injection proof
+    # never exists and even correctly valued injected keys stay refused.
+    app = tmp_path / "app"
+    app.mkdir()
+    env_file = tmp_path / "environment"
+    env_file.write_text("INVESTIGATION_API_ADMISSION=closed\n")
+    procs = serving_fixture()
+    server = procs[SERVER_PID]
+    server["stat"] = fake_stat(SERVER_PID, "next-server (v16)", 1)
+    server["cgroup"] = "/system.slice/terminal-beta.service"
+    server["environ"] = NPM10_LIFECYCLE_ENVIRON
+    install_proc_fakes(verifier, {SERVER_PID: server}, (7, 99))
+    FakeGitHost(tree_listing=primitive_entry(),
+                unit=closed_beta_unit(str(env_file),
+                                      MainPID=str(SERVER_PID))).install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"]([str(app), NEW_SHA, "poststart", str(app),
+                          "terminal-beta", str(tmp_path), "beta"])
+    assert raised.value.code == "unsupported-launch-environment-override"
+
+
 @pytest.mark.parametrize("source", ["env-file", "dotenv"])
 def test_selected_file_launch_overrides_refuse(verifier, tmp_path, source):
     app = tmp_path / "app"

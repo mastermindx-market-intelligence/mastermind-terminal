@@ -14,7 +14,9 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-LANES = ("hub", "terminal-unit", "terminal-e2e", "python", "investigation-postgres")
+LANES = ("hub", "terminal-unit", "terminal-e2e", "terminal-e2e-build",
+         "terminal-e2e-prodbuild", "python", "investigation-postgres")
+MATRIX_LANES = ("terminal-e2e", "terminal-e2e-prodbuild")
 PREFIX = "terminal-ci-${{ github.event.pull_request.number || github.ref }}-"
 RESULTS = ("success", "failure", "cancelled", "skipped", "timed_out", "unknown", "")
 
@@ -29,7 +31,7 @@ def _errors(workflow):
         errors.append("whole-workflow-lock")
     for lane in LANES:
         expected = PREFIX + lane
-        if lane == "terminal-e2e":
+        if lane in MATRIX_LANES:
             expected += "-${{ matrix.shard }}"
         config = workflow["jobs"][lane].get("concurrency", {})
         if config.get("group") != expected:
@@ -43,7 +45,8 @@ def _errors(workflow):
         errors.append("verdict-may-skip")
     if gate.get("name") != "Terminal typecheck + tests":
         errors.append("required-name")
-    if not {"terminal-unit", "terminal-e2e"} <= set(gate.get("needs", [])):
+    if not {"terminal-unit", "terminal-e2e", "terminal-e2e-build",
+            "terminal-e2e-prodbuild"} <= set(gate.get("needs", [])):
         errors.append("required-inputs")
     return errors
 
@@ -52,7 +55,7 @@ def _keys(workflow, shards):
     keys = []
     for lane in LANES:
         group = workflow["jobs"][lane]["concurrency"]["group"]
-        if lane == "terminal-e2e":
+        if lane in MATRIX_LANES:
             keys.extend(group.replace("${{ matrix.shard }}", shard) for shard in shards)
         else:
             keys.append(group)
@@ -87,10 +90,18 @@ def test_disabled_supersession_is_detected(lane):
     assert "cancel:" + lane in _errors(workflow)
 
 
-def test_matrix_key_without_shard_identity_is_detected():
+@pytest.mark.parametrize("lane", MATRIX_LANES)
+def test_matrix_key_without_shard_identity_is_detected(lane):
     workflow = deepcopy(_workflow())
-    workflow["jobs"]["terminal-e2e"]["concurrency"]["group"] = PREFIX + "terminal-e2e"
-    assert "group:terminal-e2e" in _errors(workflow)
+    workflow["jobs"][lane]["concurrency"]["group"] = PREFIX + lane
+    assert "group:" + lane in _errors(workflow)
+
+
+@pytest.mark.parametrize("lane", ("terminal-e2e-build", "terminal-e2e-prodbuild"))
+def test_a_verdict_that_stops_waiting_for_the_prod_lane_is_detected(lane):
+    workflow = deepcopy(_workflow())
+    workflow["jobs"]["terminal"]["needs"].remove(lane)
+    assert "required-inputs" in _errors(workflow)
 
 
 @pytest.mark.parametrize("mutation", ("workflow-lock", "verdict-lock", "skip-verdict"))
@@ -116,9 +127,26 @@ def test_real_required_gate_rejects_every_incomplete_pr_result(unit, e2e):
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
         "UNIT": unit, "E2E": e2e, "EVENT": "pull_request",
+        "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
     }
-    assert set(step["env"]) == {"SCOPE", "PR_SCOPE", "PR_MODE", "UNIT", "E2E", "EVENT"}
+    assert set(step["env"]) == set(env) - {"PATH"}
     result = subprocess.run(
         ["bash", "-e", "-c", step["run"]], env=env, capture_output=True, text=True, timeout=5
     )
     assert (result.returncode == 0) is (unit == e2e == "success"), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(("build", "prod"), list(product(RESULTS, repeat=2)))
+def test_real_required_gate_rejects_every_incomplete_prod_lane_result(build, prod):
+    gate = _workflow()["jobs"]["terminal"]
+    step = next(step for step in gate["steps"] if step.get("name") == "Assert all event-required Terminal checks passed")
+    env = {
+        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+        "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
+        "UNIT": "success", "E2E": "success", "EVENT": "pull_request",
+        "BUILD": build, "PRODBUILD": prod, "PRODBUILD_COUNT": "4",
+    }
+    result = subprocess.run(
+        ["bash", "-e", "-c", step["run"]], env=env, capture_output=True, text=True, timeout=5
+    )
+    assert (result.returncode == 0) is (build == prod == "success"), result.stdout + result.stderr

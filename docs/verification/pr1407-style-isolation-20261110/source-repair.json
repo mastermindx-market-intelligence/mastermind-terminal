@@ -1,0 +1,47 @@
+{
+  "admission": "held pending authoritative approval-enforcement evidence",
+  "at": "2026-11-10T04:29:49.004306+00:00",
+  "carrier": "original native managed workspace",
+  "componentChanges": [
+    {
+      "file": "terminal/components/IndicatorsModal.tsx",
+      "postimageSha256": "ee79bec876fb74ab352fc8cfed633da22e72ee8e9c4b78694ca8461a586d88e8",
+      "preimageSha256": "d0f82ca6504577770dca68861b51eaa87d74844c5be84c1b0f560b6b22838cc1",
+      "replacements": 18
+    },
+    {
+      "file": "terminal/components/LayoutMenu.tsx",
+      "postimageSha256": "7c1ec57d2cdfb55ac3262184579e4aec5f8cefdde9dc37f1146975e6070a1541",
+      "preimageSha256": "8c3a6459aba740e2a07602bb4962eb37c6777238f374849822923aba68013d17",
+      "replacements": 10
+    },
+    {
+      "file": "terminal/components/TerminalShell.tsx",
+      "postimageSha256": "46fd228a8210266cfb3e8a41d27d6f3b8b1bd3d0fc92ef2b432ace0b6720e25f",
+      "preimageSha256": "7ec6601d9b00d30230fb889815af257678d08dacd132a3b48e962b82529a38e5",
+      "replacements": 2
+    }
+  ],
+  "globalsSha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+  "handlersChanged": false,
+  "newStyles": {
+    "terminal/components/IndicatorsModal.module.css": "c79f33ff2966eff65a756f3026ead5be589e37562ea9d1605c3931567f44d0f1",
+    "terminal/components/LayoutMenu.module.css": "82daf23f2da0d25db461cfec7e49f2d4d4eb84f131b63459c957ba646c6f4f87"
+  },
+  "originalHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "preservedHooks": [
+    "imodal-library",
+    "imod-action",
+    "im-close",
+    "phone-workspaces-sheet",
+    "ws-item",
+    "ws-more",
+    "ws-conflict",
+    "data-ws-*",
+    "stale modifier used by the existing W2-A stale-recovery assertion"
+  ],
+  "referenceProtectedMaster": "33f9224f2b1e68512e38fab33d32c64a0bef6096",
+  "schema": "terminal_pr1407_style_isolation.v1",
+  "stateOwnership": "module-local open/stale styling; semantic stale hook retained with stronger scoped outline; data-ws-state and disabled Open preserved; no blanket blocked class",
+  "updatedAt": "2026-11-10T04:33:57.196270+00:00"
+}

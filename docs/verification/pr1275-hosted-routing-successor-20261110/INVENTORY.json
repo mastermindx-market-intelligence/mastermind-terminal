@@ -1,0 +1,180 @@
+{
+  "files": [
+    {
+      "bytes": 5118,
+      "gitBlob": "0279b39414c05449d9916db5cdf24f6ab030e4ce",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/QUALIFICATION.json",
+      "sha256": "1d33ac3c3a195ce2994eb27dd74f634de66f422d6eb783c14a75e8c2133e8f29"
+    },
+    {
+      "bytes": 2466,
+      "gitBlob": "dbb9e19bdc806d3be8367ef512dd22c579377184",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/README.md",
+      "sha256": "9582caf6a03140fdbb5a2d409e706e5f9214f5bd979cb609855abf1dd769aff5"
+    },
+    {
+      "bytes": 10554,
+      "gitBlob": "212b55fd228c45b3a4afdcf23bb80836f785a189",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/composition.json",
+      "sha256": "3cbb12713b295ae7178594d2c9f95e3c0dc8f5e75075a66e6afde430778bf857"
+    },
+    {
+      "bytes": 100,
+      "gitBlob": "8e665791cec755d7cbe8fa1a7e15b28c65b52020",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/diff-check-full.log",
+      "sha256": "a4459bf72428f76450c68e18bcb30737d168935f59e51dcff112387e9faca605"
+    },
+    {
+      "bytes": 582,
+      "gitBlob": "e29a8a7ba27db5ed5a356c21d3901565d32534ad",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/diff-check.json",
+      "sha256": "d8b8da22630bb9b9e6d25816f30ad997fa1c12250f86e44e98d74de0c752d05d"
+    },
+    {
+      "bytes": 2679,
+      "gitBlob": "b0c96e629f6f1859a4f81da7fa60ca9e34264472",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/evidence-reader-report.json",
+      "sha256": "18cdfbd32af0dea18ae01f9e7941d9e7672f7502eab8aed1964c69f8bf2a8138"
+    },
+    {
+      "bytes": 1027,
+      "gitBlob": "ae3ce10608058e42bab174d57cad3376efdb3f6b",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/evidence-reader.json",
+      "sha256": "681de196280dc400474b2447e411662d3454009cebd1ba7cdd35ea699df8db05"
+    },
+    {
+      "bytes": 366,
+      "gitBlob": "2a770c66c89ba6c0db50c1673e9db7275edc3136",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/evidence-reader.log",
+      "sha256": "de771d78d8c69e3d7ae9e6d6720f331156127fc0c690866df6f287d102d218b9"
+    },
+    {
+      "bytes": 1509,
+      "gitBlob": "588090db5c5f9bdd1cd2645cf58d6ff0d3c3004a",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/execution.json",
+      "sha256": "9e234f4c1439e93f60f9554f3fac6f78b3ef7cb1d0b804a70eb85b823df62c8a"
+    },
+    {
+      "bytes": 844,
+      "gitBlob": "81cfc0e3331f9988074f83d2a1da8291a77bcb7c",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/f11-capture.log",
+      "sha256": "ec19fbfc3039a059074ad8cc2a78be01be4a30efe0bc0c123e26407c4b066474"
+    },
+    {
+      "bytes": 16922,
+      "gitBlob": "64c85baef3a1a579e2122d19bc3e38868f56872e",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/later-protected-integration.json",
+      "sha256": "7a84c4b0a86fd255b2a4b664cca99eba275b4d05670e1f8043bb512ded67e0b8"
+    },
+    {
+      "bytes": 10021,
+      "gitBlob": "df7a8451403b5b79d60176aeb7f6bd4881695945",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/preflight.json",
+      "sha256": "e41268da93cb596f63fa13716cc28596c170c661ba58be0193ecf7d15d2e599d"
+    },
+    {
+      "bytes": 740,
+      "gitBlob": "30cc2b8e1b7e5afab599c63cd006e898d8e05e4a",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/preservation.json",
+      "sha256": "b79739a3683b8fb5b7ceb897baad04b8056c444fb141272dddc455e2bbc15205"
+    },
+    {
+      "bytes": 3286,
+      "gitBlob": "266d2ab1a39ca1ab94dc5007656c3eb9c1914965",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-packet-preservation.json",
+      "sha256": "a0a8dd6de4cc4a0d90660ec84db802431f30c5a1e49bb3ab42a45d364bd4f856"
+    },
+    {
+      "bytes": 4373,
+      "gitBlob": "26c391e0d0e22f9a7d4704d510f310dc2701c7d6",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/EVIDENCE.yml",
+      "sha256": "6c4ce259c59bf138592821d92f0500f95eb72a78353b01b4d064ba83174bf652"
+    },
+    {
+      "bytes": 66679,
+      "gitBlob": "c734d88c4fea6c8b1a8eba5d30797dee899b73b4",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/FIXTURE.json",
+      "sha256": "777ef9eb32d83780ecdb74bbc97a811263c6c51e53fa3ba9c7426af9d7a33728"
+    },
+    {
+      "bytes": 72928,
+      "gitBlob": "dc4b4972fcbb16132ddd06b304910faa2f6c57f7",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/desktop-en.png",
+      "sha256": "5d4665ced5778a21f3da8a8b2c9cf064b85084efd79576470a6b0e0f75eb6de3"
+    },
+    {
+      "bytes": 72865,
+      "gitBlob": "e33505e525d33207a8c8f9af05876a02d23e788c",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/desktop-zh.png",
+      "sha256": "3db4fb349405caac79ae4fd205ca766f9efcf17e1e747d1059623147adf6bf0d"
+    },
+    {
+      "bytes": 21970,
+      "gitBlob": "b2cfe3686a8483fa138be62c277a1b360e927e17",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/mobile-en.png",
+      "sha256": "f48d6b1bedb2fa5bb808e3ab6dcdb2b128f108c863859f7a3b6a9fb044394b7c"
+    },
+    {
+      "bytes": 22687,
+      "gitBlob": "19e07a3dc9fce6d780c1e48fef20ef13b6d42456",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/mobile-zh.png",
+      "sha256": "51e70e33bb4eb0a7775c8b79086de33a440f918deaf1ddf15321b27370641b9c"
+    },
+    {
+      "bytes": 35568,
+      "gitBlob": "71d1e677afaaa7b14afe71c61a927cabc93d1580",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/tablet-en.png",
+      "sha256": "185a3840432d2288822bbc8d56f6ac89a1f82cb32a22b9ae9ce49ca62a8bfd13"
+    },
+    {
+      "bytes": 34375,
+      "gitBlob": "06b076e3edd05cdf949202efb3aa3809c95df6a4",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/prior-published-packet/tablet-zh.png",
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833"
+    },
+    {
+      "bytes": 1663,
+      "gitBlob": "b061f823eb38b0b000a6b5766e00bdb6700e21d7",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/routing-contracts.json",
+      "sha256": "88bd51e679a0ba2509a204119238abe0132a1208047f2a532e96a5b5c71c7534"
+    },
+    {
+      "bytes": 99,
+      "gitBlob": "9a3cacce9a50544969be9985523d61d6d601039a",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/routing-contracts.log",
+      "sha256": "95079224909f987d2f3200b23fb9bb5b089c758a6cd27124e73edb0812509896"
+    },
+    {
+      "bytes": 4618,
+      "gitBlob": "8ebb8f59d8515ded9f08645d50c8ce666a9bf24a",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/routing-contracts.xml",
+      "sha256": "75d44a87789237a710a76ff49fc9424502b0d18e256a76a8067b31b96c79a8bc"
+    },
+    {
+      "bytes": 7513,
+      "gitBlob": "2f35ca53fd1b6fd4a16e6f782f1618cbd179f495",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/run-qualification.py",
+      "sha256": "ad06f27758088f594455e220c879fdd058ebc7ce1b8ab69d38e45936a739e57e"
+    },
+    {
+      "bytes": 1383,
+      "gitBlob": "94a564bc9ca217d327dacc32bee8398107f73513",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/runtime.json",
+      "sha256": "bc2a8b15f767c686584064931f9c220ced947ce2b554e1d88699c988d69e5005"
+    },
+    {
+      "bytes": 639,
+      "gitBlob": "29a7005545d3420a115dea8921b604eb82b8d054",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/source-adoption.json",
+      "sha256": "146bca947384cbaa652adfd37925297aabdc5d10c184c46a894eae20170c2f97"
+    },
+    {
+      "bytes": 3612,
+      "gitBlob": "654bcbab8b3e3b6febfae0a7f0ac72b85abd8228",
+      "path": "docs/verification/pr1275-hosted-routing-successor-20261110/visual-review.json",
+      "sha256": "60cbf090ac9e8b4a26472f84897ddd1e7f31c1924e5560c3b30b61ac0e35972c"
+    }
+  ],
+  "schema": "terminal.pr1275.proof-inventory.v1",
+  "sourceHead": "b690928594010d042bfdb69867e2ffdf1d0d47a2"
+}

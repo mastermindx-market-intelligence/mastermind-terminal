@@ -1,0 +1,279 @@
+{
+  "after": {
+    ".github/workflows/ci.yml": {
+      "mode": "100644",
+      "sha": "62bef869030aa49ccfe6ee8bef3861585c426ad3"
+    },
+    "DEPLOY.md": {
+      "mode": "100644",
+      "sha": "ef4cadd6f21ea23c6483d2856adc8b322adcb322"
+    },
+    "docs/pr-crops/terminal-comparison-settings-20261109/browser-final.log": {
+      "mode": "100644",
+      "sha": "487da139e72f5f3469ccdb87232a68ea0a187d03"
+    },
+    "docs/pr-crops/terminal-comparison-settings-20261109/desktop-en.png": {
+      "mode": "100644",
+      "sha": "61984fc7067d8dadc23611f5e424ba59f4e83fa4"
+    },
+    "docs/pr-crops/terminal-comparison-settings-20261109/mobile-zh.png": {
+      "mode": "100644",
+      "sha": "d313a410e7d1b329e66022b240f07a7e85ae7aa3"
+    },
+    "docs/pr-crops/terminal-comparison-settings-20261109/source-receipt.json": {
+      "mode": "100644",
+      "sha": "b7c9714b340ec8b3e39d80b5faadfff5f563799b"
+    },
+    "docs/pr-crops/terminal-comparison-settings-20261109/unit-before.log": {
+      "mode": "100644",
+      "sha": "dc182fe1d9700182018d0eff7f182a5513b6ae6f"
+    },
+    "docs/pr-crops/terminal-comparison-settings-20261109/unit-final.log": {
+      "mode": "100644",
+      "sha": "549862189d5a8f47d6d26574e69833ee9bcb1284"
+    },
+    "docs/pr-crops/terminal-comparison-settings-20261109/verification.md": {
+      "mode": "100644",
+      "sha": "cde24397e1fa4ec33508b296027756bfa99f9878"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/annotation-before.log": {
+      "mode": "100644",
+      "sha": "98a4b37f9fab1e59f4ed8ad981c94dc2b38b210d"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/browser-source.json": {
+      "mode": "100644",
+      "sha": "2cd4f2293a40ac2d28eaa92608037e05b7a7d9d4"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/browser.log": {
+      "mode": "100644",
+      "sha": "acf29f18f43419b3288bdacb79c954f6febf40d6"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-after.log": {
+      "mode": "100644",
+      "sha": "6d6b20580dbac5ff2855a0c902a9acb4072c9c3c"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-before.log": {
+      "mode": "100644",
+      "sha": "0c573f54d0e7a4a2fa805b265ea90e90b2d0e891"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-repair.md": {
+      "mode": "100644",
+      "sha": "94145b270193b932674ab4d54ead62ed78eaf071"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/desktop-return.png": {
+      "mode": "100644",
+      "sha": "eb1778bb14e49f0de52994d67cf7891116b75e08"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/phone-return.png": {
+      "mode": "100644",
+      "sha": "7143f2720995d030738c684547486450ccd3db71"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/qualification.log": {
+      "mode": "100644",
+      "sha": "fa2301be758cd6a84739c115e044913a3539d5e5"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/receiver-phone.png": {
+      "mode": "100644",
+      "sha": "3e32cde4b090480c525b28de20805263c80a838a"
+    },
+    "docs/pr-crops/terminal-search-return-focus-20261109/verification.md": {
+      "mode": "100644",
+      "sha": "6f2ac5e800dd2fa3007312b138e22cb4ab7ac3f5"
+    },
+    "docs/terminal-search-return-focus-20261109.md": {
+      "mode": "100644",
+      "sha": "3daba72101d0e58643b512b23c7f5db0e2ab1c5d"
+    },
+    "terminal/components/CompareSettings.module.css": {
+      "mode": "100644",
+      "sha": "6b5127851b05f5c47f619392fc2a931cbaea2d7c"
+    },
+    "terminal/components/CompareSettings.tsx": {
+      "mode": "100644",
+      "sha": "2473026814624d15ee866402377f4b7609c4a057"
+    },
+    "terminal/components/SearchModal.tsx": {
+      "mode": "100644",
+      "sha": "aa8e4d47ddf275cb5ffd199cbd2f8e8f6d5861cc"
+    },
+    "terminal/components/studyTemplates/useDialogFocus.ts": {
+      "mode": "100644",
+      "sha": "bfa11ce0d198e94f3e139569c0fa14101513ed38"
+    },
+    "terminal/components/ui/MobileSheet.tsx": {
+      "mode": "100644",
+      "sha": "c6a31228b2893f688e99c82a9f5521de83db193f"
+    },
+    "terminal/components/watchlist/WatchlistAnnotationSync.tsx": {
+      "mode": "100644",
+      "sha": "963a13eb678cf2e3c8a577d1be430b3f074d87db"
+    },
+    "terminal/e2e/comparison-settings-polish.spec.ts": {
+      "mode": "100644",
+      "sha": "9c0570330d83bf1660a5e46cb217e32a372e2a59"
+    },
+    "terminal/e2e/search-return-focus.spec.ts": {
+      "mode": "100644",
+      "sha": "1642701769e284dff08e816fc4c7dd01f435d36a"
+    },
+    "terminal/e2e/w2a-workspaces.spec.ts": {
+      "mode": "100644",
+      "sha": "79bc57e7a1155f76252485dbc041f29e10e049a2"
+    },
+    "terminal/lib/__tests__/annotationDialogFocus.test.tsx": {
+      "mode": "100644",
+      "sha": "f8bb6f387281361e6dcd95f1981480c200e9eb6d"
+    },
+    "terminal/lib/__tests__/companySearchIdentity.test.tsx": {
+      "mode": "100644",
+      "sha": "4beefb076d2d94ddab7a223d721ea85badec178b"
+    },
+    "terminal/lib/__tests__/compareSettingsAccessibility.test.tsx": {
+      "mode": "100644",
+      "sha": "ae17ab0119cd67e27c09501346a82d0d1bcfc02b"
+    },
+    "terminal/lib/__tests__/searchReturnFocus.test.tsx": {
+      "mode": "100644",
+      "sha": "70805f050a6534ddc4c7dbae4f9d1043b9e26d84"
+    },
+    "terminal/lib/__tests__/sharedShellLazyFocus.test.tsx": {
+      "mode": "100644",
+      "sha": "986fcf4bed8ca62db4153a7662ed5afb396efd18"
+    },
+    "terminal/lib/dialogFocusReturn.ts": {
+      "mode": "100644",
+      "sha": "0a2356a6a62f2dff85a161548c99474cb7a75781"
+    },
+    "tests/conftest.py": {
+      "mode": "100644",
+      "sha": "39ea2885f8cbf61a19930ee6621d4e86d76bf24d"
+    }
+  },
+  "at": "2026-11-10T05:30:14.894893+00:00",
+  "base": "33f9224f2b1e68512e38fab33d32c64a0bef6096",
+  "before": {
+    ".github/workflows/ci.yml": {
+      "mode": "100644",
+      "sha": "e1d79d2211acb2a29fc1e79dd9a195df96da280d"
+    },
+    "DEPLOY.md": {
+      "mode": "100644",
+      "sha": "cde128e4f63aaa6f9397d3fb5785763178b21004"
+    },
+    "docs/pr-crops/terminal-comparison-settings-20261109/browser-final.log": null,
+    "docs/pr-crops/terminal-comparison-settings-20261109/desktop-en.png": null,
+    "docs/pr-crops/terminal-comparison-settings-20261109/mobile-zh.png": null,
+    "docs/pr-crops/terminal-comparison-settings-20261109/source-receipt.json": null,
+    "docs/pr-crops/terminal-comparison-settings-20261109/unit-before.log": null,
+    "docs/pr-crops/terminal-comparison-settings-20261109/unit-final.log": null,
+    "docs/pr-crops/terminal-comparison-settings-20261109/verification.md": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/annotation-before.log": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/browser-source.json": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/browser.log": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-after.log": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-before.log": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-repair.md": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/desktop-return.png": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/phone-return.png": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/qualification.log": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/receiver-phone.png": null,
+    "docs/pr-crops/terminal-search-return-focus-20261109/verification.md": null,
+    "docs/terminal-search-return-focus-20261109.md": null,
+    "terminal/components/CompareSettings.module.css": null,
+    "terminal/components/CompareSettings.tsx": {
+      "mode": "100644",
+      "sha": "5af979f146f7a3721d8606346405c1b54e36ff42"
+    },
+    "terminal/components/SearchModal.tsx": {
+      "mode": "100644",
+      "sha": "d72fe57effda9b0b9157bba28baea11e8af378fb"
+    },
+    "terminal/components/studyTemplates/useDialogFocus.ts": {
+      "mode": "100644",
+      "sha": "cf3776396401f3b600d41aae7bdfcc641b2e4a31"
+    },
+    "terminal/components/ui/MobileSheet.tsx": {
+      "mode": "100644",
+      "sha": "fe55bf38c576a4a41c695b0ac8d6c6f4b33cd956"
+    },
+    "terminal/components/watchlist/WatchlistAnnotationSync.tsx": {
+      "mode": "100644",
+      "sha": "a3951e36429f5e07c8b814f5b12606b6799c9036"
+    },
+    "terminal/e2e/comparison-settings-polish.spec.ts": null,
+    "terminal/e2e/search-return-focus.spec.ts": null,
+    "terminal/e2e/w2a-workspaces.spec.ts": {
+      "mode": "100644",
+      "sha": "4343adba8d9948b236fb7ca755305f8fda024730"
+    },
+    "terminal/lib/__tests__/annotationDialogFocus.test.tsx": null,
+    "terminal/lib/__tests__/companySearchIdentity.test.tsx": {
+      "mode": "100644",
+      "sha": "3114cd6fe985086b093478bc29d814177082c024"
+    },
+    "terminal/lib/__tests__/compareSettingsAccessibility.test.tsx": null,
+    "terminal/lib/__tests__/searchReturnFocus.test.tsx": null,
+    "terminal/lib/__tests__/sharedShellLazyFocus.test.tsx": {
+      "mode": "100644",
+      "sha": "690a865774a695b4fb363d286a661784695b6523"
+    },
+    "terminal/lib/dialogFocusReturn.ts": null,
+    "tests/conftest.py": {
+      "mode": "100644",
+      "sha": "bd6bd216368f5d29a6422753642dbaf03d64b587"
+    }
+  },
+  "completedAt": "2026-11-10T05:30:16.045857+00:00",
+  "conflicts": [],
+  "incoming768": "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c",
+  "note": "Source overlay on the prepared index; no local publication commit or claim that protected contains unmerged #768. Final GitHub publication waits for its actual protected merge and applicable-source equality.",
+  "patchSha256": "f340f3889f195aa8b2872df1c06ee5b1684e5bc24948931094b1a4584cbb40b1",
+  "paths": [
+    ".github/workflows/ci.yml",
+    "DEPLOY.md",
+    "docs/pr-crops/terminal-comparison-settings-20261109/browser-final.log",
+    "docs/pr-crops/terminal-comparison-settings-20261109/desktop-en.png",
+    "docs/pr-crops/terminal-comparison-settings-20261109/mobile-zh.png",
+    "docs/pr-crops/terminal-comparison-settings-20261109/source-receipt.json",
+    "docs/pr-crops/terminal-comparison-settings-20261109/unit-before.log",
+    "docs/pr-crops/terminal-comparison-settings-20261109/unit-final.log",
+    "docs/pr-crops/terminal-comparison-settings-20261109/verification.md",
+    "docs/pr-crops/terminal-search-return-focus-20261109/annotation-before.log",
+    "docs/pr-crops/terminal-search-return-focus-20261109/browser-source.json",
+    "docs/pr-crops/terminal-search-return-focus-20261109/browser.log",
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-after.log",
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-before.log",
+    "docs/pr-crops/terminal-search-return-focus-20261109/ci-fixture-repair.md",
+    "docs/pr-crops/terminal-search-return-focus-20261109/desktop-return.png",
+    "docs/pr-crops/terminal-search-return-focus-20261109/phone-return.png",
+    "docs/pr-crops/terminal-search-return-focus-20261109/qualification.log",
+    "docs/pr-crops/terminal-search-return-focus-20261109/receiver-phone.png",
+    "docs/pr-crops/terminal-search-return-focus-20261109/verification.md",
+    "docs/terminal-search-return-focus-20261109.md",
+    "terminal/components/CompareSettings.module.css",
+    "terminal/components/CompareSettings.tsx",
+    "terminal/components/SearchModal.tsx",
+    "terminal/components/studyTemplates/useDialogFocus.ts",
+    "terminal/components/ui/MobileSheet.tsx",
+    "terminal/components/watchlist/WatchlistAnnotationSync.tsx",
+    "terminal/e2e/comparison-settings-polish.spec.ts",
+    "terminal/e2e/search-return-focus.spec.ts",
+    "terminal/e2e/w2a-workspaces.spec.ts",
+    "terminal/lib/__tests__/annotationDialogFocus.test.tsx",
+    "terminal/lib/__tests__/companySearchIdentity.test.tsx",
+    "terminal/lib/__tests__/compareSettingsAccessibility.test.tsx",
+    "terminal/lib/__tests__/searchReturnFocus.test.tsx",
+    "terminal/lib/__tests__/sharedShellLazyFocus.test.tsx",
+    "terminal/lib/dialogFocusReturn.ts",
+    "tests/conftest.py"
+  ],
+  "protected": "dad33e10089c9d51d931a1fe72e7fa1acb37abe1",
+  "protectedPostimagesMatch": true,
+  "result": {
+    "exit": 0,
+    "stderr": "/tmp/terminal-pr-duty-20261110-645-protected-delta.patch:6135: trailing whitespace.\n- Expected: \n/tmp/terminal-pr-duty-20261110-645-protected-delta.patch:6138: trailing whitespace.\n+ Received: \n/tmp/terminal-pr-duty-20261110-645-protected-delta.patch:6174: trailing whitespace.\n     60| \n/tmp/terminal-pr-duty-20261110-645-protected-delta.patch:6561: trailing whitespace.\n     61| \n/tmp/terminal-pr-duty-20261110-645-protected-delta.patch:6708: trailing whitespace.\n     38| \nApplied patch to '.github/workflows/ci.yml' cleanly.\nApplied patch to 'DEPLOY.md' cleanly.\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nApplied patch to 'terminal/components/CompareSettings.tsx' cleanly.\nApplied patch to 'terminal/components/SearchModal.tsx' cleanly.\nApplied patch to 'terminal/components/studyTemplates/useDialogFocus.ts' cleanly.\nApplied patch to 'terminal/components/ui/MobileSheet.tsx' cleanly.\nApplied patch to 'terminal/components/watchlist/WatchlistAnnotationSync.tsx' cleanly.\nFalling back to direct application...\nFalling back to direct application...\nApplied patch to 'terminal/e2e/w2a-workspaces.spec.ts' cleanly.\nFalling back to direct application...\nApplied patch to 'terminal/lib/__tests__/companySearchIdentity.test.tsx' cleanly.\nFalling back to direct application...\nFalling back to direct application...\nApplied patch to 'terminal/lib/__tests__/sharedShellLazyFocus.test.tsx' cleanly.\nFalling back to direct application...\nApplied patch to 'tests/conftest.py' cleanly.\nwarning: squelched 5 whitespace errors\nwarning: 10 lines add whitespace errors.\n",
+    "stdout": ""
+  },
+  "schema": "terminal_pr645_protected_delta_overlay.v1",
+  "state": "APPLIED"
+}

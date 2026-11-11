@@ -37,30 +37,44 @@ export interface SaveInvestigationButtonProps {
 }
 
 export function SaveInvestigationButton({ principal, command, previous, lang, copy, onStateChange }: SaveInvestigationButtonProps) {
-  const [state, setState] = useState<InvestigationSaveState>(() => partitionInvestigationSave(previous ?? { phase: "idle" }, principal));
-  const [inFlight, setInFlight] = useState(false);
+  // R4 residue (third review, item 4): the JOURNAL is the caller-owned
+  // recovery record (seeded from `previous`, reported raw to the caller so it
+  // survives this component unmounting — the admission gate's principal-change
+  // beat unmounts it); the VIEW is partitioned per render, so a journal owned
+  // by a switched-out principal reads idle here — its Check/Retry/labels never
+  // surface under the next account, and the actor's own scope returns with
+  // them (partitionInvestigationSave, the module's own law).
+  const [journal, setJournal] = useState<InvestigationSaveState>(previous ?? { phase: "idle" });
+  const state = partitionInvestigationSave(journal, principal);
+  // r4 N-7: the in-flight flag is PER ACCOUNT, keyed by the actor that raised
+  // it. A's pending POST may still be riding when the surface re-binds to B —
+  // B's Save is never disabled by A's flight, and A's late reply clears only
+  // A's own flag, never one B raised meanwhile.
+  const [inFlightFor, setInFlightFor] = useState<string | null>(null);
+  const inFlight = principal !== null && inFlightFor === principal;
   const text = copy[lang];
-  useEffect(() => { onStateChange?.(state); }, [state, onStateChange]);
+  useEffect(() => { onStateChange?.(journal); }, [journal, onStateChange]);
 
   const send = async (toSend: InvestigationCommand) => {
-    setInFlight(true);
+    const actor = principal;
+    setInFlightFor(actor);
     let response: unknown = null;
     try {
       const res = await fetch("/api/investigations", {
         method: "POST",
-        headers: { "content-type": "application/json", ...(principal ? { "x-mm-investigation-owner": principal } : {}) },
+        headers: { "content-type": "application/json", ...(actor ? { "x-mm-investigation-owner": actor } : {}) },
         body: JSON.stringify(toSend),
       });
       response = await res.json().catch(() => null);
     } catch { response = null; }
-    setInFlight(false);
-    if (principal) setState(current => settleInvestigationSave(current, principal, response));
+    setInFlightFor(current => current === actor ? null : current);
+    if (actor) setJournal(current => settleInvestigationSave(current, actor, response));
   };
 
   const onSave = () => {
     if (!principal) return;
     const next = beginInvestigationSave(principal, command, state);
-    setState(next);
+    setJournal(next);
     const toSend = retryInvestigationSave(next, principal);
     if (toSend) void send(toSend);
   };

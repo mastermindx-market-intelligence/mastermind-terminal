@@ -1,0 +1,24 @@
+.dialog :global(.is-head .x) {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  font: inherit;
+}
+.dialog :global(.is-color) { flex-wrap: wrap; }
+.dialog :global(.is-row) { gap: 12px; }
+.dialog :global(.is-label) { min-width: 0; }
+.dialog :global(.cmp-set-seg) { flex-wrap: wrap; }
+.dialog button:disabled { opacity: 0.4; cursor: default; }
+
+@media (max-width: 640px) {
+  .dialog :global(.is-row) { flex-wrap: wrap; align-items: flex-start; }
+  .dialog :global(.is-label) { width: 100%; flex-basis: 100%; }
+}
+
+@media (pointer: coarse) {
+  .dialog :global(.is-sw), .dialog :global(.is-sw-cur), .dialog :global(input[type="color"]) { width: 44px; height: 44px; }
+  .dialog :global(.is-color) { gap: 8px; }
+  .dialog :global(.cmp-set-opt), .dialog :global(.is-stepper) button, .dialog :global(.is-stepper) input { min-height: 44px; }
+  .dialog :global(.is-stepper) button { min-width: 44px; }
+}

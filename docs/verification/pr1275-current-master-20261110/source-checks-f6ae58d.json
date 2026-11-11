@@ -1,0 +1,33 @@
+[
+  {
+    "check": "f11-contracts-f6ae58d",
+    "head": "f6ae58d78d8c3f3528af1c5c03d05c00b7dabce3",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "--test",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "e2e/tools/f11_owned_server.test.cjs",
+      "e2e/tools/f11_provider_closed_policy.test.cjs",
+      "e2e/tools/f11_script_metadata.test.cjs"
+    ],
+    "exit_code": 0,
+    "seconds": 1.338,
+    "sha256": "ab06e72844f1ee99c4ad7a97bd21341f0216f40d7b1b4dcf3d13d7aa996524af",
+    "tail": "mutated\nok 115 - unknown caller fields are never projected and input is never mutated\n  ---\n  duration_ms: 0.354791\n  type: 'test'\n  ...\n# Subtest: pure: repeated calls are deterministic fresh objects\nok 116 - pure: repeated calls are deterministic fresh objects\n  ---\n  duration_ms: 0.140042\n  type: 'test'\n  ...\n# Subtest: public pathnames including encoded brackets and parens are accepted\nok 117 - public pathnames including encoded brackets and parens are accepted\n  ---\n  duration_ms: 0.589459\n  type: 'test'\n  ...\n# Subtest: non-public pathnames: origins, queries, fragments, case, prefix\nok 118 - non-public pathnames: origins, queries, fragments, case, prefix\n  ---\n  duration_ms: 4.741167\n  type: 'test'\n  ...\n# Subtest: traversal and encoded-separator ambiguity is rejected, raw and encoded\nok 119 - traversal and encoded-separator ambiguity is rejected, raw and encoded\n  ---\n  duration_ms: 0.833958\n  type: 'test'\n  ...\n# Subtest: pathname length bound is 240 characters\nok 120 - pathname length bound is 240 characters\n  ---\n  duration_ms: 0.255458\n  type: 'test'\n  ...\n# Subtest: body must be a Buffer; other typed bodies are rejected\nok 121 - body must be a Buffer; other typed bodies are rejected\n  ---\n  duration_ms: 0.482916\n  type: 'test'\n  ...\n# Subtest: body size bound is 32 MiB inclusive\nok 122 - body size bound is 32 MiB inclusive\n  ---\n  duration_ms: 67.638833\n  type: 'test'\n  ...\n# Subtest: each duration is independently typed and bounded to [0, 600000]\nok 123 - each duration is independently typed and bounded to [0, 600000]\n  ---\n  duration_ms: 3.64625\n  type: 'test'\n  ...\n# Subtest: a valid sibling duration does not rescue an invalid one\nok 124 - a valid sibling duration does not rescue an invalid one\n  ---\n  duration_ms: 0.395375\n  type: 'test'\n  ...\n# Subtest: input must be one plain object of named fields\nok 125 - input must be one plain object of named fields\n  ---\n  duration_ms: 0.207458\n  type: 'test'\n  ...\n# Subtest: byte-0 observable record carries no boot or success signal\nok 126 - byte-0 observable record carries no boot or success signal\n  ---\n  duration_ms: 0.1385\n  type: 'test'\n  ...\n# Subtest: parent: residual nested percent traversal refuses; normal encoded brackets remain valid\nok 127 - parent: residual nested percent traversal refuses; normal encoded brackets remain valid\n  ---\n  duration_ms: 0.518125\n  type: 'test'\n  ...\n1..127\n# tests 127\n# suites 0\n# pass 127\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1129.533125\n"
+  },
+  {
+    "check": "f11-lint-f6ae58d",
+    "head": "f6ae58d78d8c3f3528af1c5c03d05c00b7dabce3",
+    "command": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/eslint/bin/eslint.js",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "e2e/tools/f11_owned_server.test.cjs"
+    ],
+    "exit_code": 0,
+    "seconds": 8.107,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tail": ""
+  }
+]

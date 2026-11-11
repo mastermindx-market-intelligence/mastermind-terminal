@@ -1,0 +1,9 @@
+{
+  "sourceAndDocumentationExit": 0,
+  "rawEvidenceExit": 2,
+  "rawWarnings": [
+    "docs/verification/drawing-control-readiness-20261109/baseline.log:114: new blank line at EOF.",
+    "docs/verification/drawing-control-readiness-20261109/focused.log:14: new blank line at EOF."
+  ],
+  "disposition": "Original command output is preserved byte-for-byte; warnings concern raw log formatting only."
+}

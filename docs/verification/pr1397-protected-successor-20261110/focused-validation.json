@@ -1,0 +1,48 @@
+{
+  "schema": "terminal_pr1397_focused_validation.v1",
+  "completedAt": "2026-11-10T06:58:18.826544+00:00",
+  "checks": [
+    {
+      "name": "focused-tests",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "vitest",
+        "run",
+        "lib/__tests__/finStatements.test.ts",
+        "lib/__tests__/finStatementMath.test.ts",
+        "lib/__tests__/pineBootPendingEvidence.test.ts"
+      ],
+      "exitCode": 0,
+      "seconds": 6.39,
+      "logSha256": "c245a8c3292669b8da8947f0b27bc0350316cb07e5839d21582da2494ec0e806"
+    },
+    {
+      "name": "typegen",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "next",
+        "typegen"
+      ],
+      "exitCode": 0,
+      "seconds": 6.52,
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    {
+      "name": "typescript",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "seconds": 94.28,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

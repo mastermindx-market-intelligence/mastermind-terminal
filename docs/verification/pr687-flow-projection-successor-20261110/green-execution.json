@@ -1,0 +1,39 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/flowProjection.test.ts",
+    "lib/__tests__/flowProjectionControls.test.tsx",
+    "lib/__tests__/optionsFlowBoards.test.ts",
+    "lib/__tests__/flowDeskNoFeedCountTruth.test.tsx",
+    "lib/__tests__/flowDeskFeedLoadFailureState.test.tsx",
+    "lib/__tests__/flowDeskFeedUnknownTruth.test.tsx",
+    "lib/__tests__/flowDeskMalformedFeedEvents.test.tsx",
+    "lib/__tests__/flowPrintInspector.test.ts",
+    "lib/__tests__/optionsMeasuredIntegrity.test.tsx",
+    "lib/__tests__/optionsAlphaMeasuredEvidence.test.ts",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-687-flow-projection-successor/docs/verification/pr687-flow-projection-successor-20261110/green-report.json"
+  ],
+  "counts": {
+    "numFailedTests": 0,
+    "numPassedTests": 190,
+    "numPendingTests": 0,
+    "numTotalTests": 190
+  },
+  "exitCode": 0,
+  "failedTests": [],
+  "finishedAt": "2026-11-10T17:16:52.298212+00:00",
+  "logSha256": "633088ac3b3929cd656c2c9ad64767cc91e6f2f979a3e3de512d427c4cced56e",
+  "mode": "green",
+  "pid": 90554,
+  "reportSha256": "c3bda09ee04764574a5a6df79ff35dd0ef4b9c4e955703e3b45b748eb3495c7b",
+  "schema": "terminal_pr687_focused_tests.v1",
+  "seconds": 2.308,
+  "sourceFiles": 2771,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T17:16:49.989914+00:00",
+  "state": "AFFECTED_CONTRACTS_PASSED"
+}

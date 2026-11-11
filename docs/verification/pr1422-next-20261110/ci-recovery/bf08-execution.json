@@ -1,0 +1,41 @@
+{
+  "command": [
+    "node",
+    "e2e/tools/capture_b_f08_8_invalidation.cjs"
+  ],
+  "completedAt": "2026-11-10T13:17:02.638900+00:00",
+  "exit": 0,
+  "logSha256": "e867ab29086cc3bd7773ef762681f1a660bafabb62b24b8cfe5047f5200c1df9",
+  "nextLockAbsent": true,
+  "node": "v22.23.4",
+  "packet": {
+    "EVIDENCE.yml": "2c168a51d6a5e93a7c6eb2f4f5529577ed7196e69857a2ff46229ee9969092d2",
+    "desktop-en-condition.png": "d0308436804fbb9e06bdf92b9a73c53bb5ae904eeb856e79ee72fc5c6e2c55fd",
+    "desktop-en-typed-null.png": "ca6593db5288092d66f010db9209c9393c384d8d104230047e324df80dd9c3f1",
+    "desktop-zh-condition.png": "1de0e5cd47ca319a41f38380cedf5cec3ed5a94ac97b65f71b350c984666ec49",
+    "desktop-zh-typed-null.png": "bc91fc6fcc176ac7fbe7d08807633bc4875019f5b6d32bc6e3652f098ebdf348",
+    "mobile-en-condition.png": "1c5e165c827ad0479eb8c540ab5a1d9e46e2300b154bd0c7674473a84bd8adfe",
+    "mobile-en-typed-null.png": "c7d91384df75a0d196ee7c30b4115cdf5f58c8dcac6c976cab7774eac57d3bb6",
+    "mobile-zh-condition.png": "76b9239b2c7ef2e923e3d4d4b28bb685a1a84298672012d13afc5b82447220e6",
+    "mobile-zh-typed-null.png": "773c75c618a515fe49c1583c177114be5b2704d1c7b15c3ae9c06a02cc985aa4"
+  },
+  "port": 34231,
+  "portClosed": true,
+  "prior_packet": {
+    "EVIDENCE.yml": "8afc067defdfd9955882e0d392f1d2bd34587eb44a8ca310c8b8498b4c4e28ab",
+    "desktop-en-condition.png": "d0308436804fbb9e06bdf92b9a73c53bb5ae904eeb856e79ee72fc5c6e2c55fd",
+    "desktop-en-typed-null.png": "ca6593db5288092d66f010db9209c9393c384d8d104230047e324df80dd9c3f1",
+    "desktop-zh-condition.png": "1de0e5cd47ca319a41f38380cedf5cec3ed5a94ac97b65f71b350c984666ec49",
+    "desktop-zh-typed-null.png": "bc91fc6fcc176ac7fbe7d08807633bc4875019f5b6d32bc6e3652f098ebdf348",
+    "mobile-en-condition.png": "1c5e165c827ad0479eb8c540ab5a1d9e46e2300b154bd0c7674473a84bd8adfe",
+    "mobile-en-typed-null.png": "c7d91384df75a0d196ee7c30b4115cdf5f58c8dcac6c976cab7774eac57d3bb6",
+    "mobile-zh-condition.png": "76b9239b2c7ef2e923e3d4d4b28bb685a1a84298672012d13afc5b82447220e6",
+    "mobile-zh-typed-null.png": "773c75c618a515fe49c1583c177114be5b2704d1c7b15c3ae9c06a02cc985aa4"
+  },
+  "qualification": "PRODUCER_PASSED_AWAITING_VISUAL_REVIEW",
+  "seconds": 31.511,
+  "source": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+  "sourceCount": 2016,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T13:16:31.092493+00:00"
+}

@@ -1,0 +1,21 @@
+{
+  "at": "2026-11-10T06:15:15.009739+00:00",
+  "browser71Unchanged": true,
+  "changes": {
+    "terminal/e2e/exposure-expiry-greeks.spec.ts": {
+      "afterSha256": "01325b66b088d9fd6480d8f72d6b6594e7a257b74fd8b37e2d92bfe2e0125792",
+      "beforeSha256": "3774b4f09a88c547ea822b5dc93723ed2eb4c9ae9718a120fe490abe23aad459"
+    },
+    "terminal/e2e/responsive.spec.ts": {
+      "afterSha256": "7bb7c3360e156aabf03389f1ae829d8f21a2a28541299d0d7acd0e23621f6d47",
+      "beforeSha256": "63e153bbf3c499aa0dcff61d9aa12e2de0152b45ad6dca4ad08f551d4a1986b7"
+    }
+  },
+  "failedAttemptPreserved": 40,
+  "nativeGex29Unaffected": true,
+  "productChanges": 0,
+  "reason": "Follow the visible mobile axis disclosure before the existing By Expiration action; preserve all assertions",
+  "retained144QualificationSha256": "fee8ee7eb79e7a1a680c51b2121e94f78708fba5b14551c3ea701a42556f8210",
+  "schema": "terminal_pr645_expiry_mobile_test_repair.v1",
+  "state": "PREPARED"
+}

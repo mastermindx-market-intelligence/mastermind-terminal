@@ -35,6 +35,16 @@ def test_terminal_vps_wake_requires_protected_master_and_no_privilege() -> None:
     assert "github.ref == 'refs/heads/master'" in job["if"]
 
 
+def test_terminal_vps_deploy_credential_is_master_environment_scoped_on_hosted_runner() -> None:
+    # The root deploy key lives in the master-only `vps-production` environment, so
+    # no other branch's workflow can read it, and the job runs only on a
+    # GitHub-hosted image label: `ubuntu-latest` also matches self-hosted runners.
+    job = _workflow()["jobs"]["deploy"]
+    assert job["environment"] == "vps-production"
+    assert job["runs-on"] == "ubuntu-24.04"
+    assert job["runs-on"] != "ubuntu-latest" and "self-hosted" not in str(job["runs-on"])
+
+
 def test_terminal_vps_wake_preserves_builder_release_ownership() -> None:
     assert PIN.read_text(encoding="utf-8") == EXPECTED_PIN
     steps = _workflow()["jobs"]["deploy"]["steps"]

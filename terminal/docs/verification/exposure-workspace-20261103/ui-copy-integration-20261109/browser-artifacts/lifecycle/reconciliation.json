@@ -1,0 +1,118 @@
+{
+  "cleanupAttempt": {
+    "detail": "The first cleanup attempt verified no lock descriptors, listener, recorded PID, or owned-workspace CWD twice and unlinked the same lock identity. Its post-unlink lsof(file) assertion then rejected the expected no-such-file stderr. No second unlink was attempted. This follow-up validates lock absence, port, recorded PID, and owned-workspace CWD directly.",
+    "failedAt": "2026-11-09T14:44:12.337112+00:00",
+    "state": "UNLINK_APPLIED_POSTCHECK_SCHEMA_ERROR"
+  },
+  "completedAt": "2026-11-09T14:45:04.415672+00:00",
+  "initialExecutionSha256": "3b17552718cabe81447e5347b9aa05192d3df9c0e4dc39b011aab826f75e12f6",
+  "initialLock": {
+    "content": "{\"pid\":98087,\"port\":3802,\"hostname\":\"localhost\",\"appUrl\":\"http://localhost:3802\",\"startedAt\":1794233818126}",
+    "dev": 16777247,
+    "ino": 67473258,
+    "mtimeNs": 1794233818127824108,
+    "size": 107
+  },
+  "lockAbsent": true,
+  "observationsAfter": {
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T14:45:04.409283+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "portListener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3802",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:45:01.248860+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "recordedServerPid": {
+      "command": [
+        "ps",
+        "-p",
+        "98087",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:45:01.261294+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "observationsBefore": {
+    "lockFileDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-exposure-integration-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:44:05.196396+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T14:44:07.874531+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "portListener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3802",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:44:05.533905+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "recordedServerPid": {
+      "command": [
+        "ps",
+        "-p",
+        "98087",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:44:05.545243+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "schema": "terminal_owned_stale_next_lock_reconciliation.v1",
+  "startedAt": "2026-11-09T14:44:02.692757+00:00",
+  "state": "STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED",
+  "testCompletedAt": "2026-11-09T14:32:09.311011+00:00",
+  "workspace": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-exposure-integration-20261109"
+}

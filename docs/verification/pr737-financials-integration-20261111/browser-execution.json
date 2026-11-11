@@ -1,0 +1,12 @@
+{
+  "returncode": 0,
+  "seconds": 56.5,
+  "source_count": 6649,
+  "source_changed": [],
+  "port": 57728,
+  "port_open_after": false,
+  "lock_path_exists": true,
+  "lock_open_handles": false,
+  "lock_observation": "",
+  "lock_stderr": ""
+}
