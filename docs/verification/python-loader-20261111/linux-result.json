@@ -1,0 +1,149 @@
+{
+  "state": "FIXED_ACTUAL_GENERATED_CONSUMER_PASSED",
+  "root": "/tmp/terminal-python-loader-support-20261111-c3",
+  "proof": "/tmp/terminal-python-loader-support-20261111-c3/linux-proof.tar.gz",
+  "proofBytes": 8032,
+  "proofSha256": "52f06f30cf9f9bf7dd21dfb4bcca8912adb3d125cd1cf10ef34704c08a3ee53a",
+  "execution": {
+    "schema": "terminal_python_loader_consumer.v1",
+    "host": "mastermind-pc",
+    "root": "/tmp/terminal-python-loader-support-20261111-c3",
+    "sourceBase": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+    "sourceTree": "6971516465096849a2edbf449a8589bd3ea23a7e",
+    "bundleSha256": "12853133290888bfa9ca67e6abfeba07764fedf8edf64ff2c994a5bfd3114a4b",
+    "originalInterpreter": "/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64/bin/python",
+    "originalInterpreterSha256": "a9daa2903823e8bc0ce562bcf07be5a9ae27cf5d9d6dccf492438f0a310c0982",
+    "loaderPath": "/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64/lib",
+    "originalCiVenvReused": false,
+    "coreDumpsDisabled": true,
+    "results": [
+      {
+        "name": "venv",
+        "command": [
+          "/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64/bin/python",
+          "-m",
+          "venv",
+          "/tmp/terminal-python-loader-support-20261111-c3/venv"
+        ],
+        "exit": 0,
+        "seconds": 1.418,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "dependencies",
+        "command": [
+          "/tmp/terminal-python-loader-support-20261111-c3/venv/bin/python",
+          "-m",
+          "pip",
+          "install",
+          "--no-cache-dir",
+          "pytest==9.2.0",
+          "PyYAML==6.0.3"
+        ],
+        "exit": 0,
+        "seconds": 6.087,
+        "logSha256": "144dd50576bec542179ca829177ddc0836fc52f68ff41caf2d0c4c1e2f41a31b"
+      },
+      {
+        "name": "old-source",
+        "command": [
+          "/tmp/terminal-python-loader-support-20261111-c3/venv/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_trusted_migration_ownership.py::test_actual_generated_companion_controller_suite_is_closed_and_green",
+          "-q",
+          "--tb=short",
+          "--basetemp=/tmp/terminal-python-loader-support-20261111-c3/old-fixtures",
+          "--junitxml=/tmp/terminal-python-loader-support-20261111-c3/evidence/old-parent.xml"
+        ],
+        "exit": 1,
+        "seconds": 1.166,
+        "logSha256": "8a91008072f31c228010d143836e676d96f9b1c10521f0dc889e2e4c34b2b0f4"
+      },
+      {
+        "name": "fixed-source",
+        "command": [
+          "/tmp/terminal-python-loader-support-20261111-c3/venv/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_trusted_migration_ownership.py::test_actual_generated_companion_controller_suite_is_closed_and_green",
+          "-q",
+          "--tb=short",
+          "--basetemp=/tmp/terminal-python-loader-support-20261111-c3/fixed-fixtures",
+          "--junitxml=/tmp/terminal-python-loader-support-20261111-c3/evidence/fixed-parent.xml"
+        ],
+        "exit": 0,
+        "seconds": 1.016,
+        "logSha256": "073b1bbed3fedd224b758a734fc16517c5bf3d17bd10f69d131ecd1b1c9690ca"
+      }
+    ],
+    "state": "FIXED_ACTUAL_GENERATED_CONSUMER_PASSED",
+    "runtime": {
+      "python": "3.12.16 (main, Oct 26 2026, 02:50:49) [GCC 13.3.0]",
+      "executable": "/tmp/terminal-python-loader-support-20261111-c3/venv/bin/python",
+      "pytest": "9.2.0",
+      "pytestFile": "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pytest/__init__.py",
+      "yaml": "6.0.3",
+      "yamlFile": "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/yaml/__init__.py",
+      "packages": [
+        [
+          "PyYAML",
+          "6.0.3"
+        ],
+        [
+          "Pygments",
+          "2.21.0"
+        ],
+        [
+          "iniconfig",
+          "2.3.1"
+        ],
+        [
+          "packaging",
+          "26.3"
+        ],
+        [
+          "pip",
+          "25.0.1"
+        ],
+        [
+          "pluggy",
+          "1.7.0"
+        ],
+        [
+          "pytest",
+          "9.2.0"
+        ]
+      ],
+      "libraries": [
+        "/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64/lib/libpython3.12.so.1.0"
+      ]
+    },
+    "childRuntime": {
+      "stripped": {
+        "exit": 0,
+        "stdout": "{\"version\": \"3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]\", \"libraries\": [\"/usr/lib/x86_64-linux-gnu/libpython3.12.so.1.0\"]}\n",
+        "stderr": ""
+      },
+      "retained": {
+        "exit": 0,
+        "stdout": "{\"version\": \"3.12.16 (main, Oct 26 2026, 02:50:49) [GCC 13.3.0]\", \"libraries\": [\"/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64/lib/libpython3.12.so.1.0\"]}\n",
+        "stderr": ""
+      }
+    },
+    "controlledOldFailure": true,
+    "controlledOldSegfault": true,
+    "parent": {
+      "cases": 1,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "generated": {
+      "cases": 189,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    }
+  }
+}

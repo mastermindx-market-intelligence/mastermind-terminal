@@ -1,0 +1,31 @@
+[warmup] /terminal?symbol=NVDA → 200 in 66ms
+[warmup] /options → 200 in 1556ms
+[warmup] /portfolio → 200 in 780ms
+[warmup] /alerts → 200 in 652ms
+[warmup] /analysis → 200 in 1897ms
+[warmup] /discover → 200 in 3288ms
+[warmup] /admin → 200 in 944ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 473ms
+[warmup] /login → 200 in 222ms
+[warmup] /reset-password → 200 in 663ms
+[warmup] /api/me → 200 in 667ms
+[warmup] /api/watchlist → 200 in 193ms
+[warmup] /api/layouts → 200 in 398ms
+[warmup] /api/watchlist/annotations → 409 in 282ms
+[warmup] 14 routes compiled in 12s
+[fixture-ready] prophet_idx fixture 200 in 839ms
+
+Running 9 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/research-workspace-nav.spec.ts:754:5 › Financials vNext keeps statement summary, explorer and integrity on one canonical page (2.2s)
+  -  2 [desktop] › e2e/research-workspace-nav.spec.ts:798:5 › Financials vNext remains bilingual and overflow-safe on mobile
+  ✓  3 [desktop] › e2e/research-workspace-nav.spec.ts:828:5 › Financials snapshot preserves period columns when a metric is incomplete (1.2s)
+  ✓  4 [tablet] › e2e/research-workspace-nav.spec.ts:754:5 › Financials vNext keeps statement summary, explorer and integrity on one canonical page (2.8s)
+  -  5 [tablet] › e2e/research-workspace-nav.spec.ts:798:5 › Financials vNext remains bilingual and overflow-safe on mobile
+  ✓  6 [tablet] › e2e/research-workspace-nav.spec.ts:828:5 › Financials snapshot preserves period columns when a metric is incomplete (1.9s)
+  ✓  7 [mobile] › e2e/research-workspace-nav.spec.ts:754:5 › Financials vNext keeps statement summary, explorer and integrity on one canonical page (1.3s)
+  ✓  8 [mobile] › e2e/research-workspace-nav.spec.ts:798:5 › Financials vNext remains bilingual and overflow-safe on mobile (1.8s)
+  ✓  9 [mobile] › e2e/research-workspace-nav.spec.ts:828:5 › Financials snapshot preserves period columns when a metric is incomplete (1.1s)
+
+  2 skipped
+  7 passed (49.4s)

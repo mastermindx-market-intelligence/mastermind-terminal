@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/tickerNewsEvidence.test.ts",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/docs/verification/pr1407-ticker-news-successor-20261111/source-consumer-report.json"
+  ],
+  "completedAt": "2026-11-11T09:17:33.071066+00:00",
+  "exit": 0,
+  "failed": 0,
+  "head": "5338557e44e2a8b5ca789aac7cd295037db9692d",
+  "logSha256": "0f9f95fa85b0e149ef12b8896eda3fa3b033d9312b00c866233a271290283741",
+  "manifestSha256": "5e85344159652ac23cfc17e3542e0d02225cc97965f9505df9ef085df85374db",
+  "passed": 4,
+  "reportSha256": "473969b5bce992a7e97d6368eebfda48718bb201e142212f02ba8683ac50e326",
+  "schema": "terminal.pr1407.news-source-consumer.v1",
+  "seconds": 5.76,
+  "sourceStillIdentical": true,
+  "startedAt": "2026-11-11T09:17:27.314650+00:00",
+  "state": "PASS"
+}

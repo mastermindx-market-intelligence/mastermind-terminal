@@ -1,0 +1,13 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1033-focus/terminal
+
+ ✓ lib/__tests__/transcripts.test.ts (17 tests) 46ms
+ ✓ lib/__tests__/transcriptSearch.test.ts (12 tests) 77ms
+ ✓ lib/__tests__/transcriptCompare.test.ts (22 tests) 264ms
+ ✓ lib/__tests__/transcriptDrawerFocus.test.tsx (4 tests) 210ms
+
+ Test Files  4 passed (4)
+      Tests  55 passed (55)
+   Start at  06:11:28
+   Duration  1.82s (transform 1.01s, setup 0ms, collect 1.53s, tests 598ms, environment 463ms, prepare 468ms)

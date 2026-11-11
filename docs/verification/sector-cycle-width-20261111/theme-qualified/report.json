@@ -1,0 +1,1123 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/sector-cycle-lens.spec.ts",
+      "--workers=1",
+      "--retries=0",
+      "--trace=on",
+      "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+      "--grep",
+      "cycles chart measurement survives",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 57735",
+      "url": "http://127.0.0.1:57735/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "sector-cycle-lens.spec.ts",
+      "file": "sector-cycle-lens.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "cycles chart measurement survives table transitions en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6015,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:57:54.377Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-abd0ca989b42a6476d17",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives empty transitions en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5322,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:02.368Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-e788f2b8e890773f32a2",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives table transitions zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5296,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:09.341Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-50a1e26fea4fc63d2cfd",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives empty transitions zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5285,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:15.985Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-7f896826e96b4364429c",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives table transitions en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6198,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:22.361Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-9597d44429f190690138",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives empty transitions en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5047,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:29.713Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-fb4537a603081aaba23e",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives table transitions zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6115,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:35.729Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-97d61eda5c329575e948",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives empty transitions zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6227,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:42.756Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-06f0ddc42e4d26e7da57",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives table transitions en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5115,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:49.967Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-416b93e45cb0530f6418",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives empty transitions en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6027,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:58:56.001Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-70ff8ad1b5aebea5a858",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives table transitions zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6086,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:59:02.976Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-250baa21d43d1e1ab3a1",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        },
+        {
+          "title": "cycles chart measurement survives empty transitions zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5285,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 13,
+                      "line": 120
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m             foreground\u001b[33m:\u001b[39m paint\u001b[33m.\u001b[39mcolor\u001b[33m,\u001b[39m\n \u001b[90m 119 |\u001b[39m           }\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m         }))\u001b[33m.\u001b[39mtoEqual({\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m           theme\u001b[33m:\u001b[39m selected\u001b[33m,\u001b[39m appearance\u001b[33m:\u001b[39m \u001b[32m\"1\"\u001b[39m\u001b[33m,\u001b[39m sharedShell\u001b[33m:\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 122 |\u001b[39m           backgroundToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#f7f8fa\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0a0b0e\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 123 |\u001b[39m           panelToken\u001b[33m:\u001b[39m selected \u001b[33m===\u001b[39m \u001b[32m\"light\"\u001b[39m \u001b[33m?\u001b[39m \u001b[32m\"#ffffff\"\u001b[39m \u001b[33m:\u001b[39m \u001b[32m\"#0d0f13\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 13,
+                        "line": 120
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"appearance\": \"1\",\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[2m    \"backgroundToken\": \"#f7f8fa\",\u001b[22m\n\u001b[2m    \"foreground\": \"rgb(32, 38, 50)\",\u001b[22m\n\u001b[32m-   \"panelToken\": \"#ffffff\",\u001b[39m\n\u001b[31m+   \"panelToken\": \"#fff\",\u001b[39m\n\u001b[2m    \"sharedShell\": null,\u001b[22m\n\u001b[2m    \"textToken\": \"#202632\",\u001b[22m\n\u001b[2m    \"theme\": \"light\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  118 |             foreground: paint.color,\n  119 |           };\n> 120 |         })).toEqual({\n      |             ^\n  121 |           theme: selected, appearance: \"1\", sharedShell: null,\n  122 |           backgroundToken: selected === \"light\" ? \"#f7f8fa\" : \"#0a0b0e\",\n  123 |           panelToken: selected === \"light\" ? \"#ffffff\" : \"#0d0f13\",\n    at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T13:59:09.987Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 13,
+                    "line": 120
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-20144bf90c082cf96106",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 93,
+          "column": 9
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-11T13:57:20.642Z",
+    "duration": 115430.99399999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 12,
+    "flaky": 0
+  }
+}

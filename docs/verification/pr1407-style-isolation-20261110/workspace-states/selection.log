@@ -1,0 +1,11 @@
+Listing tests:
+  [w2a-workspaces] › w2a-workspaces.spec.ts:71:7 › W2-A workspace menu — 1440×900 EN › ready / empty / row-open / renaming / unsupported-rows / name-conflict / stale
+  [w2a-workspaces] › w2a-workspaces.spec.ts:328:7 › W2-A workspace menu — 1440×900 ZH › ready / unavailable / stale, no English leaking through
+  [w2a-workspaces] › w2a-workspaces.spec.ts:400:7 › W2-A workspace menu — 820×1180 (drill-down mount) › stale in zh
+  [w2a-workspaces] › w2a-workspaces.spec.ts:445:7 › W2-A workspace menu — 390×844 › 390-en-stale
+  [w2a-workspaces] › w2a-workspaces.spec.ts:688:9 › W2-A workspace menu — non-screenshot assertions (spec §7) › tap targets are >=44x44 at 820px
+  [w2a-workspaces] › w2a-workspaces.spec.ts:688:9 › W2-A workspace menu — non-screenshot assertions (spec §7) › tap targets are >=44x44 at 390px
+  [w2a-workspaces] › w2a-workspaces.spec.ts:748:7 › W2-A workspace menu — non-screenshot assertions (spec §7) › zero horizontal document overflow at all three widths with the menu open + a row unfolded
+  [w2a-workspaces] › w2a-workspaces.spec.ts:896:7 › W2-A workspace menu — team sharing › 1440 EN/ZH grouped library, share confirm, and member sees the shared workspace as read-only when the role flag is member
+  [w2a-workspaces] › w2a-workspaces.spec.ts:944:7 › W2-A workspace menu — team sharing › 820 EN grouped library tap targets
+Total: 9 tests in 1 file
