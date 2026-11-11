@@ -231,7 +231,9 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.locator('[data-ai-layer="true"]')).toBeVisible();
     if (testInfo.project.name !== "desktop") await page.locator(".lg-collapse").first().click();
     await expect(srRow).toBeVisible({ timeout: 15_000 });
-    const levels = page.locator('svg g[clip-path^="url(#ic-price-clip-"] > line');
+    // The current renderer nests each suite under the shared price-pane scope.
+    // Follow the active pane's Structure owner, preserving the hide/reveal check.
+    const levels = page.locator('.pane.on [data-price-suite-overlay="structure"] > line');
     await expect.poll(() => levels.count(), { timeout: 15_000 }).toBeGreaterThan(0);
     if (testInfo.project.name === "desktop") await srRow.hover();
     else await srRow.locator(".lg-name").click();

@@ -1,0 +1,36 @@
+2026-11-11T10:03:41.9905077Z HEAD is now at 4cb7939e Merge 313dc83716c4883a3adfbcf36c9595f6faeda14c into 8967f977fc156fff6b3f849568d84e49ba61f7d6
+2026-11-11T10:35:55.7709338Z  ✓ lib/__tests__/drawingSidebarReadiness.test.tsx (6 tests) 545ms
+Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+2026-11-11T10:38:11.6594607Z 
+2026-11-11T10:38:11.6596893Z  FAIL  lib/__tests__/tickerNewsEvidence.test.ts > ticker-news evidence lock is EVIDENCE.yml > each layoutFiles sha256 matches the file on disk
+2026-11-11T10:38:11.6619847Z AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected 'd947b118b60a3cf7075f5c7045f4ed89a1747…' to be '9a52f109c3ab87f3e24da8bfa79ff6cac05a1…' // Object.is equality
+2026-11-11T10:38:11.6621600Z 
+2026-11-11T10:38:11.6622459Z Expected: "9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc"
+2026-11-11T10:38:11.6624396Z Received: "d947b118b60a3cf7075f5c7045f4ed89a1747ca87fa39220ddd11895c4700660"
+2026-11-11T10:38:11.6625067Z 
+2026-11-11T10:38:11.6625760Z  ❯ lib/__tests__/tickerNewsEvidence.test.ts:85:67
+2026-11-11T10:38:11.6799392Z      83|       const abs = join(REPO, rel);
+2026-11-11T10:38:11.6801523Z      84|       expect(existsSync(abs), `${rel} is recorded in layoutFiles but a…
+2026-11-11T10:38:11.6822362Z      85|       expect(sha256Of(abs), `${rel} changed without a recapture`).toBe…
+2026-11-11T10:38:11.6824133Z        |                                                                   ^
+2026-11-11T10:38:11.6825061Z      86|     }
+2026-11-11T10:38:11.6825873Z      87|   });
+2026-11-11T10:38:11.6826325Z 
+2026-11-11T10:38:11.6828959Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+2026-11-11T10:38:11.6829318Z 
+2026-11-11T10:38:11.6854494Z  Test Files  1 failed | 1301 passed | 6 skipped (1308)
+2026-11-11T10:38:11.6941610Z       Tests  1 failed | 23273 passed | 50 skipped | 3 todo (23327)
+2026-11-11T10:38:11.6943215Z    Start at  10:30:21
+2026-11-11T10:38:11.6980486Z    Duration  469.80s (transform 59.90s, setup 0ms, collect 279.05s, tests 567.66s, environment 229.17s, prepare 112.51s)
+2026-11-11T10:38:11.6981524Z 
+2026-11-11T10:38:11.7242341Z 
+2026-11-11T10:38:11.7250222Z ##[error]AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected 'd947b118b60a3cf7075f5c7045f4ed89a1747…' to be '9a52f109c3ab87f3e24da8bfa79ff6cac05a1…' // Object.is equality
+
+Expected: "9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc"
+Received: "d947b118b60a3cf7075f5c7045f4ed89a1747ca87fa39220ddd11895c4700660"
+
+ ❯ lib/__tests__/tickerNewsEvidence.test.ts:85:67
+
+
+2026-11-11T10:38:12.1606448Z ##[error]Process completed with exit code 1.
+2026-11-11T10:38:12.1716743Z 
