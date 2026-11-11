@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
   comparatorShortName, evaluationLevelLabel, exclusionReasonLabel, criterionLabel, fillTemplate,
-  getEvaluationStr, makeEvaluationT,
+  getEvaluationStr, humanizeEngineText, humanizeIdentifier, humanizeText, identifierIsKnown,
+  makeEvaluationT,
 } from "@/lib/prophetEvaluationStrings";
 import {
   fmtCi95, fmtCount, fmtCriterionObserved, fmtP, fmtPercent, fmtRatio, fmtSignedPercent, fmtSignedPp,
@@ -125,16 +126,17 @@ describe("the evaluation lexicon", () => {
     expect(evaluationLevelLabel("en", "L4_unknown")).toBe("L4_unknown");
   });
 
-  it("labels the contract's closed exclusion-reason set; unknown slugs render verbatim", () => {
+  it("labels the contract's closed exclusion-reason set; unknown slugs degrade to spaced words", () => {
     expect(exclusionReasonLabel("en", "resolved_at_or_before_follower_fill")).toContain("Closed before");
     expect(exclusionReasonLabel("zh", "not_entered_zone_live")).toContain("入场区间");
-    expect(exclusionReasonLabel("en", "new_future_reason")).toBe("new_future_reason");
+    // No raw id survives on the page: an unmapped reason becomes spaced words.
+    expect(exclusionReasonLabel("en", "new_future_reason")).toBe("new future reason");
   });
 
-  it("labels release criteria; unknown criterion ids render as the wire id", () => {
+  it("labels release criteria; unknown criterion ids degrade to spaced words", () => {
     expect(criterionLabel("en", "beta_point_in")).toBe("Beta point estimate in band");
     expect(criterionLabel("zh", "mean_invested")).toContain("投入");
-    expect(criterionLabel("en", "future_check")).toBe("future_check");
+    expect(criterionLabel("en", "future_check")).toBe("future check");
   });
 
   it("the honesty tag rides at headline size in both languages", () => {
@@ -151,5 +153,87 @@ describe("the evaluation lexicon", () => {
       }
       expect(getEvaluationStr("en", "verdictClaimSentence")).toContain("not established");
     }
+  });
+});
+
+describe("identifier humanization — reader language, never raw ids", () => {
+  it("maps the CEO-named engine strings to reader language in both languages", () => {
+    expect(humanizeIdentifier("en", "daily_arithmetic_accounting_identity_sector_etf_segments"))
+      .toBe("Daily accounting split using sector ETFs");
+    expect(humanizeIdentifier("zh", "total_return_adjusted_close")).toContain("总回报");
+    expect(humanizeIdentifier("en", "C6_exact_incumbent_prophet")).toBe("the Prophet book");
+    expect(humanizeIdentifier("en", "X6_exposure_matched_reference"))
+      .toBe("the exposure-weight reference");
+    expect(humanizeIdentifier("en", "K2_C6_minus_X6")).toContain("comparison 2");
+  });
+
+  it("humanizes engine prose: known ids replaced, surviving snake tokens spaced, paths intact", () => {
+    expect(humanizeEngineText("daily_arithmetic_accounting_identity_sector_etf_segments"))
+      .toBe("Daily accounting split using sector ETFs");
+    // Snake tokens without a deliberate map degrade to spaced words, not raw ids.
+    expect(humanizeEngineText("origination_mode startswith outage_backfill, see data/prophet/backfill_disclosures.json"))
+      .toBe("origination mode startswith outage backfill, see data/prophet/backfill_disclosures.json");
+    // Path-like substrings are never touched, even when they contain snake parts.
+    expect(humanizeEngineText("engine/prophet_beta_evaluation.py")).toBe("engine/prophet_beta_evaluation.py");
+    expect(humanizeEngineText("confirmatory K1-K8, Holm alpha 0.05, one-sided (a beats b)"))
+      .toBe("Eight pre-declared comparisons, corrected for multiple testing (Holm, 5%), each testing whether A beat B");
+  });
+
+  it("replaces whole tokens only — short keys never corrupt longer ids or plurals", () => {
+    // `L0` must not eat `L0_descriptive`; `replay`-style stems must not touch plurals.
+    expect(humanizeEngineText("capped at L0_descriptive regardless")).toBe("capped at the descriptive level regardless");
+    expect(humanizeEngineText("13 receipted replays admitted")).toBe("13 receipted replays admitted");
+    expect(humanizeEngineText("C6A versus C6"))
+      .toBe("the inside-leading-sectors Prophet book versus the Prophet book");
+    expect(humanizeEngineText("sample below the predeclared L1 minimum"))
+      .toBe("sample below the predeclared level 1 (accepted historical) minimum");
+  });
+
+  it("ZH replacement works on reading copy without injecting English into it", () => {
+    expect(humanizeText("zh", "C6_exact_incumbent_prophet")).toBe("Prophet 组合");
+    expect(humanizeText("zh", "not_live_origination")).toContain("停机后重建");
+  });
+});
+
+describe("fixture identifier coverage — every id the page can render has a home", () => {
+  // The failure mode this guards: the engine republishes with a NEW internal
+  // identifier (method name, comparator id, reason, criterion) and the page
+  // would either render it raw or silently space it out. Enumerate every
+  // identifier-valued field the renderer touches and require a deliberate
+  // naming decision (lexicon entry, documented fallback, criterion/reason
+  // label) for each token the fixture actually carries.
+  const SNAKE_TOKEN = /(?<![A-Za-z0-9_/])[a-z][a-z0-9]*(?:_[a-z0-9]+)+(?![A-Za-z0-9_])/g;
+  const COMPARATOR_TOKEN = /(?<![A-Za-z0-9_])[KCX]\d[A-Za-z0-9_]{0,63}(?![A-Za-z0-9_])/g;
+  const stripPaths = (text: string): string => text.replace(/[A-Za-z0-9_.\-]+(?:\/[A-Za-z0-9_.\-]+)+/g, " ");
+
+  it("every snake_case or comparator id in the fixture's rendered fields is known", () => {
+    const artifact = JSON.parse(
+      readFileSync(path.join(process.cwd(), "public/data/prophet_beta_evaluation_fixture.json"), "utf8"),
+    ) as Record<string, unknown>;
+    // Fields the renderers pass through humanizeEngineText / render as labels.
+    const prose: string[] = [];
+    const collect = (value: unknown): void => {
+      if (typeof value === "string") prose.push(value);
+      else if (Array.isArray(value)) value.forEach(collect);
+      else if (value !== null && typeof value === "object") Object.values(value).forEach(collect);
+    };
+    // Deliberately scoped to the blocks the surface renders; unknown top-level
+    // blocks are tolerated by the decoder and never reach a reader.
+    for (const key of [
+      "headline", "limitations", "contrasts", "attribution", "sensitivity", "population",
+      "deviations", "claims", "release", "coverage", "post_hoc_diagnostics",
+    ]) {
+      if (key in artifact) collect(artifact[key]);
+    }
+    const unknown = new Set<string>();
+    for (const text of prose) {
+      for (const token of stripPaths(text).match(SNAKE_TOKEN) ?? []) {
+        if (!identifierIsKnown(token)) unknown.add(token);
+      }
+      for (const token of stripPaths(text).match(COMPARATOR_TOKEN) ?? []) {
+        if (!identifierIsKnown(token)) unknown.add(token);
+      }
+    }
+    expect([...unknown].sort()).toEqual([]);
   });
 });

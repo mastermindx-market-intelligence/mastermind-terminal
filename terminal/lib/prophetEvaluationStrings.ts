@@ -156,11 +156,11 @@ const PROPHET_EVALUATION_LEX = {
   l0ChecksTitle: ["L0 source checks", "L0 来源检查"],
   deviationsTitle: ["Deviations from the frozen header", "与冻结协议头的偏离"],
   claimsTitle: ["Claim statuses", "结论状态"],
-  engineSummaryTitle: ["Engine-published summary (verbatim)", "引擎发布摘要（原文）"],
+  engineSummaryTitle: ["Engine-published summary", "引擎发布摘要"],
   limitationsTitle: ["All published limitations", "全部已发布限制"],
   zhVerbatimNote: [
-    "Fields marked as published verbatim are shown in the engine's own words (English).",
-    "标注为“原文”的字段按引擎原文（英文）展示。",
+    "Engine-published text is shown in its own words (English); internal identifiers are translated.",
+    "引擎发布的文字按其原文（英文）展示；内部标识符已译为可读语言。",
   ],
 
   // Attribution panel
@@ -254,9 +254,10 @@ const PROPHET_EVALUATION_LEX = {
   cmpC6: ["Prophet book (as built)", "Prophet 组合（按现行规则）"],
   cmpC7: ["Prophet, outside leading sectors", "Prophet，非领涨行业"],
   cmpC6A: ["Prophet, inside leading sectors", "Prophet，领涨行业内"],
-  // X6 is an exposure-weight reference only — never evidence that member
-  // selection has (or lacks) value; value is "not shown", never "no value".
-  cmpX6: ["Exposure-weight reference (SPY/cash at Prophet's weight)", "敞口加权参考（按 Prophet 仓位的 SPY/现金）"],
+  // X6 is an exposure-weight arithmetic reference only — never a strategy,
+  // never evidence that member selection has (or lacks) value; value is
+  // "not shown", never "no value".
+  cmpX6: ["Exposure-weight reference (arithmetic only)", "敞口加权参考（仅算术参考）"],
 
   // ── Confirmatory table extras ─────────────────────────────────────────────
   colContrast: ["Contrast", "对比"],
@@ -266,8 +267,8 @@ const PROPHET_EVALUATION_LEX = {
   at2xLabel: ["at 2× costs", "2 倍成本下"],
 
   // ── Evaluation details panel field labels ────────────────────────────────
-  capRuleTitle: ["Cap rule (verbatim)", "上限规则（原文）"],
-  l2l3Title: ["L2/L3 rule (verbatim)", "L2/L3 规则（原文）"],
+  capRuleTitle: ["Cap rule", "上限规则"],
+  l2l3Title: ["L2/L3 rule", "L2/L3 规则"],
   clockMacro: ["Macro data commit", "Macro 数据提交"],
   clockPlans: ["Plan index", "计划索引"],
   clockResolution: ["Resolution log", "了结日志"],
@@ -332,11 +333,11 @@ const PROPHET_EVALUATION_LEX = {
   rbShort: ["Short history", "历史过短"],
   rbBelowMin: ["Below price min", "低于价格下限"],
   rbEligible: ["Eligible", "合格"],
-  rbC4: ["C4 names", "C4 个股"],
-  rbC5: ["C5 names", "C5 个股"],
-  rbC5Sectors: ["C5 sectors", "C5 行业"],
-  sectorWeightsTitle: ["C4 sector weights (as published)", "C4 行业权重（按原文）"],
-  splitTitle: ["Leading-sector split (C7 / C6A)", "领涨行业拆分（C7 / C6A）"],
+  rbC4: ["Momentum-book names", "动量组合个股"],
+  rbC5: ["Sector × member names", "行业×个股名称"],
+  rbC5Sectors: ["Sector × member sectors", "行业×个股行业"],
+  sectorWeightsTitle: ["Momentum-book sector weights (as published)", "动量组合行业权重（按原文）"],
+  splitTitle: ["Prophet plans by leading-sector exposure", "按领涨行业敞口拆分的 Prophet 计划"],
   splitOutside: ["Outside leading sectors", "非领涨行业"],
   splitInside: ["Inside leading sectors", "领涨行业内"],
   splitUnmapped: ["Unmapped", "未映射"],
@@ -362,6 +363,94 @@ const PROPHET_EVALUATION_LEX = {
   reason_no_publication_clock: ["No publication clock", "无发布时钟"],
   reason_not_long: ["Not a long plan", "非做多计划"],
   reason_excluded_by_sensitivity: ["Excluded by the sensitivity rule", "因敏感性规则排除"],
+  // D5: the outage-reconstruction exclusion — never presented as a live call.
+  reason_not_live_origination: [
+    "Rebuilt after the outage — not published live at the time",
+    "停机后重建——当时并未实时发布",
+  ],
+
+  // ── What changed (D5 correction disclosure, near the headline) ────────────
+  whatChangedTitle: ["What changed", "更正说明"],
+  whatChangedSummary: [
+    "Corrected on {date} after review. The earlier figure of {old} counted {cohort} plans that did not exist for any user when entered; the corrected figure is {new}. The earlier numbers are retained below, labelled superseded.",
+    "已于 {date} 经复核更正。早前数字 {old} 将 {cohort} 个在入场时对任何用户都不存在的计划计入；更正后为 {new}。早前数字保留在下方，标注为已作废。",
+  ],
+  whatChangedOldNewLabel: ["earlier (superseded) → corrected", "早前（已作废）→ 更正后"],
+  whatChangedCohortLine: [
+    "{n} plans excluded — rebuilt after the outage, not published live at the time.",
+    "已排除 {n} 个计划——停机后重建，当时并未实时发布。",
+  ],
+  whatChangedPopulationNote: [
+    "Every number on this page uses live-published plans only.",
+    "本页所有数字仅使用实时发布的计划。",
+  ],
+  whatChangedSourceLabel: ["Correction record (engine text)", "更正记录（引擎原文）"],
+  supersededChip: ["superseded — not the current result", "已作废——非当前结果"],
+  supersededSameEngineNote: [
+    "Recomputed with the same engine, seed, prices and costs; retained so nothing is hidden.",
+    "以相同引擎、种子、价格与成本重算；保留以免任何隐瞒。",
+  ],
+
+  // ── Sensitivity blocks (closed by default, never headline-styled) ────────
+  sensitivityVariantTitle: [
+    "Sensitivity: replays admitted after availability",
+    "敏感性：重放自可审计可得时点计入",
+  ],
+  sensitivityChip: ["sensitivity — not the headline", "敏感性——非头条结果"],
+  sensitivitySupersededTitle: [
+    "Superseded: figures as originally run",
+    "已作废：按原口径运行的数字",
+  ],
+  sensitivityLabelNote: ["Labelled by the engine:", "引擎标注："],
+  sensExcludedNote: ["Excluded from this variant:", "此变体排除："],
+  colPositions: ["Positions", "持仓数"],
+  sensHitRate: ["{beat} of {n} above {benchmark}", "{n} 中 {beat} 个高于 {benchmark}"],
+  sensHitRateCol: ["Above benchmark", "高于基准"],
+  colTotalShort: ["Total diff", "总差值"],
+
+  // ── Fixed-horizon marks (event study, Coverage panel) ────────────────────
+  horizonsTitle: ["Fixed-horizon marks, every live-published plan", "固定持有期标记，全部实时发布计划"],
+  horizonsExcludedNote: [
+    "{n} backfilled plans are excluded from these marks.",
+    "这些标记已排除 {n} 个回填计划。",
+  ],
+  colHorizon: ["Sessions held", "持有交易日"],
+  colExcessMean: ["Mean vs {benchmark}", "相对 {benchmark} 均值"],
+  colShareBeating: ["Share above {benchmark}", "高于 {benchmark} 占比"],
+  colDates: ["Dates", "日期数"],
+  horizonUnmatured: ["not yet matured", "尚未到期"],
+  horizonTooFewDates: ["too few dates", "日期数不足"],
+  horizonsNarrowCiNote: [
+    "Overlapping publication dates make these intervals optimistic.",
+    "发布日期重叠使这些区间偏乐观。",
+  ],
+
+  // ── The excluded cohort (Coverage panel) ─────────────────────────────────
+  cohortTitle: ["The excluded cohort", "被排除的队列"],
+  cohortSplitSummary: ["How the {n} break down", "{n} 个的构成"],
+  cohortReplays: ["{n} replays of the outage bake", "{n} 个停机批次的重放"],
+  cohortReconstructions: ["{n} synthetic-board reconstructions", "{n} 个合成看板重建"],
+  cohortDetectionLabel: ["How it was detected", "检测方式"],
+  cohortWouldHaveEntered: [
+    "{n} of them would have entered the book as originally run.",
+    "其中 {n} 个在原口径下本会进入组合。",
+  ],
+  cohortPlanIdsLabel: ["Excluded plan ids (as published)", "被排除的计划编号（按原文）"],
+  notAvailableLabel: ["not available", "不可得"],
+
+  // ── "Not shown" law for insignificant comparisons ────────────────────────
+  notShownChip: ["value not shown", "未显示价值"],
+  notShownNote: [
+    "An insignificant comparison means the value was not shown — not that there is none.",
+    "不显著的比较意味着价值未被显示——并非不存在价值。",
+  ],
+
+  // ── Sources disclosure (raw engine identifiers, verbatim) ────────────────
+  sourcesTitle: ["Engine identifiers (verbatim)", "引擎标识符（原文）"],
+  sourcesNote: [
+    "The raw engine strings the page paraphrases, kept verbatim for verification.",
+    "页面改写所依据的引擎原始字符串，按原文保留以供核验。",
+  ],
 } as const;
 
 export function getEvaluationStr(lang: Lang, key: EvaluationLexKey): string {
@@ -378,6 +467,187 @@ export function makeEvaluationT(lang: Lang): (key: EvaluationLexKey) => string {
 export function fillTemplate(template: string, values: Record<string, string>): string {
   return template.replace(/\{([a-zA-Z][a-zA-Z0-9]*)\}/g, (whole, name: string) =>
     Object.hasOwn(values, name) ? values[name] : whole);
+}
+
+// ── Identifier humanization ─────────────────────────────────────────────────
+//
+// Engine identifiers (comparator/contrast ids, criterion ids, exclusion
+// reasons, method/basis strings, deviation kinds, claim keys and statuses)
+// never render raw on the reading surface. Every token below is a deliberate
+// bilingual decision; `humanizeIdentifier` is the single door. Anything not
+// listed degrades to spaced words — readable, never a wrong label.
+//
+// The coverage unit test (prophetEvaluationFormat.test.ts) fails whenever the
+// committed fixture carries a token neither table owns, so a new engine
+// identifier forces a naming decision instead of leaking raw.
+
+const IDENTIFIER_LEXICON: Readonly<Record<string, readonly [string, string]>> = {
+  // Method / basis strings named by the CEO brief.
+  daily_arithmetic_accounting_identity_sector_etf_segments: [
+    "Daily accounting split using sector ETFs",
+    "按日会计拆分（使用行业 ETF）",
+  ],
+  total_return_adjusted_close: [
+    "Total return, dividends reinvested (adjusted close)",
+    "总回报，股息再投资（复权收盘价）",
+  ],
+  "confirmatory K1-K8, Holm alpha 0.05, one-sided (a beats b)": [
+    "Eight pre-declared comparisons, corrected for multiple testing (Holm, 5%), each testing whether A beat B",
+    "八项预先声明的比较，经多重检验校正（Holm，5%），每项检验 A 是否优于 B",
+  ],
+  // Comparator ids — full wire forms first (longest-match wins), then the
+  // short forms that appear inside engine prose.
+  C1_passive_market: ["the passive market", "被动市场"],
+  C2_simple_participation: ["the simple participation rule", "简单参与规则"],
+  C3_sector_allocation_only: ["the sector-rotation book", "行业轮动组合"],
+  C4_member_selection_only: ["the member-momentum book", "成分股动量组合"],
+  C5_joint_sector_and_name: ["the sector-and-member book", "行业×个股组合"],
+  C6_exact_incumbent_prophet: ["the Prophet book", "Prophet 组合"],
+  C7_independent_emergence: ["the outside-leading-sectors Prophet book", "非领涨行业的 Prophet 组合"],
+  C6A_context_aligned_prophet: ["the inside-leading-sectors Prophet book", "领涨行业内的 Prophet 组合"],
+  X6_exposure_matched_reference: ["the exposure-weight reference", "敞口加权参考"],
+  C1: ["the market (SPY)", "市场（SPY）"],
+  C2: ["the simple participation rule", "简单参与规则"],
+  C3: ["the sector-rotation book", "行业轮动组合"],
+  C4: ["the member-momentum book", "成分股动量组合"],
+  C5: ["the sector-and-member book", "行业×个股组合"],
+  C6A: ["the inside-leading-sectors Prophet book", "领涨行业内的 Prophet 组合"],
+  C6: ["the Prophet book", "Prophet 组合"],
+  C7: ["the outside-leading-sectors Prophet book", "非领涨行业的 Prophet 组合"],
+  X6: ["the exposure-weight reference (arithmetic only)", "敞口加权参考（仅算术参考）"],
+  // Contrast ids — full sensitivity keys, then short forms used in prose.
+  K1_C6_minus_C1: ["comparison 1 (Prophet book minus passive market)", "比较 1（Prophet 组合减被动市场）"],
+  K2_C6_minus_X6: ["comparison 2 (Prophet book minus exposure-weight reference)", "比较 2（Prophet 组合减敞口加权参考）"],
+  K7_C6A_minus_C7: ["comparison 7 (inside minus outside leading sectors)", "比较 7（领涨行业内减非领涨行业）"],
+  K1: ["comparison 1", "比较 1"],
+  K2: ["comparison 2", "比较 2"],
+  K3: ["comparison 3", "比较 3"],
+  K4: ["comparison 4", "比较 4"],
+  K5: ["comparison 5", "比较 5"],
+  K6: ["comparison 6", "比较 6"],
+  K7: ["comparison 7", "比较 7"],
+  K8: ["comparison 8", "比较 8"],
+  // Exclusion reasons (shared with the reason_* labels above via lookup below).
+  recorded_no_entry: ["recorded as never entered", "记录为从未入场"],
+  not_live_origination: ["rebuilt after the outage — not published live at the time", "停机后重建——当时并未实时发布"],
+  not_entered_zone_live: ["entry zone still open, never filled", "入场区间仍开放，未触发"],
+  not_entered_zone_expired: ["entry zone expired unfilled", "入场区间到期未触发"],
+  resolved_at_or_before_follower_fill: ["closed before a follower could buy", "跟随者可买入前已了结"],
+  published_after_window: ["published after the window", "窗口结束后发布"],
+  fill_after_window: ["filled after the window", "窗口结束后成交"],
+  no_fill_no_close_at_entry: ["no price at the fill session", "成交日无价格数据"],
+  no_publication_clock: ["no publication clock", "无发布时钟"],
+  not_long: ["not a long plan", "非做多计划"],
+  excluded_by_sensitivity: ["excluded by the sensitivity rule", "因敏感性规则排除"],
+  // Deviation kinds.
+  naming: ["naming", "命名"],
+  added_diagnostic: ["added diagnostic", "新增诊断"],
+  implementation_note: ["implementation note", "实现说明"],
+  presentation: ["presentation", "呈现"],
+  population_correction: ["population correction", "总体修正"],
+  // Claim keys and statuses.
+  observed_relative_performance: ["Observed relative performance", "观察到的相对表现"],
+  estimated_exposure_residual: ["Estimated exposure residual", "估计的敞口残差"],
+  participation_attribution: ["Participation attribution", "参与归因"],
+  incremental_selection_value: ["Incremental selection value", "增量选股价值"],
+  descriptive: ["descriptive", "描述性"],
+  model_book_accounting: ["model-book accounting", "模型组合会计"],
+  not_established: ["not established", "未确立"],
+  // Population cohort vocabulary.
+  outage_backfill_2026_08_09: ["backfill of the 2026-08-09 bake", "2026-08-09 批次的回填"],
+  outage_backfill_2026_08_11: ["backfill of the 2026-08-11 board", "2026-08-11 看板的回填"],
+  outage_backfill: ["outage backfill", "停机回填"],
+  origination_mode: ["origination mode", "来源模式"],
+  backfill_executed_at: ["backfill receipt time", "回填回执时间"],
+  superseded_as_run: ["superseded figures as originally run", "已作废的原口径数字"],
+  too_few_dates: ["too few dates", "日期数不足"],
+  matured_subset: ["matured subset", "已到期子集"],
+  // Level ids quoted inside engine prose ("L0 only", "capped at L0_descriptive").
+  // Full forms carry no parenthetical id — the short `L0`… keys would re-match
+  // inside an inserted "(L0)".
+  L0_descriptive: ["the descriptive level", "描述性层级"],
+  L1_accepted_historical: ["the accepted-historical level", "认可的历史证据层级"],
+  L2_prospective_shadow: ["the prospective-shadow level", "前瞻影子层级"],
+  L3_approved_product_prediction: ["the approved-prediction level", "批准的预测层级"],
+  L0: ["level 0 (descriptive)", "层级 0（描述性）"],
+  L1: ["level 1 (accepted historical)", "层级 1（认可的历史证据）"],
+  L2: ["level 2 (prospective shadow)", "层级 2（前瞻影子）"],
+  L3: ["level 3 (approved prediction)", "层级 3（批准的预测）"],
+};
+
+/**
+ * Tokens that appear only inside technical engine prose (definitions,
+ * deviations, data-clock descriptions) where spaced words are the honest
+ * rendering — listed so a NEW fixture token still fails the coverage test and
+ * forces a decision, instead of silently leaking.
+ */
+const PROSE_TOKEN_FALLBACK: ReadonlySet<string> = new Set([
+  "start_date", "end_date", "close_date", "filled_date", "recorded_at",
+  "entry_zone_state", "admission_class", "forward_metrics", "horizon_days",
+  "price_basis_date", "selection_era", "n_s", "post_hoc_diagnostics",
+  "resolution_log", "vs_passive_market", "spy_drawdown_present",
+  "window_sessions", "resolved_positions", "era_plans_classified_share",
+  "entered_positions_priced_share", "beta_ci_lower", "upside_capture_point",
+  "upside_capture_ci_lower", "ann_excess_ci_lower_noninferior",
+  "noninferior_at_2x_costs_point",
+]);
+
+/** True when the token has a deliberate home: the identifier lexicon, the
+ * documented prose-fallback set, a `crit_*` criterion label, a `reason_*`
+ * exclusion label, or a per-contrast `K<n>_<suffix>` criterion whose suffix
+ * carries a deliberate label. The coverage unit test fails on any fixture
+ * token without one, so new engine identifiers force a decision. */
+export function identifierIsKnown(token: string): boolean {
+  if (Object.hasOwn(IDENTIFIER_LEXICON, token) || PROSE_TOKEN_FALLBACK.has(token)) return true;
+  if (Object.hasOwn(PROPHET_EVALUATION_LEX, `crit_${token}` as EvaluationLexKey)) return true;
+  if (Object.hasOwn(PROPHET_EVALUATION_LEX, `reason_${token}` as EvaluationLexKey)) return true;
+  const kMatch = /^K\d{1,2}_([a-z0-9_]+)$/.exec(token);
+  return kMatch !== null && Object.hasOwn(K_CRITERION_SUFFIX, kMatch[1]);
+}
+
+const LEXICON_KEYS_LONGEST_FIRST = Object.keys(IDENTIFIER_LEXICON)
+  .sort((a, b) => b.length - a.length || (a < b ? -1 : 1));
+
+const escapeForRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** Whole-token match: the key must not sit inside a longer identifier run
+ * (so `L0` never touches `L0_descriptive`, `replay` never touches `replays`). */
+const LEXICON_MATCHERS: Array<{ key: string; re: RegExp }> = LEXICON_KEYS_LONGEST_FIRST.map(key => ({
+  key,
+  re: new RegExp(`(?<![A-Za-z0-9_])${escapeForRegExp(key)}(?![A-Za-z0-9_])`, "g"),
+}));
+
+/** One identifier → reader language; unmapped tokens become spaced words
+ * (readable, never a wrong label). */
+export function humanizeIdentifier(lang: Lang, token: string): string {
+  const entry = IDENTIFIER_LEXICON[token];
+  if (entry) return lang === "zh" ? entry[1] : entry[0];
+  return token.replace(/_/g, " ");
+}
+
+/** Replace every known identifier inside engine text, longest first, without
+ * touching path-like substrings (file references stay intact). Used for
+ * verbatim engine prose; reading copy uses `humanizeText` with the surface
+ * language. */
+export function humanizeEngineText(text: string): string {
+  return humanizeText("en", text);
+}
+
+/** Replace known identifiers in engine text, then space out any remaining
+ * snake_case token so no raw internal id survives on the page. Path-like
+ * substrings (anything containing "/") are left byte-intact. */
+export function humanizeText(lang: Lang, text: string): string {
+  if (!text) return text;
+  let out = text;
+  for (const { key, re } of LEXICON_MATCHERS) {
+    const replacement = lang === "zh" ? IDENTIFIER_LEXICON[key][1] : IDENTIFIER_LEXICON[key][0];
+    out = out.replace(re, () => replacement);
+  }
+  // Spaced-words fallback for surviving snake tokens, outside paths.
+  out = out.replace(
+    /(?<![A-Za-z0-9_/])[a-z][a-z0-9]*(?:_[a-z0-9]+)+(?![A-Za-z0-9_])/g,
+    (token) => token.replace(/_/g, " "),
+  );
+  return out;
 }
 
 /** Short display name for a comparator id; the artifact's own label is the
@@ -405,24 +675,57 @@ export function evaluationLevelLabel(lang: Lang, level: string): string {
 }
 
 /** Exclusion-reason label from the contract's closed set; unknown reasons
- * render as their wire slug rather than a guessed translation. */
+ * degrade to spaced words, never a guessed translation. */
 export function exclusionReasonLabel(lang: Lang, reason: string): string {
   const key = `reason_${reason}` as EvaluationLexKey;
-  return Object.hasOwn(PROPHET_EVALUATION_LEX, key) ? getEvaluationStr(lang, key) : reason;
+  return Object.hasOwn(PROPHET_EVALUATION_LEX, key) ? getEvaluationStr(lang, key) : humanizeIdentifier(lang, reason);
 }
 
-/** Release job display name; unknown future job keys render as the wire key. */
+/** Release job display name; unknown future job keys degrade to spaced words. */
 export function releaseJobName(lang: Lang, key: string): string {
   const byKey: Record<string, EvaluationLexKey> = {
     A_market_participation: "jobA", B_sector_context: "jobB", C_member_selection: "jobC",
   };
   const lexKey = byKey[key];
-  return lexKey ? getEvaluationStr(lang, lexKey) : key;
+  return lexKey ? getEvaluationStr(lang, lexKey) : humanizeIdentifier(lang, key);
 }
 
-/** Release-criterion display name; unknown future criterion ids render as the
- * wire id (never a guessed label that could misname a future check). */
+/** Per-contrast criteria ride the wire as `K3_holm_p`-style ids; parse them
+ * into "comparison N — …" instead of rendering the raw id. */
+const K_CRITERION_SUFFIX: Record<string, [string, string]> = {
+  holm_p: ["corrected p-value", "校正后 p 值"],
+  ann_diff_point: ["annualised difference", "年化差"],
+  holds_at_2x_costs: ["holds at 2× costs", "2 倍成本下仍成立"],
+  vs_exposure_matched_ci_lower: ["lower bound vs exposure-weight reference", "相对敞口加权参考的区间下界"],
+};
+
+/** Release-criterion display name; unknown future criterion ids degrade to
+ * spaced words (never a guessed label that could misname a future check). */
 export function criterionLabel(lang: Lang, id: string): string {
   const key = `crit_${id}` as EvaluationLexKey;
-  return Object.hasOwn(PROPHET_EVALUATION_LEX, key) ? getEvaluationStr(lang, key) : id;
+  if (Object.hasOwn(PROPHET_EVALUATION_LEX, key)) return getEvaluationStr(lang, key);
+  const kMatch = /^K(\d{1,2})_([a-z0-9_]+)$/.exec(id);
+  if (kMatch) {
+    const suffix = K_CRITERION_SUFFIX[kMatch[2]];
+    const name = suffix
+      ? (lang === "zh" ? suffix[1] : suffix[0])
+      : kMatch[2].replace(/_/g, " ");
+    return lang === "zh" ? `比较 ${kMatch[1]} — ${name}` : `comparison ${kMatch[1]} — ${name}`;
+  }
+  return humanizeIdentifier(lang, id);
+}
+
+/** Claim-key display name ("incremental_selection_value" → reader language). */
+export function claimKeyLabel(lang: Lang, key: string): string {
+  return humanizeIdentifier(lang, key);
+}
+
+/** Claim-status chip text; statuses are a closed engine vocabulary. */
+export function claimStatusLabel(lang: Lang, status: string): string {
+  return humanizeIdentifier(lang, status);
+}
+
+/** Deviation-kind display name ("population_correction" → reader language). */
+export function deviationKindLabel(lang: Lang, kind: string): string {
+  return humanizeIdentifier(lang, kind);
 }

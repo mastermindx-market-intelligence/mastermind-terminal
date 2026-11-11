@@ -120,7 +120,7 @@ describe("the D5 correction: population and sensitivity blocks", () => {
   });
 
   it("carries the unmatured 63-session horizon as absent metrics, never zeros", () => {
-    const raw63 = wireAt(wireAt(wire(), "event_study").horizons as object, "63") as Record<string, unknown>;
+    const raw63 = wireAt(wireAt(wire(), "event_study").horizons as Record<string, unknown>, "63") as Record<string, unknown>;
     const h63 = decodeBetaEvaluation(wire())!.eventStudy.horizons.find(h => h.horizon === "63")!;
     expect(raw63.status).toBe("unmatured");
     expect(h63.status).toBe("unmatured");
