@@ -1,0 +1,189 @@
+{
+  "state": "ALL_TWELVE_GEOMETRY_AND_THEME_CASES_PASSED",
+  "stage": "theme-paint-qualified",
+  "actualHead": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "actualTree": "6971516465096849a2edbf449a8589bd3ea23a7e",
+  "indexTreeAtStart": "6971516465096849a2edbf449a8589bd3ea23a7e",
+  "panelBlob": "e8365ed513c043b0adea8bc441d464914306d5d8",
+  "sourceFiles": 24630,
+  "initial": {
+    "port": 57735,
+    "listenerExit": 1,
+    "listeners": "",
+    "lockPathExists": false,
+    "lockHandles": "",
+    "workspaceCwdHolders": []
+  },
+  "node": "v26.5.0",
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/sector-cycle-lens.spec.ts",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts",
+    "--grep",
+    "cycles chart measurement survives",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--reporter=list,json"
+  ],
+  "startedAt": "2026-11-11T14:04:55.917700+00:00",
+  "productionProof": false,
+  "exit": 0,
+  "seconds": 67.519,
+  "stats": {
+    "startTime": "2026-11-11T14:04:56.366Z",
+    "duration": 52419.906,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "project": "desktop",
+      "title": "cycles chart measurement survives table transitions en dark",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "desktop",
+      "title": "cycles chart measurement survives empty transitions en dark",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "desktop",
+      "title": "cycles chart measurement survives table transitions zh light",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "desktop",
+      "title": "cycles chart measurement survives empty transitions zh light",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "tablet",
+      "title": "cycles chart measurement survives table transitions en dark",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "tablet",
+      "title": "cycles chart measurement survives empty transitions en dark",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "tablet",
+      "title": "cycles chart measurement survives table transitions zh light",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "tablet",
+      "title": "cycles chart measurement survives empty transitions zh light",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "cycles chart measurement survives table transitions en dark",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "cycles chart measurement survives empty transitions en dark",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "cycles chart measurement survives table transitions zh light",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "cycles chart measurement survives empty transitions zh light",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "sourceStable": true,
+  "lifecycle": {
+    "port": 57735,
+    "listenerExit": 1,
+    "listeners": "",
+    "lockPathExists": true,
+    "lockHandles": "",
+    "workspaceCwdHolders": []
+  },
+  "completedAt": "2026-11-11T14:06:03.439847+00:00"
+}

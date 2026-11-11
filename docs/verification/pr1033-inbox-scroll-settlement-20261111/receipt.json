@@ -1,0 +1,38 @@
+{
+  "schema": "mastermind.pr1033.inbox-scroll-settlement.v1",
+  "parent": "f7ca4fd9848184bf8583b03ca29c91878feccfbb",
+  "lawPin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "workflowRun": 42987776419,
+  "job": 130413628075,
+  "artifact": 13840566902,
+  "artifactSha256": "58ee4b9286288c7b12d32e21c486162b2308744a0ee3b646831612131876ef87",
+  "actualCheckout": "2388732927643c0ddcdd2a81fcac3154d4953708",
+  "actualTree": "d7f02546911164abdd3414f8e1269618e48672b8",
+  "integratedProtected": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "affectedProtectedChangesSince74c": [
+    "terminal/components/screener/CrossMarketStrip.module.css",
+    "terminal/e2e/screener-cross-market.spec.ts"
+  ],
+  "all15CaptureInputsMatchPriorBranch": true,
+  "completeQualifiedPacket": false,
+  "completedCells": [
+    "list-1440.png",
+    "list-1440-zh.png"
+  ],
+  "mobileGeometry": {
+    "x": 20,
+    "width": 350,
+    "height": 371.53125,
+    "beforeY": 739.6875,
+    "afterY": 472.6875
+  },
+  "correction": "Finish all settled-content assertions and font readiness, then scroll the final element before measuring screenshot geometry.",
+  "strictGeometryAndTextEqualityPreserved": true,
+  "validation": {
+    "nodeSyntax": "passed",
+    "affectedEslint": "passed"
+  },
+  "localBrowserExecution": false,
+  "producerActivation": false,
+  "productionAcceptance": false
+}

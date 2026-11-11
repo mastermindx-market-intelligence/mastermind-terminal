@@ -53,13 +53,46 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     )
     f11_index = next(i for i, step in enumerate(steps)
                      if step.get("name") == "Capture provider-closed F11 theses entry on this checkout")
-    unit_index = next(i for i, step in enumerate(steps) if step.get("run") == "npm test")
+    unit_index = next(i for i, step in enumerate(steps)
+                     if step.get("name") == "Validate fresh evidence through the unit readers")
     assert prepare_index < capture_index < f11_index < unit_index
     f11 = steps[f11_index]
     assert "if" not in f11
     assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
     assert f11["timeout-minutes"] == 8
     assert not f11.get("continue-on-error", False)
+    # The evidence lane validates this run's fresh capture through every unit
+    # suite that reads capture-produced evidence (one shared list script); the
+    # rest of vitest and typecheck live in the parallel terminal-unit-shards /
+    # terminal-typecheck jobs so they never serialize behind capture.
+    records = steps[unit_index]
+    assert "if" not in records
+    assert "bash scripts/ci/evidence-lock-suites.sh" in records["run"]
+    assert 'npx vitest run "${suites[@]}"' in records["run"]
+    assert not records.get("continue-on-error", False)
+
+
+def test_e18_current_source_capture_is_required_and_its_packet_is_retained():
+    steps = _steps()
+    index = {step["name"]: i for i, step in enumerate(steps) if "name" in step}
+    capture_index = index["Capture current-source E18 alert-management evidence"]
+    assert index[PREPARE] < capture_index < index[CAPTURE]
+    capture = steps[capture_index]
+    assert capture["run"] == "node e2e/tools/capture_e18_alert_management.cjs"
+    assert capture["timeout-minutes"] == 8
+    assert "if" not in capture
+    assert not capture.get("continue-on-error", False)
+    assert capture["env"] == {
+        "TERMINAL_CROP_PORT": "47283",
+        "TMPDIR": "${{ runner.temp }}/terminal-ci-evidence",
+    }
+    checkout_index = next(i for i, step in enumerate(steps)
+                          if step.get("run") == "node e2e/tools/capture_ci_evidence.cjs --checkout-only")
+    assert checkout_index < capture_index
+    artifact = steps[index["Retain current-checkout mock evidence and failure diagnostics"]]
+    assert artifact["if"] == "always()"
+    assert "${{ runner.temp }}/terminal-ci-evidence/" in artifact["with"]["path"].splitlines()
+    assert "terminal/docs/pr-crops/e18-alert-management/" in artifact["with"]["path"].splitlines()
 
 
 MOCK_INSTALLERS = r'''

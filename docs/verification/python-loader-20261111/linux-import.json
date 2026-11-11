@@ -1,0 +1,32 @@
+{
+  "state": "LINUX_PROOF_IMPORTED_AND_READ_BACK",
+  "sha256": "52f06f30cf9f9bf7dd21dfb4bcca8912adb3d125cd1cf10ef34704c08a3ee53a",
+  "bytes": 8032,
+  "cases": {
+    "linux-generated": {
+      "cases": 189,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "linux-parent": {
+      "cases": 1,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "m2-parent": {
+      "cases": 157,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "m2-generated": {
+      "cases": 189,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    }
+  },
+  "controlledOldSegfault": true
+}

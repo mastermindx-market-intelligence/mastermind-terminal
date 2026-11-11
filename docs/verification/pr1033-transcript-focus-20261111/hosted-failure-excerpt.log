@@ -1,0 +1,105 @@
+  184 passed (26.9m)
+2026-11-11T10:46:31.1626783Z
+2026-11-11T10:46:31.1627681Z   1) [desktop] › e2e/transcript-compare.spec.ts:771:7 › Transcript drawer copy feedback › only the latest copy attempt owns feedback and its full success lifetime
+2026-11-11T10:46:31.1628354Z
+2026-11-11T10:46:31.1628544Z     Error: expect(locator).toBeFocused() failed
+2026-11-11T10:46:31.1628803Z
+2026-11-11T10:46:31.1629134Z     Locator:  locator('.fin-tx-drawer').locator('.fin-tx-seg[data-segment="3"]')
+2026-11-11T10:46:31.1629596Z     Expected: focused
+2026-11-11T10:46:31.1629886Z     Received: inactive
+2026-11-11T10:46:31.1630166Z     Timeout:  5000ms
+2026-11-11T10:46:31.1630329Z
+2026-11-11T10:46:31.1630445Z     Call log:
+2026-11-11T10:46:31.1630768Z       - Expect "toBeFocused" with timeout 5000ms
+2026-11-11T10:46:31.1631352Z       - waiting for locator('.fin-tx-drawer').locator('.fin-tx-seg[data-segment="3"]')
+2026-11-11T10:46:31.1632211Z         13 × locator resolved to <article tabindex="-1" data-segment="3" class="fin-tx-seg">…</article>
+2026-11-11T10:46:31.1632818Z            - unexpected value "inactive"
+2026-11-11T10:46:31.1633051Z
+2026-11-11T10:46:31.1633065Z
+2026-11-11T10:46:31.1633242Z       805 |     await expect(source).toBeFocused();
+2026-11-11T10:46:31.1633629Z       806 |     await source.click();
+2026-11-11T10:46:31.1634159Z     > 807 |     await expect(drawer.locator('.fin-tx-seg[data-segment="3"]')).toBeFocused();
+2026-11-11T10:46:31.1635125Z           |                                                                   ^
+2026-11-11T10:46:31.1635959Z       808 |     await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.pending[2].reject(); });
+2026-11-11T10:46:31.1636935Z       809 |     await expect(drawer.locator(".fin-tx-toolbar").getByRole("status")).toHaveText("");
+2026-11-11T10:46:31.1637742Z       810 |     await expect(drawer.getByRole("button", { name: "Copy link", exact: true })).toBeVisible();
+2026-11-11T10:46:31.1638652Z         at /home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/transcript-compare.spec.ts:807:67
+2026-11-11T10:46:31.1639174Z
+2026-11-11T10:46:31.1639693Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1640666Z     test-results/transcript-compare-Transcr-28ff0-d-its-full-success-lifetime-desktop/test-failed-1.png
+2026-11-11T10:46:31.1641734Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1642121Z
+2026-11-11T10:46:31.1642771Z     Error Context: test-results/transcript-compare-Transcr-28ff0-d-its-full-success-lifetime-desktop/error-context.md
+2026-11-11T10:46:31.1643444Z
+2026-11-11T10:46:31.1677868Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1678204Z
+2026-11-11T10:46:31.1678667Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1679028Z
+2026-11-11T10:46:31.1679226Z     Error: expect(locator).toBeFocused() failed
+2026-11-11T10:46:31.1679482Z
+2026-11-11T10:46:31.1679784Z     Locator:  locator('.fin-tx-drawer').locator('.fin-tx-seg[data-segment="3"]')
+2026-11-11T10:46:31.1680245Z     Expected: focused
+2026-11-11T10:46:31.1680817Z     Received: inactive
+2026-11-11T10:46:31.1681078Z     Timeout:  5000ms
+2026-11-11T10:46:31.1681241Z
+2026-11-11T10:46:31.1681345Z     Call log:
+2026-11-11T10:46:31.1681672Z       - Expect "toBeFocused" with timeout 5000ms
+2026-11-11T10:46:31.1682229Z       - waiting for locator('.fin-tx-drawer').locator('.fin-tx-seg[data-segment="3"]')
+2026-11-11T10:46:31.1683090Z         14 × locator resolved to <article tabindex="-1" data-segment="3" class="fin-tx-seg">…</article>
+2026-11-11T10:46:31.1683660Z            - unexpected value "inactive"
+2026-11-11T10:46:31.1683896Z
+2026-11-11T10:46:31.1683902Z
+2026-11-11T10:46:31.1684247Z       805 |     await expect(source).toBeFocused();
+2026-11-11T10:46:31.1684787Z       806 |     await source.click();
+2026-11-11T10:46:31.1685350Z     > 807 |     await expect(drawer.locator('.fin-tx-seg[data-segment="3"]')).toBeFocused();
+2026-11-11T10:46:31.1685931Z           |                                                                   ^
+2026-11-11T10:46:31.1686805Z       808 |     await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.pending[2].reject(); });
+2026-11-11T10:46:31.1687787Z       809 |     await expect(drawer.locator(".fin-tx-toolbar").getByRole("status")).toHaveText("");
+2026-11-11T10:46:31.1688585Z       810 |     await expect(drawer.getByRole("button", { name: "Copy link", exact: true })).toBeVisible();
+2026-11-11T10:46:31.1689517Z         at /home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/transcript-compare.spec.ts:807:67
+2026-11-11T10:46:31.1690057Z
+2026-11-11T10:46:31.1690559Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1691510Z     test-results/transcript-compare-Transcr-28ff0-d-its-full-success-lifetime-desktop-retry1/test-failed-1.png
+2026-11-11T10:46:31.1692492Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1692845Z
+2026-11-11T10:46:31.1693445Z     Error Context: test-results/transcript-compare-Transcr-28ff0-d-its-full-success-lifetime-desktop-retry1/error-context.md
+2026-11-11T10:46:31.1694056Z
+2026-11-11T10:46:31.1698160Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1698508Z
+2026-11-11T10:46:31.1698979Z     Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1699544Z
+2026-11-11T10:46:31.1699738Z     Error: expect(locator).toBeFocused() failed
+2026-11-11T10:46:31.1700008Z
+2026-11-11T10:46:31.1700338Z     Locator:  locator('.fin-tx-drawer').locator('.fin-tx-seg[data-segment="3"]')
+2026-11-11T10:46:31.1700834Z     Expected: focused
+2026-11-11T10:46:31.1701141Z     Received: inactive
+2026-11-11T10:46:31.1701449Z     Timeout:  5000ms
+2026-11-11T10:46:31.1701772Z
+2026-11-11T10:46:31.1701885Z     Call log:
+2026-11-11T10:46:31.1702264Z       - Expect "toBeFocused" with timeout 5000ms
+2026-11-11T10:46:31.1702897Z       - waiting for locator('.fin-tx-drawer').locator('.fin-tx-seg[data-segment="3"]')
+2026-11-11T10:46:31.1704013Z         14 × locator resolved to <article tabindex="-1" data-segment="3" class="fin-tx-seg">…</article>
+2026-11-11T10:46:31.1734925Z            - unexpected value "inactive"
+2026-11-11T10:46:31.1735178Z
+2026-11-11T10:46:31.1735185Z
+2026-11-11T10:46:31.1735364Z       805 |     await expect(source).toBeFocused();
+2026-11-11T10:46:31.1735776Z       806 |     await source.click();
+2026-11-11T10:46:31.1736348Z     > 807 |     await expect(drawer.locator('.fin-tx-seg[data-segment="3"]')).toBeFocused();
+2026-11-11T10:46:31.1736951Z           |                                                                   ^
+2026-11-11T10:46:31.1737824Z       808 |     await page.evaluate(() => { (window as unknown as { __drawerClipboard: DrawerClipboardProbe }).__drawerClipboard.pending[2].reject(); });
+2026-11-11T10:46:31.1738809Z       809 |     await expect(drawer.locator(".fin-tx-toolbar").getByRole("status")).toHaveText("");
+2026-11-11T10:46:31.1739642Z       810 |     await expect(drawer.getByRole("button", { name: "Copy link", exact: true })).toBeVisible();
+2026-11-11T10:46:31.1740567Z         at /home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/transcript-compare.spec.ts:807:67
+2026-11-11T10:46:31.1741085Z
+2026-11-11T10:46:31.1741607Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1742537Z     test-results/transcript-compare-Transcr-28ff0-d-its-full-success-lifetime-desktop-retry2/test-failed-1.png
+2026-11-11T10:46:31.1743551Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2026-11-11T10:46:31.1743883Z
+2026-11-11T10:46:31.1744653Z     Error Context: test-results/transcript-compare-Transcr-28ff0-d-its-full-success-lifetime-desktop-retry2/error-context.md
+2026-11-11T10:46:31.1745320Z
+2026-11-11T10:46:31.1625700Z ##[notice]  1 failed
+  32 skipped
+  184 passed (26.9m)
+2026-11-11T10:46:31.1751370Z   1 failed
+2026-11-11T10:46:31.1753034Z   32 skipped
+2026-11-11T10:46:31.1753294Z   184 passed (26.9m)

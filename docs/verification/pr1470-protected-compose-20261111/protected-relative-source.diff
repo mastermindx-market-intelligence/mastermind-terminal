@@ -1,0 +1,213 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 5323e72fd..a913227d4 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -417,11 +417,9 @@ jobs:
+           set -euo pipefail
+           BASE=$(git rev-parse HEAD^1)
+           git diff --name-only --no-renames "${BASE}" HEAD > "${RUNNER_TEMP}/evidence-pr-touched.txt"
+-          {
+-            echo "EVIDENCE_PR_TOUCHED_FILE<<__mmx-evidence-touched-eof__"
+-            cat "${RUNNER_TEMP}/evidence-pr-touched.txt"
+-            echo "__mmx-evidence-touched-eof__"
+-          } >> "${GITHUB_ENV}"
++          # Keep the complete census in the file: large proof PRs can exceed
++          # the per-variable process-launch limit if paths enter GITHUB_ENV.
++          printf 'EVIDENCE_PR_TOUCHED_FILE=%s\n' "${RUNNER_TEMP}/evidence-pr-touched.txt" >> "${GITHUB_ENV}"
+       - name: Plan current-source evidence capture
+         id: evidence_plan
+         run: node scripts/ci/plan-evidence-capture.cjs
+diff --git a/terminal/scripts/ci/plan-evidence-capture.cjs b/terminal/scripts/ci/plan-evidence-capture.cjs
+index efb50a83c..6a26c677b 100644
+--- a/terminal/scripts/ci/plan-evidence-capture.cjs
++++ b/terminal/scripts/ci/plan-evidence-capture.cjs
+@@ -76,11 +76,12 @@ function planEvidenceCapture(root = ROOT) {
+ // PR-time drift attribution. `touchedText` is the newline-separated list of
+ // repo-relative paths the pull request itself changed (ci.yml records
+ // `git diff --name-only --no-renames HEAD^1 HEAD` of the synthetic merge
+-// commit into EVIDENCE_PR_TOUCHED_FILE). Only KNOWN source-drift on a
++// commit into a temporary file named by EVIDENCE_PR_TOUCHED_FILE). Only KNOWN
++// source-drift on a
+ // PR-touched path fails the PR: inherited drift on untouched paths stays with
+ // the merge_group backstop, and fail-closed plans (missing/malformed manifest)
+ // cannot attribute drift and leave PR capture behavior unchanged.
+-function driftedTouchedSources(root = ROOT, touchedText = process.env.EVIDENCE_PR_TOUCHED_FILE || "") {
++function driftedTouchedSources(root = ROOT, touchedText = "") {
+   const plan = planEvidenceCapture(root);
+   const touched = new Set();
+   for (const line of String(touchedText).split(/\r?\n/)) {
+@@ -93,6 +94,13 @@ function driftedTouchedSources(root = ROOT, touchedText = process.env.EVIDENCE_P
+   return {plan, touched: [...touched], drifted};
+ }
+ 
++// Only the PR entry point consumes this file. Keep the census out of process
++// arguments/environment, and fail explicitly if the recording step lost it.
++function driftedTouchedSourcesFromFile(root = ROOT, filename = process.env.EVIDENCE_PR_TOUCHED_FILE) {
++  if (!filename) throw new Error("EVIDENCE_PR_TOUCHED_FILE missing: cannot attribute PR evidence drift");
++  return driftedTouchedSources(root, fs.readFileSync(filename, "utf8"));
++}
++
+ if (require.main === module) {
+   const eventName = process.env.GITHUB_EVENT_NAME;
+   let result;
+@@ -100,7 +108,7 @@ if (require.main === module) {
+   if (eventName === "merge_group") {
+     result = planEvidenceCapture();
+   } else if (eventName === "pull_request") {
+-    prGate = driftedTouchedSources();
++    prGate = driftedTouchedSourcesFromFile();
+     if (prGate.drifted.length) {
+       for (const rel of prGate.drifted) {
+         console.error("::error title=evidence-lock-drift::" + rel
+@@ -132,4 +140,4 @@ if (require.main === module) {
+   }
+ }
+ 
+-module.exports = {MANIFESTS, manifestLocks, planEvidenceCapture, driftedTouchedSources};
++module.exports = {MANIFESTS, manifestLocks, planEvidenceCapture, driftedTouchedSources, driftedTouchedSourcesFromFile};
+diff --git a/terminal/scripts/ci/plan-evidence-capture.test.cjs b/terminal/scripts/ci/plan-evidence-capture.test.cjs
+index 782d7d91d..157700eda 100644
+--- a/terminal/scripts/ci/plan-evidence-capture.test.cjs
++++ b/terminal/scripts/ci/plan-evidence-capture.test.cjs
+@@ -5,7 +5,8 @@ const fs = require("node:fs");
+ const os = require("node:os");
+ const path = require("node:path");
+ const crypto = require("node:crypto");
+-const {MANIFESTS, planEvidenceCapture, driftedTouchedSources} = require("./plan-evidence-capture.cjs");
++const {spawnSync} = require("node:child_process");
++const {MANIFESTS, planEvidenceCapture, driftedTouchedSources, driftedTouchedSourcesFromFile} = require("./plan-evidence-capture.cjs");
+ const { EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS, nativeDefinition } = require("../../e2e/tools/capture_ci_evidence.cjs");
+ 
+ function fixture(t) {
+@@ -297,3 +298,68 @@ test("GEX drift is attributed only when the pull request touched that source", t
+   assert.equal(inherited.plan.reason, "source-drift");
+   assert.deepEqual(inherited.drifted, []);
+ });
++
++
++test("a large file-backed census reaches a child planner without losing late drift", t => {
++  const f = fixture(t);
++  fs.appendFileSync(path.join(f.root, f.paths[3]), "changed without recapture\n");
++  const paths = Array.from({length: 3000}, (_, i) =>
++    "docs/verification/" + "long-proof-path-".repeat(12) + i + "/trace.zip");
++  paths.push(f.paths[3]);
++  const census = paths.join("\n") + "\n";
++  assert.ok(Buffer.byteLength(census) > 439184);
++  const filename = path.join(f.root, "pr-touched.txt");
++  fs.writeFileSync(filename, census);
++  const childSource = [
++    "const {driftedTouchedSourcesFromFile} = require(process.argv[1]);",
++    "const gate = driftedTouchedSourcesFromFile(process.argv[2]);",
++    "console.log(JSON.stringify({count: gate.touched.length,",
++    "last: gate.touched.at(-1), drifted: gate.drifted, reason: gate.plan.reason}));",
++    "process.exitCode = gate.drifted.length ? 1 : 0;",
++  ].join("\n");
++  const child = spawnSync(process.execPath, ["-e", childSource,
++    require.resolve("./plan-evidence-capture.cjs"), f.root], {
++    encoding: "utf8",
++    env: {...process.env, EVIDENCE_PR_TOUCHED_FILE: filename},
++  });
++  assert.equal(child.error, undefined);
++  assert.equal(child.status, 1, child.stderr);
++  assert.deepEqual(JSON.parse(child.stdout), {
++    count: paths.length, last: f.paths[3], drifted: [f.paths[3]], reason: "source-drift",
++  });
++});
++
++test("a missing or non-file PR census fails explicitly instead of becoming empty", t => {
++  const f = fixture(t);
++  assert.throws(() => driftedTouchedSourcesFromFile(f.root, ""),
++    /EVIDENCE_PR_TOUCHED_FILE missing/);
++  assert.throws(() => driftedTouchedSourcesFromFile(f.root, path.join(f.root, "missing.txt")),
++    /ENOENT/);
++  assert.throws(() => driftedTouchedSourcesFromFile(f.root, f.root), /EISDIR/);
++});
++
++test("an existing empty census retains the empty-touched-list policy", t => {
++  const f = fixture(t);
++  fs.appendFileSync(path.join(f.root, f.paths[2]), "inherited drift\n");
++  const filename = path.join(f.root, "empty-touched.txt");
++  fs.writeFileSync(filename, "");
++  const gate = driftedTouchedSourcesFromFile(f.root, filename);
++  assert.equal(gate.plan.reason, "source-drift");
++  assert.deepEqual(gate.touched, []);
++  assert.deepEqual(gate.drifted, []);
++});
++
++for (const eventName of ["merge_group", "workflow_dispatch"])
++test(eventName + " never consumes the PR-only census file", t => {
++  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "mmx-evidence-cli-"));
++  t.after(() => fs.rmSync(directory, {recursive: true, force: true}));
++  const output = path.join(directory, "github-output");
++  const child = spawnSync(process.execPath, [require.resolve("./plan-evidence-capture.cjs")], {
++    encoding: "utf8",
++    env: {...process.env, GITHUB_EVENT_NAME: eventName, GITHUB_OUTPUT: output,
++      EVIDENCE_PR_TOUCHED_FILE: path.join(directory, "does-not-exist")},
++  });
++  assert.equal(child.error, undefined);
++  assert.equal(child.status, 0, child.stderr);
++  assert.match(fs.readFileSync(output, "utf8"), /^capture=(true|false)\n$/);
++});
+diff --git a/tests/test_merge_group_fast_lane_contract.py b/tests/test_merge_group_fast_lane_contract.py
+index 4a56fc79e..5a6733f2c 100644
+--- a/tests/test_merge_group_fast_lane_contract.py
++++ b/tests/test_merge_group_fast_lane_contract.py
+@@ -193,6 +193,58 @@ def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
+     # step's command and both capture-skip conditions are pinned above.
+ 
+ 
++def test_pr_touched_path_census_stays_in_a_file(tmp_path: Path) -> None:
++    """Execute the actual recording step with a census larger than the
++    439,184-byte value that prevented GitHub's runner from spawning bash."""
++    record = next(
++        step for step in jobs()["terminal-unit"]["steps"]
++        if step.get("name") == "Record PR-touched paths for the evidence drift gate"
++    )
++    census = "".join(
++        f"docs/verification/{'long-proof-path-' * 12}{i}/trace.zip\n"
++        for i in range(3000)
++    ) + "terminal/components/last-drifted-source.tsx\n"
++    assert len(census.encode()) > 439_184
++    source = tmp_path / "complete-census.txt"
++    source.write_text(census, encoding="utf-8")
++    binary = tmp_path / "bin"
++    binary.mkdir()
++    git = binary / "git"
++    git.write_text(
++        "#!/bin/sh\n"
++        'case "$1" in\n'
++        "  rev-parse) printf '%s\\n' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ;;\n"
++        '  diff) cat "$TEST_CENSUS_INPUT" ;;\n'
++        "  *) exit 97 ;;\n"
++        "esac\n",
++        encoding="utf-8",
++    )
++    git.chmod(0o755)
++    runner_temp = tmp_path / "runner"
++    runner_temp.mkdir()
++    github_env = tmp_path / "github-env"
++    result = subprocess.run(
++        ["/bin/bash", "-c", record["run"]],
++        env={
++            **os.environ,
++            "PATH": str(binary) + os.pathsep + os.environ.get("PATH", ""),
++            "RUNNER_TEMP": str(runner_temp),
++            "GITHUB_ENV": str(github_env),
++            "TEST_CENSUS_INPUT": str(source),
++        },
++        text=True,
++        capture_output=True,
++        check=False,
++    )
++    assert result.returncode == 0, result.stderr
++    touched_file = runner_temp / "evidence-pr-touched.txt"
++    assert touched_file.read_text(encoding="utf-8") == census
++    assert github_env.read_text(encoding="utf-8") == (
++        f"EVIDENCE_PR_TOUCHED_FILE={touched_file}\n"
++    )
++    assert github_env.stat().st_size < 1024
++
++
+ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None:
+     aggregate = jobs()["terminal"]
+     assert aggregate["name"] == "Terminal typecheck + tests"

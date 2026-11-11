@@ -1,0 +1,67 @@
+{
+  "completedAt": "2026-11-10T06:41:11.882567+00:00",
+  "currentE18Inputs": {
+    "terminal/components/alerts/AlertBulkManager.tsx": "7ebdb5f4f4918e3b13afe465293288d8a1ce84b58dd6fd29bac6b9b7f58bef27",
+    "terminal/components/alerts/alertBulk.module.css": "204bd08ac5e221aaf5a5a5bb04f4eae7f017d7eafedd90254a1fbfa9608c5ba8",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/e2e/tools/capture_e18_alert_management.cjs": "a97f08742f1c664e673b1870f800e4559e1f5a853a1b2186b08042d6bc743e88",
+    "terminal/lib/alertBulk.ts": "34a6b791f500b217184d7b23ccb9b71cbbc83dd6bc55824d73937008d0f5633c",
+    "terminal/lib/alertBulkLex.ts": "35f1b91b9b331cbce4231ed7d106b8ad0b1524e46fbd0c2b22a872dc336c03dd",
+    "terminal/next.config.ts": "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+  },
+  "deltas": [
+    {
+      "after": "8e2451bcfa98d4ab2c2a9e7ae32d0044edf0abb1",
+      "before": "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c",
+      "exit": 0,
+      "patchSha256": "2cd1c03b57c235e505430063d56376528fb50f305c98594ed82bea7c1c9804d8",
+      "paths": [
+        "docs/verification/pr768-lazy-details-readiness-20261110/README.md",
+        "docs/verification/pr768-lazy-details-readiness-20261110/artifacts/.last-run.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/artifacts/drawing-system-phone-drawi-55433-lision-free-editing-surface-mobile/trace.zip",
+        "docs/verification/pr768-lazy-details-readiness-20261110/browser-report.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/browser.log",
+        "docs/verification/pr768-lazy-details-readiness-20261110/config.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/execution.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/inventory.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/lifecycle.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/preparation.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/run-browser.py",
+        "docs/verification/pr768-lazy-details-readiness-20261110/selection.log",
+        "docs/verification/pr768-lazy-details-readiness-20261110/source-after.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/source-before.json",
+        "docs/verification/pr768-lazy-details-readiness-20261110/source.diff",
+        "terminal/e2e/drawing-system.spec.ts"
+      ],
+      "postimages": {
+        "docs/verification/pr768-lazy-details-readiness-20261110/README.md": "8ae5b4473befc26906f481597cffbdc9d77e6688",
+        "docs/verification/pr768-lazy-details-readiness-20261110/artifacts/.last-run.json": "cbcc1fbac11a74b608b2b3edc3a2ffd6ab639cb2",
+        "docs/verification/pr768-lazy-details-readiness-20261110/artifacts/drawing-system-phone-drawi-55433-lision-free-editing-surface-mobile/trace.zip": "bee73289c89ff7a8774cd4105ef933b7dc855037",
+        "docs/verification/pr768-lazy-details-readiness-20261110/browser-report.json": "66a8b7a14723d0fdf6a5a2da753a61a0a0ee9e41",
+        "docs/verification/pr768-lazy-details-readiness-20261110/browser.log": "35614583ffe1574188e4d08084af9646e1807a4d",
+        "docs/verification/pr768-lazy-details-readiness-20261110/config.json": "98058d8a1cefd5ca0c0ede3200cf5dbf6d15a6d3",
+        "docs/verification/pr768-lazy-details-readiness-20261110/execution.json": "83d3be40bf45db47f64ff96ac00a630d4f8bd84c",
+        "docs/verification/pr768-lazy-details-readiness-20261110/inventory.json": "a125876a021f17bb0b5550c0af8d1a5dd977530c",
+        "docs/verification/pr768-lazy-details-readiness-20261110/lifecycle.json": "cf3ab044bd13e4e82eaba8098cc7b65fcf1b2b59",
+        "docs/verification/pr768-lazy-details-readiness-20261110/preparation.json": "5b46131ea5cdefb6c6350c104fe85238f7fbda8c",
+        "docs/verification/pr768-lazy-details-readiness-20261110/run-browser.py": "62c247581a99b0835dd0e908a7202714be1552f2",
+        "docs/verification/pr768-lazy-details-readiness-20261110/selection.log": "452619be5d8bd959bd6564dc4016ebb80fc05c87",
+        "docs/verification/pr768-lazy-details-readiness-20261110/source-after.json": "40a77ab49d0cb6773a0f9a49f509527a94b16a37",
+        "docs/verification/pr768-lazy-details-readiness-20261110/source-before.json": "40a77ab49d0cb6773a0f9a49f509527a94b16a37",
+        "docs/verification/pr768-lazy-details-readiness-20261110/source.diff": "7380c9ff41d8137dcaf20a2b9c9483137eb9a41a",
+        "terminal/e2e/drawing-system.spec.ts": "7e92dd1f54d6650d0775c362e67a4fa92732d683"
+      },
+      "preimages": {
+        "terminal/e2e/drawing-system.spec.ts": "46ceb03e16623da094344c1caad34e6c6ab47315"
+      },
+      "state": "APPLIED_AND_READ_BACK",
+      "stderr": "Falling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nApplied patch to 'terminal/e2e/drawing-system.spec.ts' cleanly.\n",
+      "stdout": ""
+    }
+  ],
+  "receiptPath": "docs/verification/pr1346-e18-successor-20261110/final-integration-deltas.json",
+  "schema": "terminal_pr1346_final_dependency_delta.v1",
+  "sourceInputIntersection": [],
+  "startedAt": "2026-11-10T06:41:10.617421+00:00",
+  "state": "FINAL_INPUTS_PRESERVED_AWAITING_ACTUAL_DEPENDENCY_MERGE"
+}
