@@ -1,0 +1,158 @@
+{
+ "schema": "prophet.sector_members/v1",
+ "mode": "group",
+ "captured_at": "2026-11-11T04:55:47Z",
+ "sector_ref": {
+  "owner": "sector_generation",
+  "generation_id": "qualify-2026-11-06",
+  "content_id": "973b72736c5fb9a64823a7707ea06baf113657f47b2c9962d5d692865b6c2ffa",
+  "source_session": "2026-11-06",
+  "published_at": "2026-11-06T23:00:00+00:00",
+  "member_sha256": "3e51b31bfbecb8f1b08957b52954e0e192525d68000fe3a095f86a7ac2a5edf6",
+  "qualification": "stale"
+ },
+ "prophet_ref": {
+  "owner": "prophet_index",
+  "schema": "prophet.index/v1",
+  "asof": "2026-11-09",
+  "generated_at": "2026-11-09T09:02:55Z",
+  "index_sha256": "3956748aa58e9a1d4850e3429082f2a4d795da32b1a12667f5b1ce75f3fe2e28",
+  "plan_count": 893,
+  "open_plan_count": 364
+ },
+ "compatibility": {
+  "status": "mixed_basis",
+  "sector_session": "2026-11-06",
+  "prophet_asof": "2026-11-09",
+  "session_gap": 3,
+  "reason": "sessions differ by 3 calendar days and an owner flags a non-accepted basis (sector qualification 'stale')"
+ },
+ "disclosure": {
+  "membership_basis": "current_roster_with_pit_first_known",
+  "taxonomy_basis": "current_gics_industry_not_point_in_time",
+  "join_key": "us_listing_ticker",
+  "descriptive_only": true
+ },
+ "group": {
+  "id": "memory_storage",
+  "kind": "basket",
+  "name": "Memory, HBM & Storage",
+  "name_zh": "\u5185\u5b58\u3001HBM \u4e0e\u5b58\u50a8",
+  "benchmark": "SPY",
+  "context": {
+   "window_sessions": 20,
+   "group_return_pct": -38.8217,
+   "market_return_pct": -5.5589,
+   "relative_pp": -33.2628,
+   "breadth": null,
+   "state_label": "Trough",
+   "reasons": {
+    "breadth": "not_produced"
+   },
+   "window": "20d",
+   "basis": "baskets.json perf.20d (owner trading-day window); market_return = ret - rel"
+  }
+ },
+ "counts": {
+  "configured": 4,
+  "served": 4,
+  "accounted_unserved": 0,
+  "unaccounted": 0,
+  "open_plan": 0,
+  "resolved_plan": 0,
+  "early_observation": 1,
+  "none": 3,
+  "unavailable": 0
+ },
+ "members": [
+  {
+   "symbol": "WDC",
+   "name": "Western Digital",
+   "industry": "Technology Hardware, Storage & Peripherals",
+   "sub_industry": "Computer Hardware",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_tech"
+   ],
+   "prophet": {
+    "state": "early_observation",
+    "reason": null,
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": {
+     "kind": "turn_watch",
+     "asof": "2026-11-06"
+    }
+   }
+  },
+  {
+   "symbol": "MU",
+   "name": "Micron Technology",
+   "industry": "Semiconductors & Semiconductor Equipment",
+   "sub_industry": "Semiconductors",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_tech",
+    "ai_infra"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "SNDK",
+   "name": "Sandisk",
+   "industry": null,
+   "sub_industry": "Computer Hardware",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_tech"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  },
+  {
+   "symbol": "STX",
+   "name": "Seagate Technology",
+   "industry": "Technology Hardware, Storage & Peripherals",
+   "sub_industry": "Computer Hardware",
+   "member_since": "2023-05-09",
+   "first_known": "2026-08-13",
+   "also_in_groups": [
+    "us_sector_tech"
+   ],
+   "prophet": {
+    "state": "none",
+    "reason": "no_plan_in_index",
+    "plan": null,
+    "open_plan_count": 0,
+    "resolved_plan_count": 0,
+    "observation": null
+   }
+  }
+ ],
+ "unserved": [],
+ "page": {
+  "offset": 0,
+  "limit": 200,
+  "total_matching": 4,
+  "next_offset": null,
+  "q": null,
+  "state": null
+ }
+}
