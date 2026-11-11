@@ -1,0 +1,13 @@
+{
+  "retrievedFrom": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/commits/0a16813b84d392fbe10b482ed3121cb98a08c59f",
+  "commit": "0a16813b84d392fbe10b482ed3121cb98a08c59f",
+  "tree": "df379337825b5e3903fcdf76dc1afe591e025028",
+  "parents": [
+    "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "e4e9950e9f4d915c1afa99e4b09842a19d286b80"
+  ],
+  "message": "Merge e4e9950e9f4d915c1afa99e4b09842a19d286b80 into 18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "githubSignatureVerified": true,
+  "rawReceiptRetained": true,
+  "explanation": "The shallow runner checkout records an empty parents array; this separate canonical Git object resolves its real parents. The workflow event base is historical metadata, not the actual checkout parent."
+}

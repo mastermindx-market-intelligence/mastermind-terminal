@@ -1,0 +1,219 @@
+{
+  "schema": "ticker-news.import-qualification.v1",
+  "sourceHead": "e4e9950e9f4d915c1afa99e4b09842a19d286b80",
+  "captureCheckout": "0a16813b84d392fbe10b482ed3121cb98a08c59f",
+  "captureTree": "df379337825b5e3903fcdf76dc1afe591e025028",
+  "captureParents": [
+    "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "e4e9950e9f4d915c1afa99e4b09842a19d286b80"
+  ],
+  "run": 42987127504,
+  "job": 130411643646,
+  "artifact": {
+    "id": 13840948455,
+    "name": "responsive-qa-42987127504-serial",
+    "sha256": "1b5fde3d5ed280022e952d5857035e667566aad72c90bfa681c927bea9f130c6"
+  },
+  "reportSha256": "5ea9941cf952b5d76833cef991b5d55529c8c1609a73a49bc052fa70a0306553",
+  "sourceCount": 18,
+  "sources": {
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/TerminalShell.tsx": "aa4942305e6a0987c8d4b2e0f8f9aa1b11e6c52c622f191ad2f936c303736662",
+    "terminal/components/WatchlistDisplaySettings.tsx": "d5828deefbff707d33646f15a22586b8328e8ccbabe4adf2d567a3687c60b827",
+    "terminal/components/WatchlistDisplaySettings.module.css": "da83dd290765bdd6e576e122e7e94188182a8f8456ba68b10b0bcd38f515db41",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "terminal/e2e/ticker-news.spec.ts": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "terminal/e2e/watchlistStore.ts": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "terminal/e2e/presentationControls.ts": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/docs/specimens/news-flow.light.css": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "cases": {
+    "passed": 14,
+    "authoredProjectSkips": 7,
+    "failed": 0,
+    "flaky": 0,
+    "retries": 0
+  },
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9"
+      }
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "bd9813662c8006dd444036a725dae689aeb3750f881be04e23b8f8d1c1ad7ed8"
+      }
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f"
+      }
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "cb33f9bd3f3a7388407bce9891ef06f63defddfce3eafaaff0f19b0e215e7e96"
+      }
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 669,
+        "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602"
+      }
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 655,
+        "sha256": "bd6e335b4df4ebd2affa8000038033e5958fb244be89fa39bbcb24e61bf8ae57"
+      }
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae"
+      }
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "ebea24870d259112a37493ea24b5ace11be55ae5c05a25b7e69eae1c74fb5de9"
+      }
+    },
+    {
+      "file": "unavailable-mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a"
+      }
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "f679e488b100a6443fed8307f9f8ba54cf471172ea21bc04c1cfc8b774bbfe0f"
+      }
+    }
+  ],
+  "priorPacketFiles": 11,
+  "otherPacketFilesVerified": 118,
+  "visualInspection": {
+    "reviewer": "assigned principal",
+    "inspectedFiles": [
+      "desktop-en-dark.png",
+      "desktop-zh-dark.png",
+      "tablet-en-dark.png",
+      "tablet-zh-dark.png",
+      "mobile-en-dark.png",
+      "mobile-zh-dark.png",
+      "unavailable-desktop-en-dark.png",
+      "unavailable-desktop-zh-dark.png",
+      "unavailable-mobile-en-dark.png",
+      "unavailable-mobile-zh-dark.png"
+    ],
+    "observations": "All ten unmodified PNGs viewed. Header, filters, article metadata and review actions are readable; responsive wrapping stays inside the panel. Unavailable states show readable localized text and Retry. English fixture story titles remain English in the Chinese interface, as authored.",
+    "scope": "Fixture-backed panel crops, not a live-provider or production acceptance claim."
+  },
+  "preflight": {
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "lifecycle": {
+    "playwrightReturned": true,
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "producerActivation": false,
+  "productionAcceptance": false,
+  "rawCaptureReceiptUnmodified": true
+}
