@@ -767,8 +767,9 @@ def test_the_selector_itself_emits_the_split_for_a_full_pull_request(tmp_path):
     assert 'if "prodbuild_count" not in fields:' in shell
 
 
-def test_a_merge_group_gets_no_prod_lane_and_an_untouched_matrix(tmp_path):
-    assert_step_outputs(run_scope_step(ROOT, tmp_path, "merge_group"), FULL_MATRIX, [])
+def test_a_merge_group_selects_only_the_production_lane_for_execution(tmp_path):
+    dev, prod = lanes()
+    assert_step_outputs(run_scope_step(ROOT, tmp_path, "merge_group"), dev, prod)
     output = tmp_path / "selector-output"
     output.write_text("", encoding="utf-8")
     subprocess.run(
@@ -777,7 +778,9 @@ def test_a_merge_group_gets_no_prod_lane_and_an_untouched_matrix(tmp_path):
         env={**os.environ, "GITHUB_EVENT_NAME": "merge_group", "GITHUB_OUTPUT": str(output)},
     )
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines() if "=" in line)
-    assert_step_outputs(fields, FULL_MATRIX, [])
+    # The dev matrix keeps its ordinary selection semantics, but the job-level
+    # merge-group exclusion means only these four production rows execute.
+    assert_step_outputs(fields, dev, prod)
 
 
 @pytest.mark.parametrize("case", sorted({**UNSPLITTABLE, **SPLITTABLE}))
@@ -933,7 +936,7 @@ def webserver_env() -> dict[str, str]:
     return dict(re.findall(r'^\s+([A-Z][A-Z0-9_]*): "([^"]*)",$', block, re.MULTILINE))
 
 
-def test_the_build_job_runs_exactly_when_the_dev_matrix_runs():
+def test_the_production_lane_also_runs_on_merge_groups_where_dev_is_skipped():
     jobs = ci_workflow()["jobs"]
     dev_if = jobs["terminal-e2e"]["if"]
     assert dev_if == (
@@ -941,12 +944,13 @@ def test_the_build_job_runs_exactly_when_the_dev_matrix_runs():
         "&& github.event_name != 'merge_group' && !(" + DOCS_PR + ") }}"
     )
     build = jobs["terminal-e2e-build"]
-    # The dev condition plus "the selector emitted prod shards": no merge_group
-    # run, no docs-only PR run, no run after a failed selector.
+    # The dev condition without only its merge-group exclusion, plus "the
+    # selector emitted prod shards": no docs-only PR run or failed selector.
     assert build["if"] == dev_if.replace(
         "&& github.event_name != 'merge_group' ",
-        "&& github.event_name != 'merge_group' && needs.e2e-scope.outputs.prodbuild_count != '0' ",
+        "&& needs.e2e-scope.outputs.prodbuild_count != '0' ",
     )
+    assert "github.event_name != 'merge_group'" not in build["if"]
     assert build["needs"] == ["pr_scope", "e2e-scope"]
     shards = jobs["terminal-e2e-prodbuild"]
     assert shards["if"] == build["if"].replace(
@@ -1027,10 +1031,10 @@ def test_the_prod_lane_adds_no_write_authority_and_saves_no_shared_cache():
     # PyYAML reads the bare key `on` as True.
     dispatch = workflow[True]["workflow_dispatch"]
     assert set(dispatch["inputs"]) == {"pr_number"}
+    assert_merge_group_production_shape(workflow["jobs"])
     for job in ("terminal-e2e-build", "terminal-e2e-prodbuild"):
         config = workflow["jobs"][job]
         assert "permissions" not in config
-        assert config["runs-on"] == "ubuntu-24.04"
         uses = [str(step.get("uses", "")) for step in config["steps"]]
         # Restore-only browser cache; `actions/cache@` would also SAVE.
         assert not any(action.startswith("actions/cache@") for action in uses), job
@@ -1044,6 +1048,79 @@ def test_the_prod_lane_adds_no_write_authority_and_saves_no_shared_cache():
         assert group.startswith("terminal-ci-${{ github.event.pull_request.number || github.ref }}-" + job)
         assert config["concurrency"]["cancel-in-progress"] is True
     assert workflow["jobs"]["terminal-e2e-prodbuild"]["concurrency"]["group"].endswith("-${{ matrix.shard }}")
+
+
+def assert_merge_group_production_shape(jobs: dict[str, Any]) -> None:
+    """Pin the production-only, fixed-hosted merge-group qualification shape.
+
+    Selector/output results are exercised separately by ``run_scope_step`` and
+    ``run_gate`` with the real shell blocks: an empty or unsuccessful lane must
+    fail even if the static workflow shape remains correct.
+    """
+    dev, prod = lanes()
+    assert len(prod) == 4
+    assert "terminal-e2e-build" in jobs and "terminal-e2e-prodbuild" in jobs
+    assert matrix_coverage_errors(dev, playwright_projects()) == []
+    assert matrix_coverage_errors(prod, set(RESPONSIVE)) == []
+    assert "github.event_name != 'merge_group'" in jobs["terminal-e2e"]["if"]
+    run = next(step["run"] for step in jobs["terminal"]["steps"] if step.get("name") == GATE_STEP)
+    assert run.count('[ "$EVENT" = "merge_group" ] && [ "$PRODBUILD_COUNT" != "4" ]; then') == 1
+    assert run.count('[ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]') == 2
+    expected_needs = {
+        "terminal-e2e-build": ["pr_scope", "e2e-scope"],
+        "terminal-e2e-prodbuild": ["pr_scope", "e2e-scope", "terminal-e2e-build"],
+    }
+    for name, dependencies in expected_needs.items():
+        job = jobs[name]
+        # Fixed hosted image only; reject self-hosted or dynamic labels.
+        assert job["runs-on"] == "ubuntu-24.04"
+        assert "github.event_name != 'merge_group'" not in job["if"]
+        assert name in jobs["terminal"]["needs"]
+        assert job["needs"] == dependencies
+        assert 'needs.e2e-scope.outputs.prodbuild_count != \'0\'' in job["if"]
+
+
+@pytest.mark.parametrize(("job", "mutation"), [
+    (name, mutation) for name in ("terminal-e2e-build", "terminal-e2e-prodbuild")
+    for mutation in ("removed", "exclude-merge-group", "ubuntu-latest",
+                     "self-hosted", "dynamic-label",
+                     "remove-count-prerequisite", "remove-merge-count-assertion")
+])
+def test_mutations_cannot_remove_or_reroute_merge_group_production(job, mutation):
+    jobs = deepcopy(ci_workflow()["jobs"])
+    count = run_gate(EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="full", E2E="skipped")
+    assert count.returncode == 0, count.stdout
+    if mutation == "removed":
+        del jobs[job]
+        jobs["terminal"]["needs"].remove(job)
+    elif mutation == "exclude-merge-group":
+        jobs[job]["if"] = jobs[job]["if"].replace(
+            "needs.e2e-scope.outputs.prodbuild_count != '0'",
+            "github.event_name != 'merge_group' && needs.e2e-scope.outputs.prodbuild_count != '0'",
+        )
+    elif mutation == "ubuntu-latest":
+        jobs[job]["runs-on"] = "ubuntu-latest"
+    elif mutation == "self-hosted":
+        jobs[job]["runs-on"] = ["self-hosted", "linux", "x64"]
+    elif mutation == "dynamic-label":
+        jobs[job]["runs-on"] = "${{ vars.TERMINAL_E2E_LANE }}"
+    elif mutation == "remove-merge-count-assertion":
+        step = next(step for step in jobs["terminal"]["steps"] if step.get("name") == GATE_STEP)
+        if job == "terminal-e2e-build":
+            step["run"] = step["run"].replace(
+                'if [ "$EVENT" = "merge_group" ] && [ "$PRODBUILD_COUNT" != "4" ]; then',
+                'if [ "$EVENT" = "pull_request" ] && [ "$PRODBUILD_COUNT" = "unexpected" ]; then',
+            )
+        else:
+            start = step["run"].index('if [ "$PRODBUILD" = "success" ]; then')
+            run = step["run"][start:]
+            run = run.replace('{ [ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]; }', '[ "$PRODBUILD_COUNT" = "0" ]')
+            step["run"] = step["run"][:start] + run
+    elif mutation == "remove-count-prerequisite":
+        # A nonempty selector is part of the fail-closed production schedule.
+        jobs[job]["if"] = jobs[job]["if"].replace("needs.e2e-scope.outputs.prodbuild_count", "needs.e2e-scope.outputs.other")
+    with pytest.raises(AssertionError):
+        assert_merge_group_production_shape(jobs)
 
 
 def test_the_three_required_check_names_are_unchanged():
@@ -1101,8 +1178,7 @@ def test_a_failed_build_fails_the_gate_and_its_skipped_shards_do_not_hide_it(eve
 
 
 @pytest.mark.parametrize("overrides", [
-    # The only lawful skips: the jobs' own skip conditions.
-    {"EVENT": "merge_group", "PR_SCOPE": "skipped", "PR_MODE": "", "E2E": "skipped", "PRODBUILD_COUNT": "0"},
+    # Only the qualified docs PR and non-queue empty-lane skips remain lawful.
     {"PR_MODE": "docs", "UNIT": "skipped", "E2E": "skipped"},
     {"PRODBUILD_COUNT": "0"},
 ])
@@ -1117,3 +1193,21 @@ def test_the_prod_lane_may_skip_only_where_its_jobs_are_allowed_to(overrides):
 def test_a_skipped_prod_lane_with_shards_to_run_is_never_green(count):
     result = run_gate(BUILD="skipped", PRODBUILD="skipped", PRODBUILD_COUNT=count)
     assert result.returncode != 0, result.stdout
+
+
+def test_merge_group_requires_four_successful_production_shards_not_dev_matrix():
+    result = run_gate(EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped")
+    assert result.returncode == 0, result.stdout
+    # The required aggregate can still absorb an additional successful dev
+    # matrix, but production evidence is always independently mandatory.
+    assert run_gate(EVENT="merge_group", E2E="success").returncode == 0
+
+
+@pytest.mark.parametrize("count", ["", "0", "1", "3", "5", "4.0", "04", "4 ", "unknown", "-1"])
+def test_merge_group_rejects_a_missing_empty_or_malformed_production_selection(count):
+    for skipped in (False, True):
+        values = {"BUILD": "skipped", "PRODBUILD": "skipped"} if skipped else {}
+        result = run_gate(EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="",
+                          E2E="skipped", PRODBUILD_COUNT=count, **values)
+        assert result.returncode != 0, (count, skipped, result.stdout)
+        assert "native merge group selected" in result.stdout
