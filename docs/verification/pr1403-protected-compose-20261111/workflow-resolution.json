@@ -1,0 +1,6 @@
+{
+  "before_sha256": "847ac5efdc117760a999da3373a023825211fadfd2cec1493002732ba1451ae8",
+  "after_sha256": "2fe1b969f5945a81badc07e61134b72afff54fb317413ff5bfe8fd582fb271de",
+  "owner_command": "run: node --test e2e/tools/ticker_news_capture_receipt.test.cjs e2e/tools/briefs_inbox_capture_contract.test.cjs e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs",
+  "diff_check_rc": 0
+}

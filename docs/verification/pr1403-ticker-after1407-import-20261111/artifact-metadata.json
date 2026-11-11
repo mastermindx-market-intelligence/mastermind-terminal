@@ -1,0 +1,20 @@
+{
+  "id": 13880173297,
+  "node_id": "MDg6QXJ0aWZhY3QxMzg4MDE3MzI5Nw==",
+  "name": "responsive-qa-43018161734-serial",
+  "size_in_bytes": 13715323,
+  "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13880173297",
+  "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13880173297/zip",
+  "expired": false,
+  "digest": "sha256:1b20e7bb88bb2a1a539a76467546459955d53d9388da72999884f5580e0a1324",
+  "created_at": "2026-11-11T18:12:21Z",
+  "updated_at": "2026-11-11T18:12:21Z",
+  "expires_at": "2027-02-09T12:11:15Z",
+  "workflow_run": {
+    "id": 43018161734,
+    "repository_id": 1290596392,
+    "head_repository_id": 1290596392,
+    "head_branch": "sol/web-terminal-watchlist-display-polish-20261109-c1",
+    "head_sha": "6926746c95cc3ee63a2640ba1015c791efea0869"
+  }
+}
