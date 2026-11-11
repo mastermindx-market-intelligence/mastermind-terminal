@@ -1,8 +1,8 @@
 /**
  * prophetBetaEvaluation.ts — closed decoder + display model for Macro's
- * `prophet.beta_evaluation/v1` strategy-evaluation artifact
- * (see `/home/ubuntu2/...` recon contract: ARTIFACT_CONTRACT_v1.md in the
- * publisher's fixture bundle; the wire contract is `prophet.beta_evaluation/v1`).
+ * `prophet.beta_evaluation/v1` strategy-evaluation artifact (the artifact
+ * contract lives in ARTIFACT_CONTRACT_v1.md in the publisher's fixture
+ * bundle; the wire contract is `prophet.beta_evaluation/v1`).
  *
  * LAWS THIS FILE ENFORCES
  *   - Closed contract: every field the UI renders is validated here; a body

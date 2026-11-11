@@ -25,13 +25,14 @@ import {
  *
  * The dev server's fixture seam (TERMINAL_E2E_FIXTURE=1) makes the BFF serve
  * that same file through the closed decoder gate as the live path. Evidence
- * shots land in the programme's recon directory (overridable).
+ * shots are best-effort: with PROPHET_EVAL_SHOTS_DIR set they land there
+ * (local evidence capture), otherwise in Playwright's own per-test output
+ * directory under the configured test-results root — never a host path.
  *
  * Every sheet screenshot waits for the panel's entrance animation to settle
  * first: the D-set capture fault was a mid-animation frame (opacity 0.576 at
  * 66.7ms of the 200ms `pev-panel-in`), not a styling defect.
  */
-const SHOTS = process.env.PROPHET_EVAL_SHOTS_DIR || "/home/ubuntu2/tmp/prophet-recon/shots/D2";
 const PANELS = ["details", "attribution", "coverage", "portfolio"] as const;
 
 // ── The artifact, decoded once ───────────────────────────────────────────────
@@ -112,9 +113,27 @@ async function prepare(page: Page, baseURL: string | undefined, lang: "en" | "zh
   }, lang);
 }
 
+/** Resolve a shot's destination, or null when no writable directory exists.
+ *  With PROPHET_EVAL_SHOTS_DIR set, all shots land there (local evidence
+ *  capture); otherwise each goes to Playwright's per-test output dir. Capture
+ *  must never fail a test because a directory cannot be written. */
+function shotTarget(name: string): string | null {
+  const override = process.env.PROPHET_EVAL_SHOTS_DIR;
+  try {
+    if (override) {
+      mkdirSync(override, { recursive: true });
+      return path.join(override, name);
+    }
+    return test.info().outputPath(name);
+  } catch {
+    return null;
+  }
+}
+
 function shot(page: Page, name: string) {
-  mkdirSync(SHOTS, { recursive: true });
-  return page.screenshot({ path: path.join(SHOTS, name), fullPage: true });
+  const target = shotTarget(name);
+  if (!target) return Promise.resolve();
+  return page.screenshot({ path: target, fullPage: true });
 }
 
 /** Wait until every animation inside the open sheet has finished (plus one
