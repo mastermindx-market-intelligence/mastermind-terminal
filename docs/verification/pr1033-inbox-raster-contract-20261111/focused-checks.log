@@ -1,0 +1,304 @@
+TAP version 13
+# Subtest: serialized en preferences tolerate HTML root initially absent
+ok 1 - serialized en preferences tolerate HTML root initially absent
+  ---
+  duration_ms: 3.206201
+  type: 'test'
+  ...
+# Subtest: serialized en preferences tolerate HTML root initially present
+ok 2 - serialized en preferences tolerate HTML root initially present
+  ---
+  duration_ms: 0.722927
+  type: 'test'
+  ...
+# Subtest: serialized zh preferences tolerate HTML root initially absent
+ok 3 - serialized zh preferences tolerate HTML root initially absent
+  ---
+  duration_ms: 1.546616
+  type: 'test'
+  ...
+# Subtest: serialized zh preferences tolerate HTML root initially present
+ok 4 - serialized zh preferences tolerate HTML root initially present
+  ---
+  duration_ms: 1.145353
+  type: 'test'
+  ...
+# Subtest: accepts the exact synthetic eight-case matrix with separately bound crop geometry
+ok 5 - accepts the exact synthetic eight-case matrix with separately bound crop geometry
+  ---
+  duration_ms: 7.351246
+  type: 'test'
+  ...
+# Subtest: accepts exact raster enclosure for recorded desktop fractional edges
+ok 6 - accepts exact raster enclosure for recorded desktop fractional edges
+  ---
+  duration_ms: 41.005558
+  type: 'test'
+  ...
+# Subtest: accepts exact raster enclosure for recorded mobile rectangle with synthetic integer scroll
+ok 7 - accepts exact raster enclosure for recorded mobile rectangle with synthetic integer scroll
+  ---
+  duration_ms: 19.661209
+  type: 'test'
+  ...
+# Subtest: accepts exact raster enclosure for fractional document scroll offsets
+ok 8 - accepts exact raster enclosure for fractional document scroll offsets
+  ---
+  duration_ms: 1.68946
+  type: 'test'
+  ...
+# Subtest: accepts exact raster enclosure for subpixel epsilon at integer edges
+ok 9 - accepts exact raster enclosure for subpixel epsilon at integer edges
+  ---
+  duration_ms: 1.737433
+  type: 'test'
+  ...
+# Subtest: rejects a cropped one-pixel width even with matching PNG metadata
+ok 10 - rejects a cropped one-pixel width even with matching PNG metadata
+  ---
+  duration_ms: 2.587982
+  type: 'test'
+  ...
+# Subtest: rejects a padded one-pixel width even with matching PNG metadata
+ok 11 - rejects a padded one-pixel width even with matching PNG metadata
+  ---
+  duration_ms: 1.246775
+  type: 'test'
+  ...
+# Subtest: rejects a cropped one-pixel height even with matching PNG metadata
+ok 12 - rejects a cropped one-pixel height even with matching PNG metadata
+  ---
+  duration_ms: 1.061156
+  type: 'test'
+  ...
+# Subtest: rejects a padded one-pixel height even with matching PNG metadata
+ok 13 - rejects a padded one-pixel height even with matching PNG metadata
+  ---
+  duration_ms: 1.275548
+  type: 'test'
+  ...
+# Subtest: rejects historical packet schema
+ok 14 - rejects historical packet schema
+  ---
+  duration_ms: 0.922337
+  type: 'test'
+  ...
+# Subtest: rejects historical scope
+ok 15 - rejects historical scope
+  ---
+  duration_ms: 0.725181
+  type: 'test'
+  ...
+# Subtest: rejects producer activation
+ok 16 - rejects producer activation
+  ---
+  duration_ms: 0.797309
+  type: 'test'
+  ...
+# Subtest: rejects production acceptance
+ok 17 - rejects production acceptance
+  ---
+  duration_ms: 0.404228
+  type: 'test'
+  ...
+# Subtest: rejects unclosed browser
+ok 18 - rejects unclosed browser
+  ---
+  duration_ms: 1.361207
+  type: 'test'
+  ...
+# Subtest: rejects unsettled server
+ok 19 - rejects unsettled server
+  ---
+  duration_ms: 1.147946
+  type: 'test'
+  ...
+# Subtest: rejects incomplete context cleanup
+ok 20 - rejects incomplete context cleanup
+  ---
+  duration_ms: 0.433793
+  type: 'test'
+  ...
+# Subtest: rejects missing case
+ok 21 - rejects missing case
+  ---
+  duration_ms: 0.67122
+  type: 'test'
+  ...
+# Subtest: rejects duplicate case
+ok 22 - rejects duplicate case
+  ---
+  duration_ms: 0.553342
+  type: 'test'
+  ...
+# Subtest: rejects path outside the exact inventory
+ok 23 - rejects path outside the exact inventory
+  ---
+  duration_ms: 0.541555
+  type: 'test'
+  ...
+# Subtest: rejects extra case
+ok 24 - rejects extra case
+  ---
+  duration_ms: 0.595105
+  type: 'test'
+  ...
+# Subtest: rejects source drift
+ok 25 - rejects source drift
+  ---
+  duration_ms: 0.606903
+  type: 'test'
+  ...
+# Subtest: rejects undeclared source
+ok 26 - rejects undeclared source
+  ---
+  duration_ms: 0.736718
+  type: 'test'
+  ...
+# Subtest: rejects image hash drift
+ok 27 - rejects image hash drift
+  ---
+  duration_ms: 0.640453
+  type: 'test'
+  ...
+# Subtest: rejects image dimension drift
+ok 28 - rejects image dimension drift
+  ---
+  duration_ms: 0.660493
+  type: 'test'
+  ...
+# Subtest: rejects crop dimension drift
+ok 29 - rejects crop dimension drift
+  ---
+  duration_ms: 0.99777
+  type: 'test'
+  ...
+# Subtest: rejects missing document scroll offsets
+ok 30 - rejects missing document scroll offsets
+  ---
+  duration_ms: 0.521975
+  type: 'test'
+  ...
+# Subtest: rejects non-finite document scroll offset
+ok 31 - rejects non-finite document scroll offset
+  ---
+  duration_ms: 0.774175
+  type: 'test'
+  ...
+# Subtest: rejects fractional scroll offset changes raster enclosure
+ok 32 - rejects fractional scroll offset changes raster enclosure
+  ---
+  duration_ms: 0.7109
+  type: 'test'
+  ...
+# Subtest: rejects viewport drift
+ok 33 - rejects viewport drift
+  ---
+  duration_ms: 0.715576
+  type: 'test'
+  ...
+# Subtest: rejects runtime drift
+ok 34 - rejects runtime drift
+  ---
+  duration_ms: 0.774234
+  type: 'test'
+  ...
+# Subtest: rejects missing contract
+ok 35 - rejects missing contract
+  ---
+  duration_ms: 0.655306
+  type: 'test'
+  ...
+# Subtest: rejects no contract read
+ok 36 - rejects no contract read
+  ---
+  duration_ms: 5.115954
+  type: 'test'
+  ...
+# Subtest: rejects fractional contract read count
+ok 37 - rejects fractional contract read count
+  ---
+  duration_ms: 0.894936
+  type: 'test'
+  ...
+# Subtest: rejects unexpected mutation
+ok 38 - rejects unexpected mutation
+  ---
+  duration_ms: 0.81151
+  type: 'test'
+  ...
+# Subtest: rejects subscription controls
+ok 39 - rejects subscription controls
+  ---
+  duration_ms: 1.326675
+  type: 'test'
+  ...
+# Subtest: rejects hidden development indicator
+ok 40 - rejects hidden development indicator
+  ---
+  duration_ms: 0.610208
+  type: 'test'
+  ...
+# Subtest: rejects browser error
+ok 41 - rejects browser error
+  ---
+  duration_ms: 0.64479
+  type: 'test'
+  ...
+# Subtest: rejects unsettled inbox
+ok 42 - rejects unsettled inbox
+  ---
+  duration_ms: 0.639271
+  type: 'test'
+  ...
+# Subtest: rejects changed state text
+ok 43 - rejects changed state text
+  ---
+  duration_ms: 0.830829
+  type: 'test'
+  ...
+# Subtest: decodes and rejects a truncated PNG even when its recorded hash matches
+ok 44 - decodes and rejects a truncated PNG even when its recorded hash matches
+  ---
+  duration_ms: 0.593743
+  type: 'test'
+  ...
+# Subtest: decodes and rejects a corrupt PNG even when its recorded hash matches
+ok 45 - decodes and rejects a corrupt PNG even when its recorded hash matches
+  ---
+  duration_ms: 0.782306
+  type: 'test'
+  ...
+# Subtest: reads only a complete regular-file packet on disk
+ok 46 - reads only a complete regular-file packet on disk
+  ---
+  duration_ms: 5.628965
+  type: 'test'
+  ...
+# Subtest: rejects an extra file in the selected packet directory
+ok 47 - rejects an extra file in the selected packet directory
+  ---
+  duration_ms: 2.046237
+  type: 'test'
+  ...
+# Subtest: rejects a symlink image instead of following it
+ok 48 - rejects a symlink image instead of following it
+  ---
+  duration_ms: 3.322337
+  type: 'test'
+  ...
+# Subtest: rejects a symlink packet directory
+ok 49 - rejects a symlink packet directory
+  ---
+  duration_ms: 1.855561
+  type: 'test'
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 797.082537

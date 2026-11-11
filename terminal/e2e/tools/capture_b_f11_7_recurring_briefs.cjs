@@ -166,14 +166,17 @@ async function captureCase(browser, shot, stage) {
     // Settled rows and fonts can grow the mobile module after its first render.
     // Finish screenshot scrolling before recording viewport-relative geometry.
     await inbox.scrollIntoViewIfNeeded();
-    const before = { crop: await inbox.boundingBox(), text: await inbox.innerText() };
+    const before = { crop: await inbox.boundingBox(), text: await inbox.innerText(),
+      scrollOffset: await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY })) };
     assert.ok(before.crop);
     const bytes = await inbox.screenshot({ path: join(stage, shot.file), animations: "disabled" });
     await assertState(page, shot);
-    assert.deepEqual({ crop: await inbox.boundingBox(), text: await inbox.innerText() }, before,
+    assert.deepEqual({ crop: await inbox.boundingBox(), text: await inbox.innerText(),
+      scrollOffset: await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY })) }, before,
       "Inbox state changed while the screenshot was taken");
     result = { file: shot.file, kind: shot.kind, lang: shot.lang, route: "/alerts", viewport,
-      deviceScaleFactor: 1, crop: before.crop, image: { ...pngSize(bytes), sha256: sha256(bytes) },
+      deviceScaleFactor: 1, crop: before.crop, scrollOffset: before.scrollOffset,
+      image: { ...pngSize(bytes), sha256: sha256(bytes) },
       proof: { settled: true, rows: shot.kind === "list" ? 2 : 0,
         missRows: shot.kind === "list" ? 1 : 0, pinnedRows: shot.kind === "list" ? 1 : 0,
         subscriptionControls: 0, unexpectedWrites: 0, devIndicators: 0, browserErrors,

@@ -55,6 +55,7 @@ function fixture() {
     cases: SHOTS.map(shot => ({ file: shot.file, kind: shot.kind, lang: shot.lang, route: "/alerts",
       viewport: VIEWPORTS[shot.viewport], deviceScaleFactor: 1,
       crop: { x: 0, y: 0, width: 3, height: 2 },
+      scrollOffset: { x: 0, y: 0 },
       image: { width: 3, height: 2, sha256: sha256(bytes) },
       proof: { settled: true, rows: shot.kind === "list" ? 2 : 0,
         missRows: shot.kind === "list" ? 1 : 0, pinnedRows: shot.kind === "list" ? 1 : 0,
@@ -69,6 +70,45 @@ test("accepts the exact synthetic eight-case matrix with separately bound crop g
   const { packet, sources, bytes } = fixture();
   assert.equal(validateInboxPacket(packet, sources, versions, () => bytes).cases.length, 8);
 });
+
+for (const example of [
+  { name: "recorded desktop fractional edges", crop: { x: 80, y: 581.84375, width: 1340, height: 253.3125 },
+    scrollOffset: { x: 0, y: 0 }, width: 1340, height: 255 },
+  { name: "recorded mobile rectangle with synthetic integer scroll", file: "list-390.png",
+    crop: { x: 20, y: 472.6875, width: 350, height: 371.53125 },
+    scrollOffset: { x: 0, y: 267 }, width: 350, height: 373 },
+  { name: "fractional document scroll offsets", crop: { x: 0.4, y: 0.6, width: 2.7, height: 1.2 },
+    scrollOffset: { x: 0.3, y: 0.25 }, width: 4, height: 3 },
+  { name: "subpixel epsilon at integer edges", crop: { x: 10.0001, y: 20.9999, width: 2.9998, height: 1.0002 },
+    scrollOffset: { x: 0, y: 0 }, width: 3, height: 1 },
+]) {
+  test("accepts exact raster enclosure for " + example.name, () => {
+    const { packet, sources, bytes } = fixture();
+    const row = packet.cases.find(item => item.file === (example.file || "list-1440.png"));
+    row.crop = example.crop;
+    row.scrollOffset = example.scrollOffset;
+    const image = new PNG({ width: example.width, height: example.height });
+    image.data.fill(255);
+    const raster = PNG.sync.write(image);
+    row.image = { width: example.width, height: example.height, sha256: sha256(raster) };
+    assert.equal(validateInboxPacket(packet, sources, versions,
+      file => file === row.file ? raster : bytes).cases.length, 8);
+  });
+}
+
+for (const dimension of ["width", "height"]) for (const delta of [-1, 1]) {
+  test(`rejects a ${delta > 0 ? "padded" : "cropped"} one-pixel ${dimension} even with matching PNG metadata`, () => {
+    const { packet, sources, bytes } = fixture();
+    const row = packet.cases[0];
+    const size = { width: 3, height: 2, [dimension]: row.image[dimension] + delta };
+    const image = new PNG(size);
+    image.data.fill(255);
+    const raster = PNG.sync.write(image);
+    row.image = { ...size, sha256: sha256(raster) };
+    assert.throws(() => validateInboxPacket(packet, sources, versions,
+      file => file === row.file ? raster : bytes));
+  });
+}
 
 const mutations = {
   "historical packet schema": packet => { packet.schema = "historical"; },
@@ -87,6 +127,9 @@ const mutations = {
   "image hash drift": packet => { packet.cases[0].image.sha256 = "0".repeat(64); },
   "image dimension drift": packet => { packet.cases[0].image.width = 99; },
   "crop dimension drift": packet => { packet.cases[0].crop.width = 99; },
+  "missing document scroll offsets": packet => { delete packet.cases[0].scrollOffset; },
+  "non-finite document scroll offset": packet => { packet.cases[0].scrollOffset.y = Infinity; },
+  "fractional scroll offset changes raster enclosure": packet => { packet.cases[0].scrollOffset.y = 0.5; },
   "viewport drift": packet => { packet.cases[0].viewport = { width: 390, height: 844 }; },
   "runtime drift": packet => { packet.runtime.next = "0.0.0"; },
   "missing contract": packet => { delete packet.contract; },

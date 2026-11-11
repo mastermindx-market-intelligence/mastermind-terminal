@@ -111,9 +111,17 @@ function validateInboxPacket(packet, currentSources, versions, readImage) {
     assert.deepEqual(size, { width: row.image.width, height: row.image.height });
     for (const key of ["x", "y", "width", "height"]) assert.ok(Number.isFinite(row.crop[key]));
     assert.ok(row.crop.width > 0 && row.crop.height > 0);
-    // Locator screenshots crop an element; viewport dimensions are separate.
-    assert.ok(Math.abs(size.width - row.crop.width) <= 1, `${shot.file}: crop width differs`);
-    assert.ok(Math.abs(size.height - row.crop.height) <= 1, `${shot.file}: crop height differs`);
+    for (const key of ["x", "y"]) assert.ok(Number.isFinite(row.scrollOffset?.[key]),
+      `${shot.file}: observed document scroll offsets required`);
+    // Playwright 1.61.1 encloses both document-space edges at scale 1.
+    // A fractional origin can add two edge pixels; width/height tolerances
+    // both reject valid crops and accept incorrectly padded/cropped images.
+    const x = row.crop.x + row.scrollOffset.x, y = row.crop.y + row.scrollOffset.y;
+    const raster = {
+      width: Math.ceil(x + row.crop.width - 0.001) - Math.floor(x + 0.001),
+      height: Math.ceil(y + row.crop.height - 0.001) - Math.floor(y + 0.001),
+    };
+    assert.deepEqual(size, raster, `${shot.file}: exact document-edge crop differs`);
   }
   return packet;
 }

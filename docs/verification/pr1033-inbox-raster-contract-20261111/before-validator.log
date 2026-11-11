@@ -1,0 +1,242 @@
+✔ serialized en preferences tolerate HTML root initially absent (3.053732ms)
+✔ serialized en preferences tolerate HTML root initially present (0.59855ms)
+✔ serialized zh preferences tolerate HTML root initially absent (0.845862ms)
+✔ serialized zh preferences tolerate HTML root initially present (0.443757ms)
+✔ accepts the exact synthetic eight-case matrix with separately bound crop geometry (12.80668ms)
+✖ accepts exact raster enclosure for recorded desktop fractional edges (46.849488ms)
+✖ accepts exact raster enclosure for recorded mobile bottom beyond the viewport (21.540696ms)
+✖ accepts exact raster enclosure for fractional document scroll offsets (1.683712ms)
+✔ accepts exact raster enclosure for subpixel epsilon at integer edges (1.989002ms)
+✖ rejects a cropped one-pixel width even with matching PNG metadata (1.918646ms)
+✖ rejects a padded one-pixel width even with matching PNG metadata (1.448198ms)
+✖ rejects a cropped one-pixel height even with matching PNG metadata (1.590752ms)
+✖ rejects a padded one-pixel height even with matching PNG metadata (1.70875ms)
+✔ rejects historical packet schema (1.53616ms)
+✔ rejects historical scope (0.616507ms)
+✔ rejects producer activation (0.552491ms)
+✔ rejects production acceptance (1.229489ms)
+✔ rejects unclosed browser (1.314847ms)
+✔ rejects unsettled server (0.411058ms)
+✔ rejects incomplete context cleanup (0.605241ms)
+✔ rejects missing case (0.488355ms)
+✔ rejects duplicate case (0.713263ms)
+✔ rejects path outside the exact inventory (0.666222ms)
+✔ rejects extra case (0.49875ms)
+✔ rejects source drift (0.527824ms)
+✔ rejects undeclared source (0.699692ms)
+✔ rejects image hash drift (0.590378ms)
+✔ rejects image dimension drift (0.940114ms)
+✔ rejects crop dimension drift (0.645ms)
+✖ rejects missing document scroll offsets (0.860364ms)
+✖ rejects non-finite document scroll offset (0.960845ms)
+✖ rejects fractional scroll offset changes raster enclosure (1.066003ms)
+✔ rejects viewport drift (0.667774ms)
+✔ rejects runtime drift (1.119524ms)
+✔ rejects missing contract (0.712171ms)
+✔ rejects no contract read (4.702783ms)
+✔ rejects fractional contract read count (0.95071ms)
+✔ rejects unexpected mutation (0.634284ms)
+✔ rejects subscription controls (0.556027ms)
+✔ rejects hidden development indicator (1.490712ms)
+✔ rejects browser error (0.719352ms)
+✔ rejects unsettled inbox (0.481815ms)
+✔ rejects changed state text (0.966884ms)
+✔ decodes and rejects a truncated PNG even when its recorded hash matches (0.501825ms)
+✔ decodes and rejects a corrupt PNG even when its recorded hash matches (0.439731ms)
+✔ reads only a complete regular-file packet on disk (5.051698ms)
+✔ rejects an extra file in the selected packet directory (2.645769ms)
+✔ rejects a symlink image instead of following it (3.106742ms)
+✔ rejects a symlink packet directory (1.692385ms)
+ℹ tests 49
+ℹ suites 0
+ℹ pass 39
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 841.681155
+
+✖ failing tests:
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:84:3
+✖ accepts exact raster enclosure for recorded desktop fractional edges (46.849488ms)
+  AssertionError [ERR_ASSERTION]: list-1440.png: crop height differs
+      at validateInboxPacket (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:116:12)
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:93:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:84:3
+✖ accepts exact raster enclosure for recorded mobile bottom beyond the viewport (21.540696ms)
+  AssertionError [ERR_ASSERTION]: list-1440.png: crop height differs
+      at validateInboxPacket (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:116:12)
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:93:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:84:3
+✖ accepts exact raster enclosure for fractional document scroll offsets (1.683712ms)
+  AssertionError [ERR_ASSERTION]: list-1440.png: crop width differs
+      at validateInboxPacket (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:115:12)
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:93:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:99:3
+✖ rejects a cropped one-pixel width even with matching PNG metadata (1.918646ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:107:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:99:3
+✖ rejects a padded one-pixel width even with matching PNG metadata (1.448198ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:107:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:99:3
+✖ rejects a cropped one-pixel height even with matching PNG metadata (1.590752ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:107:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:99:3
+✖ rejects a padded one-pixel height even with matching PNG metadata (1.70875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:107:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:145:3
+✖ rejects missing document scroll offsets (0.860364ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:148:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:145:3
+✖ rejects non-finite document scroll offset (0.960845ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:148:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at e2e/tools/briefs_inbox_capture_contract.test.cjs:145:3
+✖ rejects fractional scroll offset changes raster enclosure (1.066003ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs:148:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
