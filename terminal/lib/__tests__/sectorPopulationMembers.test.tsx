@@ -15,6 +15,11 @@
  *   - N4: a failed "Load more" keeps every page already loaded; the failure is
  *     a per-page line with its own retry, and a successful retry extends the
  *     list — the reader never loses context to a transport failure.
+ *   - Prophet fold (isolated commit, 2026-11-11): an `eligible` row carries
+ *     ONLY a link affordance into the Prophet sector population — target,
+ *     return carrier and state-free wording are all law below. A row whose
+ *     eligibility is not produced reads "—"; no member's Prophet STATE ever
+ *     renders on this surface (entitlement ruling).
  */
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -24,6 +29,15 @@ import { join } from "node:path";
 
 import SectorPopulationMembers from "@/components/sector-intelligence/SectorPopulationMembers";
 import { LangProvider } from "@/lib/i18n";
+
+// The row link's return carrier is the page's own address; the jsdom mount has
+// no Next router, so the hooks read from this mutable holder, pinned by default
+// to the sector surface's real origin shape (/discover, sectors tab selected).
+const navState = { pathname: "/discover", search: "tab=sectors&sectorWorkspace=detail&sectorJob=research&sectorView=companies&group=us_sector_industrials" };
+vi.mock("next/navigation", () => ({
+  usePathname: () => navState.pathname,
+  useSearchParams: () => new URLSearchParams(navState.search),
+}));
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -204,6 +218,78 @@ describe("SectorPopulationMembers — review gates", () => {
     const lastUrl = new URL(urls[urls.length - 1], "http://x");
     expect(lastUrl.searchParams.get("cursor")).not.toBeNull();
     act(() => root.unmount());
+  });
+});
+
+describe("SectorPopulationMembers — Prophet row link (isolated fold)", () => {
+  const links = (c: HTMLElement): HTMLAnchorElement[] =>
+    [...c.querySelectorAll('a[data-testid="population-row-prophet"]')] as HTMLAnchorElement[];
+  const hrefParams = (link: HTMLAnchorElement): URLSearchParams =>
+    new URL(link.getAttribute("href") ?? "", "https://terminal.test").searchParams;
+
+  it("an eligible row links into the Prophet sector population with the exact return carrier", async () => {
+    pageMutate = page => { (page.rows as Array<Record<string, unknown>>)[0].prophet_eligibility = { status: "eligible" }; };
+    const { container, root } = await mount();
+    const found = links(container);
+    expect(found).toHaveLength(1); // only the eligible row; row 1 (unavailable) carries none
+    const url = hrefParams(found[0]);
+    expect(url.get("tab")).toBe("prophet");
+    expect(url.get("prophetLane")).toBe("sector");
+    expect(url.get("prophetView")).toBe("population");
+    expect(url.get("prophetGroup")).toBe("housing");
+    // The carrier decodes to THIS page's exact address — the labelled return
+    // on the Prophet side restores it verbatim.
+    const carrier = JSON.parse(url.get("prophetFrom") ?? "null") as { v: number; kind: string; href: string };
+    expect(carrier).toEqual({ v: 1, kind: "sector", href: "/discover?tab=sectors&sectorWorkspace=detail&sectorJob=research&sectorView=companies&group=us_sector_industrials" });
+    // The affordance names the symbol for screen readers without stating any Prophet fact.
+    expect(found[0].getAttribute("aria-label")).toBe("MHK in Prophet");
+    act(() => root.unmount());
+  });
+
+  it("a row whose eligibility is not produced reads an em dash, never a state word", async () => {
+    const { container, root } = await mount(); // fixture default: unavailable/not_produced on both rows
+    expect(links(container)).toHaveLength(0);
+    const lastCells = [...container.querySelectorAll('[data-testid="sector-population-table"] tbody tr')]
+      .map(row => (row.lastElementChild as HTMLElement).textContent ?? "");
+    expect(lastCells).toEqual(["—", "—"]);
+    // The entitlement ruling: no member's Prophet state ever leaks onto this surface.
+    const tableText = (container.querySelector('[data-testid="sector-population-table"]') as HTMLElement).textContent ?? "";
+    for (const stateWord of ["Open plan", "Early observation", "Resolved", "No plan", "pending", "not published", "unavailable"])
+      expect(tableText).not.toContain(stateWord);
+    act(() => root.unmount());
+  });
+
+  it("an inadmissible origin links without a return carrier, never with an unvalidated one", async () => {
+    pageMutate = page => { (page.rows as Array<Record<string, unknown>>)[0].prophet_eligibility = { status: "eligible" }; };
+    const saved = { ...navState };
+    navState.pathname = "/settings"; // outside the carrier's path allowlist
+    navState.search = "";
+    try {
+      const { container, root } = await mount();
+      const found = links(container);
+      expect(found).toHaveLength(1);
+      expect(hrefParams(found[0]).get("prophetGroup")).toBe("housing");
+      expect(hrefParams(found[0]).get("prophetFrom")).toBeNull();
+      act(() => root.unmount());
+    } finally {
+      Object.assign(navState, saved);
+    }
+  });
+
+  it("the column header and link localize (zh)", async () => {
+    pageMutate = page => { (page.rows as Array<Record<string, unknown>>)[0].prophet_eligibility = { status: "eligible" }; };
+    document.documentElement.setAttribute("data-lang", "zh");
+    const { container, root } = await mount();
+    try {
+      const header = [...container.querySelectorAll('[data-testid="sector-population-table"] thead th')]
+        .map(th => th.textContent ?? "");
+      expect(header.at(-1)).toBe("预言台");
+      expect(links(container)[0].textContent).toContain("预言台");
+      expect(links(container)[0].getAttribute("aria-label")).toBe("预言台中的 MHK");
+    } finally {
+      act(() => root.unmount());
+      document.documentElement.removeAttribute("data-lang");
+    }
   });
 });
 

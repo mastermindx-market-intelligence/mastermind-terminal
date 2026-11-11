@@ -24,12 +24,23 @@
  *     non-agree roster clock forces the configured counts not stated; the
  *     stored-snapshot line renders for the selected group only; the taxonomy
  *     basis note renders only on the owner's current-not-point-in-time stamp.
+ *   - Prophet fold (isolated commit): an `eligible` row carries ONLY a link
+ *     affordance into the Prophet sector population — never the member's
+ *     Prophet state, which is an entitled-surface fact. The link rides the
+ *     incumbent `/options?tab=prophet` mount (live in every environment) and
+ *     carries the validated `prophetFrom` return carrier when this page's own
+ *     address is admissible; an inadmissible origin links without a return,
+ *     never with an unvalidated one.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { fetchSectorPopulation, POPULATION_QUERY,
   type PopulationGroupIndexEntry, type PopulationPage, type PopulationRead, type PopulationUnservedReason } from "@/lib/sectorPopulation";
+import { DEFAULT_PROPHET_STATE, encodeProphetFrom, parseProphetFrom, prophetHref } from "@/lib/prophetUrlState";
+import { makeProphetSectorT, prophetSectorFill } from "@/components/prophet/sector/prophetSectorStrings";
 import { nativeFill } from "./SectorNativeJobShell";
 import styles from "./SectorNative.module.css";
 import shell from "./SectorIntelligenceWorkspace.module.css";
@@ -57,6 +68,9 @@ const taxonomyLabel = (t: ReturnType<typeof useSectorT>, status: string, reason:
 export default function SectorPopulationMembers() {
   const t = useSectorT();
   const { lang } = useLang();
+  const prophetT = makeProphetSectorT(lang);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [pages, setPages] = useState<PopulationPage[]>([]);
   const [phase, setPhase] = useState<"loading" | "ready" | PopulationRead["status"]>("loading");
   const [group, setGroup] = useState<string>("");
@@ -189,6 +203,16 @@ export default function SectorPopulationMembers() {
   const searchInvalid = query.trim() !== "" && !POPULATION_QUERY.test(query.trim());
   const localize = (value: string | null | undefined, zh: string | null | undefined): string =>
     lang === "zh" ? zh || value || "—" : value || "—";
+  // Prophet fold: the row link's return carrier is THIS page's exact address,
+  // validated by the shared codec. An inadmissible or over-budget origin yields
+  // null — the link then still works, it simply carries no return control
+  // (never an unvalidated href).
+  const prophetFrom = useMemo(
+    () => parseProphetFrom(encodeProphetFrom(pathname, searchParams.toString())),
+    [pathname, searchParams]);
+  const prophetRowHref = useCallback((groupId: string): string => prophetHref(
+    { ...DEFAULT_PROPHET_STATE, lane: "sector", view: "population", group: groupId, from: prophetFrom },
+    "legacy"), [prophetFrom]);
   // N-B (r2) + item 6 (COO 19:15Z): a picker option is named by the owner — the
   // zh descriptor name any loaded page's group descriptor carries, else the
   // index entry's own name_zh twin, else the index name, else the generic
@@ -271,6 +295,7 @@ export default function SectorPopulationMembers() {
             <th scope="col">{t("siPopulationColumnSubIndustry")}</th>
             <th scope="col">{t("siPopulationColumnMemberSince")}</th>
             <th scope="col">{t("siPopulationColumnAlsoIn")}</th>
+            <th scope="col">{prophetT("rowProphetColumn")}</th>
           </tr></thead>
           <tbody>
             {rows.map(row => <tr key={`${row.groupId}:${row.symbol}`}>
@@ -283,6 +308,18 @@ export default function SectorPopulationMembers() {
               <td>{row.membership.effectiveOn ?? t("siPopulationMemberSinceCurrent")}
                 {firstKnownGroups ? <FirstKnownNote groups={firstKnownGroups} groupId={row.groupId} symbol={row.symbol} /> : null}</td>
               <td>{row.alsoInGroups > 0 ? String(row.alsoInGroups) : "—"}</td>
+              {/* Prophet fold: the affordance is a LINK and only a link — the
+                  member's Prophet state is an entitled-surface fact and never
+                  appears on this surface (entitlement ruling, 2026-11-10). A
+                  row whose eligibility the owner has not produced (or that is
+                  not in the Prophet universe) reads "—", state-free. */}
+              <td>{row.prophetEligibility.status === "eligible"
+                ? <Link
+                    data-testid="population-row-prophet"
+                    href={prophetRowHref(row.groupId)}
+                    aria-label={prophetSectorFill(prophetT("rowProphetState"), { symbol: row.symbol })}
+                  >{prophetT("rowProphetColumn")} →</Link>
+                : "—"}</td>
             </tr>)}
           </tbody>
         </table>
