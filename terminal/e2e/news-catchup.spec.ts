@@ -276,8 +276,8 @@ test("compact news uses the reclaimed reading viewport across EN/ZH and desktop/
       await expect(panel.locator("[data-news-filter]")).toHaveCount(0);
       await expect(panel.locator("select[data-news-view-select]")).toBeVisible();
       // Reclaimed pixels must become real story-reading area, not an empty gap.
-      // Desktop hides (but does not unmount) the detail board only while News is
-      // selected; mobile/tablet retain natural document flow and Symbol details.
+      // Selecting News hides the mounted company card at every width. On smaller
+      // screens the feed stays in document flow until the reader leaves News.
       const layout = await panel.evaluate((node) => {
         const rail = node.closest(".rail-body");
         const detail = rail?.querySelector(".detail-board");
@@ -290,15 +290,18 @@ test("compact news uses the reclaimed reading viewport across EN/ZH and desktop/
           headerBottom: header.getBoundingClientRect().bottom,
           feedTop: feed.getBoundingClientRect().top,
           detailDisplay: getComputedStyle(detail).display,
+          panelFlex: getComputedStyle(node).flex,
+          panelMaxHeight: getComputedStyle(node).maxHeight,
         };
       });
       expect(layout).not.toBeNull();
       expect(Math.abs(layout!.feedTop - layout!.headerBottom)).toBeLessThanOrEqual(2);
+      expect(layout!.detailDisplay).toBe("none");
       if (viewport.width > 860) {
-        expect(layout!.detailDisplay).toBe("none");
         expect(layout!.panelHeight).toBeGreaterThan(layout!.railHeight * 0.65);
       } else {
-        expect(layout!.detailDisplay).not.toBe("none");
+        expect(layout!.panelFlex).toBe("0 0 auto");
+        expect(layout!.panelMaxHeight).toBe("none");
       }
       await expect(reviewOf(panel, "ev2_nvda_launch").locator("[data-news-change]")).toHaveText(
         lang === "zh" ? "阅读后已修订" : "Revised since your review",
