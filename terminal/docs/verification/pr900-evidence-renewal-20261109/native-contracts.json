@@ -1,0 +1,87 @@
+{
+  "grants": {
+    "files": [
+      "desktop-en-empty-list.png",
+      "desktop-en-empty.png",
+      "desktop-en-shared.png",
+      "desktop-zh-empty-list.png",
+      "desktop-zh-empty.png",
+      "desktop-zh-shared.png",
+      "mobile-en-empty-list.png",
+      "mobile-en-empty.png",
+      "mobile-en-shared.png",
+      "mobile-zh-empty-list.png",
+      "mobile-zh-empty.png",
+      "mobile-zh-shared.png"
+    ],
+    "packet": "b-f12-b5-1-grants",
+    "port": 3795,
+    "producerSha256": "f8797b370f62916c8b18ada1f9b7759126536538fe5101dd2a9edd9b5cb738ea",
+    "script": "terminal/e2e/tools/capture_b_f12_b5_1_sharing.cjs",
+    "sources": [
+      "terminal/components/settings/SectionSharing.tsx",
+      "terminal/components/settings/SettingsPanel.tsx",
+      "terminal/app/settings.css",
+      "terminal/lib/i18n.tsx"
+    ]
+  },
+  "rollup": {
+    "files": [
+      "desktop-en-empty-members.png",
+      "desktop-en-no-rows.png",
+      "desktop-en-ok.png",
+      "desktop-zh-empty-members.png",
+      "desktop-zh-no-rows.png",
+      "desktop-zh-ok.png",
+      "mobile-en-empty-members.png",
+      "mobile-en-no-rows.png",
+      "mobile-en-ok.png",
+      "mobile-zh-empty-members.png",
+      "mobile-zh-no-rows.png",
+      "mobile-zh-ok.png"
+    ],
+    "packet": "w9t_f13_9-team-rollup-no-rank",
+    "port": 3797,
+    "producerSha256": "472758b73fe60bb46feb92fd1fb5fdc34fd457f9731a4f87e6ea394c3a19ae64",
+    "script": "terminal/e2e/tools/capture_w9t_f13_9_team_rollup.cjs",
+    "sources": [
+      "terminal/app/api/teams/[id]/accuracy/rollup/route.ts",
+      "terminal/app/dev/settings/page.tsx",
+      "terminal/app/dev/settings/teamRollupFixtures.ts",
+      "terminal/components/settings/SectionAccuracy.tsx",
+      "terminal/components/settings/SectionAccuracy.module.css",
+      "terminal/components/settings/SettingsPanel.tsx",
+      "terminal/lib/i18n.tsx",
+      "terminal/lib/personalAccuracyStore.ts",
+      "terminal/lib/teamRollup.ts",
+      "terminal/lib/__tests__/teamRollup.test.ts",
+      "terminal/lib/__tests__/teamAccuracyRollupRoute.test.ts"
+    ]
+  },
+  "workspaces": {
+    "files": [
+      "desktop-en-member-read-only.png",
+      "desktop-en-share-confirm.png",
+      "desktop-en-team-grouped.png",
+      "desktop-zh-member-read-only.png",
+      "desktop-zh-share-confirm.png",
+      "desktop-zh-team-grouped.png",
+      "mobile-en-member-read-only.png",
+      "mobile-en-share-confirm.png",
+      "mobile-en-team-grouped.png",
+      "mobile-zh-member-read-only.png",
+      "mobile-zh-share-confirm.png",
+      "mobile-zh-team-grouped.png"
+    ],
+    "packet": "b-f12-b5-2-team-workspaces",
+    "port": 3796,
+    "producerSha256": "b8098d7cd098f3f485b97f56d626e072343a344ae858e9b86722c326633aacc1",
+    "script": "terminal/e2e/tools/capture_f12_b5_2_team_workspaces.cjs",
+    "sources": [
+      "terminal/components/LayoutMenu.tsx",
+      "terminal/lib/teamSharedWorkflow.ts",
+      "terminal/lib/i18n.tsx",
+      "terminal/app/dev/workspaces/page.tsx"
+    ]
+  }
+}

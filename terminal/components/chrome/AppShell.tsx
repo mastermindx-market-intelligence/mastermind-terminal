@@ -1,6 +1,6 @@
 "use client";
 import "../../app/observatory.css";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type MouseEvent } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type MouseEvent } from "react";
 import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
@@ -86,6 +86,9 @@ const SharedShellRuntime = dynamic(() => import("./shared-shell/SharedShellRunti
 const SharedShellToolbar = dynamic(() => import("./shared-shell/SharedShellToolbar"), { ssr: false });
 const ignoreBrainShellEvent = () => undefined;
 const requireBrainShellAuth = () => window.location.assign("/login");
+const subscribeToClientReady = () => () => undefined;
+const clientReady = () => true;
+const serverNotReady = () => false;
 
 export default function AppShell({
   email = "",
@@ -108,6 +111,7 @@ export default function AppShell({
   const path = usePathname();
   const preview = !sharedShell && investorShellPreview && isInvestorShellPreviewPath(path);
   const [compactNavigation, setCompactNavigation] = useState(false);
+  const compactControlReady = useSyncExternalStore(subscribeToClientReady, clientReady, serverNotReady);
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [symbolOpen, setSymbolOpen] = useState(false);
   const [legacyTitle, setLegacyTitle] = useState("");
@@ -159,6 +163,7 @@ export default function AppShell({
               aria-label={t("scr2DenCompact")}
               aria-pressed={compactNavigation}
               aria-controls={sharedShell ? "shared-primary-navigation" : "investor-primary-navigation"}
+              disabled={!compactControlReady}
               onClick={() => setCompactNavigation(value => !value)}
             >
               <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createRoot, hydrateRoot, type Root } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Framework/runtime boundaries only. The production AppShell, AppNav, TOP,
@@ -140,6 +141,29 @@ describe("investor shell preview — existing shell, explicit presentation opt-i
     expect(dom.querySelectorAll("#investor-primary-navigation")).toHaveLength(1);
     act(() => button!.click());
     expect(dom.querySelectorAll(".investor-nav-label")).toHaveLength(TOP.length + 1);
+  });
+
+  it.each(["/analysis", "/discover"])("keeps %s compact input disabled until its client owner hydrates", async (path) => {
+    state.path = path;
+    const element = <AppShell investorShellPreview email="fixture@example.test" userId="existing-owner">
+      <IdentityProbe />
+    </AppShell>;
+    host = document.createElement("div");
+    document.body.append(host);
+    host.innerHTML = renderToString(element);
+    const button = host.querySelector<HTMLButtonElement>("[data-investor-compact-toggle]")!;
+    expect(button.disabled).toBe(true);
+    button.click();
+    expect(button.getAttribute("aria-pressed")).toBe("false");
+    await act(async () => { root = hydrateRoot(host, element); });
+    expect(host.querySelector("[data-investor-compact-toggle]")).toBe(button);
+    expect(button.disabled).toBe(false);
+    act(() => button.click());
+    expect(button.getAttribute("aria-pressed")).toBe("true");
+    expect(host.querySelectorAll(".investor-nav-label")).toHaveLength(0);
+    act(() => button.click());
+    expect(button.getAttribute("aria-pressed")).toBe("false");
+    expect(host.querySelectorAll(".investor-nav-label")).toHaveLength(TOP.length + 1);
   });
 
   it("preserves the existing identity, page, Macro return and sole Analysis Brain host", () => {

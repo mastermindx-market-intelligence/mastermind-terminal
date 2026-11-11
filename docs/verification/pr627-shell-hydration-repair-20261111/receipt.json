@@ -1,0 +1,55 @@
+{
+  "schema": "mastermind.pr627.shell-hydration-repair.v1",
+  "parent": "79187ab343aa8a404ef1d74fda990550eb6e1005",
+  "protected": "74c007125129090cc762f2bc4b1b152123326444",
+  "baseTree": "4700bcd5beea4f8944328f57afaaa52d0d8d188b",
+  "lawPin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "retainedOriginalContribution": [
+    {
+      "path": "docs/verification/pr627-current-protected-recovery-20261111/focused-tests.log",
+      "blob": "9d376e7ffafe5b9b7c9ebbc5aeb8093cee981f4f",
+      "preserved": true
+    },
+    {
+      "path": "docs/verification/pr627-current-protected-recovery-20261111/receipt.json",
+      "blob": "de1abd8c1b06e241c9e73e5b55ae1a10906c904d",
+      "preserved": true
+    },
+    {
+      "path": "terminal/lib/__tests__/pulseWaveWarmup.test.ts",
+      "blob": "742225b9bfb144183ef24e53fec18d6e1c263637",
+      "preserved": true
+    },
+    {
+      "path": "terminal/lib/suites/pulse/pulseWave.ts",
+      "blob": "182dc519719011416af686aba23c0a1af3b60e87",
+      "preserved": true
+    }
+  ],
+  "failedRun": 42974141549,
+  "failedSerialJob": 130369526529,
+  "artifact": 13838155773,
+  "artifactSha256": "442bc7f0afa824a1ce7fd93e316ea14dd46180f0a5e8ec9689aa6dfe3b7d0b18",
+  "cause": "Keyboard Enter reached the SSR-visible enabled compact button before its required client chunks had completed.",
+  "repair": "Use React hydration snapshot readiness to keep the incumbent control disabled until its client owner is ready; require enabled/focused state before the same single Enter, and require a non-skeleton route body.",
+  "validation": {
+    "investorShellTests": 40,
+    "sharedPublicPresentationTests": 17,
+    "originalSourceNegativeControl": "two new SSR hydration regressions fail on original AppShell",
+    "fullTypecheck": "passed",
+    "eslintErrors": 0,
+    "unchangedBaselineLintWarnings": 1,
+    "browserCasesCollectedOnly": 24
+  },
+  "pulseValidationNotRepeated": {
+    "acceptedChecks": 266,
+    "sourceUnchanged": true
+  },
+  "visualEvidenceInputsChanged": [
+    "terminal/components/chrome/AppShell.tsx"
+  ],
+  "historicalManifestsChanged": false,
+  "currentCaptureRequired": true,
+  "localBrowserExecution": false,
+  "productionAcceptance": false
+}

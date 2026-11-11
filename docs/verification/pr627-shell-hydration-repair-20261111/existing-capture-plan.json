@@ -1,0 +1,37 @@
+{
+  "result": {
+    "plan": {
+      "capture": true,
+      "reason": "fail-closed",
+      "error": "conflicting evidence source locks"
+    },
+    "touched": [
+      "terminal/lib/__tests__/pulseWaveWarmup.test.ts",
+      "terminal/lib/suites/pulse/pulseWave.ts",
+      "terminal/components/chrome/AppShell.tsx",
+      "terminal/e2e/investor-shell-preview.spec.ts",
+      "terminal/lib/__tests__/investorShellPreview.test.tsx"
+    ],
+    "drifted": []
+  },
+  "manifests": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+      "sha256": "a237a30a20e10e5c2416a52384694af7786e83fbd1d951eec775c8c1b0b68b44",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+      "sha256": "eb9d0bd8c2fa52565a61f103b3855d4bc21d6a7d43fa3808e86df2d02173108e",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml",
+      "sha256": "c79c65aa41562ba6ed2696b91bea89b9ede85ea1c85466ffe544049ab8f270be",
+      "unchanged": true
+    }
+  ],
+  "plannerSha256": "c8f50a3e05c95cb9e1a2ba0ffc47fc122c0a6826a66c172b67f82cb697df7e32",
+  "noPlannerChanges": true,
+  "noManifestChanges": true
+}

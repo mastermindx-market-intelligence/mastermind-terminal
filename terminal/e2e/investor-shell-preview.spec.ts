@@ -16,8 +16,9 @@ for (const route of ["/analysis?symbol=NVDA", "/discover"] as const) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     const shell = page.locator('[data-investor-shell="preview"]');
     await expect(shell).toBeVisible();
-    await expect(shell.locator(".main2").first()).toBeVisible();
-    await expect(shell.locator(".main2").first()).not.toHaveText("");
+    const content = shell.locator(".main2:not([data-route-loading])").first();
+    await expect(content).toBeVisible();
+    await expect(content).not.toHaveText("");
     await expect(shell.locator("#investor-primary-navigation")).toHaveCount(1);
     const desktop = testInfo.project.name === "desktop";
     if (desktop) {
@@ -28,13 +29,16 @@ for (const route of ["/analysis?symbol=NVDA", "/discover"] as const) {
       const rail = await nav.boundingBox();
       expect(Math.round(rail!.width)).toBe(224);
       const toggle = shell.locator("[data-investor-compact-toggle]");
+      await expect(toggle).toBeEnabled();
       await toggle.focus();
+      await expect(toggle).toBeFocused();
       await page.keyboard.press("Enter");
       await expect(toggle).toHaveAttribute("aria-pressed", "true");
       await expect(nav.locator(".investor-nav-label")).toHaveCount(0);
       await expect(nav.locator("a[aria-label]")).toHaveCount(9);
       expect(Math.round((await nav.boundingBox())!.width)).toBe(72);
       await page.screenshot({ path: testInfo.outputPath(`${route.startsWith("/analysis") ? "analysis" : "discover"}-compact.png`) });
+      await expect(toggle).toBeFocused();
       await page.keyboard.press("Enter");
       await expect(toggle).toHaveAttribute("aria-pressed", "false");
       await expect(nav.locator(".investor-nav-label")).toHaveCount(10);
