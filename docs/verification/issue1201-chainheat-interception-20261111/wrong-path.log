@@ -1,0 +1,98 @@
+[warmup] /terminal?symbol=NVDA → 200 in 263ms
+[warmup] /options → 200 in 5282ms
+[warmup] /portfolio → 200 in 2887ms
+[warmup] /alerts → 200 in 4300ms
+[warmup] /analysis → 200 in 7669ms
+[warmup] /discover → 200 in 8484ms
+[warmup] /admin → 200 in 2455ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 2652ms
+[warmup] /login → 200 in 689ms
+[warmup] /reset-password → 200 in 3944ms
+[warmup] /api/me → 200 in 2680ms
+[warmup] /api/watchlist → 200 in 1182ms
+[warmup] /api/layouts → 200 in 879ms
+[warmup] /api/watchlist/annotations → 409 in 898ms
+[warmup] 14 routes compiled in 44s
+[fixture-ready] prophet_idx fixture 200 in 2485ms
+
+Running 2 tests using 1 worker
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+FF
+
+  1) [desktop] › e2e/options-flowdesk-chainheat-load-failure.spec.ts:62:7 › a chain-heat read that answers 5xx is a load error with Retry, never "loading" 
+
+    Error: The chainheat 503 reply must actually be served
+
+    The chainheat 503 reply must actually be served
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+    Call Log:
+    - Timeout 45000ms exceeded while waiting on the predicate
+
+      71 |       () => served.filter((entry) => entry.feed === "chainheat" && entry.reply === failure).length,
+      72 |       { message: `The chainheat ${failure} reply must actually be served`, timeout: 45_000 },
+    > 73 |     ).toBeGreaterThan(0);
+         |       ^
+      74 |     const rail = page.locator('[data-tut="chain-heat"]');
+      75 |     const loadError = rail.getByTestId("chainheat-load-error");
+      76 |     await expect(loadError).toBeVisible({ timeout: 45_000 });
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts:73:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/options-flowdesk-chainheat-load-failure.spec.ts:94:5 › nothing published for the session is shown only on a 404, with nothing to retry 
+
+    Error: The chainheat 404 reply must actually be served
+
+    The chainheat 404 reply must actually be served
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+    Call Log:
+    - Timeout 45000ms exceeded while waiting on the predicate
+
+      102 |     () => served.filter((entry) => entry.feed === "chainheat" && entry.reply === "404").length,
+      103 |     { message: "The chainheat 404 reply must actually be served", timeout: 45_000 },
+    > 104 |   ).toBeGreaterThan(0);
+          |     ^
+      105 |   const rail = page.locator('[data-tut="chain-heat"]');
+      106 |   await expect(rail.getByText(t("chainHeatAbsent"))).toBeVisible({ timeout: 45_000 });
+      107 |   await expect(rail).not.toContainText(t("chainHeatLoading"));
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts:104:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/options-flowdesk-chainheat-load-failure.spec.ts:62:7 › a chain-heat read that answers 5xx is a load error with Retry, never "loading" 
+    [desktop] › e2e/options-flowdesk-chainheat-load-failure.spec.ts:94:5 › nothing published for the session is shown only on a 404, with nothing to retry 
