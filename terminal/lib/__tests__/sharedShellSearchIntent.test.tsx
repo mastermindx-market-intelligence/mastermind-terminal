@@ -37,6 +37,7 @@ async function show(open = false) {
   });
 }
 beforeEach(() => {
+  window.history.replaceState(null, "", "/today");
   state.pickerRenders = 0;
   state.opens.length = 0;
   state.push.mockReset();
@@ -58,7 +59,7 @@ describe("Shared Shell company search intent", () => {
     expect(button).not.toBeNull();
     expect(button!.getAttribute("aria-haspopup")).toBe("dialog");
     expect(button!.getAttribute("aria-expanded")).toBe("false");
-    expect(button!.getAttribute("aria-label")).toBe("shellSearchCompanies");
+    expect(button!.getAttribute("aria-label")).toBe("Search companies and tools");
   });
   it("click activates the real picker and keeps canonical symbol navigation", async () => {
     await show();
@@ -71,7 +72,7 @@ describe("Shared Shell company search intent", () => {
     await act(async () => {
       host.querySelector<HTMLButtonElement>("[data-mounted-picker]")!.click();
     });
-    expect(state.push).toHaveBeenLastCalledWith("/analysis?symbol=AAPL");
+    expect(state.push).toHaveBeenLastCalledWith("/analysis?symbol=AAPL&company_query=");
     expect(onOpenChange).toHaveBeenLastCalledWith(false);
   });
   it("starts the incumbent picker on pointer intent but does not open it", async () => {

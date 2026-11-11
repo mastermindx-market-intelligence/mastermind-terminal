@@ -1,0 +1,78 @@
+[
+  {
+    "sample": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "lang": "en"
+    },
+    "rootTheme": "light",
+    "rootLang": "en",
+    "rootScheme": "light",
+    "sourceScheme": "light",
+    "sourceBackground": "rgb(238, 241, 246)",
+    "outline": "solid",
+    "filteredIds": [
+      "ev2_theme_outlook"
+    ],
+    "restoredCount": 3
+  },
+  {
+    "sample": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "lang": "en"
+    },
+    "rootTheme": "dark",
+    "rootLang": "en",
+    "rootScheme": "normal",
+    "sourceScheme": "dark",
+    "sourceBackground": "rgb(21, 23, 29)",
+    "outline": "solid",
+    "filteredIds": [
+      "ev2_theme_outlook"
+    ],
+    "restoredCount": 3
+  },
+  {
+    "sample": {
+      "name": "phone",
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "lang": "zh"
+    },
+    "rootTheme": "light",
+    "rootLang": "zh",
+    "rootScheme": "light",
+    "sourceScheme": "light",
+    "sourceBackground": "rgb(238, 241, 246)",
+    "outline": "solid",
+    "filteredIds": [
+      "ev2_theme_outlook"
+    ],
+    "restoredCount": 3
+  },
+  {
+    "sample": {
+      "name": "phone",
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "lang": "zh"
+    },
+    "rootTheme": "dark",
+    "rootLang": "zh",
+    "rootScheme": "normal",
+    "sourceScheme": "dark",
+    "sourceBackground": "rgb(21, 23, 29)",
+    "outline": "solid",
+    "filteredIds": [
+      "ev2_theme_outlook"
+    ],
+    "restoredCount": 3
+  }
+]

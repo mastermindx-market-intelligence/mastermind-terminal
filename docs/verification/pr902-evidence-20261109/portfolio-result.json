@@ -1,0 +1,10 @@
+{
+  "script": "capture_b_f08_b5_1_targets.cjs",
+  "sourceHead": "5983026f1643e053a40bdc8ca66a61d08a12d66d",
+  "port": 3603,
+  "startedAt": "2026-11-09T06:51:17.751421+00:00",
+  "completedAt": "2026-11-09T06:51:32.494281+00:00",
+  "seconds": 14.743,
+  "exit": 1,
+  "portAbsent": true
+}

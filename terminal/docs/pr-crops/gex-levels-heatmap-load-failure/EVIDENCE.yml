@@ -1,21 +1,55 @@
+# Current browser proof is the momentum successor; prior native captures retain their identities.
+exposureMomentumBrowser20261110:
+  revision: "exposure-momentum-integration-20261110"
+  selectedFamily: "gex"
+  descriptorSha256: "077a5a84a160e64f340dc326ee834d9408d35b822782df16f8f70125b1b6abf2"
+  retainedEodDescriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  retainedGexDescriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453"
+  branchHead: "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7"
+  protectedMaster: "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185"
+  integratedDependency: "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185"
+  browserQualificationSha256: "fdb68045af826d208615fd3b2d54955961053312ba57d60895fdfa116b394c12"
+  expiryQualificationSha256: "caffdecc46531a7da8f0173f6ccde0b43db30be16c7e91a2b6970e789c2b32e7"
+
+# Current source proof retains the original EOD capture and qualifies fresh expiry-aware GEX and browser journeys.
+exposureExpiryGreeksIntegration20261110:
+  selectedFamily: "gex"
+  selectedCaptureRevision: "expiry-greeks-integration-20261110"
+  freshGexRevision: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/expiry-greeks-integration-20261110"
+  freshGexDescriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453"
+  retainedEodDescriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  branchHead: "a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4"
+  protectedMaster: "dad33e10089c9d51d931a1fe72e7fa1acb37abe1"
+  integratedDependency: "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c"
+  browserQualificationSha256: "fee8ee7eb79e7a1a680c51b2121e94f78708fba5b14551c3ea701a42556f8210"
+  expiryQualificationSha256: "436bbf7bdbee1bb9d7e5d8043878a286093a59f8a54690f71b2b7ae1eff39303"
+
+# Current source proof is the complete Options integration revision.
+exposureMasterIntegration20261109:
+  revision: "operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109"
+  descriptorSha256: "fd7c4364bcfb3f8b44773792c4f5d16fbc654eb47cf58a142eb169b3bac24ad7"
+  branchHead: "90f275f15b4d174f003fb5b1087823dce6ec865a"
+  protectedMaster: "03af393ce05c12282003a3919cc473c032264922"
+  integratedDependency: "d3bd6b2d98c6c23398be0bed6c7450caa47bd665"
+
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 9ef0160bba5c35d12abd6a531ee1c4e30bed0cdb
-# capturedAt: 2026-10-22T05:11:35.368Z
+# capturedAtHead: c939c83435b87d99bf2f4201b17f16a77275fcbd
+# capturedAt: 2026-11-09T06:15:31.894Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
-  terminal/components/gexdesk/GexDeskView.tsx: "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14"
+  terminal/components/gexdesk/GexDeskView.tsx: "45e534f221754d1bf3a3214d9a1cbaa4e297623482cb0c9832f8e904ed944bb9"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
-  terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
-  terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
+  terminal/components/gexdesk/MarketStateCard.tsx: "5a328799e2fcc95352c6f5a0899bbccf2ea96c04754695b89d44cb1fc7abb0f5"
+  terminal/components/gexdesk/StrikeLadder.tsx: "1fa665eeec154b1b956493ff01002cc24873bce4daf9ef73207af9e3a80102da"
   terminal/components/gexdesk/gexStrings.ts: "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
-  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  terminal/lib/heatmapStrings.ts: "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -138,7 +172,7 @@ harness:
   levels-unavailable-820-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
   levels-unavailable-820.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
 surfaces: [GexDeskView, HeatSeekerCard, MarketStateCard, LevelsView, HeatmapView]
-injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; every other read is the FLOW_FIXTURE server
+injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; remaining flow reads use FLOW_FIXTURE; quote and other provider APIs are typed unavailable before transport
 persisted: the heatmap-persisted-* states age the browser's own IndexedDB record of /data/manifest.json (dataCache write-through), never a mocked cache
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
@@ -260,18 +294,3 @@ files:
   - levels-unavailable-390.png
   - levels-unavailable-820-zh.png
   - levels-unavailable-820.png
-
-labPlanNavigationRecapture20261030:
-  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
-  actualCases: 54
-  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
-  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
-  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
-
-currentCacheQualification:
-  sourceHead: "ca43fd0f9d1aaf13658a1553ea244c8815369591"
-  previousCacheSha256: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
-  cases: 114
-  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1224-cache-ca43fd0f/result.json"
-  reportSha256: "4f1b2c7cea9606d01f803d03c802d03853567dd032d56ebc7f41a918dd5bf567"
-  scope: "The report maps every current capture to its actual file and digest. Packet-root PNGs and earlier capture records retain their historical identity."

@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-routing-f11-successor/.pr1275-routing-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-routing-f11-successor/docs/verification/pr1275-hosted-routing-successor-20261110/evidence-reader-report.json"
+  ],
+  "exitCode": 0,
+  "failed": 0,
+  "head": "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+  "logSha256": "de771d78d8c69e3d7ae9e6d6720f331156127fc0c690866df6f287d102d218b9",
+  "passed": 5,
+  "reportSha256": "18cdfbd32af0dea18ae01f9e7941d9e7672f7502eab8aed1964c69f8bf2a8138",
+  "schema": "terminal.pr1275.evidence-reader.v1",
+  "seconds": 3.287,
+  "skipped": 0,
+  "tests": 5,
+  "tree": "f6b2202bea775cebbd867deccc05bb9c69034412"
+}

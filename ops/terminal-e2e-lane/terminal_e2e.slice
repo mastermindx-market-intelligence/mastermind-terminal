@@ -1,0 +1,10 @@
+[Unit]
+Description=Terminal e2e JIT runner slots (aggregate memory bound)
+Documentation=https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/master/docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md
+
+[Slice]
+# Initial bound for all slots together on a ~30 GB host, beside each slot's own 6G/7G.
+# Re-measure under real load before raising slot count or limits.
+MemoryAccounting=yes
+MemoryHigh=22G
+MemoryMax=24G

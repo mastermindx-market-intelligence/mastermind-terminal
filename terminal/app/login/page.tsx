@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 // /terminal?signin=1 would loop.
 export default async function Login({ searchParams }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
-} = {}) {
+}) {
   const landing = process.env.MMX_SHARED_SHELL === "1" ? "/today" : "/terminal";
   if (process.env.TERMINAL_REQUIRE_AUTH === "1") return <LoginFormLegacy defaultNext={landing} />;
   const query = await searchParams;

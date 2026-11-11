@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { optionsRoot, isoSession, readCompanionMatrix, readVannaProfile, matrixForExpiry, formatExposureMn, readCompanionFlow } from "../optionsCompanion";
+import { layoutPriceAxisBadges } from "../priceTagPlacement";
 import { optionsReadAccess } from "../optionsAccess";
 import { gateEntitlement, type EntitlementSnapshot } from "../entitlementStore";
-import { syncOptionsPricePin, removeOptionsPricePin } from "../optionsChartPin";
+import { syncOptionsPricePin, removeOptionsPricePin, layoutOptionsReferenceBadges } from "../optionsChartPin";
 import { buildMatrixGrid, matrixExactScopeStats, matrixScopeStructure, matrixSelectedNodeContext, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
 
 const now = Date.parse("2026-09-23T15:00:00Z");
@@ -145,7 +146,7 @@ describe("ephemeral chart price pin", () => {
     const host = { createPriceLine: vi.fn(() => ({ id: "line" })), removePriceLine: vi.fn() };
     const pin = syncOptionsPricePin(null, host as never, level, "NVDA", true, "#aaa");
     expect(pin).not.toBeNull(); expect(host.createPriceLine).toHaveBeenCalledTimes(1);
-    expect(host.createPriceLine).toHaveBeenCalledWith(expect.objectContaining({ price: 195, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: "Strike 195 · EOD" }));
+    expect(host.createPriceLine).toHaveBeenCalledWith(expect.objectContaining({ price: 195, lineStyle: 2, lineWidth: 1, lineVisible: true, axisLabelVisible: false, title: "" }));
     expect(syncOptionsPricePin(pin, host as never, level, "NVDA", true, "#aaa")).toBe(pin);
     expect(syncOptionsPricePin(pin, host as never, level, "SPY", true, "#aaa")).toBeNull();
     expect(host.removePriceLine).toHaveBeenCalledTimes(1);
@@ -159,5 +160,36 @@ describe("ephemeral chart price pin", () => {
     const pin = syncOptionsPricePin(null, oldHost as never, level, "NVDA", true, "#aaa");
     const next = syncOptionsPricePin(pin, nextHost as never, level, "NVDA", true, "#aaa");
     expect(oldHost.removePriceLine).toHaveBeenCalledTimes(1); expect(next?.host).toBe(nextHost);
+  });
+});
+
+
+describe("selected reference badge readout floor", () => {
+  it.each([30, 66, 90, 180])("keeps near/equal generic neighbours below the readout with quote top %s", (activeTop) => {
+    const input = { paneHeight: 295, activeTop, activeHeight: 31,
+      badges: [
+        { id: "selected-reference", anchorY: 61.5, naturalTop: 53.5, priority: 90 },
+        ...Array.from({ length: 18 }, (_, i) => ({ id: `generic-${i}`, anchorY: 62 + (i % 3), naturalTop: 54 + (i % 3) })),
+      ] };
+    const original = structuredClone(input);
+    // A naturalTop preference alone lets the incumbent pack a crowded group upward.
+    const preferred = layoutPriceAxisBadges({ ...input, badges: input.badges.map(b => ({ ...b, naturalTop: Math.max(70, b.naturalTop) })) });
+    expect(preferred.find(row => row.id === "selected-reference")!.top).toBeLessThan(70);
+    const placed = layoutOptionsReferenceBadges(input, 70);
+    expect(placed).toHaveLength(input.badges.length);
+    for (const [i, row] of placed.entries()) {
+      expect(row.top).toBeGreaterThanOrEqual(70); expect(row.top + 17).toBeLessThanOrEqual(input.paneHeight);
+      expect(row.anchorY).toBe(input.badges[i].anchorY); expect(row.naturalTop).toBe(input.badges[i].naturalTop);
+      if (row.lane === 0) expect(row.top + 17 <= activeTop || row.top >= activeTop + input.activeHeight).toBe(true);
+      for (const other of placed.slice(i + 1)) if (row.lane === other.lane) {
+        expect(row.top + 17 <= other.top || other.top + 17 <= row.top).toBe(true);
+      }
+    }
+    expect(input).toEqual(original);
+  });
+  it("keeps the incumbent layout unchanged when no selected reference participates", () => {
+    const input = { paneHeight: 295, activeTop: 100, activeHeight: 31,
+      badges: [{ id: "generic", anchorY: 62, naturalTop: 54 }] };
+    expect(layoutOptionsReferenceBadges(input, 70)).toEqual(layoutPriceAxisBadges(input));
   });
 });

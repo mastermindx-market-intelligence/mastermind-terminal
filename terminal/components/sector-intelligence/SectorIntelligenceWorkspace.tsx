@@ -7,9 +7,9 @@ import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_FEEDS, FINVIZ_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
-  groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationHistory, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
+  groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
-  type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
+  type SectorFeed, type SectorJob, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
 import FinvizDiscovery from "./FinvizDiscovery";
 import SectorCentralDiscovery from "./SectorCentralDiscovery";
@@ -17,11 +17,27 @@ import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
+import SectorLeadershipDossier from "./SectorLeadershipDossier";
+import SectorGenerationQualification from "./SectorGenerationQualification";
+import SectorConstituentEvidence from "./SectorConstituentEvidence";
+import SectorNativeJobShell from "./SectorNativeJobShell";
+import SectorNativeDossier from "./SectorNativeDossier";
+import { sectorNativeContext } from "./sectorNativeSlots";
+import type { SectorCycleFeed } from "./cycles/cycleProps";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
 import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
   SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
+import { sectorPortfolioCopy, sectorPortfolioHref } from "@/lib/sectorPortfolioContext";
+import { nativeSectorEvidence, type NativeSectorGeneration } from "@/lib/sectorNativeGeneration";
+import {
+  confluenceBasketsFromCarriedBlock, confluenceNasdaqFromCarriedBlock,
+  confluenceRussellFromCarriedBlock, confluenceSp500FromCarriedBlock,
+  type UniverseBlockRead, type UniverseId,
+} from "@/lib/sectorDepthUniverses";
+import { themeRowsFromCarriedBlock, type ThemeRowsRead } from "@/lib/sectorDepthThemeRows";
+import { classifyEntry } from "@/lib/sectorDepthRows";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -35,7 +51,7 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
   rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", finviz: "siFeedFinviz",
+  sector: "siFeedSector", generation: "siFeedGeneration", confluence: "siFeedConfluence", themes: "siFeedThemes", finviz: "siFeedFinviz",
   heatmap: "siFeedHeatmap", risk: "siFeedRisk", history: "siFeedHistory", events: "siFeedEvents",
   relative_trend: "siFeedRelativeTrend", holdings: "siFeedHoldings", intraday: "siFeedIntraday",
 };
@@ -52,6 +68,18 @@ const STATE_KEYS: Record<string, string> = {
 };
 const emptyFeed = (source: SectorFeed, status: FeedStatus): FeedPayload => ({ data: null,
   receipt: { source, status, path: "", asOf: null, observedAt: null, contentHash: null, stale: false } });
+/** FeedPayload → the Cycles lens feed shape. The legacy rs-history and
+ * rotation-events feeds pass their real payloads through; the lens's own deep
+ * cycles publication feed does not exist yet and is never borrowed from these. */
+const cycleFeed = (feed: FeedPayload | undefined): SectorCycleFeed | undefined => {
+  if (!feed) return undefined;
+  const status = feed.receipt.status;
+  const state = status === "ready" ? (feed.receipt.stale ? "stale" : "ready")
+    : status === "access" ? "unauthenticated"
+    : status === "loading" ? "loading"
+    : "unavailable";
+  return { state, data: feed.data };
+};
 const count = (v: unknown): number | null => {
   const n = number(v); return n !== null && n >= 0 && Number.isInteger(n) ? n : null;
 };
@@ -64,8 +92,77 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
   return <div className={styles.metric}><span>{label}</span><strong>{value}</strong><small>{foot}</small></div>;
 }
 
+/** The five lane 7 row reads for the dossier's Drivers tab (round 2 part 2,
+ * the #1448 mount; fix r1 B-1/S-1). `null` keeps the dossier's exact
+ * pre-increment rendering. The raw wire document's own `typed_blocks` map is
+ * the only carrier: the generation decoder maps an absent key to the same
+ * all-not_produced shape a carried map may lawfully hold, so carried-vs-absent
+ * is decided on the raw map itself, never on the decoded shape. The map
+ * counts only under the decoder's own plain-object rule (non-null,
+ * non-array object — `sectorNativeGeneration.ts` `sectorTypedBlocks`), and a
+ * row-block name is CARRIED only when it is an OWN key of that map. A name
+ * that is not carried stays `undefined` — the readers' "prop omitted" path,
+ * which is master's typed-unavailable state, never a fabricated stub: the
+ * v1.0 producer already serves a seven-key map with none of the five row
+ * blocks, and that document must render exactly as master (B-1). A carried
+ * name hands its reader the carried entry ITSELF, verbatim — the readers
+ * declare `entry: unknown` and re-validate from scratch (`classifyEntry`), so
+ * a malformed entry reads their generic unavailable wording, never a stated
+ * owner fact the producer did not state (S-1). Interim audience rule (fix r1
+ * item 3): the Terminal route requests `audience=preview` for every member
+ * (`SECTOR_GENERATION_PATH`, lib/sectorNativeGeneration.ts:12; the decoder
+ * refuses any other audience at :155/:161), so a carried entry that is
+ * exactly an unavailable `audience_not_entitled` entry is NOT treated as
+ * carried — otherwise every member, paying or not, would read "Not included
+ * in your current subscription." the moment the producer serves the five
+ * blocks. Remove when the route requests the member's real audience
+ * (entitled read increment). */
+export interface SectorRowBlockMounts {
+  universeBlocks?: Partial<Record<UniverseId, UniverseBlockRead>>;
+  themeRows?: ThemeRowsRead;
+}
+export function sectorRowBlocksFromFeed(
+  feed: FeedPayload | undefined, generation: NativeSectorGeneration | null,
+): SectorRowBlockMounts | null {
+  if (!generation) return null;
+  const raw = object(object(object(feed?.data).projection).data).typed_blocks;
+  const map = raw !== null && typeof raw === "object" && !Array.isArray(raw)
+    ? raw as Record<string, unknown> : null;
+  if (!map) return null;
+  // undefined = not carried for this reader (own key absent, or the interim
+  // audience rule below swallowed the entry).
+  const carried = (name: string): unknown => {
+    if (!Object.hasOwn(map, name)) return undefined;
+    const entry = map[name];
+    // Interim audience rule — removal condition in the doc comment above.
+    // lane 7's own classifier decides "exactly an audience_not_entitled
+    // unavailable entry"; no second structural admission here.
+    const cls = classifyEntry(entry);
+    return !cls.ok && cls.reason === "audience_not_entitled" ? undefined : entry;
+  };
+  const sp500 = carried("confluence_universe_sp500");
+  const nasdaq = carried("confluence_universe_nasdaq");
+  const russell = carried("confluence_universe_russell");
+  const baskets = carried("confluence_universe_baskets");
+  const theme = carried("theme_rows");
+  if (sp500 === undefined && nasdaq === undefined && russell === undefined
+    && baskets === undefined && theme === undefined) return null;
+  return {
+    ...(sp500 !== undefined || nasdaq !== undefined || russell !== undefined || baskets !== undefined ? {
+      universeBlocks: {
+        subsectors: sp500 !== undefined ? confluenceSp500FromCarriedBlock(sp500) : undefined,
+        nasdaq: nasdaq !== undefined ? confluenceNasdaqFromCarriedBlock(nasdaq) : undefined,
+        russell: russell !== undefined ? confluenceRussellFromCarriedBlock(russell) : undefined,
+        baskets: baskets !== undefined ? confluenceBasketsFromCarriedBlock(baskets) : undefined,
+      },
+    } : {}),
+    themeRows: theme !== undefined ? themeRowsFromCarriedBlock(theme) : undefined,
+  };
+}
+
 export default function SectorIntelligenceWorkspace() {
   const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
+  const sc = sectorPortfolioCopy(lang);
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
   const [revision, setRevision] = useState(0);
   const activeFeeds = state.workspace === "discover" && state.sourceFamily === "finviz" ? FINVIZ_FEEDS : SECTOR_FEEDS;
@@ -101,7 +198,9 @@ export default function SectorIntelligenceWorkspace() {
   useEffect(() => {
     const sync = () => {
       const params = new URLSearchParams(window.location.search);
-      const next = parseSectorState(params);
+      // The clean canonical /sectors entry (no sector keys at all) opens the
+      // Brief job; every other URL keeps its exact legacy meaning.
+      const next = parseSectorState(params, window.location.pathname);
       if (next.workspace !== currentWorkspace.current) saveWorkspaceScroll();
       if (next.workspace !== "detail") { setReturnWorkspace(next.workspace); setReturnState(null); }
       else {
@@ -131,57 +230,142 @@ export default function SectorIntelligenceWorkspace() {
   }, [state.workspace]);
   useEffect(() => {
     const controller = new AbortController(); let alive = true;
-    for (const source of requestOwner.activeFeeds) {
-      void (async () => {
-        let payload: FeedPayload;
-        try {
-          const res = await fetch(`/api/sector-intelligence?source=${source}`, {
-            credentials: "same-origin", cache: "no-store", signal: controller.signal,
-          });
-          const body = object(await res.json()), receipt = object(body.receipt);
-          const status = text(receipt.status) as FeedStatus;
-          if (receipt.source !== source || !Object.hasOwn(STATUS_KEYS, status) || (status === "ready" && !res.ok)) {
+    const pending = new Set<SectorFeed>();
+    async function read(source: SectorFeed) {
+      if (!alive || controller.signal.aborted || pending.has(source)) return;
+      pending.add(source);
+      // One bounded request per feed and owner. A stalled request must not hold
+      // the pending slot forever; leaving the owner cancels every child read.
+      const request = new AbortController();
+      const cancel = () => request.abort();
+      controller.signal.addEventListener("abort", cancel, { once: true });
+      const timeout = setTimeout(cancel, 10_000);
+      let payload: FeedPayload;
+      try {
+        const res = await fetch(`/api/sector-intelligence?source=${source}`, {
+          credentials: "same-origin", cache: "no-store", signal: request.signal,
+        });
+        const body = object(await res.json()), receipt = object(body.receipt);
+        if (request.signal.aborted) throw new Error("Sector owner read expired");
+        const status = text(receipt.status) as FeedStatus;
+        if (receipt.source !== source || !Object.hasOwn(STATUS_KEYS, status) || (status === "ready" && !res.ok)) {
+          payload = emptyFeed(source, "invalid");
+        } else {
+          payload = { data: res.ok ? body.data : null, receipt: {
+            source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
+            observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
+            stale: receipt.stale === true,
+            qualificationReasons: Array.isArray(receipt.qualificationReasons)
+              ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
+          } };
+          if (source === "generation" && status === "ready" && !nativeSectorEvidence(payload).generation) {
             payload = emptyFeed(source, "invalid");
-          } else {
-            payload = { data: res.ok ? body.data : null, receipt: {
-              source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
-              observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
-              stale: receipt.stale === true,
-              qualificationReasons: Array.isArray(receipt.qualificationReasons)
-                ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
-            } };
           }
-        } catch {
-          if (controller.signal.aborted) return;
-          payload = emptyFeed(source, "error");
         }
-        if (alive) setReceived(previous => ({ owner: requestOwner, receivedAt: Date.now(),
-          feeds: { ...(previous.owner === requestOwner ? previous.feeds : {}), [source]: payload } }));
-      })();
+      } catch {
+        if (controller.signal.aborted) return;
+        payload = emptyFeed(source, "error");
+      } finally {
+        clearTimeout(timeout);
+        controller.signal.removeEventListener("abort", cancel);
+        pending.delete(source);
+      }
+      if (alive) setReceived(previous => {
+        // A queued state update can run after the effect has lost its owner.
+        if (!alive || controller.signal.aborted) return previous;
+        const prior = previous.owner === requestOwner ? previous.feeds : {};
+        const last = prior[source];
+        const sameBytes = payload.receipt.status === "ready" && payload.receipt.contentHash && last?.receipt.status === "ready"
+          && last.receipt.contentHash === payload.receipt.contentHash;
+        const feed = sameBytes ? { ...payload, data: last.data } : payload;
+        return { owner: requestOwner, receivedAt: Date.now(), feeds: { ...prior, [source]: feed } };
+      });
     }
-    return () => { alive = false; controller.abort(); };
+    for (const source of requestOwner.activeFeeds) void read(source);
+    // Quote ticks keep their existing five-second owner. This checks for new
+    // owner publications across Rotation, Discover, Breadth and research depth;
+    // a successful read never advances a feed's source date.
+    function refreshVisible() {
+      if (document.hidden) return;
+      for (const source of requestOwner.activeFeeds) void read(source);
+    }
+    const timer = setInterval(refreshVisible, 60_000);
+    // Resume immediately, even when the next scheduled tick is not due yet.
+    // read() coalesces this with any request already in flight for this owner.
+    document.addEventListener("visibilitychange", refreshVisible);
+    return () => {
+      alive = false;
+      controller.abort();
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshVisible);
+    };
   }, [requestOwner]);
 
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
+  // Native PSL evidence has its own explicit source. Never relabel the narrower
+  // native core as the legacy artifact or revive legacy figures on native refusal.
+  const nativeEvidence = useMemo(() => nativeSectorEvidence(feeds.generation), [feeds.generation]);
+  const nativeGeneration = nativeEvidence.generation;
+  const nativeStatus = nativeEvidence.feed?.receipt.status || "loading";
+  // The native job/dossier surfaces bind every render to this one context: a
+  // replaced generation, subject, language, theme or owner revision produces a
+  // different binding, so a late reply for the old tuple can never render.
+  const nativeContext = useMemo(() => sectorNativeContext({
+    generation: nativeGeneration, transport: nativeStatus, subjectId: state.sector || null,
+    language: lang === "zh" ? "zh" : "en", theme: state.theme,
+    ownerRevision: `${identity.kind === "account" ? identity.userId : "guest"}#${revision}`,
+  }), [nativeGeneration, nativeStatus, state.sector, state.theme, lang, identity, revision]);
+  const nativeJobActive = state.sectorJob !== null && state.workspace !== "detail";
+  const nativeDossierActive = state.workspace === "detail" && state.sectorJob !== null;
+  // Round 2 part 2: the five lane 7 row reads, gated on the wire having
+  // carried a typed-blocks map at all (see sectorRowBlocksFromFeed). Null on
+  // today's wire — the dossier then renders exactly as before this increment.
+  const nativeRowBlocks = useMemo(() => sectorRowBlocksFromFeed(feeds.generation, nativeGeneration),
+    [feeds.generation, nativeGeneration]);
+  const selectedNative = nativeGeneration?.sectors.find(row => row.id === state.sector);
+  const selectionSectors = useMemo(() => {
+    const native = nativeGeneration?.sectors || [];
+    return [...sectors.filter(row => !native.some(value => value.id === row.id)), ...native];
+  }, [sectors, nativeGeneration]);
   const groups = useMemo(() => groupRows(feeds.confluence?.data), [feeds.confluence]);
   const themes = useMemo(() => themeRows(feeds.themes?.data), [feeds.themes]);
-  const rotationHistory = useMemo(() => sectorRotationHistory(feeds.history?.data), [feeds.history]);
+  const rotationHistory = nativeGeneration?.history || null;
   const rotationEpisodes = useMemo(() => sectorRotationEpisodes(feeds.events?.data), [feeds.events]);
-  const measuredRead = useMemo(() => feeds.sector?.receipt.status === "ready" ? sectorMeasuredRead(feeds.sector.data) : null, [feeds.sector]);
+  const measuredRead = useMemo(() => nativeEvidence.feed?.receipt.status === "ready"
+    ? sectorMeasuredRead(nativeEvidence.feed.data) : null, [nativeEvidence]);
   // Options R1 W2: the weekly relative trend feed and the fund holdings coverage are owner feeds read strictly; a rejected payload stays absent.
   const relativeTrend = useMemo(() => feeds.relative_trend?.receipt.status === "ready" ? sectorRotationRelativeTrend(feeds.relative_trend.data) : null, [feeds.relative_trend]);
   const holdingsCoverage = useMemo(() => feeds.holdings?.receipt.status === "ready" ? sectorHoldingsCoverage(feeds.holdings.data) : null, [feeds.holdings]);
-  const sector = useMemo(() => sectors.find(r => r.id === state.sector) || {}, [sectors, state.sector]);
+  const sector = useMemo(() => {
+    const legacy = sectors.find(row => row.id === state.sector);
+    if (!selectedNative) return legacy || {};
+    if (legacy && legacy.ticker === selectedNative.ticker) return legacy;
+    // Native-only identities remain reachable. Do not fill missing legacy
+    // metrics from a different representation or a mismatched legacy identity.
+    const { id, ticker, name, name_zh, kind } = selectedNative;
+    return { id, ticker, name, name_zh, kind };
+  }, [sectors, state.sector, selectedNative]);
   const group = useMemo(() => groups.find(r => r.key === state.group) || {}, [groups, state.group]);
   const roster = useMemo(() => members(group), [group]);
   const visibleMembers = useMemo(() => sortMembers(roster, state.sort, state.query), [roster, state.sort, state.query]);
   // Options R1: a holding opens its options exposure with the sector origin beside the
   // address, so the reader can step the same cohort and return to this exact selection.
   const exposureHref = useCallback((ticker: string) => {
-    const origin = sectorOriginFromState({ state, company: ticker, roster: visibleMembers.map(member => member.ticker),
+    const depthReturn = returnState && encodeSectorDepthReturn(returnState) ? returnState : null;
+    const origin = sectorOriginFromState({ state, depthReturn, company: ticker, roster: visibleMembers.map(member => member.ticker),
       asOf: feeds.confluence?.receipt.asOf ?? null, contentHash: feeds.confluence?.receipt.contentHash ?? null, benchmark: ROTATION_BENCHMARK });
     return origin ? withExposureOrigin(`/options?tab=prism&symbol=${encodeURIComponent(ticker)}&view=chart`, origin) : null;
-  }, [state, visibleMembers, feeds.confluence]);
+  }, [state, returnState, visibleMembers, feeds.confluence]);
+  // The Portfolio action carries the selected native sector ETF and the admitted opener
+  // snapshot — navigation context only. No dossier value, position, weight, target or
+  // account identity rides in the address.
+  const portfolioOpener = useMemo(() => {
+    if (state.workspace !== "detail") return null;
+    return returnState ? { ...returnState, sourcesOpen: false } : { ...state, workspace: returnWorkspace, sourcesOpen: false };
+  }, [state, returnState, returnWorkspace]);
+  const portfolioHref = useMemo(
+    () => sectorPortfolioHref(text(sector.ticker), portfolioOpener),
+    [sector.ticker, portfolioOpener]);
   const landed = useRef(false);
   useEffect(() => {
     // A return address names an exact holding: land on it once, without a scroll jump.
@@ -225,11 +409,20 @@ export default function SectorIntelligenceWorkspace() {
   }, [state, saveWorkspaceScroll, returnState]);
   const openOuterWorkspace = (workspace: OuterWorkspace) => {
     setReturnWorkspace(workspace); setReturnState(null);
-    change({ workspace, sourcesOpen: false }, true);
+    // Leaving the native job family for a legacy outer workspace restores the
+    // legacy meaning (no sectorJob in the address).
+    change({ workspace, sourcesOpen: false, sectorJob: null }, true);
   };
   const openSectorResearch = (sectorId: string) => {
     if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
     change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
+  };
+  const setJob = (job: SectorJob) => {
+    change({ sectorJob: job, workspace: "discover", sourcesOpen: false }, true);
+  };
+  const openNativeDossier = (sectorId: string, view: SectorView = "intelligence") => {
+    if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
+    change({ sector: sectorId, workspace: "detail", view, group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
   };
   const returnToOuterWorkspace = () => {
     const target = returnState ? { ...returnState, sourcesOpen: false } : { workspace: returnWorkspace, sourcesOpen: false };
@@ -300,16 +493,23 @@ export default function SectorIntelligenceWorkspace() {
           {activeFeeds.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
             <dl className={styles.pairs}><div><dt>{t("siSnapshotDate")}</dt><dd>{receipt?.asOf || t("siUnknownDate")}</dd></div><div><dt>{t("siFetched")}</dt><dd>{receipt?.observedAt || "—"}</dd></div></dl>
             {receipt?.stale && <p className={styles.note}>{t("siStale")}</p>}
-            <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code></details>
+            <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code>
+              {source === "generation" && nativeGeneration && <>
+                <p>{t("siDossierGeneration")}</p><code>{nativeGeneration.receipt.generation_id}</code>
+                <p>{t("siGenerationPublished")}</p><code>{nativeGeneration.receipt.published_at}</code>
+                <p>{t("siGenerationHash")}</p><code>{nativeGeneration.receipt.content_sha256}</code>
+              </>}
+            </details>
           </Card>; })}</div>
       </div>
     </MobileSheet>
     <div className={styles.page}>
+      {!nativeJobActive && !nativeDossierActive && <>
       <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
         <div className={`${styles.controls} ${state.workspace === "detail" ? styles.detailControls : styles.utilityControls}`}>
           {state.workspace === "detail" && <><label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
-            {!sectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
-            {sectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
+            {!selectionSectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
+            {selectionSectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
           </select></label>
           <label>{t("siGroup")}<button type="button" className={styles.button}
             aria-label={t("siBrowseGroups")} aria-haspopup="dialog" aria-expanded={groupBrowserOpen}
@@ -326,15 +526,36 @@ export default function SectorIntelligenceWorkspace() {
       {state.workspace === "detail" && <div className={styles.depthNavigation} data-testid="sector-detail-depth">
         <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
         <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
+        {portfolioHref && <Link className={styles.button} href={portfolioHref} data-testid="sector-view-in-portfolio"
+          data-sector-etf={text(sector.ticker)}>{sc("viewInPortfolio")}</Link>}
       </div>}
       {state.workspace === "discover" && <nav className={styles.workspaceNavigation} aria-label={t("siFinvizSourceFamily")}>
         <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{t("siFinvizSectors")}</button>
         <button type="button" aria-pressed={state.sourceFamily === "finviz"} onClick={() => change({ sourceFamily: "finviz" }, true)}>{t("siFeedFinviz")}</button>
       </nav>}
-      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status} risk={feeds.risk}
-        asOf={feeds.sector?.receipt.asOf || null} measured={measuredRead} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
-        history={rotationHistory} historyStatus={feeds.history?.receipt.status || "loading"}
-        historyRevision={feeds.history?.receipt.contentHash || null}
+      {state.workspace === "rotation" && state.rotationMethod !== "relative_trend_ema" &&
+        <SectorGenerationQualification qualification={nativeGeneration?.receipt.qualification} />}
+      </>}
+      {nativeJobActive ? <SectorNativeJobShell context={nativeContext} job={state.sectorJob as SectorJob}
+        onJob={setJob} onSelect={sector => change({ sector }, true)}
+        onOpenDossier={openNativeDossier}
+        onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
+        onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()} />
+      : nativeDossierActive ? <SectorNativeDossier context={nativeContext} view={state.view}
+        onView={view => go(view)} onBack={returnToOuterWorkspace} onJob={setJob}
+        onOpenRotation={() => openOuterWorkspace("rotation")}
+        onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
+        onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()}
+        onSelect={sectorId => change({ sector: sectorId }, true)}
+        historyFeed={cycleFeed(feeds.history)} eventsFeed={cycleFeed(feeds.events)}
+        rowBlocks={nativeRowBlocks} />
+      : state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
+        rows={state.rotationMethod === "relative_trend_ema" ? sectors : nativeGeneration?.sectors || []}
+        status={state.rotationMethod === "relative_trend_ema" ? status : nativeStatus} risk={feeds.risk}
+        asOf={state.rotationMethod === "relative_trend_ema" ? feeds.sector?.receipt.asOf || null : nativeGeneration?.receipt.source_session || null}
+        measured={state.rotationMethod === "relative_trend_ema" ? null : measuredRead} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
+        history={rotationHistory} historyStatus={nativeStatus}
+        historyRevision={nativeGeneration?.key || null}
         method={state.rotationMethod} relativeTrend={relativeTrend}
         relativeTrendStatus={feeds.relative_trend?.receipt.status === "ready" && !relativeTrend ? "invalid" : feeds.relative_trend?.receipt.status || "loading"}
         onMethod={rotationMethod => change({ rotationMethod })}
@@ -347,6 +568,9 @@ export default function SectorIntelligenceWorkspace() {
         selectedCompany={state.company} query={state.discoveryQuery} companyTableQuery={state.companyTableQuery}
         sort={state.discoverySort} companyTableSort={state.companyTableSort}
         breadth={state.workspace === "breadth"} mode={state.discoveryMode}
+        breadthSort={state.breadthSort} breadthWindow={state.breadthWindow}
+        onBreadthSort={breadthSort => change({ breadthSort })}
+        onBreadthWindow={breadthWindow => change({ breadthWindow })}
         heatmapData={feeds.heatmap?.data} heatmapStatus={feeds.heatmap?.receipt.status || "loading"}
         heatmapAsOf={feeds.heatmap?.receipt.asOf || null} matrixTimeframe={state.matrixTimeframe}
         matrixIndustry={state.matrixIndustry} matrixBand={state.matrixBand}
@@ -400,7 +624,14 @@ export default function SectorIntelligenceWorkspace() {
               <Metric label={t("siTop5")} value={formatValue(cap ? cap.share * 100 : null, 1, "%")} foot={cap ? `${cap.count} ${t("siTiles")}` : t("siNotConnected")} />
             </div>
           </section>}
+          {/* Evidence and reconstructed rotation history share one admitted native
+              generation; the surrounding legacy panels retain their own sources. */}
+          <SectorGenerationQualification qualification={nativeGeneration?.receipt.qualification} />
+          <SectorLeadershipDossier feed={nativeEvidence.feed} selectedTicker={text(selectedNative?.ticker)} onSources={() => openSources()} />
           {comparison}
+          <SectorConstituentEvidence fund={text(sector.ticker) || null}
+            coverage={holdingsCoverage ? holdingsCoverageFor(holdingsCoverage, text(sector.ticker)) : null}
+            feed={feeds.holdings ?? null} identity={identity} presentation={state.theme} />
           {/* Catalyst: the owner's measured intraday interval, after the market summary and before
               the detailed evidence disclosure. It adds no new state owner and no new route. */}
           <SectorIntradayComparison data={feeds.intraday?.data} status={feeds.intraday?.receipt.status || "loading"}

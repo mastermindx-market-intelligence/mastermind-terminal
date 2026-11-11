@@ -1,0 +1,219 @@
+{
+  "branchHead": "80e69c39e00b6c16c5fc32b5ca1e9146d31b264d",
+  "indexTreeAtStart": "1957db9025e9766363e0887dcf4b0c6fe0562ae9",
+  "protectedMaster": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+  "schema": "terminal_pr1353_settings_native.v1",
+  "sourceFiles": 3388,
+  "stages": [
+    {
+      "actualFiles": [
+        "SectionAlertDelivery-populated-1440.png",
+        "SectionAlertDelivery-populated-1440-zh.png",
+        "SectionAlertDelivery-populated-390.png",
+        "SectionAlertDelivery-populated-390-zh.png",
+        "SectionAlertDelivery-quiet-hours-1440.png",
+        "SectionAlertDelivery-quiet-hours-1440-zh.png",
+        "SectionAlertDelivery-quiet-hours-390.png",
+        "SectionAlertDelivery-quiet-hours-390-zh.png",
+        "SectionAlertDelivery-field-error-1440.png",
+        "SectionAlertDelivery-field-error-1440-zh.png",
+        "SectionAlertDelivery-field-error-390.png",
+        "SectionAlertDelivery-field-error-390-zh.png",
+        "SectionAlertDelivery-unavailable-1440.png",
+        "SectionAlertDelivery-unavailable-1440-zh.png",
+        "SectionAlertDelivery-unavailable-390.png",
+        "SectionAlertDelivery-unavailable-390-zh.png"
+      ],
+      "command": [
+        "node",
+        "e2e/tools/capture_f08_6_alert_prefs.cjs"
+      ],
+      "completedAt": "2026-11-09T14:14:41.249184+00:00",
+      "exit": 0,
+      "expected": 16,
+      "images": {
+        "SectionAlertDelivery-field-error-1440-zh.png": {
+          "bytes": 120028,
+          "height": 772,
+          "sha256": "3a1daf04e9bc0ed8c7589d12745b3b4b41471dd821ff958fb62e4151964054e4",
+          "width": 1140
+        },
+        "SectionAlertDelivery-field-error-1440.png": {
+          "bytes": 110004,
+          "height": 772,
+          "sha256": "e9a08c6b0205e077b439236d104ab5a702c60e2cbf66dd4e11503d204ff9c2f0",
+          "width": 1140
+        },
+        "SectionAlertDelivery-field-error-390-zh.png": {
+          "bytes": 93177,
+          "height": 844,
+          "sha256": "038a2ce49bf04fbf25e05756cadf0bfd9a94bb6b58c8e6beead76ec2c1ee8a08",
+          "width": 390
+        },
+        "SectionAlertDelivery-field-error-390.png": {
+          "bytes": 80553,
+          "height": 844,
+          "sha256": "19d76cfbfd66d29b1363c6887044fd52390f1e971354f4e6760b0bc2a0e8e512",
+          "width": 390
+        },
+        "SectionAlertDelivery-populated-1440-zh.png": {
+          "bytes": 118149,
+          "height": 772,
+          "sha256": "f419639beba053036e1ef3a84f76df7bf0b746482bb776b986cf7c84c8c7278c",
+          "width": 1140
+        },
+        "SectionAlertDelivery-populated-1440.png": {
+          "bytes": 108672,
+          "height": 772,
+          "sha256": "9c40e9e5b128d37be84cb346c0810aae23759c90432064edbf274e915055f95c",
+          "width": 1140
+        },
+        "SectionAlertDelivery-populated-390-zh.png": {
+          "bytes": 89838,
+          "height": 844,
+          "sha256": "d867012efc487dbd71f01e5c69c0dd1a6c7cbeddbf9123683677578964fdc754",
+          "width": 390
+        },
+        "SectionAlertDelivery-populated-390.png": {
+          "bytes": 78966,
+          "height": 844,
+          "sha256": "0e43a29cec91e6c4092fb5be214fd91212f352105c22aac2a4b25bda34a5b4f3",
+          "width": 390
+        },
+        "SectionAlertDelivery-quiet-hours-1440-zh.png": {
+          "bytes": 117888,
+          "height": 772,
+          "sha256": "3c11a6fab3e2b01ba1d3805f5adc0c8f788f76da31b396a2be69a4e671a80ce9",
+          "width": 1140
+        },
+        "SectionAlertDelivery-quiet-hours-1440.png": {
+          "bytes": 107495,
+          "height": 772,
+          "sha256": "47f8657135b7249304ecfb793678f6583bd250e80d52b5ed7a053d61d557e245",
+          "width": 1140
+        },
+        "SectionAlertDelivery-quiet-hours-390-zh.png": {
+          "bytes": 89209,
+          "height": 844,
+          "sha256": "894e215ca3fd5df4775460fb3a7145019ba4d743da269b502868041e9145fcc1",
+          "width": 390
+        },
+        "SectionAlertDelivery-quiet-hours-390.png": {
+          "bytes": 79028,
+          "height": 844,
+          "sha256": "8ed39562f67671e18be1bd3636d073c4f8301888fa07d70a523b076aa37b91c1",
+          "width": 390
+        },
+        "SectionAlertDelivery-unavailable-1440-zh.png": {
+          "bytes": 65062,
+          "height": 772,
+          "sha256": "d463095e9df41447c9a7696ef8dd8a362e1038f25124752810f76b63e6d798bb",
+          "width": 1140
+        },
+        "SectionAlertDelivery-unavailable-1440.png": {
+          "bytes": 64211,
+          "height": 772,
+          "sha256": "68ef824357f02176bcb68be199f4699e6da16125c453a84474d11c397db6696d",
+          "width": 1140
+        },
+        "SectionAlertDelivery-unavailable-390-zh.png": {
+          "bytes": 44335,
+          "height": 844,
+          "sha256": "4f9212e72a92753f48be0343fa700ec496480aaa50bffa0eaa2bd36c6d3285e8",
+          "width": 390
+        },
+        "SectionAlertDelivery-unavailable-390.png": {
+          "bytes": 42351,
+          "height": 844,
+          "sha256": "6a1801a97be1c84faf0afeaa7f37b1af8b207399754ac40307ea99beb58636da",
+          "width": 390
+        }
+      },
+      "kind": "alerts",
+      "logSha256": "6626aad731022c4887b39cd5701a4de01c2d2e995b17040ddbc6d151a4526115",
+      "manifestSha256": "e5b0474fa2047c4cbdd12f8e077c79217bda5e392d459d876634f97639dbb7bb",
+      "nextLockAbsent": true,
+      "packet": "b-f08-6-alert-prefs",
+      "port": 3803,
+      "portClosed": true,
+      "seconds": 62.1,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T14:13:39.143706+00:00"
+    },
+    {
+      "actualFiles": [
+        "PortfolioTargetsSettings-empty-390-en.png"
+      ],
+      "command": [
+        "node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/docs/verification/pr1353-settings-evidence-20261109/settings-capture-owner.cjs"
+      ],
+      "completedAt": "2026-11-09T14:15:34.099432+00:00",
+      "exit": 1,
+      "expected": 8,
+      "images": {
+        "PortfolioTargetsSettings-empty-1440-en.png": {
+          "bytes": 237554,
+          "height": 1544,
+          "sha256": "6096a7dff3f68cec58e64a9e26c6b2d85e99e2fd1bec1d59ef3582b86d3d848a",
+          "width": 2280
+        },
+        "PortfolioTargetsSettings-empty-1440-zh.png": {
+          "bytes": 238673,
+          "height": 1544,
+          "sha256": "d1d3e5204bdbd197e0ada930a813181859f2de97159c37da2695193681111bd7",
+          "width": 2280
+        },
+        "PortfolioTargetsSettings-empty-390-en.png": {
+          "bytes": 144918,
+          "height": 1688,
+          "sha256": "932faf8fe36348acd21982f16d5814a9c27096b71003e660275ab3e4e7f50fb3",
+          "width": 780
+        },
+        "PortfolioTargetsSettings-empty-390-zh.png": {
+          "bytes": 154283,
+          "height": 1688,
+          "sha256": "faf4819f5d3fdf06d0b203dc8b0f0b17bc23d64ce2ee23e570b483d8cd8ca555",
+          "width": 780
+        },
+        "PortfolioTargetsSettings-populated-1440-en.png": {
+          "bytes": 255142,
+          "height": 1544,
+          "sha256": "d891872dab9b00ac95002106b4c5d6cb4e089d67c9a4723355b570e8e30bab4f",
+          "width": 2280
+        },
+        "PortfolioTargetsSettings-populated-1440-zh.png": {
+          "bytes": 261775,
+          "height": 1544,
+          "sha256": "87a5ec4ca26e183c8050c01091722241138902afe007997302acafab5be89fcb",
+          "width": 2280
+        },
+        "PortfolioTargetsSettings-populated-390-en.png": {
+          "bytes": 154685,
+          "height": 1688,
+          "sha256": "26ca3144d5550b04a50dadc4e21c0a0affdf812cdd0653792a8e6ca993249086",
+          "width": 780
+        },
+        "PortfolioTargetsSettings-populated-390-zh.png": {
+          "bytes": 162094,
+          "height": 1688,
+          "sha256": "27a5d74d1c318cc4db6fc3bcb279bc20dee7e37205e4cc86c32422ded715f575",
+          "width": 780
+        }
+      },
+      "kind": "settings-targets",
+      "logSha256": "88e4c24c0c4c333fcc89a8f8430d54a838bcc9062079bc157f1415d6435c6cbd",
+      "manifestSha256": "1f80f672869ac10fa8d835a46f969de87574af748ca3d60f24e690bcdbeeb289",
+      "nativeReadbacksSha256": "0854fc1fd534816668b3ba8ac06e2d8ede0bcad099f1f519e4639bca7147ff38",
+      "nextLockAbsent": true,
+      "packet": "w9t-f08-13-targets-readout",
+      "port": 3804,
+      "portClosed": true,
+      "seconds": 52.58,
+      "serverOwnerSha256": "f62a72dc4a76b4488f549eafd1c0f72d1d01c50981dcaabcc2dfe4f8b58c2403",
+      "sourceStable": true,
+      "startedAt": "2026-11-09T14:14:41.523866+00:00"
+    }
+  ],
+  "startedAt": "2026-11-09T14:13:38.777937+00:00"
+}

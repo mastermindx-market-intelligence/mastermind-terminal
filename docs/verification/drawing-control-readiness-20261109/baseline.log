@@ -1,0 +1,114 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/2fe663974ce0/validation-pr654/terminal
+
+ ❯ lib/__tests__/drawingSidebarReadiness.test.tsx (6 tests | 4 failed) 561ms
+   × drawing controls follow the shell's real owner and load readiness > starts disabled, then accepts one click after placeholder publication while GET remains held 137ms
+     → expected { owner: 'account:owner-a', …(6) } to match object { owner: 'account:owner-a', …(2) }
+(4 matching properties omitted from actual)
+   × drawing controls follow the shell's real owner and load readiness > withdraws creation availability when the actual current load rejects 51ms
+     → expected { owner: 'account:owner-a', …(6) } to match object { hasCache: false, …(2) }
+(4 matching properties omitted from actual)
+   × drawing controls follow the shell's real owner and load readiness > fences the transitional old-owner cache and ignores the stale owner's rejection 112ms
+     → expected { owner: 'account:owner-b', …(6) } to match object { hasCache: true, disabled: true }
+(5 matching properties omitted from actual)
+   × drawing controls follow the shell's real owner and load readiness > disables an already-open flyout and favorite when the actual load fails 107ms
+     → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/drawingSidebarReadiness.test.tsx > drawing controls follow the shell's real owner and load readiness > starts disabled, then accepts one click after placeholder publication while GET remains held
+AssertionError: expected { owner: 'account:owner-a', …(6) } to match object { owner: 'account:owner-a', …(2) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  Object {
+-   "disabled": true,
++   "disabled": false,
+    "hasCache": false,
+    "owner": "account:owner-a",
+  }
+
+ ❯ lib/__tests__/drawingSidebarReadiness.test.tsx:151:29
+    149|   it("starts disabled, then accepts one click after placeholder public…
+    150|     await mount();
+    151|     expect(observations[0]).toMatchObject({ owner: "account:owner-a", …
+       |                             ^
+    152|     expect(requests).toHaveLength(1);
+    153|     expect(requests[0]).toMatchObject({ url: "/api/drawings?symbol=NVD…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/__tests__/drawingSidebarReadiness.test.tsx > drawing controls follow the shell's real owner and load readiness > withdraws creation availability when the actual current load rejects
+AssertionError: expected { owner: 'account:owner-a', …(6) } to match object { hasCache: false, …(2) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  Object {
+-   "disabled": true,
++   "disabled": false,
+    "hasCache": false,
+    "pinned": null,
+  }
+
+ ❯ lib/__tests__/drawingSidebarReadiness.test.tsx:163:33
+    161|     await mount(); expect(button().disabled).toBe(false);
+    162|     await reject(0);
+    163|     expect(observations.at(-1)).toMatchObject({ hasCache: false, disab…
+       |                                 ^
+    164|     act(() => { button().click(); button().dispatchEvent(new MouseEven…
+    165|     expect(button().getAttribute("aria-pressed")).toBe("false");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  lib/__tests__/drawingSidebarReadiness.test.tsx > drawing controls follow the shell's real owner and load readiness > fences the transitional old-owner cache and ignores the stale owner's rejection
+AssertionError: expected { owner: 'account:owner-b', …(6) } to match object { hasCache: true, disabled: true }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  Object {
+-   "disabled": true,
++   "disabled": false,
+    "hasCache": true,
+  }
+
+ ❯ lib/__tests__/drawingSidebarReadiness.test.tsx:175:8
+    173|     await mount({ userId: "owner-b" });
+    174|     expect(observations.find(row => row.owner === "account:owner-b" &&…
+    175|       .toMatchObject({ hasCache: true, disabled: true });
+       |        ^
+    176|     expect(requests).toHaveLength(2);
+    177|     expect(requests[1]).toMatchObject({ owner: "account:owner-b", sett…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  lib/__tests__/drawingSidebarReadiness.test.tsx > drawing controls follow the shell's real owner and load readiness > disables an already-open flyout and favorite when the actual load fails
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ lib/__tests__/drawingSidebarReadiness.test.tsx:198:51
+    196|     expect(button("drawing-tool-hline").disabled).toBe(false);
+    197|     await reject(0);
+    198|     expect(button("drawing-tool-hline").disabled).toBe(true);
+       |                                                   ^
+    199|     const favorite = document.querySelector<HTMLButtonElement>('[data-…
+    200|     expect(favorite).not.toBeNull(); expect(favorite!.disabled).toBe(t…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 2 passed (6)
+   Start at  01:10:21
+   Duration  19.72s (transform 1.16s, setup 0ms, collect 15.28s, tests 561ms, environment 1.34s, prepare 224ms)
+

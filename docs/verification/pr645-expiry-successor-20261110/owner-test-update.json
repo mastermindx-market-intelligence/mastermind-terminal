@@ -1,0 +1,6 @@
+{
+  "schema": "terminal_pr645_owner_test_update.v1",
+  "path": "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+  "beforeSha256": "3f72123a3cf92300ddfa853e367c186cbc192cf3b4b3241e94f9d06101a5f0d9",
+  "afterSha256": "99f06b2284a190889124cdae56e396dccf2f62ffac1af1bfa4ae5c5023c2f992"
+}

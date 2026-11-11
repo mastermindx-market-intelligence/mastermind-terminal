@@ -3,8 +3,8 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // Real composition under test: ShellSearch -> (lazy) SymbolPicker -> SearchModal. SymbolPicker
-// and SearchModal are the production modules, imported directly; the only stand-in is
-// next/dynamic's load wrapper, which resolves to that SAME real SearchModal module.
+// and SearchModal are production modules. The framework load wrapper resolves to the
+// SAME real SearchModal; only data inputs and external owners are deterministic fixtures.
 import ShellSearch from "@/components/chrome/shared-shell/ShellSearch";
 import SymbolPicker from "@/components/SymbolPicker";
 import SearchModal from "@/components/SearchModal";
@@ -15,6 +15,7 @@ const state = vi.hoisted(() => ({
   writeActiveSymbol: vi.fn(),
   trackSearch: vi.fn(),
   getJSONResult: vi.fn(),
+  loadSharedSearchCatalog: vi.fn(),
   manifest: {
     AAPL: { name: "Apple", col: "#333333", verdict: null, mkt: "US", sec: "Equities" },
   },
@@ -49,10 +50,13 @@ vi.mock("@/components/onboarding/OnboardingProvider", () => ({
 }));
 vi.mock("@/lib/useMediaQuery", () => ({ useIsPhone: () => false, useIsMobile: () => false }));
 vi.mock("@/lib/searchTrack", () => ({ trackSearch: state.trackSearch }));
+vi.mock("@/lib/sharedShellSearchCatalog", () => ({ loadSharedSearchCatalog: state.loadSharedSearchCatalog }));
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const originalIdleCallback = Object.getOwnPropertyDescriptor(window, "requestIdleCallback");
+const manifestReads = () => state.getJSONResult.mock.calls.filter(([url]) => url === "/data/manifest.json").length;
 
 let root: Root;
 let host: HTMLDivElement;
@@ -86,15 +90,28 @@ async function typeQuery(input: HTMLInputElement, value: string) {
 }
 
 beforeEach(() => {
+  window.history.replaceState(null, "", "/today");
+  document.documentElement.lang = "en";
+  document.documentElement.setAttribute("data-lang", "en");
+  localStorage.setItem("mm.lang", "en");
   // Deterministic idle path: force SymbolPicker's requestIdleCallback fallback to setTimeout.
   delete (window as unknown as { requestIdleCallback?: unknown }).requestIdleCallback;
   state.push.mockReset();
   state.writeActiveSymbol.mockReset();
   state.trackSearch.mockReset();
   state.getJSONResult.mockReset();
-  state.getJSONResult.mockResolvedValue({
-    status: "data",
-    data: { as_of: null, symbols: state.manifest },
+  state.getJSONResult.mockImplementation(async (url: string) => {
+    if (url === "/data/manifest.json") return {
+      status: "data", data: { as_of: null, symbols: state.manifest },
+    };
+    if (url === "/data/AAPL.fund.json") return {
+      status: "data", data: { ticker: "AAPL", quote_currency: "USD" },
+    };
+    throw new Error("Unexpected search fixture read: " + url);
+  });
+  state.loadSharedSearchCatalog.mockReset();
+  state.loadSharedSearchCatalog.mockResolvedValue({
+    sharedShellDirectory: [], sharedShellCatalog: { nativePaths: [], legacyPaths: [] },
   });
   onOpenChange.mockReset();
   host = document.createElement("div");
@@ -107,14 +124,17 @@ afterEach(async () => {
     root.unmount();
   });
   host.remove();
+  if (originalIdleCallback) Object.defineProperty(window, "requestIdleCallback", originalIdleCallback);
+  else delete (window as unknown as { requestIdleCallback?: unknown }).requestIdleCallback;
+  document.documentElement.removeAttribute("data-lang");
+  localStorage.removeItem("mm.lang");
 });
 
 const trigger = () => host.querySelector<HTMLElement>(".sym-pick.shared-shell-company-search");
 const dialog = () => document.querySelector<HTMLElement>("[role='dialog']");
-const aaplRow = () =>
-  Array.from(document.querySelectorAll<HTMLElement>(".sres .r")).find(
-    (row) => row.querySelector(".tk")?.textContent === "AAPL",
-  );
+const aaplRow = () => document.querySelector<HTMLElement>(
+  "[role='listbox'][aria-label='Company listings'] [role='option'][data-company-symbol='AAPL']",
+);
 
 describe("Shared Shell lazy company search portal", () => {
   it("keeps a closed shell silent: no manifest read and no dialog", async () => {
@@ -125,12 +145,13 @@ describe("Shared Shell lazy company search portal", () => {
       await sleep(450);
     });
     expect(state.getJSONResult).not.toHaveBeenCalled();
+    expect(state.loadSharedSearchCatalog).not.toHaveBeenCalled();
     expect(dialog()).toBeNull();
     const button = trigger();
     expect(button).not.toBeNull();
     expect(button!.getAttribute("aria-haspopup")).toBe("dialog");
     expect(button!.getAttribute("aria-expanded")).toBe("false");
-    expect(button!.getAttribute("aria-label")).toBe("Search companies");
+    expect(button!.getAttribute("aria-label")).toBe("Search companies and tools");
   });
 
   it("click intent mounts the real picker and portals the real company dialog to document.body", async () => {
@@ -144,11 +165,11 @@ describe("Shared Shell lazy company search portal", () => {
     await renderShell(true); // the shell host honours the reported intent
     expect(trigger()).not.toBeNull();
     expect(trigger()!.getAttribute("aria-expanded")).toBe("true");
-    // The freshly mounted real picker starts exactly one idle manifest read.
+    // Cold focus can start the guarded read before idle; it still has one owner.
     await act(async () => {
       await sleep(450);
     });
-    expect(state.getJSONResult).toHaveBeenCalledTimes(1);
+    expect(manifestReads()).toBe(1);
     const panel = dialog();
     expect(panel).not.toBeNull();
     // Portal composition: the dialog lives under document.body, outside the shell host.
@@ -156,25 +177,31 @@ describe("Shared Shell lazy company search portal", () => {
     expect(panel!.parentElement).toBe(document.body);
     expect(host.contains(panel!)).toBe(false);
     expect(document.getElementById(panel!.getAttribute("aria-labelledby")!)?.textContent).toBe(
-      "Search companies",
+      "Search companies and tools",
     );
-    const input = panel!.querySelector<HTMLInputElement>("input");
+    const input = panel!.querySelector<HTMLInputElement>("[role='combobox']");
     expect(input).not.toBeNull();
 
     await typeQuery(input!, "AAPL");
-    expect(aaplRow()).not.toBeUndefined();
+    expect(aaplRow()).not.toBeNull();
     await act(async () => {
       aaplRow()!.click();
     });
+    expect(state.writeActiveSymbol).not.toHaveBeenCalled();
+    expect(state.push).not.toHaveBeenCalled();
+    const openAnalysis = Array.from(panel!.querySelectorAll<HTMLButtonElement>("button"))
+      .find(button => button.textContent === "Open Analysis");
+    expect(openAnalysis).toBeDefined();
+    await act(async () => { openAnalysis!.click(); });
     expect(state.writeActiveSymbol).toHaveBeenCalledWith("AAPL");
     expect(state.push).toHaveBeenCalledTimes(1);
-    expect(state.push).toHaveBeenCalledWith("/analysis?symbol=AAPL");
+    expect(state.push).toHaveBeenCalledWith("/analysis?symbol=AAPL&company_query=AAPL");
     expect(onOpenChange).toHaveBeenLastCalledWith(false);
     await renderShell(false); // the controlled host also honours the reported close
     // Picked: the dialog is gone, but the activated picker stays mounted.
     expect(dialog()).toBeNull();
     expect(trigger()).not.toBeNull();
-    expect(state.getJSONResult).toHaveBeenCalledTimes(1);
+    expect(manifestReads()).toBe(1);
   });
 
   it("reopens the retained picker with no duplicate eager manifest reads", async () => {
@@ -186,7 +213,7 @@ describe("Shared Shell lazy company search portal", () => {
     await act(async () => {
       await sleep(450);
     });
-    expect(state.getJSONResult).toHaveBeenCalledTimes(1);
+    expect(manifestReads()).toBe(1);
     await renderShell(false);
     expect(dialog()).toBeNull();
     expect(trigger()).not.toBeNull();
@@ -194,12 +221,14 @@ describe("Shared Shell lazy company search portal", () => {
     const panel = dialog();
     expect(panel).not.toBeNull();
     expect(panel!.parentElement).toBe(document.body);
-    expect(state.getJSONResult).toHaveBeenCalledTimes(1);
-    await typeQuery(panel!.querySelector<HTMLInputElement>("input")!, "AAPL");
+    expect(manifestReads()).toBe(1);
+    const input = panel!.querySelector<HTMLInputElement>("[role='combobox']")!;
+    await typeQuery(input, "AAPL");
     // The universe survived the close on the retained mount: rows resolve with no reload,
     // no universe-loading placeholder and no second read.
-    expect(aaplRow()).not.toBeUndefined();
-    expect(document.querySelector(".s-type-hint")).toBeNull();
-    expect(state.getJSONResult).toHaveBeenCalledTimes(1);
+    expect(input.value).toBe("AAPL");
+    expect(aaplRow()).not.toBeNull();
+    expect(aaplRow()!.closest("[role='listbox']")!.getAttribute("aria-busy")).toBe("false");
+    expect(manifestReads()).toBe(1);
   });
 });

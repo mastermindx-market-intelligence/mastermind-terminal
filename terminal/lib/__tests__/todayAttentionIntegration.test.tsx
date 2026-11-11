@@ -6,12 +6,12 @@ import TodayWorkspace from "@/components/workspaces/TodayWorkspace";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const A="11111111-1111-4111-8111-111111111111";
-const identity=vi.hoisted(()=>({user:"11111111-1111-4111-8111-111111111111",listener:null as null|((event:string,session:{user:{id:string}}|null)=>void),open:vi.fn()}));
+const identity=vi.hoisted(()=>({user:"11111111-1111-4111-8111-111111111111",listener:null as null|((event:string,session:{user:{id:string}}|null)=>void),open:vi.fn(),reads:0}));
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
 vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({open:identity.open})}));
-vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>({data:{user:{id:identity.user}},error:null}),onAuthStateChange:(listener:typeof identity.listener)=>{identity.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
+vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>{identity.reads++;return{data:{user:{id:identity.user}},error:null};},onAuthStateChange:(listener:typeof identity.listener)=>{identity.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
 vi.mock("@/lib/useMediaQuery",()=>({useMediaQuery:()=>false}));
-vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
+vi.mock("next/link",()=>({default:({children,prefetch,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement> & {prefetch?:boolean})=><a {...props} data-prefetch={String(prefetch)}>{children}</a>}));
 const briefing={schema:"mastermind.macro_command_read.v1",state:"ready",source:{served_root_qualified:true,manifest_generated_at:"2026-10-20T10:00:00Z",manifest_sha256:"d".repeat(64),composed_at:"2026-10-21T12:00:00Z"},read:{as_of:"2026-10-18",as_of_display:{en:"18 October 2026",zh:"2026年10月18日"},as_of_meaning:{en:"Oldest dated reading",zh:"最早读数"},clauses:[{topic:{en:"Liquidity",zh:"流动性"},predicate:{en:"is mixed",zh:"不均衡"},punct:{en:".",zh:"。"},section:"liquidity"}],omitted:false},strip:[],coverage:{available:1,total:1},sections:[{id:"liquidity",label:{en:"Liquidity",zh:"流动性"},href:"/macro_monetary.html#liquidity"}],workspaces:[]};
 const inventory={lists:[{id:"owned-list",name:"PRIVATE WATCH",position:0,symbols:[{symbol:"AAPL",section:"",position:0}]}],sharedWithMe:[]};
 const catalog={items:[{id:"report-one",title:"PRIVATE REPORT",institution:"Source desk",published_at:"2026-10-19",summary_points:["Actual source summary"]}],preview:false,stale:false,generated_at:"2026-10-20T10:00:00Z"};
@@ -21,7 +21,7 @@ let held:Held[],root:Root,container:HTMLDivElement;
 async function flush(){for(let i=0;i<5;i++)await act(async()=>{await Promise.resolve();});}
 async function mount(){await act(async()=>root.render(<TodayWorkspace ownerKey={A}/>));await flush();}
 async function answer(path:string,value:unknown,status=200){const request=held.filter(entry=>entry.url===path).at(-1);expect(request,path).toBeTruthy();await act(async()=>request!.resolve(json(value,status)));await flush();return request!;}
-beforeEach(()=>{held=[];identity.user=A;identity.listener=null;identity.open.mockClear();window.localStorage.clear();window.history.replaceState({},"","/today?context=preserved#briefing");container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
+beforeEach(()=>{held=[];identity.user=A;identity.listener=null;identity.open.mockClear();identity.reads=0;window.localStorage.clear();window.history.replaceState({},"","/today?context=preserved#briefing");container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
 afterEach(async()=>{await act(async()=>root.unmount());container.remove();vi.unstubAllGlobals();});
 
 describe("Today real attention composition",()=>{
@@ -41,6 +41,43 @@ describe("Today real attention composition",()=>{
   await answer("/api/shared-shell/research/catalog",catalog);await answer("/api/watchlist",inventory);
   expect(container.textContent).toContain("PRIVATE REPORT");expect(container.textContent).toContain("PRIVATE WATCH");expect(held.some(request=>request.url.includes("/research/read/"))).toBe(false);
   await answer("/api/shared-shell/today",briefing);expect(container.textContent).toContain("Liquidity is mixed");expect(container.querySelectorAll("main")).toHaveLength(1);
+ });
+
+ it("ages newly loaded owner data at its first committed render after a boundary",async()=>{
+  vi.useFakeTimers({toFake:["setTimeout","clearTimeout","Date"]});
+  vi.setSystemTime(new Date("2026-11-02T20:30:00Z"));
+  const visibility=vi.spyOn(document,"visibilityState","get").mockReturnValue("visible");
+  try{
+   await mount();await answer("/api/shared-shell/today",{},503);
+   await answer("/api/shared-shell/research/catalog",catalog);await answer("/api/watchlist",inventory);
+   await answer("/api/portfolio-brief",{error:"pro_required"},403);
+   await act(async()=>vi.advanceTimersByTime(30*60_000+30_000));await flush();
+   const retry=Array.from(container.querySelectorAll("button")).find(button=>button.textContent==="Try again");
+   expect(retry).toBeTruthy();await act(async()=>retry!.click());await flush();
+   await answer("/api/shared-shell/today",briefing);
+   expect(container.textContent).toContain("11 sessions old");
+  }finally{visibility.mockRestore();vi.useRealTimers();}
+ });
+
+ it.each([false,true])("updates completed-session ages without reads or marker writes (hidden=%s)",async(hidden)=>{
+  vi.useFakeTimers({toFake:["setTimeout","clearTimeout","Date"]});
+  vi.setSystemTime(new Date("2026-11-02T20:59:59Z"));
+  const visibility=vi.spyOn(document,"visibilityState","get").mockReturnValue("visible");
+  try{
+   window.localStorage.setItem("mmx.today.since.v1",JSON.stringify({["account:"+A]:{names:{AAPL:{stage:2}}}}));
+   await mount();await answer("/api/shared-shell/today",briefing);
+   await answer("/api/shared-shell/research/catalog",catalog);await answer("/api/watchlist",inventory);
+   await answer("/api/portfolio-brief",{error:"pro_required"},403);await answer("/api/market-breadth",{},503);
+   expect(container.textContent).toContain("10 sessions old");
+   const requestCount=held.length,identityReads=identity.reads,stored=JSON.stringify({...window.localStorage});
+   if(hidden){visibility.mockReturnValue("hidden");await act(async()=>document.dispatchEvent(new Event("visibilitychange")));}
+   await act(async()=>vi.advanceTimersByTime(hidden?181_000:1_000));await flush();
+   if(hidden){expect(container.textContent).toContain("10 sessions old");visibility.mockReturnValue("visible");await act(async()=>document.dispatchEvent(new Event("visibilitychange")));await flush();}
+   expect(container.textContent).toContain("11 sessions old");
+   await act(async()=>vi.advanceTimersByTime(5*60_000));await flush();
+   expect(held).toHaveLength(requestCount);expect(identity.reads).toBe(identityReads);
+   expect(JSON.stringify({...window.localStorage})).toBe(stored);
+  }finally{visibility.mockRestore();vi.useRealTimers();}
  });
  it("withholds a live breadth reading once its live window closes while the tab stays open",async()=>{
   vi.useFakeTimers({toFake:["setTimeout","clearTimeout","Date"]});

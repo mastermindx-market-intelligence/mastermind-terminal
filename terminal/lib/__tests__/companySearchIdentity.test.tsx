@@ -10,8 +10,15 @@ vi.mock("@/lib/searchTrack",()=>({trackSearch:vi.fn()}));
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 const manifest={BABA:{name:"Alibaba",col:"#aaa",verdict:"SELL",mkt:"NYSE",sec:"Equities"},"9988.HK":{name:"Alibaba",col:"#aaa",verdict:"BUY",mkt:"HKEX",sec:"Equities"},TEST:{name:"Alibaba unknown venue",col:"#aaa",verdict:null,sec:"Equities"},"BTC-USD":{name:"Alibaba token",col:"#aaa",verdict:null,mkt:"Crypto",sec:"Crypto"},"EURUSD=X":{name:"Alibaba FX",col:"#aaa",verdict:null,mkt:"US",sec:"Forex"},UNKNOWN:{name:"Alibaba unknown asset",col:"#aaa",verdict:null},QQQ:{name:"Alibaba ETF",col:"#aaa",verdict:null,sec:"Equities"},SPY:{name:"Alibaba fund",col:"#aaa",verdict:null,mkt:"US",sec:"Funds"}};
 let root:Root,host:HTMLDivElement;
-beforeEach(()=>{host=document.createElement("div");document.body.append(host);root=createRoot(host);});
-afterEach(async()=>{await act(async()=>root.unmount());host.remove();});
+beforeEach(()=>{
+ // jsdom has no layout; a rendered opener must have the geometry it has in the browser.
+ vi.spyOn(HTMLElement.prototype,"getClientRects").mockImplementation(function(this:HTMLElement){
+  const hidden=!this.isConnected||this.closest("[hidden], [inert], [aria-hidden='true']")||getComputedStyle(this).display==="none";
+  return (hidden?[]:[new DOMRect(0,0,100,40)]) as unknown as DOMRectList;
+ });
+ host=document.createElement("div");document.body.append(host);root=createRoot(host);
+});
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.restoreAllMocks();});
 async function render(onPick:(s:string)=>void,open=true){await act(async()=>root.render(<LangProvider><SearchModal open={open} seed="Alibaba" mode="pick" companyScope manifest={manifest} inWatchlist={new Set()} onClose={()=>{}} onPick={onPick}/></LangProvider>));}
 it("distinguishes supported listings by exact symbol and source venue without a trade signal badge",async()=>{
  const onPick=vi.fn();await render(onPick);
@@ -28,6 +35,9 @@ it("distinguishes supported listings by exact symbol and source venue without a 
  expect(rows.some(row=>row.querySelector(".tk")?.textContent==="UNKNOWN")).toBe(false);
  expect(Array.from(host.querySelectorAll('[role="tab"]')).some(tab=>tab.textContent?.includes("Crypto"))).toBe(false);
  await act(async()=>{(hk as HTMLElement).click();});
+ expect(onPick).not.toHaveBeenCalled();
+ expect(host.textContent).toContain("Open Analysis");
+ await act(async()=>{(Array.from(host.querySelectorAll("button")).find(button=>button.textContent?.includes("Open Analysis")) as HTMLButtonElement).click();});
  expect(onPick).toHaveBeenCalledWith("9988.HK");
 });
 it("keeps hook order when the same picker is closed and reopened",async()=>{

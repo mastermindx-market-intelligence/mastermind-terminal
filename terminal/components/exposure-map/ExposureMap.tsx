@@ -9,7 +9,7 @@ import FrozenNodeEntry from "./FrozenNodeEntry";
 import { useResearchAppearance } from "@/components/researchlab/useResearchAppearance";
 import "@/components/researchlab/ResearchAppearance.css";
 import type { TerminalVisualReadyDetail } from "@/lib/terminalBoot";
-import type { ChartEngine, SeriesHandle } from "@/lib/chart-engine/api";
+import { EnginePriceScaleMode, type ChartEngine, type SeriesHandle } from "@/lib/chart-engine/api";
 import type { GexMatrix } from "@/lib/gexLadder";
 import type { ExposureLens } from "@/lib/exposureMapProjection";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
@@ -82,12 +82,21 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const onAverages = useCallback((root: string, values: ExposureAverage[]) => setAverages({root,values}), []);
   const [api, setApi] = useState<ChartEngine | null>(null);
   const [ready, setReady] = useState<TerminalVisualReadyDetail | null>(null);
-  const [selection, setSelection] = useState<{ identity: string; strike: number } | null>(null);
+  const [selection, setSelection] = useState<{ identity: string; strike: number; fromSurface?: true } | null>(null);
   const [pin, setPin] = useState<{ identity: string; strike: number } | null>(null);
+  // A surface cell is always a Gamma read of one exact expiry. Opening or pinning it
+  // hands the parent a bounded intent: the map adopts the cell's expiry and the Gamma
+  // metric first, and the selection/pin only lands once the resulting read actually
+  // serves that exact cell. A root or source change invalidates the intent.
+  const [pendingCell, setPendingCell] = useState<{ root: string; source: unknown; expiry: string; strike: number; pin: boolean } | null>(null);
   const [momentumHost, setMomentumHost] = useState<HTMLDivElement | null>(null);
-  const inspector = useRef<HTMLElement>(null);
+  const inspector = useRef<HTMLHeadingElement>(null);
+  const mapHost = useRef<HTMLElement>(null);
   const chartHost = useRef<HTMLDivElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
+  const restoredReturnFocus = useRef<string | null>(null);
+  const surfaceTab = useRef<HTMLButtonElement>(null);
+  const handledSurfaceSelection = useRef<typeof selection>(null);
   const primitive = useRef<ReturnType<typeof createExposureMapPrimitive> | null>(null);
   const lens = useMemo<ExposureLens>(() => scope === "all" || scope === "zero" || scope === "next-live" || scope === "week" ? { kind: scope } : { kind: "one", exp: scope }, [scope]);
   const [clock, setClock] = useState(() => Date.now());
@@ -95,6 +104,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const today = new Date(clock).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
   const readScope = useMemo(() => createExposureMapReader(source, root, matrix, today, clock), [source, root, matrix, today, clock]);
   const read = useMemo(() => readScope(lens, metric, shock), [readScope, lens, metric, shock]);
+  // A controlled select without a matching option displays its first item. Keep
+  // the requested expiry visible until the trader explicitly changes the lens.
+  const unlistedExpiry = lens.kind === "one" && typeof lens.exp === "string" && !read.expiries.includes(lens.exp);
+  const bookHasNoExpiry = unlistedExpiry && sourceStatus === "data" && !!read.session && read.state === "unavailable";
   // Include each source actually used by this read, not merely its calendar day.
   // Qualified joint cells and all-expiry legacy reads do not consume the matrix.
   const selectionMatrix = read.qualification === "legacy" && lens.kind !== "all" ? matrix : null;
@@ -122,7 +135,59 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     })();
     return () => { canceled = true; };
   }, [entry, returnApplies, returnCheck, sourceStatus, read, root, lens, metric, shock, identity]);
+  if (pendingCell) {
+    // A root or source change invalidates a pending handoff; it never lands on another book.
+    if (pendingCell.root !== root || pendingCell.source !== source) setPendingCell(null);
+    else if (metric === "gamma" && scope === pendingCell.expiry) {
+      // The exact cell must be readable in the resulting scoped read; a missing cell
+      // withdraws the intent instead of broadening the lens.
+      const node = read.state === "data" ? read.summary.nodes.find((n) => n.strike === pendingCell.strike) : null;
+      if (read.state !== "data" || !node || (node.netMn == null && node.grossMn == null)) setPendingCell(null);
+      else {
+        setSelection({ identity, strike: pendingCell.strike, fromSurface: true });
+        if (pendingCell.pin) setPin({ identity, strike: pendingCell.strike });
+        setPendingCell(null);
+      }
+    }
+  }
+  const openSurfaceCell = (cell: { strike: number; expiry: string }, pinCell: boolean) => {
+    // Both actions remove their Surface button. Keep a connected opener before
+    // the commit so the phone sheet can capture it as its own return target.
+    const opener = surfaceTab.current;
+    returnFocus.current = opener;
+    opener?.focus({ preventScroll: true });
+    // Surface cells display Gamma regardless of the parent lens, so the handoff
+    // adopts the cell's exact expiry and the net Gamma view, not the parent's.
+    setMetric("gamma"); setScope(cell.expiry); setMode("net"); setDual(false); setDetail("expiries");
+    setPendingCell({ root, source, expiry: cell.expiry, strike: cell.strike, pin: pinCell });
+  };
   const selected = selection?.identity === identity ? read.summary.nodes.find((n) => n.strike === selection.strike) ?? null : null;
+  // Return intent becomes a keyboard destination only after the exact source
+  // fingerprint and current selection agree. Focus the labelled heading, not the
+  // tall panel whose native scroll alignment can hide the selected identity.
+  useLayoutEffect(() => {
+    if (!entry || returnCheck?.state !== "ready" || returnCheck.identity !== identity
+      || selected?.strike !== entry.strike || restoredReturnFocus.current === identity) return;
+    const panel = inspector.current;
+    if (!mapHost.current || (!phone && !panel)) return;
+    restoredReturnFocus.current = identity;
+    returnFocus.current = mapHost.current
+      .querySelector<HTMLButtonElement>('tbody tr[aria-selected="true"] th button');
+    // The phone sheet owns its autofocus/trap; its existing data-autofocus
+    // contract chooses this same heading after capturing the real opener.
+    if (!phone) panel?.focus();
+  }, [entry, returnCheck, identity, selected, phone]);
+  const selectedStrike = selected?.strike ?? null;
+  useLayoutEffect(() => {
+    if (handledSurfaceSelection.current === selection) return;
+    handledSurfaceSelection.current = selection;
+    // A new, validated activation focuses the committed desktop inspector once,
+    // even for the same cell. MobileSheet owns phone focus and its cancellation.
+    const target = inspector.current;
+    if (!phone && selection?.fromSurface && read.state === "data" && selectedStrike !== null && target?.isConnected) {
+      target.focus();
+    }
+  }, [phone, selection, selectedStrike, read.state]);
   const linkKey = `${identity}|${selected?.strike ?? ""}`;
   const currentLinkKey = useRef(linkKey);
   useLayoutEffect(() => { currentLinkKey.current = linkKey; return () => { currentLinkKey.current = ""; }; }, [linkKey]);
@@ -162,7 +227,18 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     return () => { if (api.inventory().alive && api.panes()[0]?.getSeries().includes(series)) series.detachPrimitive(p); if (primitive.current === p) primitive.current = null; };
   }, [api, ready, chartCurrent, root, tf]);
   useLayoutEffect(() => { primitive.current?.set(chartCurrent ? drawing : { ...drawing, nodes: [], selected: null }); }, [drawing, api, ready, chartCurrent, root, tf]);
-  const close = useCallback(() => { setSelection(null); returnFocus.current?.focus(); }, []);
+  const close = useCallback(() => {
+    const target = returnFocus.current;
+    setPendingCell(null);
+    setSelection(null);
+    if (phone) {
+      // Restore after the sheet's captured-opener cleanup, and never after a
+      // source change or a new selection has replaced this closing context.
+      requestAnimationFrame(() => {
+        if (currentLinkKey.current === `${identity}|` && target?.isConnected) target.focus();
+      });
+    } else target?.focus();
+  }, [identity, phone]);
   useEffect(() => {
     if (!api?.inventory().alive || !chartCurrent) return;
     const pick = (event: { point?: { x: number; y: number } }) => {
@@ -187,6 +263,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     requestAnimationFrame(() => { inspector.current?.focus(); });
   }, [identity]);
   const s = read.summary;
+  const gammaLeader = metric === "gamma" && read.state === "data" && !stale ? s.netLeader?.strike : undefined;
+  const gammaLevelSide = gammaLeader != null && read.spot != null && gammaLeader !== read.spot
+    ? (gammaLeader < read.spot ? "below" : "above")
+    : null;
   const focus = selected ?? s.netLeader;
   const structure = useMemo(() => describeExposure(s.nodes, read.spot, focus?.strike ?? null), [s.nodes, read.spot, focus?.strike]);
   const expiryReads = useMemo(() => read.expiries.map(exp => ({ exp, read: readScope({ kind: "one", exp }, metric, shock) })), [read.expiries, readScope, metric, shock]);
@@ -233,9 +313,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   useLayoutEffect(() => { frameData.current = {nodes:s.nodes,focus:selected?.strike}; }, [s.nodes,selected?.strike]);
   const frameChart = useCallback(() => {
     if (!api?.inventory().alive) return;
-    const series = api.panes()[0]?.getSeries().find(item => item.kind === "candles");
+    const pane = api.panes()[0];
+    const series = pane?.getSeries().find(item => item.kind === "candles");
     const bars = series?.data() ?? [], count = bars.length, windowSize = tf === "5m" ? 78 : 65;
-    if (!series || !count) return;
+    if (!pane || !series || !count) return;
     api.timeScale().setVisibleLogicalRange({from:Math.max(0,count-windowSize),to:count+18});
     const prices:number[] = [];
     for (const bar of bars.slice(-windowSize)) for (const field of ["low","high"] as const) {
@@ -247,10 +328,33 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     if (frameData.current.focus != null) prices.push(frameData.current.focus);
     if (prices.length) {
       const low = Math.min(...prices), high = Math.max(...prices), pad = Math.max((high-low)*.12,high*.0005);
-      series.priceScale().setVisibleRange({from:Math.max(.001,low-pad),to:high+pad});
+      const from = Math.max(.001, low-pad), to = high+pad, scale = series.priceScale();
+      scale.setVisibleRange({from, to});
+      // A phone's wrapped price header needs room above the framed strikes.
+      // Keep the shared chart's scale mode, margins, annotations and lower bound.
+      const options = scale.options();
+      if (!phone || options.mode !== EnginePriceScaleMode.Normal || options.invertScale === true) return;
+      const header = chartHost.current?.querySelector<HTMLElement>(".statusline");
+      const paneElement = pane.getHTMLElement(), height = pane.height();
+      if (!header || !paneElement || !Number.isFinite(height) || height <= 0) return;
+      const headerRect = header.getBoundingClientRect(), paneRect = paneElement.getBoundingClientRect();
+      if (headerRect.width <= 0 || headerRect.height <= 0 || paneRect.height <= 0) return;
+      // Convert DOM geometry to pane coordinates and clear the label's glyphs.
+      const headerBottom = Math.max(0, headerRect.bottom-paneRect.top)*height/paneRect.height;
+      const targetY = Math.max(44, headerBottom+16);
+      const yFrom = series.priceToCoordinate(from), yTo = series.priceToCoordinate(to), yHigh = series.priceToCoordinate(high);
+      if (yFrom == null || yTo == null || yHigh == null || ![yFrom,yTo,yHigh,targetY].every(Number.isFinite) ||
+        yFrom <= yTo || yHigh >= targetY || targetY >= yFrom-Math.max(24,height*.2)) return;
+      // Solve the actual linear projection, including its existing scale margins.
+      const nextTo = from+(high-from)*(yFrom-yTo)/(yFrom-targetY);
+      if (Number.isFinite(nextTo) && nextTo > to) scale.setVisibleRange({from,to:nextTo});
     }
-  }, [api, tf]);
-  useEffect(() => { if (chartCurrent) frameChart(); }, [chartCurrent, ready, frameChart, scope, metric, s.netLeader?.strike]);
+  }, [api, tf, phone]);
+  useEffect(() => {
+    if (!chartCurrent) return;
+    const frame = requestAnimationFrame(frameChart);
+    return () => cancelAnimationFrame(frame);
+  }, [chartCurrent, ready, frameChart, scope, metric, s.netLeader?.strike]);
   const openRoot = (symbol: string) => { onOpenRoot?.(symbol); setView("focus"); };
   const signed = (n: number | null) => n == null ? "—" : `${n > 0 ? "+" : ""}${exposureValue(n)}`;
   const presets = [
@@ -259,9 +363,9 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     { name: t("spotUpIvDown"), spotPercent: 1, ivPoints: -1, calendarDays: 0 },
     { name: t("oneDayPasses"), spotPercent: 0, ivPoints: 0, calendarDays: 1 },
   ];
-  const inspectorPanel = <aside ref={inspector} tabIndex={-1} className={styles.inspector} aria-label={t("inspect")} data-testid="exposure-node-inspector">
+  const inspectorPanel = <aside className={styles.inspector} aria-label={t("inspect")} data-testid="exposure-node-inspector">
         <span className={styles.eyebrow}>{selected ? (t("nodeInvestigation")) : (t("structureAtAGlance"))}</span>
-        <h3>{selected ? `${t("selected")} ${selected.strike}` : (t("priceToPositioning"))}</h3>
+        <h3 ref={inspector} tabIndex={-1} data-autofocus={phone ? "" : undefined}>{selected ? `${t("selected")} ${selected.strike}` : (t("priceToPositioning"))}</h3>
         {s.coveredOnly && <p className={styles.note}>{t("measuredContributions")} · {t("measuredOnlyExplanation")}</p>}
         {focus && <><div className={styles.routeHero}><span>${exposureValue(read.spot)}</span><span>→</span><strong>{focus.strike}</strong></div><dl>
           <dt>{t("distance")}</dt><dd>{signed(structure.distancePoints)} · {signed(structure.distancePercent)}%</dd>
@@ -276,7 +380,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
         <div className={styles.rankedNodes}><span className={styles.eyebrow}>{t("largestNetNodes")}</span>{structure.ranked.slice(0, 5).map((n, i) => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)} aria-pressed={selected?.strike === n.strike}><span><small>{String(i + 1).padStart(2, "0")}</small> {n.strike}</span><b data-sign={n.netMn! < 0 ? "negative" : "positive"}>{signed(n.netMn)}M</b></button>)}</div>
         <p className={styles.note}>{t("model")}{metric === "delta" && (t("deltaAppliesAssumedLongCallShortPutInventory"))}</p>
       </aside>;
-  return <section className={styles.map} data-testid="exposure-map" data-chart-ready={chartCurrent ? "true" : "false"} data-source-root={root} data-source-session={read.session ?? ""}>
+  return <section ref={mapHost} className={styles.map} data-testid="exposure-map" data-chart-ready={chartCurrent ? "true" : "false"} data-source-root={root} data-source-session={read.session ?? ""}>
     <nav className={styles.workspaceNav} aria-label={t("exposureWorkspace")}>
       <input list="exposure-roots" value={symbolInput} onChange={e => setSymbolInput(e.target.value.toUpperCase())} onBlur={commitSymbol} onKeyDown={e => { if (e.key === "Enter") commitSymbol(); }} aria-label={t("exposureSymbol")} maxLength={12} />
       <datalist id="exposure-roots">{GEX_AUTOCOMPLETE_ROOTS.map(r => <option key={r}>{r}</option>)}</datalist>
@@ -291,6 +395,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     <div className={styles.toolbar}>
       <div role="group" aria-label={t("metric")} className={styles.metricControl}>{METRICS.map(m => { const lock = metricLocks[m]; return <button type="button" key={m} aria-pressed={metric === m} data-locked={lock ? "true" : undefined} title={lock ?? (m === "delta" ? t("deltaAssumedInventory") : m === "combined" ? t("scenarioStress") : undefined)} onClick={() => { setMetric(m); setScope("all"); setMode("net"); setDual(false); }}>{t(m === "delta" ? "deltaShort" : m === "combined" ? "combinedShort" : m)}{m === "delta" && ["qualified", "dated"].includes(read.qualification) && <em title={t("deltaExtensionNote")}>{t("deltaExtension")}</em>}{lock && <i aria-hidden="true">🔒</i>}</button>; })}</div>
       <label>{t("scope")}<select aria-label={t("scope")} value={scope} disabled={metric !== "gamma" && read.qualification !== "qualified"} onChange={(e) => setScope(e.target.value)}>
+        {unlistedExpiry && <option value={scope} disabled>{scope} · {t(bookHasNoExpiry ? "expiryNotListed" : "requestedExpiry")}</option>}
         <option value="all">{t("all")}</option><option value="zero">{t("zero")}</option>
         <option value="next-live" disabled={read.qualification !== "qualified"}>{t("nextLive")}</option><option value="week" disabled={read.qualification !== "qualified"}>{t("week")}</option>
         {read.expiries.map((exp) => <option key={exp} value={exp}>{exp}</option>)}
@@ -303,6 +408,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
       {(["spotPercent", "ivPoints", "calendarDays"] as const).map((key) => <label key={key}>{t(key)}<input type="number" step={0.25} min={key === "calendarDays" ? 0 : key === "spotPercent" ? -3 : -5} max={key === "spotPercent" ? 3 : 5} value={Number.isNaN(shock[key]) ? "" : shock[key]} onChange={(e) => setShock({ ...shock, [key]: e.target.value === "" ? NaN : Number(e.target.value) })} /></label>)}
     </div>{attribution.length > 0 && <div className={styles.attribution}>{attribution.map(a => <div key={a.greek}><span>{a.greek[0].toUpperCase() + a.greek.slice(1)} × {a.weight}</span><strong data-sign={(a.value ?? 0) < 0 ? "negative" : "positive"}>{signed(a.value)} M</strong></div>)}<div><span>{t("jointQualifiedPopulationTotal")}</span><strong>{signed(s.netTotalMn)} M</strong></div></div>}<p className={styles.note}>{t("localScenario")} {t("positiveIsModeledHedgeBuyingNegativeIsSelling")}</p></section>}
     {read.state !== "data" && <div className={styles.empty} role="status">{sourceStatus === "loading" ? t("loading") : sourceStatus === "absent" ? t("absent") : sourceStatus === "unavailable" ? t("readFailed") : ["wrong_root", "future", "malformed"].includes(read.state) ? t("invalid") : t("noData")}
+      {bookHasNoExpiry && <button type="button" onClick={() => setScope("all")}>{t("showAllExpiries")}</button>}
       {sourceStatus === "unavailable" && onRetry && <button type="button" onClick={onRetry}>{t("retry")}</button>}{metric === "combined" && <p>{t("noCombination")}</p>}</div>}
     {s.coveredOnly && read.coverage && <p className={styles.note} data-testid="exposure-partial-coverage"><strong>{t("measuredContracts")}: {read.coverage.qualified.toLocaleString()} / {(read.coverage.qualified + read.coverage.missing).toLocaleString()} · {t("missing")}: {read.coverage.missing.toLocaleString()}.</strong></p>}
     <div className={styles.leaders}>
@@ -320,13 +426,13 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <div className={styles.chartBody}><ChartPanel symbol={root} indicators={NONE} timeframe={tf} onChartApi={setApi} onVisualReady={onVisualReady} optionsLevel={pinned} userTier="free" /></div>
           <div className={styles.caption}><span>{t("positiveExposureNegativeExposureSelectedNode")}</span><span>{t("reference")}</span></div>
         </div>
-        {!archivedSession && <ExposureDivergence key={JSON.stringify([root, read.session])} root={root} timeframe={tf} onTimeframe={setTf} inspectorHost={momentumHost} onAverages={onAverages} />}
+        {!archivedSession && <ExposureDivergence key={JSON.stringify([root, read.session])} root={root} timeframe={tf} onTimeframe={setTf} inspectorHost={momentumHost} gammaLevelSide={gammaLevelSide} onAverages={onAverages} />}
       </div>
       {phone ? <MobileSheet open={!!selected} onClose={close} title={`${root} · ${t("inspect")}`} ariaLabel={t("inspect")} detents={[60,94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={`${styles.map} ${styles.inspectorSheet}`}>{inspectorPanel}</MobileSheet> : inspectorPanel}
     </div>
     <section className={styles.analytics}>
-      <div className={styles.sectionHead}><div><span className={styles.eyebrow}>{t("bookAnatomy")}</span><h3>{detail === "expiries" ? (t("expirationContributions")) : detail === "changes" ? (t("observedBookChanges")) : detail === "replay" ? t("storedSessionReplay") : detail === "review" ? t("sessionReview") : detail === "scenario" ? t("localScenarioTitle") : detail === "surface" ? t("surfaceTitle") : t("values")}</h3></div><div className={styles.segment}><button type="button" aria-pressed={detail === "expiries"} onClick={() => setDetail("expiries")}>{t("compareExpiries")}</button><button type="button" aria-pressed={detail === "changes"} onClick={() => setDetail("changes")}>{t("changes")}</button><button type="button" aria-pressed={detail === "replay"} onClick={() => setDetail("replay")}>{t("replay")}</button><button type="button" aria-pressed={detail === "review"} onClick={() => setDetail("review")}>{t("review")}</button><button type="button" aria-pressed={detail === "scenario"} onClick={() => setDetail("scenario")}>{t("scenarioTab")}</button><button type="button" aria-pressed={detail === "surface"} onClick={() => setDetail("surface")}>{t("surfaceTab")}</button><button type="button" aria-pressed={detail === "values"} onClick={() => setDetail("values")}>{t("exactValues")}</button></div></div>
-    {detail === "surface" ? <ExposureSurfaceTab root={root} readScope={readScope} read={read} lens={lens} lang={lang} now={clock} focusCell={selected && lens.kind === "one" && lens.exp ? { strike: selected.strike, expiry: lens.exp } : null} onPinCell={(cell) => setPin({ identity, strike: cell.strike })} onOpenInMap={(cell) => { setSelection({ identity, strike: cell.strike }); setDetail("expiries"); }} /> : detail === "scenario" ? <ExposureScenarioTab root={root} read={read} readScope={readScope} lens={lens} lang={lang} source={source} stale={stale || sourceStatus !== "data"} evaluatedAt={clock} /> : detail === "replay" ? <ExposureReplay root={root} source={source} metric={metric} lens={lens} today={today} now={clock} focusStrike={selected?.strike ?? null} lang={lang} onLoadSession={onLoadSession} onSelectStrike={strike => setSelection({ identity, strike })} /> : detail === "review" ? <ExposureReviewTab root={root} source={source} metric={metric} lens={lens} today={today} now={clock} lang={lang} pinnedLevel={pinned?.price ?? null} onOpenPriceContext={onLoadSession} /> : detail === "changes" ? (read.session ? <GexMarketMemory root={root} matrixSession={read.session} strike={focus?.strike ?? null} t={optionsT(lang)} currentSnapshot={source} lens={lens} lang={lang} onSelectStrike={strike => setSelection({ identity, strike })} /> : <p className={styles.note}>{t("noData")}</p>) : detail === "expiries" ? <><div className={styles.fieldWrap}><table className={styles.field} aria-label={t("strikeByExpiry")}><thead><tr><th scope="col">{t("selected")}</th>{field.columns.map(({ exp, read: r }) => <th scope="col" key={exp}><button type="button" disabled={r.state !== "data" || !r.summary.netKnown} aria-pressed={scope === exp} onClick={() => setScope(exp)}><span>{exp}</span><strong data-sign={(r.summary.netTotalMn ?? 0) < 0 ? "negative" : "positive"}>{r.state === "data" && r.summary.netTotalMn != null ? `${signed(r.summary.netTotalMn)}M` : "—"}</strong><small>{r.summary.netTotalMn == null ? (zh ? `${r.summary.netKnown} 个已知行 · 不完整` : `${r.summary.netKnown} known strikes · incomplete`) : `${t(r.summary.coveredOnly ? "provisionalNetLeader" : "leadNode")} ${r.summary.netLeader?.strike ?? "—"}`}</small></button></th>)}</tr></thead><tbody>{field.rows.map(row => <tr key={row.strike} aria-selected={selected?.strike === row.strike} data-spot={row.spot ? "true" : undefined}><th scope="row"><button type="button" title={row.spot ? t("nearestSpotRow") : undefined} onClick={e => select(row.strike, e.currentTarget)}>{row.strike}</button></th>{row.cells.map((cell, i) => <td key={field.columns[i].exp} data-tier={cell.tier} data-sign={cell.value == null ? "unknown" : cell.value < 0 ? "negative" : "positive"} data-dominant={cell.dominant ? "true" : undefined} title={cell.value == null ? t("missing") : undefined} onClick={e => { const button = e.currentTarget.closest("tr")?.querySelector("button"); if (button) select(row.strike, button); }}>{cell.value == null ? "—" : `${cell.value < 0 ? "−" : cell.value > 0 ? "+" : ""}${exposureValue(Math.abs(cell.value), Math.abs(cell.value) >= 100 ? 0 : 1)}`}</td>)}</tr>)}</tbody></table></div><p className={styles.note}>{t("exactExpiryCellContributionsMissingCellsAreNot")}</p></> : <div className={styles.scroll}><table><thead><tr><th>{t("selected")}</th><th>{t(metric === "combined" ? "hedgeDemand" : "net")}</th><th>{t("gross")}</th><th>%</th></tr></thead><tbody>{s.nodes.map(n => <ExposureNodeRow key={n.strike} node={n} selected={n.strike === selected?.strike} onSelect={select} />)}</tbody></table></div>}
+      <div className={styles.sectionHead}><div><span className={styles.eyebrow}>{t("bookAnatomy")}</span><h3>{detail === "expiries" ? (t("expirationContributions")) : detail === "changes" ? (t("observedBookChanges")) : detail === "replay" ? t("storedSessionReplay") : detail === "review" ? t("sessionReview") : detail === "scenario" ? t("localScenarioTitle") : detail === "surface" ? t("surfaceTitle") : t("values")}</h3></div><div className={styles.segment}><button type="button" aria-pressed={detail === "expiries"} onClick={() => setDetail("expiries")}>{t("compareExpiries")}</button><button type="button" aria-pressed={detail === "changes"} onClick={() => setDetail("changes")}>{t("changes")}</button><button type="button" aria-pressed={detail === "replay"} onClick={() => setDetail("replay")}>{t("replay")}</button><button type="button" aria-pressed={detail === "review"} onClick={() => setDetail("review")}>{t("review")}</button><button type="button" aria-pressed={detail === "scenario"} onClick={() => setDetail("scenario")}>{t("scenarioTab")}</button><button ref={surfaceTab} type="button" aria-pressed={detail === "surface"} onClick={() => setDetail("surface")}>{t("surfaceTab")}</button><button type="button" aria-pressed={detail === "values"} onClick={() => setDetail("values")}>{t("exactValues")}</button></div></div>
+    {detail === "surface" ? <ExposureSurfaceTab root={root} readScope={readScope} read={read} lens={lens} lang={lang} now={clock} focusCell={selected && lens.kind === "one" && lens.exp ? { strike: selected.strike, expiry: lens.exp } : null} onPinCell={(cell) => openSurfaceCell(cell, true)} onOpenInMap={(cell) => openSurfaceCell(cell, false)} /> : detail === "scenario" ? <ExposureScenarioTab root={root} read={read} readScope={readScope} lens={lens} lang={lang} source={source} stale={stale || sourceStatus !== "data"} evaluatedAt={clock} /> : detail === "replay" ? <ExposureReplay root={root} source={source} metric={metric} lens={lens} today={today} now={clock} focusStrike={selected?.strike ?? null} lang={lang} onLoadSession={onLoadSession} onSelectStrike={strike => setSelection({ identity, strike })} /> : detail === "review" ? <ExposureReviewTab root={root} source={source} metric={metric} lens={lens} today={today} now={clock} lang={lang} pinnedLevel={pinned?.price ?? null} onOpenPriceContext={onLoadSession} /> : detail === "changes" ? (read.session ? <GexMarketMemory root={root} matrixSession={read.session} strike={focus?.strike ?? null} t={optionsT(lang)} currentSnapshot={source} lens={lens} lang={lang} onSelectStrike={strike => setSelection({ identity, strike })} /> : <p className={styles.note}>{t("noData")}</p>) : detail === "expiries" ? <><div className={styles.fieldWrap}><table className={styles.field} aria-label={t("strikeByExpiry")}><thead><tr><th scope="col">{t("selected")}</th>{field.columns.map(({ exp, read: r }) => <th scope="col" key={exp}><button type="button" disabled={r.state !== "data" || !r.summary.netKnown} aria-pressed={scope === exp} onClick={() => setScope(exp)}><span>{exp}</span><strong data-sign={(r.summary.netTotalMn ?? 0) < 0 ? "negative" : "positive"}>{r.state === "data" && r.summary.netTotalMn != null ? `${signed(r.summary.netTotalMn)}M` : "—"}</strong><small>{r.summary.netTotalMn == null ? (zh ? `${r.summary.netKnown} 个已知行 · 不完整` : `${r.summary.netKnown} known strikes · incomplete`) : `${t(r.summary.coveredOnly ? "provisionalNetLeader" : "leadNode")} ${r.summary.netLeader?.strike ?? "—"}`}</small></button></th>)}</tr></thead><tbody>{field.rows.map(row => <tr key={row.strike} aria-selected={selected?.strike === row.strike} data-spot={row.spot ? "true" : undefined}><th scope="row"><button type="button" title={row.spot ? t("nearestSpotRow") : undefined} onClick={e => select(row.strike, e.currentTarget)}>{row.strike}</button></th>{row.cells.map((cell, i) => <td key={field.columns[i].exp} data-tier={cell.tier} data-sign={cell.value == null ? "unknown" : cell.value < 0 ? "negative" : "positive"} data-dominant={cell.dominant ? "true" : undefined} title={cell.value == null ? t("missing") : undefined} onClick={e => { const button = e.currentTarget.closest("tr")?.querySelector("button"); if (button) select(row.strike, button); }}>{cell.value == null ? "—" : `${cell.value < 0 ? "−" : cell.value > 0 ? "+" : ""}${exposureValue(Math.abs(cell.value), Math.abs(cell.value) >= 100 ? 0 : 1)}`}</td>)}</tr>)}</tbody></table></div><p className={styles.note}>{t("exactExpiryCellContributionsMissingCellsAreNot")}</p></> : <div className={styles.scroll}><table><thead><tr><th>{t("selected")}</th><th>{t(metric === "combined" ? "hedgeDemand" : "net")}</th><th>{t("gross")}</th><th>%</th></tr></thead><tbody>{s.nodes.map(n => <ExposureNodeRow key={n.strike} node={n} selected={n.strike === selected?.strike} onSelect={select} />)}</tbody></table></div>}
     </section>
     </>}
     {historySlot && <details className={`${styles.source} ${styles.history}`} data-testid="exposure-stored-snapshots"><summary>{t("storedBookSnapshots")}</summary><p className={styles.note}>{t("inspectActualBooksFromTheExistingArchiveMissing")}</p>{historySlot}</details>}

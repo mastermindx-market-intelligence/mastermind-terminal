@@ -1,0 +1,192 @@
+{
+  "base": "ceab6184a492911b1dd224430b1c6a0e66f9b0a2",
+  "productionSourceChanged": false,
+  "sourceCount": 6142,
+  "sourceStable": true,
+  "generatedRestoration": [
+    {
+      "path": "terminal/next-env.d.ts",
+      "generatedSha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc",
+      "restoredSha256": null
+    }
+  ],
+  "browserExit": 0,
+  "browserDurationSeconds": 54.946,
+  "stats": {
+    "startTime": "2026-11-10T14:54:28.131Z",
+    "duration": 52092.593,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "calls contract board: keyboard show-more and trace disclosure",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 2925,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "navigation out flows through the onNavigate callback with the exact href",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1155,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "emergence mark: owner-carried flag renders the R6-09 chip, copy and evidence link",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1287,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "calls contract board: keyboard show-more and trace disclosure",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1116,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "navigation out flows through the onNavigate callback with the exact href",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1197,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "emergence mark: owner-carried flag renders the R6-09 chip, copy and evidence link",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1275,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "calls contract board: keyboard show-more and trace disclosure",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1387,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "navigation out flows through the onNavigate callback with the exact href",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1345,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "emergence mark: owner-carried flag renders the R6-09 chip, copy and evidence link",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1300,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "lintExit": 0,
+  "diffCheckExit": 0,
+  "lifecycle": {
+    "observedGroups": [
+      61182,
+      62792,
+      80836,
+      81024,
+      81381
+    ],
+    "observedPids": [
+      61182,
+      62792,
+      63258,
+      64029,
+      73220,
+      75477,
+      75647,
+      80817,
+      80836,
+      80854,
+      80855,
+      80873,
+      80926,
+      80945,
+      80980,
+      81008,
+      81024,
+      81026,
+      81027,
+      81033,
+      81114,
+      81169,
+      81191,
+      81381,
+      81429,
+      81430,
+      81496,
+      81802,
+      81926,
+      81935
+    ],
+    "remaining": [],
+    "groupsAbsent": true,
+    "portListeningAfter": false,
+    "noSignalsSent": true
+  },
+  "proofChanged": [],
+  "completedAt": "2026-11-10T14:55:28.406460+00:00",
+  "qualified": true
+}

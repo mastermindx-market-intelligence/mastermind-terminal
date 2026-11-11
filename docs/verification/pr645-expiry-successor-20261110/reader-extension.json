@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-10T05:29:12.275924+00:00",
+  "beforeSha256": "afe61815b1e0b49efb6f80b05d95f3f9f3fa0565fd21b70f2bb72f93e4e7d1a8",
+  "capturePlaceholdersRemain": true,
+  "files": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "e1df7892e8a9bb960f4b857b7bf7233a550b996330c801613cbc3318a8b50b3d",
+    "terminal/e2e/tools/optionsExposureEvidence.d.cts": "35ba01d216e8bc502943161c2b55af188a72c30084095668b3ef7aa09ccf006a",
+    "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts": "7d812640dcf2d5de5a58003dc1aa5978dd20c745031b5b9bef74ca8677dff6c6"
+  },
+  "schema": "terminal_pr645_reader_extension.v1",
+  "state": "IMPLEMENTED_PENDING_REAL_CAPTURE_HASHES",
+  "syntax": {
+    "exit": 0,
+    "stderr": "",
+    "stdout": ""
+  }
+}

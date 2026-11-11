@@ -20,9 +20,9 @@ layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
   terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
-  terminal/components/SearchModal.tsx: "36880f1100bbcfa051a0c46131dd84c48a7278f0adb5678ee969a8db190774e9"
+  terminal/components/SearchModal.tsx: "d1522bfdaa7c5cd223e5024aa3698104ea404d9c46a5854b17e86da3ea570818"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b"
   terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
@@ -39,9 +39,9 @@ layoutFiles:
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
-  terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
+  terminal/components/MobileNav.tsx: "b968af6eee6d724898bbd6cf4d76fb7066622f7ab76a8d4e0a03cdfbde8dcd7f"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
-  terminal/components/TerminalShell.tsx: "ffe5771540e577792257c0db27c1062da62c47f914596e7960fcc45e59972498"
+  terminal/components/TerminalShell.tsx: "99d6ea7ae1621e0e368ee0716a1d6dad9defcbbaab9371ded8146159251756fa"
   terminal/components/ChartPositionEntry.tsx: "e8be598623acd0f5af8f574c87eab824c76dcc56a40ada78807b9785c9c08b4c"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
@@ -66,6 +66,12 @@ layoutFiles:
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
   terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+  terminal/components/SearchModal.module.css: "c07ad2028e36b1c70be969a9ab55d8d289dfcfeeceb18be5c5de3d1b18bbbaa9"
+  terminal/components/SymbolPicker.tsx: "0aa9f20b5f5a76b917dbb0e54bd3d5f467d8bb23bc8e642befe1fd10525f252f"
+  terminal/components/chrome/shared-shell/ShellSearch.tsx: "6ec2cdc819392b1c9a13bc7bbd066d49955061d166f33d498be37c57a9af0c69"
+  terminal/components/CompanyListingIdentity.tsx: "6d4347aafef93cfdaa1de89dada550f0f61953488e7166b146fdfc349bea77b7"
+  terminal/components/CompanyListingIdentity.module.css: "29788c51e58e5e972be0335d490685cb8512a3fbd8bdbe35aa4663e2fe2f70a3"
+  terminal/lib/companySearchContext.ts: "ee780295ea796509bbfdf92688ddd522144cd38f0fb82925a8ca31acfdaf4b12"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -487,6 +493,20 @@ drawingsSheetAcceptedRecentRecapture20261101:
   scope: "ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png"
   productionProof: false
 
+# Actual post-fix browser recapture; full historical packet above is retained.
+accessFlashRecapture20261101:
+  sourceHead: "5199aef3a6537f7a6dcdc20c2b81d3ddd9992cc9"
+  capturedAt: "2026-11-02T05:42:22.024Z"
+  captureScript: "terminal/e2e/tools/capture_pl6_batch1.cjs"
+  loopbackPort: 36401
+  productionAccountTested: false
+  screenshotsCaptured: 24
+  languages: [en, zh]
+  viewports: [1440x900, 390x844]
+  refreshedSourceHashes:
+    terminal/components/TerminalShell.tsx: "51c6fa210290ad98ba552e41c3620a9a29dfd4f015224ee288eb0e40695403fe"
+  note: "Actual Playwright fixture captures passed at this source head; no production entitlement grant inferred"
+
 chartPositionEntryOwnerRecapture20261102:
   baseHead: "558f96faf7a7add8fd9b90ce835754c17dde3bf5"
   reason: "TerminalShell.tsx binds the chart's Add-to-Portfolio form to the account that opened it: the opening now carries the captured immutable owner and is rendered by the new chart-specific controller components/ChartPositionEntry.tsx, which sends that captured owner as expectedOwnerId and retires the opening on an observed account transition. The captured chart-context and ChartChrome surfaces do not render the position form, so their pixels are unaffected — proven by control captures, not asserted."
@@ -497,6 +517,15 @@ chartPositionEntryOwnerRecapture20261102:
   scope: "layoutFiles only. cropFiles, browserReportHashes and every PNG on disk are unchanged and still bind the accepted capture."
   productionProof: false
 
+sharedShellRegionIdentityRecapture20261102:
+  sourceHead: "ad827ba1032843bd063fedb76a93215d797002ba"
+  receipt: "terminal/docs/pr-crops/shared-shell-ss02-region-current-20261102/visual-source-qualification.json"
+  scope: "Only the MobileNav.tsx layoutFiles binding; all predecessor PNGs, cropFiles, full reports and report hashes remain unchanged."
+  actualBrowserResult: "Separate immutable successor PL6 8/8 and VI Chinese-context 3/3; exact matching-baseline B2 controls reused under their original source identity. No whole-matrix recapture claim."
+  comparison: "All eight PL6 pairs and VI tablet are byte-identical. Desktop differences remain in the changing clock/ticker footer; mobile differs at 45 edge pixels by at most 2/255. Actual distinct captures remain retained."
+  enabledBehavior: "Four actual Next plus unchanged Macrobridge SS02 region-switch/Back journeys and 20 identity unit cases separately qualify sharedShell=1 behavior."
+  productionProof: false
+
 sharedShellResponsiveParityRecapture20261102:
   sourceHead: "04c9269d64da34f2b4229e0574622e65fc2e2ddc"
   receipt: "terminal/docs/pr-crops/shared-shell-parity-20261102/visual-source-qualification.json"
@@ -504,4 +533,43 @@ sharedShellResponsiveParityRecapture20261102:
   actualBrowserResult: "New immutable PL6 8/8 and VI Chinese-context 3/3 plus same-source VI repeat 3/3; separate matching-base controls PL6 8/8 and VI 3/3. No whole-matrix recapture claim."
   comparison: "PL6 all eight and VI tablet are byte-identical to controls. Desktop footer clock/ticker varies even at the same source; mobile differs from base at 45 edge pixels by at most 2/255, with exact candidate repeat. All distinct captures remain retained."
   historicalQualification: "Historical complete functional reports retain their original identity; scoped new operations qualify only the current source rows above."
+  productionProof: false
+
+companyAlternateListingSourceRecapture20261103:
+  sourceHead: "c072cf92c"
+  receipt: "terminal/docs/pr-crops/company-alternate-listing-20261103/source-qualification.json"
+  scope: "Eight named T25 runtime source rows only; predecessor PNGs, cropFiles, browserReportHashes and complete historical reports keep their original identities."
+  actualBrowserResult: "Fresh immutable PL6 SearchModal+AnalysisWorkspace EN/ZH desktop/mobile 8/8 and VI Chinese-context desktop/tablet/mobile 3/3 at current source, no retries. The separate beta-enabled alternate-listing journey passes12/12 at1440/820/390 dark/light EN/ZH with keyboard/taps and exactBack."
+  historicalQualification: "A1 operations remain historical before the company-only tablet-gap repair. A2 operations bind the current source union. No whole historical functional matrix is relabelled as recaptured."
+  productionProof: false
+sharedShellRegionProtectedComposition20261103:
+  sourceHead: "41d7a7b20e1a34eb0689ff96282f0ca5287c2254"
+  protectedBase: "4f9fad0beed2c77983bec7a1f7cf540f194cba86"
+  receipt: "terminal/docs/pr-crops/shared-shell-ss02-region-current-20261102/combined-source-qualification-20261103.json"
+  receiptSha256: "0747a2d849524b7cf96b2a005d6b19a590f86a650015a16266db8de680dff50a"
+  scope: "Actual combined MobileNav, SearchModal and shared-shell.css layout bindings only. All predecessor operations, PNGs, cropFiles, full reports and report hashes remain unchanged."
+  actualBrowserResult: "New immutable PL6 8/8 and VI Chinese-context 3/3 with separate same-profile protected-source controls 8/8 and3/3; no whole-matrix recapture."
+  comparison: "All eight PL6 pairs and VI tablet/mobile are byte-identical. Desktop has changing footer clock/ticker pixels plus16 edge pixels differing by at most2/255; actual distinct captures retained and inspected."
+  enabledBehavior: "Accepted source-bound SS02 switch/Back journeys and #1228 portal/title/hit-area proofs retain their exact product bytes and independent fixture scope."
+  productionProof: false
+
+ascPineBuildEvidence20261103:
+  sourceHead: "595dfe471796705cbcd3843506f7d3443a1ce209"
+  sourceSha256: "7713c63146e5821e4d2c5df8e0495e7b1af76344c2299879150065fbeb1098b1"
+  operation: "terminal/docs/pr-crops/b-pl-6-batch-1/asc1233-pl6-20261103--operation.json"
+  operationSha256: "407a5a3b56a8aad979fa8147f19ce50296ed8a52bea5435ddbf3eb2ce23c54ad"
+  actualCases: 24
+  scope: "Current synthetic fixture captures qualify the Pine build configuration source. Earlier capture timestamps and image files remain historical; current screenshots, execution report and source snapshots are in the immutable operation above. No real-market reference or production acceptance."
+
+
+# Historical Prophet fixture result at its original source; this is not the current composed-source lock.
+prophetForecastPulseChartChromeRecapture20261102:
+  sourceHead: "6065cc744e081083eeee61bd00cfa8e15442a34d"
+  chartPanelSha256: "09eb4b24955b7e71a4c6c356f1db6ca8876ec2ff3ceaee22318cced06ef5e631"
+  operationId: "prophet1238pl6"
+  actualCases: 4
+  immutableReceipt: "prophet1238pl6--operation.json"
+  immutableReceiptSha256: "3b549136f4895640991c139761310af5efac8d5093420689a20c6acde8ca76ce"
+  evidence: "../../verification/prophet-marker-20261102/README.md"
+  scope: "Fresh fixture ChartChrome desktop/mobile EN/ZH captures in appended immutable artifacts. Previous accepted PNGs and their metadata retained; only source binding updated."
   productionProof: false

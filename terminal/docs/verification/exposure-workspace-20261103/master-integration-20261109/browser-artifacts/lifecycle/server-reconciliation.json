@@ -1,0 +1,12 @@
+{
+  "action": "Moved only the unchanged, unopened lock after the recorded owning process and listening port were absent. No browser case was rerun and no application source changed.",
+  "archivedLockSha256": "449aa5085120435bcac092bce24a3f0e34575fd9a8ebe692d51d65931066c05b",
+  "initialExecutionSha256": "af829f398efaa8b81f0ee024ea3220126fa5a756cebd49af510baf92db067cdb",
+  "lockHadNoOpenFileDescriptor": true,
+  "observedAt": "2026-11-09T12:12:15.839666+00:00",
+  "ownerPid": 81724,
+  "ownerPidAbsent": true,
+  "port": 3793,
+  "portClosed": true,
+  "schema": "exposure_browser_server_reconciliation.v1"
+}

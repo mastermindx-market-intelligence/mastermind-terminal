@@ -1,0 +1,24 @@
+{
+  "byteIdenticalEvidenceTrees": {
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure": "c8a594fda94372e7ba4782f9aa4bd7f97f6a9e43",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure": "b3e99ab94fb12b13d3e73b8a249d32c83e338dc8",
+    "terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109": "e589720cb35124bd5742c372a8fcec15d4957a6c"
+  },
+  "records": [
+    {
+      "allDeclaredInputsMatch": true,
+      "family": "eod",
+      "inputs": 32
+    },
+    {
+      "allDeclaredInputsMatch": true,
+      "family": "gex",
+      "inputs": 29
+    },
+    {
+      "allDeclaredInputsMatch": true,
+      "family": "browser",
+      "inputs": 71
+    }
+  ]
+}

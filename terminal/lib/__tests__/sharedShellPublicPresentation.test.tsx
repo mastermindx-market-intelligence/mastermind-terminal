@@ -213,10 +213,9 @@ beforeEach(() => {
   vi.spyOn(HTMLIFrameElement.prototype, "contentWindow", "get").mockImplementation(function (this: HTMLIFrameElement) {
     let proxy = childWindows.get(this);
     if (!proxy) {
-      const target = this;
       proxy = {
-        location: { replace: (href: string) => replaceFrame(target, href) },
-        postMessage: (message: ShellParentMessage, origin: string) => postToFrame(target, message, origin),
+        location: { replace: (href: string) => replaceFrame(this, href) },
+        postMessage: (message: ShellParentMessage, origin: string) => postToFrame(this, message, origin),
       } as unknown as Window;
       childWindows.set(this, proxy);
     }

@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-const { rpc, getUser } = vi.hoisted(() => ({ rpc: vi.fn(), getUser: vi.fn() }));
-vi.mock("@/lib/supabase/server", () => ({createClient: async () => ({rpc,auth:{getUser}})}));
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+const { rpc, getUser, createClient } = vi.hoisted(() => ({ rpc: vi.fn(), getUser: vi.fn(), createClient: vi.fn(async () => ({ rpc, auth: { getUser } })) }));
+vi.mock("@/lib/supabase/server", () => ({createClient}));
 vi.mock("@/lib/rateLimit",()=>({rateLimit:()=>({ok:true})}));
 import { GET } from "@/app/api/investigations/route";
 const id="10000000-0000-4000-8000-000000000001";
-beforeEach(()=>{rpc.mockReset();getUser.mockReset();getUser.mockResolvedValue({data:{user:{id}},error:null});});
+beforeEach(()=>{rpc.mockReset();getUser.mockReset();createClient.mockClear();getUser.mockResolvedValue({data:{user:{id}},error:null});});
 const U="https://terminal.test/api/investigations";
 const Q="?admission=terminal.options_exposure:options_matrix_selection";
 describe("investigation admission probe",()=>{
@@ -63,5 +63,41 @@ describe("investigation admission probe",()=>{
   const response=await GET(new Request(U+Q));
   expect(response.status).toBe(401);expect(await response.json()).toEqual({status:"unauthenticated"});
   expect(rpc).not.toHaveBeenCalled();
+ });
+});
+// Closed-mode matrix for the ingress gate: INVESTIGATION_API_ADMISSION is the production
+// default (unset) plus the representative closed literals. Closed mode must refuse the
+// handler BEFORE any session/client/probe work — including for selectors that are
+// themselves malformed, so a bad selector can never widen the surface — and the shared
+// 503 envelope is returned verbatim with the route's own private headers.
+const CLOSED_ADMISSION_VALUES: Array<string | undefined> = [undefined, "closed", "", "OPEN", " open", "open\n", "open,"];
+const CLOSED_MODE_SELECTORS = [Q, "?admission=", "?admission=terminal.options_exposure", "?admission=:options_matrix_selection", "?admission=a:b:c", Q+"&id=x", "?admission=%20terminal.options_exposure:options_matrix_selection", "?admission=TERMINAL.OPTIONS_EXPOSURE:options_matrix_selection"];
+describe("investigation admission gate closed mode",()=>{
+ afterEach(()=>{vi.unstubAllEnvs();});
+ it.each(CLOSED_ADMISSION_VALUES)("admission value %j refuses every request before any session, client or probe work",async(value)=>{
+  if(value===undefined) vi.stubEnv("INVESTIGATION_API_ADMISSION",undefined as unknown as string);
+  else vi.stubEnv("INVESTIGATION_API_ADMISSION",value);
+  for(const q of CLOSED_MODE_SELECTORS){
+   const request=new Request(U+q);
+   const response=await GET(request);
+   expect(response.status).toBe(503);
+   expect(await response.json()).toEqual({status:"unavailable"});
+   expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+   expect(response.headers.get("Vary")).toBe("Cookie");
+   expect(request.bodyUsed).toBe(false);
+  }
+  expect(createClient).not.toHaveBeenCalled();
+  expect(getUser).not.toHaveBeenCalled();
+  expect(rpc).not.toHaveBeenCalled();
+ });
+ it("flips per request: an admitted probe passes while the next closed request is refused",async()=>{
+  rpc.mockResolvedValue({data:true,error:null});
+  const response=await GET(new Request(U+Q));
+  expect(response.status).toBe(200);expect(await response.json()).toEqual({status:"admission",admitted:true});
+  vi.stubEnv("INVESTIGATION_API_ADMISSION","closed");
+  const closed=await GET(new Request(U+Q));
+  expect(closed.status).toBe(503);expect(await closed.json()).toEqual({status:"unavailable"});
+  expect(createClient).toHaveBeenCalledOnce();
+  expect(rpc).toHaveBeenCalledOnce();
  });
 });

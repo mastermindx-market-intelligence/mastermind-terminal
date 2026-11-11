@@ -1,0 +1,13 @@
+{
+  "source": "fdb54a8a2092c6b42ce3d35493665805b8e14bdb",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/eslint/bin/eslint.js",
+    "components/EventImpactPanel.tsx",
+    "lib/__tests__/eventImpactPanelRefresh.test.tsx",
+    "e2e/tools/qualify_shared_shell_intelligence.cjs"
+  ],
+  "exit": 1,
+  "seconds": 3.194,
+  "logSha256": "fb762bafbced80ffef15ede04b43c86a705155158f354298b8f4eaccd2598ff2"
+}

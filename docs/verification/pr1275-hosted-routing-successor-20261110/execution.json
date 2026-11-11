@@ -1,0 +1,36 @@
+{
+  "allSixSettled": true,
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-routing-f11-successor/.pr1275-routing-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+  ],
+  "cwd": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-routing-f11-successor/terminal",
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T11:57:58.843862+00:00",
+  "fixtureInputs": 15,
+  "fixtureSha256": "4e1ce922c00bfc42de2a9550f36926f6db7bbe386a8f60bbb1c6e4a751c0d9d0",
+  "listenerRead": {
+    "exitCode": 1,
+    "stderr": "",
+    "stdout": ""
+  },
+  "logSha256": "ec19fbfc3039a059074ad8cc2a78be01be4a30efe0bc0c123e26407c4b066474",
+  "nextEnvPostimage": null,
+  "nextEnvPreimage": null,
+  "node": "v22.23.4",
+  "observer": "This finite caller only; incumbent producer owns every browser/server/callback and its settlement.",
+  "port": 47275,
+  "portFree": true,
+  "producerPid": 70647,
+  "schema": "terminal.pr1275.f11-successor-execution.v1",
+  "seconds": 306.727,
+  "sourceHead": "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+  "sourceInputsUnchanged": true,
+  "sourceTree": "f6b2202bea775cebbd867deccc05bb9c69034412",
+  "startedAt": "2026-11-10T11:52:52.117268+00:00",
+  "state": "CAPTURE_QUALIFIED_AWAITING_VISUAL_REVIEW",
+  "trackedChanges": [
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/FIXTURE.json"
+  ]
+}

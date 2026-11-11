@@ -1,0 +1,33 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr645-expiry-integration-20261109-c4/terminal
+
+ ✓ lib/__tests__/optionsExposureEvidenceOwner.test.ts (44 tests) 73966ms
+   ✓ shadow evidence repositories > mirrors dangling entries while preserving source alias semantics 4584ms
+   ✓ current EOD owner and native reader > selects the same qualified manifest and preserves its actual capture identity 4031ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx 3722ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx 1155ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/gexdesk/GexSummaryBar.tsx 3751ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/lib/dte.ts 9955ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/e2e/exposure-partial-totals.spec.ts 4735ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/public/data/gex_fixture.json 3973ms
+   ✓ current EOD owner and native reader > refuses a corrupted selected image through the actual owner 3605ms
+   ✓ current EOD owner and native reader > refuses a changed descriptor rather than recapturing over history 3218ms
+   ✓ current EOD owner and native reader > refuses a removed declaration even when the historical root remains a valid raw manifest 2589ms
+   ✓ paired Options integration proof > refuses a mixed current family declaration 1668ms
+   ✓ paired Options integration proof > refuses a complete-image receipt with an incomplete frame matrix 1182ms
+   ✓ paired Options integration proof > refuses a current receipt without settled native-server proof 1129ms
+   ✓ expiry integration with retained EOD identity > selects the fresh GEX packet through the shared owner without relabeling EOD 2370ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExpiryBars.tsx 2258ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExposureExpiryDrawer.tsx 1570ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/lib/expiryTermStructure.ts 2654ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/exposure-expiry-greeks.spec.ts 2704ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/responsive.spec.ts 4103ms
+   ✓ expiry integration with retained EOD identity > keeps validating the prior Options GEX descriptor 6591ms
+   ✓ expiry integration with retained EOD identity > refuses to assign the fresh GEX identity to EOD 2401ms
+
+ Test Files  1 passed (1)
+      Tests  44 passed (44)
+   Start at  22:27:11
+   Duration  76.10s (transform 92ms, setup 0ms, collect 88ms, tests 73.97s, environment 0ms, prepare 679ms)
+

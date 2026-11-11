@@ -1,4 +1,5 @@
 "use client";
+import { acquireScrollLock } from "@/lib/scrollLock";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useT } from "@/lib/i18n";
@@ -123,9 +124,7 @@ export default function AnalysisHubSheet({ open, onClose, onAction, replay, cont
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    return acquireScrollLock();
   }, [open]);
 
   // The hub is aria-modal, so keyboard focus must obey that same boundary. Capture the opener on

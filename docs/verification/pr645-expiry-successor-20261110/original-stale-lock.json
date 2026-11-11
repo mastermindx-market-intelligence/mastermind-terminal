@@ -1,0 +1,49 @@
+{
+  "at": "2026-11-10T05:17:17.515980+00:00",
+  "checks": {
+    "fd": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr645-expiry-integration-20261109-c4/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "97327",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "port": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:32485",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "inode": 67647920,
+  "lock": {
+    "appUrl": "http://localhost:32485",
+    "hostname": "localhost",
+    "pid": 97327,
+    "port": 32485,
+    "startedAt": 1794239951951
+  },
+  "present": true,
+  "sha256": "fba0f1e8fb14124f392dc6ebb5131afe5f4695f661ffb3cd53cc36608271c157",
+  "state": "REMOVED_PROVEN_DEAD_LOCK",
+  "workspaceCwdHolders": []
+}

@@ -4,11 +4,21 @@ import { join } from "node:path";
 import { editorialView } from "../lib/__tests__/fixtures/newsEditorial";
 import type { TickerNewsViewMode } from "../lib/newsTypes";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { selectAppearance } from "./presentationControls";
 
 test.setTimeout(120_000);
 
 const OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news-editorial-views");
 const CROPS = process.env.TERMINAL_CROPS === "1";
+const CAPTURE_PACKET = process.env.TERMINAL_TICKER_NEWS_CAPTURE_PACKET ?? "";
+if (CAPTURE_PACKET !== "" && CAPTURE_PACKET !== "ticker-news") {
+  throw new Error("Unsupported TERMINAL_TICKER_NEWS_CAPTURE_PACKET");
+}
+const LEGACY_PACKET = CAPTURE_PACKET === "ticker-news";
+const DEFAULT_CROPS = CROPS && !LEGACY_PACKET;
+const LEGACY_CROPS = CROPS && LEGACY_PACKET;
+const LEGACY_OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news");
+const UNAVAILABLE_OUT = LEGACY_PACKET ? LEGACY_OUT : OUT;
 const LIGHT_SPECIMEN_CSS = readFileSync(join(process.cwd(), "docs/specimens/news-flow.light.css"), "utf8");
 
 const MANIFEST = {
@@ -242,11 +252,11 @@ async function installEventSourceStub(page: Page) {
   });
 }
 
-async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol = "NVDA") {
+async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, manifest = MANIFEST) {
   await isolateWatchlistStore(page, testInfo, baseURL);
   await installEventSourceStub(page);
 
-  await page.route("**/data/manifest.json**", (route) => route.fulfill({ json: MANIFEST }));
+  await page.route("**/data/manifest.json**", (route) => route.fulfill({ json: manifest }));
   await page.route("**/api/quote**", (route) => route.fulfill({
     json: {
       quotes: {
@@ -295,19 +305,37 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
     },
   }));
 
-  await page.goto(`/terminal?symbol=${symbol}`);
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
 }
 
-async function setPresentation(page: Page, lang: "en" | "zh", theme: "light" | "dark" = "dark") {
-  await page.evaluate((l) => {
-    localStorage.setItem("mm.lang", l);
-  }, lang);
-  await page.reload();
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+async function setPresentation(
+  page: Page,
+  lang: "en" | "zh",
+  theme: "light" | "dark" = "dark",
+  symbol?: string,
+) {
+  const firstDocument = page.url() === "about:blank";
+  if (firstDocument) {
+    // Seed only absent storage. Later presentation reloads must keep the
+    // language explicitly selected below rather than reset to this first one.
+    await page.addInitScript((initialLanguage) => {
+      if (localStorage.getItem("mm.lang") === null) {
+        localStorage.setItem("mm.lang", initialLanguage);
+      }
+    }, lang);
+  } else {
+    await page.evaluate((l) => {
+      localStorage.setItem("mm.lang", l);
+    }, lang);
+  }
+  if (firstDocument || symbol !== undefined) {
+    await page.goto(`/terminal?symbol=${symbol ?? "NVDA"}`);
+  } else {
+    // Preserve later document resets: they clear specimen CSS and rail state.
+    await page.reload();
+  }
+  await expect(page.locator("#rail-tab-news")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
-  await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
-  await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+  await selectAppearance(page, lang, theme);
 }
 
 async function openNews(page: Page, expectedState = "live") {
@@ -347,7 +375,7 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
     { width: 390, height: 844, size: "mobile" },
   ] as const;
   const languages = ["en", "zh"] as const;
-  if (CROPS) {
+  if (DEFAULT_CROPS) {
     mkdirSync(OUT, { recursive: true });
     for (const name of readdirSync(OUT)) {
       if (name.endsWith(".png")) rmSync(join(OUT, name));
@@ -412,7 +440,12 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
             expect((await viewControl.boundingBox())?.height).toBeGreaterThanOrEqual(44);
           }
           expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-          if (CROPS) {
+          if (LEGACY_CROPS && theme === "dark" && mode === "news") {
+            await panel.screenshot({
+              path: join(LEGACY_OUT, [viewport.size, lang, "dark.png"].join("-")),
+            });
+          }
+          if (DEFAULT_CROPS) {
             await panel.screenshot({
               path: join(OUT, `${viewport.size}-${lang}-${theme === "light" ? "light-specimen" : "dark"}-${mode}.png`),
             });
@@ -435,14 +468,11 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
     status: 503,
     json: { detail: "service unavailable" },
   }));
-  await page.goto("/terminal?symbol=NVDA");
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
-
   const languages = ["en", "zh"] as const;
   const size = testInfo.project.name === "mobile" ? "mobile" : "desktop";
   await page.setViewportSize(size === "mobile" ? { width: 390, height: 844 } : { width: 1440, height: 900 });
 
-  if (CROPS) mkdirSync(OUT, { recursive: true });
+  if (DEFAULT_CROPS) mkdirSync(OUT, { recursive: true });
 
   for (const lang of languages) {
     await setPresentation(page, lang);
@@ -453,7 +483,7 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     if (CROPS) {
-      await panel.screenshot({ path: join(OUT, `unavailable-${size}-${lang}-dark.png`) });
+      await panel.screenshot({ path: join(UNAVAILABLE_OUT, `unavailable-${size}-${lang}-dark.png`) });
     }
   }
 });
@@ -462,7 +492,7 @@ test("unavailable snapshot retries inside the rail across EN/ZH and theme specim
   test.skip(!["desktop", "tablet", "mobile"].includes(testInfo.project.name), "Contract viewports only.");
   await prepare(page, testInfo, baseURL);
   const retryOut = join(process.cwd(), "docs", "pr-crops", "ticker-news-recovery");
-  if (CROPS) mkdirSync(retryOut, { recursive: true });
+  if (DEFAULT_CROPS) mkdirSync(retryOut, { recursive: true });
   let allowRecovery = false;
   let releaseRecovery!: () => void;
   let recoveryGate = Promise.resolve();
@@ -501,7 +531,7 @@ test("unavailable snapshot retries inside the rail across EN/ZH and theme specim
       await expect(retry).toBeFocused();
       expect(await retry.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth))).toBeGreaterThanOrEqual(2);
       const cell = [testInfo.project.name, lang, theme === "light" ? "light-specimen" : "dark"].join("-");
-      if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-unavailable.png") });
+      if (DEFAULT_CROPS) await panel.screenshot({ path: join(retryOut, cell + "-unavailable.png") });
 
       const beforeRetry = snapshotReads;
       const beforeDocuments = documentReads;
@@ -512,7 +542,7 @@ test("unavailable snapshot retries inside the rail across EN/ZH and theme specim
         await expect(retry).toHaveCount(0);
         await expect(panel.locator("[data-news-headline], [data-news-mark-one]")).toHaveCount(0);
         await expect.poll(() => snapshotReads).toBe(beforeRetry + 1);
-        if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-loading.png") });
+        if (DEFAULT_CROPS) await panel.screenshot({ path: join(retryOut, cell + "-loading.png") });
       } finally {
         releaseRecovery();
       }
@@ -523,7 +553,7 @@ test("unavailable snapshot retries inside the rail across EN/ZH and theme specim
       expect(snapshotReads).toBe(beforeRetry + 1);
       expect(documentReads).toBe(beforeDocuments);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-      if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-recovered.png") });
+      if (DEFAULT_CROPS) await panel.screenshot({ path: join(retryOut, cell + "-recovered.png") });
     }
   }
 });
@@ -541,8 +571,8 @@ test("grouped reports expand inside the real rail without leaving ticker context
 
 test("MSFT grouped detail starts while an Apple story response is still held", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop owns real-shell symbol transition proof.");
-  await prepare(page, testInfo, baseURL, "AAPL");
-  await setPresentation(page, "en");
+  await prepare(page, testInfo, baseURL);
+  await setPresentation(page, "en", "dark", "AAPL");
 
   let releaseAaplStory!: () => void;
   const aaplStoryGate = new Promise<void>((resolve) => {
@@ -609,6 +639,8 @@ test("editorial views filter before display and keep grouped details in the sele
       ],
     } });
   });
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
   const panel = await openNews(page);
   const control = panel.locator("select[data-news-view-select]");
   await control.selectOption("company");
@@ -626,4 +658,75 @@ test("editorial views filter before display and keep grouped details in the sele
   await expect(panel.locator("[data-news-headline]")).toHaveCount(2);
   await expect(panel).not.toContainText("Benzinga Bulls And Bears");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+});
+
+test("Chinese and Hong Kong tickers preserve original Chinese headlines", async ({ page, baseURL }, testInfo) => {
+  const manifest = {
+    symbols: {
+      ...MANIFEST.symbols,
+      "0700.HK": { ...MANIFEST.symbols.NVDA, name: "Tencent Holdings", zh: "腾讯控股", mkt: "HKEX" },
+      "600519.SS": { ...MANIFEST.symbols.NVDA, name: "Kweichow Moutai", zh: "贵州茅台", mkt: "SSE" },
+    },
+  };
+  const examples = [
+    {
+      ticker: "0700.HK", securityId: "SEC:HK-XHKG-00700", source: "finlight:etnet.com.hk",
+      label: "經濟通", title: "騰訊控股公布季度業績，金融科技及企業服務收入增長",
+      url: "https://www.etnet.com.hk/www/tc/news/fixture-tencent",
+    },
+    {
+      ticker: "600519.SS", securityId: "SEC:CN-XSHG-600519", source: "finlight:cls.cn",
+      label: "财联社", title: "贵州茅台发布经营数据，前三季度营业收入保持增长",
+      url: "https://www.cls.cn/detail/fixture-moutai",
+    },
+  ];
+  for (const [i, example] of examples.entries()) {
+    const snapshot = {
+      ...snapshotFor(example.ticker, [{
+        ...SNAPSHOT.rows[0], sequence: 71 + i, source: example.source,
+        source_item_id: `fixture-cn-hk-${i}`, story_id: `ev2_fixture_cn_hk_${i}`,
+        source_count: 1, item_count: 1, title: example.title, url: example.url,
+        teaser: "", universe_revision: "sp500-cn-hk-news-fixture",
+      }]),
+      security_id: example.securityId, state: "degraded",
+      source_health: { state: "degraded", last_successful_catchup: "2026-10-05T19:31:01+00:00" },
+    };
+    await page.route((url) => url.pathname === `/api/news/${example.ticker}`, (route) =>
+      route.fulfill({ json: snapshot }));
+  }
+  await prepare(page, testInfo, baseURL, manifest);
+  const out = join(process.cwd(), "docs", "pr-crops", "ticker-news-cn-hk");
+  if (DEFAULT_CROPS) mkdirSync(out, { recursive: true });
+  // Synthetic contract fixtures prove rendering only, not publisher coverage or licensing.
+  for (const example of examples) {
+    for (const lang of ["en", "zh"] as const) {
+      for (const theme of ["dark", "light"] as const) {
+        await setPresentation(
+          page, lang, theme,
+          lang === "en" && theme === "dark" ? example.ticker : undefined,
+        );
+        const panel = await openNews(page, "degraded");
+        if (theme === "light") {
+          await page.addStyleTag({ content: LIGHT_SPECIMEN_CSS });
+          await panel.evaluate((node) => node.setAttribute("data-specimen-theme", "light"));
+        }
+        const headline = panel.locator("[data-news-headline]");
+        await expect(headline).toHaveCount(1);
+        await expect(headline).toHaveText(example.title);
+        await expect(headline).toHaveAttribute("href", example.url);
+        await expect(panel).toContainText(example.label);
+        await expect(panel).not.toContainText(examples.find((item) => item !== example)!.title);
+        await expect(panel).not.toContainText("Finlight");
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+          .toBeLessThanOrEqual(1);
+        const streamUrl = await page.evaluate(() =>
+          (window as unknown as { __mmTickerNewsStream?: string }).__mmTickerNewsStream ?? "");
+        expect(new URL(streamUrl, "http://fixture.local").searchParams.get("symbol")).toBe(example.ticker);
+        if (DEFAULT_CROPS) {
+          await panel.screenshot({ path: join(out,
+            `${testInfo.project.name}-${example.ticker}-${lang}-${theme === "light" ? "light-specimen" : "dark"}.png`) });
+        }
+      }
+    }
+  }
 });

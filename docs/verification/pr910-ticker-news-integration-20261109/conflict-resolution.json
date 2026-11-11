@@ -1,0 +1,21 @@
+{
+  "changedVsProtected": [
+    "terminal/lib/__tests__/tickerNewsEvidence.test.ts"
+  ],
+  "completedAt": "2026-11-09T17:22:04.249999+00:00",
+  "newerPacketsUnchanged": 103,
+  "originalPreservationSha256": "d4033fd4f41072b276f52e37d0065615280d12c3526f0e91c20c9b144f6a52e1",
+  "protectedPacketFiles": 11,
+  "resolvedPaths": [
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+    "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png"
+  ],
+  "schema": "terminal_pr910_scoped_conflict_resolution.v1",
+  "state": "PROTECTED_PACKET_BASELINE_WITH_BOTH_ORIGINALS_PRESERVED"
+}

@@ -9,16 +9,20 @@ import {
   text,
   type FeedStatus,
   type Row,
+  type SectorBreadthSort,
+  type SectorBreadthWindow,
   type SectorCapBand,
   type SectorCompanyTableSort,
   type SectorDiscoveryMode,
   type SectorMatrixTimeframe,
 } from "@/lib/sectorIntelligence";
+import SectorBreadthBoard from "./SectorBreadthBoard";
 import SectorCompanyHeatmap from "./SectorCompanyHeatmap";
 import SectorCompanyTable from "./SectorCompanyTable";
 import SectorIndustryMatrix from "./SectorIndustryMatrix";
 import SectorIndustrySummary from "./SectorIndustrySummary";
 import styles from "./SectorCentralDiscovery.module.css";
+import { useSectorRegularQuotes } from "./useSectorRegularQuotes";
 
 export type DiscoverySort = "source" | "return" | "participation";
 export interface SectorCentralDiscoveryProps {
@@ -33,6 +37,10 @@ export interface SectorCentralDiscoveryProps {
   sort: DiscoverySort;
   companyTableSort: SectorCompanyTableSort;
   breadth: boolean;
+  breadthSort: SectorBreadthSort;
+  breadthWindow: SectorBreadthWindow;
+  onBreadthSort: (sort: SectorBreadthSort) => void;
+  onBreadthWindow: (window: SectorBreadthWindow) => void;
   mode: SectorDiscoveryMode;
   heatmapData: unknown;
   heatmapStatus: FeedStatus;
@@ -142,13 +150,35 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
   const selectedName = selectedRow ? text(language === "zh" ? selectedRow.name_zh : selectedRow.name) || text(selectedRow.name) : "";
   const read = props.breadth ? breadthRead(readyRows, language) : discoveryRead(readyRows, language);
   const name = (row: Row) => text(language === "zh" ? row.name_zh : row.name) || text(row.name);
+  const intraday = useSectorRegularQuotes(props.heatmapData, props.selectedSourceName,
+    !props.breadth && props.status === "ready" && props.heatmapStatus === "ready" && props.matrixTimeframe === "1D");
+  const projection = intraday.projection;
+  const companyData = projection?.data ?? props.heatmapData;
+  const companyDate = projection?.session.date ?? props.heatmapAsOf;
+  const zh = language === "zh";
+  const receipt = projection ? [
+    projection.session.open ? (zh ? "常规交易时段" : "Regular session") : (zh ? "常规收盘" : "Regular close"),
+    `${projection.covered}/${intraday.total} ${zh ? "有报价" : "quotes"}`,
+    projection.counts.live ? `${projection.counts.live} ${zh ? "实时" : "live"}` : "",
+    projection.counts.delayed ? `${projection.counts.delayed} ${zh ? "延迟" : "delayed"}` : "",
+    projection.counts.untimed ? `${projection.counts.untimed} ${zh ? "无成交时间" : "without a trade time"}` : "",
+    projection.oldest !== null ? `${zh ? "最早报价" : "Oldest quote"} ${new Date(projection.oldest).toLocaleTimeString(zh ? "zh-CN" : "en-US", {timeZone:"America/New_York", hour12:false})} ET` : "",
+  ].filter(Boolean).join(" · ") : intraday.pending
+    ? (zh ? "正在检查报价 · 显示快照" : "Checking quotes · Showing snapshot")
+    : (zh ? "当前报价不可用 · 显示快照" : "Current quotes unavailable · Showing snapshot");
+  const quoteReceipt = intraday.total > 0 && <p className={styles.date} data-testid="sector-quote-coverage">
+    {receipt} · {zh ? "成分及市值快照" : "Roster and cap snapshot"} {props.heatmapAsOf || t("unknownDate")}
+  </p>;
   const representationNavigation = !props.breadth && <div className={styles.representations} role="group" aria-label={t("representation")}>
     {(["summary", "table", "heatmap", "matrix"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
   </div>;
 
-  if (!props.breadth && props.mode === "summary") return <section className={styles.root} data-testid="sector-discovery">
+  if (props.breadth) return <SectorBreadthBoard {...props} />;
+
+  if (props.mode === "summary") return <section className={styles.root} data-testid="sector-discovery">
     {representationNavigation}
-    <SectorIndustrySummary data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
+    {quoteReceipt}
+    <SectorIndustrySummary data={companyData} status={props.heatmapStatus} asOf={companyDate}
       sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
       selectedSectorSourceName={props.selectedSourceName} timeframe={props.matrixTimeframe}
       onSector={props.onSelect} onTimeframe={props.onTimeframe}
@@ -157,7 +187,8 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
 
   if (!props.breadth && props.mode === "table") return <section className={styles.root} data-testid="sector-discovery">
     {representationNavigation}
-    <SectorCompanyTable data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
+    {quoteReceipt}
+    <SectorCompanyTable data={companyData} status={props.heatmapStatus} asOf={companyDate}
       sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
       selectedSectorSourceName={props.selectedSourceName} selectedCompany={props.selectedCompany}
       timeframe={props.matrixTimeframe} industry={props.matrixIndustry} band={props.matrixBand}
@@ -170,7 +201,8 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
 
   if (!props.breadth && props.mode === "heatmap") return <section className={styles.root} data-testid="sector-discovery">
     {representationNavigation}
-    <SectorCompanyHeatmap data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
+    {quoteReceipt}
+    <SectorCompanyHeatmap data={companyData} status={props.heatmapStatus} asOf={companyDate}
       sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
       selectedSectorSourceName={props.selectedSourceName} selectedCompany={props.selectedCompany}
       timeframe={props.matrixTimeframe} industry={props.matrixIndustry} band={props.matrixBand}
@@ -181,7 +213,8 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
 
   if (!props.breadth && props.mode === "matrix") return <section className={styles.root} data-testid="sector-discovery">
     {representationNavigation}
-    <SectorIndustryMatrix data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
+    {quoteReceipt}
+    <SectorIndustryMatrix data={companyData} status={props.heatmapStatus} asOf={companyDate}
       sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
       selectedSectorSourceName={props.selectedSourceName}
       timeframe={props.matrixTimeframe} industry={props.matrixIndustry} band={props.matrixBand}
@@ -207,16 +240,7 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
     </div>
     {props.status !== "ready" ? <div className={styles.empty} role="status">{t(props.status === "loading" ? "loading" : props.status === "access" ? "access" : "unavailable")}</div>
       : visible.length === 0 ? <div className={styles.empty} role="status"><p>{t(readyRows.length ? "noMatches" : "unavailable")}</p>{props.query && <button type="button" onClick={() => props.onQuery("")}>{t("clear")}</button>}</div>
-      : props.breadth ? <div className={styles.breadthGrid}>{visible.map(row => {
-        const heat = object(row.heat), pct = share(heat.breadth_pct), adv = count(heat.adv), dec = count(heat.dec);
-        return <button type="button" key={text(row.id)} className={styles.breadthCard} data-sector-choice={text(row.id)} aria-pressed={props.selected === row.id}
-          aria-label={`${t("selected")}: ${name(row)}`} onClick={event => { event.currentTarget.focus({ preventScroll: true }); props.onSelect(text(row.id)); }}>
-          <span className={styles.cardName}>{name(row)}<small>{text(row.ticker)}</small></span>
-          <span className={styles.cardValue}>{formatValue(pct, 0, "%")}<small>{t("participation")}</small></span>
-          <span className={styles.track} aria-hidden="true">{pct !== null && <span style={{ width: `${pct}%` }} />}</span>
-          <span className={styles.coverage}>{formatValue(adv, 0)} {t("advancing")} · {formatValue(dec, 0)} {t("declining")}</span>
-        </button>;
-      })}</div> : <div className={styles.tableWrap}><table><thead><tr><th>{t("name")}</th><th>{t("return")}</th><th>{t("participation")}</th><th>{t("population")}</th><th>{t("trend")}</th></tr></thead>
+      : <div className={styles.tableWrap}><table><thead><tr><th>{t("name")}</th><th>{t("return")}</th><th>{t("participation")}</th><th>{t("population")}</th><th>{t("trend")}</th></tr></thead>
         <tbody>{visible.map(row => { const heat = object(row.heat), momentum = object(row.momentum), value = number(heat.heat_1M);
           return <tr key={text(row.id)} aria-selected={props.selected === row.id}>
             <th scope="row"><button type="button" data-sector-choice={text(row.id)} onClick={event => { event.currentTarget.focus({ preventScroll: true }); props.onSelect(text(row.id)); }} aria-label={`${t("selected")}: ${name(row)}`}>{name(row)}<small>{text(row.ticker)}</small></button></th>

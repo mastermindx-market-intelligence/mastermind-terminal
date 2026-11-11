@@ -1,0 +1,23 @@
+{
+  "at": "2026-11-10T05:43:32.956690+00:00",
+  "completedAt": "2026-11-10T05:43:32.962681+00:00",
+  "lockPresent": false,
+  "portClosed": true,
+  "processChecks": {
+    "69544": {
+      "at": "2026-11-10T05:43:32.962532+00:00",
+      "command": [
+        "ps",
+        "-p",
+        "69544",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "schema": "terminal_pr645_native_lifecycle.v1",
+  "state": "OWNED_SERVER_STOPPED"
+}

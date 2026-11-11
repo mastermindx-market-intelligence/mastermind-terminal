@@ -1,0 +1,23 @@
+[warmup] /terminal?symbol=NVDA → 200 in 178ms
+[warmup] /options → 200 in 4985ms
+[warmup] /portfolio → 200 in 2773ms
+[warmup] /alerts → 200 in 2083ms
+[warmup] /analysis → 200 in 2816ms
+[warmup] /discover → 200 in 3609ms
+[warmup] /admin → 200 in 1091ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 890ms
+[warmup] /login → 200 in 141ms
+[warmup] /reset-password → 200 in 811ms
+[warmup] /api/me → 200 in 699ms
+[warmup] /api/watchlist → 200 in 242ms
+[warmup] /api/layouts → 200 in 265ms
+[warmup] /api/watchlist/annotations → 409 in 204ms
+[warmup] 14 routes compiled in 21s
+[fixture-ready] prophet_idx fixture 200 in 769ms
+
+Running 1 test using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/drawing-system.spec.ts:2980:5 › a desktop Path finishes exactly once when its closing double-click has no native dblclick (16.3s)
+
+  1 passed (1.0m)

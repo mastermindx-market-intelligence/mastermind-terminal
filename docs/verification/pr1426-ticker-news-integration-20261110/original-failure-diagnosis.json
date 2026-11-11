@@ -1,0 +1,37 @@
+{
+  "schema": "terminal.pr1426.shared-queue-failure.v1",
+  "observedAt": "2026-11-10T17:01:16.108384+00:00",
+  "claim": 6773444666,
+  "classification": "DETERMINISTIC_STRICT_EVIDENCE_BINDING_STALE_AFTER_ACCEPTED_SHELL_CHANGE",
+  "reader": "terminal/lib/__tests__/tickerNewsEvidence.test.ts:85",
+  "expectedShellSha256": "ad3cba56bb624a4da87a056f10caee8c61bf82a30423b2ca3c9cebf444b3a7ac",
+  "actualShellSha256": "9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc",
+  "runs": [
+    {
+      "pr": 1426,
+      "runId": 42850341427,
+      "attempt": 1,
+      "jobId": 129950555784,
+      "mergeGroupHead": "d41f601c4427c4ff15f3e9f0ccdeb1a51c902e62",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42850341427/job/129950555784",
+      "originalDecodedLogUtf8Sha256": "25371c281e5bd47e06cf288c7e947f2bc4ddc098cdf566ef7d8fd4d431d73ef3",
+      "originalDecodedBytes": 642759,
+      "retainedGzip": "original-group-129950555784.decoded.log.gz",
+      "retainedGzipSha256": "18cf36b98d4755e83fa3f115bb15a13d044f05ab6750311d51b27516598ee909",
+      "failureExcerptAnsiStripped": "2026-11-10T16:32:55.5228980Z  FAIL  lib/__tests__/tickerNewsEvidence.test.ts > ticker-news evidence lock is EVIDENCE.yml > each layoutFiles sha256 matches the file on disk\n2026-11-10T16:32:55.5251133Z AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected '9a52f109c3ab87f3e24da8bfa79ff6cac05a1\u2026' to be 'ad3cba56bb624a4da87a056f10caee8c61bf8\u2026' // Object.is equality\n2026-11-10T16:32:55.5253286Z \n2026-11-10T16:32:55.5254746Z Expected: \"ad3cba56bb624a4da87a056f10caee8c61bf82a30423b2ca3c9cebf444b3a7ac\"\n2026-11-10T16:32:55.5256645Z Received: \"9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc\"\n2026-11-10T16:32:55.5257492Z \n2026-11-10T16:32:55.5258452Z  \u276f lib/__tests__/tickerNewsEvidence.test.ts:85:67\n2026-11-10T16:32:55.5435474Z      83|       const abs = join(REPO, rel);\n2026-11-10T16:32:55.5437773Z      84|       expect(existsSync(abs), `${rel} is recorded in layoutFiles but a\u2026\n2026-11-10T16:32:55.5440358Z      85|       expect(sha256Of(abs), `${rel} changed without a recapture`).toBe\u2026\n2026-11-10T16:32:55.5442202Z        |                                                                   ^\n2026-11-10T16:32:55.5443003Z      86|     }\n2026-11-10T16:32:55.5443649Z      87|   });\n2026-11-10T16:32:55.5444082Z \n2026-11-10T16:32:55.5444699Z \u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n2026-11-10T16:32:55.5445200Z \n2026-11-10T16:32:55.5495548Z  Test Files  1 failed | 1250 passed | 6 skipped (1257)\n2026-11-10T16:32:55.5604671Z       Tests  1 failed | 21931 passed | 50 skipped | 3 todo (21985)\n2026-11-10T16:32:55.5606932Z    Start at  16:25:15\n2026-11-10T16:32:55.5623442Z    Duration  460.01s (transform 58.92s, setup 0ms, collect 275.46s, tests 544.13s, environment 222.78s, prepare 114.38s)\n2026-11-10T16:32:55.5624569Z \n2026-11-10T16:32:55.5895328Z \n2026-11-10T16:32:55.5907835Z ##[error]AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected '9a52f109c3ab87f3e24da8bfa79ff6cac05a1\u2026' to be 'ad3cba56bb624a4da87a056f10caee8c61bf8\u2026' // Object.is equality\n\nExpected: \"ad3cba56bb624a4da87a056f10caee8c61bf82a30423b2ca3c9cebf444b3a7ac\"\nReceived: \"9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc\"\n\n \u276f lib/__tests__/tickerNewsEvidence.test.ts:85:67\n\n\n2026-11-10T16:32:55.9308527Z ##[error]Process completed with exit code 1."
+    },
+    {
+      "pr": 1435,
+      "runId": 42850344845,
+      "attempt": 1,
+      "jobId": 129952065137,
+      "mergeGroupHead": "b7646790441249668335850ac514382bdb1e956a",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42850344845/job/129952065137",
+      "originalDecodedLogUtf8Sha256": "4d3b0345604890f7c483aa585ac9f2aa640c0c8186af8f8f029742c37364d340",
+      "originalDecodedBytes": 615813,
+      "retainedGzip": "original-group-129952065137.decoded.log.gz",
+      "retainedGzipSha256": "354de231497bdd4e020212e69c6f2efa3d6f325b9b5168150a26b3f3592635a5",
+      "failureExcerptAnsiStripped": "2026-11-10T16:26:55.2711394Z  FAIL  lib/__tests__/tickerNewsEvidence.test.ts > ticker-news evidence lock is EVIDENCE.yml > each layoutFiles sha256 matches the file on disk\n2026-11-10T16:26:55.2713559Z AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected '9a52f109c3ab87f3e24da8bfa79ff6cac05a1\u2026' to be 'ad3cba56bb624a4da87a056f10caee8c61bf8\u2026' // Object.is equality\n2026-11-10T16:26:55.2714312Z \n2026-11-10T16:26:55.2714860Z Expected: \"ad3cba56bb624a4da87a056f10caee8c61bf82a30423b2ca3c9cebf444b3a7ac\"\n2026-11-10T16:26:55.2715934Z Received: \"9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc\"\n2026-11-10T16:26:55.2716312Z \n2026-11-10T16:26:55.2716678Z  \u276f lib/__tests__/tickerNewsEvidence.test.ts:85:67\n2026-11-10T16:26:55.2883387Z      83|       const abs = join(REPO, rel);\n2026-11-10T16:26:55.2884398Z      84|       expect(existsSync(abs), `${rel} is recorded in layoutFiles but a\u2026\n2026-11-10T16:26:55.2886310Z      85|       expect(sha256Of(abs), `${rel} changed without a recapture`).toBe\u2026\n2026-11-10T16:26:55.2887159Z        |                                                                   ^\n2026-11-10T16:26:55.2887527Z      86|     }\n2026-11-10T16:26:55.2887826Z      87|   });\n2026-11-10T16:26:55.2887993Z \n2026-11-10T16:26:55.2888260Z \u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n2026-11-10T16:26:55.2888523Z \n2026-11-10T16:26:55.2938666Z  Test Files  1 failed | 1251 passed | 6 skipped (1258)\n2026-11-10T16:26:55.3041434Z       Tests  1 failed | 21935 passed | 50 skipped | 3 todo (21989)\n2026-11-10T16:26:55.3042140Z    Start at  16:22:05\n2026-11-10T16:26:55.3065917Z    Duration  289.71s (transform 43.17s, setup 0ms, collect 180.17s, tests 330.04s, environment 133.75s, prepare 69.14s)\n2026-11-10T16:26:55.3066410Z \n2026-11-10T16:26:55.3218865Z \n2026-11-10T16:26:55.3227190Z ##[error]AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected '9a52f109c3ab87f3e24da8bfa79ff6cac05a1\u2026' to be 'ad3cba56bb624a4da87a056f10caee8c61bf8\u2026' // Object.is equality\n\nExpected: \"ad3cba56bb624a4da87a056f10caee8c61bf82a30423b2ca3c9cebf444b3a7ac\"\nReceived: \"9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc\"\n\n \u276f lib/__tests__/tickerNewsEvidence.test.ts:85:67\n\n\n2026-11-10T16:26:55.6376219Z ##[error]Process completed with exit code 1."
+    }
+  ]
+}

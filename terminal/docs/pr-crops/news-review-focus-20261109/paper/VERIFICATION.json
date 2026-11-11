@@ -1,0 +1,89 @@
+{
+  "file_id": "01M5EXPMQTSBFBAM8KKG83FTZH",
+  "page_id": "p-3-0",
+  "parent_node": "3H7-0",
+  "card_node": "424-0",
+  "svg_node": "427-0",
+  "source_implementation_head": "187abb3124edbf29f3bb23a8d81c40b46315ff59",
+  "source_pr": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1355",
+  "originalParentPrefixExact": true,
+  "oldChildrenPreserved": true,
+  "addedChildren": [
+    "424-0"
+  ],
+  "textChecks": [
+    {
+      "id": "425-0",
+      "text": "Review it. Keep your place.",
+      "postContains": true
+    },
+    {
+      "id": "426-0",
+      "text": "Candidate implementation · Terminal #1355 · browser qualification pending",
+      "postContains": true
+    },
+    {
+      "id": "433-0",
+      "text": "All: stay on the same headline. New / Updated: use the next surviving story from the prior list, then the nearest prior story. When the list is empty, or Mark shown becomes disabled, focus the selected review filter. Keep both filters unchanged.",
+      "postContains": true
+    },
+    {
+      "id": "434-0",
+      "text": "TickerNewsPanel owns one local focus intent, armed only by the focused review button. Consume it after the DOM commit—even for a no-op. Cancel on account, subject, view, filter or snapshot changes and respect a newer focus choice. Other-tab updates never arm it. No timer or animated scroll.",
+      "postContains": true
+    },
+    {
+      "id": "435-0",
+      "text": "NewsCatchup exposes the initiating button. useNewsCatchup keeps review and storage authority. An unlinked headline is a programmatic focus target with tabindex −1; it stays plain text and adds no tab stop. Use the existing visible focus outline.",
+      "postContains": true
+    },
+    {
+      "id": "436-0",
+      "text": "Local proof: 29/29 component cases pass; unchanged source fails seven focus cases. Focused typecheck passes. Existing browser tests now cover Enter, Tab, empty filters and disabled bulk review at the contract viewports. Their execution, release and live proof remain owed.",
+      "postContains": true
+    },
+    {
+      "id": "437-0",
+      "text": "Source: mastermind-terminal · PR #1355 · head 187abb3124edbf29f3bb23a8d81c40b46315ff59. Builder details: docs/NEWS_REVIEW_FOCUS_2026-11-09.md. Paper is the interaction reference; this specimen does not establish browser or production acceptance.",
+      "postContains": true
+    }
+  ],
+  "contrastStylePresent": true,
+  "render": {
+    "inspected": 2,
+    "selected": "focus-continuity.jpg",
+    "contrastCorrection": "Status and source annotations resolved to black from an undefined variable; corrected to #9FA8B7 and re-rendered."
+  },
+  "effects": [
+    {
+      "operation_id": "paper-audit-20261108-c3.news-review-focus-build.1",
+      "tool": "write_html",
+      "state": "APPLIED_RESPONSE_OBSERVED",
+      "retry_allowed": false,
+      "after_snapshot": "abf41bb305250fef0e370cd43f306dd13a71ef91ff14dc97367edd7aed3c7a24"
+    },
+    {
+      "operation_id": "paper-audit-20261108-c3.news-review-focus-contrast.1",
+      "tool": "set_text_content",
+      "state": "APPLIED_RESPONSE_OBSERVED",
+      "retry_allowed": false,
+      "after_snapshot": "abf41bb305250fef0e370cd43f306dd13a71ef91ff14dc97367edd7aed3c7a24"
+    },
+    {
+      "operation_id": "paper-audit-20261108-c3.news-review-focus-names.1",
+      "tool": "rename_nodes",
+      "state": "APPLIED_RESPONSE_OBSERVED",
+      "retry_allowed": false,
+      "after_snapshot": "abf41bb305250fef0e370cd43f306dd13a71ef91ff14dc97367edd7aed3c7a24"
+    },
+    {
+      "operation_id": "paper-audit-20261108-c3.news-review-focus-release.1",
+      "tool": "finish_working_on_nodes",
+      "state": "APPLIED_RESPONSE_OBSERVED",
+      "retry_allowed": false,
+      "after_snapshot": "abf41bb305250fef0e370cd43f306dd13a71ef91ff14dc97367edd7aed3c7a24"
+    }
+  ],
+  "proof_limit": "Paper reference and local component/type proof only. Browser CI, release and live proof remain owed.",
+  "release": "finish_working_on_nodes returned APPLIED_RESPONSE_OBSERVED for parent 3H7-0 and card 424-0."
+}
