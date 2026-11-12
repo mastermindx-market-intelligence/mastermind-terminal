@@ -127,12 +127,20 @@ jobs:
               echo 'CI_SCOPE mode=full reason=CLASSIFIER_NOT_IN_PROTECTED_BASE'
             fi
           else
-            if git cat-file -e "HEAD^1:scripts/ci_pr_scope.py" 2>/dev/null; then
+            if [ "${PR_HEAD_REPO}" != "${REPOSITORY}" ]; then
+              # A fork's head repository is not this repository: never docs.
+              # Enforced here in the shell so the guard holds whatever
+              # classifier vintage the protected base carries.
+              printf 'mode=full\nreason=FORK_HEAD_REPOSITORY\n' >> "$GITHUB_OUTPUT"
+              echo 'CI_SCOPE mode=full reason=FORK_HEAD_REPOSITORY'
+            elif git cat-file -e "HEAD^1:scripts/ci_pr_scope.py" 2>/dev/null; then
               git archive HEAD^1 scripts/ci_pr_scope.py | tar -x -C "$trusted"
+              # The arguments below are exactly the incumbent classifier's
+              # interface: this call must run green against the protected
+              # base even before a newer classifier lands there.
               python3 "$trusted/scripts/ci_pr_scope.py" \
                 --repo "$GITHUB_WORKSPACE" --base-sha "$PR_BASE_SHA" \
                 --base-ref "$PR_BASE_REF" --default-branch "$DEFAULT_BRANCH" \
-                --head-repo "${PR_HEAD_REPO}" --repository "${REPOSITORY}" \
                 --output "$GITHUB_OUTPUT"
             else
               printf 'mode=full\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE\n' >> "$GITHUB_OUTPUT"

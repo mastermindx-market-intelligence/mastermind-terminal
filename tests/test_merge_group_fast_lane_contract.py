@@ -11,6 +11,7 @@ production qualification for an integrated candidate.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -428,9 +429,23 @@ def test_the_classifier_is_always_executed_from_a_protected_base() -> None:
     assert '[[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid merge-group commit identity" >&2; exit 1; }' in run
 
 
-def test_the_pull_request_path_passes_the_fork_guard_to_the_classifier() -> None:
+def test_the_pull_request_path_guards_forks_in_the_shell_and_stays_vintage_safe() -> None:
     run = scope_step()["run"]
-    assert '--head-repo "${PR_HEAD_REPO}" --repository "${REPOSITORY}"' in run
+    # The fork guard is shell-side so it holds whatever classifier vintage
+    # the protected base carries.
+    assert '[ "${PR_HEAD_REPO}" != "${REPOSITORY}" ]' in run
+    assert 'mode=full\\nreason=FORK_HEAD_REPOSITORY\\n' in run
+    # ... and the pull-request classifier call passes exactly the incumbent
+    # classifier's argument set (no new flags), so this workflow runs green
+    # against a protected base that predates those flags.
+    assert re.search(
+        r'--repo "\$GITHUB_WORKSPACE" --base-sha "\$PR_BASE_SHA" \\\n'
+        r'\s*--base-ref "\$PR_BASE_REF" --default-branch "\$DEFAULT_BRANCH" \\\n'
+        r'\s*--output "\$GITHUB_OUTPUT"',
+        run,
+    ), "pull-request classifier call must stay on the incumbent argument set"
+    assert "--head-repo" not in run
+    assert "--repository" not in run
     env = scope_step()["env"]
     assert env["PR_HEAD_REPO"] == "${{ github.event.pull_request.head.repo.full_name }}"
     assert env["REPOSITORY"] == "${{ github.repository }}"

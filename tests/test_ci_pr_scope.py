@@ -702,4 +702,4 @@ def test_the_workflow_step_sends_a_fork_pr_to_full(tmp_path: Path) -> None:
         PR_BASE_SHA=base, PR_HEAD_REPO="someone_else/fork", REPOSITORY="owner/repo",
     )
     assert fields["mode"] == "full"
-    assert fields["reason"] == "UNQUALIFIED:FORK_HEAD_REPOSITORY"
+    assert fields["reason"] == "FORK_HEAD_REPOSITORY"
