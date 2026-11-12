@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import populationWire from "../lib/__tests__/fixtures/sector_population.captured.v11_page1.json";
 import { nativeGenerationFixture } from "../lib/__tests__/fixtures/sectorNativeGeneration";
+import { stubBoardWithCarr, stubObservationsUnavailable } from "./prophetCaseFixtures";
 import { sectorFixture } from "./fixtures/sector-company-v3";
 
 /**
@@ -34,71 +35,18 @@ const enterSectorLane = async (page: Page) => {
   await expect(page.getByTestId("prophet-sector-lane")).toBeVisible();
 };
 
-/** The REAL CARR-BULL-20261016 board row, byte-for-byte from the Prophet index
- * capture the v1 member fixtures were generated from (Macro `prophet-si`
- * `site/prophet/index.json`, asof 2026-11-09, source_asof 2026-11-06; plan row
- * sha256 bcdb39369d807417503c65e25dc3ad62fe4b64d0b9f513a0e75678f2847e7808),
- * projected onto exactly the 19 keys the committed board rows carry — every
- * value verbatim, nothing invented. Every level, date, state and the thesis
- * are already public in Macro `origin/main` at `site/prophet/plans/
- * CARR-BULL-20261016.json` and `site/prophet/states/
- * CARR-BULL-20261016.json` (verified 2026-11-11). The committed fixture board
- * is the 2026-07-07 generation and does not contain this plan; the review
- * caught the previous stub relabelling the SBUX template row as CARR, which
- * put Starbucks' levels and thesis on Carrier's setup. */
-const REAL_CARR_BOARD_PLAN = {
-  id: "CARR-BULL-20261016",
-  asset: "CARR",
-  direction: "BULL",
-  entry: 56.47,
-  invalidation: 52.26,
-  targets: [62.785, 69.1],
-  trigger: 56.77,
-  option_contract: null,
-  _r_unit: 4.21,
-  _conviction_score: 53,
-  _signal_date: "2026-10-20",
-  phase: "pre_trigger",
-  management_confidence: 32.3,
-  recommended_action: "wait",
-  last_price: 52.38,
-  state: {
-    phase: "pre_trigger",
-    management_confidence: 32.3,
-    recommended_action: "wait",
-    components: { validity: 0.1, progress: 0.0, pace: 24.9, retention: 50.0, overlay: 27.0 },
-    geometry: {
-      dist_to_stop_r: 0.029, dist_to_t1_r: 1.5, dist_to_t2_r: 3.0, horizon_pct_used: 42.2,
-      p1: -0.6477, p2: -0.3238, p3: null, move_r: -0.971, mfe_r: 0.002, mae_r: -0.971,
-    },
-    change_reason: "",
-  },
-  what_to_do_now: [
-    "A PIT price range or closing print touched the $55.72–$56.47 zone. This is not proof of order execution or of the separate closing trigger confirming.",
-    "Any position remains conditional on the plan's separate trigger and risk rules, including the $52.26 invalidation boundary.",
-  ],
-  profit_plan: [
-    { level: 62.785, label: "T1", action: "Scale out 40%, trail stop to entry", status: "ACTIVE" },
-    { level: 69.1, label: "T2", action: "Close remaining 60%, exit full position", status: "PENDING" },
-  ],
-  thesis: "CARR — conviction 53/100 (neutral) Entry grade: strong. Drivers: entry. Cautions: Earnings in 5 days. The result can override the setup, so size down.; Its Industrials (Equal-Weight) basket is below its long-term trend. Size down: the tape is rewarding leaders, and this basket is not one.. Trust tier: Event edge: insider buying (lone FDR survivor) + earnings-surprise PEAD context + revisions — a confluence read, not a standalone alpha. Options positioning (as of 2026-10-21): the heaviest call open interest sat at $57.00, about 0.9% above the entry — dealer hedging tends to add friction into that level, which is a place price stalls, not a target. DISPLAY-ONLY: machine-generated from factor scores; no forward return guarantee; display-tier artifact.",
-};
+/** The REAL CARR-BULL-20261016 board row behind stubBoardWithCarr lives in
+ * e2e/prophetCaseFixtures.ts (byte-for-byte from the Prophet index capture
+ * the v1 member fixtures were generated from — Macro `prophet-si`
+ * `site/prophet/index.json`, asof 2026-11-09; every level, date, state and
+ * the thesis already public in Macro `origin/main` at
+ * `site/prophet/plans/CARR-BULL-20261016.json`, verified 2026-11-11). The
+ * committed fixture board is the 2026-07-07 generation and does not contain
+ * this plan; the review caught the previous stub relabelling the SBUX
+ * template row as CARR, which put Starbucks' levels and thesis on Carrier's
+ * setup. */
 
-/** The board read extended by the REAL CARR plan row (above) at the browser
- * seam, so the Setup's plan join selects genuine 2026-11-09 evidence. */
-async function stubBoardWithCarr(page: Page) {
-  await page.route(
-    url => url.pathname === "/api/flow" && url.searchParams.get("f") === "prophet_idx",
-    async route => {
-      const response = await route.fetch();
-      const board = await response.json() as { plans: Record<string, unknown>[] };
-      if (!board.plans.some(plan => plan.id === "CARR-BULL-20261016")) {
-        board.plans.push(REAL_CARR_BOARD_PLAN);
-      }
-      await route.fulfill({ response, json: board });
-    },
-  );
-}
+
 
 test.describe("Prophet-side journey (no sector-side dependency)", () => {
   test("lane → picker → population → real Setup → sources, all in the address", async ({ page }) => {
@@ -165,30 +113,41 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // Both membership clocks, labeled — lower bound and roster date.
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("at least 2026-08-13");
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("Roster effective 2023-05-09");
-    // AnalysisPanel renders the board's own plan body (not a recomposed copy) —
-    // and the body must be CARR's OWN: asset, thesis, conviction and every
-    // price level below are the real 2026-11-09 row's values. A relabelled
-    // template of any other plan (the old bug: SBUX's numbers on Carrier's
-    // setup) fails every check from here down.
-    await expect(setup.locator(".obs-prophet-analysis").first()).toBeVisible();
+    // The case opens with the verdict-first header and the tabs, never an
+    // entry/stop/target lead: the verdict renders its designed unavailable
+    // state and the entry assessment stays labeled unavailable.
+    await expect(page.getByTestId("case-verdict")).toContainText("Verdict not produced");
+    await expect(page.getByTestId("case-tabs")).toBeVisible();
+    await expect(page.getByTestId("entry-check")).toContainText("Entry assessment unavailable");
+    // The Model plan rail renders the board's own row (not a recomposed copy)
+    // — and it must be CARR's OWN: id, conviction, thesis and every price
+    // level below are the real 2026-11-09 row's values. A relabelled template
+    // of any other plan (the old bug: SBUX's numbers on Carrier's setup)
+    // fails every check from here down.
+    const rail = page.getByTestId("model-plan-rail");
+    await expect(rail.locator('[data-testid="geometry-rail"]')).toBeVisible();
+    await expect(rail).toContainText("CARR-BULL-20261016");
+    await expect(rail).toContainText("53/100"); // the SBUX template reads 42/100
     const setupText = await setup.innerText();
-    expect(setupText).toContain("CARR");
     // The membership shown is the one the reader is investigating: CARR sits
     // in Housing AND Industrials and Housing is memberOf[0] in the capture —
     // arriving from the Industrials population must show Industrials' own
-    // group context ("What {group} is doing", clocks, return), never
-    // Housing's. also_in_groups is never rendered, so "Housing" can only
+    // group context (study card, clocks, return), never Housing's. The
+    // Context tab is not open on this default view, so "Housing" can only
     // reach the screen through the wrong-membership pick (review M1).
     expect(setupText).not.toContain("Housing");
-    expect(setupText).toContain("conviction 53/100"); // the SBUX template reads 42/100
-    expect(setupText).toContain("Industrials (Equal-Weight) basket"); // CARR's own basket clause
     expect(setupText).toContain(`$${(56.47).toFixed(2)}`); // entry
     expect(setupText).toContain(`$${(52.26).toFixed(2)}`); // invalidation
     expect(setupText).toContain(`$${(62.785).toFixed(2)}`); // T1
     expect(setupText).toContain(`$${(69.1).toFixed(2)}`); // T2
-    // The template's own markers must be absent.
-    expect(setupText).not.toContain("SBUX");
-    expect(setupText).not.toContain(`${(104.3).toFixed(2)}`);
+    // The plan's own thesis stays available behind the rail's disclosure —
+    // CARR's basket clause proves the row, and the template's own markers
+    // (SBUX, its price) must be absent.
+    await rail.locator('[data-testid="plan-thesis"] > summary').click();
+    await expect(rail).toContainText("Industrials (Equal-Weight) basket"); // CARR's own basket clause
+    const railText = await rail.innerText();
+    expect(railText).not.toContain("SBUX");
+    expect(railText).not.toContain(`${(104.3).toFixed(2)}`);
 
     // Sources: both generations, one destination, the A2 disclosure vocabulary.
     await page.getByTestId("prophet-sector-sources").locator("summary").click();
@@ -248,9 +207,19 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.getByTestId("prophet-sector-open-ALLE").click();
     const setup = page.getByTestId("prophet-sector-setup");
     await expect(setup).toBeVisible({ timeout: 15_000 });
-    await expect(setup).toContainText("ALLE setup");
-    // The owner's reason, translated — not a raw code, not a stance.
+    // The header names the company and reports the no-plan stance in plain
+    // words; the owner's reason stays translated — not a raw code, not a
+    // stance beyond what the index reports.
+    await expect(page.getByTestId("case-header")).toContainText("ALLE");
+    await expect(page.getByTestId("case-stance")).toContainText(/no prophet plan is open/i);
     await expect(setup).toContainText(/no plan for this symbol/i);
+    // The labeled group/market study replaces the old unlabeled return pair
+    // (G10): market and group are named, the company's own leg is honestly
+    // not produced.
+    await expect(page.getByTestId("study-card")).toContainText(/not produced in this read/i);
+    // The entry rail carries the missing-terms state and no plan rail.
+    await expect(page.getByTestId("entry-check")).toContainText(/current entry terms are missing/i);
+    await expect(page.getByTestId("model-plan-rail")).toContainText(/no model plan is open/i);
     // The existing chart destination, and no board panel anywhere.
     await expect(page.getByTestId("prophet-sector-chart-link")).toHaveAttribute("href", /\/analysis\?symbol=ALLE/);
     await expect(setup.locator(".obs-prophet-analysis")).toHaveCount(0);
@@ -261,6 +230,9 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
   test("keyboard-only travel reaches the Setup without a pointer", async ({ page }) => {
     test.setTimeout(60_000);
     await withLang(page);
+    // The developing-observation card reads the observation source; keep this
+    // journey hermetic with a deterministic unavailable answer.
+    await stubObservationsUnavailable(page);
     await page.goto("/options?tab=prophet");
     // Land on the page, walk the tab order into the lane and through the picker.
     await page.getByTestId("prophet-lane-sector").focus();
@@ -360,7 +332,13 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(page.getByTestId("prophet-sector-member-table")).toContainText("至少 2026-08-13");
     await page.getByTestId("prophet-sector-open-CARR").click();
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId("prophet-sector-setup")).toContainText("CARR 研究起点");
+    // The case header and its states read natively in Chinese: kicker, stance,
+    // the unavailable verdict, and the four tab destinations.
+    await expect(page.getByTestId("case-header")).toContainText("公司案例");
+    await expect(page.getByTestId("case-stance")).toContainText("进行中的模型计划");
+    await expect(page.getByTestId("case-verdict")).toContainText("未产出结论");
+    await expect(page.getByTestId("case-tabs")).toContainText("研究");
+    await expect(page.getByTestId("case-tabs")).toContainText("证据");
   });
 
   test("a >100-member group pages: Next/Prev issues the new offset and the rows change", async ({ page }) => {

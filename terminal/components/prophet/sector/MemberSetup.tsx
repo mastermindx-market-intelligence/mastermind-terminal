@@ -1,32 +1,44 @@
 "use client";
 /**
- * MemberSetup (SX03) — the real company setup behind a population row.
+ * MemberSetup (SX03 → company case) — the company case behind a population
+ * row, restructured per Lane C: a verdict-first header with Setup / Evidence /
+ * Context / History tabs, never an entry/stop/target lead.
  *
  * Laws:
- *   - A member WITH a plan renders the REAL existing plan analysis (the board's
- *     own AnalysisPanel), selected by the contract's exact plan id — never a
- *     recomposed or manufactured one.
- *   - A member WITHOUT a plan renders an honest setup: what the group is doing,
- *     why no plan exists (the contract's reason, translated), any early
- *     observation, and the existing chart destination. Never a manufactured
- *     signal, never a stance.
- *   - The Prophet state is reported; the reported-not-recommended line stays on
- *     the surface.
+ *   - The header orients in 3–4 seconds: company, served Prophet state in
+ *     plain words, two labeled clocks, and the honest not-produced verdict.
+ *   - Entry/stop/targets render only inside the read-only "Model plan" rail
+ *     (Lane D's GeometryRail, imported unedited), labeled reported.
+ *   - Unserved fields (verdict, supports/challenges, next check, name leg of
+ *     the decomposition, peer snapshot, fundamentals, history) render their
+ *     designed unavailable states — nothing is invented.
+ *   - The member's group/market returns stay labeled (G10); the reason a plan
+ *     is absent stays translated through the sector lane's closed map.
+ *   - Tab choice is local view state; a URL key belongs to the url-state
+ *     owner (Lane A) and is not minted here.
  */
 import { useEffect, useState } from "react";
 import { flowGet } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
-import { AnalysisPanel } from "../ProphetView";
-import { makeProphetT } from "../prophetStrings";
 import { companyHref } from "@/lib/sectorIntelligence";
+import { CaseHeader } from "../setup/CaseHeader";
+import { CaseTabs, type CaseTab } from "../setup/CaseTabs";
+import { ContextTab } from "../setup/ContextTab";
+import { EntryCheckRail, type BoardPlanRow } from "../setup/EntryCheckRail";
+import { EvidenceTab } from "../setup/EvidenceTab";
+import { HistoryTab } from "../setup/HistoryTab";
+import { ObservationCard } from "../setup/ObservationCard";
+import { StudyCard } from "../setup/StudyCard";
+import { SupportsChallenges } from "../setup/SupportsChallenges";
+import { makeSetupT } from "../setup/setupStrings";
+import caseStyles from "../setup/setup.module.css";
 import {
   makeProphetSectorT, prophetReasonKey, prophetSectorFill,
 } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
 
-interface BoardPlanLike { id: string; [key: string]: unknown }
-interface BoardPayloadLike { plans?: BoardPlanLike[] }
+interface BoardPayloadLike { plans?: BoardPlanRow[] }
 
 export function MemberSetup({ payload, onBack, originGroupId }: {
   payload: Extract<SectorMembersPayload, { mode: "symbol" }>;
@@ -38,9 +50,10 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
 }) {
   const { lang } = useLang();
   const t = makeProphetSectorT(lang);
-  const prophetT = makeProphetT(lang);
-  const [boardPlan, setBoardPlan] = useState<BoardPlanLike | null>(null);
-  const [boardPhase, setBoardPhase] = useState<"loading" | "ready" | "unavailable">("loading");
+  const setupT = makeSetupT(lang);
+  const [tab, setTab] = useState<CaseTab>("setup");
+  const [boardPlan, setBoardPlan] = useState<BoardPlanRow | null>(null);
+  const [boardPhase, setBoardPhase] = useState<"loading" | "ready" | "unavailable" | "idle">("idle");
 
   const membership = payload.memberOf.find(entry => entry.group.id === originGroupId)
     ?? payload.memberOf[0] ?? null;
@@ -48,13 +61,11 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
   const member = membership?.member ?? null;
   const prophet = payload.prophet;
   const planId = prophet.plan?.id ?? null;
-  const localGroupName = group !== null
-    ? (lang === "zh" ? (group.nameZh || group.name || group.id) : (group.name || group.id))
-    : "";
   const chartHref = companyHref(payload.symbol);
+  const assessmentAsof = prophet.observation?.asof ?? prophet.plan?.openedOn ?? null;
 
   // The board read runs only for members whose join carries a plan id; the
-  // no-plan setup never touches the board (boardPhase is never read there).
+  // no-plan case never touches the board (the rail shows its none state).
   useEffect(() => {
     if (planId === null) return;
     let cancelled = false;
@@ -63,8 +74,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
       try {
         const data = await flowGet("prophet_idx") as BoardPayloadLike | null;
         if (cancelled) return;
-        const match = data?.plans?.find(plan => plan.id === planId) ?? null;
-        setBoardPlan(match);
+        setBoardPlan(data?.plans?.find(plan => plan.id === planId) ?? null);
         setBoardPhase("ready");
       } catch {
         if (!cancelled) setBoardPhase("unavailable");
@@ -75,74 +85,78 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
 
   return (
     <section className={styles.setup} data-testid="prophet-sector-setup">
-      <header className={styles.setupHead}>
-        <button type="button" className={styles.backButton} data-testid="prophet-sector-setup-back" onClick={onBack}>
-          ← {t("setupBack")}
-        </button>
-        <h3 className={styles.setupTitle}>{prophetSectorFill(t("setupTitle"), { symbol: payload.symbol })}</h3>
-        {member?.name ? <span className={styles.setupName}>{member.name}</span> : null}
-      </header>
+      <CaseHeader
+        symbol={payload.symbol}
+        name={member?.name ?? null}
+        prophet={prophet}
+        assessmentAsof={assessmentAsof}
+        windowSessions={group?.context.windowSessions ?? null}
+        groupCount={payload.memberOf.length}
+        onBack={onBack}
+        backLabel={t("setupBack")}
+        lang={lang}
+      />
 
-      {group !== null && member !== null ? (
-        <p className={styles.setupMembership} data-testid="prophet-sector-setup-membership">
-          {/* A2-1: two different clocks, both labeled. first_known is a lower
-              bound from stored snapshots; member_since is the roster's own
-              effective date — never merged, never presented as one fact. */}
-          {prophetSectorFill(t("setupMemberSince"), { date: member.firstKnown ?? "—" })}
-          {member.memberSince !== null ? ` · ${prophetSectorFill(t("setupRosterSince"), { date: member.memberSince })}` : ""}
-          {payload.memberOf.length > 1 ? ` · ${prophetSectorFill(t("setupInGroups"), { n: payload.memberOf.length })}` : ""}
-        </p>
-      ) : null}
+      <CaseTabs tab={tab} onTab={setTab} lang={lang} />
 
-      {prophet.state === "open_plan" || prophet.state === "resolved_plan" ? (
-        <div className={styles.setupPlan}>
-          <h4 className={styles.setupSectionTitle}>{t("setupPlanHeading")}</h4>
-          <p className={styles.reportedLine}>{t("setupReported")}</p>
-          {boardPhase === "loading" ? <p className={styles.emptyCopy}>{t("loading")}</p>
-            : boardPhase === "unavailable" ? <p className={styles.emptyCopy}>{t("retry")}</p>
-            : boardPlan !== null ? (
-              // The board's own panel, selected by the contract's exact plan id.
-              <AnalysisPanel plan={boardPlan as never} lang={lang} t={prophetT} />
-            ) : (
-              <p className={styles.emptyCopy} data-testid="prophet-sector-plan-missing">{t("setupPlanMissing")}</p>
-            )}
-        </div>
-      ) : (
-        <div className={styles.setupNoPlan}>
-          <h4 className={styles.setupSectionTitle}>
-            {prophetSectorFill(t("setupNoPlanHeading"), { symbol: payload.symbol })}
-          </h4>
-          {group !== null ? (
-            <div className={styles.setupGroupBlock}>
-              <h5 className={styles.setupSubTitle}>{prophetSectorFill(t("setupGroupDoing"), { group: localGroupName })}</h5>
-              <p className={styles.setupGroupStats}>
-                {group.context.groupReturnPct !== null
-                  ? `${group.context.groupReturnPct > 0 ? "+" : ""}${group.context.groupReturnPct.toFixed(1)}%`
-                  : "—"}
-                {" · "}
-                {group.context.marketReturnPct !== null
-                  ? `${group.context.marketReturnPct > 0 ? "+" : ""}${group.context.marketReturnPct.toFixed(1)}%`
-                  : "—"}
+      <div className={caseStyles.caseBody}>
+        {tab === "setup" ? (
+          <div className={caseStyles.caseMain} role="tabpanel" id="case-panel-setup" aria-labelledby="case-tab-setup" data-testid="setup-tab">
+            {group !== null && member !== null ? (
+              <p className={styles.setupMembership} data-testid="prophet-sector-setup-membership">
+                {/* Two different clocks, both labeled (A2-1): first_known is a
+                    lower bound from stored snapshots; member_since is the
+                    roster's own effective date — never merged. */}
+                {prophetSectorFill(t("setupMemberSince"), { date: member.firstKnown ?? "—" })}
+                {member.memberSince !== null ? ` · ${prophetSectorFill(t("setupRosterSince"), { date: member.memberSince })}` : ""}
+                {payload.memberOf.length > 1 ? ` · ${prophetSectorFill(t("setupInGroups"), { n: payload.memberOf.length })}` : ""}
               </p>
-            </div>
-          ) : null}
-          <div className={styles.setupWhy}>
-            <h5 className={styles.setupSubTitle}>{t("setupWhyNoPlan")}</h5>
-            <p>{t(prophetReasonKey(prophet.reason))}</p>
+            ) : null}
+
+            {group !== null ? <StudyCard symbol={payload.symbol} group={group} lang={lang} /> : null}
+
+            {prophet.state === "early_observation" || prophet.observation !== null ? (
+              <ObservationCard symbol={payload.symbol} observationAsof={prophet.observation?.asof ?? null} />
+            ) : null}
+
+            <SupportsChallenges lang={lang} />
+
+            {prophet.state === "none" ? (
+              <section className={styles.setupWhy}>
+                <h5 className={styles.setupSubTitle}>{t("setupWhyNoPlan")}</h5>
+                <p>{t(prophetReasonKey(prophet.reason))}</p>
+              </section>
+            ) : null}
+            {prophet.state === "unavailable" ? (
+              <section className={styles.setupWhy} data-testid="state-unknown">
+                <h5 className={styles.setupSubTitle}>{setupT("stateUnknown")}</h5>
+                <p>{setupT("stateUnknownBody")}</p>
+              </section>
+            ) : null}
+
+            {chartHref !== null ? (
+              <a className={styles.chartLink} data-testid="prophet-sector-chart-link" href={chartHref}>
+                {prophetSectorFill(t("setupChartLink"), { symbol: payload.symbol })} ↗
+              </a>
+            ) : null}
+            <p className={styles.reportedLine}>{t("setupReported")}</p>
           </div>
-          {prophet.observation !== null ? (
-            <p className={styles.setupObservation} data-testid="prophet-sector-setup-observation">
-              {prophetSectorFill(t("setupObservation"), { asof: prophet.observation.asof })}
-            </p>
-          ) : null}
-          {chartHref !== null ? (
-            <a className={styles.chartLink} data-testid="prophet-sector-chart-link" href={chartHref}>
-              {prophetSectorFill(t("setupChartLink"), { symbol: payload.symbol })} ↗
-            </a>
-          ) : null}
-          <p className={styles.reportedLine}>{t("setupReported")}</p>
-        </div>
-      )}
+        ) : null}
+
+        {tab === "evidence" ? (
+          <EvidenceTab symbol={payload.symbol} showObservation={prophet.state === "early_observation" || prophet.observation !== null} />
+        ) : null}
+        {tab === "context" ? <ContextTab payload={payload} lang={lang} /> : null}
+        {tab === "history" ? <HistoryTab /> : null}
+
+        <EntryCheckRail
+          symbol={payload.symbol}
+          planId={planId}
+          boardPhase={boardPhase}
+          boardPlan={boardPlan}
+          lang={lang}
+        />
+      </div>
     </section>
   );
 }
