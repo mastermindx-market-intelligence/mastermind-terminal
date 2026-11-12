@@ -1,0 +1,23 @@
+$ ./node_modules/.bin/vitest run lib/__tests__/investorShellPreview.test.tsx lib/__tests__/sharedShell.test.tsx
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr627/terminal
+
+ ✓ lib/__tests__/investorShellPreview.test.tsx (40 tests) 508ms
+
+ Test Files  1 passed (1)
+      Tests  40 passed (40)
+   Start at  03:40:33
+   Duration  2.59s (transform 527ms, setup 0ms, collect 803ms, tests 508ms, environment 498ms, prepare 112ms)
+
+
+exit=0
+$ ./node_modules/.bin/eslint components/chrome/AppShell.tsx e2e/investor-shell-preview.spec.ts lib/__tests__/investorShellPreview.test.tsx
+
+/workspace/scratch/c334c7e44c00/terminal-pr627/terminal/components/chrome/AppShell.tsx
+  88:37  warning  Do not use `window.location.assign()` to navigate to internal Next.js pages. Use `redirect()` in the render phase, or `useRouter().push()` in Client Components' event handlers instead. See: https://nextjs.org/docs/messages/no-location-assign-relative-destination  @next/next/no-location-assign-relative-destination
+
+✖ 1 problem (0 errors, 1 warning)
+
+
+exit=0

@@ -348,6 +348,13 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siDossierLoading: ["Loading leadership evidence…", "正在加载领涨证据…"],
   siDossierAccess: ["Leadership evidence requires access", "领涨证据需要访问权限"],
   siDossierAccessCopy: ["The data owner did not authorize this request. No values are shown.", "数据来源未授权此请求，未显示任何数值。"],
+  // R2 (COO rulings 2026-11-11): the both-denied generation envelope's own
+  // cause. The copy is the exact sentence the row readers' subscription card
+  // shows (sectorDepthLex.ts siRowsReasonEntitled) so the global state and the
+  // per-block cards state one fact in both languages. Used by the native shell
+  // only; sign-in is not offered as a remedy for this state.
+  siDossierEntitlement: ["Leadership evidence is not in your subscription", "领涨证据不在您的订阅范围内"],
+  siDossierEntitlementCopy: ["Not included in your current subscription.", "当前订阅不包含此读数。"],
   siDossierUnavailable: ["Leadership evidence is unavailable", "领涨证据暂不可用"],
   siDossierUnavailableCopy: ["This source published no readable leadership evidence. The rest of this view is unchanged.", "此来源未发布可读取的领涨证据，本视图其余部分不受影响。"],
   siDossierInvalid: ["Leadership evidence could not be verified", "领涨证据无法核实"],

@@ -392,7 +392,6 @@ test.describe("legacy workspace recovery",()=>{
  test("light Chinese recovery remains usable on short screens and preserves a newer focus choice",async({page,baseURL},info)=>{
   await page.emulateMedia({reducedMotion:"reduce"});
   const {frame,child,holdNext}=await setup(page,baseURL!);
-  const generation=new URL(child().url()).searchParams.get("mmx_generation");
   await page.getByRole("button",{name:"Light theme",exact:true}).click();
   await page.getByRole("button",{name:"Chinese language",exact:true}).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme","light");
@@ -430,15 +429,19 @@ test.describe("legacy workspace recovery",()=>{
     await page.screenshot({animations:"disabled",path:info.outputPath(`workspace-recovery-${viewport.width}x${viewport.height}.png`)});
    }
   }
+  const generation=new URL(child().url()).searchParams.get("mmx_generation");
   holdNext();
   await boundary.getByRole("button").click();
-  // Wait for the retry's new frame generation; the old document is still
-  // initialized, and its READY is correctly dropped as a stale generation.
-  await expect.poll(()=>new URL(child().url()).searchParams.get("mmx_generation")).not.toBe(generation);
-  await expect(child().locator("html")).toHaveAttribute("data-initialized","true");
+  await expect.poll(()=>{
+   const url=child()?.url();
+   const next=url?new URL(url).searchParams.get("mmx_generation"):null;
+   return Boolean(next&&next!==generation);
+  }).toBe(true);
+  const replacement=child();
+  await expect(replacement.locator("html")).toHaveAttribute("data-initialized","true");
   const outside=page.locator(".topbar button:visible,.mobilebar button:visible").first();
   await outside.focus();
-  await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.ready();});
+  await replacement.evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.ready();});
   await expect(frame).toBeVisible();
   await expect(outside).toBeFocused();
  });

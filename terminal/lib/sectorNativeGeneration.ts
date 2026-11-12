@@ -1,4 +1,4 @@
-/** Read the incumbent Macro preview generation without creating a source or authority.
+/** Read the incumbent Macro generation without creating a source or authority.
  * The complete wire remains distinct from the legacy Central artifact. The existing
  * dossier, exact-window and reconstructed-history readers consume one admitted core.
  * Admission is scoped to Terminal's PSL read. Other optional owner output is
@@ -9,7 +9,41 @@ import { sectorDossiers, sectorWindowMeasurements } from "./sectorDossiers";
 import { object, sectorRows, sectorRotationHistory, sectorMeasuredRead,
   type FeedPayload, type Row, type SectorRotationHistory } from "./sectorIntelligence";
 
-export const SECTOR_GENERATION_PATH = "/api/sector-generation?audience=preview";
+/** R3 (COO rulings 2026-11-11): the audience set is closed — `entitled` and
+ * `preview`, nothing else. Each audience owns exactly one fixed owner path,
+ * and both paths are compile-time constants from that closed set. The route
+ * asks the owner for the entitled document first and steps down to the fixed
+ * preview document exactly once on a 403 (R2). No path, audience, origin or
+ * URL is ever built from a request value, cookie, tier flag, environment
+ * override or test override. */
+export const SECTOR_GENERATION_AUDIENCE = "entitled" as const;
+export const SECTOR_GENERATION_PREVIEW_AUDIENCE = "preview" as const;
+export type SectorGenerationAudience =
+  | typeof SECTOR_GENERATION_AUDIENCE
+  | typeof SECTOR_GENERATION_PREVIEW_AUDIENCE;
+export const SECTOR_GENERATION_PATH = `/api/sector-generation?audience=${SECTOR_GENERATION_AUDIENCE}`;
+export const SECTOR_GENERATION_PREVIEW_PATH = `/api/sector-generation?audience=${SECTOR_GENERATION_PREVIEW_AUDIENCE}`;
+/** The one binding each audience admits: its own document label and its own
+ * fixed path. Cross-bindings are invalid in BOTH directions — a preview
+ * document on the entitled path, and an entitled document on the preview
+ * path, are refused whole and nothing of them is relayed. */
+export const SECTOR_GENERATION_BINDINGS: Readonly<
+  Record<SectorGenerationAudience, { audience: SectorGenerationAudience; path: string }>
+> = {
+  [SECTOR_GENERATION_AUDIENCE]: { audience: SECTOR_GENERATION_AUDIENCE, path: SECTOR_GENERATION_PATH },
+  [SECTOR_GENERATION_PREVIEW_AUDIENCE]: { audience: SECTOR_GENERATION_PREVIEW_AUDIENCE, path: SECTOR_GENERATION_PREVIEW_PATH },
+};
+function isSectorGenerationAudience(value: unknown): value is SectorGenerationAudience {
+  return value === SECTOR_GENERATION_AUDIENCE || value === SECTOR_GENERATION_PREVIEW_AUDIENCE;
+}
+/** The audience a fixed generation path carries, or undefined for any other
+ * path. This is the receipt half of the R3 four-way binding. */
+export function sectorGenerationAudienceOfPath(path: string): SectorGenerationAudience | undefined {
+  for (const binding of Object.values(SECTOR_GENERATION_BINDINGS)) {
+    if (binding.path === path) return binding.audience;
+  }
+  return undefined;
+}
 const MAX_BYTES = 4 * 1024 * 1024;
 /** One typed block's value can be up to 516 KiB encoded (COO 19:56Z item 7).
  * UTF-8 bytes ≥ UTF-16 code units, so 516 * 1024 code units admits every
@@ -114,13 +148,18 @@ export interface SectorTypedBlock {
 }
 export type SectorTypedBlocks = Record<string, SectorTypedBlock>;
 
+/** The five entitled-only row blocks. On a preview document they are stubs by
+ * Macro's contract (R3 defense in depth): a preview document that carries
+ * rows for one of them is refused whole — the paywall, not this parser, is
+ * the audience authority, so leaked rows are never a renderable windfall. */
+const ENTITLED_ONLY_TYPED_BLOCK_KEYS = ["confluence_universe_sp500", "confluence_universe_nasdaq",
+  "confluence_universe_russell", "confluence_universe_baskets", "theme_rows"] as const;
+
 const TYPED_BLOCK_KEYS = ["r1_rising_priced_share", "r2_display_order", "r2_hazard_qualification",
   "etf_flows", "confluence", "bottoming_watch", "theme_table",
   // Lane 1's v11 increment (COO 19:56Z item 7) — five entitled-only blocks
-  // appended after theme_table. Carried opaque this round: no reader, no
-  // rendering, no per-name schema beyond the generic {status, reason, value}.
-  "confluence_universe_sp500", "confluence_universe_nasdaq", "confluence_universe_russell",
-  "confluence_universe_baskets", "theme_rows"] as const;
+  // appended after theme_table.
+  ...ENTITLED_ONLY_TYPED_BLOCK_KEYS] as const;
 
 /** Absent `typed_blocks` ⇒ all twelve blocks unavailable/not_produced; a present
  * block keeps its own status/reason verbatim. Nothing is recomputed here —
@@ -150,15 +189,35 @@ export function sectorTypedBlocks(data: Row): SectorTypedBlocks {
   return blocks;
 }
 
-export function sectorNativeGeneration(value: unknown): NativeSectorGeneration | null {
+/** R3 defense in depth: any of the five entitled-only blocks that is not a
+ * stub ({status:"unavailable", value:null}) makes a preview document invalid. */
+function previewCarriesEntitledRows(data: Row): boolean {
+  const source = has(data, "typed_blocks") && data.typed_blocks !== null
+    && typeof data.typed_blocks === "object" && !Array.isArray(data.typed_blocks)
+    ? data.typed_blocks as Row : null;
+  if (!source) return false;
+  for (const name of ENTITLED_ONLY_TYPED_BLOCK_KEYS) {
+    const block = source[name];
+    if (block === undefined) continue;
+    const record = block !== null && typeof block === "object" && !Array.isArray(block) ? block as Row : null;
+    if (record === null || record.status !== "unavailable" || (has(record, "value") && record.value !== null)) return true;
+  }
+  return false;
+}
+
+export function sectorNativeGeneration(value: unknown, expected?: SectorGenerationAudience): NativeSectorGeneration | null {
   if (!bounded(value) || !keys(value, ["schema", "audience", "source_session", "published_at", "qualification", "projection"])
-    || value.schema !== "sector_generation.read/v1" || value.audience !== "preview"
+    || value.schema !== "sector_generation.read/v1"
+    // R3: the audience is closed, and the route/browser caller passes the
+    // audience of the fixed path it actually fetched. The outer label, the
+    // nested projection label and that expected audience must all agree.
+    || !isSectorGenerationAudience(value.audience) || (expected !== undefined && value.audience !== expected)
     || !day(value.source_session) || !clock(value.published_at)
     || !["accepted", "stale", "degraded"].includes(String(value.qualification))
     || !keys(value.projection, ["data", "receipt"])) return null;
   const data = value.projection.data, receipt = value.projection.receipt;
   if (!keys(data, ["schema", "audience", "core", "history", "brief", "action_board"], ["typed_blocks"])
-    || data.schema !== "sector_native_view.v1" || data.audience !== "preview"
+    || data.schema !== "sector_native_view.v1" || data.audience !== value.audience
     || !keys(receipt, ["schema", "source", "generation_id", "source_session", "published_at", "qualification",
       "input_version", "baseline_session", "content_sha256"])
     || receipt.schema !== "sector_native_view.receipt.v1" || receipt.source !== "macro.sector"
@@ -170,6 +229,9 @@ export function sectorNativeGeneration(value: unknown): NativeSectorGeneration |
     || (receipt.baseline_session !== null && (!day(receipt.baseline_session) || receipt.baseline_session > value.source_session))
     || !keys(data.core, ["as_of", "sectors"], ["measured_read", "dated_context", "captured_classification"])
     || data.core.as_of !== value.source_session) return null;
+  // R3 defense in depth: the preview document carries the five entitled-only
+  // row blocks as stubs by contract; rows on one of them refuse the document.
+  if (value.audience === SECTOR_GENERATION_PREVIEW_AUDIENCE && previewCarriesEntitledRows(data)) return null;
 
   const core = data.core, sectors = sectorRows(core), history = sectorRotationHistory(data.history);
   if (!sectors.length || sectors.length > 100 || !Array.isArray(core.sectors)
@@ -210,8 +272,12 @@ export function nativeSectorEvidence(feed?: FeedPayload): {
   generation: NativeSectorGeneration | null; feed: FeedPayload | undefined;
 } {
   if (!feed) return { generation: null, feed: undefined };
-  const generation = feed.receipt.source === "generation" && feed.receipt.status === "ready"
-    && feed.receipt.path === SECTOR_GENERATION_PATH ? sectorNativeGeneration(feed.data) : null;
+  // R3: a generation receipt is admitted only on one of the two fixed paths,
+  // and the document's audience must equal the audience of that exact path —
+  // a cross-bound pairing is withdrawn like any invalid feed, never relayed.
+  const expected = feed.receipt.source === "generation" && feed.receipt.status === "ready"
+    ? sectorGenerationAudienceOfPath(feed.receipt.path) : undefined;
+  const generation = expected !== undefined ? sectorNativeGeneration(feed.data, expected) : null;
   if (!generation) return { generation: null, feed: { data: null, receipt: { ...feed.receipt,
     status: feed.receipt.status === "ready" ? "invalid" : feed.receipt.status, contentHash: null } } };
   if (feed.receipt.asOf !== generation.receipt.source_session) return { generation: null,

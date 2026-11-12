@@ -1,0 +1,31 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1403/terminal
+
+ ❯ lib/__tests__/tickerNewsEvidence.test.ts (4 tests | 1 failed) 22ms
+   × ticker-news evidence lock is EVIDENCE.yml > each layoutFiles sha256 matches the file on disk 11ms
+     → terminal/components/TerminalShell.tsx changed without a recapture: expected 'aa4942305e6a0987c8d4b2e0f8f9aa1b11e6c…' to be '9a52f109c3ab87f3e24da8bfa79ff6cac05a1…' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/tickerNewsEvidence.test.ts > ticker-news evidence lock is EVIDENCE.yml > each layoutFiles sha256 matches the file on disk
+AssertionError: terminal/components/TerminalShell.tsx changed without a recapture: expected 'aa4942305e6a0987c8d4b2e0f8f9aa1b11e6c…' to be '9a52f109c3ab87f3e24da8bfa79ff6cac05a1…' // Object.is equality
+
+Expected: "9a52f109c3ab87f3e24da8bfa79ff6cac05a1a3da6b1611117a39cfa07bd4bbc"
+Received: "aa4942305e6a0987c8d4b2e0f8f9aa1b11e6c52c622f191ad2f936c303736662"
+
+ ❯ lib/__tests__/tickerNewsEvidence.test.ts:85:67
+     83|       const abs = join(REPO, rel);
+     84|       expect(existsSync(abs), `${rel} is recorded in layoutFiles but a…
+     85|       expect(sha256Of(abs), `${rel} changed without a recapture`).toBe…
+       |                                                                   ^
+     86|     }
+     87|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  02:54:54
+   Duration  490ms (transform 44ms, setup 0ms, collect 38ms, tests 22ms, environment 0ms, prepare 112ms)
+

@@ -1,6 +1,7 @@
 /**
  * Recurring briefs (packet B-F11-7 / MO-PAID-032). Deterministic composition only —
- * the UI renders body JSON sentences verbatim. No LLM, no numeric judgement keys.
+ * source sentences remain verbatim, with explicit language availability in the UI.
+ * No LLM, no numeric judgement keys.
  *
  * Cadence and state slugs stay in this module. User-visible strings go through
  * `briefCopy` / `BRIEFS_ROUTE_MESSAGES` and never print the slug.
@@ -13,17 +14,21 @@ export type BriefDeliveryChannel = "in_product_inbox";
 export type BriefSubscriptionState = "active" | "paused";
 export type BriefDeliveryState = "ready" | "degraded";
 
+/** Route-local capability; availability is independent of delivery state. */
+export const BRIEFS_EXPLICIT_LANGUAGE_CONTRACT = "briefs.explicit-language.v1" as const;
+
 export type BriefTarget = {
   kind: BriefTargetKind;
   id: string;
   name: string;
-  version_or_asof: string;
+  version_or_asof: string | null;
 };
 
 export type BriefMarketRead = {
   section: string;
   sentence_en: string;
-  sentence_zh: string;
+  sentence_zh: string | null;
+  translation_status?: "available" | "unavailable";
   asof: string;
 };
 
@@ -108,7 +113,19 @@ export const BRIEFS_COPY = {
   monitorOne: ["{n} monitor", "{n} 项监控"],
   monitors: ["{n} monitors", "{n} 项监控"],
   unavailable: ["Briefs could not load right now. Try again in a moment.", "暂时无法加载简报，请稍后再试。"],
+  contentUnavailable: ["This brief's content is unavailable right now.", "这份简报的内容暂时不可用。"],
   retry: ["Try again", "重试"],
+  retrying: ["Trying again…", "正在重试…"],
+  refresh: ["Refresh Terminal", "刷新终端"],
+  upgradeRequired: [
+    "Refresh Terminal to read these briefs.",
+    "请刷新终端后阅读这些简报。",
+  ],
+  englishOriginal: ["English original: {text}", "英文原文：{text}"],
+  chineseCoverage: [
+    "Chinese available for {available} of {total} passages; English originals are retained.",
+    "中文解读可用 {available}/{total} 条；其余保留英文原文。",
+  ],
   asof: ["As of {date}", "截至 {date}"],
 } as const;
 
@@ -135,6 +152,8 @@ export const BRIEFS_ROUTE_MESSAGES = {
   not_found: ["That brief could not be found.", "找不到这份简报。"],
   unavailable: ["Briefs could not load right now. Try again in a moment.", "暂时无法加载简报，请稍后再试。"],
   invalid_state: ["That change is not available for this brief.", "这份简报现在不能做这项更改。"],
+  upgrade_required: ["Refresh Terminal to read these briefs.", "请刷新终端后阅读这些简报。"],
+  unsupported_contract: ["This briefs format is not supported.", "暂不支持此简报格式。"],
 } as const;
 
 export type BriefsRouteCode = keyof typeof BRIEFS_ROUTE_MESSAGES;
@@ -230,8 +249,14 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
   const target = raw.target;
   if (!isPlainObject(target)) return null;
   if (!isBriefTargetKind(target.kind)) return null;
-  if (!isNonEmptyString(target.id) || !isNonEmptyString(target.name) || !isNonEmptyString(target.version_or_asof)) {
-    return null;
+  if (!isNonEmptyString(target.id) || !isNonEmptyString(target.name)) return null;
+  let versionOrAsof: string | null;
+  if (target.kind === "thesis") {
+    if (!isNonEmptyString(target.version_or_asof)) return null;
+    versionOrAsof = target.version_or_asof;
+  } else {
+    if (target.version_or_asof !== null && !isNonEmptyString(target.version_or_asof)) return null;
+    versionOrAsof = target.version_or_asof === null ? null : target.version_or_asof;
   }
   if (!Array.isArray(raw.market_read)) return null;
   const market_read: BriefMarketRead[] = [];
@@ -240,15 +265,24 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
     if (
       !isNonEmptyString(row.section) ||
       !isNonEmptyString(row.sentence_en) ||
-      !isNonEmptyString(row.sentence_zh) ||
       !isNonEmptyString(row.asof)
     ) {
       return null;
     }
+    // Historical rows have a nonempty pair and no status. New unavailable
+    // Chinese must be explicit; missing fields and contradictory pairs fail.
+    const status = row.translation_status;
+    if (status === "unavailable") {
+      if (row.sentence_zh !== null) return null;
+    } else {
+      if (status !== undefined && status !== "available") return null;
+      if (!isNonEmptyString(row.sentence_zh)) return null;
+    }
     market_read.push({
       section: row.section,
       sentence_en: row.sentence_en,
-      sentence_zh: row.sentence_zh,
+      sentence_zh: row.sentence_zh as string | null,
+      ...(status === undefined ? {} : { translation_status: status }),
       asof: row.asof,
     });
   }
@@ -270,7 +304,7 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
       kind: target.kind,
       id: target.id,
       name: target.name,
-      version_or_asof: target.version_or_asof,
+      version_or_asof: versionOrAsof,
     },
     market_read,
     monitors,
@@ -290,8 +324,37 @@ export function degradedLine(cadence: BriefCadence, lang: BriefLang): string {
   return briefCopy(cadence === "weekly_saturday" ? "degradedWeekly" : "degradedDaily", lang);
 }
 
+/** The capability also covers the incumbent watchlist decoder's explicit null
+ * version. Both forms are unreadable by the older required-string decoder. */
+export function requiresExplicitBriefLanguage(body: BriefBody): boolean {
+  return body.target.version_or_asof === null || body.market_read.some((row) => row.sentence_zh === null);
+}
+
+function hasChineseSentence(row: BriefMarketRead): boolean {
+  if (row.sentence_zh === null) return false;
+  // Display adapter for the exact historical English-plus-pending-marker form.
+  // Preserve stored bytes and do not infer a provider failure or retry schedule.
+  const marker = "（翻译待补）";
+  if (row.translation_status === undefined && row.sentence_zh.endsWith(marker)) {
+    return row.sentence_zh.slice(0, -marker.length).trim() !== row.sentence_en.trim();
+  }
+  return true;
+}
+
+/** Counts the whole body, including passages beyond the inbox preview. */
+export function briefLanguageNotice(body: BriefBody, lang: BriefLang): string | null {
+  const total = body.market_read.length;
+  const available = body.market_read.filter(hasChineseSentence).length;
+  return available === total ? null : briefCopy("chineseCoverage", lang, { available, total });
+}
+
 export function marketReadSentences(body: BriefBody, lang: BriefLang, n = 2): string[] {
-  return body.market_read.slice(0, n).map((row) => (lang === "zh" ? row.sentence_zh : row.sentence_en));
+  return body.market_read.slice(0, n).map((row) => {
+    if (lang !== "zh") return row.sentence_en;
+    return hasChineseSentence(row)
+      ? row.sentence_zh as string
+      : briefCopy("englishOriginal", lang, { text: row.sentence_en });
+  });
 }
 
 export function monitorsSummary(body: BriefBody, lang: BriefLang): string {

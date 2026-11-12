@@ -1,0 +1,63 @@
+[warmup] /terminal?symbol=NVDA → 200 in 222ms
+[warmup] /options → 200 in 4349ms
+[warmup] /portfolio → 200 in 2037ms
+[warmup] /alerts → 200 in 2026ms
+[warmup] /analysis → 200 in 3541ms
+[warmup] /discover → 200 in 3799ms
+[warmup] /admin → 200 in 854ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 915ms
+[warmup] /login → 200 in 289ms
+[warmup] /reset-password → 200 in 1174ms
+[warmup] /api/me → 200 in 1183ms
+[warmup] /api/watchlist → 200 in 583ms
+[warmup] /api/layouts → 200 in 438ms
+[warmup] /api/watchlist/annotations → 409 in 428ms
+[warmup] 14 routes compiled in 22s
+[fixture-ready] prophet_idx fixture 200 in 1331ms
+
+Running 1 test using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✘  1 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark (7.3s)
+
+
+  1) [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark 
+
+    Error: SVG coordinates must follow the current measured content width
+
+    SVG coordinates must follow the current measured content width
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 1
+    Received:    340
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      83 |       Math.abs(value.rendered - value.container),
+      84 |     );
+    > 85 |   }, { message: "SVG coordinates must follow the current measured content width" }).toBeLessThanOrEqual(1);
+         |                                                                                     ^
+      86 |   return geometry();
+      87 | }
+      88 |
+        at expectMeasuredPlot (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:148:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/old-source/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark 

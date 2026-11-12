@@ -16,6 +16,7 @@ slot stops on anything but 0 and 75.
 import http.client
 import json
 import re
+import socket
 import sys
 import urllib.error
 import urllib.request
@@ -23,8 +24,18 @@ import urllib.request
 ORG = "mastermindx-market-intelligence"
 TOKEN_PATH = "/etc/ghmint/token"
 API = "https://api.github.com"
-NAME_RE = re.compile(r"^ubuntu0-e2e-[1-9]$")
-LABELS = "self-hosted,linux,x64,ubuntu0-e2e"
+# Runner names carry the host identity: ubuntu<H>-e2e-<N>, host digit 0..9, slot 1..9.
+NAME_RE = re.compile(r"^ubuntu[0-9]-e2e-[1-9]$")
+BASE_LABELS = "self-hosted,linux,x64,terminal-e2e"
+# Transition, one release (cleanup marker: remove with the matching case in
+# terminal-e2e-slot and the runbook mentions): only host digit 0 appends the legacy
+# label, so pre-change workflow revisions that still demand it keep finding that host's
+# slots. Runner names of other lane hosts must never carry it.
+TRANSITION_LABEL = "ubuntu0-e2e"
+# The pre-multi-host label set host digit 0's slots registered with. A same-name,
+# offline, idle, in-group registration of exactly this shape is the previous release's
+# never-used one-job runner, so the stale path may delete it like a current-shape one.
+PRE_MULTIHOST_LABELS = "self-hosted,linux,x64,ubuntu0-e2e"
 PER_PAGE = 100
 MAX_PAGES = 20
 EX_TEMPFAIL = 75
@@ -32,6 +43,13 @@ EX_RECONCILE = 3
 EX_USAGE = 2
 # The credential, its permissions or the group id are wrong: retrying cannot fix them.
 PERMANENT_HTTP = frozenset({401, 403, 404, 422})
+
+
+def labels_for(name):
+    """The exact label set the lane expects for a runner name (base four per host)."""
+    if name.startswith("ubuntu0-"):
+        return BASE_LABELS + "," + TRANSITION_LABEL
+    return BASE_LABELS
 
 
 def _exit(code, message):
@@ -137,16 +155,22 @@ def _stale_candidate(name, gid):
         _exit(EX_RECONCILE, f"runner {name} is busy or reports no busy state")
     if runner.get("status") != "offline":
         _exit(EX_RECONCILE, f"runner {name} is not offline")
-    if _label_set(runner) != set(LABELS.split(",")):
+    accepted = [set(labels_for(name).split(","))]
+    if name.startswith("ubuntu0-"):
+        accepted.append(set(PRE_MULTIHOST_LABELS.split(",")))
+    if _label_set(runner) not in accepted:
         _exit(EX_RECONCILE, f"runner {name} does not carry exactly the lane labels")
     return rid
 
 
 def mint(name, labels, gid):
     if not NAME_RE.match(name):
-        _exit(EX_USAGE, "runner name must be ubuntu0-e2e-N")
-    if labels != LABELS:
-        _exit(EX_USAGE, "labels must be exactly " + LABELS)
+        _exit(EX_USAGE, "runner name must be ubuntuH-e2e-N (host digit 0..9, N in 1..9)")
+    local = socket.gethostname().split(".", 1)[0]
+    if not name.startswith(local + "-e2e-"):
+        _exit(EX_USAGE, "runner name must start with this host's short name")
+    if labels != labels_for(name):
+        _exit(EX_USAGE, "labels must be exactly " + labels_for(name))
     body = {"name": name, "runner_group_id": gid, "labels": labels.split(","), "work_folder": "_work"}
     status, data = _call("POST", f"/orgs/{ORG}/actions/runners/generate-jitconfig", body)
     if status == 409:

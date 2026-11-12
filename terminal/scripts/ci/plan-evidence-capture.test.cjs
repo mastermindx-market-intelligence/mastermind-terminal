@@ -5,7 +5,8 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const {MANIFESTS, planEvidenceCapture, driftedTouchedSources} = require("./plan-evidence-capture.cjs");
+const {spawnSync} = require("node:child_process");
+const {MANIFESTS, planEvidenceCapture, driftedTouchedSources, driftedTouchedSourcesFromFile} = require("./plan-evidence-capture.cjs");
 const { EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS, nativeDefinition } = require("../../e2e/tools/capture_ci_evidence.cjs");
 
 function fixture(t) {
@@ -296,4 +297,69 @@ test("GEX drift is attributed only when the pull request touched that source", t
   const inherited = driftedTouchedSources(f.root, "docs/guide.md\n");
   assert.equal(inherited.plan.reason, "source-drift");
   assert.deepEqual(inherited.drifted, []);
+});
+
+
+test("a large file-backed census reaches a child planner without losing late drift", t => {
+  const f = fixture(t);
+  fs.appendFileSync(path.join(f.root, f.paths[3]), "changed without recapture\n");
+  const paths = Array.from({length: 3000}, (_, i) =>
+    "docs/verification/" + "long-proof-path-".repeat(12) + i + "/trace.zip");
+  paths.push(f.paths[3]);
+  const census = paths.join("\n") + "\n";
+  assert.ok(Buffer.byteLength(census) > 439184);
+  const filename = path.join(f.root, "pr-touched.txt");
+  fs.writeFileSync(filename, census);
+  const childSource = [
+    "const {driftedTouchedSourcesFromFile} = require(process.argv[1]);",
+    "const gate = driftedTouchedSourcesFromFile(process.argv[2]);",
+    "console.log(JSON.stringify({count: gate.touched.length,",
+    "last: gate.touched.at(-1), drifted: gate.drifted, reason: gate.plan.reason}));",
+    "process.exitCode = gate.drifted.length ? 1 : 0;",
+  ].join("\n");
+  const child = spawnSync(process.execPath, ["-e", childSource,
+    require.resolve("./plan-evidence-capture.cjs"), f.root], {
+    encoding: "utf8",
+    env: {...process.env, EVIDENCE_PR_TOUCHED_FILE: filename},
+  });
+  assert.equal(child.error, undefined);
+  assert.equal(child.status, 1, child.stderr);
+  assert.deepEqual(JSON.parse(child.stdout), {
+    count: paths.length, last: f.paths[3], drifted: [f.paths[3]], reason: "source-drift",
+  });
+});
+
+test("a missing or non-file PR census fails explicitly instead of becoming empty", t => {
+  const f = fixture(t);
+  assert.throws(() => driftedTouchedSourcesFromFile(f.root, ""),
+    /EVIDENCE_PR_TOUCHED_FILE missing/);
+  assert.throws(() => driftedTouchedSourcesFromFile(f.root, path.join(f.root, "missing.txt")),
+    /ENOENT/);
+  assert.throws(() => driftedTouchedSourcesFromFile(f.root, f.root), /EISDIR/);
+});
+
+test("an existing empty census retains the empty-touched-list policy", t => {
+  const f = fixture(t);
+  fs.appendFileSync(path.join(f.root, f.paths[2]), "inherited drift\n");
+  const filename = path.join(f.root, "empty-touched.txt");
+  fs.writeFileSync(filename, "");
+  const gate = driftedTouchedSourcesFromFile(f.root, filename);
+  assert.equal(gate.plan.reason, "source-drift");
+  assert.deepEqual(gate.touched, []);
+  assert.deepEqual(gate.drifted, []);
+});
+
+for (const eventName of ["merge_group", "workflow_dispatch"])
+test(eventName + " never consumes the PR-only census file", t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "mmx-evidence-cli-"));
+  t.after(() => fs.rmSync(directory, {recursive: true, force: true}));
+  const output = path.join(directory, "github-output");
+  const child = spawnSync(process.execPath, [require.resolve("./plan-evidence-capture.cjs")], {
+    encoding: "utf8",
+    env: {...process.env, GITHUB_EVENT_NAME: eventName, GITHUB_OUTPUT: output,
+      EVIDENCE_PR_TOUCHED_FILE: path.join(directory, "does-not-exist")},
+  });
+  assert.equal(child.error, undefined);
+  assert.equal(child.status, 0, child.stderr);
+  assert.match(fs.readFileSync(output, "utf8"), /^capture=(true|false)\n$/);
 });

@@ -1,0 +1,599 @@
+[warmup] /terminal?symbol=NVDA → 200 in 119ms
+[warmup] /options → 200 in 2302ms
+[warmup] /portfolio → 200 in 1093ms
+[warmup] /alerts → 200 in 1241ms
+[warmup] /analysis → 200 in 2126ms
+[warmup] /discover → 200 in 3195ms
+[warmup] /admin → 200 in 842ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 750ms
+[warmup] /login → 200 in 193ms
+[warmup] /reset-password → 200 in 625ms
+[warmup] /api/me → 200 in 846ms
+[warmup] /api/watchlist → 200 in 373ms
+[warmup] /api/layouts → 200 in 397ms
+[warmup] /api/watchlist/annotations → 409 in 347ms
+[warmup] 14 routes compiled in 14s
+[fixture-ready] prophet_idx fixture 200 in 852ms
+
+Running 12 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✘   1 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark (6.0s)
+  ✘   2 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark (5.3s)
+  ✘   3 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light (5.3s)
+  ✘   4 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light (5.3s)
+  ✘   5 [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark (6.2s)
+  ✘   6 [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark (5.0s)
+  ✘   7 [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light (6.1s)
+  ✘   8 [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light (6.2s)
+  ✘   9 [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark (5.1s)
+  ✘  10 [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark (6.0s)
+  ✘  11 [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light (6.1s)
+  ✘  12 [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light (5.3s)
+
+
+  1) [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:132:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "appearance": "1",
+        "background": "rgb(255, 255, 255)",
+        "backgroundToken": "#f7f8fa",
+        "foreground": "rgb(32, 38, 50)",
+    -   "panelToken": "#ffffff",
+    +   "panelToken": "#fff",
+        "sharedShell": null,
+        "textToken": "#202632",
+        "theme": "light",
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      118 |             foreground: paint.color,
+      119 |           };
+    > 120 |         })).toEqual({
+          |             ^
+      121 |           theme: selected, appearance: "1", sharedShell: null,
+      122 |           backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+      123 |           panelToken: selected === "light" ? "#ffffff" : "#0d0f13",
+        at expectThemePaint (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:120:13)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:129:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/sector-cycle-width-20261111/theme-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12 failed
+    [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark 
+    [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark 
+    [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light 
+    [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light 
+    [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark 
+    [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark 
+    [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light 
+    [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light 
+    [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark 
+    [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark 
+    [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light 
+    [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light 

@@ -9,10 +9,11 @@
 // by the hard-coded "Fixture data — not live evidence" line in the harness
 // header below (dev-only page; never rendered in production).
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { notFound } from "next/navigation";
 import { LangProvider, applyLang } from "@/lib/i18n";
 import SectorCycleLens from "@/components/sector-intelligence/SectorCycleLens";
+import "@/components/chrome/shared-shell/shared-shell.css";
 import type { SectorCycleCaptureHandle } from "@/components/sector-intelligence/cycles/cycleProps";
 
 /* ── Deterministic fixture: one deep cycles publication ─────────────────────
@@ -256,6 +257,23 @@ const historyPayload = {
   sectors: SECTORS.map((sec, idx) => historySector(sec.id, sec.ticker, idx * 1.7)),
 };
 
+type AxisFixture = "standard" | "tiny" | "fractional";
+
+function historyPayloadFor(axisFixture: AxisFixture) {
+  if (axisFixture === "standard") return historyPayload;
+  const [lo, hi] = axisFixture === "tiny" ? [0, 0.01] : [-4, 4];
+  return {
+    ...historyPayload,
+    sectors: historyPayload.sectors.map((sector) => ({
+      ...sector,
+      rs_history: sector.rs_history.map((point, index) => {
+        const value = lo + (Math.sin(index * Math.PI / 16) + 1) * (hi - lo) / 2;
+        return { ...point, rs_21d: value, rs_63d: value };
+      }),
+    })),
+  };
+}
+
 const eventsPayload = {
   schema: "rotation_events.v1",
   ok: true,
@@ -280,8 +298,28 @@ export default function SectorCyclesHarness() {
 
   const [lang, setLang] = useState<"en" | "zh">("en");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const previousTheme = root.getAttribute("data-theme");
+    const previousAppearance = root.getAttribute("data-terminal-appearance");
+    // Use the incumbent light tokens without mounting Shared Shell chrome or account preferences.
+    root.dataset.terminalAppearance = "1";
+    root.dataset.theme = "dark";
+    return () => {
+      for (const [name, value] of [
+        ["data-theme", previousTheme],
+        ["data-terminal-appearance", previousAppearance],
+      ] as const) {
+        if (value === null) root.removeAttribute(name);
+        else root.setAttribute(name, value);
+      }
+    };
+  }, []);
+
   const [generationState, setGenerationState] = useState<"current" | "replaced">("current");
   const [headsState, setHeadsState] = useState<HeadsState>("today");
+  const [axisFixture, setAxisFixture] = useState<AxisFixture>("standard");
+  const historyData = useMemo(() => historyPayloadFor(axisFixture), [axisFixture]);
   const captureRef = useRef<SectorCycleCaptureHandle>(null);
   const cyclesData = useMemo(() => cyclesPayloadFor(headsState), [headsState]);
 
@@ -343,6 +381,14 @@ export default function SectorCyclesHarness() {
             Light
           </label>
           <label>
+            Axis fixture{" "}
+            <select value={axisFixture} onChange={(event) => setAxisFixture(event.target.value as AxisFixture)}>
+              <option value="standard">Standard history</option>
+              <option value="tiny">Tiny values (0 to 0.01)</option>
+              <option value="fractional">Fractional ticks (-4 to 4)</option>
+            </select>
+          </label>
+          <label>
             <input
               type="radio"
               name="harness-gen"
@@ -396,7 +442,7 @@ export default function SectorCyclesHarness() {
           returnBinding="self"
           captureRef={captureRef}
           cyclesFeed={{ state: "ready", data: cyclesData }}
-          historyFeed={{ state: "ready", data: historyPayload }}
+          historyFeed={{ state: "ready", data: historyData }}
           eventsFeed={{ state: "ready", data: eventsPayload }}
         />
       </div>

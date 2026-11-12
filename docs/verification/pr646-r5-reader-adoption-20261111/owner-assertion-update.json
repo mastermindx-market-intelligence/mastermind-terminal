@@ -1,0 +1,7 @@
+{
+  "path": "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+  "beforeSha256": "5a3df55585ff183721639ca9cf91fa26962d647a2dcade59fac8fadc3f63846a",
+  "afterSha256": "6521af03a3ba257f796308e7d3b00a2ee57351b727da0a3a37c6fbb5806885cf",
+  "replacements": 4,
+  "purpose": "Retain exact rejection assertions at the current R5 declaration boundary"
+}

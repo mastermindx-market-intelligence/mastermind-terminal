@@ -3,25 +3,28 @@
 **The live site (`app.mastermind-x.com`) is GIT-GATED. `origin/master` is the single source of truth.**
 
 As of 2026-07-09 the VPS build script (`/opt/terminal/terminal-build.sh`) builds **only `origin/master`**.
-Editing files under `/opt/terminal/terminal` directly (scp/rsync of a working tree) **does nothing** —
-the build ignores the working tree and overwrites it with `master` on every deploy. This exists because
-sessions were rsync'ing working trees straight to the box and silently overwriting each other's live work.
+Direct edits under `/opt/terminal/terminal` are not a deployment and can make the canonical
+source preflight refuse. Publish changes through protected `master`; do not scp or rsync a working
+tree over the live source.
 
 ## To ship a change — the ONLY supported flow
 
 1. **Branch + commit** your change (work in a git checkout, not on the box).
 2. **Open a PR** to `master` on `github.com/mastermindx-market-intelligence/mastermind-terminal`.
 3. **Merge to `master`** (get it reviewed / conflicts resolved against everyone else's merged work).
-4. **Deploy** — run the build on the VPS (it fetches + builds `origin/master`, zero-downtime, auto-rollback):
+4. **Deploy through the existing release owner.** The `vps-main-deploy` workflow resolves the
+   protected target and uses the shared build lock. If an attended manual invocation is needed,
+   reconcile any active or interrupted attempt first and pass the exact qualified target explicitly
+   (replace `FULL_PROTECTED_40_HEX_SHA` with that commit):
 
    ```sh
-   ssh root@146.190.142.17 'bash /opt/terminal/terminal-build.sh'
+   ssh root@146.190.142.17 'bash /opt/terminal/terminal-build.sh --target production --target-sha FULL_PROTECTED_40_HEX_SHA'
    ```
 
-That's it. Because everyone deploys the same committed `master`, nobody's work can be reverted by
-another session's deploy.
+A merge, running workflow, or successful build alone is not installed-generation acceptance.
+Read the release owner's final identity and recovery receipts.
 
-## Canonical source preflight — W2A status
+## Canonical source preflight
 
 `ops/terminal_release_preflight.py` plus
 `ops/terminal_source_audit.production.json` now define the reviewed read-only
@@ -30,10 +33,11 @@ requires the live marker, clean canonical checkout, accepted ref, all applicatio
 and runtime-code projections, and both installed wrappers to agree on one SHA. It
 publishes an immutable receipt and mutates no source, service, build, or data.
 
-**The incumbent `terminal-build.sh` does not call this gate yet.** W2A must first
-merge and produce a `CLEAN` production receipt. W2B then owns binding the gate to
-exact-target build/deploy/rollback behavior. Until that integration lands, do not
-claim that running the build command below has produced a W2A preflight receipt.
+The incumbent `terminal-build.sh` runs this preflight before fetch, reset, clean, build or
+service effects. Target and storage validation precede the shared build lock; under that lock,
+memory admission runs before the owner writes a preflight receipt or changes source. A memory
+refusal therefore produces no new `CLEAN` preflight receipt. Starting a workflow or acquiring
+the lock does not establish preflight or deployment acceptance.
 See [`ops/TERMINAL_RELEASE_PREFLIGHT.md`](ops/TERMINAL_RELEASE_PREFLIGHT.md).
 
 ## What the build script does (`terminal-build.sh`)
@@ -53,8 +57,10 @@ box copy in place.
 ## What a deploy ships — exact paths
 
 One `terminal-build.sh` run deploys **all** of the following from the same `origin/master` SHA.
-If the deploy fails (build error or health check), **nothing** moves — app and runtime code both
-stay on the previous state.
+A failed run is not proof that nothing changed. Read the owner's admission, recovery and acceptance
+verdicts: an early memory refusal precedes source and build effects, while a later failure may require
+restoration of the canonical checkout, dependency inputs, build and deployment marker. Runtime
+overlays have their own later effects; their state cannot be inferred from the workflow conclusion.
 
 | repo path | deployed to | how |
 |---|---|---|
@@ -137,7 +143,7 @@ its first deploy. Each refusal names its code in the deploy log.
 | Every directory on systemd's manager `PATH` exists and is owned `root:root`. Ubuntu's default manager `PATH` includes `/snap/bin`; on a host without snapd, create it as an empty `root:root` `0755` directory. | `safety-hook-manager-path-unreadable` / `safety-hook-manager-path-untrusted` |
 | The production unit declares `INVESTIGATION_API_ADMISSION=closed` exactly once and nowhere else. Use a drop-in such as `/etc/systemd/system/terminal.service.d/investigation-admission.conf` containing `[Service]` and `Environment=INVESTIGATION_API_ADMISSION=closed`, then `systemctl daemon-reload`; no restart is needed. Do not put the key in `.env`/`.env.local` or the manager environment. | `missing-explicit-closed`, `conflicting-admission-declaration`, `dotenv-admission-conflict`, `admission-key-in-manager-environment` |
 | `terminal/.env` and `terminal/.env.local`, where present, are regular files owned by the deploying user (root) and not group- or other-writable. A file copied in by another account keeps that account's owner; `chown root:root` it. Values are never read into the log. | `dotenv-foreign-owner`, `dotenv-group-or-other-writable`, `dotenv-not-regular` |
-| Memory for the build. With tracked-fixture staging (#1442), a Next 16.4 production build peaked at about 2.7 GB of process-tree memory on the host. Before #1442 the same build mapped roughly 9–10 GB and was OOM-killed on a 4 GB host. Keep about 3 GB of RAM plus swap free before a production deploy. | none: the kernel OOM-kills `next build` partway through. Production keeps serving the previous `.next`, but the run can leave `terminal/package.json` and `package-lock.json` at the new revision, and the next preflight refuses them as `TRACKED_MODIFIED`. Restore both files to the accepted generation's blobs before retrying. |
+| Build memory admission: `MemAvailable + SwapFree` from `/proc/meminfo` must meet the default **4096 MiB** floor (`BUILD_NODE_HEAP_MB=3072` plus 1024 MiB). This is an early capacity check, not a reservation or guarantee against a later OOM. Restore capacity and requalify through the same release owner; do not lower or disable the guard to replay a refusal. | Exit **75**, with `reason=insufficient-build-memory` below the floor or `reason=build-memory-unmeasurable` when the values cannot be read or parsed. Admission runs under the shared lock before preflight receipt, Git, dependency-install, build or swap effects. Inspect recorded capacity and process/lock ownership before retrying; this refusal itself requires no source or dependency rollback. |
 
 ### Suite-event alerts cron (`ingest/suite_alerts.ts` → `ingest/dist/suite_alerts.mjs`)
 
@@ -285,28 +291,21 @@ The settings › Webhooks panel (`SAFE_ENDPOINT_COLUMNS` in `terminal/lib/webhoo
 - Secrets live in `/opt/terminal/.env` / `terminal/.env.local` on the box (gitignored) — preserved across deploys.
 - `next.config.ts` sets `typescript.ignoreBuildErrors` + `eslint.ignoreDuringBuilds`, so the build won't
   catch type errors — run `tsc --noEmit` yourself before merging.
-- **Rollback restores the identity and the build together.** `.deployment-id` and the `.next` it names are
-  one deploy generation. Before the new marker is installed the previous one is snapshotted to
-  `.deployment-id.bak` (`cp -p`, exact bytes and metadata) — or `.deployment-id.absent` records that there
-  was none. **Every** failure after that point restores `.next.bak` **and** the marker as a pair: a failed
-  `.next` swap, a failed `systemctl restart`, or a failed health/identity check. They all route through one
-  guarded exit, so none of them can abort the script past rollback — the script runs under `set -e`, and a
-  bare failing command used to terminate the deploy with the marker already advanced. The failed build is
-  kept at `.next.broken` for diagnosis.
-  Two cases do **not** produce a clean rollback, and the script says so instead of pretending otherwise:
-  if the marker record is gone, or if the swap already happened and there is **no** `.next.bak` to return
-  to (a bootstrap deploy, or a previous run that died between the marker install and the swap). Both exit
-  non-zero and report the identity `UNRESOLVED`. In the second case the build that just failed its health
-  check is still live — treat the box as serving nothing provable until reconciled by hand.
-  Whenever the live `.next` was moved the service is restarted, **including** on the unresolved path:
-  `next start` resolves `.next/*` at request time, so a server left bound to a renamed directory serves
-  one build's chunks against another build's manifests.
-- **To force a rollback by hand:** stop `terminal`, `mv .next .next.broken && mv .next.bak .next`, then set
-  `.deployment-id` to the SHA that build was deployed from and restart. Note the rollback snapshot is
-  **not** available for this — `.deployment-id.bak` is purged on every successful deploy — so recover the
-  previous SHA from `git -C /opt/terminal/.gitsrc rev-parse HEAD~1` or the prior deploy's log line.
-  Swapping `.next.bak` back while leaving `.deployment-id` on the new commit is exactly the incoherent
-  state this machinery exists to prevent.
+- **Rollback restores a qualified generation, including dependencies.** Before production installs
+  changed dependencies, the owner snapshots `package.json`, `package-lock.json` and the original
+  `node_modules` tree. On a handled pre-swap failure, exit cleanup restores those inputs. On a
+  post-swap failure, generation rollback restores the build and marker, then restores dependency
+  inputs before any restart. The owner verifies the saved tree before returning the package files,
+  so a failed tree restore cannot falsely present accepted package files beside unqualified
+  dependencies. Successful acceptance discards the replaced generation's dependency snapshot.
+  If any restoration leg is incomplete, preserve the unresolved snapshot and recovery evidence.
+  The owner contains the selected service instead of treating the previous generation as safely
+  restored. Reactivation also requires prior identity and applicable closed-configuration checks;
+  a restart is not automatic merely because `.next.bak` exists. Beta uses its own transaction
+  and does not use the production dependency snapshot.
+- **For attended recovery, reconcile the exact accepted generation and the owner's recovery record**
+  before the next release attempt, including build, marker and dependency identity. Do not restore
+  only the two package files, delete an unresolved snapshot, or guess the prior SHA from `HEAD~1`.
 - **Verifying a deploy names three identities:** the intended `origin/master` SHA, the live
   `/opt/terminal/terminal/.deployment-id`, and the live `/opt/terminal/terminal/.next/BUILD_ID`. The
   deploy fails closed unless all three agree.

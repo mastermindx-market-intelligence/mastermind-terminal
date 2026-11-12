@@ -1,0 +1,458 @@
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:585: trailing whitespace.
++  4   | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:594: trailing whitespace.
++  13  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:596: trailing whitespace.
++  15  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:598: trailing whitespace.
++  17  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:625: trailing whitespace.
++  44  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:633: trailing whitespace.
++  52  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:641: trailing whitespace.
++  60  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:649: trailing whitespace.
++  68  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:665: trailing whitespace.
++  83  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:675: trailing whitespace.
++  93  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:681: trailing whitespace.
++  99  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md:694: trailing whitespace.
++  112 | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:582: trailing whitespace.
++  4   | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:591: trailing whitespace.
++  13  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:593: trailing whitespace.
++  15  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:595: trailing whitespace.
++  17  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:622: trailing whitespace.
++  44  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:630: trailing whitespace.
++  52  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:638: trailing whitespace.
++  60  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:646: trailing whitespace.
++  68  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:661: trailing whitespace.
++  83  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:671: trailing whitespace.
++  93  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:677: trailing whitespace.
++  99  | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md:691: trailing whitespace.
++  112 | 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path.log:22: trailing whitespace.
++  1) [desktop] › e2e/options-flowdesk-chainheat-load-failure.spec.ts:62:7 › a chain-heat read that answers 5xx is a load error with Retry, never "loading" 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path.log:59: trailing whitespace.
++  2) [desktop] › e2e/options-flowdesk-chainheat-load-failure.spec.ts:94:5 › nothing published for the session is shown only on a 404, with nothing to retry 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path.log:97: trailing whitespace.
++    [desktop] › e2e/options-flowdesk-chainheat-load-failure.spec.ts:62:7 › a chain-heat read that answers 5xx is a load error with Retry, never "loading" 
+docs/verification/issue1201-chainheat-interception-20261111/wrong-path.log:98: trailing whitespace.
++    [desktop] › e2e/options-flowdesk-chainheat-load-failure.spec.ts:94:5 › nothing published for the session is shown only on a 404, with nothing to retry 
+docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:498: trailing whitespace.
++  2  | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:515: trailing whitespace.
++  18 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:659: trailing whitespace.
++  163 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:665: trailing whitespace.
++  169 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:705: trailing whitespace.
++  209 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:728: trailing whitespace.
++  232 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:730: trailing whitespace.
++  234 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:747: trailing whitespace.
++  250 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:761: trailing whitespace.
++  264 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:764: trailing whitespace.
++  267 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:769: trailing whitespace.
++  272 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:771: trailing whitespace.
++  274 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:773: trailing whitespace.
++  276 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:789: trailing whitespace.
++  292 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:796: trailing whitespace.
++  299 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:799: trailing whitespace.
++  302 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:806: trailing whitespace.
++  309 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md:841: trailing whitespace.
++  344 | 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public.log:22: trailing whitespace.
++  1) [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:61:11 › N3 width 1440 › baseline: Inspector empty light/en/1440 
+docs/verification/issue1201-inspector-empty-20261111/baseline-public.log:54: trailing whitespace.
++    [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:61:11 › N3 width 1440 › baseline: Inspector empty light/en/1440 
+docs/verification/issue1201-inspector-empty-20261111/baseline.log:23: trailing whitespace.
++  1) [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:34:11 › N3 width 1440 › baseline: Inspector empty light/en/1440 
+docs/verification/issue1201-inspector-empty-20261111/baseline.log:59: trailing whitespace.
++    [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:34:11 › N3 width 1440 › baseline: Inspector empty light/en/1440 
+docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/error-context.md:558: trailing whitespace.
++  54  | 
+docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/error-context.md:656: trailing whitespace.
++  151 | 
+docs/verification/issue1201-inspector-empty-20261111/postimage-dark.log:23: trailing whitespace.
++  1) [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:61:11 › N3 width 1440 › postimage: Inspector empty dark/en/1440 
+docs/verification/issue1201-inspector-empty-20261111/postimage-dark.log:63: trailing whitespace.
++    [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:61:11 › N3 width 1440 › postimage: Inspector empty dark/en/1440 
+docs/verification/pr1346-e18-hosted-import-20261111/focused-tests.log:13: new blank line at EOF.
+docs/verification/pr1346-e18-successor-20261110/focused-tests.log:13: new blank line at EOF.
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:34: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:69: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:6145: trailing whitespace.
+++- Expected: 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:6148: trailing whitespace.
++++ Received: 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:6184: trailing whitespace.
+++     60| 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:6430: trailing whitespace.
+++  1) [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:6467: trailing whitespace.
+++    [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:11001: trailing whitespace.
+++     61| 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:11148: trailing whitespace.
+++     38| 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19483: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19488: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19507: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19523: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19529: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19548: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19645: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19653: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19680: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19686: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19697: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19720: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19753: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19763: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19784: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19796: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19808: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19819: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19836: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19848: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19863: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19886: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19896: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19902: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19909: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:19914: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:20025: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:20031: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:20041: trailing whitespace.
++ 
+docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch:20947: trailing whitespace.
++ 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:3: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:5: trailing whitespace.
+++- Expected: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:7: trailing whitespace.
++++ Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:9: trailing whitespace.
+++- Expected: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:11: trailing whitespace.
++++ Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:13: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:15: trailing whitespace.
+++- Expected: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:17: trailing whitespace.
++++ Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:19: trailing whitespace.
+++- Expected: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:21: trailing whitespace.
++++ Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:23: trailing whitespace.
++++            
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:26: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:28: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:30: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:32: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:34: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:36: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:38: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:40: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:42: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:44: trailing whitespace.
+++Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:47: trailing whitespace.
+++- Expected: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:49: trailing whitespace.
++++ Received: 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:51: trailing whitespace.
+++     60| 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:55: trailing whitespace.
+++  1) [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:57: trailing whitespace.
+++    [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:60: trailing whitespace.
+++     61| 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:62: trailing whitespace.
+++     38| 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:71: trailing whitespace.
+++  1) [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:73: trailing whitespace.
+++    [mobile] › e2e/options-exposure-workspace.spec.ts:437:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:75: trailing whitespace.
+++  383 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:77: trailing whitespace.
+++  411 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:79: trailing whitespace.
+++  436 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:81: trailing whitespace.
+++  3   | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:83: trailing whitespace.
+++  15  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:85: trailing whitespace.
+++  33  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:87: trailing whitespace.
+++  68  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:89: trailing whitespace.
+++  85  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:91: trailing whitespace.
+++  91  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:93: trailing whitespace.
+++  101 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:95: trailing whitespace.
+++  112 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:97: trailing whitespace.
+++  3   | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:99: trailing whitespace.
+++  15  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:101: trailing whitespace.
+++  33  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:103: trailing whitespace.
+++  68  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:105: trailing whitespace.
+++  85  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:107: trailing whitespace.
+++  91  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:109: trailing whitespace.
+++  101 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:111: trailing whitespace.
+++  112 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:113: trailing whitespace.
+++  4   | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:115: trailing whitespace.
+++  11  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:117: trailing whitespace.
+++  31  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:119: trailing whitespace.
+++  64  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:121: trailing whitespace.
+++  70  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:123: trailing whitespace.
+++  79  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:125: trailing whitespace.
+++  91  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:127: trailing whitespace.
+++  108 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:129: trailing whitespace.
+++  119 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:131: trailing whitespace.
+++  5   | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:133: trailing whitespace.
+++  10  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:135: trailing whitespace.
+++  11  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:137: trailing whitespace.
+++  37  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:139: trailing whitespace.
+++  65  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:141: trailing whitespace.
+++  78  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:143: trailing whitespace.
+++  89  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:145: trailing whitespace.
+++  99  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:147: trailing whitespace.
+++  120 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:149: trailing whitespace.
+++  121 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:151: trailing whitespace.
+++  37  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:153: trailing whitespace.
+++  65  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:155: trailing whitespace.
+++  78  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:157: trailing whitespace.
+++  89  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:159: trailing whitespace.
+++  99  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:161: trailing whitespace.
+++  120 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:163: trailing whitespace.
+++  121 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:165: trailing whitespace.
+++  146 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:167: trailing whitespace.
+++  166 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:169: trailing whitespace.
+++  173 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:171: trailing whitespace.
+++  190 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:173: trailing whitespace.
+++  3  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:175: trailing whitespace.
+++  7  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:177: trailing whitespace.
+++  23 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:179: trailing whitespace.
+++  75 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:181: trailing whitespace.
+++  3  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:183: trailing whitespace.
+++  7  | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:185: trailing whitespace.
+++  23 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:187: trailing whitespace.
+++  75 | 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:192: trailing whitespace.
+++  1) [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:194: trailing whitespace.
+++  2) [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:196: trailing whitespace.
+++    [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:198: trailing whitespace.
+++    [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:202: trailing whitespace.
+++  1) [desktop] › e2e/exposure-partial-totals.spec.ts:35:7 › Exposure 0DTE unknown cell withholds the total 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:204: trailing whitespace.
+++  2) [desktop] › e2e/exposure-partial-totals.spec.ts:35:7 › Exposure 0DTE complete grid shows its total 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:206: trailing whitespace.
+++  3) [desktop] › e2e/options-research-continuity.spec.ts:12:5 › saved research keeps the Options references and reports each source's state on every reopen 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:208: trailing whitespace.
+++  4) [desktop] › e2e/sector-exposure-journey.spec.ts:12:5 › a holding opens its exposure with a bounded sector origin and returns to the exact selection 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:210: trailing whitespace.
+++  5) [desktop] › e2e/sector-exposure-journey.spec.ts:100:5 › the main chart carries the origin and Return to Exposure brings it back 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:212: trailing whitespace.
+++    [desktop] › e2e/exposure-partial-totals.spec.ts:35:7 › Exposure 0DTE unknown cell withholds the total 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:214: trailing whitespace.
+++    [desktop] › e2e/exposure-partial-totals.spec.ts:35:7 › Exposure 0DTE complete grid shows its total 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:216: trailing whitespace.
+++    [desktop] › e2e/options-research-continuity.spec.ts:12:5 › saved research keeps the Options references and reports each source's state on every reopen 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:218: trailing whitespace.
+++    [desktop] › e2e/sector-exposure-journey.spec.ts:12:5 › a holding opens its exposure with a bounded sector origin and returns to the exact selection 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:220: trailing whitespace.
+++    [desktop] › e2e/sector-exposure-journey.spec.ts:100:5 › the main chart carries the origin and Return to Exposure brings it back 
+docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log:232: trailing whitespace.
+++ 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:45: trailing whitespace.
++  1) [tablet] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:89: trailing whitespace.
++  3) [tablet] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:111: trailing whitespace.
++  4) [tablet] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:133: trailing whitespace.
++  5) [tablet] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:155: trailing whitespace.
++  6) [tablet] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:177: trailing whitespace.
++  7) [tablet] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:199: trailing whitespace.
++  8) [mobile] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:243: trailing whitespace.
++  10) [mobile] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:265: trailing whitespace.
++  11) [mobile] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:287: trailing whitespace.
++  12) [mobile] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:309: trailing whitespace.
++  13) [mobile] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:331: trailing whitespace.
++  14) [mobile] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:356: trailing whitespace.
++    [tablet] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:358: trailing whitespace.
++    [tablet] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:359: trailing whitespace.
++    [tablet] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:360: trailing whitespace.
++    [tablet] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:361: trailing whitespace.
++    [tablet] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:362: trailing whitespace.
++    [tablet] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:363: trailing whitespace.
++    [mobile] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:365: trailing whitespace.
++    [mobile] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:366: trailing whitespace.
++    [mobile] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:367: trailing whitespace.
++    [mobile] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:368: trailing whitespace.
++    [mobile] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context 
+docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log:369: trailing whitespace.
++    [mobile] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines 
+docs/verification/pr627-current-protected-recovery-20261111/focused-tests.log:13: new blank line at EOF.
+terminal/app/fin.css:1722: new blank line at EOF.
+terminal/components/fin/StatementsPage.tsx:730: new blank line at EOF.
+terminal/docs/pr-crops/workspace-study-20261109/logs/e2e.log:65: trailing whitespace.
++  1) [desktop] › e2e/workspace-rename-focus.spec.ts:117:5 › unreadable workspace actions stay keyboard accessible without opening the workspace 
+terminal/docs/pr-crops/workspace-study-20261109/logs/e2e.log:102: trailing whitespace.
++  2) [tablet] › e2e/workspace-rename-focus.spec.ts:117:5 › unreadable workspace actions stay keyboard accessible without opening the workspace 
+terminal/docs/pr-crops/workspace-study-20261109/logs/e2e.log:140: trailing whitespace.
++    [desktop] › e2e/workspace-rename-focus.spec.ts:117:5 › unreadable workspace actions stay keyboard accessible without opening the workspace 
+terminal/docs/pr-crops/workspace-study-20261109/logs/e2e.log:141: trailing whitespace.
++    [tablet] › e2e/workspace-rename-focus.spec.ts:117:5 › unreadable workspace actions stay keyboard accessible without opening the workspace 
+terminal/docs/pr-crops/workspace-study-20261109/logs/lint-baseline.log:21: new blank line at EOF.
+terminal/docs/pr-crops/workspace-study-20261109/logs/lint-final.log:21: new blank line at EOF.
+terminal/docs/pr-crops/workspace-study-20261109/logs/unit.log:16: new blank line at EOF.
+terminal/docs/verification/pr1407-workspace-css-successor-20261111/evidence-guards.log:13: new blank line at EOF.
+terminal/lib/__tests__/finCompare.test.ts:630: new blank line at EOF.
+terminal/lib/__tests__/finCumulativeQuarterGap.test.ts:84: new blank line at EOF.
+terminal/lib/finStatementMath.ts:711: new blank line at EOF.

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
 
 /* Cycles lane e2e — the /dev/sector-cycles harness (deterministic inline
  * fixtures, no network, clearly labelled as fixture data on the page itself).
@@ -62,8 +62,237 @@ const T = (lang: "en" | "zh") => ({
   headsAbsent: lang === "zh" ? "未附带预测能力分块" : "No forecast capability block",
 });
 
+
+async function expectMeasuredPlot(svg: Locator) {
+  await expect(svg).toBeVisible();
+  const geometry = () => svg.evaluate((element) => {
+    const chart = element as SVGSVGElement;
+    return {
+      container: chart.parentElement!.clientWidth,
+      width: Number(chart.getAttribute("width")),
+      viewBox: chart.viewBox.baseVal.width,
+      rendered: chart.getBoundingClientRect().width,
+    };
+  });
+  expect((await geometry()).container).toBeGreaterThanOrEqual(240);
+  await expect.poll(async () => {
+    const value = await geometry();
+    return Math.max(
+      Math.abs(value.width - value.container),
+      Math.abs(value.viewBox - value.container),
+      Math.abs(value.rendered - value.container),
+    );
+  }, { message: "SVG coordinates must follow the current measured content width" }).toBeLessThanOrEqual(1);
+  return geometry();
+}
+
+async function expectAxisLabels(svg: Locator, expected: string[]) {
+  await expectMeasuredPlot(svg);
+  // Tick labels belong to grid groups; date/turn labels use other anchors.
+  const ticks = svg.locator('g > text[text-anchor="end"]');
+  await expect(ticks).toHaveText(expected);
+  expect(new Set(await ticks.allTextContents()).size).toBe(expected.length);
+  const bounds = await ticks.evaluateAll(elements => elements.map(element => {
+    const label = element.getBoundingClientRect();
+    const chart = (element as SVGElement).ownerSVGElement!.getBoundingClientRect();
+    return { left: label.left - chart.left, right: chart.right - label.right };
+  }));
+  for (const bound of bounds) {
+    expect(bound.left).toBeGreaterThanOrEqual(-1);
+    expect(bound.right).toBeGreaterThanOrEqual(-1);
+  }
+}
+
+async function expectFullscreenControls(dialog: Locator) {
+  const buttons = dialog.getByRole("button");
+  await expect(buttons).toHaveCount(3);
+  const geometry = await buttons.evaluateAll(elements => elements.map(element => {
+    const button = element.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const text = range.getBoundingClientRect();
+    const lines = Array.from(range.getClientRects()).filter(rect => rect.width > 0 && rect.height > 0);
+    return {
+      label: element.textContent?.trim(),
+      lines: lines.length,
+      left: text.left - button.left,
+      right: button.right - text.right,
+      top: text.top - button.top,
+      bottom: button.bottom - text.bottom,
+    };
+  }));
+  for (const button of geometry) {
+    expect(button.lines, button.label + " must stay on one readable line").toBe(1);
+    for (const edge of [button.left, button.right, button.top, button.bottom]) {
+      expect(edge, button.label + " text must fit inside its own button").toBeGreaterThanOrEqual(-1);
+    }
+  }
+}
+
 for (const [lang, theme] of cases) {
   const L = T(lang);
+
+  for (const axisFixture of ["tiny", "fractional"] as const) {
+    test(`cycles tick precision survives fullscreen ${axisFixture} ${lang} ${theme}`, async ({ page }, info) => {
+      await page.goto("/dev/sector-cycles");
+      await page.getByRole("radio", { name: lang === "zh" ? "ZH" : "EN", exact: true }).check();
+      await page.getByRole("radio", { name: theme === "light" ? "Light" : "Dark", exact: true }).check();
+      await page.getByLabel("Axis fixture").selectOption(axisFixture);
+      await expect(page.getByText("Fixture data — not live evidence")).toBeVisible();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+
+      const panel = page.getByTestId("cycle-chart-panel");
+      await panel.getByLabel(L.range).selectOption("0");
+      const inlineLabels = axisFixture === "tiny"
+        ? ["0.000", "0.005", "0.010"] : ["-2.5", "0.0", "2.5"];
+      const fullscreenLabels = axisFixture === "tiny"
+        ? ["0.0000", "0.0025", "0.0050", "0.0075", "0.0100"]
+        : ["-4", "-2", "0", "2", "4"];
+      await expectAxisLabels(panel.locator("svg"), inlineLabels);
+      await panel.screenshot({
+        path: info.outputPath(`cycles-precision-${axisFixture}-inline-${lang}-${info.project.name}.png`),
+        animations: "disabled",
+      });
+
+      await panel.getByRole("button", { name: new RegExp(L.fullscreenBtn) }).click();
+      const dialog = page.getByRole("dialog", { name: L.fullscreen });
+      await expect(dialog).toBeVisible();
+      await expectAxisLabels(dialog.locator("svg"), fullscreenLabels);
+      await expectFullscreenControls(dialog);
+      const viewport = page.viewportSize()!;
+      const resizedWidth = viewport.width >= 981 ? 1280 : viewport.width >= 641 ? 760 : 430;
+      await page.setViewportSize({ ...viewport, width: resizedWidth });
+      await expectAxisLabels(dialog.locator("svg"), fullscreenLabels);
+      await expectFullscreenControls(dialog);
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await page.setViewportSize(viewport);
+      await expectAxisLabels(panel.locator("svg"), inlineLabels);
+      // Reopening creates a new measured DOM node; the retained component/ref
+      // must attach its observer again instead of reusing the last width.
+      await panel.getByRole("button", { name: new RegExp(L.fullscreenBtn) }).click();
+      await expect(dialog).toBeVisible();
+      await expectAxisLabels(dialog.locator("svg"), fullscreenLabels);
+      await expectFullscreenControls(dialog);
+      await dialog.screenshot({
+        path: info.outputPath(`cycles-precision-${axisFixture}-fullscreen-${lang}-${info.project.name}.png`),
+        animations: "disabled",
+      });
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await expectAxisLabels(panel.locator("svg"), inlineLabels);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
+    });
+  }
+
+  for (const transition of ["table", "empty"] as const) {
+    test(`cycles chart measurement survives ${transition} transitions ${lang} ${theme}`, async ({ page }, info) => {
+      await page.goto("/dev/sector-cycles");
+      await page.getByRole("radio", { name: lang === "zh" ? "ZH" : "EN", exact: true }).check();
+      await page.getByRole("radio", { name: theme === "light" ? "Light" : "Dark", exact: true }).check();
+
+      const initialViewport = page.viewportSize()!;
+      // Remain in the same responsive band, so a remounted panel cannot hide
+      // the lost observer. The final capture returns to the contract viewport.
+      const widths = initialViewport.width >= 981 ? [1100, 1280]
+        : initialViewport.width >= 641 ? [700, 900] : [510, 430];
+      const panel = page.getByTestId("cycle-chart-panel");
+      const svg = panel.locator("svg");
+      const expectThemePaint = async (selected: "light" | "dark") => {
+        await expect.poll(() => panel.evaluate(element => {
+          const root = document.documentElement;
+          const tokens = getComputedStyle(root);
+          const paint = getComputedStyle(element);
+          return {
+            theme: root.dataset.theme,
+            appearance: root.dataset.terminalAppearance,
+            sharedShell: root.dataset.mmxSharedShell ?? null,
+            backgroundToken: tokens.getPropertyValue("--bg").trim(),
+            secondaryPanelToken: tokens.getPropertyValue("--panel-2").trim(),
+            textToken: tokens.getPropertyValue("--text").trim(),
+            background: paint.backgroundColor,
+            foreground: paint.color,
+          };
+        })).toEqual({
+          theme: selected, appearance: "1", sharedShell: null,
+          backgroundToken: selected === "light" ? "#f7f8fa" : "#0a0b0e",
+          secondaryPanelToken: selected === "light" ? "#eef1f6" : "#15171d",
+          textToken: selected === "light" ? "#202632" : "#d6dae3",
+          background: selected === "light" ? "rgb(255, 255, 255)" : "rgb(13, 15, 19)",
+          foreground: selected === "light" ? "rgb(32, 38, 50)" : "rgb(214, 218, 227)",
+        });
+      };
+      await expectThemePaint(theme);
+      const otherTheme = theme === "light" ? "dark" : "light";
+      await page.getByRole("radio", { name: otherTheme === "light" ? "Light" : "Dark", exact: true }).check();
+      await expectThemePaint(otherTheme);
+      await page.getByRole("radio", { name: theme === "light" ? "Light" : "Dark", exact: true }).check();
+      await expectThemePaint(theme);
+      const initial = await expectMeasuredPlot(svg);
+      const originalPanel = await panel.elementHandle();
+      const contentHost = await svg.locator("..").locator("..").elementHandle();
+      expect(originalPanel).not.toBeNull();
+      expect(contentHost).not.toBeNull();
+
+      const observation = page.getByTestId("cycle-observation");
+      if (transition === "table") {
+        await panel.getByLabel(L.obs).focus();
+        await page.keyboard.press("Home");
+      }
+      const date = (await observation.locator("time").textContent())!.trim();
+      const value = (await observation.locator("strong").first().textContent())!.trim();
+      const selectFamily = async (label: string) => {
+        if (initialViewport.width >= 641 && initialViewport.width <= 980) {
+          await page.getByTestId("sector-cycle-lens").getByRole("button", { name: L.changeSeries, exact: true }).click();
+          const sheet = page.getByRole("dialog");
+          await expect(sheet).toBeVisible();
+          await sheet.getByRole("button", { name: label, exact: true }).click();
+          await expect(sheet).toBeHidden();
+        } else {
+          await page.getByTestId("cycle-phase-rail").getByRole("tab", { name: label }).click();
+        }
+      };
+
+      if (transition === "table") {
+        await panel.getByRole("button", { name: L.table, exact: true }).click();
+        const row = panel.locator(`table tbody tr:has(> th:text-is("${date}"))`).first();
+        await expect(row.locator("td").first()).toHaveText(value);
+      } else {
+        await selectFamily(L.baskets);
+        await expect(panel.getByRole("status")).toBeVisible();
+      }
+      await expect(svg).toHaveCount(0);
+      await page.setViewportSize({ ...initialViewport, width: widths[0] });
+      expect(await originalPanel!.evaluate(node => node.isConnected)).toBe(true);
+      expect(await contentHost!.evaluate(node => node.isConnected)).toBe(true);
+
+      if (transition === "table") {
+        await panel.getByRole("button", { name: L.chart, exact: true }).click();
+      } else {
+        await selectFamily(L.sectorsTab);
+      }
+      const restored = await expectMeasuredPlot(svg);
+      expect(Math.abs(restored.container - initial.container)).toBeGreaterThan(1);
+      expect(await svg.evaluate((node, original) => node.parentElement!.parentElement === original, contentHost)).toBe(true);
+      expect(await panel.evaluate((node, original) => node === original, originalPanel)).toBe(true);
+      await expect(observation.locator("time")).toHaveText(date);
+      await expect(observation.locator("strong").first()).toHaveText(value);
+
+      await page.setViewportSize({ ...initialViewport, width: widths[1] });
+      await expectMeasuredPlot(svg);
+      await page.setViewportSize(initialViewport);
+      await expectMeasuredPlot(svg);
+      await expect(observation.locator("time")).toHaveText(date);
+      await expect(observation.locator("strong").first()).toHaveText(value);
+      expect(await panel.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
+      await expectThemePaint(theme);
+      await panel.screenshot({
+        path: info.outputPath(`cycles-measurement-${transition}-${lang}-${info.project.name}.png`),
+        animations: "disabled",
+      });
+    });
+  }
+
 
   test(`cycles core journey ${lang} ${theme}`, async ({ page }, info) => {
     await page.goto("/dev/sector-cycles");

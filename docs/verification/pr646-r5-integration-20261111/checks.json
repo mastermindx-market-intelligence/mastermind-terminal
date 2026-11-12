@@ -1,0 +1,32 @@
+[
+  {
+    "name": "npm-ci-integrated-lock",
+    "returncode": 0,
+    "seconds": 226.54
+  },
+  {
+    "name": "reader-syntax",
+    "returncode": 0,
+    "seconds": 0.09
+  },
+  {
+    "name": "r5-units",
+    "returncode": 0,
+    "seconds": 5.32
+  },
+  {
+    "name": "checkout-identity",
+    "returncode": 5,
+    "seconds": 1.76
+  },
+  {
+    "name": "native-preflight",
+    "returncode": 1,
+    "seconds": 4.75
+  },
+  {
+    "name": "owned-diff-check",
+    "returncode": 0,
+    "seconds": 0.46
+  }
+]
