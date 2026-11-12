@@ -1,20 +1,21 @@
-# Whole qualified packet import from natural CI43073040314, attempt1, serial job130706212136.
+# Qualified complete packet import from natural CI43148549019, attempt1, serial job130952441106.
 # 14 passing cases; 7 authored project skips; zero failures, flakes, or retries.
-# All ten PNGs were freshly produced in the capture interval; no prior-image substitution.
-# Actual capture tree: 87bc6058ae47febba38f9f7c1150517fbbeba585
-# Actual canonical parents: e45912628c85a7632e70cb3915b3ce626e1c905c 55d087c30f9b011d5dfd6cbcfe5596be306dab74
-# Raw shallow receipt parents remain []; canonical parents are qualified separately.
-# Pinned Noto CJK font and five real-node glyph witnesses qualified; Chinese images visually accepted.
-# Source, report, image, runtime, prior-packet and visual proof: docs/verification/pr1048-cjk-ticker-import-20261111/
+# All ten PNGs were freshly produced after recorded image removal in the original capture.
+# Actual capture tree: 594ece7ef8582a8c19c7b19436f92f3669734eaa
+# Independently resolved GitHub parents: 2c00073fa0c0449fa626f06d33af0ace478f6f2c 9de98df6ac071eb7ee3006ee09a8996158a6647f
+# Raw shallow receipt parents remain []; resolved parents are recorded separately.
+# All 21 source inputs match the published head, including Watchlist settings and pinned CJK inputs.
+# Five original native CJK glyph witnesses passed unchanged validators; all ten PNGs visually reviewed.
+# Source, raw report, font witnesses, prior packet, and principal review: docs/verification/pr1048-current-ticker-import-20261112/
 # Panel crops: viewport labels describe browser viewports, not PNG dimensions.
-capturedAtHead: 6e68720fd643316e44e1d6be04e67058a467874a
+capturedAtHead: f256b35982f9340bfd815941c8c3e40deca6f0f1
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
     sha256: d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358
   - path: terminal/components/TerminalShell.tsx
-    sha256: 8d4d458c2743f90a738e42e74274045c32b107d46feda5122eaa79c782428187
+    sha256: 86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900
@@ -50,7 +51,7 @@ crops:
     viewport: 1440x900
     lang: en
     state: unavailable
-    sha256: 414e6a50b8d4738d11f6d193e3b57446069ff266a8ad77f0b058cae7fbc8beb9
+    sha256: 6d475bf2e4ad68b53b42c6eac86853dae069f1c290b23deaf21c53490b59667f
   - file: unavailable-desktop-zh-dark.png
     viewport: 1440x900
     lang: zh

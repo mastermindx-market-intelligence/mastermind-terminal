@@ -1,0 +1,23 @@
+{
+  "qualified": true,
+  "sourceCount": 21,
+  "cases": 21,
+  "images": 10,
+  "witnesses": 5,
+  "checkout": {
+    "commit": "f256b35982f9340bfd815941c8c3e40deca6f0f1",
+    "tree": "594ece7ef8582a8c19c7b19436f92f3669734eaa",
+    "parents": []
+  },
+  "lifecycle": {
+    "playwrightReturned": true,
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "rawHashes": {
+    "capture.json": "ecc1f4b1df96ac6e8796a3033e7221123c5307f0f5641401199500f91fe8cf23",
+    "prepared.json": "e83be4518141108d98f2c38e2521cc686c9a3de54a228557f90039667ebd3a7a",
+    "images-cleared.json": "43e97a22942180d7484047e03e4bfd0ebe710c780f74739a6a53cc701637154c",
+    "report.json": "00baa61969230ae2eeecf3f475353c0791260d1850b73e4a7537556b822c2e02"
+  }
+}

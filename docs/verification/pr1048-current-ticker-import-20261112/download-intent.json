@@ -1,0 +1,9 @@
+{
+  "startedAt": "2026-11-12T03:51:37.249659+00:00",
+  "artifactId": 13913940667,
+  "runId": 43148549019,
+  "attempt": 1,
+  "jobId": 130952441106,
+  "expectedDigest": "sha256:014895d0f8d452a0c5a857cc5c562caf7fe971d1c7529c8ecc18853fe2890d5f",
+  "path": "/tmp/pr1048-serial-43148549019-1-13913940667.zip"
+}

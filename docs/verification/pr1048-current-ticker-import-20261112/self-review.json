@@ -1,0 +1,18 @@
+{
+  "selfReviewedAt": "2026-11-12T04:06:08.945903+00:00",
+  "actualSourceHead": "9de98df6ac071eb7ee3006ee09a8996158a6647f",
+  "trackedDiff": [
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png"
+  ],
+  "sourceClosureUnchanged": 21,
+  "strictReaderTestsPassed": 4,
+  "nativeCaptureReplayed": false,
+  "holdsPreserved": [
+    "SQL0050",
+    "Macro9601/provider",
+    "model target/ACK/persistence",
+    "authenticated production",
+    "release"
+  ]
+}

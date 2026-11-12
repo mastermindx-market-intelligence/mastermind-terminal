@@ -1,0 +1,246 @@
+{
+  "files": [
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/README.md",
+      "bytes": 1443,
+      "sha256": "407526adb6323be10a229deaa755096cace78af3b3c20752b38f443d5fbbd627"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/actual-captured-commit.json",
+      "bytes": 2852,
+      "sha256": "1998a6fd63d62b649d459b39356c8a57c289aa7eb20fe339022069147b2f495b"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/artifact.json",
+      "bytes": 893,
+      "sha256": "9a6a05eba2be810408914e3fe676bdb886cd0a78a848e678b1b2393eafde198f"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/download-intent.json",
+      "bytes": 305,
+      "sha256": "0a6c6ebe5a1a377106dd96a114e0eb35d9831a0c3775c6ac052fb777b65bc324"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/download-result.json",
+      "bytes": 476,
+      "sha256": "5b74000a271246ce7b18a68ed38babd360fe734fc858f43083e0517dd550f751"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/font-witnesses/desktop-zh-dark.png.json",
+      "bytes": 503,
+      "sha256": "f19181c7d0612117df6531e2d18a7d79414fd0f2ac670d2c59211b1b429ed4ad"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/font-witnesses/mobile-zh-dark.png.json",
+      "bytes": 504,
+      "sha256": "24ed3e8b6a3f6f28df67f1f821429e57509b7ebae1bbe7d0ac95ea3f0aaf47e7"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/font-witnesses/tablet-zh-dark.png.json",
+      "bytes": 504,
+      "sha256": "b0aa8fc6f852731c0cbb5250bbe841beb8c08d6dbdf34436dc9c07bcd4481146"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/font-witnesses/unavailable-desktop-zh-dark.png.json",
+      "bytes": 529,
+      "sha256": "2988c80f7e5a78e2872f3b4a453bea9f9040da7f0af455a8051584052fadd623"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/font-witnesses/unavailable-mobile-zh-dark.png.json",
+      "bytes": 533,
+      "sha256": "c49bbbc30133fb753514495752513fca7e1f4ae22582885bf016f9fd7e8eac70"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/import-preimage-reconciliation.json",
+      "bytes": 366,
+      "sha256": "86c279429e137ddf3151efbd53e125ce5fc5fe57978ffbe6942aa5c3281b9c2f"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/EVIDENCE.yml",
+      "bytes": 2984,
+      "sha256": "3a9376c9db3d5dd4cdf7d5f6fb756f65775c7e04ab829411e5629ffbb902aa9f"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/desktop-en-dark.png",
+      "bytes": 40244,
+      "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/desktop-zh-dark.png",
+      "bytes": 47714,
+      "sha256": "1addb27523a1116f2f0c77839281a0328907a7815ca638f51d60e5ff49157244"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/mobile-en-dark.png",
+      "bytes": 41627,
+      "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/mobile-zh-dark.png",
+      "bytes": 50116,
+      "sha256": "88db088cf47915913b90a4274a0a4e2a7551bbaf131408ecf73ba19039925717"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/tablet-en-dark.png",
+      "bytes": 38520,
+      "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/tablet-zh-dark.png",
+      "bytes": 47543,
+      "sha256": "e6ce02e89fbfae555482624667213f76728dcaf932175bae6c923331ced189e3"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/unavailable-desktop-en-dark.png",
+      "bytes": 8773,
+      "sha256": "414e6a50b8d4738d11f6d193e3b57446069ff266a8ad77f0b058cae7fbc8beb9"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/unavailable-desktop-zh-dark.png",
+      "bytes": 8706,
+      "sha256": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/unavailable-mobile-en-dark.png",
+      "bytes": 6855,
+      "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/prior-packet/unavailable-mobile-zh-dark.png",
+      "bytes": 6861,
+      "sha256": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/pure-validator-execution.json",
+      "bytes": 128,
+      "sha256": "cc50d0b4def6788f0fdd6634410995d1438bb7cd0e6405a9bdc120e23f357028"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/pure-validator-qualification.json",
+      "bytes": 12421,
+      "sha256": "1268b21238364212cd18eadb437f5b2a0ed3955d3a275e52d3c7baabc9cbcd15"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/pure-validator.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/pure-validator.stdout",
+      "bytes": 738,
+      "sha256": "496ea8e948e088968c2d311abd180d4e73ce5024ad1cfcf352b582c9cd03425d"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/raw/capture.json",
+      "bytes": 160862,
+      "sha256": "ecc1f4b1df96ac6e8796a3033e7221123c5307f0f5641401199500f91fe8cf23"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/raw/images-cleared.json",
+      "bytes": 458,
+      "sha256": "43e97a22942180d7484047e03e4bfd0ebe710c780f74739a6a53cc701637154c"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/raw/prepared.json",
+      "bytes": 149281,
+      "sha256": "e83be4518141108d98f2c38e2521cc686c9a3de54a228557f90039667ebd3a7a"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/raw/report.json",
+      "bytes": 1024733,
+      "sha256": "00baa61969230ae2eeecf3f475353c0791260d1850b73e4a7537556b822c2e02"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/root-visual-review.json",
+      "bytes": 4491,
+      "sha256": "1d05674a4bf33eed52498be0c6abf967ed91b52ba8ba2d48b77d9dad1801055a"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/run.json",
+      "bytes": 17875,
+      "sha256": "20b6daf4ce72c29e6a7c9082a9fd50663225ce4de071128854e1140181443646"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/self-review.json",
+      "bytes": 525,
+      "sha256": "560d449a1f796350349b3bf4164a68e26594c07940d56747ea6e7b3b83d1911f"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/serial-job.json",
+      "bytes": 6863,
+      "sha256": "827e1244e9129d3e2cefc3d6f03cb5180747983f9e8eeb832d37ea05cc7efcb8"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/strict-reader-result.json",
+      "bytes": 204,
+      "sha256": "7ab9c531d41004b0a2fd41c2b8e8493f398dee55ff62f8dc8a25290ea968926a"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/strict-reader.stderr",
+      "bytes": 153,
+      "sha256": "6a013b71d94eadb16a930c32d667b41cd78de87ee97381f3cb81ed13fbe986e3"
+    },
+    {
+      "path": "docs/verification/pr1048-current-ticker-import-20261112/strict-reader.stdout",
+      "bytes": 360,
+      "sha256": "3f74f441db7047db4baf48b17ae1fec09f62fbfa03c2f336ae60f5fa66f9d249"
+    }
+  ],
+  "current_packet": [
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+      "bytes": 3113,
+      "sha256": "8711bdb303192bc411decdbe556de5c0b6c941c0d0709c29fffd63597ae50d2e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+      "bytes": 40244,
+      "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+      "bytes": 47714,
+      "sha256": "1addb27523a1116f2f0c77839281a0328907a7815ca638f51d60e5ff49157244"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+      "bytes": 41627,
+      "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+      "bytes": 50116,
+      "sha256": "88db088cf47915913b90a4274a0a4e2a7551bbaf131408ecf73ba19039925717"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+      "bytes": 38520,
+      "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+      "bytes": 47543,
+      "sha256": "e6ce02e89fbfae555482624667213f76728dcaf932175bae6c923331ced189e3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png",
+      "bytes": 8772,
+      "sha256": "6d475bf2e4ad68b53b42c6eac86853dae069f1c290b23deaf21c53490b59667f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-desktop-zh-dark.png",
+      "bytes": 8706,
+      "sha256": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-mobile-en-dark.png",
+      "bytes": 6855,
+      "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-mobile-zh-dark.png",
+      "bytes": 6861,
+      "sha256": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9"
+    }
+  ]
+}
