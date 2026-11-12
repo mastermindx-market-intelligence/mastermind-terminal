@@ -76,11 +76,12 @@ function planEvidenceCapture(root = ROOT) {
 // PR-time drift attribution. `touchedText` is the newline-separated list of
 // repo-relative paths the pull request itself changed (ci.yml records
 // `git diff --name-only --no-renames HEAD^1 HEAD` of the synthetic merge
-// commit into EVIDENCE_PR_TOUCHED_FILE). Only KNOWN source-drift on a
+// commit into a temporary file named by EVIDENCE_PR_TOUCHED_FILE). Only KNOWN
+// source-drift on a
 // PR-touched path fails the PR: inherited drift on untouched paths stays with
 // the merge_group backstop, and fail-closed plans (missing/malformed manifest)
 // cannot attribute drift and leave PR capture behavior unchanged.
-function driftedTouchedSources(root = ROOT, touchedText = process.env.EVIDENCE_PR_TOUCHED_FILE || "") {
+function driftedTouchedSources(root = ROOT, touchedText = "") {
   const plan = planEvidenceCapture(root);
   const touched = new Set();
   for (const line of String(touchedText).split(/\r?\n/)) {
@@ -93,6 +94,13 @@ function driftedTouchedSources(root = ROOT, touchedText = process.env.EVIDENCE_P
   return {plan, touched: [...touched], drifted};
 }
 
+// Only the PR entry point consumes this file. Keep the census out of process
+// arguments/environment, and fail explicitly if the recording step lost it.
+function driftedTouchedSourcesFromFile(root = ROOT, filename = process.env.EVIDENCE_PR_TOUCHED_FILE) {
+  if (!filename) throw new Error("EVIDENCE_PR_TOUCHED_FILE missing: cannot attribute PR evidence drift");
+  return driftedTouchedSources(root, fs.readFileSync(filename, "utf8"));
+}
+
 if (require.main === module) {
   const eventName = process.env.GITHUB_EVENT_NAME;
   let result;
@@ -100,7 +108,7 @@ if (require.main === module) {
   if (eventName === "merge_group") {
     result = planEvidenceCapture();
   } else if (eventName === "pull_request") {
-    prGate = driftedTouchedSources();
+    prGate = driftedTouchedSourcesFromFile();
     if (prGate.drifted.length) {
       for (const rel of prGate.drifted) {
         console.error("::error title=evidence-lock-drift::" + rel
@@ -132,4 +140,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = {MANIFESTS, manifestLocks, planEvidenceCapture, driftedTouchedSources};
+module.exports = {MANIFESTS, manifestLocks, planEvidenceCapture, driftedTouchedSources, driftedTouchedSourcesFromFile};

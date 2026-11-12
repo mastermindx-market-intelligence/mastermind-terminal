@@ -189,7 +189,14 @@
 .populationTable th { color: var(--sn-muted); font-size: 11px; font-weight: 500; text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--sn-line); white-space: nowrap; }
 .populationTable td { text-align: left; padding: 10px; border-bottom: 1px solid var(--sn-line); font-size: 13px; white-space: nowrap; }
 .populationTable td:first-child { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+/* The row's Prophet link is an inline-flex target at every width; on a phone
+ * it is a full 44px touch target, not the 13px text line it wraps (the cell's
+ * own nowrap row height leaves it well under the minimum). */
+.prophetRowLink { display: inline-flex; align-items: center; }
 .populationUnserved { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+@media (max-width: 640px) {
+  .prophetRowLink { min-height: 44px; }
+}
 
 /* ---- Responsive (guide rule 14: no horizontal page overflow; inspector stacks) ---- */
 @media (max-width: 1180px) {

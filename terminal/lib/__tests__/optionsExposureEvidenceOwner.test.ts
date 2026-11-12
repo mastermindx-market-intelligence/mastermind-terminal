@@ -108,7 +108,7 @@ describe("current EOD owner and native reader", () => {
     const file = "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml";
     const text = readFileSync(join(REPO, file), "utf8");
     const root = shadowRepo({ [file]: text.slice(text.indexOf("\n\n") + 2) });
-    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:eod/);
+    expect(() => owner.eodPacket(root)).toThrow(/R5_CURRENT_ROOT:eod/);
   });
 });
 
@@ -116,7 +116,7 @@ describe("paired Options integration proof", () => {
   it("refuses a mixed current family declaration", () => {
     const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml";
     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8").replace("options-integration-20261109", "ui-copy-integration-20261109") });
-    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
+    expect(() => owner.eodPacket(root)).toThrow(/R5_CURRENT_ROOT:gex/);
   });
   it("refuses a complete-image receipt with an incomplete frame matrix", () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
@@ -295,8 +295,8 @@ describe("momentum browser successor with retained native evidence", () => {
       readFileSync(join(REPO, current, "prior-roots", family + ".EVIDENCE.yml")),
     ]));
     const root = shadowRepo(overrides);
-    expect(() => owner.eodPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
-    expect(() => owner.gexPacket(root)).toThrow(/BROWSER_SUCCESSOR_ROOT:gex/);
+    expect(() => owner.eodPacket(root)).toThrow(/R5_CURRENT_ROOT:gex/);
+    expect(() => owner.gexPacket(root)).toThrow(/R5_CURRENT_ROOT:gex/);
   });
 
   for (const [file, code] of [

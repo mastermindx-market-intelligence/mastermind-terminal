@@ -30,14 +30,13 @@ import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHolding
 import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
   SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
 import { sectorPortfolioCopy, sectorPortfolioHref } from "@/lib/sectorPortfolioContext";
-import { nativeSectorEvidence, type NativeSectorGeneration } from "@/lib/sectorNativeGeneration";
+import { nativeSectorEvidence, SECTOR_GENERATION_PREVIEW_PATH, type NativeSectorGeneration } from "@/lib/sectorNativeGeneration";
 import {
   confluenceBasketsFromCarriedBlock, confluenceNasdaqFromCarriedBlock,
   confluenceRussellFromCarriedBlock, confluenceSp500FromCarriedBlock,
   type UniverseBlockRead, type UniverseId,
 } from "@/lib/sectorDepthUniverses";
 import { themeRowsFromCarriedBlock, type ThemeRowsRead } from "@/lib/sectorDepthThemeRows";
-import { classifyEntry } from "@/lib/sectorDepthRows";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -68,6 +67,14 @@ const STATE_KEYS: Record<string, string> = {
 };
 const emptyFeed = (source: SectorFeed, status: FeedStatus): FeedPayload => ({ data: null,
   receipt: { source, status, path: "", asOf: null, observedAt: null, contentHash: null, stale: false } });
+/** R2 local additive channel: the route's both-denied generation envelope adds
+ * exactly one closed failure cause to the generation receipt. The shared
+ * FeedReceipt interface is not widened; only this workspace's own read
+ * attaches the field, and only after the full lineage check (HTTP 403, null
+ * data, generation source, the fixed preview path, access status and the
+ * exact cause). Any other 403/access shape keeps the existing failure path
+ * and never becomes a subscription state. */
+type SectorFeedPayload = FeedPayload & { receipt: FeedPayload["receipt"] & { failure?: "entitlement_required" } };
 /** FeedPayload → the Cycles lens feed shape. The legacy rs-history and
  * rotation-events feeds pass their real payloads through; the lens's own deep
  * cycles publication feed does not exist yet and is never borrowed from these. */
@@ -108,15 +115,12 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
  * name hands its reader the carried entry ITSELF, verbatim — the readers
  * declare `entry: unknown` and re-validate from scratch (`classifyEntry`), so
  * a malformed entry reads their generic unavailable wording, never a stated
- * owner fact the producer did not state (S-1). Interim audience rule (fix r1
- * item 3): the Terminal route requests `audience=preview` for every member
- * (`SECTOR_GENERATION_PATH`, lib/sectorNativeGeneration.ts:12; the decoder
- * refuses any other audience at :155/:161), so a carried entry that is
- * exactly an unavailable `audience_not_entitled` entry is NOT treated as
- * carried — otherwise every member, paying or not, would read "Not included
- * in your current subscription." the moment the producer serves the five
- * blocks. Remove when the route requests the member's real audience
- * (entitled read increment). */
+ * owner fact the producer did not state (S-1). The interim audience rule
+ * (fix r1 item 3) is removed: the route now asks Macro for the member's real
+ * audience — the fixed entitled path first, one step down to the fixed
+ * preview path on a 403 — so a carried `audience_not_entitled` stub IS
+ * carried, and the row readers render their own bilingual subscription card
+ * exactly for the members Macro actually declined. */
 export interface SectorRowBlockMounts {
   universeBlocks?: Partial<Record<UniverseId, UniverseBlockRead>>;
   themeRows?: ThemeRowsRead;
@@ -129,17 +133,8 @@ export function sectorRowBlocksFromFeed(
   const map = raw !== null && typeof raw === "object" && !Array.isArray(raw)
     ? raw as Record<string, unknown> : null;
   if (!map) return null;
-  // undefined = not carried for this reader (own key absent, or the interim
-  // audience rule below swallowed the entry).
-  const carried = (name: string): unknown => {
-    if (!Object.hasOwn(map, name)) return undefined;
-    const entry = map[name];
-    // Interim audience rule — removal condition in the doc comment above.
-    // lane 7's own classifier decides "exactly an audience_not_entitled
-    // unavailable entry"; no second structural admission here.
-    const cls = classifyEntry(entry);
-    return !cls.ok && cls.reason === "audience_not_entitled" ? undefined : entry;
-  };
+  // undefined = not carried for this reader (own key absent).
+  const carried = (name: string): unknown => Object.hasOwn(map, name) ? map[name] : undefined;
   const sp500 = carried("confluence_universe_sp500");
   const nasdaq = carried("confluence_universe_nasdaq");
   const russell = carried("confluence_universe_russell");
@@ -240,7 +235,7 @@ export default function SectorIntelligenceWorkspace() {
       const cancel = () => request.abort();
       controller.signal.addEventListener("abort", cancel, { once: true });
       const timeout = setTimeout(cancel, 10_000);
-      let payload: FeedPayload;
+      let payload: SectorFeedPayload;
       try {
         const res = await fetch(`/api/sector-intelligence?source=${source}`, {
           credentials: "same-origin", cache: "no-store", signal: request.signal,
@@ -251,12 +246,23 @@ export default function SectorIntelligenceWorkspace() {
         if (receipt.source !== source || !Object.hasOwn(STATUS_KEYS, status) || (status === "ready" && !res.ok)) {
           payload = emptyFeed(source, "invalid");
         } else {
+          // R2: the both-denied generation envelope is the one access response
+          // that is a subscription state, and it must match the route's fixed
+          // contract exactly — HTTP 403, null data, generation source, the
+          // fixed preview path this walk ends on, access status and the closed
+          // cause — before the cause is recorded. Anything else keeps the
+          // existing failure handling below and is never a subscription state.
+          const entitlementDenied = source === "generation" && res.status === 403 && body.data === null
+            && receipt.source === "generation" && status === "access"
+            && text(receipt.path) === SECTOR_GENERATION_PREVIEW_PATH
+            && text(receipt.failure) === "entitlement_required";
           payload = { data: res.ok ? body.data : null, receipt: {
             source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
             observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
             stale: receipt.stale === true,
             qualificationReasons: Array.isArray(receipt.qualificationReasons)
               ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
+            ...(entitlementDenied ? { failure: "entitlement_required" as const } : {}),
           } };
           if (source === "generation" && status === "ready" && !nativeSectorEvidence(payload).generation) {
             payload = emptyFeed(source, "invalid");
@@ -314,7 +320,10 @@ export default function SectorIntelligenceWorkspace() {
     generation: nativeGeneration, transport: nativeStatus, subjectId: state.sector || null,
     language: lang === "zh" ? "zh" : "en", theme: state.theme,
     ownerRevision: `${identity.kind === "account" ? identity.userId : "guest"}#${revision}`,
-  }), [nativeGeneration, nativeStatus, state.sector, state.theme, lang, identity, revision]);
+    // Only the read's full lineage check ever attaches this cause; the slot
+    // factory normalizes it against the live transport before it can render.
+    accessCause: (feeds.generation as SectorFeedPayload | undefined)?.receipt.failure,
+  }), [nativeGeneration, nativeStatus, state.sector, state.theme, lang, identity, revision, feeds.generation]);
   const nativeJobActive = state.sectorJob !== null && state.workspace !== "detail";
   const nativeDossierActive = state.workspace === "detail" && state.sectorJob !== null;
   // Round 2 part 2: the five lane 7 row reads, gated on the wire having

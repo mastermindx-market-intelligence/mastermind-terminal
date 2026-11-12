@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-11T19:16:07.528679+00:00",
+  "expected_local": "9ff2b500ed55d42b16ba77de00f11395422b6ad3",
+  "accepted_protected": "568fa505afb068900424fe4db0da67587d46a114",
+  "command": [
+    "git",
+    "merge",
+    "--no-commit",
+    "--no-ff",
+    "568fa505afb068900424fe4db0da67587d46a114"
+  ]
+}

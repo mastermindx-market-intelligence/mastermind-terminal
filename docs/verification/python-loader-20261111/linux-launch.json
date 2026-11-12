@@ -1,0 +1,7 @@
+{
+  "state": "ATTEMPTING_ORIGINAL_HOST_CONSUMER",
+  "host": "ubuntu1",
+  "remoteRoot": "/tmp/terminal-python-loader-support-20261111-c3",
+  "bundleSha256": "12853133290888bfa9ca67e6abfeba07764fedf8edf64ff2c994a5bfd3114a4b",
+  "driverSha256": "254e62e7ff78b55b493dc9540164875f3a105058435932c6f0ab64944a03fad4"
+}

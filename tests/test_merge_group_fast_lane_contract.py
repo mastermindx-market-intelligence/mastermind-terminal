@@ -77,8 +77,12 @@ def test_pl6_vi_capture_is_selective_while_f11_keeps_its_browser_prerequisite() 
     steps = jobs()["terminal-unit"]["steps"]
     by_name = {s["name"]: s for s in steps if "name" in s}
     condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
-    # Chromium follows the selective capture; F11 keeps its browser in its own job.
-    assert by_name["Prepare Chromium for original mock captures"]["if"] == condition
+    # The PL6/VI capture is selective, but the E18 and active-inbox captures
+    # are unconditional browser captures in this job: Chromium installs on
+    # every event. F11 keeps its browser in its own job.
+    assert "if" not in by_name["Prepare Chromium for original mock captures"]
+    assert "if" not in by_name["Capture current-source E18 alert-management evidence"]
+    assert "if" not in by_name["Capture current-source recurring inbox evidence"]
     assert not by_name["Prepare Chromium for original mock captures"].get("continue-on-error", False)
     assert "Capture provider-closed F11 theses entry on this checkout" not in by_name
     f11_steps = jobs()["terminal-f11-evidence"]["steps"]
@@ -212,6 +216,35 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
             assert "if" not in step and not step.get("continue-on-error", False)
 
 
+def test_every_f11_packet_suite_is_selected_by_the_f11_group() -> None:
+    """Independent cross-check of the f11 classification: it derives its
+    expectation from the F11 packet PATH, never from the script's classifier
+    regex, so the two signals cannot drift together. Any suite that references
+    the packet directory only terminal-f11-evidence captures must run in that
+    job's post-capture validation (the `f11` group) — running it in the
+    terminal-unit evidence lane or a parallel unit shard would read a packet
+    that lane never captured."""
+    root = Path(__file__).resolve().parents[1]
+    f11_packet = "b-f11-10-analysis-theses-entry"
+    referencing = {
+        "lib/__tests__/" + path.name
+        for pattern in ("*.test.ts", "*.test.tsx")
+        for path in (root / "terminal" / "lib" / "__tests__").glob(pattern)
+        if f11_packet in path.read_text(encoding="utf-8")
+    }
+    assert referencing, "the F11 capture's own lock suite must still exist"
+    f11_group = subprocess.run(
+        ["bash", "scripts/ci/evidence-lock-suites.sh", "f11"],
+        cwd=root / "terminal", check=True, capture_output=True, text=True,
+        env={**os.environ, "LC_ALL": "C"},
+    ).stdout.split()
+    missing = referencing - set(f11_group)
+    assert not missing, (
+        f"suites referencing the F11 packet are NOT in the f11 group (they would "
+        f"run where the packet was never captured): {sorted(missing)}"
+    )
+
+
 def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
     """Evidence-lock drift in a PR's own diff must fail the PR, not only the
     merge group: one workflow step records the PR-touched paths (from the
@@ -233,6 +266,58 @@ def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
     )
     # The merge-group backstop itself must remain byte-identical: the planner
     # step's command and both capture-skip conditions are pinned above.
+
+
+def test_pr_touched_path_census_stays_in_a_file(tmp_path: Path) -> None:
+    """Execute the actual recording step with a census larger than the
+    439,184-byte value that prevented GitHub's runner from spawning bash."""
+    record = next(
+        step for step in jobs()["terminal-unit"]["steps"]
+        if step.get("name") == "Record PR-touched paths for the evidence drift gate"
+    )
+    census = "".join(
+        f"docs/verification/{'long-proof-path-' * 12}{i}/trace.zip\n"
+        for i in range(3000)
+    ) + "terminal/components/last-drifted-source.tsx\n"
+    assert len(census.encode()) > 439_184
+    source = tmp_path / "complete-census.txt"
+    source.write_text(census, encoding="utf-8")
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    git = binary / "git"
+    git.write_text(
+        "#!/bin/sh\n"
+        'case "$1" in\n'
+        "  rev-parse) printf '%s\\n' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ;;\n"
+        '  diff) cat "$TEST_CENSUS_INPUT" ;;\n'
+        "  *) exit 97 ;;\n"
+        "esac\n",
+        encoding="utf-8",
+    )
+    git.chmod(0o755)
+    runner_temp = tmp_path / "runner"
+    runner_temp.mkdir()
+    github_env = tmp_path / "github-env"
+    result = subprocess.run(
+        ["/bin/bash", "-c", record["run"]],
+        env={
+            **os.environ,
+            "PATH": str(binary) + os.pathsep + os.environ.get("PATH", ""),
+            "RUNNER_TEMP": str(runner_temp),
+            "GITHUB_ENV": str(github_env),
+            "TEST_CENSUS_INPUT": str(source),
+        },
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    touched_file = runner_temp / "evidence-pr-touched.txt"
+    assert touched_file.read_text(encoding="utf-8") == census
+    assert github_env.read_text(encoding="utf-8") == (
+        f"EVIDENCE_PR_TOUCHED_FILE={touched_file}\n"
+    )
+    assert github_env.stat().st_size < 1024
 
 
 def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None:

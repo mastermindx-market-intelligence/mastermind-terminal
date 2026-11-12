@@ -8,6 +8,7 @@ import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import replayStyles from "./ReplayTransport.module.css";
+import layoutMenuStyles from "./LayoutMenu.module.css";
 import compactCsvStyles from "./WatchlistCsvCompact.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
 import rollerSlotStyles from "./mobile/RollerStripSlot.module.css";
@@ -224,6 +225,7 @@ import { listTemplates, type TemplateMenuEntry } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
 import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
+import WatchlistDisplaySettings from "@/components/WatchlistDisplaySettings";
 import {
   DEFAULT_WATCHLIST_SETTINGS,
   WATCHLIST_SETTINGS_KEY,
@@ -1383,6 +1385,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [searchOpen, setSearchOpen] = useState(false); const [seed, setSeed] = useState("");
   const [indOpen, setIndOpen] = useState(false);
   const [wlSetOpen, setWlSetOpen] = useState(false); const [tfOpen, setTfOpen] = useState(false); const [ctOpen, setCtOpen] = useState(false); const [snapOpen, setSnapOpen] = useState(false);
+  const wlSettingsLauncherRef = useRef<HTMLButtonElement>(null);
+  const wlSettingsId = useId();
   const [captureOpen, setCaptureOpen] = useState(false);
   const captureT = useCaptureT();
   const [toolbarMoreOpen, setToolbarMoreOpen] = useState(false);
@@ -5911,7 +5915,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       })()
     : [];
 
-  const colList = (): [string, string][] => { const a: [string, string][] = [["last", t("colLast")]]; if (set.cols.change) a.push(["change", t("colChgShort")]); if (set.cols.changePct) a.push(["changePct", t("colChgPctShort")]); if (set.cols.volume) a.push(["volume", t("colVolShort")]); if (set.cols.ext) a.push(["ext", t("colExtShort")]); if (set.cols.extPct) a.push(["extPct", t("colExtPctShort")]); return a; };
+  const colList = (): [string, string][] => { const a: [string, string][] = []; if (set.cols.last) a.push(["last", t("colLast")]); if (set.cols.change) a.push(["change", t("colChgShort")]); if (set.cols.changePct) a.push(["changePct", t("colChgPctShort")]); if (set.cols.volume) a.push(["volume", t("colVolShort")]); if (set.cols.ext) a.push(["ext", t("colExtShort")]); if (set.cols.extPct) a.push(["extPct", t("colExtPctShort")]); return a; };
   // Plain-word label for an ext window. The hub's classification when it has one; "Overnight"
   // is both the third value and the honest fallback when the hub does not say which window.
   const extSessionLabel = (s?: ExtSession) =>
@@ -6894,7 +6898,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onClose={() => setPhoneWorkspacesOpen(false)}
           escapeKey="bubble"
           title={t("layouts")}
-          className="phone-workspaces-sheet"
+          className={`phone-workspaces-sheet ${layoutMenuStyles.phoneSheet}`}
           detents={[60, 96]}
         >
           {phoneWorkspacesOpen && <LayoutMenu
@@ -7086,22 +7090,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
                 <WatchlistEventsButton variant="rail" onOpen={() => { closeAll(); setEventPlannerOpen(true); }} />
-                <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
+                <button ref={wlSettingsLauncherRef} type="button" title={t("settings")} aria-label={`${t("watchlists")}: ${t("settings")}`} aria-haspopup="dialog" aria-expanded={wlSetOpen} aria-controls={wlSetOpen ? wlSettingsId : undefined} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
               </div>
-              <div className={`pop${wlSetOpen ? " show" : ""}`} style={{ top: 40, right: 6 }} onClick={(e) => e.stopPropagation()}>
-                <div className="set-h"><b>{t("tableViewLabel")}</b><span className={`switch${set.tableView ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, tableView: !s.tableView }))} /></div>
-                <div className="set-grp">{t("columns")}</div>
-                {([["last", t("colLast")], ["change", t("colChange")], ["changePct", t("colChangePct")], ["volume", t("colVolume")]] as [string, string][]).map(([k, l]) => (
-                  <div key={k} className={`set-row${(set.cols as any)[k] ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, cols: { ...s.cols, [k]: !(s.cols as any)[k] } }))}><span className="cbx"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span>{l}</div>
-                ))}
-                {/* item-26: Extended Hours column — dash for composites/non-US/no print */}
-                <div className="set-grp">{t("extColumns")}</div>
-                <div data-watchlist-setting="ext" className={`set-row${set.cols.ext ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, cols: { ...s.cols, ext: !s.cols.ext } }))}><span className="cbx"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span>{t("colExt")}</div>
-                <div data-watchlist-setting="extPct" className={`set-row${set.cols.extPct ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, cols: { ...s.cols, extPct: !s.cols.extPct } }))}><span className="cbx"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span>{t("colExtPct")}</div>
-                <div className="set-grp">{t("symbolDisplay")}</div>
-                <div className={`set-row${set.logo ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, logo: !s.logo }))}><span className="cbx"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span>{t("logo")}</div>
-                {([["symbol", t("dispSymbol")], ["name", t("dispName")], ["both", t("dispBoth")]] as [string, string][]).map(([d, l]) => <div key={d} className={`set-row${set.disp === d ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, disp: d }))}><span className="rdo" />{l}</div>)}
-              </div>
+              <WatchlistDisplaySettings id={wlSettingsId} open={wlSetOpen} settings={set} onChange={setSet}
+                launcherRef={wlSettingsLauncherRef} onClose={() => setWlSetOpen(false)} />
             </div>
             <div className="wl-scroll">
               <div className="wl-cols" style={{ gridTemplateColumns: wlGrid, minWidth: wlMinW }}>

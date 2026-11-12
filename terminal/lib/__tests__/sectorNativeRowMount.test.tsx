@@ -23,11 +23,14 @@
  *     reason:7}`) reads the reader's GENERIC unavailable wording in both
  *     languages, never "The owner engine did not produce this reading
  *     tonight."; a carried not_produced entry keeps that wording.
- *   - INTERIM AUDIENCE RULE (fix r1 item 3): the route reads preview for
- *     every member, so an exactly-audience_not_entitled entry is not carried
- *     and the false-for-members subscription wording never renders — a mixed
- *     map keeps master's state for the stub's reader while carried readers
- *     still render their rows.
+ *   - AUDIENCE RULE REMOVED (R2/R5, COO 2026-11-11): the server now decides per
+ *     member which document they get, so an exactly-audience_not_entitled
+ *     entry IS carried and the readers' bilingual subscription card renders —
+ *     the non-entitled member's real preview document (five audience stubs)
+ *     shows a subscription card in every one of the five readers. The capture
+ *     stays a PREVIEW document; a wire that lawfully carries rows in the five
+ *     entitled-only blocks is an ENTITLED clone of it (R3: rows on a preview
+ *     document make the whole document invalid).
  *   - CARRIED entitled (the five real producer specimens): rows render through
  *     the readers only — S&P 65 subsectors + 11 roll-up rows without links,
  *     Nasdaq's 0-subsector/6-roll-up build-time night, Russell's honest zero,
@@ -63,7 +66,7 @@ vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => session
 import SectorNativeDossier from "@/components/sector-intelligence/SectorNativeDossier";
 import SectorIntelligenceWorkspace, { sectorRowBlocksFromFeed } from "@/components/sector-intelligence/SectorIntelligenceWorkspace";
 import type { SectorNativeContext } from "@/components/sector-intelligence/sectorNativeSlots";
-import { sectorNativeGeneration, SECTOR_GENERATION_PATH } from "@/lib/sectorNativeGeneration";
+import { sectorNativeGeneration, SECTOR_GENERATION_PATH, SECTOR_GENERATION_PREVIEW_PATH } from "@/lib/sectorNativeGeneration";
 import type { FeedPayload } from "../sectorIntelligence";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -94,11 +97,20 @@ const ROW_BLOCK_NAMES = ["confluence_universe_sp500", "confluence_universe_nasda
 const NO_ROW_NAMES_7 = ["r1_rising_priced_share", "r2_display_order", "r2_hazard_qualification",
   "etf_flows", "confluence", "bottoming_watch", "theme_table"] as const;
 
-/** A deep clone of the real captured generation with `typed_blocks` set. */
-const carriedWire = (blocks: unknown): Record<string, unknown> => {
-  const wire = JSON.parse(JSON.stringify(captured)) as typeof captured;
-  (wire.projection.data as Record<string, unknown>).typed_blocks = blocks;
-  return wire as unknown as Record<string, unknown>;
+/** A deep clone of the real captured generation with `typed_blocks` set. The
+ * capture is a PREVIEW document and stays one by default; `audience:
+ * "entitled"` flips both audience labels for the wires that lawfully carry
+ * rows in the five entitled-only blocks (R3: those rows on a preview document
+ * make the whole document invalid). */
+const carriedWire = (blocks: unknown, audience: "preview" | "entitled" = "preview"): Record<string, unknown> => {
+  const wire = JSON.parse(JSON.stringify(captured)) as Record<string, unknown> & {
+    projection: { data: Record<string, unknown> } };
+  if (audience === "entitled") {
+    wire.audience = "entitled";
+    wire.projection.data.audience = "entitled";
+  }
+  wire.projection.data.typed_blocks = blocks;
+  return wire;
 };
 /** Deep clone per use: the decoder's `bounded()` walk refuses a SHARED object
  * reference (its seen-set guard), and a wire that arrived as JSON can never
@@ -118,7 +130,9 @@ const sector0 = (captured.projection.data.core as { sectors: Array<{
 }> }).sectors[0];
 
 const feedOf = (wire: Record<string, unknown>): FeedPayload => ({
-  data: wire, receipt: { source: "generation", status: "ready", path: SECTOR_GENERATION_PATH,
+  data: wire, receipt: { source: "generation", status: "ready",
+    // R3: the receipt path pairs with the document's own audience.
+    path: wire.audience === "entitled" ? SECTOR_GENERATION_PATH : SECTOR_GENERATION_PREVIEW_PATH,
     asOf: captured.source_session, observedAt: "2026-11-10T00:00:00Z", contentHash: "fixed", stale: false },
 });
 
@@ -216,11 +230,17 @@ describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2 + fix r1)
     expect(sectorRowBlocksFromFeed(feedOf(wire), generation)).toBeNull();
   });
 
-  it("a twelve-key map whose five row entries are all preview audience stubs reads null (interim audience rule, fix r1 item 3)", () => {
+  it("a twelve-key map whose five row entries are all preview audience stubs IS carried — the interim audience rule is gone (R2/R5)", () => {
     const wire = carriedWire({ ...sevenKeyMap(), ...stubBlocks("audience_not_entitled") });
     const generation = sectorNativeGeneration(wire);
     expect(generation).not.toBeNull();
-    expect(sectorRowBlocksFromFeed(feedOf(wire), generation)).toBeNull();
+    const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
+    expect(reads).not.toBeNull();
+    expect(reads!.universeBlocks!.subsectors).toEqual({ state: "unavailable", reason: "audience_not_entitled" });
+    expect(reads!.universeBlocks!.nasdaq).toEqual({ state: "unavailable", reason: "audience_not_entitled" });
+    expect(reads!.universeBlocks!.russell).toEqual({ state: "unavailable", reason: "audience_not_entitled" });
+    expect(reads!.universeBlocks!.baskets).toEqual({ state: "unavailable", reason: "audience_not_entitled" });
+    expect(reads!.themeRows).toEqual({ state: "unavailable", reason: "audience_not_entitled" });
   });
 
   it("a CARRIED all-not_produced map is not the absent case: the readers get their entries", () => {
@@ -233,7 +253,7 @@ describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2 + fix r1)
   });
 
   it("theme_rows carried alone yields only the theme read; the universes mount stays omitted", () => {
-    const wire = carriedWire({ theme_rows: entitled.theme_rows });
+    const wire = carriedWire({ theme_rows: entitled.theme_rows }, "entitled");
     const generation = sectorNativeGeneration(wire);
     const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
     expect(reads).not.toBeNull();
@@ -242,7 +262,7 @@ describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2 + fix r1)
   });
 
   it("one universe carried alone yields only that reader's read", () => {
-    const wire = carriedWire({ confluence_universe_sp500: entitled.confluence_universe_sp500 });
+    const wire = carriedWire({ confluence_universe_sp500: entitled.confluence_universe_sp500 }, "entitled");
     const generation = sectorNativeGeneration(wire);
     const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
     expect(reads).not.toBeNull();
@@ -253,7 +273,9 @@ describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2 + fix r1)
 
   it("a carried malformed entry flows to the reader RAW — the reader's own classifier reads generic unknown (fix r1 S-1)", () => {
     for (const entry of [null, "available", { status: "bogus" }, { status: "unavailable", reason: 7 }]) {
-      const wire = carriedWire({ theme_rows: entry });
+      // Entitled base: a malformed entry is a reader problem, not the R3
+      // preview defense — this family tests the raw pass-through alone.
+      const wire = carriedWire({ theme_rows: entry }, "entitled");
       const generation = sectorNativeGeneration(wire);
       const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
       expect(reads?.themeRows, `entry=${JSON.stringify(entry)}`).toEqual({ state: "unavailable", reason: "unknown" });
@@ -261,7 +283,7 @@ describe("the carried gate — sectorRowBlocksFromFeed (round 2 part 2 + fix r1)
   });
 
   it("the entitled mapping yields one read per reader from its own block", () => {
-    const wire = carriedWire(entitled);
+    const wire = carriedWire(entitled, "entitled");
     const generation = sectorNativeGeneration(wire);
     const reads = sectorRowBlocksFromFeed(feedOf(wire), generation);
     expect(reads).not.toBeNull();
@@ -292,6 +314,9 @@ describe("DossierDepth row mounts — no row block carried equals master (golden
 
   // Fix r1 B-1's own cases: every one of these rendered five fabricated
   // not_produced stubs at the reviewed head; each must equal the SAME golden.
+  // (R5: the former all-audience-stubs arm left this list — the interim rule
+  // is gone, so that map is now CARRIED and renders subscription cards; its
+  // flipped expectations live in the stub describe below.)
   it.each([
     ["typed_blocks null", null],
     ["typed_blocks an array", []],
@@ -300,8 +325,6 @@ describe("DossierDepth row mounts — no row block carried equals master (golden
     ["an empty map", {}],
     ["a map of only unknown names", { zzz: { status: "unavailable", reason: "not_produced", value: null } }],
     ["the v1.0 seven-key producer map (no row block carried)", sevenKeyMap()],
-    ["a twelve-key map whose five row entries are all preview audience stubs",
-      { ...sevenKeyMap(), ...stubBlocks("audience_not_entitled") }],
   ])("no row block carried — %s: the Drivers tab equals the master golden byte-for-byte", async (_title, value) => {
     const host = await mountDrivers(carriedWire(value));
     expectGolden(host);
@@ -313,7 +336,7 @@ describe("DossierDepth row mounts — no row block carried equals master (golden
 
 describe("DossierDepth row mounts — one row block carried alone", () => {
   it("theme_rows alone: its 49-row table renders; the universes keep master's whole-section state", async () => {
-    const host = await mountDrivers(carriedWire({ theme_rows: entitled.theme_rows }));
+    const host = await mountDrivers(carriedWire({ theme_rows: entitled.theme_rows }, "entitled"));
     const table = host.querySelector('[data-theme-rows="true"]');
     expect(table).not.toBeNull();
     expect(table!.querySelectorAll("tbody tr")).toHaveLength(49);
@@ -325,7 +348,7 @@ describe("DossierDepth row mounts — one row block carried alone", () => {
   });
 
   it("confluence_universe_sp500 alone: the S&P tab renders its rows; the other tabs and the theme table keep master's states", async () => {
-    const host = await mountDrivers(carriedWire({ confluence_universe_sp500: entitled.confluence_universe_sp500 }));
+    const host = await mountDrivers(carriedWire({ confluence_universe_sp500: entitled.confluence_universe_sp500 }, "entitled"));
     expect(host.querySelector('[data-universe="subsectors"]')).not.toBeNull();
     expect(host.textContent).toContain("Software - Application");
     expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
@@ -346,7 +369,7 @@ describe("DossierDepth row mounts — one row block carried alone", () => {
 
 describe("DossierDepth row mounts — carried entitled (the five real specimens)", () => {
   it("renders the S&P tab by default: 65 subsectors, an 11-row roll-up with no links, and the theme table with its own date", async () => {
-    const host = await mountDrivers(carriedWire(entitled));
+    const host = await mountDrivers(carriedWire(entitled, "entitled"));
     // All four universe tabs exist; the S&P tab is active by default.
     for (const id of ["subsectors", "nasdaq", "russell", "baskets"]) {
       expect(host.querySelector(`[data-universe="${id}"]`), `tab ${id}`).not.toBeNull();
@@ -368,7 +391,7 @@ describe("DossierDepth row mounts — carried entitled (the five real specimens)
   });
 
   it("each universe tab renders its OWN block: Nasdaq's build-time night, Russell's honest zero, baskets 49", async () => {
-    const host = await mountDrivers(carriedWire(entitled));
+    const host = await mountDrivers(carriedWire(entitled, "entitled"));
     const open = async (id: string) => {
       await act(async () => { host.querySelector<HTMLButtonElement>(`[data-universe="${id}"]`)!.click(); });
     };
@@ -388,7 +411,7 @@ describe("DossierDepth row mounts — carried entitled (the five real specimens)
   });
 
   it("ZH: carried label_zh/name_zh verbatim; null label_zh falls back to the producer's English label", async () => {
-    const host = await mountDrivers(carriedWire(entitled), "zh");
+    const host = await mountDrivers(carriedWire(entitled, "entitled"), "zh");
     // Baskets carry a real label_zh — rendered verbatim, no consumer authoring.
     await act(async () => { host.querySelector<HTMLButtonElement>('[data-universe="baskets"]')!.click(); });
     expect(host.textContent).toContain("加密与数字轨道");
@@ -408,9 +431,9 @@ describe("DossierDepth row mounts — carried entitled (the five real specimens)
 });
 
 describe("DossierDepth row mounts — stub entries (status: unavailable)", () => {
-  // Fix r1: audience_not_entitled moved out of this loop — under the interim
-  // audience rule an all-stub map reads null (golden above); a mixed map
-  // keeps master's state for the stub's reader (its own tests below).
+  // R5: audience_not_entitled stays out of this loop only because it carries
+  // its own dedicated bilingual tests right below (the subscription card); the
+  // interim rule that used to swallow it is removed.
   const REASON_COPY: Record<string, string> = {
     not_produced: "The owner engine did not produce this reading tonight.",
     invalid_shape: "This reading arrived in a form we cannot present.",
@@ -440,31 +463,49 @@ describe("DossierDepth row mounts — stub entries (status: unavailable)", () =>
     expect(host.textContent).not.toContain("Memory, HBM & Storage");
   });
 
-  it("a mixed map — sp500 a preview audience stub, theme carried: the stub is NOT carried, so the universes keep master's whole-section state and the wording never shows", async () => {
+  it("R4: an all-audience_not_entitled map — the non-entitled member's real preview document — shows the subscription card in every one of the five readers (EN)", async () => {
+    const host = await mountDrivers(carriedWire({ ...sevenKeyMap(), ...stubBlocks("audience_not_entitled") }));
+    // The universes section renders its tabbed shell; the ACTIVE tab's panel
+    // and the theme table each show the readers' subscription card.
+    expect(host.querySelector("[data-universe]")).not.toBeNull();
+    expect(host.querySelectorAll("[data-block-state=unavailable]").length).toBe(2);
+    expect(host.textContent).toContain("Not included in your current subscription.");
+    // Every universe tab shows the same subscription card — five cards in all.
+    for (const id of ["nasdaq", "russell", "baskets"]) {
+      await act(async () => { host.querySelector<HTMLButtonElement>(`[data-universe="${id}"]`)!.click(); });
+      expect(host.textContent, `tab ${id}`).toContain("Not included in your current subscription.");
+      expect(host.querySelector('[data-rollup="sectors"]'), `tab ${id}`).toBeNull();
+    }
+    // No row value from any entitled block renders anywhere.
+    expect(host.textContent).not.toContain("Software - Application");
+    expect(host.textContent).not.toContain("Memory, HBM & Storage");
+    expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
+  });
+
+  it("R4 ZH: the same non-entitled document shows the Chinese subscription card in every reader", async () => {
+    const host = await mountDrivers(carriedWire({ ...sevenKeyMap(), ...stubBlocks("audience_not_entitled") }), "zh");
+    expect(host.querySelector("[data-universe]")).not.toBeNull();
+    expect(host.textContent).toContain("当前订阅不包含此读数。");
+    expect(host.textContent).not.toContain("Not included in your current subscription.");
+    for (const id of ["nasdaq", "russell", "baskets"]) {
+      await act(async () => { host.querySelector<HTMLButtonElement>(`[data-universe="${id}"]`)!.click(); });
+      expect(host.textContent, `tab ${id}`).toContain("当前订阅不包含此读数。");
+    }
+  });
+
+  it("a mixed map — sp500 an audience stub, theme carried — renders each reader its OWN state (interim rule removed)", async () => {
     const host = await mountDrivers(carriedWire({
       confluence_universe_sp500: AUDIENCE_STUB, theme_rows: entitled.theme_rows,
-    }));
-    // The interim rule swallows the audience stub: that reader's prop is
-    // omitted, no other universe is carried, so the whole universes section
-    // is master's own state — the false-for-members wording never renders.
-    expect(host.querySelector("[data-universe]")).toBeNull();
-    expect(host.querySelector('[data-depth-unavailable="confluence"]')).not.toBeNull();
-    expect(host.querySelector("[data-block-state=unavailable]")).toBeNull();
-    expect(host.textContent).not.toContain("Not included in your current subscription.");
-    // The carried reader is untouched by the rule: its table still renders.
+    }, "entitled"));
+    // The stub IS carried now: the universes section renders and the ACTIVE
+    // tab shows the subscription card — the owner, not the browser, said so.
+    expect(host.querySelector("[data-universe]")).not.toBeNull();
+    expect(host.textContent).toContain("Not included in your current subscription.");
+    expect(host.querySelector("[data-block-state=unavailable]")).not.toBeNull();
+    // The carried reader is untouched: its table still renders its rows.
     const table = host.querySelector('[data-theme-rows="true"]');
     expect(table).not.toBeNull();
     expect(table!.querySelectorAll("tbody tr")).toHaveLength(49);
-  });
-
-  it("ZH: the same mixed map keeps master's universes state; the Chinese subscription wording never shows", async () => {
-    const host = await mountDrivers(carriedWire({
-      confluence_universe_sp500: AUDIENCE_STUB, theme_rows: entitled.theme_rows,
-    }), "zh");
-    expect(host.querySelector("[data-universe]")).toBeNull();
-    expect(host.querySelector('[data-depth-unavailable="confluence"]')).not.toBeNull();
-    expect(host.textContent).not.toContain("当前订阅不包含此读数。");
-    expect(host.querySelector('[data-theme-rows="true"]')!.textContent).toContain("内存、HBM 与存储");
   });
 
   it.each([
@@ -476,8 +517,11 @@ describe("DossierDepth row mounts — stub entries (status: unavailable)", () =>
     const host = await mountDrivers(carriedWire({
       // Two DISTINCT objects of the same malformed shape (clone): the decoder's
       // bounded() walk refuses a shared reference, which JSON never produces.
+      // Entitled base: this family tests the raw pass-through, not the R3
+      // preview defense (a non-stub entry on a preview document is invalid
+      // whole — proved in sectorNativeGeneration.test.ts).
       confluence_universe_sp500: clone(entry), theme_rows: clone(entry),
-    }));
+    }, "entitled"));
     const blocks = host.querySelectorAll("[data-block-state=unavailable]");
     expect(blocks.length).toBe(2);
     expect(host.textContent).toContain("This reading is unavailable right now.");
@@ -489,7 +533,7 @@ describe("DossierDepth row mounts — stub entries (status: unavailable)", () =>
   it("ZH: a carried malformed entry reads the Chinese generic wording, never the not_produced line", async () => {
     const host = await mountDrivers(carriedWire({
       confluence_universe_sp500: { status: "bogus" }, theme_rows: { status: "unavailable", reason: 7 },
-    }), "zh");
+    }, "entitled"), "zh");
     expect(host.textContent).toContain("此读数暂不可用。");
     expect(host.textContent).not.toContain("所有者引擎今晚未生成此读数。");
   });
@@ -516,7 +560,7 @@ describe("DossierDepth row mounts — stub entries (status: unavailable)", () =>
     );
     const host = await mountDrivers(carriedWire({
       ...entitled, confluence_universe_sp500: { status: "available", reason: null, value: spValue },
-    }));
+    }, "entitled"));
     const relOf = (label: string): string | null => {
       const row = [...host.querySelectorAll("tr")]
         .find(tr => tr.querySelector("th button")?.textContent === label);
@@ -542,7 +586,12 @@ describe("the full workspace mounts the same reads (memo → dossier prop)", () 
             observedAt: "2026-11-10T00:00:00Z", contentHash: source, stale: false } });
       }
       return Response.json({ data: generationData, receipt: { source, status: "ready",
-        path: SECTOR_GENERATION_PATH, asOf: captured.source_session,
+        // R3: the browser accepts a generation receipt only when its path is
+        // one of the two fixed paths AND both audience fields agree with that
+        // path's audience — so the mock pairs them like the route now does.
+        path: (generationData as { audience?: unknown } | null)?.audience === "entitled"
+          ? SECTOR_GENERATION_PATH : SECTOR_GENERATION_PREVIEW_PATH,
+        asOf: captured.source_session,
         observedAt: "2026-11-10T00:00:00Z", contentHash: "generation:fixed", stale: false } });
     });
     await act(async () => { root.render(<SectorIntelligenceWorkspace />); });
@@ -579,12 +628,21 @@ describe("the full workspace mounts the same reads (memo → dossier prop)", () 
   });
 
   it("a carried entitled wire renders the rows through the same gate", async () => {
-    await renderWorkspace(carriedWire(entitled));
+    await renderWorkspace(carriedWire(entitled, "entitled"));
     expect(host.querySelector("[data-universe]")).not.toBeNull();
     expect(host.textContent).toContain("Software - Application");
     const table = host.querySelector('[data-theme-rows="true"]');
     expect(table).not.toBeNull();
     expect(table!.querySelectorAll("tbody tr")).toHaveLength(49);
+  });
+
+  it("a preview wire whose five row entries are audience stubs renders the subscription cards through the same gate (R4)", async () => {
+    await renderWorkspace(carriedWire({ ...sevenKeyMap(), ...stubBlocks("audience_not_entitled") }));
+    expect(host.querySelector('[data-testid="sector-native-dossier-depth"]')).not.toBeNull();
+    expect(host.querySelector("[data-universe]")).not.toBeNull();
+    expect(host.textContent).toContain("Not included in your current subscription.");
+    expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
+    expect(host.textContent).not.toContain("Software - Application");
   });
 });
 

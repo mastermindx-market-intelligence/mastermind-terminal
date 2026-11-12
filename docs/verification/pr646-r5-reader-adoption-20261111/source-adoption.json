@@ -1,0 +1,34 @@
+{
+  "state": "ADOPTION_SOURCE_APPLIED",
+  "at": "2026-11-11T11:25:55.185972+00:00",
+  "indexPreimage": "1a825666dc49b30e3288f4bf4f9d69cce8248898",
+  "files": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": {
+      "beforeSha256": "f80acdc11736501d6c534831b85d02b46533b444e9e17bead6f7b9a38929816a",
+      "afterSha256": "753ff1d32da23b7e0b95268aeb20b08b2e6934f6a48cdfda08199bdb38749972",
+      "afterGitBlob": "324da3c018ed49ec4997976bfbb99964bc854a52"
+    },
+    ".github/workflows/ci.yml": {
+      "beforeSha256": "622fee31fc24c93e9c278c56e2e55838cb160a6ce363992b64c8c722501d93a7",
+      "afterSha256": "409a2f4a29e73205838faada4b7a578aafc01f19c7d1ceb58c9a19549be639a4",
+      "afterGitBlob": "c17cd9626970997b3680fc8bac207d3fac0a3a01"
+    },
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": {
+      "beforeSha256": "c112249d1e79ec47b3ae7dbf2996fdc6f7c15727a3dbc540d7d96f0678263929",
+      "afterSha256": "0ffb688481f64075b6a07181900c709d4c58afe60cd6dce0e1e1c948bc6abf9e",
+      "afterGitBlob": "4d7f72d329496f1a441e7f7ca6250444da2dc18d"
+    },
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": {
+      "beforeSha256": "e15b56f902accfb01d28ac63e7dd2c86ed8956765c0f8e0a6a799dd9c89f6e3e",
+      "afterSha256": "398ee08642c4db5eb7ee1648e5865e42146fd98aec9f96a208727bfe003d832d",
+      "afterGitBlob": "de104404a41fb0f937ae297f4ecde1857590209a"
+    },
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": {
+      "beforeSha256": null,
+      "afterSha256": "706794aaf871a7682398052bbd65885a8a8917bfeda7daea39ec87fa8bb7c929",
+      "afterGitBlob": "279aa962aa725b3165659b77bca7210eab072dcc"
+    }
+  },
+  "hostedCaptureUnchanged": true,
+  "localBrowserCapture": false
+}

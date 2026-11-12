@@ -4,12 +4,21 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import SectorIntelligenceWorkspace from "@/components/sector-intelligence/SectorIntelligenceWorkspace";
 import { SECTOR_FEEDS } from "../sectorIntelligence";
+import { SECTOR_GENERATION_PATH, SECTOR_GENERATION_PREVIEW_PATH } from "../sectorNativeGeneration";
 import { nativeGenerationFixture } from "./fixtures/sectorNativeGeneration";
 import capturedGeneration from "./fixtures/sector_generation.captured.preview.v1.json";
+import entitledBlocksJson from "./fixtures/typed_blocks_entitled.json";
 
 const session = vi.hoisted(() => ({ identity: { userId: "owner-a", email: "a@example.test" } }));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => session.identity }));
-vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }) }));
+// ZH without mounting LangProvider (same approach as sectorNativeRowMount):
+// the depth lexicon resolves its locale through this override.
+const G = globalThis as unknown as { __SI_REFRESH_LANG?: "en" | "zh" };
+G.__SI_REFRESH_LANG = "en";
+vi.mock("@/lib/i18n", async (orig) => {
+  const m = (await orig()) as Record<string, unknown>;
+  return { ...m, useLang: () => ({ lang: G.__SI_REFRESH_LANG ?? "en" }) };
+});
 vi.mock("@/lib/sectorIntelligenceLex", () => ({ useSectorT: () => (key: string) => key }));
 vi.mock("@/components/ui/MobileSheet", () => ({
   default: ({ open, children }: { open: boolean; children: ReactNode }) => open ? <aside>{children}</aside> : null,
@@ -48,6 +57,28 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
+/** R4 fixture law: the capture is a PREVIEW document and is never modified.
+ * The entitled round is a clone with both audience labels flipped and the five
+ * real producer specimens planted; the lapsed round is the same capture
+ * carrying the five audience_not_entitled stubs the owner serves a
+ * non-entitled member. */
+const entitledBlocks = entitledBlocksJson as Record<string, { status: string; reason: string | null; value: unknown }>;
+const entitledDoc = () => {
+  const doc = structuredClone(capturedGeneration) as typeof capturedGeneration & { audience: string };
+  doc.audience = "entitled";
+  (doc.projection.data as Record<string, unknown>).audience = "entitled";
+  (doc.projection.data as Record<string, unknown>).typed_blocks = structuredClone(entitledBlocks);
+  return doc;
+};
+const previewDoc = () => {
+  const doc = structuredClone(capturedGeneration);
+  (doc.projection.data as Record<string, unknown>).typed_blocks = Object.fromEntries(
+    ["confluence_universe_sp500", "confluence_universe_nasdaq", "confluence_universe_russell",
+      "confluence_universe_baskets", "theme_rows"].map(name =>
+      [name, { status: "unavailable", reason: "audience_not_entitled", value: null }]));
+  return doc;
+};
+
 describe("Sector workspace owner revalidation", () => {
   let root: Root, host: HTMLDivElement;
   let hidden: boolean;
@@ -69,6 +100,17 @@ describe("Sector workspace owner revalidation", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout", "setInterval", "clearInterval"] });
     vi.setSystemTime(new Date("2026-11-05T21:00:00Z"));
+    // jsdom has no matchMedia; the calls board's phone-disclosure query needs it.
+    if (typeof window.matchMedia !== "function") {
+      Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        value: (query: string) => ({
+          matches: false, media: query, onchange: null,
+          addListener: () => {}, removeListener: () => {},
+          addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => false,
+        }),
+      });
+    }
     hidden = false;
     vi.spyOn(document, "hidden", "get").mockImplementation(() => hidden);
     vi.spyOn(window, "scrollTo").mockImplementation(() => {});
@@ -80,6 +122,7 @@ describe("Sector workspace owner revalidation", () => {
   });
   afterEach(async () => {
     await act(async () => root.unmount());
+    G.__SI_REFRESH_LANG = "en";
     host.remove(); vi.restoreAllMocks(); vi.useRealTimers();
   });
 
@@ -252,5 +295,46 @@ describe("Sector workspace owner revalidation", () => {
     await act(async () => vi.advanceTimersByTimeAsync(60_000));
     expect(host.textContent).not.toContain("Original Technology");
     expect(host.querySelector("output")?.textContent).toContain('"status":"access"');
+  });
+
+  it.each([
+    ["en", "Not included in your current subscription."],
+    ["zh", "当前订阅不包含此读数。"],
+  ])("R4: a member whose entitlement lapsed gets the preview and no row value survives (%s)", async (lang, card) => {
+    G.__SI_REFRESH_LANG = lang as "en" | "zh";
+    request.mockImplementation(async input => {
+      const source = sourceOf(input);
+      if (source !== "generation") return Response.json(envelope(source));
+      return Response.json({ data: entitledDoc(), receipt: { source, status: "ready",
+        path: SECTOR_GENERATION_PATH, asOf: capturedGeneration.source_session,
+        observedAt: "2026-11-05T21:00:00Z", contentHash: "generation:entitled", stale: false } });
+    });
+    window.history.replaceState(null, "",
+      "/discover?tab=sectors&sectorWorkspace=detail&sectorJob=research&sectorView=drivers&sector=xlk");
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    // Entitled round: the member had the five row tables.
+    expect(host.textContent).toContain("Software - Application");
+    expect(host.querySelector('[data-theme-rows="true"]')!.querySelectorAll("tbody tr")).toHaveLength(49);
+    // SAME identity, entitlement lapsed server-side: the next revalidation
+    // serves the preview document with the five audience stubs.
+    request.mockImplementation(async input => {
+      const source = sourceOf(input);
+      if (source !== "generation") return Response.json(envelope(source));
+      return Response.json({ data: previewDoc(), receipt: { source, status: "ready",
+        path: SECTOR_GENERATION_PREVIEW_PATH, asOf: capturedGeneration.source_session,
+        observedAt: "2026-11-05T22:00:00Z", contentHash: "generation:preview", stale: false } });
+    });
+    await act(async () => vi.advanceTimersByTimeAsync(60_000));
+    // No row value survives — not in the DOM, and never from the prior state.
+    expect(host.textContent).not.toContain("Software - Application");
+    expect(host.textContent).not.toContain("Memory, HBM & Storage");
+    expect(host.querySelector('[data-theme-rows="true"]')).toBeNull();
+    // The five readers show the bilingual subscription card instead.
+    expect(host.querySelector("[data-universe]")).not.toBeNull();
+    expect(host.textContent).toContain(card);
+    for (const id of ["nasdaq", "russell", "baskets"]) {
+      await act(async () => { host.querySelector<HTMLButtonElement>(`[data-universe="${id}"]`)?.click(); });
+      expect(host.textContent, `tab ${id}`).toContain(card);
+    }
   });
 });

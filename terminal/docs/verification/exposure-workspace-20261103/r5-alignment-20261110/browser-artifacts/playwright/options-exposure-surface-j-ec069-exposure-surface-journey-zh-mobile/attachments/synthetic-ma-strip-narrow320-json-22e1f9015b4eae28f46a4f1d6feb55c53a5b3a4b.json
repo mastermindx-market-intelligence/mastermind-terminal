@@ -1,0 +1,58 @@
+[
+  {
+    "label": "SMA 5 · D",
+    "text": "SMA 5 · D 100.3 10-19",
+    "date": "10-19",
+    "font": 11,
+    "dateFont": 11,
+    "clipped": false,
+    "left": 17,
+    "right": 146,
+    "top": 610.15625,
+    "bottom": 625,
+    "ownerLeft": 9,
+    "ownerRight": 311
+  },
+  {
+    "label": "SMA 55 · D",
+    "text": "SMA 55 · D 100.18 10-19",
+    "date": "10-19",
+    "font": 11,
+    "dateFont": 11,
+    "clipped": false,
+    "left": 17,
+    "right": 161,
+    "top": 630,
+    "bottom": 644.84375,
+    "ownerLeft": 9,
+    "ownerRight": 311
+  },
+  {
+    "label": "SMA 34 · 5m",
+    "text": "SMA 34 · 5m 99.68 10-19",
+    "date": "10-19",
+    "font": 11,
+    "dateFont": 11,
+    "clipped": false,
+    "left": 17,
+    "right": 164,
+    "top": 649.84375,
+    "bottom": 664.6875,
+    "ownerLeft": 9,
+    "ownerRight": 311
+  },
+  {
+    "label": "EMA 21 · D",
+    "text": "EMA 21 · D 100.36 10-19",
+    "date": "10-19",
+    "font": 11,
+    "dateFont": 11,
+    "clipped": false,
+    "left": 154,
+    "right": 297,
+    "top": 610.15625,
+    "bottom": 625,
+    "ownerLeft": 9,
+    "ownerRight": 311
+  }
+]

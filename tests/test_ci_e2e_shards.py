@@ -841,7 +841,11 @@ def serial_opt_in_specs() -> frozenset[str]:
     (and therefore the one production build) does not carry."""
     found: set[str] = set()
     for step in ci_workflow()["jobs"]["terminal-e2e"]["steps"]:
-        if "matrix.shard == 'serial'" in str(step.get("if", "")):
+        # A serial evidence capture uses the ordinary server environment.
+        # Only a step that actually supplies an opt-in feature flag changes
+        # whether a spec can run against the shared production build.
+        if ("matrix.shard == 'serial'" in str(step.get("if", ""))
+                and any(flag in step.get("env", {}) for flag in OPT_IN_ENV)):
             found.update(re.findall(r"\be2e/([A-Za-z0-9._-]+\.spec\.ts)\b", str(step.get("run", ""))))
     return frozenset(found)
 
@@ -1013,7 +1017,7 @@ def test_prod_shards_run_only_this_runs_build_through_the_prodbuild_config():
     assert len(runs) == 1
     assert runs[0].split() == (
         "npm run test:e2e:responsive -- -c playwright.prodbuild.config.ts "
-        "${{ matrix.projects }} ${{ matrix.specs }} --workers=1"
+        "${{ matrix.projects }} ${{ matrix.specs }} --workers=2"
     ).split()
     config = (ROOT / "terminal" / "playwright.prodbuild.config.ts").read_text(encoding="utf-8")
     assert "...baseConfig" in config
