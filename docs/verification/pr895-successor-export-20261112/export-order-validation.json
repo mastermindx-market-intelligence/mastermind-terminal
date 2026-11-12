@@ -1,0 +1,58 @@
+{
+  "schema": "pr895.export-order-validation.v1",
+  "gate": "terminal/scripts/ci/evidence-control-lock.test.cjs",
+  "beforeAnyPacketWrites": true,
+  "orderedSteps": [
+    "Check immutable evidence orchestration (synthetic)",
+    "Check committed capture-control locks",
+    "Prepare Chromium for original mock captures",
+    "Capture current-source recurring inbox evidence",
+    "Export PR895 EOD and browser successor proof",
+    "Enforce original committed capture-control result",
+    "Plan current-source evidence capture"
+  ],
+  "gateFixtures": [
+    {
+      "case": "matching",
+      "exit": 0
+    },
+    {
+      "case": "stale-json",
+      "exit": 1
+    },
+    {
+      "case": "stale-yml",
+      "exit": 1
+    },
+    {
+      "case": "no-holders",
+      "exit": 1
+    }
+  ],
+  "originalOutcomeEnforcement": [
+    {
+      "originalOutcome": "success",
+      "exit": 0
+    },
+    {
+      "originalOutcome": "failure",
+      "exit": 1
+    },
+    {
+      "originalOutcome": "skipped",
+      "exit": 1
+    },
+    {
+      "originalOutcome": "cancelled",
+      "exit": 1
+    },
+    {
+      "originalOutcome": "",
+      "exit": 1
+    }
+  ],
+  "inboxInvocations": 1,
+  "gateRestriction": "${{ github.event_name == 'pull_request' && github.event.pull_request.number == 895 && github.event.pull_request.head.repo.full_name == github.repository }}",
+  "syntheticPreflightStillBlocking": true,
+  "workflowSha256": "1e8bf90ac71b1d46dfbefa8c6aad601bea03b269c1d46b0c5d1e2d0b221585c7"
+}

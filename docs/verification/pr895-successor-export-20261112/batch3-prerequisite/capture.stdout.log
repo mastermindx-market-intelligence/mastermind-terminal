@@ -1,0 +1,24 @@
+[dev] ✓ Ready in 387ms
+capture OptionsFlowBoard-1440.png … ok
+capture FlowDesk-1440.png … ok
+capture AlertDetail-1440.png … ok
+capture HeatmapTreemap-1440.png … ok
+capture PineLibrary-1440.png … ok
+capture OptionsFlowBoard-1440-zh.png … ok
+capture FlowDesk-1440-zh.png … ok
+capture AlertDetail-1440-zh.png … ok
+capture HeatmapTreemap-1440-zh.png … ok
+capture PineLibrary-1440-zh.png … ok
+capture OptionsFlowBoard-390.png … ok
+capture FlowDesk-390.png … ok
+capture AlertDetail-390.png … ok
+capture HeatmapTreemap-390.png … ok
+capture PineLibrary-390.png … ok
+capture OptionsFlowBoard-390-zh.png … ok
+capture FlowDesk-390-zh.png … ok
+capture AlertDetail-390-zh.png … ok
+capture HeatmapTreemap-390-zh.png … ok
+capture PineLibrary-390-zh.png … ok
+{"legacyEvidence":{"captureId":"ci-43224805483-batch3","packet":"batch3","capturedAtHead":"37ad42be3a043570ddcb39236c3b8c6a9a21ff91","manifestSha256":"62d11855661e8fb6da39b2bc8292d084f4d9fec6db0a3d3758d03032b0cb1bff","files":[{"file":"OptionsFlowBoard-1440.png","sha256":"598ebc5397d93c35f9d2241de0dcb72fb852682e17bdd06df47044c166ac3c8a"},{"file":"FlowDesk-1440.png","sha256":"f965df0b6f8c8100ae0345464c232fddc05d719fffc463f3a2111b2324182646"},{"file":"AlertDetail-1440.png","sha256":"a8e473d6f0b16dda19902f1fc0c3ec6b6d4a300a64eef44af7a32d009f32e47b"},{"file":"HeatmapTreemap-1440.png","sha256":"1c57716cddecc09d439118b3e8d57efe3d220c3862dfcfc1bb2cffac4a4a1c53"},{"file":"PineLibrary-1440.png","sha256":"e71f0be19096b32424553ec66fdfecd1a34337084ee706fbc0d0ad3e67226194"},{"file":"OptionsFlowBoard-1440-zh.png","sha256":"e975de88a6b3bd994ee696804f491510a0a6c4c7be4d2baed0b26cee9c1c3ce1"},{"file":"FlowDesk-1440-zh.png","sha256":"c805762b7bd362844e9e6da099dd1bc4ae012cb00082f44b36fe7e1ea1289acc"},{"file":"AlertDetail-1440-zh.png","sha256":"a6c7553e55b91d0684a6d816ed4f27ea9f9507caed7104c626ae86c7281000aa"},{"file":"HeatmapTreemap-1440-zh.png","sha256":"6feec962c43168fdc57cc9eb0b13ad8afc36ef1ce2003bb6ec534889479ba368"},{"file":"PineLibrary-1440-zh.png","sha256":"7bbb47e297ead1eebfd143c09351d08ac37653df8be5ed5391dc91ff49bc804c"},{"file":"OptionsFlowBoard-390.png","sha256":"b5e536915e2da9de1a610593ffdab8c0a23260014c392c5616e955ece18e47c7"},{"file":"FlowDesk-390.png","sha256":"9e39c6b1c455462280042127f607b6a6ebc1246586aa1c22a86c3d9ca10c6a58"},{"file":"AlertDetail-390.png","sha256":"4161611802f9cf203a6e63d5d93e5f73c4bc56774e839fe9ae356b3f185a3331"},{"file":"HeatmapTreemap-390.png","sha256":"2382c75d85ac35eb910b7461741529d716ec7e89515da9ffa269bb35831a5e43"},{"file":"PineLibrary-390.png","sha256":"9389eeae16e194b5904905c12b01fb8403ef0352843b2b2a72daeeec6d9e1d20"},{"file":"OptionsFlowBoard-390-zh.png","sha256":"e70f68cdc921a8ee8a299fd612c7bfdac78de2a421ed0c3359d454635e5e14c2"},{"file":"FlowDesk-390-zh.png","sha256":"357d0356f609cdd7e481922e577ff488fde392358f769e192708be515f9939fe"},{"file":"AlertDetail-390-zh.png","sha256":"a07bb5ad8ab6365b797d4fd2c343e5722eeafab8f85da6179c1ecee3db71b6ee"},{"file":"HeatmapTreemap-390-zh.png","sha256":"156e3203917a45a85cf8235a48f10def856dd71aa569874873d21d19eb097ffd"},{"file":"PineLibrary-390-zh.png","sha256":"32bd1e9b06b2a60e222f5154896e3709719087e32cd9f9e35f6303afe6fd5aa3"}]}}
+capturedAtHead 37ad42be3a043570ddcb39236c3b8c6a9a21ff91
+wrote 20 crops + EVIDENCE.yml to /home/runner/work/mastermind-terminal/mastermind-terminal/terminal/docs/pr-crops/b-pl-6-batch-3
