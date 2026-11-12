@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-11-12T03:32:06.429581+00:00",
+  "command": [
+    "npm",
+    "test",
+    "--",
+    "lib/__tests__/tickerNewsEvidence.test.ts"
+  ],
+  "manifestSha256": "dd854a60201b7d81b9c40be3fd3c6f7535f163baf9da9494de3812714e5d43d7",
+  "exitCode": 0,
+  "seconds": 1.587,
+  "finishedAt": "2026-11-12T03:32:08.016773+00:00",
+  "logSha256": "55bfe75d46f6d7cb93852b3f83d4096a5aba10ebb429cf6776503c761ce4d8fe"
+}
