@@ -43,6 +43,7 @@ vi.mock("@/components/heatmap/Treemap", () => ({
 import { HeatmapView } from "@/components/heatmap/HeatmapView";
 import { flowInvalidate } from "@/lib/flowClientCache";
 import { invalidate } from "@/lib/dataCache";
+import * as dataCache from "@/lib/dataCache";
 import { _resetForTests as resetIdb, idbGet, idbPut } from "@/lib/idbJsonStore";
 
 const NO_DATA = "No data available";
@@ -316,5 +317,38 @@ describe("Heatmap: flow tiles painted from the persisted flow index", () => {
     expect(requested(FLOW_STATIC)).toBe(1);
     expect(flowTiles()).toEqual(["AAPL", "MSFT", "NVDA"]);
     expect(flowStaleLabel()).toBeNull();
+  });
+});
+
+describe("Heatmap correction before the initial adapter answer", () => {
+  it.each(["manifest", "flow"] as const)("keeps the corrected %s tiles when the older initial value lands last", async (kind) => {
+    const target = kind === "manifest" ? STATIC : FLOW_STATIC;
+    const cached = kind === "manifest" ? PERSISTED : PERSISTED_FLOW;
+    const corrected = JSON.parse((kind === "manifest" ? CURRENT : CURRENT_FLOW).body);
+    replies[PRIMARY] = kind === "manifest" ? UNAVAILABLE : CURRENT;
+    replies[FLOW_PRIMARY] = UNAVAILABLE;
+    let correction: ((value: unknown) => void) | undefined;
+    let release!: (value: dataCache.CacheOutcome) => void;
+    const initial = new Promise<dataCache.CacheOutcome>((resolve) => { release = resolve; });
+    const nativeRead = dataCache.getJSONResult;
+    // Control only the cache-to-adapter handoff; both real validated adapters and the
+    // mounted Heatmap state remain in this test. The other tests above use the real IDB cache.
+    const boundary = vi.spyOn(dataCache, "getJSONResult").mockImplementation((url, opts) => {
+      if (url !== target) return nativeRead(url, opts);
+      correction = opts?.onRevalidate;
+      return initial;
+    });
+    await mount();
+    if (kind === "flow") await showFlowLayer();
+    expect(correction).toBeTypeOf("function");
+    expect(boundary.mock.calls.filter(([url]) => url === target)).toHaveLength(1);
+    await act(async () => { correction!(corrected); });
+    expect(kind === "manifest" ? tiles() : flowTiles())
+      .toEqual(kind === "manifest" ? ["AAPL", "MSFT", "NVDA", "AMD"] : ["AAPL", "MSFT", "NVDA"]);
+    await act(async () => { release({ status: "data", data: cached,
+      stale: { ageMs: SIX_HOURS, source: "disk", revalidation: Promise.resolve("ok") } }); });
+    expect(kind === "manifest" ? tiles() : flowTiles())
+      .toEqual(kind === "manifest" ? ["AAPL", "MSFT", "NVDA", "AMD"] : ["AAPL", "MSFT", "NVDA"]);
+    expect(kind === "manifest" ? staleLabel() : flowStaleLabel()).toBeNull();
   });
 });

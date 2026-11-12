@@ -1,0 +1,19 @@
+{
+  "state": "LIST_PREPARATION_FAILED_NO_BROWSER_STARTED",
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/chart-clock-isolation.spec.ts",
+    "e2e/marker-tooltip.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--grep",
+    "^(?:chart clock keeps ticking|tapping a marker opens|a pane relayout|a tap still opens|a touch press that travels)",
+    "--list",
+    "--reporter=json"
+  ],
+  "exit": 1,
+  "observedAt": "2026-11-09T19:05:48.411359+00:00"
+}

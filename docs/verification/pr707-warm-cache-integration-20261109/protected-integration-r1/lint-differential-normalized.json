@@ -1,0 +1,128 @@
+{
+  "source_receipt_sha256": "d3815a6f190cdeaf0b4a5adddaed2b1cfeeae1b5a12370abbebfb6ce56f0b516",
+  "normalization": "Only absolute diagnostic line/column positions and source-excerpt line-number gutters are normalized; diagnostic text, actual excerpt code, path, rule, severity and multiplicity remain exact.",
+  "rows": [
+    {
+      "path": "terminal/components/AlertsView.tsx",
+      "baseline_count": 7,
+      "current_count": 7,
+      "new": []
+    },
+    {
+      "path": "terminal/components/ChartFrameBar.tsx",
+      "baseline_count": 6,
+      "current_count": 6,
+      "new": []
+    },
+    {
+      "path": "terminal/components/PortfolioView.tsx",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/components/ScreenerView.tsx",
+      "baseline_count": 9,
+      "current_count": 9,
+      "new": []
+    },
+    {
+      "path": "terminal/components/SymbolPicker.tsx",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/components/TerminalShell.tsx",
+      "baseline_count": 67,
+      "current_count": 67,
+      "new": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 4144) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook.",
+          "line": 4117,
+          "column": 9,
+          "nodeType": "VariableDeclarator",
+          "endLine": 4117,
+          "endColumn": 77
+        }
+      ]
+    },
+    {
+      "path": "terminal/components/heatmap/HeatmapView.tsx",
+      "baseline_count": 3,
+      "current_count": 3,
+      "new": []
+    },
+    {
+      "path": "terminal/e2e/chart-clock-isolation.spec.ts",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/e2e/marker-tooltip.spec.ts",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/e2e/warm-symbol-picker.spec.ts",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/lib/__tests__/chartClockIsolation.test.tsx",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/lib/__tests__/dataCacheWarmRefresh.test.ts",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/lib/__tests__/heatmapPersistedRefreshFailure.test.tsx",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/lib/__tests__/screenerPresetPersistence.test.tsx",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/lib/__tests__/symbolPickerRecovery.test.tsx",
+      "baseline_count": 4,
+      "current_count": 4,
+      "new": []
+    },
+    {
+      "path": "terminal/lib/__tests__/watchlistEventPlanner.test.ts",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    },
+    {
+      "path": "terminal/lib/dataCache.ts",
+      "baseline_count": 10,
+      "current_count": 10,
+      "new": []
+    },
+    {
+      "path": "terminal/lib/watchlistEventPlanner.ts",
+      "baseline_count": 0,
+      "current_count": 0,
+      "new": []
+    }
+  ],
+  "new_count": 1,
+  "baseline_count": 106,
+  "current_count": 106
+}

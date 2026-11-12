@@ -15,7 +15,7 @@
 const { execFileSync } = require("node:child_process");
 const assert = require("node:assert/strict");
 const { tmpdir } = require("node:os");
-const { startLegacyServer, settleLegacyServer, waitLegacyServer } = require("./capture_ci_evidence.cjs");
+const { startLegacyServer, settleLegacyServer, waitLegacyServer, reportLegacyServer } = require("./capture_ci_evidence.cjs");
 const { createHash } = require("node:crypto");
 const { mkdirSync, mkdtempSync, copyFileSync, readFileSync, writeFileSync } = require("node:fs");
 const { join, basename } = require("node:path");
@@ -381,6 +381,7 @@ async function main() {
   const files = [];
   let failed = 0;
   try {
+    await reportLegacyServer(child, "started");
     await waitForServer(180_000, child);
     const browser = await chromium.launch({ headless: true });
     try {

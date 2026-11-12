@@ -1,3 +1,15 @@
+# Current proof is the warm-cache successor; actual worktree capture identities remain immutable.
+exposureWarmCacheSuccessor20261111:
+  revision: "warm-cache-integration-20261111"
+  selectedFamily: "eod"
+  descriptorSha256: "e4c73e9d6e36e94e7b117d912b9cec9d559bf11b08216163e0d86f067883fd3a"
+  eodDescriptorSha256: "eff4608e93f91459040c703419206ab4507e2af0b4e4525f3b4400da39eb696b"
+  gexDescriptorSha256: "5ea7f88044ead844cb93cde0bf986b75b8b89cf6ef8002a7cf5792344144f37e"
+  nativeCapturedAtHead: "181e06a944bf892f7cb064a3aeab96ac827bc5ca"
+  publishedBasis: "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2"
+  browserQualificationSha256: "b81d5a8a7258792f0a8f439a99a7e15c7573353e6c73fd082228d60c37179b46"
+  expiryQualificationSha256: "2ffe50b1d70d83e78271432668eaaaa4c5be3d7ab9020c0831450eb8f055f11c"
+
 # Current browser proof is the hosted R5 successor; native capture identities are retained.
 exposureR5Browser20261111:
   revision: "r5-alignment-20261110"

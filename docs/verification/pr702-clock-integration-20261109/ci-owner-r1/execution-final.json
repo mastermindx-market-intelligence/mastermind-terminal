@@ -1,0 +1,55 @@
+{
+  "branchHead": "c31fe105d4a101531def3518e7b9801e70cc4867",
+  "capturedChildren": [
+    "pl6",
+    "vi"
+  ],
+  "capturesRepeated": false,
+  "command": [
+    "node",
+    "e2e/tools/capture_ci_evidence.cjs"
+  ],
+  "completedAt": "2026-11-09T19:24:07.349734+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109191702-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "04a223909d992c00977ab97dcb3da732e9699b89eea5220dd807f135847ca359"
+  },
+  "executionEnvironment": "owned local validation; not a GitHub Actions run",
+  "exit": 0,
+  "indexTreeAtStart": "2165eb8551a73e52aa21696cac372d576fe549b9",
+  "integratedDependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr702-clock-integration-20261109/ci-owner-r1/selected-owner-vi-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T19:24:06.308948+00:00",
+    "sha256": "b8ab8c3a9738f4491a8f1ea5e62e64db105ef8475dcf68fd8f734a9aa5da754f"
+  },
+  "localDiagnosticAttempt": "1",
+  "localDiagnosticRunId": "20261109191702",
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nextLockAbsent": true,
+  "optionsAxisCaptureRequired": false,
+  "originalPostCaptureFailure": {
+    "path": "docs/verification/pr702-clock-integration-20261109/ci-owner-r1/execution.json",
+    "reason": "The native owner selected valid output; the local wrapper found the returned VI server stale Next lock.",
+    "sha256": "331d1894f380a8a48874f6c9fb79c4ee47864093933fcdf86fea0aa8b614dc14"
+  },
+  "ownedPortsClosed": true,
+  "ownerReceipt": "docs/verification/pr702-clock-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109191702-1.json",
+  "ownerReceiptSha256": "193ba8a132c4673173e3a57d4bcb9b7486cde421e74c9969070c08090aa7ee7b",
+  "ownerSharedDeadlineMinutes": 54,
+  "ownerState": "SELECTED",
+  "processGroupAbsenceInferredFromPort": false,
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "schema": "terminal_pr702_complete_ci_owner_validation.v1",
+  "seconds": 380.8,
+  "sourceAfterSha256": "991eb6edb84cb4590f48865eb0c1e58b645c2d71ae930c9b97434bb8bb3192fd",
+  "sourceBeforeSha256": "991eb6edb84cb4590f48865eb0c1e58b645c2d71ae930c9b97434bb8bb3192fd",
+  "sourceEntries": 1939,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T19:16:17.330655+00:00",
+  "state": "FULL_OWNER_PATH_QUALIFIED_WITHIN_EXISTING_WORKFLOW_BUDGET",
+  "workflowBlob": "637c518ecf481d9af5224c21e93db83b00593cea",
+  "workflowCaptureMinutes": 55
+}

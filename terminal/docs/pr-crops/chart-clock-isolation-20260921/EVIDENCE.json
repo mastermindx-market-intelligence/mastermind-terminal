@@ -1,0 +1,59 @@
+{
+  "actualGit": {
+    "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  },
+  "browserProof": {
+    "path": "docs/verification/pr707-warm-cache-integration-20261109/integration-journeys-r1/clock/execution.json",
+    "sha256": "08cc9be32e07588d838b7745abbd781b2eba19b8704ff6ae14787141a24b3e93"
+  },
+  "capturedAt": "2026-11-12T01:17:50.861941+00:00",
+  "cropSha256": {
+    "desktop.png": "2f6e9cd4e915056475f8ce354cd2584bb48d2e790c1515bf543fb51343529439",
+    "mobile.png": "e65cc2d5f31b73ab3a1f9c499895cf0560c5c4e9d9a1ae3271b466805d31f2e2",
+    "tablet.png": "47bf51cc50006df8a965bf2507780ccf0312b91c41e6a2871e31dd243c7d8c49"
+  },
+  "fixture": true,
+  "operation": "terminal-pr707-protected-integration-journeys-20261112",
+  "packet": "chart-clock-isolation-20260921",
+  "priorPacket": {
+    "files": {
+      "EVIDENCE.json": {
+        "bytes": 1219,
+        "sha256": "4fb61b3fd416d920d3244d6abd1ffa486bd4092e7343fb8e8c3fc744dd316c94"
+      },
+      "desktop.png": {
+        "bytes": 288255,
+        "sha256": "0bcca0904d0dd0220ccb75431ded2ed3fa4e46c25e2e54888f1950de6e5584f0"
+      },
+      "mobile.png": {
+        "bytes": 108770,
+        "sha256": "85c3bb40841880f9269d014da1222cad489353aa6a7d5a7d14d48e2a42711e50"
+      },
+      "tablet.png": {
+        "bytes": 192456,
+        "sha256": "352596ce48df7644278761478528500b35395c577e4ab7b070690126f798c849"
+      }
+    },
+    "path": "docs/verification/pr707-warm-cache-integration-20261109/integration-journeys-r1/prior-clock-packet"
+  },
+  "productionProof": false,
+  "results": {
+    "allAffectedJourneysPassed": 16,
+    "failed": 0,
+    "flaky": 0,
+    "retries": 0,
+    "scope": "clock",
+    "skipped": 0,
+    "stagePassed": 3
+  },
+  "schema": "terminal_pr707_current_journey_evidence.v1",
+  "sourceIdentity": "stable-composed-working-tree",
+  "sourceSnapshot": {
+    "files": 3787,
+    "path": "docs/verification/pr707-warm-cache-integration-20261109/integration-journeys-r1/source-before.json",
+    "sha256": "aa5d6ddf96e3684cc224017191fe66eb11300e85a800a8c7ef52b08fed68028d"
+  }
+}

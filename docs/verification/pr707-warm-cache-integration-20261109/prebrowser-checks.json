@@ -1,0 +1,71 @@
+[
+  {
+    "name": "reader-syntax",
+    "exit": 0,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "--check",
+      "e2e/tools/optionsExposureEvidence.cjs"
+    ],
+    "log": "reader-syntax-r2.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "native-prerequisites",
+    "exit": 0,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "-e",
+      "const e=require(\"./e2e/tools/optionsExposureEvidence.cjs\"),p=require(\"node:path\");const repo=p.resolve(process.cwd(),\"..\");const proof=e.verifyExpiryIntegrationNativePrerequisites(repo);if(proof.state!==\"NATIVE_ONLY_VALIDATED\"||proof.currentBrowserQualified!==false)throw Error(\"PREBROWSER_SCOPE\");for(const kind of [\"eod\",\"gex\"]){const crops=require(\"./e2e/tools/capture_\"+(kind===\"eod\"?\"eod_heatmap_flowdesk\":\"gex_levels_heatmap\")+\"_load_failure.cjs\").expectedFiles();let error;try{e.qualifiedOptionsExposurePacket(repo,kind,crops)}catch(caught){error=caught}if(!error||error.code!==\"ENOENT\")throw Error(\"BROWSER_NOT_CLOSED:\"+kind+\":\"+String(error));}console.log(JSON.stringify(proof));"
+    ],
+    "log": "native-prerequisites-r2.log",
+    "sha256": "75a2f4905750c0a886ad5a24cc8af48bd0cfa180c7d6eebf6a14fefbf29bd9b8"
+  },
+  {
+    "name": "typescript",
+    "exit": 0,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit"
+    ],
+    "log": "typescript-r2.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "reader-lint",
+    "exit": 0,
+    "qualification": "native-reader-adoption/commonjs-lint-qualification.json",
+    "qualification_sha256": "bfaf7706e71dcc0ec304e15aadda263b2467be52b32b1df7e5008763bbc2325e",
+    "commands": [
+      {
+        "name": "reader-lint-commonjs",
+        "exit": 0,
+        "command": [
+          "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+          "node_modules/eslint/bin/eslint.js",
+          "--rule",
+          "{\"@typescript-eslint/no-require-imports\":\"off\"}",
+          "e2e/tools/optionsExposureEvidence.cjs",
+          "--format=json"
+        ],
+        "diagnostics": 0,
+        "raw_sha256": "eaf88509851485266ad9260bcfd9505b4a7f0696ec4465ae8ea1272b988656e6"
+      },
+      {
+        "name": "types-lint-default",
+        "exit": 0,
+        "command": [
+          "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+          "node_modules/eslint/bin/eslint.js",
+          "e2e/tools/optionsExposureEvidence.d.cts",
+          "--format=json"
+        ],
+        "diagnostics": 0,
+        "raw_sha256": "ea986f6f471d3cff1a56b6b76499a870a2b4238fa182d5bf706796e45845377d"
+      }
+    ],
+    "default_commonjs_run_exit": 1,
+    "default_commonjs_diagnostics": 8
+  }
+]

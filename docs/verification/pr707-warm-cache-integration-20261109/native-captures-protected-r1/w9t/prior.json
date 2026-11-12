@@ -1,0 +1,81 @@
+{
+  "packet": "terminal/docs/pr-crops/w9t-f08-13-targets-readout",
+  "files": {
+    "EVIDENCE.yml": {
+      "sha256": "0e77dbd4df55595ab455aaf688846d62522e8fc6a521e879e7c256897117d610",
+      "size": 3672
+    },
+    "history/before-integration-696f3c50/EVIDENCE.yml": {
+      "sha256": "f39c67cc556d5a5e56ac784fa0b1f0eeeaae53c6904ed62d4fc4188faf882a6b",
+      "size": 1631
+    },
+    "history/before-integration-696f3c50/PortfolioTargetsSettings-empty-1440-en.png": {
+      "sha256": "8c1b0450e096067e720e2afd5eee37c135f2857e847d0e2be5c5344acc9883c0",
+      "size": 265079
+    },
+    "history/before-integration-696f3c50/PortfolioTargetsSettings-empty-1440-zh.png": {
+      "sha256": "f0425a21f09bf5dac761a2c5782879a55cd54f24eb3e9a16eac80897de17646d",
+      "size": 268518
+    },
+    "history/before-integration-696f3c50/PortfolioTargetsSettings-empty-390-en.png": {
+      "sha256": "e2849b21854f3b4ab5486815ce9e830ca0a518908e3616c1d660e5200c3e3006",
+      "size": 185144
+    },
+    "history/before-integration-696f3c50/PortfolioTargetsSettings-empty-390-zh.png": {
+      "sha256": "b04564ce65bebd3727a9c8273c438be072653a0d6a474ef23e7b9d3b1a47726e",
+      "size": 182498
+    },
+    "history/before-integration-696f3c50/PortfolioTargetsSettings-populated-1440-en.png": {
+      "sha256": "1ff5816e0519e57002ae14801959b5561132ac85dbcc8676fc55c0deed159399",
+      "size": 291455
+    },
+    "history/before-integration-696f3c50/PortfolioTargetsSettings-populated-1440-zh.png": {
+      "sha256": "c36d9fead76a1eb1b37536be434923dc794a71cda205d9d48617d479b6b029ab",
+      "size": 318397
+    },
+    "history/before-integration-696f3c50/PortfolioTargetsSettings-populated-390-en.png": {
+      "sha256": "188ce46d80352af62a05bb8af647537371513b8654cf2d612a68e130ceb9ee83",
+      "size": 228732
+    },
+    "history/before-integration-696f3c50/PortfolioTargetsSettings-populated-390-zh.png": {
+      "sha256": "63d9ec323ccdfa2fc65f5222ebc35c9f66a42ed5410c159eb0d956c8c5c15e1c",
+      "size": 234998
+    },
+    "NATIVE_READBACKS.json": {
+      "sha256": "865a10ebc6f03f8a902bef718d8e97ee23e088cb8b596821054808cf0a872737",
+      "size": 8044
+    },
+    "PortfolioTargetsSettings-empty-1440-en.png": {
+      "sha256": "0d10e629c046238ed3db2e53e834ae86d817e41ac6083e2eb75d2f3c27dc35bb",
+      "size": 237171
+    },
+    "PortfolioTargetsSettings-empty-1440-zh.png": {
+      "sha256": "a5a62f4a69d533e49517bca56d7d9feaa447cf0d69d41e812b08a1e94628429c",
+      "size": 238801
+    },
+    "PortfolioTargetsSettings-empty-390-en.png": {
+      "sha256": "0f3d15f28df8e3af6d8eac6198cd8464ec01ea162631efc0953558f3f32b2f8e",
+      "size": 144793
+    },
+    "PortfolioTargetsSettings-empty-390-zh.png": {
+      "sha256": "d771df38d5c57cf738039754439badd7a406bbd62adbab18af23bf52b0bca45e",
+      "size": 144635
+    },
+    "PortfolioTargetsSettings-populated-1440-en.png": {
+      "sha256": "b16675ffc282fd346bc5b2729bb283941878b74fb424eba4510ec33de90525fa",
+      "size": 255177
+    },
+    "PortfolioTargetsSettings-populated-1440-zh.png": {
+      "sha256": "aa0e070feb5c08bd96c232f0e260b75a87b7e0b941c6c19e31bcb656b4a854bb",
+      "size": 261435
+    },
+    "PortfolioTargetsSettings-populated-390-en.png": {
+      "sha256": "9a7391b97773e832b9db2a94c1961447b85486bbcd2fbfc68d399a44f0eea8cc",
+      "size": 154516
+    },
+    "PortfolioTargetsSettings-populated-390-zh.png": {
+      "sha256": "bbc144f3b9266050b003e1e36c351b38df476c782614613c7e4e57d4d0819f39",
+      "size": 162040
+    }
+  }
+}

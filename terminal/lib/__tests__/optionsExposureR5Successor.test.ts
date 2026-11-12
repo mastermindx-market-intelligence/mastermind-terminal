@@ -17,6 +17,15 @@ const families = {
     descriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453" },
 } as const;
 type Family = keyof typeof families;
+const currentCapture = "terminal/docs/verification/exposure-workspace-20261103/warm-cache-integration-20261111";
+const currentRevision = "warm-cache-integration-20261111";
+const currentNativePins = {
+  eod: "eff4608e93f91459040c703419206ab4507e2af0b4e4525f3b4400da39eb696b",
+  gex: "5ea7f88044ead844cb93cde0bf986b75b8b89cf6ef8002a7cf5792344144f37e",
+};
+const currentNativePath = (kind: Family) =>
+  "terminal/docs/pr-crops/" + families[kind].packet + "/operations/exposure-source-compatibility-20261105/revisions/" + currentRevision;
+
 const rootPath = (kind: Family) => `terminal/docs/pr-crops/${families[kind].packet}/EVIDENCE.yml`;
 const crops = (kind: Family): string[] => Object.keys(JSON.parse(readFileSync(join(repo,
   `terminal/docs/pr-crops/${families[kind].packet}/operations/exposure-source-compatibility-20261105/revisions/${families[kind].revision}/capture-execution.json`), "utf8")).images);
@@ -44,11 +53,11 @@ function shadow(overrides: Record<string, string | Buffer | null>): string {
   return root;
 }
 
-describe("hosted R5 browser successor", () => {
-  it.each(["eod", "gex"] as const)("accepts the complete actual packet and retains the %s native identity", kind => {
+describe("current warm-cache successor and retained hosted R5 proof", () => {
+  it.each(["eod", "gex"] as const)("accepts the complete current packet and preserves its actual %s capture identity", kind => {
     const selected = qualifiedOptionsExposurePacket(repo, kind, crops(kind));
-    expect(selected.captureRevision).toBe(families[kind].revision);
-    expect(selected.descriptorSha256).toBe(families[kind].descriptorSha256);
+    expect(selected.captureRevision).toBe(currentRevision);
+    expect(selected.descriptorSha256).toBe(currentNativePins[kind]);
     expect(Object.keys(selected.sources)).toHaveLength(kind === "eod" ? 32 : 29);
   }, 30_000);
 
@@ -58,8 +67,8 @@ describe("hosted R5 browser successor", () => {
     const native = verifyExpiryIntegrationNativePrerequisites(root);
     expect(native).toEqual({
       state: "NATIVE_ONLY_VALIDATED", currentBrowserQualified: false,
-      gex: { revision: families.gex.revision, descriptorSha256: families.gex.descriptorSha256 },
-      eod: { revision: families.eod.revision, descriptorSha256: families.eod.descriptorSha256 },
+      gex: { revision: currentRevision, descriptorSha256: currentNativePins.gex },
+      eod: { revision: currentRevision, descriptorSha256: currentNativePins.eod },
     });
     expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow("NO_QUALIFIED_CAPTURE");
   }, 30_000);
@@ -86,7 +95,7 @@ describe("hosted R5 browser successor", () => {
 
   it("does not accept a predecessor declaration as the current root", () => {
     const root = shadow({ [rootPath("gex")]: readFileSync(join(repo, capture, "prior-roots/gex.EVIDENCE.yml")) });
-    expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow("R5_CURRENT_ROOT:gex");
+    expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow("WARM_CURRENT_ROOT:gex");
   });
 
   it("rejects corruption of the archived logical predecessor root", () => {
@@ -114,5 +123,47 @@ describe("hosted R5 browser successor", () => {
   ])("rejects changed captured bytes without rewriting their digest: %s", path => {
     const root = shadow({ [path]: readFileSync(join(repo, path), "utf8") + "\n" });
     expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow("R5_RAW_EXPORT_BYTES:");
+  }, 30_000);
+});
+
+
+describe("warm-cache proof applicability boundaries", () => {
+  it("keeps public R5 native preflight strict when no Warm history exists", () => {
+    const path = "terminal/components/eodcontext/DarkPoolMini.tsx";
+    const root = shadow({
+      [currentCapture]: null,
+      [currentNativePath("eod")]: null,
+      [currentNativePath("gex")]: null,
+      [rootPath("eod")]: readFileSync(join(repo, currentCapture, "prior-roots/eod.EVIDENCE.yml")),
+      [rootPath("gex")]: readFileSync(join(repo, currentCapture, "prior-roots/gex.EVIDENCE.yml")),
+      [path]: readFileSync(join(repo, path), "utf8") + "\n// isolated current native drift\n",
+    });
+    expect(() => verifyExpiryIntegrationNativePrerequisites(root)).toThrow(/NO_QUALIFIED_CAPTURE|INTEGRATION_CURRENT_PRODUCER/);
+  }, 30_000);
+
+  it.each([
+    ["gex", "terminal/components/eodcontext/DarkPoolMini.tsx"],
+    ["eod", "terminal/components/gexdesk/StrikeLadder.tsx"],
+  ] as const)("rejects fresh peer-family drift through the %s owner", (selected, path) => {
+    const root = shadow({ [path]: readFileSync(join(repo, path), "utf8") + "\n// isolated peer drift\n" });
+    expect(() => qualifiedOptionsExposurePacket(root, selected, crops(selected))).toThrow("NO_QUALIFIED_CAPTURE");
+  }, 30_000);
+
+  it("cannot fall back when a fresh native descriptor is missing", () => {
+    const root = shadow({ [currentNativePath("gex") + "/native-packet.json"]: null });
+    expect(() => qualifiedOptionsExposurePacket(root, "eod", crops("eod"))).toThrow(/ENOENT/);
+    expect(() => optionalQualifiedOptionsExposurePacket(root, "eod", crops("eod"))).toThrow(/ENOENT/);
+    expect(() => verifyExpiryIntegrationNativePrerequisites(root)).toThrow(/ENOENT/);
+  });
+
+  it("does not promote native-only proof when the new browser descriptor is absent", () => {
+    const root = shadow({ [currentCapture + "/browser-successor.json"]: null });
+    expect(verifyExpiryIntegrationNativePrerequisites(root)).toEqual({
+      state: "NATIVE_ONLY_VALIDATED", currentBrowserQualified: false,
+      gex: { revision: currentRevision, descriptorSha256: currentNativePins.gex },
+      eod: { revision: currentRevision, descriptorSha256: currentNativePins.eod },
+    });
+    expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow(/ENOENT/);
+    expect(() => optionalQualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow(/ENOENT/);
   }, 30_000);
 });

@@ -1,0 +1,8 @@
+{
+  "recordedAt": "2026-11-12T03:32:06.424923+00:00",
+  "beforeSha256": "a6f02ca7db2f067325ea917f8b987c116913f448fcff87d65a82e7707e3e6e67",
+  "afterSha256": "dd854a60201b7d81b9c40be3fd3c6f7535f163baf9da9494de3812714e5d43d7",
+  "reason": "PyYAML default emitted valid indentless sequences, while the existing strict reader requires the established two-space sequence format. Restore that original format without changing parsed values, captures, hashes, identity, or reader.",
+  "yamlSemanticsUnchanged": true,
+  "originalThreeReaderResult": "10 passed,2 ticker format failures; both F08 suites passed4each"
+}

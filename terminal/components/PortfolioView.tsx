@@ -538,8 +538,9 @@ export default function PortfolioView(
   // dash and is NAMED in the coverage line, never guessed. Polling pauses on a hidden tab.
   useEffect(() => {
     let alive = true;
-    getJSON("/data/manifest.json", { onRevalidate: (m) => { if (alive && m) setMan(m.symbols || {}); } })
-      .then((m) => { if (alive && m) setMan(m.symbols || {}); })
+    let corrected = false;
+    getJSON("/data/manifest.json", { onRevalidate: (m) => { if (alive && m) { setMan(m.symbols || {}); corrected = true; } } })
+      .then((m) => { if (alive && !corrected && m) setMan(m.symbols || {}); })
       .catch(() => {});
     return () => { alive = false; };
   }, []);

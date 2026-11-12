@@ -1,0 +1,49 @@
+{
+  "schema": "terminal_pr645_native_supervision.v1",
+  "kind": "gex",
+  "captureId": "terminal-pr707-gex-warm-cache-integration-20261111-r1",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  ],
+  "port": 3564,
+  "events": [
+    {
+      "observedAt": "2026-11-12T00:24:38.029Z",
+      "pid": 92276
+    },
+    {
+      "observedAt": "2026-11-12T00:24:38.071Z",
+      "serverPid": 92285,
+      "serverReportedStopped": false,
+      "serverRefused": null
+    },
+    {
+      "observedAt": "2026-11-12T00:28:05.305Z",
+      "serverPid": 92285,
+      "serverReportedStopped": true,
+      "serverRefused": null
+    },
+    {
+      "observedAt": "2026-11-12T00:28:05.361Z",
+      "serverPid": 92285,
+      "serverReportedStopped": true,
+      "serverRefused": null,
+      "serverSettled": true
+    }
+  ],
+  "state": "CLOSED",
+  "result": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "closed": true,
+    "pid": 92276,
+    "serverPid": 92285,
+    "serverReportedStopped": true,
+    "serverRefused": null,
+    "serverSettled": true,
+    "errorCode": null
+  }
+}

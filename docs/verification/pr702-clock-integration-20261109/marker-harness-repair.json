@@ -1,0 +1,16 @@
+{
+  "schema": "terminal_pr702_stalled_touch_harness_repair.v1",
+  "state": "IMPLEMENTED_PENDING_PHYSICAL_INPUT_PROOF",
+  "preparedAt": "2026-11-09T19:03:49.549951+00:00",
+  "before": "d54727143a5207a4535c823076f27955d9506bf93a639431a5b37fa60626faad",
+  "after": "e6c7ab74cc9884dc13d5992889476baeda2bda80322f46a3de3412b3138e06e9",
+  "archive": "docs/verification/pr702-clock-integration-20261109/prior-marker-harness/marker-tooltip.spec.ts",
+  "targetMeasurementAfterAllSetup": true,
+  "actualTrustedTouchWitness": true,
+  "hitTest": "existing hitTestMarkers with unchanged MARKER_TAP_SLACK",
+  "stall": "unchanged400ms window bubble",
+  "realGesture": "unchanged page.touchscreen.tap",
+  "noRetapOrForcedInput": true,
+  "originalTooltipAndDismissalAssertionsPreserved": true,
+  "otherMarkerCasesUnchanged": true
+}

@@ -353,12 +353,15 @@ export async function runEventReads(jobs: readonly EventReadJob[], options: Even
         options.onResult(job.symbol, { state: "unavailable" });
         continue;
       }
+      let corrected = false;
       const getOpts: GetOpts = options.force
         ? { ttl: 0, swr: false }
         : {
             onRevalidate: (fresh: unknown) => {
               if (!listIsCurrent()) return;
-              options.onResult(job.symbol, interpretFundPayload(job.symbol, fresh, job.profile, { nowMs: now(), seen: options.seen }));
+              const correctedRead = interpretFundPayload(job.symbol, fresh, job.profile, { nowMs: now(), seen: options.seen });
+              corrected = true;
+              options.onResult(job.symbol, correctedRead);
             },
           };
       let outcome: CacheOutcome;
@@ -368,6 +371,8 @@ export async function runEventReads(jobs: readonly EventReadJob[], options: Even
         outcome = { status: "unavailable", reason: "network" };
       }
       if (!options.isCurrent()) return;
+      // Interpreting the older initial value also changes seen/reschedule history.
+      if (corrected) continue;
       options.onResult(job.symbol, outcomeToRead(job.symbol, outcome, job.profile, { nowMs: now(), seen: options.seen }));
       if (outcome.status === "data" && outcome.stale) {
         // "ok" already delivered the corrected payload through onRevalidate (the cache calls it

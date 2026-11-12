@@ -1,0 +1,11 @@
+{
+  "schema": "terminal_pr707_lsof_absent_path_classification.v1",
+  "at": "2026-11-12T00:35:09.115222+00:00",
+  "cause": "New reader incorrectly required empty lsof stderr even though the separately observed path was absent; lsof4.91 reports ENOENT and usage for a nonexistent file.",
+  "change": "Restore the existing D06 native absent-path predicate. Retained-file browser checks still require empty stderr.",
+  "native_captures_repeated": false,
+  "native_receipts_modified": false,
+  "reader_before_sha256": "f9c3a3a877e920dd9455f1aa5d2f1a2e4196feccf2d3a97ca35c99877938782c",
+  "reader_after_sha256": "c5556ab71eb6f89158492929e7f7975f6bfa5e608a3a618b6c92abaeae2ba994",
+  "original_failure_log_sha256": "d46950ff556e848b20aaa4894c103acbb412e9f9578d9dac3e70134b27ca1b50"
+}

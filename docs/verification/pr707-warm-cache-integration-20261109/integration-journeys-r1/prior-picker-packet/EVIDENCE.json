@@ -1,0 +1,42 @@
+{
+  "semanticCommit": "028e51ab87d87d1987e6585b915efd609abbb855",
+  "base": "5fee4ab7517095c04a1fbab17c6b273826fd6446",
+  "capturedAt": "2026-09-22T03:06:23.112455+00:00",
+  "binding": "File digests bind the final harness and source; semanticCommit identifies unchanged production code.",
+  "fixture": true,
+  "productionProof": false,
+  "fileSha256": {
+    "terminal/lib/dataCache.ts": "ea67525f56d19d12f80b8f87b81a30342aff4bb389bec33048dcc6c422074e8c",
+    "terminal/lib/__tests__/dataCacheWarmRefresh.test.ts": "fe8dcc794a6a28d6efaaac790a1d1ddd33f89e0313b6a0c44fe09359f7e33a23",
+    "terminal/e2e/warm-symbol-picker.spec.ts": "9c9a802023d1bef47e94a03d4cb7a8dddde9c0bae300f118917432492ada952c"
+  },
+  "cropSha256": {
+    "corrected-after-refresh.png": "07a6710bb7d545c1b687053dfbb4b5a47f5690c523aeab9f6080ee0a60eecc5e",
+    "cached-while-refreshing.png": "0749e00d4e5b0afc579a75a4a51614adc7642119e09a244756f06d40cce43376"
+  },
+  "results": {
+    "cacheFocused": "78/78 passed",
+    "units": "379 files; 6094 passed; 4 todo",
+    "typescript": "PASS",
+    "testLint": "PASS",
+    "responsive": "24 passed; 12 intentional viewport skips; no failures",
+    "refreshRequests": "one initial response plus one shared refresh",
+    "browserMutation": "Not accepted: baseline experiment failed at navigation before the relevant assertion.",
+    "integrationRepair": {
+      "failedRun": 35678327447,
+      "failure": "initial chart-ready precondition with startup clock frozen; no cache assertion reached",
+      "changed": "freeze wall time only after genuine chart-ready and cached data",
+      "localBrowser": "2 passed, 0 failures, retries disabled",
+      "hosted": "pending new exact-head proof",
+      "productionCodeChanged": false
+    }
+  },
+  "commands": [
+    "npm test -- --maxWorkers=2 --minWorkers=2",
+    "npx tsc --noEmit",
+    "npx eslint lib/__tests__/dataCacheWarmRefresh.test.ts e2e/warm-symbol-picker.spec.ts --max-warnings=0",
+    "TERMINAL_E2E_PORT=3226 npm run test:e2e:responsive -- e2e/warm-symbol-picker.spec.ts e2e/chart-settings-ux.spec.ts e2e/chart-view-reset.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=1",
+    "TERMINAL_E2E_PORT=3226 npm run test:e2e:responsive -- e2e/warm-symbol-picker.spec.ts --project=desktop --workers=1 --retries=0 --repeat-each=2 --max-failures=1"
+  ],
+  "integrationHeadBeforeRepair": "d26da0838650b11a47fe3cf613b0b560ace33530"
+}

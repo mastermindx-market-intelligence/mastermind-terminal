@@ -1,0 +1,35 @@
+{
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/chartClockIsolation.test.tsx",
+    "lib/__tests__/markerTooltip.test.ts",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/docs/verification/pr702-clock-integration-20261109/clock-and-marker-units-r2/report.json"
+  ],
+  "completedAt": "2026-11-09T19:02:34.266126+00:00",
+  "exit": 0,
+  "schema": "terminal_pr702_clock_and_marker_unit_validation.v1",
+  "seconds": 1.3,
+  "sourceAfter": {
+    "terminal/components/ChartFrameBar.tsx": "4d681edc2b6db4fceadffdf2a22b9e5e9f78114685842a34973e443ed72c0f0c",
+    "terminal/lib/__tests__/chartClockIsolation.test.tsx": "1d16aa6a4adaa7f6d528e244e37fd8ccead3aa101949396df67802d6722d1f3c",
+    "terminal/lib/__tests__/markerTooltip.test.ts": "5715000c1da904c59cc9483b8ed48d78b6c60a7f349b56b36803bdf9301d0854",
+    "terminal/lib/markerTooltip.ts": "c95cc0073aa5d157cc7febe77f2592db9b0aba51786ba19271ead8a0df67aad3"
+  },
+  "sourceBefore": {
+    "terminal/components/ChartFrameBar.tsx": "4d681edc2b6db4fceadffdf2a22b9e5e9f78114685842a34973e443ed72c0f0c",
+    "terminal/lib/__tests__/chartClockIsolation.test.tsx": "1d16aa6a4adaa7f6d528e244e37fd8ccead3aa101949396df67802d6722d1f3c",
+    "terminal/lib/__tests__/markerTooltip.test.ts": "5715000c1da904c59cc9483b8ed48d78b6c60a7f349b56b36803bdf9301d0854",
+    "terminal/lib/markerTooltip.ts": "c95cc0073aa5d157cc7febe77f2592db9b0aba51786ba19271ead8a0df67aad3"
+  },
+  "sourceStable": true,
+  "state": "QUALIFIED",
+  "stats": {
+    "numFailedTests": 0,
+    "numPassedTests": 35,
+    "numPendingTests": 0,
+    "numTotalTests": 35
+  }
+}

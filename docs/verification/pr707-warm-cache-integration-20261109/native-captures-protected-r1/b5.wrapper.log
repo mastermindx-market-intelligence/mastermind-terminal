@@ -1,0 +1,1 @@
+{"packet":"b5","state":"CAPTURED_CURRENT_COMPLETE_PENDING_NATIVE_READER","count":32,"child":{"status":0,"signal":null,"error":null,"timedOut":false,"closed":true,"pid":10629,"serverPid":10656,"serverReportedStopped":true,"serverRefused":null,"serverSettled":true},"callerServer":null,"manifestSha256":"2dd3cf2de6d4653c9c7ff0437a0b1040eaca9750f35357ddc67fb990f9054f71"}

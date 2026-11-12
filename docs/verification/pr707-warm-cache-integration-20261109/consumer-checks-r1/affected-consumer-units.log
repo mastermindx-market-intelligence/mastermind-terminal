@@ -1,0 +1,86 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal
+
+ ✓ lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts (6 tests) 22ms
+ ✓ lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts (7 tests) 45ms
+ ✓ lib/__tests__/optionsExposureBrowserReport.test.ts (11 tests) 31ms
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (11 tests) 256ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (12 tests) 326ms
+ ✓ lib/__tests__/optionsExposureEvidence.test.ts (54 tests) 21312ms
+   ✓ current Exposure capture result qualification > does not fall back when the retained declared predecessor descriptor is corrupt 614ms
+   ✓ the separately qualified r4 Chart branch > requires pinned actual browser proof even for the recognized framing successor 350ms
+   ✓ Chart proof across independently composed branches > validates the captured original chart with the already verified original observer 3358ms
+   ✓ Chart proof across independently composed branches > validates the captured preview chart with the already verified preview observer 3421ms
+   ✓ Chart proof across independently composed branches > validates the captured preview chart with the already verified original observer 2861ms
+   ✓ Chart proof across independently composed branches > validates the captured original chart with the already verified preview observer 2802ms
+   ✓ Chart proof across independently composed branches > still rejects an uncaptured observer for the original chart 2798ms
+   ✓ Chart proof across independently composed branches > still rejects an uncaptured observer for the preview chart 2561ms
+   ✓ Chart proof across independently composed branches > validates every bound proof file before accepting either captured observer 2505ms
+ ✓ lib/__tests__/optionsExposureR5Successor.test.ts (22 tests) 130737ms
+   ✓ current warm-cache successor and retained hosted R5 proof > accepts the complete current packet and preserves its actual eod capture identity 2239ms
+   ✓ current warm-cache successor and retained hosted R5 proof > accepts the complete current packet and preserves its actual gex capture identity 1937ms
+   ✓ current warm-cache successor and retained hosted R5 proof > keeps native preflight distinct from current browser acceptance 9877ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects current EOD drift in native preflight, including the nonselected family 5371ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects current GEX drift in native preflight, including the nonselected family 5418ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects current producer drift in native preflight, including the nonselected family 11087ms
+   ✓ current warm-cache successor and retained hosted R5 proof > does not fall back when the R5 descriptor is missing but its history directory remains 3429ms
+   ✓ current warm-cache successor and retained hosted R5 proof > does not return a legacy null when the declared current root is missing 7234ms
+   ✓ current warm-cache successor and retained hosted R5 proof > does not accept a predecessor declaration as the current root 9074ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects corruption of the archived logical predecessor root 2752ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects a missing hidden exporter member: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/.last-run.json 5446ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects a missing hidden exporter member: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/.last-run.json 4968ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects a missing hidden exporter member: docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-integration/.last-run.json 5194ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects a missing hidden exporter member: docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/.last-run.json 7963ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-execution.json 4422ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/lifecycle.json 4321ms
+   ✓ current warm-cache successor and retained hosted R5 proof > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-report.json 4495ms
+   ✓ warm-cache proof applicability boundaries > keeps public R5 native preflight strict when no Warm history exists 13652ms
+   ✓ warm-cache proof applicability boundaries > rejects fresh peer-family drift through the gex owner 4006ms
+   ✓ warm-cache proof applicability boundaries > rejects fresh peer-family drift through the eod owner 3113ms
+   ✓ warm-cache proof applicability boundaries > cannot fall back when a fresh native descriptor is missing 6892ms
+   ✓ warm-cache proof applicability boundaries > does not promote native-only proof when the new browser descriptor is absent 7845ms
+ ✓ lib/__tests__/optionsExposureEvidenceOwner.test.ts (60 tests) 198725ms
+   ✓ shadow evidence repositories > mirrors dangling entries while preserving source alias semantics 606ms
+   ✓ current EOD owner and native reader > selects the same qualified manifest and preserves its actual capture identity 3957ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx 6081ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx 5799ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/gexdesk/GexSummaryBar.tsx 5700ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/lib/dte.ts 12947ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/e2e/exposure-partial-totals.spec.ts 11113ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/public/data/gex_fixture.json 5183ms
+   ✓ current EOD owner and native reader > refuses a corrupted selected image through the actual owner 13122ms
+   ✓ current EOD owner and native reader > refuses a changed descriptor rather than recapturing over history 8060ms
+   ✓ current EOD owner and native reader > refuses a removed declaration even when the historical root remains a valid raw manifest 9200ms
+   ✓ paired Options integration proof > refuses a mixed current family declaration 8174ms
+   ✓ paired Options integration proof > refuses a complete-image receipt with an incomplete frame matrix 1317ms
+   ✓ paired Options integration proof > refuses a current receipt without settled native-server proof 1397ms
+   ✓ retained expiry history and current paired native evidence > selects the fresh GEX packet through the shared owner without relabeling EOD 2822ms
+   ✓ retained expiry history and current paired native evidence > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExpiryBars.tsx 5617ms
+   ✓ retained expiry history and current paired native evidence > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExposureExpiryDrawer.tsx 4704ms
+   ✓ retained expiry history and current paired native evidence > refuses retained EOD when expiry consumer proof drifts: terminal/lib/expiryTermStructure.ts 11889ms
+   ✓ retained expiry history and current paired native evidence > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/exposure-expiry-greeks.spec.ts 8680ms
+   ✓ retained expiry history and current paired native evidence > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/responsive.spec.ts 7302ms
+   ✓ retained expiry history and current paired native evidence > keeps validating the prior Options GEX descriptor 8437ms
+   ✓ retained expiry history and current paired native evidence > refuses to assign the fresh GEX identity to EOD 1575ms
+   ✓ momentum browser successor with retained native evidence > refuses changed momentum runtime source through the eod owner 4894ms
+   ✓ momentum browser successor with retained native evidence > refuses changed momentum runtime source through the gex owner 4730ms
+   ✓ momentum browser successor with retained native evidence > cannot downgrade by removing both successor declarations 10282ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-successor.json 1901ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: prior-roots/eod.EVIDENCE.yml 1969ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: qualification.json 3108ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/qualification.json 3362ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-report.json 3178ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/browser-report.json 3383ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: lifecycle.json 3267ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/lifecycle.json 3772ms
+   ✓ momentum browser successor with retained native evidence > binds actual new screenshot bytes: joint 3964ms
+   ✓ momentum browser successor with retained native evidence > binds actual new screenshot bytes: /expiry-journeys 2938ms
+   ✓ momentum browser successor with retained native evidence > still validates historical browser payload: browser-report.json 2015ms
+   ✓ momentum browser successor with retained native evidence > still validates historical browser payload: expiry-journeys/browser-report.json 2260ms
+
+ Test Files  8 passed (8)
+      Tests  183 passed (183)
+   Start at  18:08:37
+   Duration  200.06s (transform 1.43s, setup 0ms, collect 7.20s, tests 351.45s, environment 5ms, prepare 1.59s)
+

@@ -414,8 +414,14 @@ function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
     // manifest via dataCache (dedup + SWR) + mounted guard — mirrors ScreenerView (batch 1).
     // onRevalidate so a symbol added by the latest ingest is selectable on the first load
     // after it lands, rather than only after this browser's cached manifest expires.
-    const applySyms = (m: any) => { if (alive) setSyms(Object.keys(m?.symbols || {})); };
-    getJSON("/data/manifest.json", { onRevalidate: applySyms }).then(applySyms).catch(() => {});
+    let corrected = false;
+    const applySyms = (m: any): boolean => {
+      if (!alive) return false;
+      setSyms(Object.keys(m?.symbols || {}));
+      return true;
+    };
+    getJSON("/data/manifest.json", { onRevalidate: (m) => { if (applySyms(m)) corrected = true; } })
+      .then((m) => { if (!corrected) applySyms(m); }).catch(() => {});
     // D1: prefill from ?sym= ?price= ?type= query params (set by terminal "Add alert" context menu).
     // The Options workflow guide uses the separate cat/root/kind contract so it can land directly
     // on a truthful, source-gated options condition without overloading the legacy signal fields.

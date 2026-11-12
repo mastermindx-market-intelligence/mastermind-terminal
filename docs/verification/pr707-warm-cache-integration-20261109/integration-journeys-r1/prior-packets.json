@@ -1,0 +1,34 @@
+{
+  "clock": {
+    "EVIDENCE.json": {
+      "bytes": 1219,
+      "sha256": "4fb61b3fd416d920d3244d6abd1ffa486bd4092e7343fb8e8c3fc744dd316c94"
+    },
+    "desktop.png": {
+      "bytes": 288255,
+      "sha256": "0bcca0904d0dd0220ccb75431ded2ed3fa4e46c25e2e54888f1950de6e5584f0"
+    },
+    "mobile.png": {
+      "bytes": 108770,
+      "sha256": "85c3bb40841880f9269d014da1222cad489353aa6a7d5a7d14d48e2a42711e50"
+    },
+    "tablet.png": {
+      "bytes": 192456,
+      "sha256": "352596ce48df7644278761478528500b35395c577e4ab7b070690126f798c849"
+    }
+  },
+  "picker": {
+    "EVIDENCE.json": {
+      "bytes": 2424,
+      "sha256": "d5d8a708ec4bea5ac5dc220ac1ac9848ca2b26e5c7310136f3ef06094cffef38"
+    },
+    "cached-while-refreshing.png": {
+      "bytes": 75068,
+      "sha256": "0749e00d4e5b0afc579a75a4a51614adc7642119e09a244756f06d40cce43376"
+    },
+    "corrected-after-refresh.png": {
+      "bytes": 74923,
+      "sha256": "07a6710bb7d545c1b687053dfbb4b5a47f5690c523aeab9f6080ee0a60eecc5e"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "actualGit": {
+    "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  },
+  "branchHead": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "captureRevision": "warm-cache-integration-20261111",
+  "capturedSourceSnapshotSha256": "11137db4ccd0bac85dbc84232fb43885f3752192351ba3e6dae7dbf99a290281",
+  "files": {
+    "EVIDENCE.before.yml": "398ee08642c4db5eb7ee1648e5865e42146fd98aec9f96a208727bfe003d832d",
+    "attempt.json": "72784263aae10fd5593f5e7e93d8a9708202a27a396dd79cfb4739ce40375158",
+    "capture-execution.json": "d58d7fd3e4e777b4b9e9fed13ac8fe7e7f5d30f3dfa84083ddc90ca2331c6618",
+    "capture-sources-after.json": "11137db4ccd0bac85dbc84232fb43885f3752192351ba3e6dae7dbf99a290281",
+    "capture-sources-before.json": "11137db4ccd0bac85dbc84232fb43885f3752192351ba3e6dae7dbf99a290281",
+    "capture.log": "261b1f157f2d9d373778006228d2643ceb0c1a9d52aecd4636cdcf4d60aac027",
+    "command.json": "20dd99b07c561beadd468276a797fe45966cfc547a72745a3ad8775a7bfb051e",
+    "driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "history.json": "729b04af8da453b4373e9105a70d551308b4f09161cd8c26421b28158307274f",
+    "qualified-root/EVIDENCE.yml": "ecb8805eb8c44d98b521db68c263d1d61a527b08f13ee846fd3fee7d624ff806",
+    "source-contract.json": "08eeb45340bca1530368e6c76ec49c5e0517420b7422f6c2f2630973f01dae0a",
+    "supervision.json": "77dd843eaf420e204a392f4536c5d07f2f67c212499e9f22c6e5496041280f11"
+  },
+  "integratedSourceHeads": [
+    "0fd27ff1dfb7e031457a4ffe4c05458587c4eb81",
+    "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  ],
+  "kind": "eod",
+  "operation": "exposure-source-compatibility-20261105",
+  "profile": "exposure",
+  "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "publishedBasis": "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2",
+  "schema": "options_exposure_master_packet.v1",
+  "sourceIdentity": "stable-composed-working-tree"
+}

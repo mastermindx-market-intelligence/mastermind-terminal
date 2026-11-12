@@ -2247,16 +2247,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       // persisted copy is always past its TTL and dataCache serves it stale. Without this
       // the board would be pinned to whatever this browser cached on its LAST visit — which
       // is how the Terminal painted the 08-05 session on 08-07 (see lib/dataCache.ts).
+      let corrected = false;
       const applyManifest = (m: Manifest) => {
         setMan(m);
         loadCoverage(Object.keys(m.symbols || {}));
       };
       getJSON("/data/manifest.json", {
-        onRevalidate: (m) => { if (alive && m) applyManifest(m); },
+        onRevalidate: (m) => { if (alive && m) { applyManifest(m); corrected = true; } },
       }).then((m) => {
         if (alive && m) {
           btMark("manifest-fetch-done");
-          applyManifest(m);
+          if (!corrected) applyManifest(m);
         }
       }).catch(() => {});
     };

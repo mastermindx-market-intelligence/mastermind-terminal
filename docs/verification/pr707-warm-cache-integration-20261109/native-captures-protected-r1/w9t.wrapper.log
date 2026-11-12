@@ -1,0 +1,4 @@
+[dev] - Network:       http://127.0.0.1:3546
+✓ Ready in 244ms
+[dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+{"packet":"w9t","state":"CAPTURED_CURRENT_COMPLETE_PENDING_NATIVE_READER","count":8,"child":{"status":0,"signal":null,"error":null,"timedOut":false,"closed":true,"pid":16588,"serverPid":null,"serverReportedStopped":false,"serverRefused":null,"serverSettled":true},"callerServer":{"pid":16257,"pgid":16257,"state":"SETTLED","exitCode":0,"signalCode":null},"manifestSha256":"8033515bffe7367b9b2361a3c1bf63868e6b2ba46d37af617eafa098a788da28"}

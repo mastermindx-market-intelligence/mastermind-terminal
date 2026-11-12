@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-11-12T03:30:54.353433+00:00",
+  "head": "011aad66dcb6543b1b666aa0449b2235dae137b4",
+  "command": [
+    "npm",
+    "test",
+    "--",
+    "lib/__tests__/tickerNewsEvidence.test.ts",
+    "lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts",
+    "lib/__tests__/b_f08_8InvalidationEvidence.test.ts"
+  ],
+  "exitCode": 1,
+  "seconds": 4.16,
+  "finishedAt": "2026-11-12T03:30:58.531964+00:00",
+  "logSha256": "31d8c9fb81e1a89414c6e0fb65141fee1b1d0e211036a0d45fef5316f2ebcb6c"
+}

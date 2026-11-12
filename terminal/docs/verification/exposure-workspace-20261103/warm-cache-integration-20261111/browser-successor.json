@@ -1,0 +1,65 @@
+{
+  "actualGit": {
+    "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  },
+  "branchHead": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "browser": {
+    "expiry": {
+      "lifecycleSha256": "abd85d23ba648e2b4a60c872e1014616e7569d400b61612c31e7e4027afa3bbc",
+      "qualification": "expiry-journeys/qualification.json",
+      "sha256": "2ffe50b1d70d83e78271432668eaaaa4c5be3d7ab9020c0831450eb8f055f11c"
+    },
+    "joint": {
+      "lifecycleSha256": "5a0f6d3d1a44434164e9dc0949d20a7554e2257593a50bb6a79bf845a353b034",
+      "qualification": "qualification.json",
+      "sha256": "b81d5a8a7258792f0a8f439a99a7e15c7573353e6c73fd082228d60c37179b46"
+    }
+  },
+  "checkoutCommit": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "checkoutTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+  "history": {
+    "descriptorSha256": "0da98d3fa6a70e752421d2156552a41cf68e6be22bf86ec932f5833a71fe5193",
+    "expiryQualificationSha256": "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e",
+    "jointQualificationSha256": "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d",
+    "roots": {
+      "eod": {
+        "path": "prior-roots/eod.EVIDENCE.yml",
+        "sha256": "398ee08642c4db5eb7ee1648e5865e42146fd98aec9f96a208727bfe003d832d"
+      },
+      "gex": {
+        "path": "prior-roots/gex.EVIDENCE.yml",
+        "sha256": "0ffb688481f64075b6a07181900c709d4c58afe60cd6dce0e1e1c948bc6abf9e"
+      }
+    }
+  },
+  "indexTreeAtEnd": "230348fb24131907d559b48e0516ffbc268537d0",
+  "indexTreeAtStart": "230348fb24131907d559b48e0516ffbc268537d0",
+  "integratedSourceHeads": [
+    "0fd27ff1dfb7e031457a4ffe4c05458587c4eb81",
+    "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  ],
+  "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "native": {
+    "eod": {
+      "descriptorSha256": "eff4608e93f91459040c703419206ab4507e2af0b4e4525f3b4400da39eb696b",
+      "revision": "warm-cache-integration-20261111"
+    },
+    "gex": {
+      "descriptorSha256": "5ea7f88044ead844cb93cde0bf986b75b8b89cf6ef8002a7cf5792344144f37e",
+      "revision": "warm-cache-integration-20261111"
+    }
+  },
+  "operation": "terminal-pr707-warm-cache-browser-current-20261111",
+  "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "publishedBasis": "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2",
+  "revision": "warm-cache-integration-20261111",
+  "schema": "exposure_warm_cache_successor.v1",
+  "sourceIdentity": "stable-composed-working-tree",
+  "sourceSnapshot": {
+    "files": 3787,
+    "sha256": "0b471cf110cd90c7d09444c6768af088d28b898668e1555d4301a18d9532fc81"
+  }
+}

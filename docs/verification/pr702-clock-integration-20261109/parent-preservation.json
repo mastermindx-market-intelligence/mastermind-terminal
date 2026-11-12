@@ -1,0 +1,71 @@
+{
+  "dependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+  "head": "c31fe105d4a101531def3518e7b9801e70cc4867",
+  "mergeBase": "e5ccacf4ab327ad414c6f9fa6000f0a720a8ea55",
+  "originalChangedPaths": [
+    "docs/TERMINAL_CHART_CLOCK_ISOLATION_2026-09-21.md",
+    "terminal/components/ChartClock.tsx",
+    "terminal/components/ChartFrameBar.tsx",
+    "terminal/docs/pr-crops/chart-clock-isolation-20260921/EVIDENCE.json",
+    "terminal/docs/pr-crops/chart-clock-isolation-20260921/desktop.png",
+    "terminal/docs/pr-crops/chart-clock-isolation-20260921/mobile.png",
+    "terminal/docs/pr-crops/chart-clock-isolation-20260921/tablet.png",
+    "terminal/e2e/chart-clock-isolation.spec.ts",
+    "terminal/lib/__tests__/chartClockIsolation.test.tsx"
+  ],
+  "parents": {
+    "dependency1268": {
+      "files": {
+        "terminal/components/ChartFrameBar.tsx": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/dependency1268/terminal/components/ChartFrameBar.tsx",
+          "sha256": "33a2887e6bf5230630ec9836269363b82e8c4b0b39623dcc6063794199297ca3"
+        }
+      },
+      "ref": "d03e7587711f1182531f25459fa1f60c679bac10"
+    },
+    "original": {
+      "files": {
+        "docs/TERMINAL_CHART_CLOCK_ISOLATION_2026-09-21.md": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/docs/TERMINAL_CHART_CLOCK_ISOLATION_2026-09-21.md",
+          "sha256": "f0e6beec4acb6f03e5a9f658e45c58ec6a19ac4f833ecbb02490614a3164d160"
+        },
+        "terminal/components/ChartClock.tsx": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/terminal/components/ChartClock.tsx",
+          "sha256": "f28ec4ba4dbaae251d33401080bac442793ed67c50db2f4e315126d7a271155b"
+        },
+        "terminal/components/ChartFrameBar.tsx": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/terminal/components/ChartFrameBar.tsx",
+          "sha256": "884da02df5fb7e67340f9eff56e153886ab3941c278e64aca6ef4330d5f01910"
+        },
+        "terminal/docs/pr-crops/chart-clock-isolation-20260921/EVIDENCE.json": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/terminal/docs/pr-crops/chart-clock-isolation-20260921/EVIDENCE.json",
+          "sha256": "4fb61b3fd416d920d3244d6abd1ffa486bd4092e7343fb8e8c3fc744dd316c94"
+        },
+        "terminal/docs/pr-crops/chart-clock-isolation-20260921/desktop.png": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/terminal/docs/pr-crops/chart-clock-isolation-20260921/desktop.png",
+          "sha256": "0bcca0904d0dd0220ccb75431ded2ed3fa4e46c25e2e54888f1950de6e5584f0"
+        },
+        "terminal/docs/pr-crops/chart-clock-isolation-20260921/mobile.png": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/terminal/docs/pr-crops/chart-clock-isolation-20260921/mobile.png",
+          "sha256": "85c3bb40841880f9269d014da1222cad489353aa6a7d5a7d14d48e2a42711e50"
+        },
+        "terminal/docs/pr-crops/chart-clock-isolation-20260921/tablet.png": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/terminal/docs/pr-crops/chart-clock-isolation-20260921/tablet.png",
+          "sha256": "352596ce48df7644278761478528500b35395c577e4ab7b070690126f798c849"
+        },
+        "terminal/e2e/chart-clock-isolation.spec.ts": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/terminal/e2e/chart-clock-isolation.spec.ts",
+          "sha256": "1fd5eaace151cf43c0673316265327b4b2e3286288f9564c29f0f3628d3e8dc9"
+        },
+        "terminal/lib/__tests__/chartClockIsolation.test.tsx": {
+          "archive": "docs/verification/pr702-clock-integration-20261109/parent-files/original/terminal/lib/__tests__/chartClockIsolation.test.tsx",
+          "sha256": "a14f5a2ff5e65a7a652308dcf2c77790062400946422ecc2051bb62077dcc2c1"
+        }
+      },
+      "ref": "c31fe105d4a101531def3518e7b9801e70cc4867"
+    }
+  },
+  "preparedAt": "2026-11-09T18:57:09.735705+00:00",
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "schema": "terminal_pr702_real_parent_preservation.v1"
+}

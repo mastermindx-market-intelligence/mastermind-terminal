@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-11-12T03:26:53.400979+00:00",
+  "head": "011aad66dcb6543b1b666aa0449b2235dae137b4",
+  "sourceBefore": {
+    "terminal/lib/eventImpact.ts": "beaf21f644aaccc819187ff3ccd628e999e51797b1e75f2171d4194bff6581d8",
+    "terminal/components/EventImpactPanel.tsx": "698d0de0e6b95f2644bee0912215065c566786b4a7bb51f088753e31b1c99e64",
+    "terminal/components/EventImpactPanel.module.css": "4f9c64066a829d5d33230caa507f8fd2c0d7479f49c8b5eee693b40bdd66cab7",
+    "terminal/components/PortfolioView.tsx": "941bd8bba633f33e1bba02b49ef70bfd7f2985442adaed167daf6c48836a7413",
+    "terminal/components/PortfolioWorkspace.tsx": "9d990ffd5eedfd58f152df7bda75ea3931127f46185bbb83540731aef7f8ba51",
+    "terminal/components/PortfolioWorkspace.module.css": "44c92cf281693c8e1f444c8551cfd603ce99338190ea85aa0326072caf92cabf",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/e2e/tools/portfolioEvidenceCapture.cjs": "c7129910d0592fe857794985aba35b1ba66e4d28f1cb6d1296038f091161e355",
+    "terminal/e2e/tools/capture_b_f08_8_invalidation.cjs": "7ca6db04291ed1383525e497e0d0f2ddeb6f0254b99856e4f0b10860e125c885",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
+  },
+  "port": 3571,
+  "portClosedBefore": true,
+  "priorOwnerClosed": true,
+  "command": [
+    "node",
+    "e2e/tools/capture_b_f08_8_invalidation.cjs"
+  ],
+  "producerActivation": false,
+  "productionAcceptance": false
+}

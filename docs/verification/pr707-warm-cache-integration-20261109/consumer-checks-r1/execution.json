@@ -1,0 +1,125 @@
+{
+  "completed_at": "2026-11-12T01:14:53.306490+00:00",
+  "results": [
+    {
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "--check",
+        "e2e/tools/optionsExposureEvidence.cjs"
+      ],
+      "exit": 0,
+      "log": "reader-syntax.log",
+      "name": "reader-syntax",
+      "seconds": 0.253,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "-e",
+        "const o=require(\"./e2e/tools/capture_ci_evidence.cjs\"),p=require(\"node:path\"),repo=p.resolve(process.cwd(),\"..\");const out={};for(const k of [\"eod\",\"gex\"]){const x=o[k+\"Packet\"](repo);if(x.selection!==\"qualified\"||x.plan.required||x.plan.changed.length)throw Error(\"OWNER_NOT_QUALIFIED:\"+k);out[k]={selection:x.selection,path:x.path,sha256:x.sha256,capturedAtHead:x.capturedAtHead,captureRevision:x.captureRevision,descriptorSha256:x.descriptorSha256,sourceFiles:x.sourceFiles,plan:x.plan};}console.log(JSON.stringify(out,null,2));"
+      ],
+      "exit": 0,
+      "log": "actual-owner-readback.log",
+      "name": "actual-owner-readback",
+      "seconds": 4.557,
+      "sha256": "2663e1920985ca31f52688da69de9dee691b54dc319089ef0f4108de00f164e1"
+    },
+    {
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureR5Successor.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/optionsExposureBrowserReport.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts",
+        "lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts"
+      ],
+      "exit": 0,
+      "log": "affected-consumer-units.log",
+      "name": "affected-consumer-units",
+      "seconds": 201.391,
+      "sha256": "a11953be88d9ac89e7c18b9ae04ef0a03a8b08a73773d4afa3a2f7b7479dfa2b"
+    },
+    {
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "--test",
+        "e2e/tools/capture_ci_evidence.test.cjs"
+      ],
+      "exit": 0,
+      "log": "capture-owner-contracts.log",
+      "name": "capture-owner-contracts",
+      "seconds": 162.73,
+      "sha256": "93cf5c268233545420ff584fad5ea34b1db10f460dbc4e552bfdd6aa66746204"
+    },
+    {
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "log": "typescript.log",
+      "name": "typescript",
+      "seconds": 9.379,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureR5Successor.test.ts",
+        "e2e/tools/optionsExposureEvidence.d.cts"
+      ],
+      "exit": 0,
+      "log": "test-lint.log",
+      "name": "test-lint",
+      "seconds": 2.622,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/tools/optionsExposureEvidence.cjs",
+        "--rule",
+        "{\"@typescript-eslint/no-require-imports\":\"off\"}"
+      ],
+      "exit": 0,
+      "log": "commonjs-lint.log",
+      "name": "commonjs-lint",
+      "seconds": 1.035,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "terminal/e2e/tools/optionsExposureEvidence.cjs",
+        "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+        "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "terminal/lib/__tests__/optionsExposureR5Successor.test.ts"
+      ],
+      "exit": 0,
+      "log": "source-diff-check.log",
+      "name": "source-diff-check",
+      "seconds": 0.049,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "schema": "terminal_pr707_warm_consumer_checks.v1",
+  "source_after_sha256": "aa5d6ddf96e3684cc224017191fe66eb11300e85a800a8c7ef52b08fed68028d",
+  "source_before_sha256": "aa5d6ddf96e3684cc224017191fe66eb11300e85a800a8c7ef52b08fed68028d",
+  "source_files": 3787,
+  "source_stable": true,
+  "started_at": "2026-11-12T01:08:31.020427+00:00",
+  "state": "ALL_AFFECTED_CONSUMER_CHECKS_PASSED"
+}

@@ -1,0 +1,25 @@
+[warmup] /terminal?symbol=NVDA → 200 in 82ms
+[warmup] /options → 200 in 2219ms
+[warmup] /portfolio → 200 in 1434ms
+[warmup] /alerts → 200 in 1195ms
+[warmup] /analysis → 200 in 1923ms
+[warmup] /discover → 200 in 2383ms
+[warmup] /admin → 200 in 528ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 564ms
+[warmup] /login → 200 in 136ms
+[warmup] /reset-password → 200 in 498ms
+[warmup] /api/me → 200 in 596ms
+[warmup] /api/watchlist → 200 in 245ms
+[warmup] /api/layouts → 200 in 170ms
+[warmup] /api/watchlist/annotations → 409 in 166ms
+[warmup] 14 routes compiled in 12s
+[fixture-ready] prophet_idx fixture 200 in 413ms
+
+Running 3 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/chart-clock-isolation.spec.ts:4:5 › chart clock keeps ticking without interrupting navigation or an open settings menu (9.6s)
+  ✓  2 [tablet] › e2e/chart-clock-isolation.spec.ts:4:5 › chart clock keeps ticking without interrupting navigation or an open settings menu (7.2s)
+  ✓  3 [mobile] › e2e/chart-clock-isolation.spec.ts:4:5 › chart clock keeps ticking without interrupting navigation or an open settings menu (4.1s)
+
+  3 passed (49.3s)

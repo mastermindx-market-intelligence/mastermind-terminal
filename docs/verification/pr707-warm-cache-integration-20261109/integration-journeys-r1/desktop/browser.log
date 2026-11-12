@@ -1,0 +1,25 @@
+[warmup] /terminal?symbol=NVDA → 200 in 72ms
+[warmup] /options → 200 in 1330ms
+[warmup] /portfolio → 200 in 613ms
+[warmup] /alerts → 200 in 549ms
+[warmup] /analysis → 200 in 858ms
+[warmup] /discover → 200 in 1032ms
+[warmup] /admin → 200 in 303ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 231ms
+[warmup] /login → 200 in 84ms
+[warmup] /reset-password → 200 in 234ms
+[warmup] /api/me → 200 in 380ms
+[warmup] /api/watchlist → 200 in 133ms
+[warmup] /api/layouts → 200 in 137ms
+[warmup] /api/watchlist/annotations → 409 in 110ms
+[warmup] 14 routes compiled in 6s
+[fixture-ready] prophet_idx fixture 200 in 331ms
+
+Running 3 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/marker-tooltip.spec.ts:507:5 › signals and every price overlay stay scoped to a moved price pane (7.8s)
+  ✓  2 [desktop] › e2e/marker-tooltip.spec.ts:607:5 › Gap Zones stays clipped to price when oscillator panes are present (5.0s)
+  ✓  3 [desktop] › e2e/warm-symbol-picker.spec.ts:4:5 › a cached symbol picker stays usable during refresh and receives the corrected company (6.0s)
+
+  3 passed (36.1s)

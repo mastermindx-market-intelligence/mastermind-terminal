@@ -455,10 +455,11 @@ export function HeatmapView() {
   const fetchManifest = useCallback(async () => {
     const req = ++manifestReqRef.current;
     const current = () => manifestReqRef.current === req;
+    let corrected = false;
     const read = await readManifest((fresh) => {
-      if (current()) { setManifest(fresh); setManifestRead("data"); }
+      if (current()) { corrected = true; setManifest(fresh); setManifestRead("data"); }
     });
-    if (!current()) return;
+    if (!current() || corrected) return;
     if (read.status === "data") {
       setManifest(read.manifest);
       setManifestRead("data");
@@ -493,10 +494,11 @@ export function HeatmapView() {
   const fetchFlow = useCallback(async () => {
     const req = ++flowReqRef.current;
     const current = () => flowReqRef.current === req;
+    let corrected = false;
     const read = await readFlowIdx((fresh) => {
-      if (current()) { setFlowIdx(fresh); setFlowRead("data"); }
+      if (current()) { corrected = true; setFlowIdx(fresh); setFlowRead("data"); }
     });
-    if (!current()) return;
+    if (!current() || corrected) return;
     if (read.status === "data") {
       setFlowIdx(read.flowIdx);
       setFlowRead("data");

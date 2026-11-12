@@ -1,0 +1,6 @@
+{
+  "expectation": "Displayed time and UTC offset refer to one snapshot when fake time crosses the offset boundary between formatting reads; no constructor-count assertion.",
+  "originalFiveCasesPreserved": true,
+  "state": "BEHAVIORAL_CONTRACT_ADDED",
+  "testSha256": "1d16aa6a4adaa7f6d528e244e37fd8ccead3aa101949396df67802d6722d1f3c"
+}

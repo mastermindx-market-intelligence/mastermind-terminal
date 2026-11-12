@@ -1,0 +1,50 @@
+{
+  "ancestry": [
+    {
+      "command": "next-server (v16.4.6)",
+      "pid": 54381,
+      "ppid": 54371
+    },
+    {
+      "command": "node",
+      "pid": 54371,
+      "ppid": 54346
+    },
+    {
+      "command": "npm run dev --hostname 127.0.0.1 --port 3908",
+      "pid": 54346,
+      "ppid": 54332
+    },
+    {
+      "command": "node",
+      "pid": 54332,
+      "ppid": 53644
+    }
+  ],
+  "listener": {
+    "command": [
+      "lsof",
+      "-nP",
+      "-iTCP:3908",
+      "-sTCP:LISTEN",
+      "-Fp"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "p54381\nf13\n"
+  },
+  "listenerPids": [
+    54381
+  ],
+  "lock": {
+    "appUrl": "http://127.0.0.1:3908",
+    "hostname": "127.0.0.1",
+    "pid": 54381,
+    "port": 3908,
+    "startedAt": 1794446219477
+  },
+  "lockSha256": "66a8bc2678485a2ceeb4e9d848734c07315716373b78471357129af655bd6f34",
+  "observedAt": "2026-11-12T01:16:59.683154+00:00",
+  "pid": 54381,
+  "playwrightPid": 54332
+}

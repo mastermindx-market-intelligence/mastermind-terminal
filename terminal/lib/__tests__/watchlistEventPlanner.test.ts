@@ -385,3 +385,71 @@ describe("bounded reader (AC-E14-05/06 support)", () => {
     expect(out).toEqual(["A", "A"]);
   });
 });
+
+describe("correction before the initial event answer", () => {
+  const jobs: EventReadJob[] = [{ symbol: "AAPL", profile: US }];
+
+  it("keeps the corrected date and reschedule history when the older initial answer lands last", async () => {
+    const seen = new Map<string, SeenDay>();
+    interpretFundPayload("AAPL", fund("2026-10-29"), US, { seen });
+    const out: SymbolRead[] = [];
+    const failed = vi.fn();
+    let correction!: NonNullable<GetOpts["onRevalidate"]>;
+    let release!: (value: CacheOutcome) => void;
+    const read = (_url: string, opts?: GetOpts) => {
+      correction = opts!.onRevalidate!;
+      return new Promise<CacheOutcome>((resolve) => { release = resolve; });
+    };
+    const done = runEventReads(jobs, {
+      read, isCurrent: () => true, seen, onResult: (_symbol, value) => out.push(value), onRefreshFailed: failed,
+    });
+    correction(fund("2026-11-05"));
+    const correctedSeen = structuredClone(seen);
+    expect(out).toHaveLength(1);
+    expect(out[0].state === "event" && [out[0].event.when.day, out[0].event.previousDay, out[0].stale])
+      .toEqual(["2026-11-05", "2026-10-29", false]);
+    release({ status: "data", data: fund("2026-10-29"),
+      stale: { ageMs: 90_000, source: "memory", revalidation: Promise.resolve("ok") } });
+    await done;
+    expect(out).toHaveLength(1);
+    expect(seen).toEqual(correctedSeen);
+    expect(summarizeCoverage(["AAPL"], { AAPL: out[0] })).toMatchObject({ current: 1, stale: 0, complete: true });
+    const next = interpretFundPayload("AAPL", fund("2026-11-12"), US, { seen });
+    expect(next.state === "event" && next.event.previousDay).toBe("2026-11-05");
+    expect(failed).not.toHaveBeenCalled();
+  });
+
+  it("keeps an authoritative unreadable correction instead of resurrecting a usable older date", async () => {
+    const seen = new Map<string, SeenDay>();
+    interpretFundPayload("AAPL", fund("2026-10-29"), US, { seen });
+    const out: SymbolRead[] = [];
+    const read = async (_url: string, opts?: GetOpts): Promise<CacheOutcome> => {
+      opts!.onRevalidate!(fund("unparseable current date"));
+      return { status: "data", data: fund("2026-10-20"),
+        stale: { ageMs: 90_000, source: "disk", revalidation: Promise.resolve("ok") } };
+    };
+    const originalSeen = structuredClone(seen);
+    await runEventReads(jobs, { read, isCurrent: () => true, seen, onResult: (_symbol, value) => out.push(value) });
+    expect(out).toEqual([{ state: "unreadable" }]);
+    expect(seen).toEqual(originalSeen);
+    expect(summarizeCoverage(["AAPL"], { AAPL: out[0] })).toMatchObject({ current: 0, complete: false });
+  });
+});
+
+it("keeps corrected event history when the correction observer throws and the cache isolates it", async () => {
+  const seen = new Map<string, SeenDay>();
+  interpretFundPayload("AAPL", fund("2026-10-29"), US, { seen });
+  const onResult = vi.fn(() => { throw new Error("consumer rendering failed"); });
+  const read = async (_url: string, opts?: GetOpts): Promise<CacheOutcome> => {
+    // dataCache isolates synchronous observer exceptions and still settles its own read.
+    try { opts!.onRevalidate!(fund("2026-11-05")); } catch { /* The provider keeps its own read alive. */ }
+    return { status: "data", data: fund("2026-10-29"),
+      stale: { ageMs: 90_000, source: "memory", revalidation: Promise.resolve("ok") } };
+  };
+  await expect(runEventReads([{ symbol: "AAPL", profile: US }], {
+    read, isCurrent: () => true, seen, onResult,
+  })).resolves.toBeUndefined();
+  expect(onResult).toHaveBeenCalledTimes(1);
+  const next = interpretFundPayload("AAPL", fund("2026-11-12"), US, { seen });
+  expect(next.state === "event" && next.event.previousDay).toBe("2026-11-05");
+});

@@ -6,17 +6,19 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ScreenerView from "@/components/ScreenerView";
 
+const cache = vi.hoisted(() => ({ read: vi.fn() }));
 const locale = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/lib/i18n", () => ({
   useLang: () => locale,
   useT: () => (key: string) => (({
+    scr2Prov1: ["Prices as of {d}", "价格截至 {d}"],
     scr2Save: ["+ Save", "+ 保存"], scr2PresetName: ["Preset name…", "预设名称…"],
     scr2DeletePreset: ["Delete preset", "删除预设"], scr2Retry: ["Retry", "重试"],
   } as Record<string, [string, string]>)[key]?.[locale.lang === "zh" ? 1 : 0] ?? key),
 }));
 vi.mock("@/lib/useMarketPrefs", () => ({ useMarketPrefs: () => ({ prefs: { enabled: [] }, ready: false }) }));
-vi.mock("@/lib/dataCache", () => ({ getJSONResult: async () => ({ status: "data", data: { symbols: {} } }), invalidate: vi.fn() }));
+vi.mock("@/lib/dataCache", () => ({ getJSONResult: cache.read, invalidate: vi.fn() }));
 vi.mock("@/lib/searchTrack", () => ({ trackSearch: vi.fn() }));
 vi.mock("@/lib/signalVerdict", () => ({ verdictIsStale: () => false }));
 vi.mock("@/lib/flowClientCache", () => ({ flowGet: async () => null }));
@@ -38,6 +40,7 @@ let nativeGet: typeof Storage.prototype.getItem;
 let nativeSet: typeof Storage.prototype.setItem;
 
 beforeEach(() => {
+  cache.read.mockReset().mockResolvedValue({ status: "data", data: { symbols: {} } });
   locale.lang = "en";
   localStorage.clear();
   readDenied = false;
@@ -333,4 +336,43 @@ describe("Screener device-local preset acknowledgements", () => {
     expect(writes).toHaveLength(0); expect(raw()).toBe(before);
   });
 
+});
+
+describe("Screener correction before the initial answer", () => {
+  const cached = { as_of: "2026-09-18", symbols: {} };
+  const fresh = { as_of: "2026-11-09", symbols: {} };
+
+  it.each(["data", "unavailable", "rejected"] as const)("keeps the corrected as-of date after a late %s answer", async (kind) => {
+    let release!: (value: unknown) => void;
+    let reject!: (reason: Error) => void;
+    const initial = new Promise((resolve, fail) => { release = resolve; reject = fail; });
+    const corrections: Array<(value: unknown) => void> = [];
+    cache.read.mockImplementation((_url: string, opts: { onRevalidate: (value: unknown) => void }) => {
+      corrections.push(opts.onRevalidate);
+      return initial;
+    });
+    await mount();
+    await act(async () => { corrections.forEach((correct) => correct(fresh)); });
+    expect(host.querySelector(".scr2-asof")?.textContent).toContain("2026-11-09");
+    await act(async () => {
+      if (kind === "rejected") reject(new Error("late failed initial read"));
+      else release(kind === "data" ? { status: "data", data: cached } : { status: "unavailable", reason: "network" });
+    });
+    expect(host.querySelector(".scr2-asof")?.textContent).toContain("2026-11-09");
+    expect(host.textContent).not.toContain("2026-09-18");
+  });
+
+  it("still applies a usable initial map after a malformed correction", async () => {
+    let release!: (value: unknown) => void;
+    const initial = new Promise((resolve) => { release = resolve; });
+    const corrections: Array<(value: unknown) => void> = [];
+    cache.read.mockImplementation((_url: string, opts: { onRevalidate: (value: unknown) => void }) => {
+      corrections.push(opts.onRevalidate);
+      return initial;
+    });
+    await mount();
+    await act(async () => { corrections.forEach((correct) => correct({ symbols: [] })); });
+    await act(async () => { release({ status: "data", data: cached }); });
+    expect(host.querySelector(".scr2-asof")?.textContent).toContain("2026-09-18");
+  });
 });

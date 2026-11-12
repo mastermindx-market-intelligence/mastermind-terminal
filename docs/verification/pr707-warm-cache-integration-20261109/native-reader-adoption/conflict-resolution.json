@@ -1,0 +1,82 @@
+{
+  "original_head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "protected_target": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "resolution": "accepted protected evidence packets and current native producers; all original bytes remain in checkpoint history",
+  "paths": {
+    "terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml": {
+      "historical_sha256": "f9b8ef60a6cd360d1398141a53ab664de4afd24f9d03fd3196fdeb3dad7bb0fc",
+      "protected_sha256": "da30855b0ba3920ad6da7b1438a25f562278f417b2c9b388c8c8f582ec9f76e0",
+      "bytes": 5812
+    },
+    "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png": {
+      "historical_sha256": "7b1ca37ed3d03089e4e9ee70940831d491563daf2b3942e5c500d5404f57d5eb",
+      "protected_sha256": "304f68ec93155e99adaf356c0525837468e01ab9bb51ef1f1ba4d6e94f72a340",
+      "bytes": 455303
+    },
+    "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png": {
+      "historical_sha256": "7d138a58591022f50857e301c2a18d230dfad670633fce089fa7436e80f65e99",
+      "protected_sha256": "8f2af273e52ee58f84cdf4a8b29d52c0aa48562d85cca09dd8de58c7b5a12e46",
+      "bytes": 447472
+    },
+    "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png": {
+      "historical_sha256": "369a0f3e8233d8c141a01529297363dbc55789ff60ee3a69f0ffcbba792aa3f0",
+      "protected_sha256": "1c0968115e046e3551f0c53bb7ec7f386c7af26cc1594ce78ade4e0a725acf22",
+      "bytes": 471746
+    },
+    "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png": {
+      "historical_sha256": "09502573aab30393c635d448ffb7bc07eabcf809aa86c06c5906ebc1e357d741",
+      "protected_sha256": "8f1f547f8eb7deca78a4c9d470d476059b44f079931865a4cc1e2890a22267d6",
+      "bytes": 458982
+    },
+    "terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png": {
+      "historical_sha256": "fec0ead8f7702635a90360d0003d132d3c053c8f362734fcbd26a4f131b9fe0b",
+      "protected_sha256": "ecaa54da94e6d47a919712c85ddfcb8831cf7e6c8bb19ae0bfb5cb0221587545",
+      "bytes": 110686
+    },
+    "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png": {
+      "historical_sha256": "ad2145e886fd016e53ee71e33aa85b815f02f4b4f62f251398d0d1b001c43a4a",
+      "protected_sha256": "301307d66d96042436ca0b95542057a7e21989fe7fcb84759dd921ee9e5c54c1",
+      "bytes": 206378
+    },
+    "terminal/docs/pr-crops/options-level-axis-labels/desktop.png": {
+      "historical_sha256": "e3892f859e10bd40295ac0454439f5a76c2e0612a323d54dc1be5b6bb65f1ea3",
+      "protected_sha256": "1d5f5bef9ea35d047277d7f20b5a4bf0c439fc0f4955fdf2816e7ee6fa39d2bd",
+      "bytes": 188267
+    },
+    "terminal/docs/pr-crops/options-level-axis-labels/manifest.json": {
+      "historical_sha256": "bbc79ccd1f36477f09814096ffbf260a0e153f4282aaf63e5bf5c6c32456859e",
+      "protected_sha256": "b81448429b0241bc515920398f2aa70d2838b0d8adca98990d434288182909fb",
+      "bytes": 15797
+    },
+    "terminal/docs/pr-crops/options-level-axis-labels/mobile.png": {
+      "historical_sha256": "bb9920d5622becd873b43513e968c712f1820681c6ed0cde610b32db80bd1700",
+      "protected_sha256": "310df77c17bf5cd532d54ec07b435951548838536945dd33f58baeb261b998b9",
+      "bytes": 77957
+    },
+    "terminal/docs/pr-crops/options-level-axis-labels/tablet.png": {
+      "historical_sha256": "c5c1af79b4ef082df233e60d8a9ee08962e5f9ad2c9bb5e7cf89ee13fe7ef333",
+      "protected_sha256": "46cddff609913441da5388efa2ed3fa5b0c8ed2065c416dd2b6e099baa755a07",
+      "bytes": 109932
+    },
+    "terminal/docs/pr-crops/pine-boot-pending-state/EVIDENCE.yml": {
+      "historical_sha256": "fa13ad94d4f9a41b86ca55a6772dc1e8b7ef419471404610b97e064947d95582",
+      "protected_sha256": "b6cef370a9754c436ebb6a5cc78c941ccfd5072084ca92df1042ce17c95eddef",
+      "bytes": 4787
+    },
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": {
+      "historical_sha256": "02c91dc7db553c5f66fec8df269c80a94160e21f39a7c83a48e008e0a4703c11",
+      "protected_sha256": "671062f250f16c812ffdebfb1714d5c62a8c54be0f439fa34dc1e70452c086e9",
+      "bytes": 45062
+    },
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": {
+      "historical_sha256": "22352e7a52b902330ebd9fd7055badf776f76f648f5d9e4cfa20914776a2d70c",
+      "protected_sha256": "dbb92e88972bd39984427d054f431159401fcb16bd49b4479cc1c83456f7777d",
+      "bytes": 44820
+    }
+  },
+  "marker": {
+    "before_sha256": "31704affa6da9a20aa6056c25ce2c984242cddae3ee4c2e2c78ced5cdb179d43",
+    "after_sha256": "caad9b8fcbdcc4063b75f29f43c212203ee54be711f37d4321834bf3a27568f6",
+    "reason": "trusted pointerdown witness follows the accepted nested price-pane signal topology; no weakened assertion"
+  }
+}

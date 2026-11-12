@@ -1,0 +1,76 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/tickerNewsEvidence.test.ts lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts lib/__tests__/b_f08_8InvalidationEvidence.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal
+
+ ✓ lib/__tests__/b_f08_8InvalidationEvidence.test.ts (4 tests) 32ms
+ ❯ lib/__tests__/tickerNewsEvidence.test.ts (4 tests | 2 failed) 24ms
+   × ticker-news evidence lock is EVIDENCE.yml > EVIDENCE.yml records a sha256 for every locked source 16ms
+     → expected [] to deeply equal [ …(3) ]
+   × ticker-news evidence lock is EVIDENCE.yml > every crop is non-empty, has a crops row and matches its recorded sha256 6ms
+     → every crop needs a crops row and every row a crop: expected [ 'desktop-en-dark.png', …(9) ] to deeply equal []
+ ✓ lib/__tests__/b_f08_9RiskHistoryEvidence.test.ts (4 tests) 52ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/tickerNewsEvidence.test.ts > ticker-news evidence lock is EVIDENCE.yml > EVIDENCE.yml records a sha256 for every locked source
+AssertionError: expected [] to deeply equal [ …(3) ]
+
+- Expected
++ Received
+
+- Array [
+-   "terminal/components/TerminalShell.tsx",
+-   "terminal/components/news/TickerNewsPanel.module.css",
+-   "terminal/components/news/TickerNewsPanel.tsx",
+- ]
++ Array []
+
+ ❯ lib/__tests__/tickerNewsEvidence.test.ts:75:42
+     73|   it("EVIDENCE.yml records a sha256 for every locked source", () => {
+     74|     const recorded = layoutFiles();
+     75|     expect(Object.keys(recorded).sort()).toEqual([...LOCKED_FILES].sor…
+       |                                          ^
+     76|     for (const rel of LOCKED_FILES) {
+     77|       expect(recorded[rel] ?? "", `layoutFiles is missing ${rel}`).toM…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/tickerNewsEvidence.test.ts > ticker-news evidence lock is EVIDENCE.yml > every crop is non-empty, has a crops row and matches its recorded sha256
+AssertionError: every crop needs a crops row and every row a crop: expected [ 'desktop-en-dark.png', …(9) ] to deeply equal []
+
+- Expected
++ Received
+
+- Array []
++ Array [
++   "desktop-en-dark.png",
++   "desktop-zh-dark.png",
++   "mobile-en-dark.png",
++   "mobile-zh-dark.png",
++   "tablet-en-dark.png",
++   "tablet-zh-dark.png",
++   "unavailable-desktop-en-dark.png",
++   "unavailable-desktop-zh-dark.png",
++   "unavailable-mobile-en-dark.png",
++   "unavailable-mobile-zh-dark.png",
++ ]
+
+ ❯ lib/__tests__/tickerNewsEvidence.test.ts:92:73
+     90|     const rows = crops();
+     91|     const onDisk = readdirSync(CROP_DIR).filter((name) => name.endsWit…
+     92|     expect(onDisk, "every crop needs a crops row and every row a crop"…
+       |                                                                         ^
+     93|     expect(onDisk, "the packet holds exactly the crops the spec writes…
+     94|     for (const row of rows) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  2 failed | 10 passed (12)
+   Start at  20:30:56
+   Duration  1.48s (transform 176ms, setup 0ms, collect 368ms, tests 108ms, environment 0ms, prepare 1.18s)
+

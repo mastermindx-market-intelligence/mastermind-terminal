@@ -1,0 +1,307 @@
+{
+  "artifacts": {
+    ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "marker-tooltip-tapping-a-m-bce66-d-tapping-away-dismisses-it-mobile/tooltip-tap-mobile.png": "c78a147c242693378275ddaf421a433c7b5d7c869e391c51202b8cdb7d9d5c50",
+    "marker-tooltip-tapping-a-m-bce66-d-tapping-away-dismisses-it-tablet/tooltip-tap-tablet.png": "1cccc11f5cc6c5e4bde52bfb99f1941c53a33db5901b33e047005a0e85521acb"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "key": "desktop|chart-clock-isolation.spec.ts|chart clock keeps ticking without interrupting navigation or an open settings menu",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "chart clock keeps ticking without interrupting navigation or an open settings menu"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "tablet|chart-clock-isolation.spec.ts|chart clock keeps ticking without interrupting navigation or an open settings menu",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "chart clock keeps ticking without interrupting navigation or an open settings menu"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "mobile|chart-clock-isolation.spec.ts|chart clock keeps ticking without interrupting navigation or an open settings menu",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "chart clock keeps ticking without interrupting navigation or an open settings menu"
+    },
+    {
+      "expectedStatus": "skipped",
+      "key": "desktop|marker-tooltip.spec.ts|tapping a marker opens its tooltip, and tapping away dismisses it",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "title": "tapping a marker opens its tooltip, and tapping away dismisses it"
+    },
+    {
+      "expectedStatus": "skipped",
+      "key": "desktop|marker-tooltip.spec.ts|a pane relayout after a tap re-anchors the tooltip instead of dismissing it",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "title": "a pane relayout after a tap re-anchors the tooltip instead of dismissing it"
+    },
+    {
+      "expectedStatus": "skipped",
+      "key": "desktop|marker-tooltip.spec.ts|a tap keeps the marker it started on when geometry moves before pointerup",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "title": "a tap keeps the marker it started on when geometry moves before pointerup"
+    },
+    {
+      "expectedStatus": "skipped",
+      "key": "desktop|marker-tooltip.spec.ts|a tap still opens the tooltip when the thread stalls between down and up",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "title": "a tap still opens the tooltip when the thread stalls between down and up"
+    },
+    {
+      "expectedStatus": "skipped",
+      "key": "desktop|marker-tooltip.spec.ts|a touch press that travels is a pan, not a tooltip tap",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "title": "a touch press that travels is a pan, not a tooltip tap"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "tablet|marker-tooltip.spec.ts|tapping a marker opens its tooltip, and tapping away dismisses it",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "tapping a marker opens its tooltip, and tapping away dismisses it"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "tablet|marker-tooltip.spec.ts|a pane relayout after a tap re-anchors the tooltip instead of dismissing it",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "a pane relayout after a tap re-anchors the tooltip instead of dismissing it"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "tablet|marker-tooltip.spec.ts|a tap keeps the marker it started on when geometry moves before pointerup",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "a tap keeps the marker it started on when geometry moves before pointerup"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "tablet|marker-tooltip.spec.ts|a tap still opens the tooltip when the thread stalls between down and up",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "a tap still opens the tooltip when the thread stalls between down and up"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "tablet|marker-tooltip.spec.ts|a touch press that travels is a pan, not a tooltip tap",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "a touch press that travels is a pan, not a tooltip tap"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "mobile|marker-tooltip.spec.ts|tapping a marker opens its tooltip, and tapping away dismisses it",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "tapping a marker opens its tooltip, and tapping away dismisses it"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "mobile|marker-tooltip.spec.ts|a pane relayout after a tap re-anchors the tooltip instead of dismissing it",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "a pane relayout after a tap re-anchors the tooltip instead of dismissing it"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "mobile|marker-tooltip.spec.ts|a tap keeps the marker it started on when geometry moves before pointerup",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "a tap keeps the marker it started on when geometry moves before pointerup"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "mobile|marker-tooltip.spec.ts|a tap still opens the tooltip when the thread stalls between down and up",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "a tap still opens the tooltip when the thread stalls between down and up"
+    },
+    {
+      "expectedStatus": "passed",
+      "key": "mobile|marker-tooltip.spec.ts|a touch press that travels is a pan, not a tooltip tap",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "title": "a touch press that travels is a pan, not a tooltip tap"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/chart-clock-isolation.spec.ts",
+    "e2e/marker-tooltip.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--grep",
+    "(?:chart\\ clock\\ keeps\\ ticking\\ without\\ interrupting\\ navigation\\ or\\ an\\ open\\ settings\\ menu|tapping\\ a\\ marker\\ opens\\ its\\ tooltip,\\ and\\ tapping\\ away\\ dismisses\\ it|a\\ pane\\ relayout\\ after\\ a\\ tap\\ re\\-anchors\\ the\\ tooltip\\ instead\\ of\\ dismissing\\ it|a\\ tap\\ keeps\\ the\\ marker\\ it\\ started\\ on\\ when\\ geometry\\ moves\\ before\\ pointerup|a\\ tap\\ still\\ opens\\ the\\ tooltip\\ when\\ the\\ thread\\ stalls\\ between\\ down\\ and\\ up|a\\ touch\\ press\\ that\\ travels\\ is\\ a\\ pan,\\ not\\ a\\ tooltip\\ tap)$",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/test-results/pr702-current-browser-r3"
+  ],
+  "completedAt": "2026-11-09T19:12:25.740530+00:00",
+  "exit": 0,
+  "expectedPassed": 13,
+  "expectedSkipped": 5,
+  "freshClockImages": {
+    "desktop.png": {
+      "bytes": 269284,
+      "sha256": "60d2e4a06a958f3136b27890db925115f95886b7c4259a7448a0fdc9422eb6b8"
+    },
+    "mobile.png": {
+      "bytes": 91963,
+      "sha256": "2eb3bb0975435d61b4dab93c6fb82e8dbcefd7f176f9ef1756ef56d999e7bad1"
+    },
+    "tablet.png": {
+      "bytes": 149971,
+      "sha256": "c76825ee434b35753f81fdc969ce7c238e13f897781e8cae94fc2e11ba887333"
+    }
+  },
+  "head": "c31fe105d4a101531def3518e7b9801e70cc4867",
+  "historicalClockPacketRestoredUnchanged": true,
+  "integratedDependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr702-clock-integration-20261109/clock-touch-r3-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T19:12:25.592332+00:00",
+    "sha256": "6534b6d786f3516b1c039b80f14d4c8dc02dc97c9c4825cdec91268dda269ef5"
+  },
+  "logSha256": "3c8a0693801ef242da2510f9b0e1e2b35e5f947253ac22db901d9483e2be3c2a",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3906,
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "reportErrors": [],
+  "schema": "terminal_pr702_current_clock_and_touch_browser.v1",
+  "seconds": 98.35,
+  "selectedCaseCount": 18,
+  "sourceEntries": 1939,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T19:10:41.182513+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 97675.069,
+    "expected": 13,
+    "flaky": 0,
+    "skipped": 5,
+    "startTime": "2026-11-09T19:10:41.528Z",
+    "unexpected": 0
+  }
+}

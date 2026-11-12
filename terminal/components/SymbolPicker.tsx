@@ -129,16 +129,21 @@ export default function SymbolPicker({
       started.current = false;
       setFailed(true);
     };
-    const apply = (m: unknown) => {
-      if (!mounted.current) return;
+    let corrected = false;
+    const apply = (m: unknown): boolean => {
+      if (!mounted.current) return false;
       const next = readManifestSymbols(m);
-      if (next === null) { giveUp(); return; }
+      if (next === null) { giveUp(); return false; }
       setSymbols(next);
       setFailed(false);
+      return true;
     };
-    getJSONResult(MANIFEST_URL, { onRevalidate: apply })
-      .then((outcome) => { if (outcome.status === "data") apply(outcome.data); else giveUp(); })
-      .catch(giveUp);
+    getJSONResult(MANIFEST_URL, { onRevalidate: (m) => { if (apply(m)) corrected = true; } })
+      .then((outcome) => {
+        if (corrected) return;
+        if (outcome.status === "data") apply(outcome.data); else giveUp();
+      })
+      .catch(() => { if (!corrected) giveUp(); });
   }, []);
 
   const retryUniverse = useCallback(() => {

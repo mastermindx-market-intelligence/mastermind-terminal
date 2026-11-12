@@ -62,6 +62,8 @@ type Entry = {
   // Acquisition cutoff for these exact bytes. ts remains the TTL/eviction clock.
   observedAtMs?: number;
   inflight: Promise<CacheOutcome> | null;
+  // Corrections belong only to this in-flight request, never to a global subscriber owner.
+  corrections?: NonNullable<GetOpts["onRevalidate"]>[];
   refresh?: { source: StaleServe["source"]; revalidation?: Promise<Revalidation> };
 };
 
@@ -285,6 +287,8 @@ async function fetchOutcome(url: string): Promise<FetchedOutcome> {
 type Fetch = { outcome: Promise<CacheOutcome>; revalidation: Promise<Revalidation> };
 function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void): Fetch {
   const started = currentGeneration();
+  const corrections = onRevalidate ? [onRevalidate] : [];
+  entry.corrections = corrections;
   let settle: (result: Revalidation) => void = () => {};
   const revalidation = new Promise<Revalidation>((resolve) => { settle = resolve; });
   const inflight: Promise<CacheOutcome> = fetchOutcome(url).then((outcome) => {
@@ -314,10 +318,11 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
         if (idbAvailable()) {
           void idbPut(url, committed.data, committed.ts, outcome.observedAtMs);
         }
-        // Hand the corrected payload to the caller that already received the stale one.
-        // Isolated: a throwing consumer must not break the cache commit above.
-        if (onRevalidate) {
-          try { onRevalidate(outcome.data); } catch { /* consumer's problem, not the cache's */ }
+        // Each stale reader receives this request's committed correction at most once.
+        // A callback may invalidate the key, clear the cache or advance its generation fence.
+        for (const correct of corrections) {
+          if (store.get(url) !== committed || !stillCurrent(url, started)) break;
+          try { correct(outcome.data); } catch { /* isolate a throwing consumer */ }
         }
         settle("ok");
       }
@@ -325,6 +330,8 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
       // Invalidated or replaced while in flight: the cache discarded this answer.
       settle("superseded");
     }
+    corrections.length = 0;
+    entry.corrections = undefined;
     return outcome.status === "data" ? { status: "data", data: outcome.data } : outcome;
   });
 
@@ -346,12 +353,18 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
  * an invalidation all pass through unchanged. Readers that opted out of stale serves
  * (`swr: false`) always get the request's own outcome.
  */
-function joinInflight(entry: Entry, swr: boolean): Promise<CacheOutcome> {
+function joinInflight(entry: Entry, swr: boolean, onRevalidate?: GetOpts["onRevalidate"]): Promise<CacheOutcome> {
   const inflight = entry.inflight!;
   const refresh = entry.refresh;
   if (!swr || !refresh?.revalidation) return inflight;
   const { data, ts } = entry;
   const revalidation = refresh.revalidation;
+  // Only a callback-aware SWR reader can paint the held copy before this refresh settles.
+  // Keep the same stale source, age and settlement promise used by the refresh owner.
+  if (onRevalidate && data != null && entry.corrections) {
+    entry.corrections.push(onRevalidate);
+    return Promise.resolve({ status: "data", data, stale: { ageMs: Date.now() - ts, source: refresh.source, revalidation } });
+  }
   return inflight.then(async (outcome): Promise<CacheOutcome> => {
     if (outcome.status !== "unavailable" || (await revalidation) !== "failed") return outcome;
     return { status: "data", data, stale: { ageMs: Date.now() - ts, source: refresh.source, revalidation } };
@@ -411,7 +424,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
   if (entry) {
     // 1. Deduplicate in-flight requests.
     if (entry.inflight !== null) {
-      return joinInflight(entry, swr);
+      return joinInflight(entry, swr, opts?.onRevalidate);
     }
 
     const age = now - entry.ts;
@@ -446,7 +459,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
     // have populated it while we awaited the IDB read. If so, defer to it.
     const raced = store.get(url);
     if (raced) {
-      if (raced.inflight !== null) return joinInflight(raced, swr);
+      if (raced.inflight !== null) return joinInflight(raced, swr, opts?.onRevalidate);
       if (Date.now() - raced.ts < ttl) {
         touch(url, raced);
         return { status: "data", data: raced.data };

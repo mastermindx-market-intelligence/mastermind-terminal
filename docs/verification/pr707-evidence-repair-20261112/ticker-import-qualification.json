@@ -1,0 +1,103 @@
+{
+  "startedAt": "2026-11-12T03:22:48.061419+00:00",
+  "branchHead": "011aad66dcb6543b1b666aa0449b2235dae137b4",
+  "artifactId": 13909106549,
+  "runId": 43136885570,
+  "jobId": 130914883784,
+  "zipSha256": "ddb99b3cf76919f85246cbed24a38eb1f22e3fb49c4478e7c708f0f6bce840d0",
+  "captureSha256": "de09c0ee65479944dbed103ea0cbb71d8b3a8b4a5302675eb8ade7e18e22c8cd",
+  "prior": {
+    "EVIDENCE.yml": "5c7ec580e3598506c7257df29c190cce43dd072aa6bcb4fb718b0249e22bddf5",
+    "unavailable-desktop-zh-dark.png": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e",
+    "unavailable-desktop-en-dark.png": "fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae",
+    "unavailable-mobile-en-dark.png": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a",
+    "unavailable-mobile-zh-dark.png": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9",
+    "mobile-zh-dark.png": "6c02582628415fa14a238c4736dc5190669988aa95ddb71bf542fa6fe5fba4ee",
+    "mobile-en-dark.png": "76de39d18a3df8a7fe5e2fb33265a8721256b020d7370dae6516541b6b4e2452",
+    "desktop-en-dark.png": "de91b52f5a7dfeae5e149d812d21afed7ce69e6f11512aeaf01a0eb97d54e5e3",
+    "desktop-zh-dark.png": "05fa414585cc4344cbf331d034e666f9b53baae536aaad7b214c85f455f5b9b1",
+    "tablet-en-dark.png": "8dfafe5d85dc21c96eba188aafae74bf93e40e3ae5530e99f9848ba160a4c5fd",
+    "tablet-zh-dark.png": "b1d6553ac8d5b33194e0df38610b571e36324a4202510421737e26cfb9eb8bfa"
+  },
+  "sources": {
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/TerminalShell.tsx": "7879c755a83e5f275a292370b6b87c63004c66ff56e805a9f04250d03e99eb3e",
+    "terminal/components/WatchlistDisplaySettings.tsx": "d5828deefbff707d33646f15a22586b8328e8ccbabe4adf2d567a3687c60b827",
+    "terminal/components/WatchlistDisplaySettings.module.css": "da83dd290765bdd6e576e122e7e94188182a8f8456ba68b10b0bcd38f515db41",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "terminal/e2e/ticker-news.spec.ts": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "terminal/e2e/watchlistStore.ts": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "terminal/e2e/presentationControls.ts": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/docs/specimens/news-flow.light.css": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "capturedCheckout": {
+    "commit": "9f30450f782f681786df8b1838f4535f8d26fdf1",
+    "tree": "f85bef86e280eaa051fd982b9fb7e87842197704",
+    "parents": []
+  },
+  "githubParents": [
+    "6527a52c24ce7946710a33ccc6c8ec7d42ab8bdb",
+    "011aad66dcb6543b1b666aa0449b2235dae137b4"
+  ],
+  "completedAt": "2026-11-12T03:22:48.132745+00:00",
+  "state": "IMPORTED_ORIGINAL_QUALIFIED_PACKET",
+  "current": {
+    "EVIDENCE.yml": "dd854a60201b7d81b9c40be3fd3c6f7535f163baf9da9494de3812714e5d43d7",
+    "unavailable-desktop-zh-dark.png": "ebea24870d259112a37493ea24b5ace11be55ae5c05a25b7e69eae1c74fb5de9",
+    "unavailable-desktop-en-dark.png": "fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae",
+    "unavailable-mobile-en-dark.png": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a",
+    "unavailable-mobile-zh-dark.png": "f679e488b100a6443fed8307f9f8ba54cf471172ea21bc04c1cfc8b774bbfe0f",
+    "mobile-zh-dark.png": "bd6e335b4df4ebd2affa8000038033e5958fb244be89fa39bbcb24e61bf8ae57",
+    "mobile-en-dark.png": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602",
+    "desktop-en-dark.png": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9",
+    "desktop-zh-dark.png": "bd9813662c8006dd444036a725dae689aeb3750f881be04e23b8f8d1c1ad7ed8",
+    "tablet-en-dark.png": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f",
+    "tablet-zh-dark.png": "cb33f9bd3f3a7388407bce9891ef06f63defddfce3eafaaff0f19b0e215e7e96"
+  },
+  "sourceHashesUnchanged": true,
+  "otherPacketsUnchanged": true,
+  "actualLifecycle": {
+    "playwrightReturned": true,
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "rawAcceptanceFields": {
+    "producerActivation": false,
+    "productionAcceptance": false,
+    "visualAcceptance": false
+  },
+  "rootVisualReview": {
+    "inspectedFiles": [
+      "desktop-en-dark.png",
+      "desktop-zh-dark.png",
+      "tablet-en-dark.png",
+      "tablet-zh-dark.png",
+      "mobile-en-dark.png",
+      "mobile-zh-dark.png",
+      "unavailable-desktop-en-dark.png",
+      "unavailable-desktop-zh-dark.png",
+      "unavailable-mobile-en-dark.png",
+      "unavailable-mobile-zh-dark.png"
+    ],
+    "observations": "All ten actual PNGs inspected in five pairs. Live-feed controls, article cards and summaries fit at desktop, tablet and mobile widths; English and Chinese interface labels are legible. Four unavailable views show the explicit message and Retry control. No missing-glyph boxes or content overlap observed. Fixture article copy remains English in Chinese views. Artifact review only; no native-font witness or authenticated production claim."
+  },
+  "nextProof": "Existing strict ticker reader after the two F08 packets complete",
+  "initialImportedManifestSha256": "a6f02ca7db2f067325ea917f8b987c116913f448fcff87d65a82e7707e3e6e67",
+  "manifestFormatCorrection": {
+    "recordedAt": "2026-11-12T03:32:06.424923+00:00",
+    "beforeSha256": "a6f02ca7db2f067325ea917f8b987c116913f448fcff87d65a82e7707e3e6e67",
+    "afterSha256": "dd854a60201b7d81b9c40be3fd3c6f7535f163baf9da9494de3812714e5d43d7",
+    "reason": "PyYAML default emitted valid indentless sequences, while the existing strict reader requires the established two-space sequence format. Restore that original format without changing parsed values, captures, hashes, identity, or reader.",
+    "yamlSemanticsUnchanged": true,
+    "originalThreeReaderResult": "10 passed,2 ticker format failures; both F08 suites passed4each"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "browserStarted": true,
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/exposure-workspace.spec.ts",
+    "e2e/options-exposure-workspace.spec.ts",
+    "e2e/options-lab-source-state.spec.ts",
+    "e2e/options-exposure-surface-journey.spec.ts",
+    "e2e/options-research-question.spec.ts",
+    "e2e/exposure-partial-totals.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/docs/verification/exposure-workspace-20261103/warm-cache-integration-20261111/browser-artifacts/playwright",
+    "--reporter=list,json"
+  ],
+  "startedAt": "2026-11-12T00:39:49.936003+00:00"
+}

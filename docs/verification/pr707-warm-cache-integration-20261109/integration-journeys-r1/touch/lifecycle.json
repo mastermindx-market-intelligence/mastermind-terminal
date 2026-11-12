@@ -1,0 +1,110 @@
+{
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "60246",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "listener": {
+    "command": [
+      "lsof",
+      "-nP",
+      "-iTCP:3908",
+      "-sTCP:LISTEN"
+    ],
+    "exit": 1,
+    "stderr": "",
+    "stdout": ""
+  },
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://127.0.0.1:3908",
+    "hostname": "127.0.0.1",
+    "pid": 60246,
+    "port": 3908,
+    "startedAt": 1794446315779
+  },
+  "lockAbsent": false,
+  "lockIdentityAfterChecks": {
+    "device": 16777252,
+    "inode": 360355049
+  },
+  "lockIdentityBeforeChecks": {
+    "device": 16777252,
+    "inode": 360355049
+  },
+  "lockPresent": true,
+  "lockRetained": true,
+  "lockSha256": "d34024958a52e25293002c99ecdf0877dec1082b0c16281f15f92f9d2c344907",
+  "lockUnlinked": false,
+  "ownedServerObservation": {
+    "ancestry": [
+      {
+        "command": "next-server (v16.4.6)",
+        "pid": 60246,
+        "ppid": 60239
+      },
+      {
+        "command": "node",
+        "pid": 60239,
+        "ppid": 60205
+      },
+      {
+        "command": "npm run dev --hostname 127.0.0.1 --port 3908",
+        "pid": 60205,
+        "ppid": 60182
+      },
+      {
+        "command": "node",
+        "pid": 60182,
+        "ppid": 53644
+      }
+    ],
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3908",
+        "-sTCP:LISTEN",
+        "-Fp"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "p60246\nf13\n"
+    },
+    "listenerPids": [
+      60246
+    ],
+    "lock": {
+      "appUrl": "http://127.0.0.1:3908",
+      "hostname": "127.0.0.1",
+      "pid": 60246,
+      "port": 3908,
+      "startedAt": 1794446315779
+    },
+    "lockSha256": "d34024958a52e25293002c99ecdf0877dec1082b0c16281f15f92f9d2c344907",
+    "observedAt": "2026-11-12T01:18:36.038143+00:00",
+    "pid": 60246,
+    "playwrightPid": 60182
+  },
+  "port": 3908,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

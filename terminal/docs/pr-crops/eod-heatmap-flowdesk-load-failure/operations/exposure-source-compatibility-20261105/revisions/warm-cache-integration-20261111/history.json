@@ -1,0 +1,22 @@
+{
+  "actualGit": {
+    "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  },
+  "captureRootPreimageSha256": "398ee08642c4db5eb7ee1648e5865e42146fd98aec9f96a208727bfe003d832d",
+  "capturedSourceSnapshotSha256": "11137db4ccd0bac85dbc84232fb43885f3752192351ba3e6dae7dbf99a290281",
+  "integratedSourceHeads": [
+    "0fd27ff1dfb7e031457a4ffe4c05458587c4eb81",
+    "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  ],
+  "kind": "eod",
+  "operation": "exposure-source-compatibility-20261105",
+  "packet": "eod-heatmap-flowdesk-load-failure",
+  "producerHistory": null,
+  "publishedBasis": "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2",
+  "revision": "warm-cache-integration-20261111",
+  "schema": "exposure_warm_cache_native_capture_history.v1",
+  "sourceIdentity": "stable-composed-working-tree"
+}

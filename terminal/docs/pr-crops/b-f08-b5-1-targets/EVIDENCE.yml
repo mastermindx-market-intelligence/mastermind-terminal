@@ -1,8 +1,8 @@
 # B-F08-B5-1 portfolio construction targets — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 0f077993fc1a1244531f825d3d829491f47d338c
-# capturedAt: 2026-11-10T07:49:57.152Z
+# capturedAtHead: 181e06a944bf892f7cb064a3aeab96ac827bc5ca
+# capturedAt: 2026-11-12T00:31:34.185Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/lib/portfolioMoney.ts: "24e6fdaa6766ede2554b2d2d07be81e8f0b202028ecd03301ccbb1549652c7b1"
@@ -12,7 +12,7 @@ layoutFiles:
   terminal/components/PortfolioWorkspace.module.css: "44c92cf281693c8e1f444c8551cfd603ce99338190ea85aa0326072caf92cabf"
   terminal/components/PortfolioRoleEditor.tsx: "f8e913ccfb907ddeb9869b0996a173ba489f9fbf8cd7af78a6888d0cf3a8c77a"
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
-  terminal/components/PortfolioView.tsx: "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec"
+  terminal/components/PortfolioView.tsx: "941bd8bba633f33e1bba02b49ef70bfd7f2985442adaed167daf6c48836a7413"
   terminal/lib/portfolioTargets.ts: "23ad61bfe11303b10dae33a5a8933e570080c52b9678fe70685f1a27ea3c1635"
   terminal/components/PortfolioTargets.module.css: "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a"
 theme: dark

@@ -1,0 +1,15 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/tickerNewsEvidence.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal
+
+ ✓ lib/__tests__/tickerNewsEvidence.test.ts (4 tests) 40ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  20:32:06
+   Duration  825ms (transform 75ms, setup 0ms, collect 88ms, tests 40ms, environment 0ms, prepare 105ms)
+

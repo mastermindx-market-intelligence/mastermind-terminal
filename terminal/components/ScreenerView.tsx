@@ -489,6 +489,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // ── fetch manifest via dataCache (dedup + SWR) + mounted guard ─────────
   useEffect(() => {
     let alive = true;
+    let corrected = false;
     // onRevalidate: dataCache serves the persisted manifest stale on every load, so without
     // it the screener — including the "as of" date it prints — would show whatever board
     // this browser last cached. An honest-looking date on a stale table is the worst case.
@@ -533,17 +534,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     // A background revalidation that FAILS leaves the last good scan on screen (it is still a
     // real answer, just older) — onRevalidate only ever fires with data.
     getJSONResult("/data/manifest.json", {
-      onRevalidate: (m: any) => { if (alive && isManifestShape(m)) apply(m); },
+      onRevalidate: (m: any) => { if (alive && isManifestShape(m)) { apply(m); corrected = true; } },
     })
       .then((res) => {
-        if (!alive) return;
+        if (!alive || corrected) return;
         if (res.status === "data" && isManifestShape(res.data)) { apply(res.data); return; }
         // No scan. `absent` = the manifest is not published at this address; anything else
         // (network, 5xx, unparseable body, a 200 that is not a manifest) = we could not find out.
         setErr(res.status === "absent" ? "absent" : "unavailable");
         setLoaded(true);
       })
-      .catch(() => { if (alive) { setErr("unavailable"); setLoaded(true); } });
+      .catch(() => { if (alive && !corrected) { setErr("unavailable"); setLoaded(true); } });
     return () => { alive = false; };
   }, [reloadN]);
 

@@ -7,7 +7,7 @@ import path from 'node:path';
 import { createRoot, type Root } from 'react-dom/client';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 import SymbolPicker from '@/components/SymbolPicker';
-import { getJSONResult, invalidate, peek, _neg404Has } from '@/lib/dataCache';
+import { getJSONResult, invalidate, peek, prefetch, _neg404Has } from '@/lib/dataCache';
 
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => "guest" }));
 vi.mock("@/lib/useMarketPrefs", () => ({ useMarketPrefs: () => ({ prefs: {}, ready: true, enableAll: () => {} }) }));
@@ -99,5 +99,29 @@ describe('SymbolPicker malformed universe recovery', () => {
  it('unmounted request does not apply to a replacement picker', async () => {
   const old=deferred(); fetcher.mockReturnValueOnce(old.promise).mockImplementation(() => response(plain)); await mount(); await start(); await act(async () => root.render(null)); invalidate(URL);
   await mount(); await start(); expect(visible()).toEqual(plain.symbols); await act(async () => old.resolve(await response(good))); expect(visible()).toEqual(plain.symbols);
+ });
+});
+
+describe('SymbolPicker near-commit warm read ordering', () => {
+ for (const [label, correction, expected] of [
+  ['usable', plain, plain.symbols],
+  ['malformed', {symbols: []}, good.symbols],
+ ] as const) it(`keeps the usable final universe when a ${label} correction precedes the initial warm answer`, async () => {
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(100000);
+  await getJSONResult(URL);
+  clock.mockReturnValue(200000);
+  let releaseJson!: (value: unknown) => void;
+  const body = new Promise<unknown>(resolve => { releaseJson = resolve; });
+  fetcher.mockReturnValueOnce(Promise.resolve({ ok: true, status: 200, json: () => body } as Response));
+  prefetch(URL, { ttl: 0 });
+  await mount();
+  expect(state()).toBe('loading');
+  // Resolve the existing refresh body, then issue actual picker intent in this turn.
+  // Its callback can commit before the async warm answer reaches the same consumer.
+  releaseJson(correction);
+  await start();
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(state()).toBe('ready');
+  expect(visible()).toEqual(expected);
  });
 });

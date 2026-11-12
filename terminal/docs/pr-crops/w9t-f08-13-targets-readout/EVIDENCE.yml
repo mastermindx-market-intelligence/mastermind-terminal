@@ -1,8 +1,8 @@
 {
-  "capturedAtHead": "80e69c39e00b6c16c5fc32b5ca1e9146d31b264d",
-  "capturedAt": "2026-11-09T14:24:52.800Z",
+  "capturedAtHead": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "capturedAt": "2026-11-12T00:32:23.730Z",
   "layoutFiles": {
-    "terminal/components/PortfolioView.tsx": "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec",
+    "terminal/components/PortfolioView.tsx": "941bd8bba633f33e1bba02b49ef70bfd7f2985442adaed167daf6c48836a7413",
     "terminal/components/PortfolioTargets.module.css": "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a",
     "terminal/lib/portfolioTargets.ts": "23ad61bfe11303b10dae33a5a8933e570080c52b9678fe70685f1a27ea3c1635",
     "terminal/lib/portfolioMoney.ts": "24e6fdaa6766ede2554b2d2d07be81e8f0b202028ecd03301ccbb1549652c7b1",
@@ -51,13 +51,13 @@
     "PortfolioTargetsSettings-populated-390-zh.png"
   ],
   "captureFiles": {
-    "PortfolioTargetsSettings-empty-1440-en.png": "0d10e629c046238ed3db2e53e834ae86d817e41ac6083e2eb75d2f3c27dc35bb",
-    "PortfolioTargetsSettings-empty-1440-zh.png": "a5a62f4a69d533e49517bca56d7d9feaa447cf0d69d41e812b08a1e94628429c",
-    "PortfolioTargetsSettings-empty-390-en.png": "0f3d15f28df8e3af6d8eac6198cd8464ec01ea162631efc0953558f3f32b2f8e",
-    "PortfolioTargetsSettings-empty-390-zh.png": "d771df38d5c57cf738039754439badd7a406bbd62adbab18af23bf52b0bca45e",
-    "PortfolioTargetsSettings-populated-1440-en.png": "b16675ffc282fd346bc5b2729bb283941878b74fb424eba4510ec33de90525fa",
-    "PortfolioTargetsSettings-populated-1440-zh.png": "aa0e070feb5c08bd96c232f0e260b75a87b7e0b941c6c19e31bcb656b4a854bb",
-    "PortfolioTargetsSettings-populated-390-en.png": "9a7391b97773e832b9db2a94c1961447b85486bbcd2fbfc68d399a44f0eea8cc",
-    "PortfolioTargetsSettings-populated-390-zh.png": "bbc144f3b9266050b003e1e36c351b38df476c782614613c7e4e57d4d0819f39"
+    "PortfolioTargetsSettings-empty-1440-en.png": "ec8c65f99f7fbf28906f0c4c12b4f4afaca6209d8a5ec355b478c4f79276e359",
+    "PortfolioTargetsSettings-empty-1440-zh.png": "758deb6df5ee284893805ff65cd0e6c0d51d7856a0555637cd424eae70ee083f",
+    "PortfolioTargetsSettings-empty-390-en.png": "e5b4823b4b48a2d3cefdc312e419087335f811d8a13e6dbf6c53f283e04f97f0",
+    "PortfolioTargetsSettings-empty-390-zh.png": "34205f97597e826dc289a74fed7d4827e9c8f99661f805cca33e34ec69654d20",
+    "PortfolioTargetsSettings-populated-1440-en.png": "469269b05bd0019024d50d77a791470c40ad64f689ab5e900cddcbe9525ec118",
+    "PortfolioTargetsSettings-populated-1440-zh.png": "7891bbbf8f517f4094169a412935ecfc5ba9b7ad4c8a3c2f8e068ac86afa06ed",
+    "PortfolioTargetsSettings-populated-390-en.png": "f8a37b38ddcd1e23175df62004da68e22eede6a7634adf1620bf7cdceee44c31",
+    "PortfolioTargetsSettings-populated-390-zh.png": "30c9c2979a222c70d2598715e321d2c74dea1eed4a5cc7323b85af24f17be94d"
   }
 }

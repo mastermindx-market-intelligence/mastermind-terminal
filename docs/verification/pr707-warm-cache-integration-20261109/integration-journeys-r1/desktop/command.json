@@ -1,0 +1,22 @@
+{
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/warm-symbol-picker.spec.ts",
+    "e2e/marker-tooltip.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/docs/verification/pr707-warm-cache-integration-20261109/integration-journeys-r1/desktop/browser-artifacts/playwright",
+    "--grep",
+    "(?:a\\ cached\\ symbol\\ picker\\ stays\\ usable\\ during\\ refresh\\ and\\ receives\\ the\\ corrected\\ company|signals\\ and\\ every\\ price\\ overlay\\ stay\\ scoped\\ to\\ a\\ moved\\ price\\ pane|Gap\\ Zones\\ stays\\ clipped\\ to\\ price\\ when\\ oscillator\\ panes\\ are\\ present)$",
+    "--reporter=list,json"
+  ],
+  "expectedPassed": [
+    "desktop|Gap Zones stays clipped to price when oscillator panes are present",
+    "desktop|a cached symbol picker stays usable during refresh and receives the corrected company",
+    "desktop|signals and every price overlay stay scoped to a moved price pane"
+  ],
+  "startedAt": "2026-11-12T01:17:53.116094+00:00"
+}

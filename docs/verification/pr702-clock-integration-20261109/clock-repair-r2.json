@@ -1,0 +1,21 @@
+{
+  "schema": "terminal_pr702_current_clock_repair.v1",
+  "state": "IMPLEMENTED_PENDING_ORIGINAL_CONTRACT_PROOF",
+  "preparedAt": "2026-11-09T18:59:34.465049+00:00",
+  "path": "terminal/components/ChartFrameBar.tsx",
+  "before": "33a2887e6bf5230630ec9836269363b82e8c4b0b39623dcc6063794199297ca3",
+  "after": "4d681edc2b6db4fceadffdf2a22b9e5e9f78114685842a34973e443ed72c0f0c",
+  "behavior": [
+    "single Date per paint for displayed time and offset",
+    "existing DOM-ref effect owns one optional interval",
+    "hidden visibility stops work",
+    "visible visibility paints immediately and owns one interval",
+    "cleanup removes same listener and interval"
+  ],
+  "originalRed": {
+    "path": "docs/verification/pr702-clock-integration-20261109/clock-red-r1/execution.json",
+    "sha256": "0341f6aafdbac75b313b2dc29f03fd7a947bc2dc5918454c8f24bfb312154608",
+    "passed": 2,
+    "failed": 3
+  }
+}
