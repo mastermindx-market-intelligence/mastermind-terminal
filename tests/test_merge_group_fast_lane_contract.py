@@ -473,10 +473,19 @@ def test_evidence_capture_fans_out_and_terminal_unit_fans_in() -> None:
     run = by_name["Capture this evidence shard"]
     assert run["run"] == "node e2e/tools/capture_ci_evidence.cjs --shard ${{ matrix.shard }}"
     assert run["if"] == SELECTIVE and not run.get("continue-on-error", False)
+    # The PL6 leg's legal worst case is 46-52 min: the step budget (55) covers
+    # it and the tool's internal deadline (54, below the step) can actually
+    # fire instead of the runner killing the step mid-write.
+    assert run["timeout-minutes"] == 55
+    assert run["env"] == {"CI_CAPTURE_BUDGET_MINUTES": "54"}
+    assert capture["timeout-minutes"] == 60
     upload = by_name["Retain this shard's bytes and receipt"]
     assert upload["if"] == SELECTIVE
-    assert upload["with"]["name"] == "evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}"
+    # Attempt-free names + overwrite keep "Re-run failed jobs" lawful: the
+    # rerun replaces failed legs' artifacts while succeeded legs keep theirs.
+    assert upload["with"]["name"] == "evidence-shard-${{ github.run_id }}-${{ matrix.shard }}"
     assert upload["with"]["if-no-files-found"] == "error"
+    assert upload["with"]["overwrite"] is True
     for step in capture["steps"]:
         assert "TERMINAL_EVIDENCE" not in str(step.get("run", "")), "shards never select records"
 
@@ -485,7 +494,7 @@ def test_evidence_capture_fans_out_and_terminal_unit_fans_in() -> None:
     unit = {s["name"]: s for s in steps if "name" in s}
     downloads = [s for s in steps if str(s.get("uses", "")).startswith("actions/download-artifact")]
     assert [d["with"]["name"] for d in downloads] == [
-        f"evidence-shard-${{{{ github.run_id }}}}-${{{{ github.run_attempt }}}}-{shard}" for shard in CAPTURE_SHARDS]
+        f"evidence-shard-${{{{ github.run_id }}}}-{shard}" for shard in CAPTURE_SHARDS]
     assert [d["with"]["path"] for d in downloads] == [
         f"${{{{ runner.temp }}}}/terminal-ci-evidence-shards/{shard}" for shard in CAPTURE_SHARDS]
     assert all(d["if"] == SELECTIVE and not d.get("continue-on-error", False) for d in downloads)

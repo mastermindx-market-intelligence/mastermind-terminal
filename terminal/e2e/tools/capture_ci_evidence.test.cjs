@@ -6,7 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { createHash } = require("node:crypto");
 const { EventEmitter } = require("node:events");
-const { runShard, runFanIn, SHARDS } = require("./capture_ci_evidence.cjs");
+const { runShard, runFanIn, SHARDS, capturePorts, captureDeadlineMs } = require("./capture_ci_evidence.cjs");
 const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions, batch2Plan, EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS, eodPacket, nativeDefinition, nativeSources, verifyNativeHistory, superviseNative } = require("./capture_ci_evidence.cjs");
 
 const { LAYOUT_FILES, EXPECTED_FILES, assertCompletePacket, assertCaptureNavigation, cropBox } = require("./capture_pl6_batch2.cjs");
@@ -109,7 +109,7 @@ function nativeSpawn(f, change) {
       if (family === "gex" && change.nativeSecondMutatesFirstSource) fs.appendFileSync(path.join(f.repoRoot, f.nativeFixture.eod.definition.producer.LAYOUT_FILES[1]), "changed after first qualification");
       if (family === "gex" && change.nativeSecondMutatesFirstImage) fs.writeFileSync(path.join(f.nativeFixture.eod.directory, f.nativeFixture.eod.definition.files[0]), "SYNTHETICPNG:changed after first qualification");
       if (family === "gex" && change.nativeSecondMutatesComposition) fs.appendFileSync(path.join(f.repoRoot,
-        `terminal/docs/pr-crops/b-pl-6-batch-1/ci-${f.env.GITHUB_RUN_ID}-${f.env.GITHUB_RUN_ATTEMPT}-current.composition.json`), "changed");
+        `terminal/docs/pr-crops/b-pl-6-batch-1/ci-${f.env.GITHUB_RUN_ID}-current.composition.json`), "changed");
       const completion = `wrote ${definition.count} crops + EVIDENCE.yml (head ${"a".repeat(40)})\n`;
       if (!change.nativeMissingCompletion) fs.writeSync(options.stdio[1], completion);
       if (change.nativeDuplicateCompletion) fs.writeSync(options.stdio[1], completion);
@@ -270,10 +270,11 @@ function fixture(t, change = {}) {
       throw new Error("PNG_INVALID");
     return { sha256: hash(bytes), width: 10, height: 10 };
   };
-  const legacyCalls = [];
+  const legacyCalls = [], legacyPorts = [];
   const spawnLegacy = (_command, args, options) => {
     const definition = packets.find(packet => packet.script === args[0]);
     legacyCalls.push(definition.packet);
+    legacyPorts.push(options.env.TERMINAL_CROP_PORT);
     const child = new EventEmitter(); child.pid = 424242;
     queueMicrotask(() => {
       child.emit("message", { legacyCaptureServer: { captureId: options.env.TERMINAL_LEGACY_CAPTURE_ID, phase: "started", pid: 424243, pgid: 424243 } });
@@ -311,7 +312,7 @@ function fixture(t, change = {}) {
   const diagnostic = () => JSON.parse(fs.readFileSync(path.join(diagnostics, `${ids.prefix}.json`)));
   const selected = () => fs.existsSync(env.GITHUB_ENV) ? fs.readFileSync(env.GITHUB_ENV, "utf8") : "";
   const spawns = { spawn: combinedSpawn, spawnLegacy, spawnNative };
-  return { spawns, write, evidence, repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest,
+  return { spawns, write, evidence, repoRoot, env, ids, calls, legacyCalls, legacyPorts, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest,
     eodDirectory, eodManifest, eodPrior, nativeCalls, nativeFixture };
 }
 
@@ -461,9 +462,12 @@ test("capture filtering and prior composition are refused before child execution
   }
 });
 
-test("stable per-run/attempt IDs refuse invalid values and duplicate invocation cannot overwrite", async t => {
+test("stable per-run IDs refuse invalid values and duplicate invocation cannot overwrite", async t => {
   const f = fixture(t); assert.deepEqual(operationIds(f.env), operationIds({ ...f.env }));
-  assert.notEqual(operationIds({ ...f.env, GITHUB_RUN_ATTEMPT: "3" }).pl6, f.ids.pl6);
+  // The attempt is deliberately NOT part of any id: a rerun of the same run
+  // must compose with the artifacts its succeeded shards already retained.
+  assert.equal(operationIds({ ...f.env, GITHUB_RUN_ATTEMPT: "3" }).pl6, f.ids.pl6);
+  assert.notEqual(operationIds({ ...f.env, GITHUB_RUN_ID: "41600914409" }).pl6, f.ids.pl6);
   assert.throws(() => operationIds({ ...f.env, GITHUB_RUN_ID: "1\nx=2" }), /CI_EVIDENCE_ID/);
   await f.invoke(); const before = f.diagnostic(); await assert.rejects(f.invoke, /EEXIST/); assert.deepEqual(f.diagnostic(), before);
 });
@@ -1384,6 +1388,75 @@ test("fan-out: a VI shard runs one project and its delta is only its own new ope
   assert.deepEqual(x.shards.pl6.f.calls.map(c => c.args), [["e2e/tools/capture_pl6_batch1.cjs"]]);
 });
 
+test("capture ports stay literal without a runner name and derive disjoint sets from one", () => {
+  assert.deepEqual(capturePorts({}), { pl6: "3536", vi: "3537", batch2: "3538", pine: "3571", batch3: "3572" });
+  const laneSlot = capturePorts({ RUNNER_NAME: "runner-slot-7" });
+  const hosted = capturePorts({ RUNNER_NAME: "github-actions-runner-abc123" });
+  assert.deepEqual(capturePorts({ RUNNER_NAME: "runner-slot-7" }), laneSlot, "same name, same ports");
+  const bands = [[3050, 3300], [3530, 3610], [31990, 32100], [47270, 47300]];
+  for (const ports of [laneSlot, hosted]) {
+    const numbers = Object.values(ports).map(Number);
+    assert.equal(new Set(numbers).size, 5, "the five capture ports are disjoint");
+    for (const port of numbers) {
+      assert.ok(port >= 1024 && port <= 65535, `${port} in range`);
+      for (const [low, high] of bands) assert.ok(port < low || port > high, `${port} inside reserved band ${low}-${high}`);
+    }
+  }
+  const all = [...Object.values(laneSlot), ...Object.values(hosted)];
+  assert.equal(new Set(all).size, 10, "two concurrent legs never share a port");
+});
+
+test("each capture shard passes its runner-derived ports to every capture child", async t => {
+  const f = fixture(t, { writeOperations: true, legacyStale: true });
+  f.env.RUNNER_NAME = "runner-slot-7";
+  const ports = capturePorts(f.env);
+  await runShard("pl6", { repoRoot: f.repoRoot, env: f.env, evidence: f.evidence, checkout: f.checkout,
+    spawn: f.spawns.spawn, spawnLegacy: f.spawns.spawnLegacy });
+  assert.equal(f.calls.find(c => c.args[0].includes("capture_pl6_batch1")).options.env.TERMINAL_CROP_PORT, ports.pl6);
+  assert.deepEqual(f.legacyPorts, [ports.pine, ports.batch3], "legacy qualification uses the same derived set");
+
+  const g = fixture(t, { writeOperations: true });
+  g.env.RUNNER_NAME = "github-actions-runner-xyz";
+  await runShard("vi-mobile", { repoRoot: g.repoRoot, env: g.env, evidence: g.evidence, checkout: g.checkout,
+    spawn: g.spawns.spawn });
+  const args = g.calls.find(c => c.args.includes("--project")).args;
+  assert.equal(args[args.indexOf("--port") + 1], capturePorts(g.env).vi);
+  assert.notEqual(capturePorts(g.env).vi, ports.vi, "co-located legs get different dev ports");
+});
+
+test("the capture deadline follows the workflow budget and rejects malformed values", () => {
+  for (const [env, expected] of [[{ CI_CAPTURE_BUDGET_MINUTES: "5" }, 5], [{}, 54]]) {
+    const before = Date.now(), deadline = captureDeadlineMs(env, 54);
+    assert.ok(deadline >= before + expected * 60_000 && deadline <= Date.now() + expected * 60_000 + 100);
+  }
+  for (const bad of ["zero", "0", "-3", "601", "1.5", "5min"]) {
+    const env = { CI_CAPTURE_BUDGET_MINUTES: bad };
+    assert.throws(() => captureDeadlineMs(env, 54), /CI_CAPTURE_BUDGET_MINUTES/, bad);
+  }
+});
+
+test("a shard's budget below its legacy qualification margin refuses before any legacy child", async t => {
+  // CI_CAPTURE_BUDGET_MINUTES=1 leaves 60s - 90s settle margin < 0, so the
+  // tool's own budget error fires immediately instead of the runner killing
+  // the 55-minute step mid-write.
+  const f = fixture(t, { writeOperations: true, legacyStale: true });
+  f.env.CI_CAPTURE_BUDGET_MINUTES = "1";
+  await assert.rejects(runShard("pl6", { repoRoot: f.repoRoot, env: f.env, evidence: f.evidence, checkout: f.checkout,
+    spawn: f.spawns.spawn, spawnLegacy: f.spawns.spawnLegacy }), /CI_CAPTURE_BUDGET_EXHAUSTED/);
+  assert.deepEqual(f.legacyCalls, [], "refused before any legacy child spawns");
+});
+
+test("a successful rerun's shard set composes: the run id is identity, the attempt is diagnostic", async t => {
+  const x = await fannedOut(t);
+  assert.equal(x.fan.env.GITHUB_RUN_ATTEMPT, "2");
+  // "Re-run failed jobs": the shards these receipts came from succeeded on
+  // attempt 1 while the fan-in now runs on attempt 2.
+  for (const shard of SHARDS) x.rewrite(shard, r => { r.runAttempt = "1"; });
+  const r = await x.invoke();
+  assert.equal(r.state, "SELECTED");
+  assert.equal(x.fan.selected().startsWith("TERMINAL_EVIDENCE_MODE=records"), true);
+});
+
 for (const [name, mutate, error] of [
   ["a missing shard", x => fs.rmSync(path.join(x.staging, "vi-tablet"), { recursive: true }), /CI_SHARD_SET/],
   ["an extra shard", x => fs.cpSync(path.join(x.staging, "vi-desktop"), path.join(x.staging, "vi-other"), { recursive: true }), /CI_SHARD_SET/],
@@ -1396,7 +1469,7 @@ for (const [name, mutate, error] of [
   }), /CI_SHARD_OPERATION/],
   ["a foreign commit", x => x.rewrite("vi-mobile", r => { r.checkout.commit = "c".repeat(40); }), /CI_SHARD_CHECKOUT/],
   ["a foreign tree", x => x.rewrite("pl6", r => { r.checkout.tree = "c".repeat(40); }), /CI_SHARD_CHECKOUT/],
-  ["a foreign run attempt", x => x.rewrite("vi-desktop", r => { r.runAttempt = "1"; }), /CI_SHARD_RUN/],
+  ["a foreign run", x => x.rewrite("vi-desktop", r => { r.runId = "41600914409"; }), /CI_SHARD_RUN/],
   ["a different capture profile", x => x.rewrite("vi-desktop", r => { r.profile.sharedShell = "1"; }), /CI_SHARD_PROFILE/],
   ["a byte changed after its receipt", x => {
     const ref = x.receipt("vi-mobile").reference; fs.appendFileSync(path.join(x.staging, "vi-mobile", "files", ref.path), "x");

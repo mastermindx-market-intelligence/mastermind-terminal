@@ -139,7 +139,7 @@ function verifyReceipt(receipt, { captureId, commit, manifestSha256, files, repo
 }
 
 async function qualifyLegacyPackets({ repoRoot, env, evidence, checkout, spawnLegacy, diagnostics, ids, record, save, captureDeadline }) {
-  const definitions = legacyPackets();
+  const definitions = legacyPackets(), ports = capturePorts(env);
   record.legacyPackets = {};
   const plans = definitions.map(definition => {
     const sources = sourceDigests(repoRoot, definition.sources), controls = sourceDigests(repoRoot, definition.controls);
@@ -168,7 +168,7 @@ async function qualifyLegacyPackets({ repoRoot, env, evidence, checkout, spawnLe
     try {
       out = fs.openSync(child.stdoutPath, "wx"); err = fs.openSync(child.stderrPath, "wx");
       result = await superviseLegacy(process.execPath, [script], { cwd: path.join(repoRoot, "terminal"),
-        env: { ...env, CAPTURE_ONLY: "", TERMINAL_CROP_PORT: definition.port, TERMINAL_LEGACY_CAPTURE_ID: captureId },
+        env: { ...env, CAPTURE_ONLY: "", TERMINAL_CROP_PORT: ports[definition.packet], TERMINAL_LEGACY_CAPTURE_ID: captureId },
         stdio: ["ignore", out, err, "ipc"] },
       { spawn: spawnLegacy, deadlineMs, onState: value => { Object.assign(child, value); save(); } });
     } finally { if (out !== undefined) fs.closeSync(out); if (err !== undefined) fs.closeSync(err); }
@@ -875,8 +875,63 @@ function eodReceipt(repoRoot, before, stdout, checkoutCommit) {
 function operationIds(env) {
   for (const name of ["GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"])
     if (!/^[1-9][0-9]{0,19}$/.test(env[name] || "")) throw new Error(`CI_EVIDENCE_ID: ${name}`);
-  const prefix = `ci-${env.GITHUB_RUN_ID}-${env.GITHUB_RUN_ATTEMPT}`;
+  // The attempt stays out of every operation id and artifact name: "Re-run
+  // failed jobs" reuses the run id, and shards a rerun replaces must stay
+  // bindable to the same composition the fan-in expects. The receipt records
+  // the attempt for diagnostics only; run identity is the run id.
+  const prefix = `ci-${env.GITHUB_RUN_ID}`;
   return { pl6: `${prefix}-pl6`, vi: `${prefix}-vi`, composition: `${prefix}-current`, prefix };
+}
+
+// Concurrent capture matrix legs can share one host, so literal dev-server
+// ports would collide across legs (EADDRINUSE). Each leg derives its whole
+// port set from its runner NAME the same way .github/scripts/terminal_e2e_lane.sh
+// derives its slot ports from the runner name: one name deterministically owns
+// one port set, so co-located legs get their own numbers except on a hash
+// collision (about one chance in ten thousand for a four-leg matrix — the same
+// order of risk that script accepts across its own slots). The derived base
+// also steers away from the port bands the e2e lane and the workflow's other
+// literal-port captures already occupy. Without RUNNER_NAME (unit tests, local
+// runs) the historical literal ports stay, so those runs remain byte-identical.
+const LITERAL_CAPTURE_PORTS = Object.freeze({ pl6: "3536", vi: "3537", batch2: "3538", pine: "3571", batch3: "3572" });
+const CAPTURE_PORT_OFFSETS = Object.freeze({ pl6: 0, vi: 1, batch2: 2, pine: 35, batch3: 36 });
+const RESERVED_PORT_BANDS = Object.freeze([[3050, 3300], [3530, 3610], [31990, 32100], [47270, 47300]]);
+
+function fnv1a(text) {
+  let hash = 0x811c9dc5;
+  for (const byte of Buffer.from(text, "utf8")) { hash ^= byte; hash = Math.imul(hash, 0x01000193) >>> 0; }
+  return hash;
+}
+
+function capturePortBase(env) {
+  const name = String(env.RUNNER_NAME || "").trim();
+  if (!name) return null;
+  let hash = fnv1a(name);
+  for (;;) {
+    const base = 1024 + (hash % 60_000);
+    // base..base+36 (the widest offset) must not intersect a reserved band.
+    if (RESERVED_PORT_BANDS.every(([low, high]) => base + 36 < low || base > high)) return base;
+    hash = fnv1a(String(hash));
+  }
+}
+
+function capturePorts(env) {
+  const base = capturePortBase(env);
+  if (base === null) return { ...LITERAL_CAPTURE_PORTS };
+  return Object.fromEntries(Object.entries(CAPTURE_PORT_OFFSETS).map(([packet, offset]) => [packet, String(base + offset)]));
+}
+
+// The runner kills a step at its timeout-minutes, so the tool's internal
+// capture deadline must sit below the step budget or CI_CAPTURE_BUDGET_EXHAUSTED
+// can never fire (the step dies first). The workflow passes the budget
+// explicitly (CI_CAPTURE_BUDGET_MINUTES); each entry point keeps a fallback
+// matching its own step's budget.
+function captureDeadlineMs(env, fallbackMinutes) {
+  const raw = String(env.CI_CAPTURE_BUDGET_MINUTES || "").trim();
+  const minutes = raw ? Number(raw) : fallbackMinutes;
+  if (!Number.isInteger(minutes) || minutes < 1 || minutes > 600)
+    throw new Error(`CI_CAPTURE_BUDGET_MINUTES: ${raw || fallbackMinutes}`);
+  return Date.now() + minutes * 60_000;
 }
 
 function reference(stdout, packet, id, evidence, cases) {
@@ -1168,11 +1223,12 @@ function preparePl6(ctx) {
 }
 
 function capturePl6(ctx, capture) {
-  const { repoRoot, diagnostics, ids, record, save, evidence } = ctx;
+  const { repoRoot, diagnostics, ids, record, save, evidence, env } = ctx;
+  const ports = capturePorts(env);
   let ref, pl6Error;
   try {
     ref = capture("pl6", ["e2e/tools/capture_pl6_batch1.cjs"], {
-      TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: "3536",
+      TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: ports.pl6,
       TERMINAL_CI_OPTIONS_AXIS_CAPTURE: record.optionsAxis.required ? "1" : "0",
       TERMINAL_CI_OPTIONS_CAPTURE_ID: `${ids.prefix}-options`,
     });
@@ -1191,18 +1247,20 @@ function capturePl6(ctx, capture) {
   return ref;
 }
 
-function captureVi(capture, ids, project) {
-  if (!project) return capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", ids.vi, "--port", "3537"], {});
+function captureVi(ctx, capture, project) {
+  const { ids, env } = ctx, ports = capturePorts(env);
+  if (!project) return capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", ids.vi, "--port", ports.vi], {});
   if (!VI_PROJECTS.includes(project)) throw new Error("CI_SHARD_NAME");
   const id = `${ids.vi}-${project}`;
-  return capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", id, "--port", "3537", "--project", project], {},
+  return capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", id, "--port", ports.vi, "--project", project], {},
     { id, cases: 10 });
 }
 
 async function captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline }) {
   const { repoRoot, env, evidence, checkout, diagnostics, ids, record, save } = ctx;
+  const ports = capturePorts(env);
   if (batch2.required) {
-    const stdout = capture("batch2", ["e2e/tools/capture_pl6_batch2.cjs"], { TERMINAL_CROP_PORT: "3538" });
+    const stdout = capture("batch2", ["e2e/tools/capture_pl6_batch2.cjs"], { TERMINAL_CROP_PORT: ports.batch2 });
     Object.assign(record.batch2, verifyBatch2Capture(repoRoot, batch2, stdout, record.actualCheckout.commit));
     save();
   }
@@ -1262,11 +1320,11 @@ async function run({ repoRoot = path.resolve(__dirname, "../../.."), env = proce
     // Preserve both complete native baselines before any capture can change a peer.
     const nativePlans = prepareNativePlans({ repoRoot, evidence });
     const batch2 = preparePl6(ctx);
-    const captureDeadline = Date.now() + 84 * 60_000;
+    const captureDeadline = captureDeadlineMs(env, 84);
     record.state = "CAPTURING"; save();
     const capture = makeCapture(ctx, spawn);
     const refs = [capturePl6(ctx, capture)];
-    refs.push(captureVi(capture, ids));
+    refs.push(captureVi(ctx, capture));
     await captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline });
     const required = singleSelections(evidence, ids);
     const selections = required.map(c => ({ operationId: ids[c.packet], key: c.key }));
@@ -1293,8 +1351,11 @@ async function runShard(shard, { repoRoot = path.resolve(__dirname, "../../.."),
     let ref;
     if (shard === "pl6") {
       ref = capturePl6(ctx, capture);
-      await captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline: Date.now() + 84 * 60_000 });
-    } else ref = captureVi(capture, ids, shard.slice(3));
+      // The shard step's budget is 55 minutes: the deadline default (54) sits
+      // below it so the tool's own CI_CAPTURE_BUDGET_EXHAUSTED fires before
+      // the runner kills the step; the workflow pins it via env regardless.
+      await captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline: captureDeadlineMs(env, 54) });
+    } else ref = captureVi(ctx, capture, shard.slice(3));
     if (!same(checkout(repoRoot, env).actualCheckout, record.actualCheckout)) throw new Error("CI_SHARD_CHECKOUT_CHANGED");
     const delta = treeDelta(before, treeSnapshot(repoRoot));
     verifyShardDelta(ids, shard, delta);
@@ -1338,7 +1399,11 @@ function readShards({ repoRoot, env, ids, record, staging }) {
     const receipt = JSON.parse(boundedFile(directory, "receipt.json", 16 * 1024 * 1024));
     const id = shardOperationId(ids, shard), packet = shard === "pl6" ? "pl6" : "vi";
     if (receipt.schema !== SHARD_SCHEMA || receipt.shard !== shard) throw new Error(`CI_SHARD_IDENTITY: ${shard}`);
-    if (receipt.runId !== env.GITHUB_RUN_ID || receipt.runAttempt !== env.GITHUB_RUN_ATTEMPT) throw new Error(`CI_SHARD_RUN: ${shard}`);
+    // Run identity is the run id only: "Re-run failed jobs" must let the
+    // shards that already succeeded (attempt 1 artifacts) compose with the
+    // shards the rerun replaced. The fan-in job's own needs gate — every
+    // capture shard concluded success — carries the freshness requirement.
+    if (receipt.runId !== env.GITHUB_RUN_ID) throw new Error(`CI_SHARD_RUN: ${shard}`);
     if (!same(receipt.checkout, record.actualCheckout)) throw new Error(`CI_SHARD_CHECKOUT: ${shard}`);
     if (!same(receipt.profile, record.profile)) throw new Error(`CI_SHARD_PROFILE: ${shard}`);
     if (receipt.operationId !== id || receipt.reference?.path !== `${PR_CROPS}/${packet === "pl6" ? "b-pl-6-batch-1" : "terminal-visual-intelligence"}/${id}--operation.json`
@@ -1403,13 +1468,14 @@ async function runFanIn({ repoRoot = path.resolve(__dirname, "../../.."), env = 
       return { operationId: viByProject[c.project], key: c.key };
     });
     const refs = shards.map(({ receipt }) => receipt.reference);
-    return await finalize(ctx, { refs, selections, nativePlans, spawnNative, captureDeadline: Date.now() + 84 * 60_000,
+    return await finalize(ctx, { refs, selections, nativePlans, spawnNative, captureDeadline: captureDeadlineMs(env, 84),
       expected: shards.map(({ id, packet, project }) => ({ id, packet, cases: packet === "pl6" ? 24 : 10, project })) });
   } catch (error) { fail(ctx, error); }
 }
 
 module.exports = { operationIds, reference, checkoutIdentity, recordCheckout, run, runShard, runFanIn, SHARDS, VI_PROJECTS,
-  shardOperationId, treeSnapshot, treeDelta, verifyShardDelta, readShards, applyShards, batch2Plan, verifyBatch2Capture,
+  shardOperationId, treeSnapshot, treeDelta, verifyShardDelta, readShards, applyShards, capturePorts, capturePortBase,
+  captureDeadlineMs, LITERAL_CAPTURE_PORTS, batch2Plan, verifyBatch2Capture,
   eodPacket, eodReceipt, gexPacket, EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS,
   NATIVE_PACKETS, nativeDefinition, nativeSources, readNativePacket, qualifiedNativePacket,
   nativeImages, nativePacketInventory, prepareNativePlans, archiveNativePacket, verifyNativeHistory, qualifyNativeEvidence, superviseNative,

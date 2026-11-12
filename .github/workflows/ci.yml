@@ -393,26 +393,36 @@ jobs:
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
       - name: Capture this evidence shard
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
-        timeout-minutes: 45
+        # Legal worst case for the PL6 leg (legacy qualification included) is
+        # 46-52 min; the job keeps 60. The tool's internal deadline follows
+        # this budget (54 < 55) so CI_CAPTURE_BUDGET_EXHAUSTED can actually
+        # fire instead of the runner killing the step mid-write.
+        timeout-minutes: 55
+        env:
+          CI_CAPTURE_BUDGET_MINUTES: "54"
         run: node e2e/tools/capture_ci_evidence.cjs --shard ${{ matrix.shard }}
       - name: Retain this shard's bytes and receipt
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}
+          # Attempt-free names + overwrite: "Re-run failed jobs" must replace
+          # the failed legs' artifacts while the succeeded legs keep theirs.
+          name: evidence-shard-${{ github.run_id }}-${{ matrix.shard }}
           path: ${{ runner.temp }}/terminal-ci-evidence-bundle/
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 3
+          overwrite: true
       - name: Retain shard diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: evidence-shard-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}
+          name: evidence-shard-diagnostics-${{ github.run_id }}-${{ matrix.shard }}
           path: |
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
           if-no-files-found: warn
+          overwrite: true
 
   terminal-unit:
     concurrency:
@@ -422,7 +432,10 @@ jobs:
     # The browser selector stays mandatory. PR scope only grants the docs
     # exemption; its failure or absence falls back to normal qualification.
     if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
-    name: Terminal unit + typecheck (shard)
+    # Display name only; typecheck itself moved to the terminal-typecheck job.
+    # The required context ("Terminal typecheck + tests") is the terminal gate
+    # job's name and is unchanged.
+    name: Terminal unit + evidence fan-in (shard)
     runs-on: ubuntu-latest
     # Existing stages had20min. Allow10min setup +55min incumbent captures,
     # +30min conditional full EOD capture +5min retention. Original30-case M2
@@ -519,25 +532,25 @@ jobs:
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         uses: actions/download-artifact@v4
         with:
-          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-pl6
+          name: evidence-shard-${{ github.run_id }}-pl6
           path: ${{ runner.temp }}/terminal-ci-evidence-shards/pl6
       - name: Download the VI desktop capture shard
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         uses: actions/download-artifact@v4
         with:
-          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-vi-desktop
+          name: evidence-shard-${{ github.run_id }}-vi-desktop
           path: ${{ runner.temp }}/terminal-ci-evidence-shards/vi-desktop
       - name: Download the VI tablet capture shard
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         uses: actions/download-artifact@v4
         with:
-          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-vi-tablet
+          name: evidence-shard-${{ github.run_id }}-vi-tablet
           path: ${{ runner.temp }}/terminal-ci-evidence-shards/vi-tablet
       - name: Download the VI mobile capture shard
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         uses: actions/download-artifact@v4
         with:
-          name: evidence-shard-${{ github.run_id }}-${{ github.run_attempt }}-vi-mobile
+          name: evidence-shard-${{ github.run_id }}-vi-mobile
           path: ${{ runner.temp }}/terminal-ci-evidence-shards/vi-mobile
       # Verifies every shard receipt against this checkout (commit, tree, run,
       # attempt, profile, per-file sha256), applies the exact bytes, then writes
