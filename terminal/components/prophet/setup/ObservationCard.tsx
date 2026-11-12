@@ -37,7 +37,7 @@ export function ObservationCard({ symbol, observationAsof }: { symbol: string; o
 
       <div>
         <p className={styles.railItemLabel}>{t("obsFirstTitle")}</p>
-        <p className={styles.unavailableNote}>{t("obsKnownIntro")}</p>
+        <div className={styles.obsKnown}>
         {read.status === "loading" ? (
           <div>
             <span className={styles.a11yLabel}>{t("caseLoading")}</span>
@@ -65,6 +65,7 @@ export function ObservationCard({ symbol, observationAsof }: { symbol: string; o
               : t("obsNoneBody")}
           </p>
         )}
+        </div>
       </div>
 
       <ul className={styles.obsRows}>

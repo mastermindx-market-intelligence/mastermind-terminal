@@ -174,11 +174,15 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(page.getByRole("tab", { name: /Macro Plans/ })).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
     await page.goForward();
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
-    // And the in-lane crumb returns to the population the row was opened from.
+    // And the in-lane crumb returns to the population the row was opened
+    // from — as a real link that keeps the symbol, so the population row this
+    // case came from keeps its identity (fix order item 10; what the
+    // population does with it is that surface's own order).
     await page.getByTestId("prophet-sector-setup-back").click();
     await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 15_000 });
     await expect(page).toHaveURL(/prophetView=population/);
     await expect(page).toHaveURL(/prophetGroup=us_sector_industrials/);
+    await expect(page).toHaveURL(/prophetSymbol=CARR/);
   });
 
   test("a member without a plan gets an honest Setup, never a manufactured signal", async ({ page }) => {
@@ -220,11 +224,14 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // The entry rail carries the missing-terms state and no plan rail.
     await expect(page.getByTestId("entry-check")).toContainText(/current entry terms are missing/i);
     await expect(page.getByTestId("model-plan-rail")).toContainText(/no model plan is open/i);
-    // The existing chart destination, and no board panel anywhere.
+    // The existing chart destination (attached to the next-check block, fix
+    // order item 16), and no board panel anywhere.
     await expect(page.getByTestId("prophet-sector-chart-link")).toHaveAttribute("href", /\/analysis\?symbol=ALLE/);
     await expect(setup.locator(".obs-prophet-analysis")).toHaveCount(0);
     await page.getByTestId("prophet-sector-setup-back").click();
     await expect(page.getByTestId("prophet-sector-population")).toBeVisible();
+    await expect(page).toHaveURL(/prophetView=population/);
+    await expect(page).toHaveURL(/prophetSymbol=ALLE/);
   });
 
   test("keyboard-only travel reaches the Setup without a pointer", async ({ page }) => {

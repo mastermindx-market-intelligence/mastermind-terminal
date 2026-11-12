@@ -1,10 +1,12 @@
 "use client";
 /**
  * ContextTab (T2-17) — the relationships behind the name. Group membership is
- * served by the sector contract (current roster, lower-bound first-known
- * dates, same two-clock vocabulary as the setup). Economic exposure and theme
- * membership are not served: designed unavailable states that name the
- * relationship instead of hiding it (G13).
+ * served by the sector contract; its dated membership line stays on the Setup
+ * destination only (fix order item 15 — said once, where the study lives), so
+ * the rows here carry the group and its cross-listings. Economic exposure,
+ * theme membership, the dated peer comparison, Foresight and Winner health
+ * are not served: designed unavailable states that name the block instead of
+ * hiding it (G13; fix order item 8).
  */
 import type { Lang } from "@/lib/i18n";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
@@ -32,12 +34,6 @@ export function ContextTab({ payload, lang }: { payload: SymbolPayload; lang: La
             return (
               <li key={group.id} className={styles.groupRow}>
                 <span className={styles.groupName}>{groupName}</span>
-                <span className={styles.groupMeta}>
-                  {prophetSectorFill(sectorT("setupMemberSince"), { date: member.firstKnown ?? "—" })}
-                  {member.memberSince !== null
-                    ? ` · ${prophetSectorFill(sectorT("setupRosterSince"), { date: member.memberSince })}`
-                    : ""}
-                </span>
                 {member.alsoInGroups.length > 0 ? (
                   <span className={styles.groupMeta}>
                     {prophetSectorFill(sectorT("alsoIn"), { groups: member.alsoInGroups.join(", ") })}
@@ -65,6 +61,24 @@ export function ContextTab({ payload, lang }: { payload: SymbolPayload; lang: La
             <span>{t("relThemeBody")}</span>
           </li>
         </ul>
+      </section>
+
+      <section className={styles.card} data-testid="context-peer">
+        <h4 className={styles.cardTitle}>{t("peerTitle")}</h4>
+        <span className={`${styles.badge} ${styles.badgeWarn}`}>{t("contextStateUnavailable")}</span>
+        <p className={styles.unavailableBody}>{t("peerBody")}</p>
+      </section>
+
+      <section className={styles.card} data-testid="context-foresight">
+        <h4 className={styles.cardTitle}>{t("foresightTitle")}</h4>
+        <span className={`${styles.badge} ${styles.badgeWarn}`}>{t("contextStateUnavailable")}</span>
+        <p className={styles.unavailableBody}>{t("contextStateBody")}</p>
+      </section>
+
+      <section className={styles.card} data-testid="context-winner">
+        <h4 className={styles.cardTitle}>{t("winnerTitle")}</h4>
+        <span className={`${styles.badge} ${styles.badgeWarn}`}>{t("contextStateUnavailable")}</span>
+        <p className={styles.unavailableBody}>{t("contextStateBody")}</p>
       </section>
     </div>
   );

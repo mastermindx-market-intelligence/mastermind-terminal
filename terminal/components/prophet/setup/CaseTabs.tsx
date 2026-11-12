@@ -31,13 +31,15 @@ export function CaseTabs({ tab, onTab, lang }: { tab: CaseTab; onTab: (tab: Case
         {TAB_KEYS.map(({ id, key }) => {
           const on = id === tab;
           return (
+            // Only the active tab's panel exists in the DOM, so an inactive
+            // tab must not point aria-controls at a missing panel.
             <button
               key={id}
               type="button"
               role="tab"
               id={`case-tab-${id}`}
               aria-selected={on}
-              aria-controls={`case-panel-${id}`}
+              {...(on ? { "aria-controls": `case-panel-${id}` } : {})}
               tabIndex={on ? 0 : -1}
               className={on ? `${styles.tab} ${styles.tabOn}` : styles.tab}
               data-testid={`case-tab-${id}`}

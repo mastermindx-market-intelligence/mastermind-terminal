@@ -3,9 +3,10 @@
  * EvidenceTab (T2-04 / T2-16) — what is published and what this source does
  * not carry. The early-observation evidence block is the existing B03 renderer
  * (components/fin/ProphetObservationEvidence), reused read-only inside a
- * disclosure. Quarterly fundamentals, the information sequence and any
- * conclusion claim are not served: designed unavailable states, each naming
- * what would be there (G12, G13).
+ * disclosure. Quarterly fundamentals and the information sequence are not
+ * served: designed unavailable states, each naming what would be there (G12,
+ * G13). The conclusion lives in the destination's rail (fix order item 7),
+ * not as a third card here.
  */
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import ProphetObservationEvidence from "@/components/fin/ProphetObservationEvidence";
@@ -49,11 +50,6 @@ export function EvidenceTab({ symbol, showObservation }: { symbol: string; showO
       <section className={styles.card} data-testid="evidence-sequence">
         <h4 className={styles.cardTitle}>{t("sequenceTitle")}</h4>
         <p className={styles.unavailableBody}>{t("sequenceBody")}</p>
-      </section>
-
-      <section className={styles.card} data-testid="evidence-conclusion">
-        <h4 className={styles.cardTitle}>{t("concludeTitle")}</h4>
-        <p className={styles.unavailableBody}>{t("concludeBody")}</p>
       </section>
     </div>
   );

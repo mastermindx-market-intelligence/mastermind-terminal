@@ -151,15 +151,22 @@ describe("SaveFollow states (T2-20)", () => {
     const body = text();
     expect(body).toContain("Saved to your list");
     expect(body).toContain("does not save a dated thesis or start alerts");
+    // T2-20 exits (fix order item 11): the saved panel offers the list and a
+    // Done that dismisses it while the save button stays satisfied.
+    expect(body).toContain("View saved list");
+    await click('[data-testid="save-done"]');
+    expect(container!.querySelector('[data-testid="save-result"]')).toBeNull();
+    expect(text()).toContain("Done");
   });
 
-  it("shows the not-saved state with a retry on a failed save", async () => {
+  it("shows the not-saved state with a primary retry and another-list exit", async () => {
     vi.mocked(fetch).mockResolvedValue(new Response("{}", { status: 502 }));
     mount(<SaveFollow symbol="CARR" />);
     await click('[data-testid="save-security"]');
     expect(text()).toContain("Couldn't save to this list");
     expect(text()).toContain("Your list is unchanged");
-    await click('[data-testid="save-result"] button'); // Retry save
+    expect(text()).toContain("Choose another list"); // T2-20 exit (item 11)
+    await click('[data-testid="save-result"] button'); // Retry save is the panel's primary button
     expect(vi.mocked(fetch).mock.calls).toHaveLength(2);
   });
 

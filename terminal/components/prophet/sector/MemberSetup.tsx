@@ -14,13 +14,17 @@
  *   - Unserved fields (verdict, supports/challenges, next check, name leg of
  *     the decomposition, peer snapshot, fundamentals) render their designed
  *     unavailable states — nothing is invented.
+ *   - The board read keeps its outcome (flowGetResult): only status "data"
+ *     reaches the ready phase; a read that did not land is status unknown
+ *     with a retry, never a false "not in the current board read" (fix order
+ *     item 1).
  *   - The member's group/market returns stay labeled (G10); the reason a plan
  *     is absent stays translated through the sector lane's closed map.
  *   - Tab choice is local view state; a URL key belongs to the url-state
  *     owner (Lane A) and is not minted here.
  */
 import { useEffect, useState } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGetResult } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
 import { companyHref } from "@/lib/sectorIntelligence";
@@ -30,6 +34,7 @@ import { ContextTab } from "../setup/ContextTab";
 import { EntryCheckRail, type BoardPlanRow } from "../setup/EntryCheckRail";
 import { EvidenceTab } from "../setup/EvidenceTab";
 import { ObservationCard } from "../setup/ObservationCard";
+import { SourcesSheet } from "../setup/SourcesSheet";
 import { StudyCard } from "../setup/StudyCard";
 import { SupportsChallenges } from "../setup/SupportsChallenges";
 import { makeSetupT } from "../setup/setupStrings";
@@ -55,6 +60,8 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
   const [tab, setTab] = useState<CaseTab>("setup");
   const [boardPlan, setBoardPlan] = useState<BoardPlanRow | null>(null);
   const [boardPhase, setBoardPhase] = useState<"loading" | "ready" | "unavailable" | "idle">("idle");
+  const [boardAttempt, setBoardAttempt] = useState(0);
+  const [backHref, setBackHref] = useState<string | null>(null);
 
   const membership = payload.memberOf.find(entry => entry.group.id === originGroupId)
     ?? payload.memberOf[0] ?? null;
@@ -67,22 +74,48 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
 
   // The board read runs only for members whose join carries a plan id; the
   // no-plan case never touches the board (the rail shows its none state).
+  // flowGetResult keeps the read's outcome: an unavailable/absent outcome is
+  // a failed read, not a published absence (fix order item 1). A retry
+  // increments the attempt, which re-runs the read with refresh — a retry
+  // must be able to fail again.
   useEffect(() => {
     if (planId === null) return;
     let cancelled = false;
     void (async () => {
       setBoardPhase("loading");
-      try {
-        const data = await flowGet("prophet_idx") as BoardPayloadLike | null;
-        if (cancelled) return;
-        setBoardPlan(data?.plans?.find(plan => plan.id === planId) ?? null);
+      const outcome = await flowGetResult("prophet_idx", { refresh: boardAttempt > 0 });
+      if (cancelled) return;
+      if (outcome.status === "data") {
+        const board = outcome.data as BoardPayloadLike | null;
+        setBoardPlan(board?.plans?.find(plan => plan.id === planId) ?? null);
         setBoardPhase("ready");
-      } catch {
-        if (!cancelled) setBoardPhase("unavailable");
+      } else {
+        setBoardPlan(null);
+        setBoardPhase("unavailable");
       }
     })();
     return () => { cancelled = true; };
-  }, [planId]);
+  }, [planId, boardAttempt]);
+
+  // "Back to population" is a real link once hydrated: the population URL
+  // keeps prophetSymbol (and group/plan), so the row the reader came from
+  // keeps its identity (fix order item 10 — what the population does with it
+  // is that surface's own order). Before hydration the onBack button holds
+  // the sector lane's original contract; the swap happens in a frame callback
+  // so the first client render still matches the server markup.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("prophetView", "population");
+      setBackHref(`${url.pathname}${url.search}${url.hash}`);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const signalFromBoard = boardPlan !== null && typeof boardPlan._signal_date === "string" && boardPlan._signal_date.length > 0
+    ? boardPlan._signal_date
+    : null;
+  const planSignalDate = signalFromBoard ?? prophet.plan?.openedOn ?? null;
 
   return (
     <section className={styles.setup} data-testid="prophet-sector-setup">
@@ -94,9 +127,16 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
         windowSessions={group?.context.windowSessions ?? null}
         groupCount={payload.memberOf.length}
         onBack={onBack}
+        backHref={backHref}
         backLabel={t("setupBack")}
         lang={lang}
       />
+
+      {/* T2-12 order (fix order item 6): at phone widths the entry state is
+          met immediately under the header, before the deep content. */}
+      <p className={caseStyles.entryBanner} data-testid="case-entry-banner">
+        {setupT(planId !== null ? "entryBannerReported" : "entryBannerNone")}
+      </p>
 
       <CaseTabs tab={tab} onTab={setTab} lang={lang} />
 
@@ -107,7 +147,8 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
               <p className={styles.setupMembership} data-testid="prophet-sector-setup-membership">
                 {/* Two different clocks, both labeled (A2-1): first_known is a
                     lower bound from stored snapshots; member_since is the
-                    roster's own effective date — never merged. */}
+                    roster's own effective date — never merged. This dated line
+                    lives HERE only (fix order item 15). */}
                 {prophetSectorFill(t("setupMemberSince"), { date: member.firstKnown ?? "—" })}
                 {member.memberSince !== null ? ` · ${prophetSectorFill(t("setupRosterSince"), { date: member.memberSince })}` : ""}
                 {payload.memberOf.length > 1 ? ` · ${prophetSectorFill(t("setupInGroups"), { n: payload.memberOf.length })}` : ""}
@@ -120,7 +161,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
               <ObservationCard symbol={payload.symbol} observationAsof={prophet.observation?.asof ?? null} />
             ) : null}
 
-            <SupportsChallenges lang={lang} />
+            <SupportsChallenges symbol={payload.symbol} chartHref={chartHref} lang={lang} />
 
             {prophet.state === "none" ? (
               <section className={styles.setupWhy}>
@@ -135,12 +176,13 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
               </section>
             ) : null}
 
-            {chartHref !== null ? (
-              <a className={styles.chartLink} data-testid="prophet-sector-chart-link" href={chartHref}>
-                {prophetSectorFill(t("setupChartLink"), { symbol: payload.symbol })} ↗
-              </a>
-            ) : null}
-            <p className={styles.reportedLine}>{t("setupReported")}</p>
+            <SourcesSheet
+              rosterDate={member?.memberSince ?? member?.firstKnown ?? null}
+              planSignalDate={planSignalDate}
+              planReadFailed={boardPhase === "unavailable"}
+              observationAsof={prophet.observation?.asof ?? null}
+              lang={lang}
+            />
           </div>
         ) : null}
 
@@ -149,11 +191,15 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
         ) : null}
         {tab === "context" ? <ContextTab payload={payload} lang={lang} /> : null}
 
+        {/* The rail takes one shape per destination (items 5/7/8); Context
+            drops it entirely. */}
         <EntryCheckRail
           symbol={payload.symbol}
+          tab={tab}
           planId={planId}
           boardPhase={boardPhase}
           boardPlan={boardPlan}
+          onRetryBoard={() => setBoardAttempt(attempt => attempt + 1)}
           lang={lang}
         />
       </div>
