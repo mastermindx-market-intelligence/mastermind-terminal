@@ -50,8 +50,11 @@
   --snb-upbar: #a87778;
   --snb-downbar: #7e9a84;
 }
-:global(html[data-updown="east"]) .module:global([data-sector-theme="light"]),
-:global(html[data-red-up="true"]) .module:global([data-sector-theme="light"]) {
+/* B12: the theme attribute sits on an ANCESTOR of .module (the sector shell's
+ * root), so the light flip must select that ancestor — `.module[data-sector-theme]`
+ * never matched and light east/west kept the dark bar palette. */
+:global(html[data-updown="east"]) :global([data-sector-theme="light"]) .module,
+:global(html[data-red-up="true"]) :global([data-sector-theme="light"]) .module {
   --snb-upbar: #d88a8a;
   --snb-downbar: #6dae87;
 }
@@ -69,8 +72,11 @@
 .asOf { color: var(--sn-muted, #b8b8b8); font-size: 12px; line-height: 16px; }
 .asOfDate { color: var(--sn-text, #f3f3f3); }
 .asOfStale { color: var(--sn-warn, #e7c37d); }
-.measured { display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
-  color: var(--sn-link, #9cbce9); font-size: 14px; font-weight: 500; line-height: 20px; }
+/* B1: `.module button { color: inherit }` (0,1,1) outranks a bare `.measured`
+ * (0,1,0), so both links must be scoped through .module to keep --sn-link. */
+.module .measured { display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
+  color: var(--sn-link, #9cbce9); font-size: 14px; font-weight: 500; line-height: 20px;
+  white-space: nowrap; }
 .measured svg { flex-shrink: 0; }
 
 /* ---- Stale notice ---- */
@@ -96,8 +102,11 @@
 .thRank { width: 56px; }
 .thSector { width: 220px; }
 .thChange { flex: 1 1 324px; min-width: 324px; display: flex; justify-content: space-between; padding-right: 24px; }
-.thLevel { width: 168px; }
-.thDirection { width: 180px; }
+.thLevel { width: 144px; }
+/* B8: 180px wrapped "Not ranked: 8 members, 10 needed"; the board keeps it on
+ * one line, and the copy is not shortened. Level's own content needs 132px, so
+ * the width comes from its slack. */
+.thDirection { width: 234px; }
 .thMembers { flex: 1 1 0; text-align: right; }
 
 .row { display: flex; align-items: center; height: 52px; border-bottom: 1px solid var(--snb-rowline); flex-shrink: 0; }
@@ -114,12 +123,10 @@
 .barAxis { position: absolute; top: -6px; left: 50%; width: 1px; height: 26px; background: var(--snb-axis); }
 .barPos { position: absolute; top: 0; left: calc(50% + 1px); height: 14px; border-radius: 2px; background: var(--snb-upbar); }
 .barNeg { position: absolute; top: 0; right: 50%; height: 14px; border-radius: 2px; background: var(--snb-downbar); }
-.changeMissing { width: 300px; max-width: 100%; flex-shrink: 1; text-align: center;
-  color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px; }
 .value { flex: 1 1 0; min-width: 56px; text-align: right; font-size: 15px; font-weight: 500; line-height: 20px; }
 .valueMissing { color: var(--sn-muted, #b8b8b8); }
 
-.level { display: flex; align-items: center; gap: 12px; width: 168px; flex-shrink: 0; }
+.level { display: flex; align-items: center; gap: 12px; width: 144px; flex-shrink: 0; }
 .levelPct { width: 56px; flex-shrink: 0; text-align: right; color: var(--sn-text, #f3f3f3);
   font-size: 14px; line-height: 20px; }
 .levelTrack { position: relative; width: 64px; height: 4px; flex-shrink: 0;
@@ -127,7 +134,7 @@
 .levelFill { position: absolute; top: 0; left: 0; height: 4px; border-radius: 2px; background: var(--snb-levelfill); }
 .levelMissing { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; }
 
-.direction { display: flex; align-items: center; gap: 6px; width: 180px; flex-shrink: 0; }
+.direction { display: flex; align-items: center; gap: 6px; width: 234px; flex-shrink: 0; }
 .direction svg { flex-shrink: 0; }
 .dirWord { font-size: 14px; line-height: 20px; }
 .dirWeeks { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; }
@@ -149,7 +156,7 @@
   border-top: 1px solid var(--sn-line, #343434); padding: 20px 0 4px; }
 .unavailableLine { color: var(--sn-text, #f3f3f3); font-size: 16px; font-weight: 600; line-height: 22px; }
 .unavailableSub { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; max-width: 640px; }
-.unavailableLink { display: inline-flex; align-items: center; gap: 6px; padding-top: 4px; min-height: 32px;
+.module .unavailableLink { display: inline-flex; align-items: center; gap: 6px; padding-top: 4px; min-height: 32px;
   color: var(--sn-link, #9cbce9); font-size: 14px; font-weight: 500; line-height: 20px; }
 .unavailableLink svg { flex-shrink: 0; }
 
@@ -182,15 +189,18 @@
 .barAxisCompact { position: absolute; top: -3px; left: 50%; width: 1px; height: 14px; background: var(--snb-axis); }
 .barPosCompact { position: absolute; top: 0; left: calc(50% + 1px); height: 8px; border-radius: 2px; background: var(--snb-upbar); }
 .barNegCompact { position: absolute; top: 0; right: 50%; height: 8px; border-radius: 2px; background: var(--snb-downbar); }
-.barMissingCompact { position: relative; width: 100%; height: 14px; }
-.barMissingBoxCompact { position: absolute; top: -3px; left: 50%; transform: translateX(-50%);
-  width: 14px; text-align: center; color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px; }
+/* B10: a missing change keeps the row rhythm but draws nothing — no bar, no
+ * axis, no dash (the axis stroke through the dash read as a "+"). */
+.barMissingCompact { width: 100%; height: 14px; }
 .rowLine3 { display: flex; justify-content: space-between; gap: 12px; padding-left: 30px; }
-.shareNowCompact { color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px; min-width: 0; }
+/* B9: the share label holds one line; the not-ranked copy takes the wrap. */
+.shareNowCompact { flex-shrink: 0; color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px;
+  white-space: nowrap; }
+.shareNowMissing { color: var(--sn-muted, #b8b8b8); }
 .shareNowValue { color: var(--sn-text, #f3f3f3); }
 .directionCompact { flex-shrink: 0; font-size: 13px; line-height: 18px; white-space: pre; }
-.notRankedCopyCompact { color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px;
-  flex-shrink: 0; white-space: normal; text-align: right; }
+.notRankedCopyCompact { flex: 1 1 0; min-width: 0; color: var(--sn-muted, #b8b8b8);
+  font-size: 13px; line-height: 18px; white-space: normal; text-align: right; }
 
 .footerCompact { flex-direction: column; gap: 4px; }
 .footerMeasured { padding-top: 8px; }

@@ -14,7 +14,7 @@
  * Brief's existing honest line, verbatim). The input arrives later on the
  * sector generation payload (L1-FO1); until then the module mounts with no
  * input and renders unavailable. No network path lives here. */
-import { useMemo } from "react";
+import { Fragment, useMemo, type ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useMediaQuery } from "@/lib/useMediaQuery";
@@ -84,6 +84,25 @@ function fmtDate(iso: string, lang: "en" | "zh"): string {
 
 const num = (v: unknown): number | null =>
   typeof v === "number" && Number.isFinite(v) ? v : null;
+
+/** Template filler for copy whose placeholders carry their own ink: the lexicon
+ * keeps the sentence whole, while the date inside it renders in its own span
+ * (B5 — as-of date in ink, stale data-through date in amber). An unknown
+ * placeholder is left untouched, exactly like nativeFill. */
+function fillNodes(template: string, values: Record<string, ReactNode>): ReactNode[] {
+  const out: ReactNode[] = [];
+  const re = /\{(\w+)\}/g;
+  let last = 0, key = 0, m: RegExpExecArray | null;
+  while ((m = re.exec(template)) !== null) {
+    if (m.index > last) out.push(template.slice(last, m.index));
+    out.push(Object.hasOwn(values, m[1])
+      ? <Fragment key={key++}>{values[m[1]]}</Fragment>
+      : m[0]);
+    last = re.lastIndex;
+  }
+  if (last < template.length) out.push(template.slice(last));
+  return out;
+}
 
 /** One decimal, U+2212 minus, explicit plus on positives; 0 keeps no sign. */
 function fmtPp(v: number): string {
@@ -186,6 +205,13 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
   const state = `${stale ? "stale" : ""}${stale && missing > 0 ? "+" : ""}${missing > 0 ? "too-few" : ""}` || "full";
   const asOfText = fmtDate(input!.asOfDate, lang);
   const latestText = fmtDate(input!.latestSession, lang);
+  // B5: the as-of date itself takes ink; only a stale data-through date is amber.
+  const asOfLine = stale
+    ? fillNodes(t("siBreadthStaleAsOf"), {
+      latest: <span className={styles.asOfDate}>{latestText}</span>,
+      data: <span className={styles.asOfStale}>{asOfText}</span>,
+    })
+    : fillNodes(t("siBreadthAsOf"), { date: <span className={styles.asOfDate}>{asOfText}</span> });
   const basisLine = input!.basis === "reconstructed_current_membership" ? t("siBreadthBasisReconstructed")
     : input!.basis === "dated" ? t("siBreadthBasisDated") : null;
   const dirWord = (d: SectorBreadthDirection | null) =>
@@ -211,17 +237,14 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
         <h2 className={styles.title}>{t("siBreadthTitle")}</h2>
         <p className={`${styles.sub}${compact ? ` ${styles.compactSub}` : ""}`}>{t(compact ? "siBreadthSubCompact" : "siBreadthSub")}</p>
       </div>
-      {!compact && measuredLink}
+      {/* B1: at 1440 the measured link sits right-aligned under the as-of line,
+          so both live in the one right-hand column. The 390 layout keeps the
+          link in the footer (two-column head there would crowd the copy). */}
       {compact ? <div className={`${styles.headSide} ${styles.compactHeadSide}`}>
-        {stale ? <p className={`${styles.asOf} ${styles.compactAsOf}`}>
-          {nativeFill(t("siBreadthStaleAsOf"), { latest: latestText, data: asOfText })}
-        </p> : <p className={`${styles.asOf} ${styles.compactAsOf}`}>{nativeFill(t("siBreadthAsOf"), { date: asOfText })}</p>}
-      </div> : stale ? <div className={styles.headSide}>
-        <p className={styles.asOf}>
-          {nativeFill(t("siBreadthStaleAsOf"), { latest: latestText, data: asOfText })}
-        </p>
+        <p className={`${styles.asOf} ${styles.compactAsOf}`}>{asOfLine}</p>
       </div> : <div className={styles.headSide}>
-        <p className={styles.asOf}>{nativeFill(t("siBreadthAsOf"), { date: asOfText })}</p>
+        <p className={styles.asOf}>{asOfLine}</p>
+        {measuredLink}
       </div>}
     </div>
 
@@ -243,13 +266,15 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
       <p className={`${styles.answerHead}${compact ? ` ${styles.answerHeadCompact}` : ""}`}>
         {missing > 0
           ? nativeFill(t("siBreadthAnswerMissing"), { improving: String(improving), deteriorating: String(deteriorating), missing: String(missing) })
-          : nativeFill(t("siBreadthAnswerFull"), { improving: String(improving), deteriorating: String(deteriorating) })}
+          : nativeFill(t(compact ? "siBreadthAnswerFullCompact" : "siBreadthAnswerFull"),
+            { improving: String(improving), deteriorating: String(deteriorating) })}
       </p>
       {ranked.length > 1 && up && down && <p className={`${styles.answerSub}${compact ? ` ${styles.answerSubCompact}` : ""}`}>
         {t("siBreadthLargestIncrease")} <span className={styles.answerSector}>{localName(up.sectorId)}</span>{" "}
-        <span className={`${styles.num} ${styles.up}`}>{fmtPp(up.changePp as number)}{compact ? " pp" : ""}</span>
+        {/* B2: both widths carry the pp unit, exactly as the boards draw it. */}
+        <span className={`${styles.num} ${styles.up}`}>{fmtPp(up.changePp as number)} pp</span>
         {" · "}{t("siBreadthLargestDecrease")} <span className={styles.answerSector}>{localName(down.sectorId)}</span>{" "}
-        <span className={`${styles.num} ${styles.down}`}>{fmtPp(down.changePp as number)}{compact ? " pp" : ""}</span>
+        <span className={`${styles.num} ${styles.down}`}>{fmtPp(down.changePp as number)} pp</span>
       </p>}
     </div>
 
@@ -267,11 +292,11 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
             </span>
           </div>
           {r.changePp === null
+            // B10: a missing change draws no bar and no axis — the axis stroke
+            // through the centred dash read as a "+". The dash lives in the
+            // value slot on the line above; this line only keeps the row rhythm.
             ? <div className={styles.barWrapCompact}>
-              <div className={styles.barMissingCompact}>
-                <span className={styles.barAxisCompact} />
-                <span className={`${styles.barMissingBoxCompact} ${styles.num}`}>—</span>
-              </div>
+              <div className={styles.barMissingCompact} data-testid="sector-breadth-bar-missing" />
             </div>
             : <div className={styles.barWrapCompact}>
               <div className={styles.barTrackCompact}>
@@ -282,9 +307,15 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
               </div>
             </div>}
           <div className={styles.rowLine3}>
-            {share !== null && <span className={styles.shareNowCompact}>
-              <span className={`${styles.shareNowValue} ${styles.num}`}>{share}</span> {t(stale ? "siBreadthAbove" : "siBreadthAboveNow")}
-            </span>}
+            {/* W2 (ruling 33): the share follows its own field. A missing
+                pct_above_200 renders the missing-value treatment ("—"), a
+                different case from the like-for-like gate, which keeps the
+                share and removes only the change and rank. */}
+            <span className={styles.shareNowCompact} data-testid="sector-breadth-share">
+              {share !== null
+                ? <><span className={`${styles.shareNowValue} ${styles.num}`}>{share}</span>{" "}{t(stale ? "siBreadthAbove" : "siBreadthAboveNow")}</>
+                : <span className={`${styles.shareNowMissing} ${styles.num}`}>—</span>}
+            </span>
             {r.changePp === null
               ? <span className={styles.notRankedCopyCompact}>
                 {nativeFill(t("siBreadthNotRanked"), { members: String(r.membersFixed13w ?? 0), needed: String(SECTOR_BREADTH_MIN_MEMBERS) })}
@@ -302,7 +333,8 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
         <span className={`${styles.th} ${styles.thChange}`} role="columnheader">
           <span>{t("siBreadthColChange")}</span><span className={styles.num}>{t("siBreadthColChangeUnit")}</span>
         </span>
-        <span className={`${styles.th} ${styles.thLevel}`} role="columnheader">{t("siBreadthColLevel")}</span>
+        {/* B6: while stale the values are not current, so the header drops "now". */}
+        <span className={`${styles.th} ${styles.thLevel}`} role="columnheader">{t(stale ? "siBreadthColLevelStale" : "siBreadthColLevel")}</span>
         <span className={`${styles.th} ${styles.thDirection}`} role="columnheader">{t("siBreadthColDirection")}</span>
         <span className={`${styles.th} ${styles.thMembers}`} role="columnheader">{t("siBreadthColMembers")}</span>
       </div>
@@ -314,8 +346,12 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
           <span className={`${styles.rank} ${styles.num}`} role="cell">{r.rankShown ?? "—"}</span>
           <span className={styles.sector} role="cell">{localName(r.sectorId)}</span>
           {r.changePp === null
-            ? <span className={styles.changeCell} role="cell"><span className={`${styles.changeMissing} ${styles.num}`}>—</span></span>
-            : <span className={styles.changeCell} role="cell">
+            // B7: the board prints the missing value in the pp column itself,
+            // not as a dash centred over the empty bar slot.
+            ? <span className={styles.changeCell} role="cell" data-testid="sector-breadth-change-cell">
+              <span className={`${styles.value} ${styles.num} ${styles.valueMissing}`}>—</span>
+            </span>
+            : <span className={styles.changeCell} role="cell" data-testid="sector-breadth-change-cell">
               <span className={styles.barTrack}>
                 <span className={styles.barAxis} />
                 {r.changePp > 0
@@ -326,7 +362,7 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
                 {fmtPp(r.changePp)}
               </span>
             </span>}
-          <span className={styles.level} role="cell">
+          <span className={styles.level} role="cell" data-testid="sector-breadth-share">
             {share === null ? <span className={styles.levelMissing}>—</span> : <>
               <span className={`${styles.levelPct} ${styles.num}`}>{share}</span>
               <span className={styles.levelTrack}>

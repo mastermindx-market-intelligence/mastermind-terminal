@@ -52,6 +52,7 @@ import SectorBreadthChange, {
   completedWeeklyClosesBehind,
   type SectorBreadthChangeInput,
 } from "@/components/sector-intelligence/SectorBreadthChange";
+import { SECTOR_INTELLIGENCE_LEX } from "../sectorIntelligenceLex";
 import {
   sectorBreadthChangeFromWire,
   sectorBreadthFixtureFreshFull,
@@ -203,7 +204,7 @@ describe("full state", () => {
     expect(h.textContent).toContain("Largest increase Utilities +21.4");
     expect(h.textContent).toContain("largest decrease Technology −19.6");
     expect(h.textContent).toContain("As of 6 Nov 2026 · weekly close");
-    expect(h.textContent).toContain("Basis: today's members applied to the past");
+    expect(h.textContent).toContain("Basis: today’s members applied to the past");
     expect(h.textContent).toContain("11 of 11 sectors ranked");
   });
 
@@ -313,7 +314,7 @@ describe("unavailable state (the live input until L1-FO1)", () => {
     const h = mount(null);
     expect(h.querySelector('[data-testid="sector-breadth-change"]')!.getAttribute("data-state")).toBe("unavailable");
     expect(h.textContent).toContain("Constituent membership is not supplied by this source.");
-    expect(h.textContent).toContain("Breadth change needs each sector's members. Without them no share, change or rank is shown.");
+    expect(h.textContent).toContain("Breadth change needs each sector’s members. Without them no share, change or rank is shown.");
     expect(h.textContent).not.toContain("Sector returns above are unaffected.");
     expect(h.textContent).toContain("View data status");
     expect(h.querySelector('[data-testid="sector-breadth-row"]')).toBeNull();
@@ -370,5 +371,106 @@ describe("hostile input degrades its own row, never the module", () => {
     expect(h.textContent).toContain("Technology");
     expect(h.textContent).toContain("Basis: dated membership");
     expect(h.textContent).toContain("0 sectors improving, 1 deteriorating");
+  });
+});
+
+describe("design match B1-B12 + ruling 33 W2 (2026-11-12)", () => {
+  it("B2: the largest increase/decrease line carries pp at 1440, not only at 390", () => {
+    const h = mount(freshFull());
+    // Each value keeps its own pp; the boards draw "+21.4 pp · … −19.6 pp" at both widths.
+    expect(h.textContent).toContain("Largest increase Utilities +21.4 pp · largest decrease Technology −19.6 pp");
+  });
+
+  it("B3: the 390 headline uses the short form, so it holds one line", () => {
+    mediaCompact = true;
+    const h = mount(freshFull());
+    expect(h.textContent).toContain("6 improving, 5 deteriorating");
+    expect(h.textContent).not.toContain("sectors improving");
+    expect(SECTOR_INTELLIGENCE_LEX.siBreadthAnswerFullCompact[0]).toBe("{improving} improving, {deteriorating} deteriorating");
+    // the 1440 form keeps "sectors" (W3)
+    mediaCompact = false;
+    const wide = mount(freshFull());
+    expect(wide.textContent).toContain("6 sectors improving, 5 deteriorating");
+  });
+
+  it("B4: the compact method line closes the count with a full stop", () => {
+    mediaCompact = true;
+    const h = mount(freshFull());
+    expect(h.textContent).toContain("11 of 11 ranked. Data only, not a forecast.");
+    const tooFew = mount(freshTooFew());
+    expect(tooFew.textContent).toContain("10 of 11 ranked · 1 under 10 members. Data only, not a forecast.");
+  });
+
+  it("B6: the stale column header drops \"now\"; the fresh header keeps it", () => {
+    const stale = mount(staleWorld());
+    expect(stale.textContent).toContain("Above 200-session");
+    expect(stale.textContent).not.toContain("Above 200-session now");
+    const full = mount(freshFull());
+    expect(full.textContent).toContain("Above 200-session now");
+  });
+
+  it("B7: a too-few row prints the missing change in the pp column, with no bar", () => {
+    const h = mount(freshTooFew());
+    const cell = rowOf(h, "Energy").querySelector('[data-testid="sector-breadth-change-cell"]') as HTMLElement;
+    expect(cell.textContent).toBe("—");
+    // a dash centred over the empty bar slot would read as a value; the board
+    // draws none there
+    expect(cell.querySelectorAll("[style]").length).toBe(0);
+  });
+
+  it("B10: the 390 too-few row draws no bar, no axis and no dash on the bar line", () => {
+    mediaCompact = true;
+    const h = mount(freshTooFew());
+    const energy = rowOf(h, "Energy");
+    const spacer = energy.querySelector('[data-testid="sector-breadth-bar-missing"]') as HTMLElement;
+    expect(spacer).not.toBeNull();
+    expect(spacer.childElementCount).toBe(0);
+    expect(spacer.textContent).toBe("");
+  });
+
+  it("B11: the boards' curly apostrophes are in the lexicon and the render", () => {
+    expect(SECTOR_INTELLIGENCE_LEX.siBreadthBasisReconstructed[0]).toContain("today’s");
+    expect(SECTOR_INTELLIGENCE_LEX.siBreadthUnavailableSub[0]).toContain("sector’s");
+    const h = mount(freshFull());
+    expect(h.textContent).toContain("Basis: today’s members applied to the past");
+    expect(h.textContent).not.toContain("today's members");
+    const u = mount(null);
+    expect(u.textContent).toContain("each sector’s members");
+    expect(u.textContent).not.toContain("sector's members");
+  });
+
+  it("B12: the light up/down flip selects the theme root as an ancestor of .module", () => {
+    const css = readFileSync(
+      join(__dirname, "..", "..", "components", "sector-intelligence", "SectorBreadthChange.module.css"), "utf8");
+    // theme attribute lives on an ancestor, so `.module[data-sector-theme=…]` never matched
+    expect(css).toContain(':global(html[data-updown="east"]) :global([data-sector-theme="light"]) .module');
+    expect(css).toContain(':global(html[data-red-up="true"]) :global([data-sector-theme="light"]) .module');
+    expect(css).not.toContain('.module:global([data-sector-theme="light"])');
+    // and the intended light-east palette is the one declared there
+    expect(css).toContain("--snb-upbar: #d88a8a");
+    expect(css).toContain("--snb-downbar: #6dae87");
+  });
+
+  it("W2 (ruling 33): a null pct_above_200 shows the missing-value dash in the share cell", () => {
+    // The like-for-like gate (too-few fixture) keeps the share; a missing share
+    // is its OWN field and takes the missing-value treatment, at both widths.
+    const input: SectorBreadthChangeInput = {
+      asOfDate: "2026-11-06", latestSession: "2026-11-06", basis: "dated",
+      rows: [
+        { sectorId: "Utilities", shareAbove200Now: null, changePp: 21.4, rank: 1, direction: "improving", runWeeks: 6, membersFixed13w: 69 },
+        { sectorId: "Energy", shareAbove200Now: null, changePp: null, rank: null, direction: null, runWeeks: null, membersFixed13w: 8 },
+      ],
+    };
+    const wide = mount(input);
+    expect((rowOf(wide, "Utilities").querySelector('[data-testid="sector-breadth-share"]') as HTMLElement).textContent).toBe("—");
+    mediaCompact = true;
+    const compact = mount(input);
+    for (const sector of ["Utilities", "Energy"]) {
+      const cell = rowOf(compact, sector).querySelector('[data-testid="sector-breadth-share"]') as HTMLElement;
+      expect(cell.textContent).toBe("—");
+    }
+    // the like-for-like case is a different one: the share stays shown
+    const tooFew = mount(freshTooFew());
+    expect(rowOf(tooFew, "Energy").textContent).toContain("45.5%");
   });
 });

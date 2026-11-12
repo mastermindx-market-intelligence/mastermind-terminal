@@ -575,6 +575,8 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siBreadthMeasured: ["How this is measured", "测量方法"],
   // Delta 4: the count and "without a value" are bound by U+00A0 so the pair never breaks.
   siBreadthAnswerFull: ["{improving} sectors improving, {deteriorating} deteriorating", "{improving}个板块改善，{deteriorating}个走弱"],
+  // B3 (design match): the 390 headline drops "sectors" so it holds one line.
+  siBreadthAnswerFullCompact: ["{improving} improving, {deteriorating} deteriorating", "{improving}个改善，{deteriorating}个走弱"],
   siBreadthAnswerMissing: ["{improving} improving, {deteriorating} deteriorating, {missing} without a value", "{improving}个改善，{deteriorating}个走弱，{missing}个无值"],
   siBreadthLargestIncrease: ["Largest increase", "最大升幅"],
   siBreadthLargestDecrease: ["largest decrease", "最大跌幅"],
@@ -583,6 +585,8 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siBreadthColChange: ["13-week change, like-for-like", "13周变化（同口径）"],
   siBreadthColChangeUnit: ["pp", "pp"],
   siBreadthColLevel: ["Above 200-session now", "现高于200日均价"],
+  // B6: while stale the values are not current, so the header drops "now".
+  siBreadthColLevelStale: ["Above 200-session", "高于200日均价"],
   siBreadthColDirection: ["Direction", "方向"],
   siBreadthColMembers: ["Members", "成员"],
   siBreadthImproving: ["Improving", "改善"],
@@ -595,15 +599,16 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siBreadthAbove: ["above", "高于"],
   siBreadthStaleHead: ["Stale: {weeks} weeks behind the latest session.", "数据滞后：落后最新交易日{weeks}周。"],
   siBreadthStaleSub: ["The ranking is as of the data date, not the latest session.", "排名基于数据日期，而非最新交易日。"],
-  siBreadthBasisReconstructed: ["Basis: today's members applied to the past", "基准：以今日成员回溯历史"],
+  siBreadthBasisReconstructed: ["Basis: today’s members applied to the past", "基准：以今日成员回溯历史"],
   siBreadthBasisDated: ["Basis: dated membership", "基准：按日期成员"],
   siBreadthMethod: ["Like-for-like: the same members are compared now and 13 weeks ago. Sectors under 10 members show no value. Data only, not a forecast.", "同口径：同一批成员现在与13周前相比较。少于10个成员的板块不显示数值。仅为数据，非预测。"],
-  siBreadthMethodCompact: ["Same members compared now and 13 weeks ago. Sectors under 10 members show no value. {count} Data only, not a forecast.", "同一批成员现在与13周前相比较。少于10个成员的板块不显示数值。{count}仅为数据，非预测。"],
+  // B4: the count closes with a full stop before "Data only, not a forecast."
+  siBreadthMethodCompact: ["Same members compared now and 13 weeks ago. Sectors under 10 members show no value. {count}. Data only, not a forecast.", "同一批成员现在与13周前相比较。少于10个成员的板块不显示数值。{count}。仅为数据，非预测。"],
   siBreadthCountFull: ["{ranked} of {total} sectors ranked", "{total}个板块中已排名{ranked}个"],
   siBreadthCountMissing: ["{ranked} of {total} sectors ranked · {missing} under 10 members", "{total}个板块中已排名{ranked}个 · {missing}个少于10个成员"],
   siBreadthCountFullCompact: ["{ranked} of {total} ranked", "{total}个中已排名{ranked}个"],
   siBreadthCountMissingCompact: ["{ranked} of {total} ranked · {missing} under 10 members", "{total}个中已排名{ranked}个 · {missing}个少于10个成员"],
-  siBreadthUnavailableSub: ["Breadth change needs each sector's members. Without them no share, change or rank is shown.", "广度变化需要各板块的成分股名单。缺少名单时不显示比例、变化或排名。"],
+  siBreadthUnavailableSub: ["Breadth change needs each sector’s members. Without them no share, change or rank is shown.", "广度变化需要各板块的成分股名单。缺少名单时不显示比例、变化或排名。"],
   siBreadthViewStatus: ["View data status", "查看数据状态"],
 
   siBriefHeroLead: ["{sector} leads.", "{sector}领先。"],
