@@ -10,7 +10,7 @@ async function activeWorkspaceTabFits(page: import("@playwright/test").Page) {
   });
 }
 
-test("Prophet keeps Macro Plans and Options Alpha separate at every contract viewport", async ({ page }, testInfo) => {
+test("Prophet keeps Plans and Options Alpha separate at every contract viewport", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
   await page.goto("/options?tab=prophet");
 
@@ -20,7 +20,7 @@ test("Prophet keeps Macro Plans and Options Alpha separate at every contract vie
   expect(navLabelsFit, "Options navigation labels must not overflow shrunken tabs").toBe(true);
   await expect.poll(() => activeWorkspaceTabFits(page)).toBe(true);
 
-  const macroTab = page.getByRole("tab", { name: /Macro Plans/ });
+  const macroTab = page.getByRole("tab", { name: /^Plans$/ });
   const optionsTab = page.getByRole("tab", { name: /Options Alpha/ });
   await expect(macroTab).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
   await expect(optionsTab).toHaveAttribute("aria-selected", "false");
@@ -154,7 +154,7 @@ test("Options Alpha visibly marks an API-served stale artifact", async ({ page }
   await expect(warning).toContainText("stale research context");
 });
 
-test("Macro Plans shows the producer plan status pulse in both languages", async ({ page }, testInfo) => {
+test("Plans shows the producer plan status pulse in both languages", async ({ page }, testInfo) => {
   let pulseAsset = "";
   await page.route("**/api/flow?f=prophet_idx", async (route) => {
     const response = await route.fetch();

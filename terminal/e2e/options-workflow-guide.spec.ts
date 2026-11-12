@@ -90,7 +90,7 @@ test("the options workflow navigates tape, structure, plan, and alert setup with
   await launcher.click();
   await dialog.locator('[data-options-workflow-stage="plan"] button').click();
   await expect(page).toHaveURL(/\/options\?tab=prophet$/);
-  await expect(page.locator("#prophet-lane-macro")).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
+  await expect(page.locator("#prophet-tab-plans")).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
   await expect(launcher.locator(".options-workflow-progress")).toHaveText(progressText(3));
 
   await launcher.click();

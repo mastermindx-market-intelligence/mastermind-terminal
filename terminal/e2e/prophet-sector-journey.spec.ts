@@ -30,7 +30,7 @@ async function withLang(page: Page, lang: "en" | "zh" = "en") {
 }
 
 const enterSectorLane = async (page: Page) => {
-  await page.getByTestId("prophet-lane-sector").click();
+  await page.getByTestId("prophet-tab-screener").click();
   await expect(page.getByTestId("prophet-sector-lane")).toBeVisible();
 };
 
@@ -107,12 +107,13 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await withLang(page);
     await page.goto("/options?tab=prophet");
 
-    // The board is intact: the new lane is a fourth peer, the first lane still opens.
-    await expect(page.getByRole("tab", { name: /Sector context/ })).toBeVisible();
-    await expect(page.getByRole("tab", { name: /Macro Plans/ })).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
+    // The board is intact: the Screener tab (primary nav, Lane A) opens the
+    // sector surface, and the Plans tab still carries the incumbent desk.
+    await expect(page.getByRole("tab", { name: /^Screener$/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Plans$/ })).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
 
     await enterSectorLane(page);
-    await expect(page).toHaveURL(/prophetLane=sector/);
+    await expect(page).toHaveURL(/prophetLane=screener/);
     // Overview: every group of the read (49 of them) with the coverage-honesty line.
     const picker = page.getByTestId("prophet-sector-picker");
     await expect(picker).toBeVisible({ timeout: 15_000 });
@@ -212,7 +213,7 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.reload();
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
     await page.goBack();
-    await expect(page.getByRole("tab", { name: /Macro Plans/ })).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
+    await expect(page.getByRole("tab", { name: /^Plans$/ })).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
     await page.goForward();
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
     // And the in-lane crumb returns to the population the row was opened from.
@@ -263,7 +264,7 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await withLang(page);
     await page.goto("/options?tab=prophet");
     // Land on the page, walk the tab order into the lane and through the picker.
-    await page.getByTestId("prophet-lane-sector").focus();
+    await page.getByTestId("prophet-tab-screener").focus();
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("prophet-sector-picker")).toBeVisible({ timeout: 15_000 });
     await page.getByTestId("prophet-sector-pick-us_sector_industrials").focus();
@@ -319,10 +320,10 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(unavailable).toContainText("Sector context is not available yet");
     await expect(unavailable).toHaveAttribute("role", "status");
     // The board itself keeps working — the lanes were never coupled.
-    await page.getByRole("tab", { name: /Macro Plans/ }).click();
+    await page.getByRole("tab", { name: /^Plans$/ }).click();
     await expect(page.locator("#prophet-panel-macro")).toContainText(/SBUX|UBER|BA|LRN/, { timeout: 20_000 });
     // And the sector lane still says so plainly when re-entered.
-    await page.getByTestId("prophet-lane-sector").click();
+    await page.getByTestId("prophet-tab-screener").click();
     await expect(page.getByTestId("prophet-sector-index-unavailable")).toBeVisible({ timeout: 15_000 });
   });
 
