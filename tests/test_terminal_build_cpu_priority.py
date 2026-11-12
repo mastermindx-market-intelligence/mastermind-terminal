@@ -21,10 +21,11 @@ def build_command() -> str:
 
 def test_only_build_subtree_is_niced():
     command = build_command()
-    assert 'NEXT_DEPLOYMENT_ID="$FULL_SHA" nice -n 10 npm run build )' in command
+    assert 'nice -n 10 env NODE_OPTIONS="$BUILD_NODE_OPTIONS"' in command
+    assert 'GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )' in command
     assert 'NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA"' in command
     source = SCRIPT.read_text()
-    assert source.count("nice -n 10 npm run build") == 1
+    assert source.count("nice -n 10 env NODE_OPTIONS=") == 1
     assert "BUILD_NODE_HEAP_MB=3072" in source
 
 
