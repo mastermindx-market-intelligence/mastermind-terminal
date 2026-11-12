@@ -1,0 +1,34 @@
+{
+  "startedAt": "2026-11-12T03:05:01.994696+00:00",
+  "head": "e0620d287c80b87eb9fc54f1f227f70c27559976",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "unmergedBefore": [
+    ".github/workflows/ci.yml",
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+    "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs"
+  ],
+  "ciPreimageSha256": "889c72b23734a49987c948deee95f1c14bdb1536230743368038726ac2fde78c",
+  "receiptHeadSha256": "e7f1dbb056336ea75265966573d6320254056ee0fb2de9380c84e1075f140f8e",
+  "receiptProtectedSha256": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c",
+  "receiptResolution": "Preserve original native CJK runtime and five actual-node glyph-witness contract; add both protected WatchlistDisplaySettings source bindings.",
+  "testResolution": "Preserve the full original ticker receipt tests including native CJK rejection cases.",
+  "packetResolution": "Retain the complete prior head packet as historical input until a genuinely fresh merged-source capture replaces it. No source hash is restamped.",
+  "finishedAt": "2026-11-12T03:05:02.593478+00:00",
+  "indexTree": "95796f0c70060fccf9ac57db60bae752a773c920",
+  "resolvedHashes": {
+    ".github/workflows/ci.yml": "cb29df425cc236d03637a00d931c17230c17f5907de3f85565d6e121a5b069de",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "56cd30bb49057a23353f61a65107256cfb14bdcc4b83d1762822fadae120f732",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs": "5fcaad5a75681cfc36d5e7d10130f64a3417543f53bc62b11d585eb3eb24a88f",
+    "terminal/components/TerminalShell.tsx": "86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3"
+  },
+  "activeInbox15SourcesUnchanged": true,
+  "remainingUnmerged": []
+}

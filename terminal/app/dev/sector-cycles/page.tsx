@@ -257,6 +257,23 @@ const historyPayload = {
   sectors: SECTORS.map((sec, idx) => historySector(sec.id, sec.ticker, idx * 1.7)),
 };
 
+type AxisFixture = "standard" | "tiny" | "fractional";
+
+function historyPayloadFor(axisFixture: AxisFixture) {
+  if (axisFixture === "standard") return historyPayload;
+  const [lo, hi] = axisFixture === "tiny" ? [0, 0.01] : [-4, 4];
+  return {
+    ...historyPayload,
+    sectors: historyPayload.sectors.map((sector) => ({
+      ...sector,
+      rs_history: sector.rs_history.map((point, index) => {
+        const value = lo + (Math.sin(index * Math.PI / 16) + 1) * (hi - lo) / 2;
+        return { ...point, rs_21d: value, rs_63d: value };
+      }),
+    })),
+  };
+}
+
 const eventsPayload = {
   schema: "rotation_events.v1",
   ok: true,
@@ -301,6 +318,8 @@ export default function SectorCyclesHarness() {
 
   const [generationState, setGenerationState] = useState<"current" | "replaced">("current");
   const [headsState, setHeadsState] = useState<HeadsState>("today");
+  const [axisFixture, setAxisFixture] = useState<AxisFixture>("standard");
+  const historyData = useMemo(() => historyPayloadFor(axisFixture), [axisFixture]);
   const captureRef = useRef<SectorCycleCaptureHandle>(null);
   const cyclesData = useMemo(() => cyclesPayloadFor(headsState), [headsState]);
 
@@ -362,6 +381,14 @@ export default function SectorCyclesHarness() {
             Light
           </label>
           <label>
+            Axis fixture{" "}
+            <select value={axisFixture} onChange={(event) => setAxisFixture(event.target.value as AxisFixture)}>
+              <option value="standard">Standard history</option>
+              <option value="tiny">Tiny values (0 to 0.01)</option>
+              <option value="fractional">Fractional ticks (-4 to 4)</option>
+            </select>
+          </label>
+          <label>
             <input
               type="radio"
               name="harness-gen"
@@ -415,7 +442,7 @@ export default function SectorCyclesHarness() {
           returnBinding="self"
           captureRef={captureRef}
           cyclesFeed={{ state: "ready", data: cyclesData }}
-          historyFeed={{ state: "ready", data: historyPayload }}
+          historyFeed={{ state: "ready", data: historyData }}
           eventsFeed={{ state: "ready", data: eventsPayload }}
         />
       </div>

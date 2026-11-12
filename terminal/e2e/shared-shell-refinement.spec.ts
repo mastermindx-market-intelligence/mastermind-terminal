@@ -396,7 +396,6 @@ test.describe("legacy workspace recovery",()=>{
   await page.getByRole("button",{name:"Chinese language",exact:true}).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme","light");
   await expect(page.locator("html")).toHaveAttribute("data-lang","zh");
-  const previousGeneration=new URL(child().url()).searchParams.get("mmx_generation");
   await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.fail();});
   const boundary=page.locator(".shared-shell-boundary");
   await expect(boundary.getByRole("button",{name:"重试",exact:true})).toBeVisible();
@@ -430,17 +429,19 @@ test.describe("legacy workspace recovery",()=>{
     await page.screenshot({animations:"disabled",path:info.outputPath(`workspace-recovery-${viewport.width}x${viewport.height}.png`)});
    }
   }
+  const generation=new URL(child().url()).searchParams.get("mmx_generation");
   holdNext();
   await boundary.getByRole("button").click();
   await expect.poll(()=>{
    const url=child()?.url();
-   const generation=url?new URL(url).searchParams.get("mmx_generation"):null;
-   return Boolean(generation&&generation!==previousGeneration);
+   const next=url?new URL(url).searchParams.get("mmx_generation"):null;
+   return Boolean(next&&next!==generation);
   }).toBe(true);
-  await expect(child().locator("html")).toHaveAttribute("data-initialized","true");
+  const replacement=child();
+  await expect(replacement.locator("html")).toHaveAttribute("data-initialized","true");
   const outside=page.locator(".topbar button:visible,.mobilebar button:visible").first();
   await outside.focus();
-  await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.ready();});
+  await replacement.evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.ready();});
   await expect(frame).toBeVisible();
   await expect(outside).toBeFocused();
  });

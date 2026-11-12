@@ -42,7 +42,7 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
   const t = useSectorCycleT();
   const { open, onClose } = props;
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const w = useChartWidth(wrapRef, 320);
+  const w = useChartWidth(wrapRef, 320, open);
   const [h, setH] = useState(300);
   const [fsView, setFsView] = useState<"chart" | "table">("chart");
   const openerRef = useRef<Element | null>(null);

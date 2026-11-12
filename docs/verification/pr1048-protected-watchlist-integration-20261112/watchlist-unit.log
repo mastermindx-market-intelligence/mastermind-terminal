@@ -1,0 +1,16 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/watchlistDisplaySettings.test.tsx lib/__tests__/watchlistSettings.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr1048-inbox-integration-20261112-c3/terminal
+
+ ✓ lib/__tests__/watchlistSettings.test.ts (6 tests) 10ms
+ ✓ lib/__tests__/watchlistDisplaySettings.test.tsx (8 tests) 144ms
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  20:24:54
+   Duration  2.94s (transform 391ms, setup 0ms, collect 486ms, tests 154ms, environment 991ms, prepare 192ms)
+

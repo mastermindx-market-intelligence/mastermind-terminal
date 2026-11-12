@@ -1,0 +1,1119 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/sector-cycle-lens.spec.ts",
+      "--grep",
+      "cycles tick precision survives fullscreen",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3974",
+      "url": "http://127.0.0.1:3974/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "sector-cycle-lens.spec.ts",
+      "file": "sector-cycle-lens.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "cycles tick precision survives fullscreen tiny en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5880,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T22:59:19.563Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-95210b0cce6125032763",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen fractional en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5743,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T22:59:25.914Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-69b9994c3548525d35fe",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen tiny zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5851,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T22:59:32.128Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-a36a8d206ff2a3593445",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen fractional zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5832,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m1120\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T22:59:38.438Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-a0a6cf19f22575cac088",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen tiny en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5707,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T22:59:44.717Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-f0e7827120b0f60d1d81",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen fractional en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5706,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T22:59:50.881Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-e039e628d8c4ad9d26e9",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen tiny zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5844,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T22:59:57.051Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-9fa87a5ec2b28bc1ebc8",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen fractional zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5828,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m500\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T23:00:03.368Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-a30d0aa869655faaae64",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen tiny en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5708,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T23:00:09.662Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-42fecfa1a3a3ac1831b4",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen fractional en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5700,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T23:00:15.817Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-edc0880b8b3703d10c31",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen tiny zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5852,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T23:00:21.961Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-6a9eb0f0619e77f0e84f",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        },
+        {
+          "title": "cycles tick precision survives fullscreen fractional zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5880,
+                  "error": {
+                    "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                      "column": 85,
+                      "line": 85
+                    },
+                    "snippet": "  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                        "column": 85,
+                        "line": 85
+                      },
+                      "message": "Error: SVG coordinates must follow the current measured content width\n\nSVG coordinates must follow the current measured content width\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m70\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  83 |       Math.abs(value.rendered - value.container),\n  84 |     );\n> 85 |   }, { message: \"SVG coordinates must follow the current measured content width\" }).toBeLessThanOrEqual(1);\n     |                                                                                     ^\n  86 |   return geometry();\n  87 | }\n  88 |\n    at expectMeasuredPlot (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:85:85)\n    at expectAxisLabels (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:90:3)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts:134:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T23:00:28.298Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/docs/verification/axis-tick-precision-20261111/browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3/terminal/e2e/sector-cycle-lens.spec.ts",
+                    "column": 85,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b75343cf2f4efbae0235-648b99aaa431fae85b77",
+          "file": "sector-cycle-lens.spec.ts",
+          "line": 110,
+          "column": 9
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-11T22:59:05.762Z",
+    "duration": 88730.738,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 12,
+    "flaky": 0
+  }
+}

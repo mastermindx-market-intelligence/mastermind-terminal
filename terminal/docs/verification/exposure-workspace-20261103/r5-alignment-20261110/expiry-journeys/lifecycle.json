@@ -1,0 +1,50 @@
+{
+  "allowedExporterAncestors": [
+    1,
+    2030,
+    2091,
+    2110,
+    8372,
+    8431
+  ],
+  "at": "2026-11-11T10:49:46.513980+00:00",
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/home/runner/work/mastermind-terminal/mastermind-terminal/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "15496",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-11T10:49:46.649782+00:00",
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://127.0.0.1:3108",
+    "hostname": "127.0.0.1",
+    "pid": 15496,
+    "port": 3108,
+    "startedAt": 1794394123285
+  },
+  "lockAbsent": true,
+  "lockPresent": true,
+  "lockSha256": "435fd04dcfbbfe944fb91622ce1b8722e66853eb38c249a7449ed397458e2a6b",
+  "lockUnlinked": true,
+  "port": 3108,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

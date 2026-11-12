@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-11T23:17:37.738936+00:00",
+  "prior_attempt": "R1 completed exit1 with12realfullscreenmeasurementfailures",
+  "r2_earlier_prelaunch": "unit77/typecheck/lint passed; browser NOT_STARTED because root preflight equated lock-file existence with active ownership",
+  "original_lock": {
+    "pid": 84226,
+    "port": 3974,
+    "hostname": "127.0.0.1",
+    "appUrl": "http://127.0.0.1:3974",
+    "startedAt": 1794437948429
+  },
+  "original_pid_absent": true,
+  "port_free": true,
+  "lock_open_holders": 0,
+  "owner_semantics": "Installed Next Lockfile.tryAcquire uses native exclusive OS lock; its source documents POSIX lockfile bytes may remain after process exit. Let original owner acquire; no manual lock deletion or control bypass."
+}

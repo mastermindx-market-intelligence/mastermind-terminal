@@ -402,7 +402,7 @@ jobs:
       # whole unit suite serialized in one runner.
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/briefs_inbox_capture_contract.test.cjs e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs e2e/tools/ticker_news_capture_receipt.test.cjs
+        run: node --test e2e/tools/ticker_news_capture_receipt.test.cjs e2e/tools/briefs_inbox_capture_contract.test.cjs e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
       - name: Record PR-touched paths for the evidence drift gate
         # The planner below fails a pull request whose OWN diff drifted an
         # evidence-locked source without a recaptured, committed lock — the
@@ -417,11 +417,9 @@ jobs:
           set -euo pipefail
           BASE=$(git rev-parse HEAD^1)
           git diff --name-only --no-renames "${BASE}" HEAD > "${RUNNER_TEMP}/evidence-pr-touched.txt"
-          {
-            echo "EVIDENCE_PR_TOUCHED_FILE<<__mmx-evidence-touched-eof__"
-            cat "${RUNNER_TEMP}/evidence-pr-touched.txt"
-            echo "__mmx-evidence-touched-eof__"
-          } >> "${GITHUB_ENV}"
+          # Keep the complete census in the file: large proof PRs can exceed
+          # the per-variable process-launch limit if paths enter GITHUB_ENV.
+          printf 'EVIDENCE_PR_TOUCHED_FILE=%s\n' "${RUNNER_TEMP}/evidence-pr-touched.txt" >> "${GITHUB_ENV}"
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
@@ -1069,7 +1067,7 @@ jobs:
       - name: Run allowlisted specs against next start
         run: >-
           npm run test:e2e:responsive -- -c playwright.prodbuild.config.ts
-          ${{ matrix.projects }} ${{ matrix.specs }} --workers=1
+          ${{ matrix.projects }} ${{ matrix.specs }} --workers=2
         env:
           CI: "1"
           TERMINAL_E2E_PORT: "3108"

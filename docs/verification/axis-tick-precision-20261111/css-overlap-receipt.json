@@ -1,0 +1,208 @@
+{
+  "observedAt": "2026-11-11T23:39:50.875425+00:00",
+  "path": "terminal/components/sector-intelligence/SectorCycleLens.module.css",
+  "currentCensus": "current-prs.json",
+  "sameOpenPrHeadsAs2309": true,
+  "openPrCount": 73,
+  "localProjectionCounts": {
+    "CHANGED": 1,
+    "UNCHANGED": 66,
+    "LOCAL_SOURCE_UNAVAILABLE": 6
+  },
+  "remainingCompleteInventories": [
+    {
+      "number": 1270,
+      "head": "6eb1cdead3c4bc97fb62d232c30129cbfcb70cef",
+      "title": "D06: complete Terminal workspace, Scripts, snapshots and embeds",
+      "pages": 29,
+      "readFiles": 2846,
+      "totalFiles": 2846,
+      "complete": true,
+      "hits": []
+    },
+    {
+      "number": 496,
+      "head": "aab0f93e009b6bc1b28faf848fc4d0edd4f9c239",
+      "title": "[R1-T][HOLD] Make adaptive toolbar settled state deterministic",
+      "pages": 1,
+      "readFiles": 84,
+      "totalFiles": 84,
+      "complete": true,
+      "hits": []
+    },
+    {
+      "number": 668,
+      "head": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+      "title": "feat(prophet): replace PERF placeholder with private forward-ledger history",
+      "pages": 1,
+      "readFiles": 54,
+      "totalFiles": 54,
+      "complete": true,
+      "hits": []
+    },
+    {
+      "number": 1048,
+      "head": "4ffab199156516d94a5a3a2d7e860fa342813eb2",
+      "title": "Upgrade chart AI with native drawings, visible studies and an editable AI layer",
+      "pages": 3,
+      "readFiles": 280,
+      "totalFiles": 280,
+      "complete": true,
+      "hits": []
+    },
+    {
+      "number": 733,
+      "head": "a69018769b1534ffdfe5a93917f71c86a630879c",
+      "title": "feat(chart): make Precision MTF fully usable on phone",
+      "pages": 1,
+      "readFiles": 23,
+      "totalFiles": 23,
+      "complete": true,
+      "hits": []
+    },
+    {
+      "number": 1064,
+      "head": "11443c2c030b61f1a378fe510a4149154e9d48f6",
+      "title": "feat(chart-engine): P03 default flip to mm (compatibility recovery)",
+      "pages": 1,
+      "readFiles": 54,
+      "totalFiles": 54,
+      "complete": true,
+      "hits": []
+    },
+    {
+      "number": 1249,
+      "head": "abe704f1f1519cc904881fba401a720467049bde",
+      "title": "Sector Intelligence: native sector cycles and same-close theme comparison for Discover and Beta",
+      "pages": 1,
+      "readFiles": 18,
+      "totalFiles": 18,
+      "complete": true,
+      "hits": [
+        {
+          "path": "terminal/components/sector-intelligence/SectorCycleLens.module.css"
+        }
+      ]
+    }
+  ],
+  "onlyPublishedOverlap": {
+    "pr": 1249,
+    "head": "abe704f1f1519cc904881fba401a720467049bde",
+    "latestReceipt": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249#issuecomment-6798397313",
+    "priorReceipt": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249#issuecomment-6775303344",
+    "scope": "Historical donor retains original Draft/publication refusal and broader acceptance. Latest receipt places bounded current-protected residual repairs with estate; no new live writer over fullscreen rule identified."
+  },
+  "sourceReads": [
+    {
+      "name": "protected",
+      "ref": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+      "returncode": 0,
+      "stderr": "",
+      "bytes": 30262,
+      "sha256": "dd091f8a4f125102ca46d9094d34e9e73bc046c23c7ac51cc6d2bd2e7ffc6059",
+      "fullscreenRules": [
+        {
+          "line": 1391,
+          "selector": ".fullscreenTop {"
+        },
+        {
+          "line": 1398,
+          "selector": ".fullscreenTop p {"
+        },
+        {
+          "line": 1404,
+          "selector": ".fullscreenTop button {"
+        },
+        {
+          "line": 1415,
+          "selector": ".fullscreenControls {"
+        }
+      ],
+      "toggleRules": [
+        {
+          "line": 427,
+          "selector": ".toggle {"
+        },
+        {
+          "line": 435,
+          "selector": ".toggle button {"
+        },
+        {
+          "line": 445,
+          "selector": ".toggle button[aria-pressed=\"true\"] {"
+        }
+      ]
+    },
+    {
+      "name": "axisBase",
+      "ref": "bec1e44956e628b271c49a0494c975efb89e9ae7",
+      "returncode": 0,
+      "stderr": "",
+      "bytes": 30262,
+      "sha256": "dd091f8a4f125102ca46d9094d34e9e73bc046c23c7ac51cc6d2bd2e7ffc6059",
+      "fullscreenRules": [
+        {
+          "line": 1391,
+          "selector": ".fullscreenTop {"
+        },
+        {
+          "line": 1398,
+          "selector": ".fullscreenTop p {"
+        },
+        {
+          "line": 1404,
+          "selector": ".fullscreenTop button {"
+        },
+        {
+          "line": 1415,
+          "selector": ".fullscreenControls {"
+        }
+      ],
+      "toggleRules": [
+        {
+          "line": 427,
+          "selector": ".toggle {"
+        },
+        {
+          "line": 435,
+          "selector": ".toggle button {"
+        },
+        {
+          "line": 445,
+          "selector": ".toggle button[aria-pressed=\"true\"] {"
+        }
+      ]
+    },
+    {
+      "name": "donor1249",
+      "ref": "abe704f1f1519cc904881fba401a720467049bde",
+      "returncode": 0,
+      "stderr": "",
+      "bytes": 5535,
+      "sha256": "4b1c8db8debb7775bf5152e1698950f6a9c0edb07f189afe50913e0a292aa916",
+      "fullscreenRules": [],
+      "toggleRules": [
+        {
+          "line": 23,
+          "selector": ".toggle,"
+        },
+        {
+          "line": 110,
+          "selector": ".toggle {"
+        },
+        {
+          "line": 113,
+          "selector": ".toggle button {"
+        },
+        {
+          "line": 118,
+          "selector": ".toggle button[aria-pressed=\"true\"] {"
+        }
+      ]
+    }
+  ],
+  "cause": "Later .fullscreenTop button has same specificity as .toggle button and applies width/height42px and font-size15px to both nested text controls. Padding remains12px per side, leaving roughly16px content width, explaining English clipping/wrapping and Chinese vertical wrapping.",
+  "minimumCorrection": "Change square-button selector to .fullscreenControls > button (direct close only). Scope white-space:nowrap to .fullscreenControls > .toggle > button if used; no global toggle/style redesign.",
+  "assertion": "In each of existing12 fullscreen precision cases, assert all3 buttons visible with nonempty positive text-range rectangles fully within button bounds, and buttons contained in header/viewport. Cover both Chart and Data table selected states without dropping existing tick/cursor/date-gap assertions. Current screenshot failures are the red evidence; compare actual corrected images and preserve old artifacts separately.",
+  "controls": "No source/test/capture or published mutations by advisor; all existing #1249 refusal/release effects remain scoped to their original action/branch."
+}

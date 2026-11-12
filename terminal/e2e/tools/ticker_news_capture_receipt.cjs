@@ -36,7 +36,8 @@ const TITLES = [
 ];
 const SOURCES = [
   "terminal/components/news/TickerNewsPanel.tsx", "terminal/components/news/TickerNewsPanel.module.css",
-  "terminal/components/TerminalShell.tsx", "terminal/app/globals.css",
+  "terminal/components/TerminalShell.tsx", "terminal/components/WatchlistDisplaySettings.tsx",
+  "terminal/components/WatchlistDisplaySettings.module.css", "terminal/app/globals.css",
   "terminal/lib/i18n.tsx", "terminal/lib/__tests__/fixtures/newsEditorial.ts",
   "terminal/e2e/ticker-news.spec.ts", "terminal/e2e/watchlistStore.ts",
   "terminal/e2e/presentationControls.ts", "terminal/e2e/globalSetup.ts",

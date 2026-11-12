@@ -1,0 +1,57 @@
+{
+  "head": "e0620d287c80b87eb9fc54f1f227f70c27559976",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "sourceBefore": {
+    ".github/workflows/ci.yml": "cb29df425cc236d03637a00d931c17230c17f5907de3f85565d6e121a5b069de",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "56cd30bb49057a23353f61a65107256cfb14bdcc4b83d1762822fadae120f732",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs": "5fcaad5a75681cfc36d5e7d10130f64a3417543f53bc62b11d585eb3eb24a88f",
+    "terminal/components/TerminalShell.tsx": "86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3",
+    "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": "d98ee81fd6848e24da6c70eb3426c07f317e4401aef01b9953ce0dd2eeed114b",
+    "terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs": "4c6d9c8685b55bd18fdfd65d084347390db8168a2cff835f1a78ae9285d5eea5"
+  },
+  "environmentAdjustment": {
+    "TMPDIR": "/private/tmp",
+    "reason": "Darwin /tmp is a symlink; preserve strict regular-file reader and all source bytes"
+  },
+  "priorSyntheticResult": "471/475 passed; four briefs on-disk fixture cases stopped on parent-directory symlink before their intended assertions",
+  "phases": [
+    {
+      "phase": "briefs-contract-canonical-temp",
+      "command": [
+        "node",
+        "--test",
+        "e2e/tools/briefs_inbox_capture_contract.test.cjs"
+      ],
+      "startedAt": "2026-11-12T03:19:38.323167+00:00",
+      "finishedAt": "2026-11-12T03:19:39.690482+00:00",
+      "seconds": 1.366,
+      "exitCode": 0,
+      "logSha256": "753ce21cfdeb784cc82e427c984bd3edf1557445bdc8790d4a3fcd74fece8c95"
+    },
+    {
+      "phase": "python-ci-contracts",
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_ci_ticker_news_capture.py",
+        "tests/test_ci_e2e_shards.py",
+        "tests/test_ci_cjk_font.py"
+      ],
+      "startedAt": "2026-11-12T03:19:39.693551+00:00",
+      "finishedAt": "2026-11-12T03:20:12.061219+00:00",
+      "seconds": 32.368,
+      "exitCode": 1,
+      "logSha256": "68858820c6fe5fb884bb8cf66440caed24fa56c2c309b581db93491289567c88"
+    }
+  ],
+  "sourceAfter": {
+    ".github/workflows/ci.yml": "cb29df425cc236d03637a00d931c17230c17f5907de3f85565d6e121a5b069de",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "56cd30bb49057a23353f61a65107256cfb14bdcc4b83d1762822fadae120f732",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs": "5fcaad5a75681cfc36d5e7d10130f64a3417543f53bc62b11d585eb3eb24a88f",
+    "terminal/components/TerminalShell.tsx": "86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3",
+    "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": "d98ee81fd6848e24da6c70eb3426c07f317e4401aef01b9953ce0dd2eeed114b",
+    "terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs": "4c6d9c8685b55bd18fdfd65d084347390db8168a2cff835f1a78ae9285d5eea5"
+  }
+}
