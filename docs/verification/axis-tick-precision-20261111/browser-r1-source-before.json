@@ -1,0 +1,6 @@
+{
+  "terminal/components/charts/svgChart.ts": "a064bf58f083f18e151a2a0683c629d875bc94abc3b3ac0fc63e0e07cacc1af9",
+  "terminal/lib/__tests__/svgChart.test.ts": "c5470957b7d566ec75b614bf313a18a4359669fc3eb488f4287a24a78ee036bc",
+  "terminal/app/dev/sector-cycles/page.tsx": "4730d1da0aabe1d5c0613fa1e85f5a40d51ee140a4e53b5c3566497d976feddf",
+  "terminal/e2e/sector-cycle-lens.spec.ts": "1f6f08812b8b5a7a20186cb7c1379e6290420673b84c47974eb58277e8ed8922"
+}

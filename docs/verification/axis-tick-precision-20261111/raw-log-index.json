@@ -1,0 +1,86 @@
+[
+  {
+    "original": "browser-r1.log",
+    "bytes": 42003,
+    "sha256": "67933d1e4ed1d7af4f930aa4747d8ee3153be9e64a6548320e3d339195a3192e",
+    "compressed": "browser-r1.log.gz",
+    "compressed_sha256": "5de944b5119fdf77ce49b59561893074e7d83d678b3f5b5e081d52ab5f55a2c2"
+  },
+  {
+    "original": "browser-r2.log",
+    "bytes": 5053,
+    "sha256": "34568651eeff65a47954f841018935610a139c8c1b7060db67e8e5b383b7e12f",
+    "compressed": "browser-r2.log.gz",
+    "compressed_sha256": "9e20b22c6a38ea990f4037d2ab092f83cca541b8a3669abbec70838cad602a2c"
+  },
+  {
+    "original": "browser-r3.log",
+    "bytes": 3807,
+    "sha256": "105e369e7ff3d5f53a20cb10e0cfb044f0189363476939efa6b5e100df471441",
+    "compressed": "browser-r3.log.gz",
+    "compressed_sha256": "5f4e304b08eb065177900a0c59518a84e66617b84276c8324fa33cf13c34c0d1"
+  },
+  {
+    "original": "dependency-install.log",
+    "bytes": 148,
+    "sha256": "30c66f4822f1f039d091e305be30a2648b94019fe17b95d0d1497114e796fa31",
+    "compressed": "dependency-install.log.gz",
+    "compressed_sha256": "cbea72339fbcb6109841d1d313b0c8ae782b5ec7850df23e4a88f9d820bc4532"
+  },
+  {
+    "original": "lint-r1.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed": "lint-r1.log.gz",
+    "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+  },
+  {
+    "original": "lint-r2.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed": "lint-r2.log.gz",
+    "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+  },
+  {
+    "original": "lint-r3.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed": "lint-r3.log.gz",
+    "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+  },
+  {
+    "original": "typecheck-r1.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed": "typecheck-r1.log.gz",
+    "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+  },
+  {
+    "original": "typecheck-r2.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed": "typecheck-r2.log.gz",
+    "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+  },
+  {
+    "original": "unit-baseline.log",
+    "bytes": 33904,
+    "sha256": "e0a51d6228b755e7ccd2e4e7c0b25e363593798e2fe98d658fe8aaf1791798e5",
+    "compressed": "unit-baseline.log.gz",
+    "compressed_sha256": "fb5cc3af71c98374529c75022188ec4cd31e48eb24328eee454f88d2b374eb1c"
+  },
+  {
+    "original": "unit-final-r1.log",
+    "bytes": 500,
+    "sha256": "bdc95d480264732e9a5b27c90963b3231c68d9610459f88f9f20cc553ea508cc",
+    "compressed": "unit-final-r1.log.gz",
+    "compressed_sha256": "c4905aeb9f912a4a4777951e8527073409f554bbed9dd271e466751ab377b61d"
+  },
+  {
+    "original": "unit-final-r2.log",
+    "bytes": 502,
+    "sha256": "1d09ca3984b20fa30f7e47198412c4d1be17ca89fafcfd0bd1eef1e33d44497c",
+    "compressed": "unit-final-r2.log.gz",
+    "compressed_sha256": "972e6f7b5acb8438d7574abfdf0119dabdd5c53f744c17227551a9af27a02d68"
+  }
+]

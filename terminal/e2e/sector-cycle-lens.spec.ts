@@ -86,8 +86,104 @@ async function expectMeasuredPlot(svg: Locator) {
   return geometry();
 }
 
+async function expectAxisLabels(svg: Locator, expected: string[]) {
+  await expectMeasuredPlot(svg);
+  // Tick labels belong to grid groups; date/turn labels use other anchors.
+  const ticks = svg.locator('g > text[text-anchor="end"]');
+  await expect(ticks).toHaveText(expected);
+  expect(new Set(await ticks.allTextContents()).size).toBe(expected.length);
+  const bounds = await ticks.evaluateAll(elements => elements.map(element => {
+    const label = element.getBoundingClientRect();
+    const chart = (element as SVGElement).ownerSVGElement!.getBoundingClientRect();
+    return { left: label.left - chart.left, right: chart.right - label.right };
+  }));
+  for (const bound of bounds) {
+    expect(bound.left).toBeGreaterThanOrEqual(-1);
+    expect(bound.right).toBeGreaterThanOrEqual(-1);
+  }
+}
+
+async function expectFullscreenControls(dialog: Locator) {
+  const buttons = dialog.getByRole("button");
+  await expect(buttons).toHaveCount(3);
+  const geometry = await buttons.evaluateAll(elements => elements.map(element => {
+    const button = element.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const text = range.getBoundingClientRect();
+    const lines = Array.from(range.getClientRects()).filter(rect => rect.width > 0 && rect.height > 0);
+    return {
+      label: element.textContent?.trim(),
+      lines: lines.length,
+      left: text.left - button.left,
+      right: button.right - text.right,
+      top: text.top - button.top,
+      bottom: button.bottom - text.bottom,
+    };
+  }));
+  for (const button of geometry) {
+    expect(button.lines, button.label + " must stay on one readable line").toBe(1);
+    for (const edge of [button.left, button.right, button.top, button.bottom]) {
+      expect(edge, button.label + " text must fit inside its own button").toBeGreaterThanOrEqual(-1);
+    }
+  }
+}
+
 for (const [lang, theme] of cases) {
   const L = T(lang);
+
+  for (const axisFixture of ["tiny", "fractional"] as const) {
+    test(`cycles tick precision survives fullscreen ${axisFixture} ${lang} ${theme}`, async ({ page }, info) => {
+      await page.goto("/dev/sector-cycles");
+      await page.getByRole("radio", { name: lang === "zh" ? "ZH" : "EN", exact: true }).check();
+      await page.getByRole("radio", { name: theme === "light" ? "Light" : "Dark", exact: true }).check();
+      await page.getByLabel("Axis fixture").selectOption(axisFixture);
+      await expect(page.getByText("Fixture data — not live evidence")).toBeVisible();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+
+      const panel = page.getByTestId("cycle-chart-panel");
+      await panel.getByLabel(L.range).selectOption("0");
+      const inlineLabels = axisFixture === "tiny"
+        ? ["0.000", "0.005", "0.010"] : ["-2.5", "0.0", "2.5"];
+      const fullscreenLabels = axisFixture === "tiny"
+        ? ["0.0000", "0.0025", "0.0050", "0.0075", "0.0100"]
+        : ["-4", "-2", "0", "2", "4"];
+      await expectAxisLabels(panel.locator("svg"), inlineLabels);
+      await panel.screenshot({
+        path: info.outputPath(`cycles-precision-${axisFixture}-inline-${lang}-${info.project.name}.png`),
+        animations: "disabled",
+      });
+
+      await panel.getByRole("button", { name: new RegExp(L.fullscreenBtn) }).click();
+      const dialog = page.getByRole("dialog", { name: L.fullscreen });
+      await expect(dialog).toBeVisible();
+      await expectAxisLabels(dialog.locator("svg"), fullscreenLabels);
+      await expectFullscreenControls(dialog);
+      const viewport = page.viewportSize()!;
+      const resizedWidth = viewport.width >= 981 ? 1280 : viewport.width >= 641 ? 760 : 430;
+      await page.setViewportSize({ ...viewport, width: resizedWidth });
+      await expectAxisLabels(dialog.locator("svg"), fullscreenLabels);
+      await expectFullscreenControls(dialog);
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await page.setViewportSize(viewport);
+      await expectAxisLabels(panel.locator("svg"), inlineLabels);
+      // Reopening creates a new measured DOM node; the retained component/ref
+      // must attach its observer again instead of reusing the last width.
+      await panel.getByRole("button", { name: new RegExp(L.fullscreenBtn) }).click();
+      await expect(dialog).toBeVisible();
+      await expectAxisLabels(dialog.locator("svg"), fullscreenLabels);
+      await expectFullscreenControls(dialog);
+      await dialog.screenshot({
+        path: info.outputPath(`cycles-precision-${axisFixture}-fullscreen-${lang}-${info.project.name}.png`),
+        animations: "disabled",
+      });
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await expectAxisLabels(panel.locator("svg"), inlineLabels);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
+    });
+  }
 
   for (const transition of ["table", "empty"] as const) {
     test(`cycles chart measurement survives ${transition} transitions ${lang} ${theme}`, async ({ page }, info) => {
