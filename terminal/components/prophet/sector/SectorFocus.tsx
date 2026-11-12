@@ -1,15 +1,15 @@
 "use client";
 /**
  * SectorFocus (SX02 · G4) — the group's own page inside Prophet: the market
- * comparison first, then what would test the move, then the road to the
- * members. New surface; the panels the wire does not carry yet render their
- * DESIGNED unavailable states (amber uncertainty vocabulary, SX09 #05), never
- * invented numbers and never an empty-looking gap.
+ * comparison first, then the road to the members. The panels the wire does not
+ * carry are collapsed to ONE plain line (P1-4), never four refusal panels:
+ * breadth, concentration, industries and history keep their honest limitation
+ * in one sentence, and Sector Intelligence stays a link, never a copy.
  *
- * At desktop width the composition follows SX02/1FLQ: the numbers and the
- * participation panel own the left column, the challenge and outlook cards the
- * right, and the industry and timeline sections span both. Below that the same
- * blocks stack in reading order.
+ * Reading order follows SX02-C1/C3 on phones (P1-6): heading and chips, then
+ * the group's numbers, then the members action. At desktop the numbers own the
+ * left column and the action rail sits top-right (SX02/1FLQ); the grid areas
+ * make both orders one DOM.
  *
  * Fail-closed group read (A1-9/A2-4): when the group read says `group: null`,
  * the lead line, context numbers and member count are NOT served — the page
@@ -17,9 +17,7 @@
  * the full population with no count.
  *
  * Fence: the industry table, window series, concentration and rotation
- * timeline are Sector Intelligence's to produce. Their panels name what is
- * missing in plain words and hand the reader to Sector Intelligence by link
- * only — no second implementation here.
+ * timeline are Sector Intelligence's to produce.
  */
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
@@ -31,6 +29,11 @@ import {
   contextNullKey, makeProphetSectorT, prophetSectorFill,
 } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
+
+/** SX02's breadcrumb destination. Lane A's `/prophet` Today route arrives with
+ * #1480; until the ordered merge lands, Today is the Prophet board, so the
+ * breadcrumb and the return control keep a real destination. */
+const TODAY_HREF = "/options?tab=prophet";
 
 export function SectorFocus({ group, compatibility, memberCount, groupUnavailable,
   onOpenPopulation, onBack }: {
@@ -76,10 +79,20 @@ export function SectorFocus({ group, compatibility, memberCount, groupUnavailabl
         <button type="button" className={styles.backButton} data-testid="prophet-sector-focus-back" onClick={onBack}>
           ← {t("backToGroups")}
         </button>
+        <Link
+          className={styles.crumbLink}
+          href={TODAY_HREF}
+          data-testid="prophet-sector-focus-breadcrumb"
+        >
+          {t("focusBreadcrumbToday")} · {t("focusBreadcrumbMarket")}
+        </Link>
       </div>
 
-      <header className={styles.focusHead}>
-        <div className={styles.focusHeadMain}>
+      {/* One DOM for both compositions. Desktop areas: numbers left, action
+          rail top-right, the single limitation line right. Phones keep the DOM
+          order — heading/chips, numbers, then the action. */}
+      <div className={styles.focusFlow} data-testid="prophet-sector-focus-grid">
+        <header className={styles.focusHeadMain}>
           <h3 className={styles.focusTitle} data-view-heading tabIndex={-1}>{localName}</h3>
           {groupUnavailable ? null : <p className={styles.focusIntro}>{intro}</p>}
           {groupUnavailable ? null : (
@@ -91,7 +104,21 @@ export function SectorFocus({ group, compatibility, memberCount, groupUnavailabl
               {closeChip !== null ? <span className={styles.focusChip}>{closeChip}</span> : null}
             </div>
           )}
+        </header>
+
+        <div className={styles.focusNumbers}>
+          {/* SX02: the read's own numbers — or, when the group read failed
+              closed, the designed not-served block in their place. */}
+          {groupUnavailable ? (
+            <div className={styles.focusNotServed} data-testid="prophet-sector-focus-not-served" role="status">
+              <h4 className={styles.focusNotServedTitle}>{t("focusNotServedTitle")}</h4>
+              <p className={styles.focusPanelBody}>{t("focusNotServedBody")}</p>
+            </div>
+          ) : (
+            <SectorContextStrip group={group} compatibility={compatibility} />
+          )}
         </div>
+
         <div className={styles.focusActions}>
           <button
             type="button"
@@ -101,68 +128,25 @@ export function SectorFocus({ group, compatibility, memberCount, groupUnavailabl
           >
             {membersLabel}
           </button>
-        </div>
-      </header>
-
-      <div className={styles.focusGrid} data-testid="prophet-sector-focus-grid">
-        <div className={styles.focusCol}>
-          {/* SX02: the read's own numbers own the left column, above the
-              participation panel — or, when the group read failed closed, the
-              designed not-served block in their place (PROV-26XZ). */}
-          {groupUnavailable ? (
-            <div className={styles.focusNotServed} data-testid="prophet-sector-focus-not-served" role="status">
-              <h4 className={styles.focusNotServedTitle}>{t("focusNotServedTitle")}</h4>
-              <p className={styles.focusPanelBody}>{t("focusNotServedBody")}</p>
-            </div>
-          ) : (
-            <SectorContextStrip group={group} compatibility={compatibility} />
-          )}
-          <section className={styles.focusPanel} data-testid="prophet-sector-focus-participation">
-            <h4 className={styles.focusPanelTitle}>{t("focusParticipationTitle")}</h4>
-            <p className={styles.focusPanelNote}>
-              {t(groupUnavailable ? "focusChartUnavailableNoRead" : "focusChartUnavailable")}
-            </p>
-          </section>
+          <Link
+            className={styles.focusReturnToday}
+            href={TODAY_HREF}
+            data-testid="prophet-sector-focus-return-today"
+          >
+            {t("focusReturnToday")}
+          </Link>
         </div>
 
-        <div className={styles.focusColSide}>
-          <section className={styles.focusPanel} data-testid="prophet-sector-focus-challenge">
-            <h4 className={styles.focusPanelTitle}>{t("focusChallengeTitle")}</h4>
-            <p className={styles.focusPanelBody}>{t("focusChallengeUnavailable")}</p>
-            <p className={styles.focusPanelNote}>{t("focusChallengeNote")}</p>
-            <Link
-              className={styles.siLink}
-              href={`/sectors?group=${encodeURIComponent(group.id)}`}
-              data-testid="prophet-sector-focus-si"
-              aria-label={t("siLinkAria")}
-            >
-              {t("siLink")}
-            </Link>
-          </section>
-
-          <section className={styles.focusPanel} data-testid="prophet-sector-focus-outlook">
-            <h4 className={styles.focusPanelTitle}>{t("focusOutlookTitle")}</h4>
-            <span className={styles.outlookChip}>{t("focusOutlookChip")}</span>
-            <p className={styles.focusPanelBody}>{t("focusOutlookBody")}</p>
-            <p className={styles.focusPanelNote}>{t("focusAgeUnavailable")}</p>
-          </section>
-        </div>
-
-        <section className={`${styles.focusPanel} ${styles.focusPanelWide}`} data-testid="prophet-sector-focus-industry">
-          <h4 className={styles.focusPanelTitle}>{t("focusIndustryTitle")}</h4>
-          <p className={styles.focusPanelBody}>{t("focusIndustryUnavailable")}</p>
+        <section className={styles.focusUnavailable} data-testid="prophet-sector-focus-unavailable">
+          <p className={styles.focusPanelNote}>{t("focusUnavailableLine")}</p>
           <Link
             className={styles.siLink}
             href={`/sectors?group=${encodeURIComponent(group.id)}`}
+            data-testid="prophet-sector-focus-si"
             aria-label={t("siLinkAria")}
           >
             {t("siLink")}
           </Link>
-        </section>
-
-        <section className={`${styles.focusPanel} ${styles.focusPanelWide}`} data-testid="prophet-sector-focus-timeline">
-          <h4 className={styles.focusPanelTitle}>{t("focusTimelineTitle")}</h4>
-          <p className={styles.focusPanelBody}>{t("focusTimelineUnavailable")}</p>
         </section>
       </div>
 

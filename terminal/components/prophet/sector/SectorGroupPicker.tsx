@@ -128,7 +128,7 @@ export function SectorGroupPicker({ groups, totals, selected, onPick }: {
             statement that Prophet covers companies beyond these groups — the
             outside count is not on the wire, so no number is invented. */}
         <p className={styles.pickerCoverageHonest} data-testid="prophet-sector-picker-coverage">
-          {prophetSectorFill(t("pickerCoverageHonest"), { served: totals.served, groups: groups.length })}
+          {prophetSectorFill(t("pickerCoverageHonest"), { companies: totals.served, groups: groups.length })}
         </p>
       </header>
       <div className={styles.leadershipWrap}>

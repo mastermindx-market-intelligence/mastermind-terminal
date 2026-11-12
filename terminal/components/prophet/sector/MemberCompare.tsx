@@ -9,11 +9,15 @@
  *   - Each case keeps its OWN clock — the two owners' clocks render per card,
  *     and when the reads do not share a session the different-clocks line
  *     (SX09 #08) says so and combined arithmetic stays out.
- *   - Served facts only: Prophet state (reported), the plan's own direction/
- *     phase/opened date, membership lower bound, industry. The per-name
- *     window series and the entry state are NOT on this wire — each card
- *     carries its own designed unavailable line/chip (SX09 vocabulary), never
- *     an invented number and never a shared pretense.
+ *   - Served facts only: Prophet state (reported), membership lower bound and
+ *     the plan's own strategy when it carries one. Direction, phase and the
+ *     opened date are NOT shown here (P0-2): reached from a sector-strength
+ *     page, a side-by-side of "long / before trigger" reads as an entry
+ *     checklist. They stay behind Open setup, where the board's own panel
+ *     reports them.
+ *   - T2-07/T2-13's anatomy is support / challenge / next check. This read
+ *     does not carry those fields, so each card says so in ONE plain line; no
+ *     row is invented and the per-name window series keeps its own line.
  *   - Back returns to the population with the selection and filters intact
  *     (selection lives above, in the lane's state).
  *   - Cards stack to one column at phone width (T2-13); no horizontal
@@ -21,27 +25,14 @@
  */
 import type { ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
-import type { Lang } from "@/lib/i18n";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
 import { PROPHET_COMPARE_CAP } from "./SectorMemberPopulation";
 import {
-  makeProphetSectorT, PROPHET_PHASE_LABELS, PROPHET_STATE_LABEL_KEY,
-  prophetReasonKey, prophetSectorFill,
+  makeProphetSectorT, PROPHET_STATE_LABEL_KEY, prophetReasonKey, prophetSectorFill,
 } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
 
 type SymbolPayload = Extract<SectorMembersPayload, { mode: "symbol" }>;
-
-/** The Prophet plan phase is the producer's wire enum (`pre_trigger` …); the
- * reader gets the owner's plain-language vocabulary (P3), never the raw slug
- * and never a title-cased code. An enum this surface does not know says so
- * rather than printing itself. */
-function phaseDisplay(lang: Lang, phase: string | null | undefined,
-  notStated: string, unmapped: string): string {
-  if (phase === null || phase === undefined) return notStated;
-  const labels = PROPHET_PHASE_LABELS[phase];
-  return labels === undefined ? unmapped : labels[lang === "zh" ? 1 : 0];
-}
 
 export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMember }: {
   /** The lane's selection, in picking order; two minimum, three maximum. */
@@ -126,12 +117,6 @@ function CompareCard({ payload, onOpenMember }: {
   const sectorClock = compatibility.sectorSession ?? t("contextUnknown");
   const prophetClock = compatibility.prophetAsof ?? t("contextUnknown");
 
-  const direction = plan !== null
-    ? plan.direction === "long" ? t("directionLong")
-      : plan.direction === "short" ? t("directionShort")
-      : t("contextNotStated")
-    : null;
-
   return (
     <article className={styles.compareCard} data-testid={`prophet-sector-compare-card-${symbol}`}>
       <div className={styles.compareCardHead}>
@@ -157,21 +142,6 @@ function CompareCard({ payload, onOpenMember }: {
           ) : null}
         </dd>
 
-        <dt className={styles.compareDetailLabel}>{t("compareDirection")}</dt>
-        <dd className={styles.compareDetailValue}>
-          {plan !== null ? direction ?? t("contextNotStated") : t("comparePlanNone")}
-        </dd>
-
-        <dt className={styles.compareDetailLabel}>{t("comparePhase")}</dt>
-        <dd className={styles.compareDetailValue} data-testid={`prophet-sector-compare-phase-${symbol}`}>
-          {phaseDisplay(lang, plan?.phase, t("contextNotStated"), t("phaseUnmapped"))}
-        </dd>
-
-        <dt className={styles.compareDetailLabel}>{t("compareOpened")}</dt>
-        <dd className={styles.compareDetailValue}>
-          {plan?.openedOn ?? t("contextNotStated")}
-        </dd>
-
         <dt className={styles.compareDetailLabel}>{t("columnSince")}</dt>
         <dd className={styles.compareDetailValue}>
           {member?.firstKnown !== null && member?.firstKnown !== undefined
@@ -185,7 +155,10 @@ function CompareCard({ payload, onOpenMember }: {
         </dd>
       </dl>
 
-      <div className={styles.compareChartBlock}>
+      {/* T2-07's evidence rows. The read serves none of them per name, so the
+          card states that once, plainly — never a row of invented labels. */}
+      <div className={styles.compareChartBlock} data-testid={`prophet-sector-compare-evidence-${symbol}`}>
+        <p className={styles.focusPanelNote}>{t("compareEvidenceUnavailable")}</p>
         <p className={styles.focusPanelNote}>{prophetSectorFill(t("compareChartUnavailable"), { symbol })}</p>
       </div>
       <span className={styles.compareEntryChip}>{t("compareEntryUnavailable")}</span>

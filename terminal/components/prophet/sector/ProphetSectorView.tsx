@@ -15,13 +15,12 @@
  * container only renders decoded payloads and their honest failure states.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLang } from "@/lib/i18n";
+import { useLang, type Lang } from "@/lib/i18n";
 import {
   fetchProphetSectorMembers, sectorGroupFetchKey,
-  type ProphetMemberState, type SectorMembersPayload, type SectorMembersRead,
+  type ProphetMemberState, type SectorGroupDescriptor, type SectorMembersPayload, type SectorMembersRead,
 } from "@/lib/prophetSectorMembers";
 import { prophetFromReturnHref, type ProphetUrlState } from "@/lib/prophetUrlState";
-import { SectorContextStrip } from "./SectorContextStrip";
 import { SectorGroupPicker } from "./SectorGroupPicker";
 import { SectorFocus } from "./SectorFocus";
 import { SectorMemberPopulation, readProphetSelection, toggleProphetSelection } from "./SectorMemberPopulation";
@@ -30,6 +29,12 @@ import { MemberSetup } from "./MemberSetup";
 import { SectorSourcesDisclosure } from "./SectorSourcesDisclosure";
 import { makeProphetSectorT, prophetSectorFill } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
+
+/** The group's own name in the reader's language, never the raw id when a
+ * name exists. */
+function localContextName(group: SectorGroupDescriptor, lang: Lang): string {
+  return (lang === "zh" ? group.nameZh || group.name : group.name) || group.id;
+}
 
 type Read<T> = { status: "loading" } | { status: "ready"; payload: T }
   | ({ status: SectorMembersRead["status"] } & { retryAfterSec?: number | null });
@@ -328,10 +333,38 @@ export function ProphetSectorView({ state, update }: {
 
         {state.view === "population" ? (
           <>
+            {/* P1-7: a ONE-LINE sector header with the back link, not the whole
+                focus card again. The roster must start the page. */}
             <div className={styles.crumbs}>
               <button type="button" className={styles.backButton} data-testid="prophet-sector-population-back" onClick={backToFocus}>
                 ← {t("backToFocus")}
               </button>
+              {contextGroup !== null && groupReady !== null ? (
+                <p className={styles.contextLine} data-testid="prophet-sector-context-line">
+                  <span className={styles.contextLineName}>{localContextName(contextGroup, lang)}</span>
+                  {contextGroup.context.relativePp !== null ? (
+                    <span>
+                      {" · "}
+                      {prophetSectorFill(t("populationContextVsMarket"), {
+                        pp: `${contextGroup.context.relativePp > 0 ? "+" : ""}${contextGroup.context.relativePp.toFixed(1)} pp`,
+                      })}
+                    </span>
+                  ) : null}
+                  {contextGroup.context.windowSessions !== null ? (
+                    <span>
+                      {" · "}
+                      {groupReady.compatibility.sectorSession !== null
+                        ? prophetSectorFill(t("populationContextSessions"), {
+                            n: contextGroup.context.windowSessions,
+                            session: groupReady.compatibility.sectorSession,
+                          })
+                        : prophetSectorFill(t("populationContextSessionsNoDate"), {
+                            n: contextGroup.context.windowSessions,
+                          })}
+                    </span>
+                  ) : null}
+                </p>
+              ) : null}
             </div>
             {groupReady !== null && groupReady.group === null ? (
               // A1-9/A2-4 fail-closed read: the sector side is unavailable and
@@ -343,9 +376,6 @@ export function ProphetSectorView({ state, update }: {
               </div>
             ) : (
               <>
-                {contextGroup !== null && groupReady !== null ? (
-                  <SectorContextStrip group={contextGroup} compatibility={groupReady.compatibility} />
-                ) : null}
                 {groupFetch.read.status === "ready"
                   ? <SectorMemberPopulation
                       payload={groupFetch.read.payload}

@@ -7,6 +7,13 @@
  * Laws:
  *   - EVERY member renders (search filters BEFORE paging; state filter chips
  *     carry counts; paging is offset/limit, never top-N truncation).
+ *   - The roster's default order is the sector's own member list (alphabetical
+ *     by ticker), never plan state: a live-plan row is not promoted above the
+ *     rest, because the population is a research roster, not a shortlist of
+ *     positions (SX04/T2-06, P0-1). Plan state is a neutral reported column.
+ *   - Return and vs-sector are the roster's evidence columns (SX04). This wire
+ *     does not carry them per member, so each cell stays blank and ONE plain
+ *     line under the table says so — never a pipeline word, never a number.
  *   - Expected/served/unmeasured counts are stated as counts — never as a
  *     completeness or health claim.
  *   - Unmeasured (unserved) members render in their own visible section with
@@ -32,7 +39,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import {
-  PROPHET_MEMBER_STATES, SECTOR_MEMBERS_QUERY, SECTOR_MEMBERS_SYMBOL,
+  SECTOR_MEMBERS_QUERY, SECTOR_MEMBERS_SYMBOL,
   type ProphetMemberState, type SectorMembersPayload,
 } from "@/lib/prophetSectorMembers";
 import type { ProphetUrlState } from "@/lib/prophetUrlState";
@@ -110,6 +117,7 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
   }, [highlightSymbol, payload.members]);
 
   const { group, counts, members, unserved, page } = payload;
+  const roster = rosterOrder(members);
   // The fail-closed read (A1-9) carries group null; the population then renders
   // its neutral title with counts stated as not stated — never invented.
   const localName = group === null
@@ -148,11 +156,7 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
       <header className={styles.populationHead}>
         <h3 className={styles.populationTitle} data-view-heading tabIndex={-1}>{prophetSectorFill(t("populationTitle"), { group: localName })}</h3>
         <p className={styles.populationCounts} data-testid="prophet-sector-population-counts">
-          {prophetSectorFill(t("populationCounts"), {
-            served: counts.served,
-            configured: counts.configured === null ? t("contextNotStated") : counts.configured,
-            unserved: counts.accountedUnserved,
-          })}
+          {prophetSectorFill(t("populationCounts"), { companies: counts.served })}
         </p>
       </header>
 
@@ -180,7 +184,7 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
         </form>
         <div className={styles.stateChips} role="group" aria-label={t("columnState")}>
           {chip("all", t("filterAll"), counts.served, stateFilter === null, () => onFilter({ state: null, offset: 0 }))}
-          {PROPHET_MEMBER_STATES.map(state => chip(
+          {STATE_FILTER_ORDER.map(state => chip(
             state, t(PROPHET_STATE_LABEL_KEY[state]),
             state === "open_plan" ? counts.openPlan
               : state === "resolved_plan" ? counts.resolvedPlan
@@ -241,12 +245,14 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
               <th scope="col"><span className={styles.a11yLabel}>{t("compareCol")}</span></th>
               <th scope="col">{t("columnSymbol")}</th>
               <th scope="col">{t("columnName")}</th>
+              <th scope="col">{t("columnReturnMember")}</th>
+              <th scope="col">{t("columnVsSector")}</th>
               <th scope="col">{t("columnIndustry")}</th>
               <th scope="col">{t("columnSince")}</th>
               <th scope="col">{t("columnState")}</th>
             </tr></thead>
             <tbody>
-              {members.map(member => {
+              {roster.map(member => {
                 const planId = member.prophet.plan?.id ?? null;
                 const isSelected = selection.includes(member.symbol);
                 const isHighlighted = highlightSymbol === member.symbol;
@@ -306,6 +312,8 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
                         <span className={styles.alsoIn}> · {prophetSectorFill(t("alsoIn"), { groups: member.alsoInGroups.length })}</span>
                       ) : null}
                     </td>
+                    <td className={styles.returnCell}>—</td>
+                    <td className={styles.vsSectorCell}>—</td>
                     <td className={styles.industryCell}>{member.industry ?? "—"}</td>
                     {/* A2-1: first_known is a LOWER BOUND (stored-snapshot
                         coverage), never a join date — the "at least" wording is
@@ -334,9 +342,9 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
         </div>
       )}
 
-      {/* The wire carries no per-member return/versus/breadth/research fields
-          yet (G6): one honest line under the whole table — never per-row null
-          spam, never an invented number. */}
+      {/* SX04's return and vs-sector columns are present but not carried by
+          this read: one plain line under the table, never per-row null spam
+          and never an invented number. */}
       <p className={styles.leadershipNote} data-testid="prophet-sector-measures-note">
         {t("populationMeasuresNote")}
       </p>
@@ -378,10 +386,24 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
   );
 }
 
-/** Reported-state ink: quiet labels; unavailable dims. No colored edges. */
+/** Reported-state ink: quiet labels; unavailable dims. No colored edges, and
+ * in particular no green for a live plan — plan state is not permission. */
 function stateToneClass(state: ProphetMemberState): string {
   if (state === "open_plan") return styles.stateOpen;
   if (state === "resolved_plan") return styles.stateResolved;
   if (state === "unavailable") return styles.stateUnavailable;
   return styles.statePlain;
 }
+
+/** The roster's display order: the sector's own member list, alphabetical by
+ * ticker. Plan state never reorders it (P0-1) — the wire's state-grouped order
+ * would put every live plan first and read as a trade shortlist. */
+export function rosterOrder<T extends { symbol: string }>(members: readonly T[]): T[] {
+  return [...members].sort((a, b) => a.symbol.localeCompare(b.symbol));
+}
+
+/** Filter chips: plan state is a neutral, secondary filter — it comes after
+ * the observation and no-plan states, never first. */
+const STATE_FILTER_ORDER: readonly ProphetMemberState[] = [
+  "early_observation", "resolved_plan", "none", "unavailable", "open_plan",
+];

@@ -10,9 +10,13 @@
  *     why no plan exists (the contract's reason, translated), any early
  *     observation, and the existing chart destination. Never a manufactured
  *     signal, never a stance.
- *   - The Prophet state is reported; the reported-not-recommended line stays on
- *     the surface.
+ *   - When the roster's plan is absent from the board read (the two
+ *     generations drift), the Setup does not dead-end or contradict the
+ *     population: it says plainly what the roster reports and that today's
+ *     board does not carry the plan, and it offers the board itself as the
+ *     next step. No level is reconstructed from the roster row.
  */
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { flowGet } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
@@ -21,7 +25,7 @@ import { AnalysisPanel } from "../ProphetView";
 import { makeProphetT } from "../prophetStrings";
 import { companyHref } from "@/lib/sectorIntelligence";
 import {
-  makeProphetSectorT, prophetReasonKey, prophetSectorFill,
+  makeProphetSectorT, PROPHET_STATE_LABEL_KEY, prophetReasonKey, prophetSectorFill,
 } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
 
@@ -104,7 +108,22 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
               // The board's own panel, selected by the contract's exact plan id.
               <AnalysisPanel plan={boardPlan as never} lang={lang} t={prophetT} />
             ) : (
-              <p className={styles.emptyCopy} data-testid="prophet-sector-plan-missing">{t("setupPlanMissing")}</p>
+              // Roster and board generations differ: the population and compare
+              // still report this member's plan, so the Setup names that same
+              // fact instead of claiming there is no plan — and sends the
+              // reader to the board that owns the levels.
+              <div className={styles.setupPlanMissing} data-testid="prophet-sector-plan-missing" role="status">
+                <p className={styles.setupPlanMissingTitle}>{t("setupPlanMissingTitle")}</p>
+                <p className={styles.emptyCopy}>
+                  {prophetSectorFill(t("setupPlanMissingBody"), {
+                    state: t(PROPHET_STATE_LABEL_KEY[prophet.state]),
+                    date: prophet.plan?.openedOn ?? t("contextNotStated"),
+                  })}
+                </p>
+                <Link className={styles.chartLink} data-testid="prophet-sector-plan-board" href="/options?tab=prophet">
+                  {t("setupPlanBoard")} ↗
+                </Link>
+              </div>
             )}
         </div>
       ) : (
