@@ -430,9 +430,10 @@ def test_the_classifier_is_always_executed_from_a_protected_base() -> None:
     # A base classifier too old for merge groups (the group that ships this
     # very change) is probed, never executed with flags it rejects, and the
     # group fails closed to a full run instead of a red classifier job.
-    assert "grep -q -- '--group-base-sha' \"${trusted}/ci_pr_scope.py\"" in run
+    # Match the parser declaration, not any mention of the flag.
+    assert "grep -qF -- 'add_argument(\"--group-base-sha\"' \"${trusted}/ci_pr_scope.py\"" in run
     assert 'mode=full\\nreason=CLASSIFIER_LACKS_GROUP_SUPPORT\\n' in run
-    assert run.index("--event merge-group") > run.index("grep -q -- '--group-base-sha'")
+    assert run.index("--event merge-group") > run.index("grep -qF -- 'add_argument(\"--group-base-sha\"'")
 
 
 def test_the_pull_request_path_guards_forks_in_the_shell_and_stays_vintage_safe() -> None:

@@ -44,7 +44,7 @@ jobs:
   # Classifies the exact pull-request merge commit from Git objects only: a
   # prose-only change (Markdown under docs/ and terminal/docs/ minus the
   # sub-trees and files that code or tests read, plus raster evidence images
-  # under docs/evidence/ and terminal/docs/pr-crops/; see the allowlist in
+  # under docs/evidence/ (pr-crops are hash-locked, so never docs); see the allowlist in
   # scripts/ci_pr_scope.py) is mode=docs, and the unit, e2e, ingest and
   # PostgreSQL jobs below are then
   # skipped or reduced to a no-op that still reports its required context
@@ -118,7 +118,7 @@ jobs:
             [ "$(git rev-parse "${MG_BASE_SHA}^{commit}")" = "${MG_BASE_SHA}" ] || { echo "Merge-group base is not the exact commit" >&2; exit 1; }
             if git cat-file -e "${MG_BASE_SHA}:scripts/ci_pr_scope.py" 2>/dev/null; then
               git show "${MG_BASE_SHA}:scripts/ci_pr_scope.py" > "${trusted}/ci_pr_scope.py"
-              if grep -q -- '--group-base-sha' "${trusted}/ci_pr_scope.py"; then
+              if grep -qF -- 'add_argument("--group-base-sha"' "${trusted}/ci_pr_scope.py"; then
                 python3 "${trusted}/ci_pr_scope.py" \
                   --repo "$GITHUB_WORKSPACE" --event merge-group \
                   --group-base-sha "${MG_BASE_SHA}" --group-head-sha "${MG_HEAD_SHA}" \
