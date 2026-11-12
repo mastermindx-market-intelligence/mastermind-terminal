@@ -43,7 +43,11 @@ def test_github_native_source_authoring_has_no_host_worktree_prerequisite():
     assert "Independently authorized GitHub-native" in nested
     assert "does not require an M2 worktree" in nested
     assert "blob" in root and "blob" in nested
-    assert "Never switch" in root and "Never switch" in nested
+    assert "Never switch carriers to evade a refusal" in root
+    # Recovery wording may change without removing operation-specific fences.
+    assert "Treat active writers, HOLDs, and uncertain effects as specific to their protected operation" in nested
+    assert "use independently authorized tools for unrelated technical recovery" in nested
+    assert "Do not create a second worktree to route around an existing writer, release hold, denied operation or uncertain effect" in nested
     assert "Attended Web/Studio sessions must reuse or acquire" not in nested
 
 
