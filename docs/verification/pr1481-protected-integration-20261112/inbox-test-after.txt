@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-security-toolchain-20261112-c3/terminal
+
+······
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  03:45:17
+   Duration  637ms (transform 129ms, setup 0ms, import 193ms, tests 155ms, environment 0ms)
