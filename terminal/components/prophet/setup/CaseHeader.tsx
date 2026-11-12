@@ -69,17 +69,18 @@ export function CaseHeader({ symbol, name, prophet, assessmentAsof, windowSessio
         ) : null}
       </div>
 
-      {/* Two clocks, both labeled — assessment is served, the quote clock is
-          not: this surface carries no live quote feed (T2-16 vocabulary). */}
+      {/* Two clocks, both labeled (T2-16 vocabulary), never one merged "as
+          of". The served assessment date keeps its tile; the unserved quote
+          clock folds into a header line beside it, so the header stays inside
+          the 1440×900 fold budget without dropping either clock. */}
       <div className={styles.clocks} data-testid="case-clocks">
         <div className={styles.clock} data-testid="case-clock-assessment">
           <span>{t("clockAssessmentLabel")}</span>
           <b>{assessmentAsof ?? t("clockAssessmentNone")}</b>
         </div>
-        <div className={`${styles.clock} ${styles.clockMissing}`}>
-          <span>{t("clockQuote")}</span>
-          <b>{t("clockQuoteNote")}</b>
-        </div>
+        <p className={styles.clockAside}>
+          <b>{t("clockQuote")}</b> — {t("clockQuoteNote")}
+        </p>
       </div>
 
       {/* G8: the verdict headline is designed-but-unserved. */}

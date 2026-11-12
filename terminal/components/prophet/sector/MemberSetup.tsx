@@ -118,7 +118,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
   const planSignalDate = signalFromBoard ?? prophet.plan?.openedOn ?? null;
 
   return (
-    <section className={styles.setup} data-testid="prophet-sector-setup">
+    <section className={`${styles.setup} ${caseStyles.caseSurface}`} data-testid="prophet-sector-setup">
       <CaseHeader
         symbol={payload.symbol}
         name={member?.name ?? null}

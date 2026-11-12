@@ -27,6 +27,25 @@ async function withLang(page: Page, lang: "en" | "zh" = "en") {
   }, lang);
 }
 
+/** The case page's whole touch-target contract at phone widths: EVERY
+ * disclosure control and button inside the case, not a hand-picked list —
+ * so a new summary or action cannot ship below the 44px floor unnoticed
+ * (fix r2 B1: the two summaries measured 12px and 10px). */
+async function expectCaseTouchTargets(page: Page) {
+  const controls = page.locator(
+    '[data-testid="prophet-sector-setup"] summary, [data-testid="prophet-sector-setup"] button');
+  const count = await controls.count();
+  expect(count).toBeGreaterThan(0);
+  for (let index = 0; index < count; index += 1) {
+    const control = controls.nth(index);
+    if (!(await control.isVisible())) continue;
+    const label = (await control.innerText()).trim()
+      || (await control.getAttribute("data-testid")) || `control ${index}`;
+    const box = await control.boundingBox();
+    expect(box?.height ?? 0, label).toBeGreaterThanOrEqual(44);
+  }
+}
+
 test.describe("Company case (Lane C)", () => {
   test("a plan member's case reads verdict-first across its destinations", async ({ page }) => {
     test.setTimeout(90_000);
@@ -54,6 +73,23 @@ test.describe("Company case (Lane C)", () => {
       await expect(page.getByTestId("case-entry-banner")).toBeHidden();
     } else {
       await expect(page.getByTestId("case-entry-banner")).toBeVisible();
+      // B1 (fix r2): every disclosure control and button on the case page is
+      // a real ≥44px touch target, the plan-thesis summary included.
+      await expectCaseTouchTargets(page);
+    }
+
+    if (viewportWidth === 1440) {
+      // M1 (fix r2): the stance is the case's display heading at the designed
+      // T2-03 size (~32px), not a card-sized line.
+      const stanceSize = await page.getByTestId("case-stance")
+        .evaluate(el => Number.parseFloat(getComputedStyle(el).fontSize));
+      expect(stanceSize).toBeGreaterThanOrEqual(30);
+      // M2 (fix r2): Save / Follow starts inside the first 900px of the
+      // 1440×900 fold — the case's next action is reachable without scrolling.
+      const saveBox = await page.getByTestId("save-security").boundingBox();
+      const followBox = await page.getByTestId("follow-changes").boundingBox();
+      expect(saveBox?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(900);
+      expect(followBox?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(900);
     }
 
     // Setup tab (default): the labeled study — market and group over the same
@@ -300,12 +336,10 @@ test.describe("Company case (Lane C)", () => {
 
       // Zero page-level horizontal overflow at the contract widths.
       expect(await setup.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
-      // Touch-target floor at ≤640px (item 2): tabs, the back control and
-      // save are real ≥44px targets.
-      for (const testId of ["case-tab-setup", "case-tab-evidence", "case-tab-context", "prophet-sector-setup-back", "save-security"]) {
-        const box = await page.getByTestId(testId).boundingBox();
-        expect(box?.height ?? 0, testId).toBeGreaterThanOrEqual(44);
-      }
+      // Touch-target floor at ≤640px: every disclosure control and button on
+      // the case page is ≥44px (fix r2 B1 — the tabs, back, save, follow and
+      // the Sources & method summary are all covered by the one contract).
+      await expectCaseTouchTargets(page);
     }
   });
 });

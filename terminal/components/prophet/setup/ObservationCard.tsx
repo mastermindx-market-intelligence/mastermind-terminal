@@ -35,9 +35,11 @@ export function ObservationCard({ symbol, observationAsof }: { symbol: string; o
       ) : null}
       <span className={styles.badge}>{t("obsBadge")}</span>
 
-      <div>
+      {/* Fix r2 P1: one layout for the card's three sections — the label sits
+          over its content in every block, so the served "what is known" and
+          the two designed unavailable states read as one grammar (T2-22). */}
+      <div className={styles.obsBlock}>
         <p className={styles.railItemLabel}>{t("obsFirstTitle")}</p>
-        <div className={styles.obsKnown}>
         {read.status === "loading" ? (
           <div>
             <span className={styles.a11yLabel}>{t("caseLoading")}</span>
@@ -65,19 +67,17 @@ export function ObservationCard({ symbol, observationAsof }: { symbol: string; o
               : t("obsNoneBody")}
           </p>
         )}
-        </div>
       </div>
 
-      <ul className={styles.obsRows}>
-        <li className={styles.obsRow}>
-          <span className={styles.obsRowLabel}>{t("obsMissingTitle")}</span>
-          <span>{t("obsMissingBody")}</span>
-        </li>
-        <li className={styles.obsRow}>
-          <span className={styles.obsRowLabel}>{t("obsNextTitle")}</span>
-          <span>{t("obsNextBody")}</span>
-        </li>
-      </ul>
+      <div className={styles.obsBlock}>
+        <p className={styles.railItemLabel}>{t("obsMissingTitle")}</p>
+        <p className={styles.unavailableBody}>{t("obsMissingBody")}</p>
+      </div>
+
+      <div className={styles.obsBlock}>
+        <p className={styles.railItemLabel}>{t("obsNextTitle")}</p>
+        <p className={styles.unavailableBody}>{t("obsNextBody")}</p>
+      </div>
     </section>
   );
 }

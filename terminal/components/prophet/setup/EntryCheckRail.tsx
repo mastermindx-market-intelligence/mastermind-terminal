@@ -189,7 +189,11 @@ export function EntryCheckRail({ symbol, tab, planId, boardPhase, boardPlan, onR
             </ul>
             {thesis !== null ? (
               <details data-testid="plan-thesis">
-                <summary className={styles.railItemLabel}>{t("planThesisLabel")}</summary>
+                {/* The same disclosure grammar and ≤640px 44px touch contract
+                    as the Sources & method control (fix r2 B1). */}
+                <summary className={`${styles.disclosureSummary} ${styles.railItemLabel} ${styles.thesisSummary}`}>
+                  {t("planThesisLabel")}
+                </summary>
                 <p className={styles.unavailableBody} style={{ overflowWrap: "anywhere" }}>{thesis}</p>
               </details>
             ) : null}

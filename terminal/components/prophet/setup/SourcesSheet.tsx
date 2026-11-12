@@ -30,7 +30,7 @@ export function SourcesSheet({ rosterDate, planSignalDate, planReadFailed, obser
 
   return (
     <details className={styles.sourcesSheet} data-testid="sources-sheet">
-      <summary className={styles.sourcesSummary}>{t("sourcesTitle")}</summary>
+      <summary className={`${styles.disclosureSummary} ${styles.sourcesSummary}`}>{t("sourcesTitle")}</summary>
       <p className={styles.cardIntro}>{t("sourcesIntro")}</p>
       <div className={styles.sourceRow}>
         <span className={styles.sourceName}>{t("srcRoster")}</span>
