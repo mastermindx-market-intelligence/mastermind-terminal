@@ -1,0 +1,33 @@
+{
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-drift-integration-web4/.pr1275-routing-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+  ],
+  "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-drift-integration-web4/terminal",
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T14:18:32.123960+00:00",
+  "listenerRead": {
+    "exitCode": 1,
+    "stderr": "",
+    "stdout": ""
+  },
+  "logSha256": "453494fc943882d36fbbcde4d2fe246e8c6b86ccc535bd7c6848b3a73d872b6b",
+  "nextEnvPostimage": null,
+  "nextEnvPreimage": null,
+  "node": "v22.23.4",
+  "observer": "This finite caller only; incumbent producer owns every browser/server/callback and its settlement.",
+  "port": 47276,
+  "portFree": true,
+  "producerPid": 76540,
+  "schema": "terminal.pr1275.f11-successor-execution.v1",
+  "seconds": 285.744,
+  "sourceHead": "8d3a375e6d7cba8f03afc65594d3937857230442",
+  "sourceInputsUnchanged": true,
+  "sourceTree": "f94078ea88979ee1aed630b013f303c6d20bbe0f",
+  "startedAt": "2026-11-10T14:13:46.379223+00:00",
+  "state": "CAPTURE_COMPLETED",
+  "trackedChanges": [
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/FIXTURE.json"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "time": "2026-11-11T07:36:18.145870+00:00",
+  "head": "c6f876e325a7c06160caf61f0d0f335e0c69a951",
+  "sourceDelta": {
+    "terminal/e2e/tools/capture_f12_b5_2_team_workspaces.cjs": {
+      "beforeSha256": "77a12e4a132ca1674c5e3c6fbb9a5de893ca12ca13a031201849a8d2e1ff4925",
+      "afterSha256": "07d4944366bd7ae306137d700606c8bb03cc9bdad07c9d7b98189aa6e5fd002d"
+    },
+    "terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts": {
+      "beforeSha256": "4957bc4fb089b7e1441b0169f1bb7c7c2cf3465ecbf41b8da2c903e7d74c2972",
+      "afterSha256": "717aabd0b11691d65178e6ac7cdb0e7f5664d784f1e6fdfb5b907dd90f6d369f"
+    }
+  },
+  "lifecycleSha256": "c6010967c858e5f3740db3a5eb77a3f00364beda6d2455ed64420e54871e41fb",
+  "previousPacketFiles": 14,
+  "preservedPacketFiles": {
+    "b-f12-5-account-polish": 9,
+    "b-f12-4-account-lifecycle": 8,
+    "b-f12-16-team-settings": 9,
+    "b-f12-10-api-keys": 19,
+    "b-f12-7-webhooks": 19,
+    "b-f12-8-team-roles": 18,
+    "b-f12-b5-1-grants": 14,
+    "b-f12-11-signed-webhooks": 9,
+    "b-f12-b5-3-account-completeness": 10,
+    "b-f12-9-team-ownership-transfer": 12
+  },
+  "node": "/opt/homebrew/opt/node@22/bin/node",
+  "nodeVersion": "v26.5.0",
+  "npm": "/opt/homebrew/opt/node@22/bin/npm",
+  "dependencyDelta": [
+    "terminal/package-lock.json",
+    "terminal/package.json"
+  ],
+  "existingDevLock": false
+}

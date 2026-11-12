@@ -1,0 +1,27 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[warmup] /terminal?symbol=NVDA → 200 in 55ms
+[warmup] /options → 200 in 130ms
+[warmup] /portfolio → 200 in 126ms
+[warmup] /alerts → 200 in 64ms
+[warmup] /analysis → 200 in 125ms
+[warmup] /discover → 200 in 83ms
+[warmup] /admin → 200 in 38ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 33ms
+[warmup] /login → 200 in 52ms
+[warmup] /reset-password → 200 in 59ms
+[warmup] /api/me → 200 in 46ms
+[warmup] /api/watchlist → 200 in 22ms
+[warmup] /api/layouts → 200 in 23ms
+[warmup] /api/watchlist/annotations → 409 in 25ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 110ms
+
+Running 4 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/watchlist-display-settings.spec.ts:6:7 › en: watchlist display choices stay usable, visible and persistent (14.4s)
+  ✓  2 [desktop] › e2e/watchlist-display-settings.spec.ts:6:7 › zh: watchlist display choices stay usable, visible and persistent (12.7s)
+  ✓  3 [desktop] › e2e/watchlist-ext-percent.spec.ts:23:5 › Ext price and Ext % are independent, persistent watchlist columns (8.2s)
+  ✓  4 [desktop] › e2e/watchlist-ext-percent.spec.ts:99:5 › a transient ext-quote outage keeps the unexpired BOATS trade at every width (4.1s)
+
+  4 passed (43.5s)

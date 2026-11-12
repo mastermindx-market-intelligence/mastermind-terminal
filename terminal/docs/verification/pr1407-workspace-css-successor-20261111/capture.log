@@ -1,0 +1,18 @@
+[dev] ✓ Ready in 3.1s
+[dev:err] ⚠ Slow filesystem detected. The benchmark took 218ms. If /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+wrote desktop-en-team-grouped.png
+wrote desktop-en-share-confirm.png
+[dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+wrote desktop-en-member-read-only.png
+wrote desktop-zh-team-grouped.png
+wrote desktop-zh-share-confirm.png
+wrote desktop-zh-member-read-only.png
+wrote mobile-en-team-grouped.png
+wrote mobile-en-share-confirm.png
+wrote mobile-en-member-read-only.png
+wrote mobile-zh-team-grouped.png
+wrote mobile-zh-share-confirm.png
+wrote mobile-zh-member-read-only.png
+{"event":"owned-server-closed","pid":98612,"code":0,"signal":null,"port":59954}
+wrote EVIDENCE.yml at c6f876e325a7c06160caf61f0d0f335e0c69a951

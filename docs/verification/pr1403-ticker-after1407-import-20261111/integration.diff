@@ -1,0 +1,50 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index dbb196490..86e67e58e 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -402,7 +402,7 @@ jobs:
+       # whole unit suite serialized in one runner.
+       - name: Check immutable evidence orchestration (synthetic)
+         timeout-minutes: 1
+-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
++        run: node --test e2e/tools/ticker_news_capture_receipt.test.cjs e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
+       - name: Record PR-touched paths for the evidence drift gate
+         # The planner below fails a pull request whose OWN diff drifted an
+         # evidence-locked source without a recaptured, committed lock — the
+@@ -817,6 +817,19 @@ jobs:
+         env:
+           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
+           TERMINAL_E2E_WORKERS: ${{ steps.lane.outputs.workers }}
++      - name: Capture current ticker News evidence
++        if: matrix.shard == 'serial'
++        timeout-minutes: 15
++        env:
++          CI: '1'
++          TERMINAL_CROPS: '1'
++          TERMINAL_TICKER_NEWS_CAPTURE_PACKET: ticker-news
++          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
++          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/ticker-news-current/report.json
++        run: |
++          node e2e/tools/ticker_news_capture_receipt.cjs --prepare
++          npm run test:e2e:responsive -- e2e/ticker-news.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=test-results/ticker-news-current/playwright --reporter=github,json
++          node e2e/tools/ticker_news_capture_receipt.cjs --verify
+       # This feature is default-off; the ordinary matrix skips its browser tests.
+       # Exercise it with the SAME harness, without altering production flags.
+       - name: Qualify investor shell opt-in
+diff --git a/tests/test_ci_e2e_shards.py b/tests/test_ci_e2e_shards.py
+index 642aefa20..9b0d99560 100644
+--- a/tests/test_ci_e2e_shards.py
++++ b/tests/test_ci_e2e_shards.py
+@@ -841,7 +841,11 @@ def serial_opt_in_specs() -> frozenset[str]:
+     (and therefore the one production build) does not carry."""
+     found: set[str] = set()
+     for step in ci_workflow()["jobs"]["terminal-e2e"]["steps"]:
+-        if "matrix.shard == 'serial'" in str(step.get("if", "")):
++        # A serial evidence capture uses the ordinary server environment.
++        # Only a step that actually supplies an opt-in feature flag changes
++        # whether a spec can run against the shared production build.
++        if ("matrix.shard == 'serial'" in str(step.get("if", ""))
++                and any(flag in step.get("env", {}) for flag in OPT_IN_ENV)):
+             found.update(re.findall(r"\be2e/([A-Za-z0-9._-]+\.spec\.ts)\b", str(step.get("run", ""))))
+     return frozenset(found)
+ 

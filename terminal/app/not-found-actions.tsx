@@ -35,5 +35,17 @@ export default function NotFoundActions() {
         {pick(zh, "Go to chart", "返回图表")}
       </Link>
     </nav>
+    <section className={styles.companyRecovery}>
+      <h2>{pick(zh, "Remember the company name?", "还记得公司名称吗？")}</h2>
+      <p>{pick(zh, "Use search at the top to find a company by name or ticker.", "使用顶部搜索，按公司名称或股票代码查找。")}</p>
+      <button type="button" className={styles.companyAction} aria-haspopup="dialog"
+        onClick={event => {
+          if (!event.currentTarget.closest(".shared-shell")) return;
+          event.currentTarget.focus({ preventScroll: true });
+          window.dispatchEvent(new Event("mmx:shell-company-search"));
+        }}>
+        {pick(zh, "Search companies", "搜索公司")} <span aria-hidden="true">→</span>
+      </button>
+    </section>
   </>;
 }

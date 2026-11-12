@@ -1,0 +1,87 @@
+{
+  "checks": {
+    "consumer_pass": 4,
+    "node_pass": 419,
+    "python_pass": 420
+  },
+  "files": [
+    {
+      "bytes": 2394,
+      "file": "README.md",
+      "sha256": "5151485c278c9cbee14c11c88a6e538e49487e872e64cd7d632781bb412447dd"
+    },
+    {
+      "bytes": 665,
+      "file": "adoption-intent.json",
+      "sha256": "1b61c896e6684029c31c1a25d0a942e1dc4deaae91889e5c567e57ccd0876717"
+    },
+    {
+      "bytes": 46,
+      "file": "adoption-result.json",
+      "sha256": "be219e7dfbd5721832ee3fed59ee439e86c2ac06fb5aece23bba3ea43ecf44ce"
+    },
+    {
+      "bytes": 175,
+      "file": "binding-check.json",
+      "sha256": "f1e0d8bd406c95b8dba864c4aada34fe42e7f053603afc33e5ffff12ac0f963d"
+    },
+    {
+      "bytes": 5709,
+      "file": "checks.json",
+      "sha256": "6eadd0498f6f2beba60932855eef9671d7ed6c0bf716e52528c57331f42032b7"
+    },
+    {
+      "bytes": 1192,
+      "file": "ci_contracts.json",
+      "sha256": "1e9d1bb36ce73ddee019a9de0fbec8503756449a8f1447344b7b0fabeaa50313"
+    },
+    {
+      "bytes": 501,
+      "file": "ci_contracts.log",
+      "sha256": "d429c5df2ebd1ef523229cdc54101ea8e3cec43bb81c1190cb60bc06d45460a1"
+    },
+    {
+      "bytes": 1233,
+      "file": "consumer.json",
+      "sha256": "1cbd31ae89ec5e537598b8f0e8d60eff32a2230eee3463560f559488ff2e0327"
+    },
+    {
+      "bytes": 508,
+      "file": "consumer.log",
+      "sha256": "92e88065e96d0fef75aeae80f4f6236bc8b116c2d7c5543e2e955da78ddc4273"
+    },
+    {
+      "bytes": 216,
+      "file": "merge-result.json",
+      "sha256": "745c7df291e63dc2db577d4e2248673fdbd47bcd37d7b8388e249f89a018169a"
+    },
+    {
+      "bytes": 2862,
+      "file": "node_owners.json",
+      "sha256": "46f086d24a8ca1af4d1b7ddbbf051f166a08af5ec6d1e369b498f89f800c290b"
+    },
+    {
+      "bytes": 87897,
+      "file": "node_owners.log",
+      "sha256": "3972ac9a35dda9398903ec6bf0b253ee9df98f36988b2837819c296bd71720da"
+    },
+    {
+      "bytes": 3331,
+      "file": "predecessor-publication-readback.json",
+      "sha256": "95917676f284b223019fba2aa32c5a9b59bf7025e93ed8bc13b97caa4506012e"
+    },
+    {
+      "bytes": 604,
+      "file": "workflow-resolution.json",
+      "sha256": "59cbf5efcf744db42fec9ff34bc827382ed63dce4f76347b1892f3e02e14971d"
+    }
+  ],
+  "neighbor_files": 118,
+  "observedAt": "2026-11-11T19:50:56.322262+00:00",
+  "operation": "terminal-1403-ticker-import-20261111-c3",
+  "prior_head": "ef8c4fa946a8c59df4eb1582f35f2fcada288076",
+  "protected_parent": "568fa505afb068900424fe4db0da67587d46a114",
+  "source_and_prior_proof_unchanged": true,
+  "source_index_tree": "07cc8594e99a7c4d456521e281a3d220114c619f",
+  "ticker_inputs": 18
+}

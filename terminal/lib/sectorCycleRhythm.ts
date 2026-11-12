@@ -13,11 +13,15 @@ export type RhythmMonth = string; // "YYYY-MM"
 export type TurnKind = "peak" | "trough";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
-export const strictDay = (value: unknown): string | null =>
-  typeof value === "string" && DAY.test(value) &&
-  new Date(value + "T00:00:00Z").toISOString().slice(0, 10) === value
-    ? value
-    : null;
+export const strictDay = (value: unknown): string | null => {
+  if (typeof value !== "string" || !DAY.test(value)) return null;
+  const parsed = new Date(value + "T00:00:00Z");
+  // ISO-shaped but calendar-impossible ("2026-13-01") yields an invalid
+  // Date: check the timestamp BEFORE toISOString() — a malformed value is
+  // discarded, never thrown (PR #1431 duty finding, 2026-11-10).
+  if (!Number.isFinite(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10) === value ? value : null;
+};
 
 export function monthOf(day: string): RhythmMonth {
   return day.slice(0, 7);

@@ -286,6 +286,44 @@ function expectDerivedProvenance(
   ]).toContain(provenance[0].textContent);
 }
 
+describe("Technicals ignores malformed daily dates in calendar timeframes", () => {
+  for (const tf of ["W", "1M"] as const) {
+    for (const zh of [false, true]) {
+      it(`${tf}/${zh ? "ZH" : "EN"}: mixed rows preserve ratings and first-included provenance`, async () => {
+        const clean = pairedDailyBars(50, tf);
+        await renderBars(clean, zh);
+        await clickTimeframe(tf, zh);
+        const activeText = () => [...host.querySelectorAll(
+          "[data-market-vnext-state], .fin-market-primary-grid, .fin-card.fin-tech-tbl, .fin-asof",
+        )].map((el) => el.textContent);
+        const before = activeText();
+        const poison = (time: string): Bar => ({ time, o: 999999, h: 999999, l: -999999, c: 999999, v: 999999 });
+        const mixed = [
+          poison("bad-date"), clean[0], poison("2020-02-30"), clean[1],
+          poison(`${clean[2].time}T00:00:00Z`), ...clean.slice(2), poison("2021-02-29"),
+        ];
+        await renderBars(mixed, zh);
+        expect(activeText()).toEqual(before);
+        expectDerivedProvenance(tf, zh, 50, clean);
+
+        // Enter the same path through a real D -> calendar button transition too.
+        await clickTimeframe("D", zh);
+        await clickTimeframe(tf, zh);
+        expect(activeText()).toEqual(before);
+        expectDerivedProvenance(tf, zh, 50, clean);
+
+        await renderBars([poison("bad-date"), poison("2024-02-30")], zh);
+        for (const group of ["mas", "oscillators"] as const) {
+          expect(card(group, zh).querySelector(".fin-empty-inline")?.textContent)
+            .toBe(zh ? "暂无数据" : "No data");
+        }
+        expect(host.querySelector("[data-market-vnext-state] header p")?.textContent)
+          .toContain(zh ? "暂无数据" : "no data loaded");
+      });
+    }
+  }
+});
+
 describe("Technicals unavailable rows on real daily-derived timeframes", () => {
   for (const tf of ["W", "1M"] as const) {
     it(`${tf}: uses active buckets through EN/ZH/EN boundary reversals`, async () => {

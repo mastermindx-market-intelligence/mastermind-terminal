@@ -1,0 +1,316 @@
+{
+  "checkout": {
+    "commit": "d6655d2ed68f46f14205523c2bc5078153ecff81",
+    "tree": "ac8af3c047520391b4a549330d93bbe2a88c70ba"
+  },
+  "sources": {
+    "terminal/components/briefs/BriefsInbox.tsx": "4d561b964a59860a0e927cf9d5a0586ef17387599d43abc09f6ec19317b718e6",
+    "terminal/components/briefs/briefs.module.css": "bb6f2189bf88e48677535af2267224a0fe1fea163524347135ddd4267becc6b6",
+    "terminal/lib/briefs.ts": "6860c360d83679033d06aa22f425fa541b6e6a5fa18fce534970a9cf64f748de",
+    "terminal/components/alerts/AlertsCockpit.tsx": "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b",
+    "terminal/components/alerts/alerts.module.css": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+    "terminal/components/alerts/AlertsCockpitMount.tsx": "a1b1d475fdd7b74b9ff73c119c6a3f4836522166a4f3aa1d4ab90f55e95aa8b6",
+    "terminal/app/(shell)/alerts/page.tsx": "ffedd63f63a67a484c0584595d007e8ad8698aed504f0fdb81659acf3477cd7c",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs": "8c2ede2a1381c6796b9fe30b3236006897b1790045dd110edc710897ec71c596",
+    "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": "6f31d207cdfada3522af177958a4ede90b636a290844d3ad0bc2f226cab9b451",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "runtime": {
+    "node": "v20.20.2",
+    "next": "16.4.6",
+    "playwright": "1.61.1"
+  },
+  "cleanup": {
+    "contextsClosed": 8,
+    "browserClosed": true,
+    "serverSettled": true
+  },
+  "cases": [
+    {
+      "file": "list-1440.png",
+      "kind": "list",
+      "lang": "en",
+      "route": "/alerts",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "deviceScaleFactor": 1,
+      "crop": {
+        "x": 80,
+        "y": 581.84375,
+        "width": 1340,
+        "height": 253.3125
+      },
+      "image": {
+        "width": 1340,
+        "height": 255,
+        "sha256": "8c7ac8a73edbeefd9eaddaf8bcf5e2fc5b535ef60883322270c28300449c3ed7"
+      },
+      "proof": {
+        "settled": true,
+        "rows": 2,
+        "missRows": 1,
+        "pinnedRows": 1,
+        "subscriptionControls": 0,
+        "unexpectedWrites": 0,
+        "devIndicators": 0,
+        "browserErrors": [],
+        "text": "Briefs\n2\nNVDA cycle\n2026-09-11\nTonight's brief didn't run — the market read it uses wasn't rebuilt. Nothing has been recalculated.\nNVDA cycle\n2026-09-10\nReview team sharing\nLAST GOOD BRIEF\nThe close held above last week's range. Call buying stayed in the front week. · 1 monitor · Holding\nChinese available for 1 of 3 passages; English originals are retained.\n\nBriefs appear here in the Terminal. Email delivery isn't available yet.",
+        "textSha256": "4ae3ee8b962727dacf77f6719d409cb109aa8e6ccf73f49110c3f7ee1fae7265",
+        "contractReads": 2
+      }
+    },
+    {
+      "file": "list-1440-zh.png",
+      "kind": "list",
+      "lang": "zh",
+      "route": "/alerts",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "deviceScaleFactor": 1,
+      "crop": {
+        "x": 80,
+        "y": 581.84375,
+        "width": 1340,
+        "height": 253.3125
+      },
+      "image": {
+        "width": 1340,
+        "height": 255,
+        "sha256": "085288b30ce2badef03756014dc0f0961a1d2f3a597bbf224295e08fe4ba9771"
+      },
+      "proof": {
+        "settled": true,
+        "rows": 2,
+        "missRows": 1,
+        "pinnedRows": 1,
+        "subscriptionControls": 0,
+        "unexpectedWrites": 0,
+        "devIndicators": 0,
+        "browserErrors": [],
+        "text": "简报\n2\nNVDA cycle\n2026-09-11\n今晚的简报没有生成——它所依据的市场解读没有重建。没有任何内容被重新计算。\nNVDA cycle\n2026-09-10\n查看团队分享\n上一份正常简报\n收盘守住了上周的区间。 英文原文：Call buying stayed in the front week. · 1 项监控 · 仍成立\n中文解读可用 1/3 条；其余保留英文原文。\n\n简报会出现在终端里。邮件送达尚未开通。",
+        "textSha256": "0f2c9c3d4b05c2ca0523492eecfbbccd44da33e854ac7a439a6d0bc3de075f5d",
+        "contractReads": 2
+      }
+    },
+    {
+      "file": "list-390.png",
+      "kind": "list",
+      "lang": "en",
+      "route": "/alerts",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "deviceScaleFactor": 1,
+      "crop": {
+        "x": 20,
+        "y": 472.6875,
+        "width": 350,
+        "height": 371.53125
+      },
+      "image": {
+        "width": 350,
+        "height": 373,
+        "sha256": "8a227ba48873ccd48b6b63cb35481e6d824200ce80961894f5dec46023179623"
+      },
+      "proof": {
+        "settled": true,
+        "rows": 2,
+        "missRows": 1,
+        "pinnedRows": 1,
+        "subscriptionControls": 0,
+        "unexpectedWrites": 0,
+        "devIndicators": 0,
+        "browserErrors": [],
+        "text": "Briefs\n2\nNVDA cycle\n2026-09-11\nTonight's brief didn't run — the market read it uses wasn't rebuilt. Nothing has been recalculated.\nNVDA cycle\n2026-09-10\nReview team sharing\nLAST GOOD BRIEF\nThe close held above last week's range. Call buying stayed in the front week. · 1 monitor · Holding\nChinese available for 1 of 3 passages; English originals are retained.\n\nBriefs appear here in the Terminal. Email delivery isn't available yet.",
+        "textSha256": "4ae3ee8b962727dacf77f6719d409cb109aa8e6ccf73f49110c3f7ee1fae7265",
+        "contractReads": 2
+      }
+    },
+    {
+      "file": "list-390-zh.png",
+      "kind": "list",
+      "lang": "zh",
+      "route": "/alerts",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "deviceScaleFactor": 1,
+      "crop": {
+        "x": 20,
+        "y": 534.6875,
+        "width": 350,
+        "height": 309
+      },
+      "image": {
+        "width": 350,
+        "height": 310,
+        "sha256": "a880d3db0aa64b679167f938a3f50852a428146e53e1934070f42827a5122e97"
+      },
+      "proof": {
+        "settled": true,
+        "rows": 2,
+        "missRows": 1,
+        "pinnedRows": 1,
+        "subscriptionControls": 0,
+        "unexpectedWrites": 0,
+        "devIndicators": 0,
+        "browserErrors": [],
+        "text": "简报\n2\nNVDA cycle\n2026-09-11\n今晚的简报没有生成——它所依据的市场解读没有重建。没有任何内容被重新计算。\nNVDA cycle\n2026-09-10\n查看团队分享\n上一份正常简报\n收盘守住了上周的区间。 英文原文：Call buying stayed in the front week. · 1 项监控 · 仍成立\n中文解读可用 1/3 条；其余保留英文原文。\n\n简报会出现在终端里。邮件送达尚未开通。",
+        "textSha256": "0f2c9c3d4b05c2ca0523492eecfbbccd44da33e854ac7a439a6d0bc3de075f5d",
+        "contractReads": 2
+      }
+    },
+    {
+      "file": "empty-1440.png",
+      "kind": "empty",
+      "lang": "en",
+      "route": "/alerts",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "deviceScaleFactor": 1,
+      "crop": {
+        "x": 80,
+        "y": 581.84375,
+        "width": 1340,
+        "height": 113.84375
+      },
+      "image": {
+        "width": 1340,
+        "height": 115,
+        "sha256": "31c018bbe847001809c4b2aa4573541b00ffe37afd49519f542b002ea935349d"
+      },
+      "proof": {
+        "settled": true,
+        "rows": 0,
+        "missRows": 0,
+        "pinnedRows": 0,
+        "subscriptionControls": 0,
+        "unexpectedWrites": 0,
+        "devIndicators": 0,
+        "browserErrors": [],
+        "text": "Briefs\n\nNo briefs yet — subscribe a thesis or watchlist to get one after the next close.\n\nBriefs appear here in the Terminal. Email delivery isn't available yet.",
+        "textSha256": "3a7072505953a3a7f40c5876b4f951995285b41760e92d588e3447a6c8d60d25",
+        "contractReads": 2
+      }
+    },
+    {
+      "file": "empty-1440-zh.png",
+      "kind": "empty",
+      "lang": "zh",
+      "route": "/alerts",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "deviceScaleFactor": 1,
+      "crop": {
+        "x": 80,
+        "y": 581.84375,
+        "width": 1340,
+        "height": 94.34375
+      },
+      "image": {
+        "width": 1340,
+        "height": 96,
+        "sha256": "d99cf8b773a102c026116644e5bc978492645f4ed05c6a26ed872ea9810a0169"
+      },
+      "proof": {
+        "settled": true,
+        "rows": 0,
+        "missRows": 0,
+        "pinnedRows": 0,
+        "subscriptionControls": 0,
+        "unexpectedWrites": 0,
+        "devIndicators": 0,
+        "browserErrors": [],
+        "text": "简报\n\n还没有简报。订阅一份论点或观察列表，下次收盘后就会收到。\n\n简报会出现在终端里。邮件送达尚未开通。",
+        "textSha256": "1ed86a4a7b4a77ff3749dc5f5b1837291d293ab6ff67363b404be290794bf831",
+        "contractReads": 2
+      }
+    },
+    {
+      "file": "empty-390.png",
+      "kind": "empty",
+      "lang": "en",
+      "route": "/alerts",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "deviceScaleFactor": 1,
+      "crop": {
+        "x": 20,
+        "y": 711.6875,
+        "width": 350,
+        "height": 131.84375
+      },
+      "image": {
+        "width": 350,
+        "height": 133,
+        "sha256": "2b71ff0007c73106ab82ed48fbcb10ee32a51093a4c3c7b6ddc96cbcbf6965d4"
+      },
+      "proof": {
+        "settled": true,
+        "rows": 0,
+        "missRows": 0,
+        "pinnedRows": 0,
+        "subscriptionControls": 0,
+        "unexpectedWrites": 0,
+        "devIndicators": 0,
+        "browserErrors": [],
+        "text": "Briefs\n\nNo briefs yet — subscribe a thesis or watchlist to get one after the next close.\n\nBriefs appear here in the Terminal. Email delivery isn't available yet.",
+        "textSha256": "3a7072505953a3a7f40c5876b4f951995285b41760e92d588e3447a6c8d60d25",
+        "contractReads": 2
+      }
+    },
+    {
+      "file": "empty-390-zh.png",
+      "kind": "empty",
+      "lang": "zh",
+      "route": "/alerts",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "deviceScaleFactor": 1,
+      "crop": {
+        "x": 20,
+        "y": 662.6875,
+        "width": 350,
+        "height": 113.84375
+      },
+      "image": {
+        "width": 350,
+        "height": 115,
+        "sha256": "284f7f47a4926f658a565722b066a07f161a115a9512d22e07fea123bbb3beea"
+      },
+      "proof": {
+        "settled": true,
+        "rows": 0,
+        "missRows": 0,
+        "pinnedRows": 0,
+        "subscriptionControls": 0,
+        "unexpectedWrites": 0,
+        "devIndicators": 0,
+        "browserErrors": [],
+        "text": "简报\n\n还没有简报。订阅一份论点或观察列表，下次收盘后就会收到。\n\n简报会出现在终端里。邮件送达尚未开通。",
+        "textSha256": "1ed86a4a7b4a77ff3749dc5f5b1837291d293ab6ff67363b404be290794bf831",
+        "contractReads": 2
+      }
+    }
+  ],
+  "errors": []
+}

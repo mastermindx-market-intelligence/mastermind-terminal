@@ -1,0 +1,27 @@
+{
+  "receipt": {
+    "schema": "mastermind.studio_git_tool_error.v1",
+    "status": "REFUSED",
+    "effect_state": "NOT_APPLIED",
+    "code": "TYPED_GIT_PRECHECK_REFUSED",
+    "error_code": "INVALID_ARGUMENT"
+  },
+  "readback": {
+    "schema": "mastermind.studio_git_publish_status.v2",
+    "operation_id": "terminal-experience-refinement-20261109-sol-01",
+    "branch": "sol/web-terminal-experience-refinement-20261109-sol-01",
+    "local_head_sha": "c6f876e325a7c06160caf61f0d0f335e0c69a951",
+    "remote_head_sha": "c6f876e325a7c06160caf61f0d0f335e0c69a951",
+    "clean": false,
+    "publication_state": "APPLIED",
+    "ready_to_push": false,
+    "repository": "terminal"
+  },
+  "classification": "SCHEMA_INVALID_COMMIT_MESSAGE",
+  "observedContract": {
+    "singleLine": true,
+    "maxCharacters": 240
+  },
+  "correctedMessage": "test(workspaces): bind captures to scoped menu styles (#1407)",
+  "diagnosis": "The installed publisher rejects newlines and messages longer than240characters before workspace/commit mutation. Local/remote remainedc6f876e325a7c06160caf61f0d0f335e0c69a951. The same original publisher will receive the documented valid input."
+}

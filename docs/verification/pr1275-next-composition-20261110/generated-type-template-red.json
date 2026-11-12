@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "--test",
+    "--test-name-pattern=actual pinned Next type emitter matches restoration predicate",
+    "e2e/tools/f11_owned_server.test.cjs"
+  ],
+  "exit": 1,
+  "sourceHead": "360c3acf4396384c321df95fc442024ccff58b8e",
+  "nextVersion": "16.4.6",
+  "emitterSha256": "3973ebf0093b08136059a790442951ba498421627a52bfcf06e1584360e034c9",
+  "logSha256": "848220e4ad7e79e2a024bceb8ae09045011a6eab6cb87a1685c71f9e36c4da9f",
+  "at": "2026-11-10T16:26:05.867234+00:00"
+}

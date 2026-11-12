@@ -1,0 +1,22 @@
+{
+  "name": "node_owners",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "--test",
+    "e2e/tools/ticker_news_capture_receipt.test.cjs",
+    "e2e/tools/briefs_inbox_capture_contract.test.cjs",
+    "e2e/tools/capture_ci_evidence.test.cjs",
+    "e2e/tools/capture_visual_evidence.test.cjs",
+    "scripts/ci/plan-evidence-capture.test.cjs",
+    "e2e/tools/sharedShellSafeReporter.test.cjs",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+    "e2e/tools/f11_provider_closed_policy.test.cjs"
+  ],
+  "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-1403-ticker-import-20261111-c3/terminal",
+  "started_at": "2026-11-11T19:48:31.434998+00:00",
+  "completed_at": "2026-11-11T19:48:58.216648+00:00",
+  "rc": 0,
+  "log_sha256": "3972ac9a35dda9398903ec6bf0b253ee9df98f36988b2837819c296bd71720da",
+  "log_bytes": 87897,
+  "tail": "08\n  type: 'test'\n  ...\n# Subtest: missing or malformed batch3 evidence cannot authorize a merge-group capture skip\nok 412 - missing or malformed batch3 evidence cannot authorize a merge-group capture skip\n  ---\n  duration_ms: 71.746541\n  type: 'test'\n  ...\n# Subtest: a PR-touched locked source that drifted fails the PR itself\nok 413 - a PR-touched locked source that drifted fails the PR itself\n  ---\n  duration_ms: 82.060541\n  type: 'test'\n  ...\n# Subtest: drift inherited from the base never fails an untouched pull request\nok 414 - drift inherited from the base never fails an untouched pull request\n  ---\n  duration_ms: 74.7735\n  type: 'test'\n  ...\n# Subtest: negative: a docs-only pull request is unaffected by any source drift\nok 415 - negative: a docs-only pull request is unaffected by any source drift\n  ---\n  duration_ms: 98.892334\n  type: 'test'\n  ...\n# Subtest: a fail-closed plan cannot attribute drift, so the PR gate stays silent\nok 416 - a fail-closed plan cannot attribute drift, so the PR gate stays silent\n  ---\n  duration_ms: 82.565208\n  type: 'test'\n  ...\n# Subtest: recapturing and committing an updated lock clears the PR gate\nok 417 - recapturing and committing an updated lock clears the PR gate\n  ---\n  duration_ms: 92.520875\n  type: 'test'\n  ...\n# Subtest: an empty touched list never attributes drift to a pull request\nok 418 - an empty touched list never attributes drift to a pull request\n  ---\n  duration_ms: 75.758875\n  type: 'test'\n  ...\n# Subtest: GEX drift is attributed only when the pull request touched that source\nok 419 - GEX drift is attributed only when the pull request touched that source\n  ---\n  duration_ms: 83.127084\n  type: 'test'\n  ...\n1..419\n# tests 419\n# suites 0\n# pass 419\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 26469.780584\n"
+}

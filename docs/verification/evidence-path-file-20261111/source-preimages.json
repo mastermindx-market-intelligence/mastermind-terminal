@@ -1,0 +1,25 @@
+{
+  "base": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "paths": {
+    ".github/workflows/ci.yml": {
+      "blob": "c17cd9626970997b3680fc8bac207d3fac0a3a01",
+      "bytes": 67756,
+      "sha256": "409a2f4a29e73205838faada4b7a578aafc01f19c7d1ceb58c9a19549be639a4"
+    },
+    "terminal/scripts/ci/plan-evidence-capture.cjs": {
+      "blob": "efb50a83c016c51b2d7f70975f348eb34867e285",
+      "bytes": 6447,
+      "sha256": "c8f50a3e05c95cb9e1a2ba0ffc47fc122c0a6826a66c172b67f82cb697df7e32"
+    },
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": {
+      "blob": "782d7d91dc9fcd9378baf6d5c5f9de1d82285565",
+      "bytes": 15493,
+      "sha256": "08e63a14486b606e1a2bd2be6c434f4a0db602c8c1bcedbf744120a7198b06e6"
+    },
+    "tests/test_merge_group_fast_lane_contract.py": {
+      "blob": "60708a8a6282681693f5ecb0f36533ce55c56880",
+      "bytes": 10113,
+      "sha256": "58ff8b3fbfc32659bcf6d374a47803dd389e785e3ec353ac1b364e99926ed45f"
+    }
+  }
+}

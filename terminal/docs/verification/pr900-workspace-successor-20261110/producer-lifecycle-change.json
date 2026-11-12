@@ -1,0 +1,23 @@
+{
+  "schema": "terminal.pr900.producer-owned-lifecycle.v1",
+  "originalBlob": "2ecdf00c1aefcbb8e69c08e53ccceba68012a6cd",
+  "originalSha256": "b8098d7cd098f3f485b97f56d626e072343a344ae858e9b86722c326633aacc1",
+  "currentSha256": "77a12e4a132ca1674c5e3c6fbb9a5de893ca12ca13a031201849a8d2e1ff4925",
+  "renderLoopMeasurementsAndManifestConstructionUnchanged": true,
+  "testFile": "terminal/e2e/tools/capture_f12_b5_2_team_workspaces.test.cjs",
+  "changes": [
+    "Single cached group SIGTERM attempt; permission and unexpected errors remain final",
+    "ESRCH requires close; exit alone is insufficient; finite close timeout without escalation",
+    "Browser launch/capture/close failures preserve server settlement and all original errors",
+    "Import is inert; no output-directory creation or capture on require"
+  ],
+  "scope": "Existing workspace producer only; no shared legacy owner or global lifecycle control changes",
+  "preCliCorrectionSha256": "69a20c16a5b6336b01ed948f283d00bff1d986756e23c64616f4ab4973554c5e",
+  "cliFailureReporting": "Preserve original process.exit(1), so a refused detached child does not prevent failure return; no additional child signal.",
+  "beforeIdentityAndPrematureCloseGuardsSha256": "ed1dc37a6ee329bfdaa0d7595302c736d3f6a5a10915cc589c86b9e6328cfb5d",
+  "additionalGuards": [
+    "Reject PID1 before any group signal",
+    "Reject owned server closure before capture, during capture or before intended shutdown",
+    "Deduplicate original errors without suppressing distinct cleanup failures"
+  ]
+}

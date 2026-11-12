@@ -1,0 +1,23 @@
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+2026-11-11T09:26:46.0212552Z ##[warning]PR evidence drift gate could not attribute drift (reason=fail-closed, touched_paths=73); merge-group backstop still enforces the locks
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+2026-11-11T09:27:20.1810997Z capture list-1440.png ok
+2026-11-11T09:27:21.4394908Z capture list-1440-zh.png ok
+2026-11-11T09:27:22.6085062Z capture list-390.png ok
+2026-11-11T09:27:23.7878747Z capture list-390-zh.png ok
+2026-11-11T09:27:24.9136697Z capture empty-1440.png ok
+2026-11-11T09:27:26.0065912Z capture empty-1440-zh.png ok
+2026-11-11T09:27:27.1543627Z capture empty-390.png ok
+2026-11-11T09:27:28.2790631Z capture empty-390-zh.png ok
+2026-11-11T09:27:28.5491259Z {"briefsInboxEvidence":{"packet":"terminal/docs/pr-crops/b-f11-7-active-inbox","cases":8,"checkout":{"commit":"9fcd00a869e488e0cc9254e1076c6f00ecc7d337","tree":"1ba4248341a26b23b03de7006744d471e83a33b3"},"runtime":{"node":"v20.20.2","next":"16.4.6","playwright":"1.61.1"},"stage":"/home/runner/work/_temp/terminal-ci-evidence/mmx-briefs-active-inbox-IGNO4J","producerActivation":false,"productionAcceptance":false}}
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+2026-11-11T09:46:41.4314899Z  ✓ lib/__tests__/f11_7RecurringBriefsEvidence.test.ts (6 tests) 124ms
+2026-11-11T09:51:14.0602878Z  Test Files  1295 passed | 6 skipped (1301)
+2026-11-11T09:51:14.0716713Z       Tests  23128 passed | 50 skipped | 3 todo (23181)
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts
+terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts

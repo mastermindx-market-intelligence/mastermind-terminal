@@ -1,0 +1,48 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/precisionEntryReadout.test.ts",
+    "lib/__tests__/precisionEntryStrip.test.tsx",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-726-readout-successor/docs/verification/pr726-readout-successor-20261110/red-report.json"
+  ],
+  "counts": {
+    "numFailedTests": 19,
+    "numPassedTests": 22,
+    "numPendingTests": 0,
+    "numTotalTests": 41
+  },
+  "exitCode": 1,
+  "failedTests": [
+    "Precision Entry intel readout keeps missing and malformed fields unknown rather than coercing them to zero or false",
+    "Precision Entry intel readout keeps empty containers unavailable despite current freshness",
+    "Precision Entry intel readout keeps metadata-only containers unavailable despite current freshness",
+    "Precision Entry intel readout keeps malformed containers unavailable despite current freshness",
+    "Precision Entry intel readout reports partial coverage when only one populated section has validated facts",
+    "Precision Entry intel readout counts the entry next-trigger fact only in its own source section",
+    "Precision Entry intel readout does not let derived unknown geometry qualify an empty entry section",
+    "Precision Entry intel readout keeps non-positive price fields unavailable instead of treating zero as price evidence",
+    "Precision Entry intel readout counts a valid source band without inventing a spot or derived location",
+    "PrecisionEntryStrip omits absent en posture without falling back to the opposite headline",
+    "PrecisionEntryStrip updates en posture through omission, restoration and a language change",
+    "PrecisionEntryStrip shows localized unavailability for empty containers in en",
+    "PrecisionEntryStrip shows localized unavailability for metadata-only containers in en",
+    "PrecisionEntryStrip shows localized unavailability for malformed containers in en",
+    "PrecisionEntryStrip omits absent zh posture without falling back to the opposite headline",
+    "PrecisionEntryStrip updates zh posture through omission, restoration and a language change",
+    "PrecisionEntryStrip shows localized unavailability for empty containers in zh",
+    "PrecisionEntryStrip shows localized unavailability for metadata-only containers in zh",
+    "PrecisionEntryStrip shows localized unavailability for malformed containers in zh"
+  ],
+  "finishedAt": "2026-11-10T16:13:53.938062+00:00",
+  "logSha256": "e5d7ac4ac2c55f14230d7fde99fa77aaa58cf0efa704c5673f7d4096589827e4",
+  "mode": "red",
+  "pid": 14839,
+  "seconds": 5.897,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T16:13:48.039383+00:00",
+  "state": "COUNTEREXAMPLES_REPRODUCED"
+}

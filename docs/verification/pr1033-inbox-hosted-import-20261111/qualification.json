@@ -1,0 +1,133 @@
+{
+  "sourceHead": "74f8239d4a47b81d5a36e2170eb909d3ce98e275",
+  "actualCaptureCheckout": {
+    "commit": "9fcd00a869e488e0cc9254e1076c6f00ecc7d337",
+    "tree": "1ba4248341a26b23b03de7006744d471e83a33b3"
+  },
+  "canonicalParents": [
+    "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "74f8239d4a47b81d5a36e2170eb909d3ce98e275"
+  ],
+  "recomputedMergeTreeMatches": true,
+  "sourceCount": 15,
+  "sourceEqualityToHeadAndActualTree": true,
+  "sourceMap": {
+    "terminal/components/briefs/BriefsInbox.tsx": "4d561b964a59860a0e927cf9d5a0586ef17387599d43abc09f6ec19317b718e6",
+    "terminal/components/briefs/briefs.module.css": "bb6f2189bf88e48677535af2267224a0fe1fea163524347135ddd4267becc6b6",
+    "terminal/lib/briefs.ts": "6860c360d83679033d06aa22f425fa541b6e6a5fa18fce534970a9cf64f748de",
+    "terminal/components/alerts/AlertsCockpit.tsx": "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b",
+    "terminal/components/alerts/alerts.module.css": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+    "terminal/components/alerts/AlertsCockpitMount.tsx": "a1b1d475fdd7b74b9ff73c119c6a3f4836522166a4f3aa1d4ab90f55e95aa8b6",
+    "terminal/app/(shell)/alerts/page.tsx": "ffedd63f63a67a484c0584595d007e8ad8698aed504f0fdb81659acf3477cd7c",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs": "07766cfee2d7f04fabfcf06f8cbdf303acca104e8d61d34e44f0d9d49fc31ba1",
+    "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": "d98ee81fd6848e24da6c70eb3426c07f317e4401aef01b9953ce0dd2eeed114b",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "rawAndSelectedAndImportedBytesIdentical": true,
+  "currentPacket": {
+    "capture.json": "ab9a2e640c8ce38488f8df02d4acc72ef1f39038981420e7decb6823f57eb76f",
+    "empty-1440-zh.png": "d99cf8b773a102c026116644e5bc978492645f4ed05c6a26ed872ea9810a0169",
+    "empty-1440.png": "e6a87fa8c77c285ca41def91c69e69febda07344629b27b3baae3db924843311",
+    "empty-390-zh.png": "702b1d37709e3edbb1e57dc5e4b1c0ac6101343efce866db07e41a04418ce49a",
+    "empty-390.png": "5f58a440b6e41a46da13fadb379d7cfcb4b88718082fdf2394ea68fbe18a0449",
+    "list-1440-zh.png": "6b442a828a0185d2e5ee025332a7c783c69113b7a588694e8b85e1a0e433d301",
+    "list-1440.png": "8c7ac8a73edbeefd9eaddaf8bcf5e2fc5b535ef60883322270c28300449c3ed7",
+    "list-390-zh.png": "a880d3db0aa64b679167f938a3f50852a428146e53e1934070f42827a5122e97",
+    "list-390.png": "7415df405de5c1dded995f50bed66dc32f12dafb94b9b91a5b9e8c6e84fab5cd"
+  },
+  "historicalMembersPreserved": [
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/EVIDENCE.yml",
+      "sha256": "763412350de378e1d371909b1d7ec7a8e19a0c199f315ffb84011da6801b22c9",
+      "gitBlob": "79d465ebb50e40a246aea75aaf552f310ce95bd3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440-zh.png",
+      "sha256": "7bc2fe284488afdff77bbd7e923a68bd2e66812285a649ff7b8e22cbf313e87d",
+      "gitBlob": "8274f01c4bcfee83fde0eecd02c6e9c9bc36ac08"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440.png",
+      "sha256": "6bdfe384d60d8a3758db42339d7a913ac19ca8eef5423d63f826b5204c8510b1",
+      "gitBlob": "019705d4e8d9f296d97cfc4579234e4ce6dbadc3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390-zh.png",
+      "sha256": "ce3071980d2b043c83948e6f123c8c287a94363200dc961ba1d3cd98bfa96ef7",
+      "gitBlob": "68e2716c1a5e6f06a51dbba68fbd8469892f283b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390.png",
+      "sha256": "9c9a93438e065b83f61e75315ddfff4337b3f27431ec9e973b7727873c34f7ea",
+      "gitBlob": "5c119a5a5aadbd6c47e56c5bf2dce196175a736c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440-zh.png",
+      "sha256": "ad18a92d785f353d1ffa7e268d34d42c684706e991d5fba8673b1267d4b46340",
+      "gitBlob": "114b83198c499f25b68736ab127916249af26258"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440.png",
+      "sha256": "922fb39845d183d1e807a7597fc75775c9e2e02ab1c4ba7507db30df85fe287c",
+      "gitBlob": "43877040bb0d32471fb73bbb6635827529c0378d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390-zh.png",
+      "sha256": "b6d29a5215c981c1784019804336ee023770235cc212eef212c940b3d81f0584",
+      "gitBlob": "eb2728fabd35ec57b67158719baaf1564c7faa0b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390.png",
+      "sha256": "17a7b332ec48689e19ec002b7e4a66c6775d4db9365034f4599d2ae0051de490",
+      "gitBlob": "9bff070b769917e523c4d8c34b6d15ff0730d31f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440-zh.png",
+      "sha256": "7bdd861c7a33a75a01380ac489734eee8021d4606d43fc0d5dd25b12677df8c9",
+      "gitBlob": "47ed928c7138776aa2cbfc339927523962757ade"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440.png",
+      "sha256": "9d97100b8fc874a7f514775f5f597bfdb483a21d1780120ea26ce2beda173c91",
+      "gitBlob": "537eb00c0c270b2caa11bebe9e67bcfe6b48c4c6"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390-zh.png",
+      "sha256": "dfb115f56f4a67839308376049547a809c1a77653024ced719c2d85546ce7e77",
+      "gitBlob": "fe35286c939ac5d2e3fc9e13910330760cb9feb6"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390.png",
+      "sha256": "b42fee240a9f6b0aedbd90942247c07a151374b56918074eb7a27e19e061cbb6",
+      "gitBlob": "cb2b737c1c8515a77e86a61d93b9e10026a81107"
+    }
+  ],
+  "cleanup": {
+    "contextsClosed": 8,
+    "browserClosed": true,
+    "serverSettled": true
+  },
+  "runtime": {
+    "node": "v20.20.2",
+    "next": "16.4.6",
+    "playwright": "1.61.1"
+  },
+  "errors": [],
+  "visualObservation": {
+    "allEightViewed": true,
+    "listAndEmptyContained": true,
+    "desktopAndMobileReadable": true,
+    "englishAndChineseControlsLegible": true,
+    "fallbackEnglishOriginalExplicitlyMarked": true,
+    "noSubscriptionControlsSeen": true,
+    "productionAcceptance": false
+  },
+  "producerActivation": false,
+  "productionAcceptance": false,
+  "activationHold": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/662#issuecomment-5748354119"
+}

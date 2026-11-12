@@ -70,10 +70,21 @@ const DETENT_MIN_HEIGHT = 80;
  */
 const DETENT_DRAG_SLOP = 4;
 
+function availableFocusTarget(element: HTMLElement): boolean {
+  if (!element.isConnected || element.matches(":disabled")
+    || element.closest("[hidden], [aria-hidden='true'], [inert]")) return false;
+  const visibility = window.getComputedStyle(element).visibility;
+  if (visibility === "hidden" || visibility === "collapse") return false;
+  for (let node: HTMLElement | null = element; node; node = node.parentElement) {
+    if (window.getComputedStyle(node).display === "none") return false;
+  }
+  return true;
+}
+
 function focusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter((element) => {
     if (
-      element.hidden
+      !availableFocusTarget(element)
       || element.getAttribute("aria-disabled") === "true"
       || element.closest("[aria-hidden='true'], [inert]")
       || element.tabIndex < 0
@@ -225,9 +236,13 @@ export default function MobileSheet({
       const usableRemembered = remembered && remembered.isConnected
         && sheet.contains(remembered)
         && remembered.tabIndex >= 0
+        && availableFocusTarget(remembered)
+        && remembered.getAttribute("aria-disabled") !== "true"
         ? remembered : null;
       const target = usableRemembered
-        ?? sheet.querySelector<HTMLElement>("[data-autofocus], [autofocus]")
+        ?? Array.from(sheet.querySelectorAll<HTMLElement>("[data-autofocus], [autofocus]"))
+          .find((element) => availableFocusTarget(element)
+            && element.getAttribute("aria-disabled") !== "true")
         ?? (initialFocus === "sheet" ? sheet : focusableElements(sheet)[0])
         ?? sheet;
       target.focus({ preventScroll: true });

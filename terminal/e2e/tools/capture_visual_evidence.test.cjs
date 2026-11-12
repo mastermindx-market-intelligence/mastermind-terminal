@@ -10,6 +10,24 @@ const source = fs.readFileSync(path.join(__dirname, "capture_visual_evidence.cjs
 const fontFixture = require("./retainedFontFixture.cjs");
 const evidenceContract = require("./visualEvidence.cjs");
 const flag = "--no-experimental-webstorage";
+const VIEWPORTS = { desktop: {}, tablet: {}, mobile: {} };
+function load(callerEnv = {}) {
+  let start, child;
+  const op = { id: "ci-synthetic-vi", packet: "vi" };
+  function mockRequire(name) {
+    if (name === "node:path") return path;
+    if (name === "node:child_process") return { spawnSync(command, args, options) {
+      child = { command, args, options }; return { status: 0, signal: null };
+    } };
+    if (name === "./visualEvidence.cjs") return { VIEWPORTS, fonts: fontFixture, captureEnvironment: evidenceContract.captureEnvironment, beginOperation(options) { start = options; return op; } };
+    throw new Error(`Unexpected dependency: ${name}`);
+  }
+  mockRequire.resolve = () => "/synthetic/playwright-cli.cjs";
+  const module = { exports: {} };
+  vm.runInNewContext(source, { module, require: mockRequire, __dirname: "/synthetic/terminal/e2e/tools",
+    process: { env: Object.freeze({ ...callerEnv }), allowedNodeEnvironmentFlags: undefined, execPath: "/synthetic/node" } });
+  return { main: module.exports.main, started: () => start, child: () => child };
+}
 function invoke(callerEnv, allowedFlags, expectedError) {
   const before = { ...callerEnv }, caller = Object.freeze({ ...callerEnv });
   let start, child;
@@ -19,7 +37,7 @@ function invoke(callerEnv, allowedFlags, expectedError) {
     if (name === "node:child_process") return { spawnSync(command, args, options) {
       child = { command, args, options }; return { status: 0, signal: null };
     } };
-    if (name === "./visualEvidence.cjs") return { fonts: fontFixture, captureEnvironment: evidenceContract.captureEnvironment, beginOperation(options) { start = options; return op; } };
+    if (name === "./visualEvidence.cjs") return { VIEWPORTS, fonts: fontFixture, captureEnvironment: evidenceContract.captureEnvironment, beginOperation(options) { start = options; return op; } };
     throw new Error(`Unexpected dependency: ${name}`);
   }
   mockRequire.resolve = name => {
@@ -199,4 +217,23 @@ for (const name of ["TURBOPACK", "IS_TURBOPACK_TEST", "NEXT_RSPACK", "NEXT_TEST_
 for (const value of ["1", "0"]) test("both wrappers refuse undeclared Webpack selector " + value + " before effects", async () => {
   invoke({ IS_WEBPACK_TEST: value }, new Set(), /CAPTURE_COMPILER_UNDECLARED/);
   await invokePl6({ IS_WEBPACK_TEST: value }, /CAPTURE_COMPILER_UNDECLARED/);
+});
+
+test("a viewport shard runs exactly one Playwright project in its own operation", () => {
+  for (const project of ["desktop", "tablet", "mobile"]) {
+    const w = load();
+    w.main(["--id", "ci-1-1-vi-" + project, "--port", "3537", "--project", project]);
+    const args = Array.from(w.child().args);
+    assert.deepEqual(args.filter(arg => arg.startsWith("--project=")), [`--project=${project}`]);
+    assert.equal(w.started().operationId, "ci-1-1-vi-" + project);
+  }
+});
+
+test("an unknown, repeated or empty project is refused before any operation starts", () => {
+  for (const argv of [["--project", "watch"], ["--project", "desktop", "--project", "tablet"], ["--project", ""],
+    ["--project", "__proto__"]]) {
+    const w = load();
+    assert.throws(() => w.main(["--id", "ci-1-1-vi-x", "--port", "3537", ...argv]), /EVIDENCE_ARGUMENT/);
+    assert.equal(w.started(), undefined); assert.equal(w.child(), undefined);
+  }
 });

@@ -1,0 +1,48 @@
+$ ./node_modules/.bin/tsc --noEmit --incremental false
+
+exit=0
+$ ./node_modules/.bin/vitest run lib/__tests__/sharedShellPublicPresentation.test.tsx
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr627/terminal
+
+ ✓ lib/__tests__/sharedShellPublicPresentation.test.tsx (17 tests) 1715ms
+   ✓ explicit Settings presentation intent after a public override > does not reapply a saved theme on a real Settings trade edit 573ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  03:59:10
+   Duration  2.89s (transform 558ms, setup 0ms, collect 640ms, tests 1.72s, environment 254ms, prepare 58ms)
+
+
+exit=0
+$ ./node_modules/.bin/playwright test e2e/investor-shell-preview.spec.ts --list
+Listing tests:
+::notice title=🎭 Playwright Run Summary::  24 did not run
+  [desktop] › investor-shell-preview.spec.ts:15:7 › existing /analysis?symbol=NVDA uses the preview without losing its page or mobile owner
+  [desktop] › investor-shell-preview.spec.ts:15:7 › existing /discover uses the preview without losing its page or mobile owner
+  [desktop] › investor-shell-preview.spec.ts:59:5 › direct native entry hands off to the existing Macro overview without inventing route state
+  [desktop] › investor-shell-preview.spec.ts:79:5 › direct mobile entry exposes the same public Macro overview without replacing the drawer
+  [desktop] › investor-shell-preview.spec.ts:105:5 › a short desktop viewport keeps every investor navigation destination keyboard-reachable
+  [desktop] › investor-shell-preview.spec.ts:124:5 › native navigation preserves the same shell and the chart route stays excluded
+  [desktop] › investor-shell-preview.spec.ts:140:7 › preview navigation labels remain readable in en
+  [desktop] › investor-shell-preview.spec.ts:140:7 › preview navigation labels remain readable in zh
+  [tablet] › investor-shell-preview.spec.ts:15:7 › existing /analysis?symbol=NVDA uses the preview without losing its page or mobile owner
+  [tablet] › investor-shell-preview.spec.ts:15:7 › existing /discover uses the preview without losing its page or mobile owner
+  [tablet] › investor-shell-preview.spec.ts:59:5 › direct native entry hands off to the existing Macro overview without inventing route state
+  [tablet] › investor-shell-preview.spec.ts:79:5 › direct mobile entry exposes the same public Macro overview without replacing the drawer
+  [tablet] › investor-shell-preview.spec.ts:105:5 › a short desktop viewport keeps every investor navigation destination keyboard-reachable
+  [tablet] › investor-shell-preview.spec.ts:124:5 › native navigation preserves the same shell and the chart route stays excluded
+  [tablet] › investor-shell-preview.spec.ts:140:7 › preview navigation labels remain readable in en
+  [tablet] › investor-shell-preview.spec.ts:140:7 › preview navigation labels remain readable in zh
+  [mobile] › investor-shell-preview.spec.ts:15:7 › existing /analysis?symbol=NVDA uses the preview without losing its page or mobile owner
+  [mobile] › investor-shell-preview.spec.ts:15:7 › existing /discover uses the preview without losing its page or mobile owner
+  [mobile] › investor-shell-preview.spec.ts:59:5 › direct native entry hands off to the existing Macro overview without inventing route state
+  [mobile] › investor-shell-preview.spec.ts:79:5 › direct mobile entry exposes the same public Macro overview without replacing the drawer
+  [mobile] › investor-shell-preview.spec.ts:105:5 › a short desktop viewport keeps every investor navigation destination keyboard-reachable
+  [mobile] › investor-shell-preview.spec.ts:124:5 › native navigation preserves the same shell and the chart route stays excluded
+  [mobile] › investor-shell-preview.spec.ts:140:7 › preview navigation labels remain readable in en
+  [mobile] › investor-shell-preview.spec.ts:140:7 › preview navigation labels remain readable in zh
+Total: 24 tests in 1 file
+
+exit=0

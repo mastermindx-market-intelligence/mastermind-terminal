@@ -1,0 +1,16 @@
+{
+  "schema": "terminal.pr900.os-free-lifecycle-tests.v1",
+  "at": "2026-11-10T13:00:35.562667+00:00",
+  "exit": 0,
+  "seconds": 0.477,
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-900-workspace-successor/.pr900-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "e2e/tools/capture_f12_b5_2_team_workspaces.test.cjs"
+  ],
+  "producerSha256": "77a12e4a132ca1674c5e3c6fbb9a5de893ca12ca13a031201849a8d2e1ff4925",
+  "testSha256": "c6010967c858e5f3740db3a5eb77a3f00364beda6d2455ed64420e54871e41fb",
+  "logSha256": "8538d9ef7f282e10b5009ca41e7057c5da817d8d57e70d26de207de7d8c7004f",
+  "scope": "Injected child, timers, signal function and browser; no real server, Chromium, network or OS signals."
+}

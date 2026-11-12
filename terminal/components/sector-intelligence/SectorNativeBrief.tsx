@@ -6,7 +6,7 @@
 import { useMemo, useRef } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
-import { formatValue, sectorMeasuredRead, type SectorJob } from "@/lib/sectorIntelligence";
+import { formatValue, sectorMeasuredRead, type SectorJob, type SectorView } from "@/lib/sectorIntelligence";
 import { sectorDossiers } from "@/lib/sectorDossiers";
 import { fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "@/components/charts/svgChart";
 import type { SectorNativeContext, SectorNativeRankedRow } from "./sectorNativeSlots";
@@ -15,12 +15,11 @@ import styles from "./SectorNative.module.css";
 
 const LABEL_COL = 76, VALUE_COL = 64, ROW_H = 34, AXIS_H = 20;
 
-export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier, onOpenRotation, onSources }: {
+export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier, onSources }: {
   context: SectorNativeContext;
   rows: SectorNativeRankedRow[];
   onJob: (job: SectorJob) => void;
-  onOpenDossier: (sectorId: string) => void;
-  onOpenRotation: () => void;
+  onOpenDossier: (sectorId: string, view?: SectorView) => void;
   onSources: () => void;
 }) {
   const t = useSectorT(), { lang } = useLang();
@@ -182,7 +181,8 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
           <h2 className={styles.cardTitle}>{t("siBriefNext")}</h2>
           <div className={styles.investigations}>
             {investigation(t("siNativeCycles"), t("siBriefInvestigateCyclesCopy"),
-              t("siBriefInvestigateCyclesAction"), onOpenRotation, "sector-native-brief-next-cycles")}
+              t("siBriefInvestigateCyclesAction"), () => onOpenDossier(lead.id, "signals"),
+              "sector-native-brief-next-cycles")}
             {investigation(t("siBriefInvestigateWatches"), t("siBriefInvestigateWatchesCopy"),
               t("siBriefInvestigateWatchesAction"), () => onJob("watches"), "sector-native-brief-next-watches")}
             {investigation(t("siBriefInvestigateResearch"), t("siBriefInvestigateResearchCopy"),

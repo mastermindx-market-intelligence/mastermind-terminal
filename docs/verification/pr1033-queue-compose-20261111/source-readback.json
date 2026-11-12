@@ -1,0 +1,134 @@
+{
+  "at": "2026-11-11T17:47:37.743842+00:00",
+  "merge_base": "74c007125129090cc762f2bc4b1b152123326444",
+  "head": "0b4ffeb3ce65b76ec14003dbab5d61688b1dbb2f",
+  "accepted_parent": "ed6529da70f124c2790c5ddf3b6d4482d739cb46",
+  "source_paths": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "original": "d115384e55a9f494487c1e7cc0475da15122e349",
+      "composed": "31a3bfd4f6783fe76f0af62f6959499375ab30c2",
+      "unchanged": false
+    },
+    {
+      "path": "terminal/app/api/briefs/deliveries/route.ts",
+      "original": "2985035d3a4d93e5ce9ed32d653ab9791e100e58",
+      "composed": "2985035d3a4d93e5ce9ed32d653ab9791e100e58",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/components/briefs/BriefsInbox.tsx",
+      "original": "3bef51189042879d12968f2f75a662cda97e7aa1",
+      "composed": "3bef51189042879d12968f2f75a662cda97e7aa1",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/components/fin/TranscriptDrawer.tsx",
+      "original": "999070fa1b4053d44b0bc5c77704ec59b894a114",
+      "composed": "999070fa1b4053d44b0bc5c77704ec59b894a114",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/e2e/briefs-inbox.spec.ts",
+      "original": "e1223b1770e47136990f661a3a267dc11cf08697",
+      "composed": "e1223b1770e47136990f661a3a267dc11cf08697",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/e2e/tools/briefs_inbox_capture_contract.cjs",
+      "original": "a4484f993c7f4b921298d2365be5d5d8bec6ede0",
+      "composed": "a4484f993c7f4b921298d2365be5d5d8bec6ede0",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs",
+      "original": "c12671b655c70dd327df7cd8d937d9b0d00ad6d9",
+      "composed": "c12671b655c70dd327df7cd8d937d9b0d00ad6d9",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs",
+      "original": "5ff6f4fc2b6bb491f316a9ad8e549e1c356d38f0",
+      "composed": "5ff6f4fc2b6bb491f316a9ad8e549e1c356d38f0",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/__tests__/BriefsInbox.deliveryOwnership.test.tsx",
+      "original": "d0a7597b44bb51c4ca1059919249b08804a29c2c",
+      "composed": "d0a7597b44bb51c4ca1059919249b08804a29c2c",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/__tests__/BriefsInbox.test.tsx",
+      "original": "73c1b03fa04b868b3880f5e36871266f94bf8c6a",
+      "composed": "73c1b03fa04b868b3880f5e36871266f94bf8c6a",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/__tests__/briefsBody.test.ts",
+      "original": "bad34fd715b03705f5048daefec0ddd9944ad57b",
+      "composed": "bad34fd715b03705f5048daefec0ddd9944ad57b",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/__tests__/briefsRoute.test.ts",
+      "original": "27787d5a17eda41fccc0fd683194f2b907e67461",
+      "composed": "27787d5a17eda41fccc0fd683194f2b907e67461",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts",
+      "original": "81108e3a0930a113c2fe75eeff2e77546127dafe",
+      "composed": "81108e3a0930a113c2fe75eeff2e77546127dafe",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/__tests__/transcriptDrawerFocus.test.tsx",
+      "original": "f95627362a1c7920320bcb0316630c82adf9c377",
+      "composed": "f95627362a1c7920320bcb0316630c82adf9c377",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/briefs.ts",
+      "original": "7cb140ef02f01108b51737e6341c69c1a8893142",
+      "composed": "7cb140ef02f01108b51737e6341c69c1a8893142",
+      "unchanged": true
+    },
+    {
+      "path": "tests/test_ci_briefs_inbox_capture.py",
+      "original": "7862bb4f3780e012d1cd3b4fa08874ac32272da9",
+      "composed": "7862bb4f3780e012d1cd3b4fa08874ac32272da9",
+      "unchanged": true
+    }
+  ],
+  "nonworkflow_sources_unchanged": 15,
+  "whole_merge_whitespace_paths": [
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-7b384-r-with-Retry-never-loading--desktop/error-context.md",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path-artifacts/options-flowdesk-chainheat-b167e-a-404-with-nothing-to-retry-desktop/error-context.md",
+    "docs/verification/issue1201-chainheat-interception-20261111/wrong-path.log",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts/issue1201-inspector-empty--e9eab-spector-empty-light-en-1440-desktop/error-context.md",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline-public.log",
+    "docs/verification/issue1201-inspector-empty-20261111/baseline.log",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/error-context.md",
+    "docs/verification/issue1201-inspector-empty-20261111/postimage-dark.log",
+    "docs/verification/pr1346-e18-hosted-import-20261111/focused-tests.log",
+    "docs/verification/pr1346-e18-successor-20261110/focused-tests.log",
+    "docs/verification/pr1346-e18-successor-20261110/protected-overlay.patch",
+    "docs/verification/pr1407-protected-sharding-integration-20261110/inherited-diff-check.log",
+    "docs/verification/pr1407-ticker-news-successor-20261111/browser-current/browser.log",
+    "docs/verification/pr627-current-protected-recovery-20261111/focused-tests.log",
+    "terminal/app/fin.css",
+    "terminal/components/fin/StatementsPage.tsx",
+    "terminal/docs/pr-crops/workspace-study-20261109/logs/e2e.log",
+    "terminal/docs/pr-crops/workspace-study-20261109/logs/lint-baseline.log",
+    "terminal/docs/pr-crops/workspace-study-20261109/logs/lint-final.log",
+    "terminal/docs/pr-crops/workspace-study-20261109/logs/unit.log",
+    "terminal/docs/verification/pr1407-workspace-css-successor-20261111/evidence-guards.log",
+    "terminal/lib/__tests__/finCompare.test.ts",
+    "terminal/lib/__tests__/finCumulativeQuarterGap.test.ts",
+    "terminal/lib/finStatementMath.ts"
+  ],
+  "whitespace_paths_exactly_match_accepted_parent": true,
+  "workflow_diff_vs_accepted": "diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml\nindex 1789ecec6..31a3bfd4f 100644\n--- a/.github/workflows/ci.yml\n+++ b/.github/workflows/ci.yml\n@@ -401,7 +401,7 @@ jobs:\n       - run: npx tsc --noEmit\n       - name: Check immutable evidence orchestration (synthetic)\n         timeout-minutes: 1\n-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs\n+        run: node --test e2e/tools/briefs_inbox_capture_contract.test.cjs e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs\n       - name: Record PR-touched paths for the evidence drift gate\n         # The planner below fails a pull request whose OWN diff drifted an\n         # evidence-locked source without a recaptured, committed lock \u2014 the\n@@ -437,6 +437,12 @@ jobs:\n           TERMINAL_CROP_PORT: \"47283\"\n           TMPDIR: ${{ runner.temp }}/terminal-ci-evidence\n         run: node e2e/tools/capture_e18_alert_management.cjs\n+      - name: Capture current-source recurring inbox evidence\n+        timeout-minutes: 8\n+        env:\n+          TERMINAL_CROP_PORT: \"47284\"\n+          TMPDIR: ${{ runner.temp }}/terminal-ci-evidence\n+        run: node e2e/tools/capture_b_f11_7_recurring_briefs.cjs --active-inbox\n       - name: Capture and validate evidence on this checkout\n         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'\n         timeout-minutes: 85\n@@ -587,6 +593,7 @@ jobs:\n             terminal/test-results/\n             terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/\n             terminal/docs/pr-crops/e18-alert-management/\n+            terminal/docs/pr-crops/b-f11-7-active-inbox/\n             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*\n             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*\n             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml\n"
+}

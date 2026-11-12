@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SECTOR_STATE, type SectorState } from "@/lib/sectorIntelligence";
+import { DEFAULT_SECTOR_STATE, parseSectorState, type SectorState } from "@/lib/sectorIntelligence";
 import { encodeSectorDepthReturn } from "@/lib/sectorDepthReturn";
 import {
   NATIVE_SECTOR_ETFS, nativeSectorEtf, parseSectorPortfolioContext, sectorEtfHolding,
@@ -126,6 +126,19 @@ describe("the admitted return", () => {
     expect(params.get("group")).toBe("banks");
     expect(params.get("sectorDiscoveryQuery")).toBe("trust");
     expect(params.get("sectorDiscoveryMode")).toBe("table");
+  });
+
+  it("returns from Portfolio to the exact nondefault breadth selection", () => {
+    const opener: SectorState = { ...DEFAULT_SECTOR_STATE, workspace: "breadth", sector: "xle",
+      breadthSort: "contract", breadthWindow: 1, discoveryQuery: "Energy", theme: "light" };
+    const href = sectorPortfolioHref("XLE", opener)!;
+    const context = parseSectorPortfolioContext(href);
+    expect(context?.opener).toEqual(opener);
+    const back = sectorPortfolioReturnHref(context)!;
+    const url = new URL(back, "https://mastermind.invalid");
+    expect(url.pathname).toBe("/discover");
+    expect(url.searchParams.get("tab")).toBe("sectors");
+    expect(parseSectorState(url.searchParams)).toEqual(opener);
   });
 
   it("refuses a context whose snapshot no longer decodes", () => {

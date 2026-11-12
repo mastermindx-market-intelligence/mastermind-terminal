@@ -1,0 +1,528 @@
+{
+  "schema": "pr761.protected-integration.v1",
+  "recordedAt": "2026-11-12T13:41:15.233901+00:00",
+  "state": "SOURCE_INTEGRATED_CURRENT_CI_PENDING",
+  "policyPin": "0e1ca7a2d8aa95ac415191d64bd3a39212be39d0",
+  "takeover": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/761#issuecomment-6824696928",
+  "operation": "terminal-pr-duty-20261110-761-protected-successor",
+  "originalPublishedHead": "70efa5ee3404707541ad7b33d02bf1f23072906f",
+  "integratedProtectedMaster": "e22b5bd49f652b54507a3567856227015032f6e1",
+  "sourceSha256": {
+    "terminal/e2e/tools/capture_visual_evidence.cjs": "b501b83b7c28841350b559384917614628795121efd5b4f7921f1eba19c62472",
+    "terminal/e2e/tools/capture_visual_evidence.test.cjs": "78b0da0d2bf41d03e1b65d6dceae51404e6cc7bde501ce4f668ea54811338010",
+    "terminal/e2e/tools/visualEvidence.test.cjs": "3772d033b781a2196a92ae7b0b4317309c999e6109ec87b9af2d6216c97303ee",
+    "terminal/components/TerminalShell.tsx": "c36880786bf1c7f3b6973c137b3b3af52dde0916108d05eb9c038b1f3b823a05"
+  },
+  "acceptedAuthBlobs": {
+    "terminal/app/api/auth/principal/route.ts": "b3dc1e845546d6b9e6c682f40c379a299ec101f9",
+    "terminal/e2e/tools/README.md": "de8e71e220dd1636b06950c8e3d5ed1ebcc07032",
+    "terminal/e2e/tools/prove-thesis-journey-live.mjs": "752d81471290a5d64bfe28c684671fdb0f2a0960",
+    "terminal/e2e/tools/thesisJourneyLib.mjs": "abc9f8c991c79b99884aa9adbfebf438ce93edaa",
+    "terminal/lib/__tests__/cookiePrincipalRoute.test.ts": "641b1436d0548b9efa323a919231a45198b9c294",
+    "terminal/lib/__tests__/thesisJourneyPrincipal.test.ts": "b5de585eaa5b559e29ed585773c05c58c2a6e9b2",
+    "terminal/lib/__tests__/thesisJourneyPrincipalComposition.test.ts": "f63167f6faa607af0493150ae0fd3e3f7afeab16",
+    "terminal/lib/__tests__/thesisJourneyReceipt.test.ts": "2f255d352ad3992286316103da67150f737bc50d"
+  },
+  "retainedPr761ArtifactCount": 117,
+  "retainedPr761Artifacts": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-current--start.json",
+      "gitBlob": "2d5d70ea7a0bcbb7539cca71c224b2cb149570f2"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-04addfb3086ee5fc6cec19d7edce782d.json",
+      "gitBlob": "d87e0fdda8b6f472ee057a5051ec3840da0212cd"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-04addfb3086ee5fc6cec19d7edce782d.png",
+      "gitBlob": "368dac415c8f16d956bf73bf85b172c26905647d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-07e2cfc90a9073025110d053565ab1f1.json",
+      "gitBlob": "a213c86ca4e18d7a25caacd4c7fb4de233d28b92"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-07e2cfc90a9073025110d053565ab1f1.png",
+      "gitBlob": "59697b6dbec1a026c21352e4dec15445c5d07090"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-0c8e9d6aff8d5736bb1fd70c908322f0.json",
+      "gitBlob": "2293d75109f65edaa69bc59cb62bb9d6163f6b50"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-0c8e9d6aff8d5736bb1fd70c908322f0.png",
+      "gitBlob": "2e66c8c8a9affb8bbd01e6ccda9fb6504ea85056"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-0f8cd82e5d4bc245843916285d6c10fb.json",
+      "gitBlob": "6351921a2d1888da0a0bc2285f21e8fef5f7b081"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-0f8cd82e5d4bc245843916285d6c10fb.png",
+      "gitBlob": "99f4c19e16b21186836e05851554dd631048d279"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-1b437e9aeca88e97b0bb7237f2b13008.json",
+      "gitBlob": "bea8ffaf313b4842b97afe3ac1e3614aa4b26658"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-1b437e9aeca88e97b0bb7237f2b13008.png",
+      "gitBlob": "fbeee12e5d947ed9ccf5657cd13b537bbe7479b1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-255ec3283a27e181db0817d2c01dfb16.json",
+      "gitBlob": "aaab9e042af23af0b8457832cfb4b83d1cfb4c4f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-255ec3283a27e181db0817d2c01dfb16.png",
+      "gitBlob": "26c519ad12b04967efcd36cb11d8f0590ba73e1b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-5fb36fd42dbf29bcb562d53fa45f701b.json",
+      "gitBlob": "107dc1c28e3cb604c263a8ce0e70343d3daf888c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-5fb36fd42dbf29bcb562d53fa45f701b.png",
+      "gitBlob": "481ea533b96c4cb702bc333da2b7bbd8e837aa9c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-730e269fd8c27611b9d4a4a826661962.json",
+      "gitBlob": "fe0c811a47c93596abefb1c9ffacd6a610e78ac2"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-730e269fd8c27611b9d4a4a826661962.png",
+      "gitBlob": "b05dea0bb66356c0f3de1f6b1fb8247b0443890b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-741dec1dad034ca0365ee19c92657fe0.json",
+      "gitBlob": "a4f4c8616fb3ed869521b986f0dbcfebf4ac79f9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-741dec1dad034ca0365ee19c92657fe0.png",
+      "gitBlob": "5f6516d949932136efe1e2282a631ca0c74c13c5"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-7edc7e560f142c5c64b99cb4e57321a6.json",
+      "gitBlob": "02b0bb03978b2f35cece69cc112ed66302d11b4d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-7edc7e560f142c5c64b99cb4e57321a6.png",
+      "gitBlob": "d7e700f7ab1c349fd4c7d630757bb867036a657c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-7fe4b91e8150dd5927a80a781e701979.json",
+      "gitBlob": "16b1b4295fe7e286f6eb2ea532d61282012f1c28"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-7fe4b91e8150dd5927a80a781e701979.png",
+      "gitBlob": "11922802404c8303553bd8a4bdab3dccc714d319"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-86d84cab75217bdefb7397a6e4bb1f13.json",
+      "gitBlob": "dd91807c628b306f8a7e6d77cac9de2aae3f7406"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-86d84cab75217bdefb7397a6e4bb1f13.png",
+      "gitBlob": "5fee206764d08557e9c04f32d895dc7527c42bee"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-8f1fd056c184ac80ec99f851da4c2b10.json",
+      "gitBlob": "58925b009e90c7267b444014b9134bd8b70ce3bc"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-8f1fd056c184ac80ec99f851da4c2b10.png",
+      "gitBlob": "8a865dc765feec83474a13b35a85705d27f53a1f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-94a2b3daa0f7bc7e15df133e0820a9de.json",
+      "gitBlob": "dbd4863ffb0cda8abed990cb0ce4e7f2f5766ca7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-94a2b3daa0f7bc7e15df133e0820a9de.png",
+      "gitBlob": "5136f1ffb15a28a018ee611d784375bcfb301000"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-a3d6163e7647a3819f4f640072706940.json",
+      "gitBlob": "a488bffd94dd47d4697edb7ab56600ef8095a650"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-a3d6163e7647a3819f4f640072706940.png",
+      "gitBlob": "69844224ef3d1748f1ca14d780e80ab9de4d8153"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-a6dc838bc1a5d9faac32fc11a6913459.json",
+      "gitBlob": "a64a5f827fb240e2cd9b6e78d40b3534490b860b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-a6dc838bc1a5d9faac32fc11a6913459.png",
+      "gitBlob": "ea1bb44925a5e8bea6d0c8b678b761cd1c6cdff0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-a7849cb7aa686b4eae34a7f017604085.json",
+      "gitBlob": "622e399f508db7e4ba5cbcca95ae2c08517cffba"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-a7849cb7aa686b4eae34a7f017604085.png",
+      "gitBlob": "23eed3963ec4ec76611d681aaf5e4cb477bd1df9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-b0452f6e3cc32be3b2fb9004b3710471.json",
+      "gitBlob": "59061879d55fb9659181e1287d04d408e6cf7a6b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-b0452f6e3cc32be3b2fb9004b3710471.png",
+      "gitBlob": "10c691420418a1e197c16f069025f7dd5769ce88"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-b631422c828fbbe9a4bedec4493bf1ce.json",
+      "gitBlob": "dee151d1ffdd1975afb4dee4d443769dd847cb37"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-b631422c828fbbe9a4bedec4493bf1ce.png",
+      "gitBlob": "3e97b12b965d8fc897d6e1a32595d7648f7faf90"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-b818e1c97c464cce33b12755b6f48ce5.json",
+      "gitBlob": "2fa74a7f230797cea69e544a97e43f4aefcb9643"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-b818e1c97c464cce33b12755b6f48ce5.png",
+      "gitBlob": "368fe85cbc6cb22428f802b4f8bc1f7c258790a4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-b8c74cee03549413614169b0cb04779e.json",
+      "gitBlob": "87210f0d30ab3e612b69c6624a530ede10c20cd0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-b8c74cee03549413614169b0cb04779e.png",
+      "gitBlob": "8596e534c4b49438b737afe81ae62daa1a3821c4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-cac7a4ce892500a765cf336895df845f.json",
+      "gitBlob": "19954e5e50643978a70f851b2885bb3a2e8c3203"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-cac7a4ce892500a765cf336895df845f.png",
+      "gitBlob": "4780de3b9e8aa1b9c07c441a14c85fdb0d004312"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-eb3ce40c99712bf3225af0f136c81df2.json",
+      "gitBlob": "44586dd31a1285be49771561fd00d8fa78944587"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-eb3ce40c99712bf3225af0f136c81df2.png",
+      "gitBlob": "6284ff96c36d295a568f8c9a340e3dc9255dd01d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-f90c2121bf5db3dde5301abec80c74ce.json",
+      "gitBlob": "8acb7e6bff462f82acd2cc9a80ba315f18c663e9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--case-f90c2121bf5db3dde5301abec80c74ce.png",
+      "gitBlob": "9a1fbe2b4d3925bf04b703aa3950b5d0d88cfdf3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--operation.json",
+      "gitBlob": "e47c0cc04122eef63ca3d50580b86fac7d2efab7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--report.json",
+      "gitBlob": "258bcf8c9945a57d3c377c42a0f77cc53ce1c0a9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-20261110-pl6-webpack--start.json",
+      "gitBlob": "fb8282007531daa8b8ec738132fa8686bd3cc0cd"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-protected-20261110.composition.json",
+      "gitBlob": "5e7a5b54c00618e2e81d61a429ba246974fefa9a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-159abab5953db78cbf0e335ae2dbd333.json",
+      "gitBlob": "05397d7714d3b172c776ff5cbcf9206e70f59fd1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-159abab5953db78cbf0e335ae2dbd333.png",
+      "gitBlob": "c746024db37c88ddffd9465e6333253a87a00310"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-53cc0be0cb059acb425c9b097eb41e52.json",
+      "gitBlob": "0d6b789fcca847aca9373ad98494880c2881451a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-53cc0be0cb059acb425c9b097eb41e52.png",
+      "gitBlob": "9b5a97784e0f38b1d5ecfc894e986d1a4d0c7baf"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-54a5d4536a5ea7682a2777c60f1ec76c.json",
+      "gitBlob": "df65f25e7d4f872fd78494afc41b127e4f5e11a4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-54a5d4536a5ea7682a2777c60f1ec76c.png",
+      "gitBlob": "2b825390dc6d315e055f0494b35ae1d64103a838"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-57f50012ee54e428f678d31608ec796c.json",
+      "gitBlob": "f560efcc43877a800d917125c6c1163214b98842"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-57f50012ee54e428f678d31608ec796c.png",
+      "gitBlob": "d7a33a6e6c640ffc8a05e151ea5eebb42bc9b1c0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-584ca6762b7dfdce2e79d2bb3da9a8b6.json",
+      "gitBlob": "5ab41d84f9e0af3e90f433ef024fe3bd5ac47915"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-584ca6762b7dfdce2e79d2bb3da9a8b6.png",
+      "gitBlob": "b875dc1b2cf97731ca013f565cd96eaea3c6d08c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-58870fa09dc75518cb053931b826776d.json",
+      "gitBlob": "f06813c1290b009e882ae00c4592622fc559184a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-58870fa09dc75518cb053931b826776d.png",
+      "gitBlob": "1692c8d4543b724851dee28fd9ed96e8edc5b21e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-5e7a8108f22fb594056b49bb54208fe2.json",
+      "gitBlob": "bf3bcf5590b6159b6e0bab982477fcbc5fc45a15"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-5e7a8108f22fb594056b49bb54208fe2.png",
+      "gitBlob": "5ac251ba1f345b379916d98e8ae0153300b8931d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-7381784ee89146a99c2d47e0857cd8db.json",
+      "gitBlob": "e17ce2e341d36a7a4da41fcdba0822ccc20dfeaa"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-7381784ee89146a99c2d47e0857cd8db.png",
+      "gitBlob": "8464169ac9bf61ab13f5bcefea6756a1c60de843"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-7418bfe5f4b34f8b1e620bca81d74227.json",
+      "gitBlob": "ebcb4c1540fe685fa7bf706b9536a37fa46bf020"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-7418bfe5f4b34f8b1e620bca81d74227.png",
+      "gitBlob": "dfe0d27230396648e4d0a01fed1b720cfdc21412"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-76bdb3b1834eb668f50b9faa0dffa4d7.json",
+      "gitBlob": "772e9d2fb98ea13df41c54737123f3a53bed7fce"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-76bdb3b1834eb668f50b9faa0dffa4d7.png",
+      "gitBlob": "e6894e692256be101375633dc31851abd48cbe52"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-77303ca13d340692afa531a6c8fcd106.json",
+      "gitBlob": "bba0c6ab09e0dc7b3ff49b476fd444e6b3601943"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-77303ca13d340692afa531a6c8fcd106.png",
+      "gitBlob": "8b2140b581986eaf3907d1eb639c4498d81f037f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-896b04c4e3d0ee979bd3fbb64d38c4ed.json",
+      "gitBlob": "338a1cbf04aef1bfc42c559114b0bd105da8deac"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-896b04c4e3d0ee979bd3fbb64d38c4ed.png",
+      "gitBlob": "b82236ea8c48fc009c8439485a6299bea4dbfb6a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-8e2065bf6fe2f9bf4c90e6de619b6dd5.json",
+      "gitBlob": "90ee0270e9ee5a28316f4a9ebd9962327309c18a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-8e2065bf6fe2f9bf4c90e6de619b6dd5.png",
+      "gitBlob": "ca9a30b1bcf3a2efd30cb7aa1d88d19ba316328a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-93c41da7b1b4973d7512abb0589e6c1d.json",
+      "gitBlob": "3751de3cbccedc23b7ab1ac8e2386194ad8064d9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-93c41da7b1b4973d7512abb0589e6c1d.png",
+      "gitBlob": "1026bfbc8c7c1963e6bf3a98df591dc2341da0fe"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-9636e3f10bba50fe5d16e00dd9454ac5.json",
+      "gitBlob": "9b6df8275825b2c7270a02ea3f48779e89417f9a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-9636e3f10bba50fe5d16e00dd9454ac5.png",
+      "gitBlob": "0f2c6e36ecdc75638ebaef7eedf6ee4e414eab68"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-9800ec87df92a8a8033af70f64b0b533.json",
+      "gitBlob": "759d982e481e84779374f5f96478d776c3b2f254"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-9800ec87df92a8a8033af70f64b0b533.png",
+      "gitBlob": "a1a04101d0baa7d751302386ee744a3eea7c054a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-997b1cb667944d5f31aa982480cd6617.json",
+      "gitBlob": "91d2351fbb57c512f6d335e7b8719f970b842057"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-997b1cb667944d5f31aa982480cd6617.png",
+      "gitBlob": "e5a1b76e0984c6f2e300039bfa3c285790749394"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-99c769aa41fd202646c6883b11245d02.json",
+      "gitBlob": "9246a36aff807d98cc144800ed32b32c7a0b1b73"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-99c769aa41fd202646c6883b11245d02.png",
+      "gitBlob": "d39c3de678e0af58d7613e4cb464c14febafedc0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-9a553bea1770b3188c46148aa9342634.json",
+      "gitBlob": "74d2279b73d86ddfd569d8ed49d66a5b169859d8"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-9a553bea1770b3188c46148aa9342634.png",
+      "gitBlob": "16f50cfb97094092779da3c3de9d526f301063fe"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-a0674dd4291617ea3c3e1a64a9fa6825.json",
+      "gitBlob": "d829f6033b9bc42f65b541d3bb6d929f8f57e860"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-a0674dd4291617ea3c3e1a64a9fa6825.png",
+      "gitBlob": "dc5f6c2a62d6354589f49c10a6186cedb095783f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-bb8d9471b3493cb1fda6df36a7fe50f3.json",
+      "gitBlob": "cc1f1ba11b302020240f1bd6192a77a22b421f28"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-bb8d9471b3493cb1fda6df36a7fe50f3.png",
+      "gitBlob": "f0fa8101a5c5dc27c942b1378b62c609b91c847a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-bfc2f94264a28a47ca04854cce1ec02c.json",
+      "gitBlob": "c5e87acbc2480b56547b86057828dd98943d52c1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-bfc2f94264a28a47ca04854cce1ec02c.png",
+      "gitBlob": "10be98393053e77b13faed67e864dd44084de5c9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-c99d1d4f435e2af686e0b59fcd647ea9.json",
+      "gitBlob": "7b45a98dfe33d2f6d2f72d511e3cbd69f8de7a91"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-c99d1d4f435e2af686e0b59fcd647ea9.png",
+      "gitBlob": "0ea398bfcdc190efca646e8dc50df7745ceef3df"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-d611c46a10fe6543c46d01a231dd71dc.json",
+      "gitBlob": "2bd00c876fb82bdf93904d190d075095d9943b0e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-d611c46a10fe6543c46d01a231dd71dc.png",
+      "gitBlob": "61e6794308a0491e1fd6ed4c59d30012609bf81a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-d93f534302dbadfaa5a6fd8be666e555.json",
+      "gitBlob": "7b8d8cae0d2dd2fb389187466a5b0c71d515fbe3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-d93f534302dbadfaa5a6fd8be666e555.png",
+      "gitBlob": "33e88254bc2578107aeef322182c8747b93df573"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-e455feaa139bc26e4b2840ab8c1f465c.json",
+      "gitBlob": "271d636b01368ec4ba4480dd795f075355414c58"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-e455feaa139bc26e4b2840ab8c1f465c.png",
+      "gitBlob": "e40a626f1d8e876fd5521ea4fb0bf3f64be25ef7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-e55ae2bac60ce21249e910116733aadc.json",
+      "gitBlob": "43173101e6bd04db6d54a174e389295d4568865c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-e55ae2bac60ce21249e910116733aadc.png",
+      "gitBlob": "83382ecd7086070008e2a32c1baf0680753a5066"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-eb0837fd25a2a7a98fbc8e9b3999401d.json",
+      "gitBlob": "46e1547865ca4df47eccb2225d2275ff54d4850a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-eb0837fd25a2a7a98fbc8e9b3999401d.png",
+      "gitBlob": "ad2a83e65b6372e2eb5e690ef75847ce4dbc4d6e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-ee02b323aeba2da6a7cfcfdec67e90b2.json",
+      "gitBlob": "45faf5b37396d98886ca4ce189386c2a621ba9c0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-ee02b323aeba2da6a7cfcfdec67e90b2.png",
+      "gitBlob": "6fdd4d259c76d58f38a780370bde14ff9f060f9c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-fa58e0493f7e0c95bf2f5b4b64e83204.json",
+      "gitBlob": "8c2c55f2ef991c7cf55add9d4b43068734bc8075"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--case-fa58e0493f7e0c95bf2f5b4b64e83204.png",
+      "gitBlob": "f33064a5f4c7f4296eb02ccea6255b13d7b7b81d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--operation.json",
+      "gitBlob": "6a3fb9f53a590a8737234f7fd4392badab1c334b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--raw-report.json",
+      "gitBlob": "221b98aa20d0bb3d133ed52065e1c193008b51c0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--report.json",
+      "gitBlob": "221b98aa20d0bb3d133ed52065e1c193008b51c0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/pr761-20261110-vi-webpack--start.json",
+      "gitBlob": "e536b145c70dcc3cd1f6733fc9bb387749dac179"
+    }
+  ],
+  "priorProofUnchanged": true,
+  "mobileReadinessSourceUnchanged": true,
+  "protectedCaptureOwnerUnchanged": true,
+  "protectedPlaywrightUnchanged": true,
+  "validation": {
+    "command": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "--test",
+      "e2e/tools/capture_visual_evidence.test.cjs",
+      "e2e/tools/visualEvidence.test.cjs"
+    ],
+    "exit": 0,
+    "tests": 76,
+    "pass": 76,
+    "fail": 0,
+    "skipped": 0,
+    "durationMs": 483659.90875,
+    "logSha256": "6fead89b4475383a11ebecbc457f13b31d07edbfef8bb7bf8c6ea3564a8f19ae",
+    "nodeSha256": "70851490e028b3d699a8d6d4e1de909af2a989359ae807974c92af9c6580a8e8"
+  },
+  "browserRecapture": false,
+  "currentSourceBrowserAcceptance": "PENDING incumbent CI capture and reader",
+  "release": {
+    "draft": true,
+    "autoMerge": false,
+    "livePhaseBC": "HELD",
+    "authentication": "HELD",
+    "production": "HELD",
+    "historicalExportRefusal": "PRESERVED"
+  },
+  "fontLimit": "Retained font responses and loaded faces are proven historically; absent numeric observations do not prove universal numeric typography. Optional retained-font profile is not enabled for hosted runner-derived ports."
+}

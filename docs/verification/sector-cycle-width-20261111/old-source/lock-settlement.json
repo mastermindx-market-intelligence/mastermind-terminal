@@ -1,0 +1,41 @@
+{
+  "state": "OWNED_STALE_LOCK_REMOVED",
+  "lockSha256": "0aeeabdbaf2c04749124ef509e9281491e42a6231230176e5b8e3210160c4b06",
+  "inode": 77090240,
+  "device": 16777247,
+  "checks": [
+    {
+      "command": [
+        "ps",
+        "-p",
+        "72396",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:57735",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "lockAbsent": true
+}

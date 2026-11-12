@@ -1,0 +1,3 @@
+Listing tests:
+  [desktop] › sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark
+Total: 1 test in 1 file

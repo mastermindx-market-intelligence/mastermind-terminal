@@ -1,0 +1,60 @@
+{
+  "parent": "e64a561045bbbf240ba6b62e37a9ee2a62464cd1",
+  "run": 42990465968,
+  "job": 130422606732,
+  "artifact": 13841264368,
+  "artifactSha256": "bc3fe6489b9f1cc31a02c4057623ceb2f7600fc2fb15dd3571955e850807aeb7",
+  "actualCheckout": {
+    "commit": "d6655d2ed68f46f14205523c2bc5078153ecff81",
+    "tree": "ac8af3c047520391b4a549330d93bbe2a88c70ba"
+  },
+  "canonicalParents": [
+    "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+    "e64a561045bbbf240ba6b62e37a9ee2a62464cd1"
+  ],
+  "oldSourceBindingsVerified": 15,
+  "captureCasesCompleted": 8,
+  "cleanup": {
+    "contextsClosed": 8,
+    "browserClosed": true,
+    "serverSettled": true
+  },
+  "failure": "Final validator compared fractional CSS height with PNG height using an invalid +/-1 tolerance. No current packet was promoted.",
+  "lockedPlaywright": "1.61.1",
+  "implementationPrimarySource": {
+    "path": "node_modules/playwright-core/lib/coreBundle.js",
+    "sha256": "6be5c2ea035554e9b184b1dbc7aa5e7f1fb428dd1b5c202022858dcfae9bee27",
+    "functions": [
+      "Helper.enclosingIntRect",
+      "Screenshotter.screenshotElement"
+    ]
+  },
+  "before": {
+    "tests": 49,
+    "passed": 39,
+    "failed": 10
+  },
+  "after": {
+    "tests": 49,
+    "passed": 49,
+    "failed": 0
+  },
+  "syntax": "PASS both producer and validator",
+  "eslint": "PASS zero output",
+  "unchangedGates": [
+    "exact eight cases",
+    "exact fifteen source inputs",
+    "runtime versions",
+    "full PNG decoding/CRC/hash",
+    "text and geometry settlement",
+    "device scale factor one",
+    "no unexpected writes",
+    "all context/browser/server cleanup",
+    "manifest-last promotion"
+  ],
+  "successorCaptureRequired": true,
+  "diagnosticPacketRestamped": false,
+  "browserExecutionThisRepair": false,
+  "producerActivation": false,
+  "productionAcceptance": false
+}

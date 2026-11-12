@@ -96,19 +96,16 @@ export default function EventEdgePop({ anchor, intel, zh = false, onClose }: Eve
     return () => window.removeEventListener("keydown", onKey, true)
   }, [onClose])
 
-  // outside-click capture — fires before bubbling so deep children don't interfere
-  useEffect(() => {
+  // The opener handles its click during bubbling, after document capture.
+  // Register before paint so the next outside click can always dismiss the reader.
+  useLayoutEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (popRef.current && !popRef.current.contains(e.target as Node)) {
         onClose()
       }
     }
-    // small defer so the click that opened the pop doesn't immediately close it
-    const tid = window.setTimeout(() => document.addEventListener("click", onClick, true), 10)
-    return () => {
-      window.clearTimeout(tid)
-      document.removeEventListener("click", onClick, true)
-    }
+    document.addEventListener("click", onClick, true)
+    return () => document.removeEventListener("click", onClick, true)
   }, [onClose])
 
   const dec = intel?.analysis?.decision

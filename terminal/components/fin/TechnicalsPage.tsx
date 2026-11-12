@@ -26,6 +26,7 @@ import { intradayCapable } from "../ChartPanel";
 import { classify, isIntradayTf } from "../../lib/intradaySources";
 import { Disclaimer } from "./ForecastPage";
 import { readingToArc } from "../../lib/analystRating";
+import { calendarBarKey, isCalendarSessionDate } from "../../lib/sessionBars";
 
 interface TechnicalsPageProps {
   sym: string;
@@ -45,26 +46,15 @@ const DAILY_PILLS: { tf: string; en: string; zh: string }[] = [
   { tf: "1M", en: "1 month", zh: "1月" },
 ];
 
-/* ISO week key (Mon-anchored) — matches ChartPanel.resampleTf convention. */
-function weekKey(dateStr: string): string {
-  const dt = new Date(dateStr.slice(0, 10) + "T00:00:00Z");
-  const day = (dt.getUTCDay() + 6) % 7;
-  dt.setUTCDate(dt.getUTCDate() - day);
-  return dt.toISOString().slice(0, 10);
-}
-function monthKey(dateStr: string): string {
-  return dateStr.slice(0, 7);
-}
-
 /** Resample daily bars into W or 1M buckets (D passes through). */
 function resampleDaily(daily: Bar[], tf: string): Bar[] {
   if (tf === "D") return daily;
-  const keyOf = tf === "W" ? weekKey : monthKey;
   const out: Bar[] = [];
   let cur: Bar | null = null;
   let curKey = "";
   for (const b of daily) {
-    const k = keyOf(String(b.time));
+    const k = calendarBarKey(tf === "W" ? "W" : "1M", b.time);
+    if (k === null) continue;
     if (k !== curKey) {
       if (cur) out.push(cur);
       cur = { time: b.time, o: b.o, h: b.h, l: b.l, c: b.c, v: b.v };
@@ -213,7 +203,7 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
     ? null
     : finiteLevels.filter((level) => level.value >= close).sort((a, b) => a.value - b.value)[0] ?? null;
 
-  const seasonalYears = useMemo(() => buildYears(bars), [bars]);
+  const seasonalYears = useMemo(() => buildYears(bars.filter((bar) => isCalendarSessionDate(bar.time))), [bars]);
   const completedSeasonYears = useMemo(
     () => seasonalYears
       .filter((year) => !year.isCurrent && year.monthlyRet.every((value) => value != null && isFinite(value)))

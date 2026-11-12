@@ -1,0 +1,17 @@
+{
+  "state": "INSTALL_COMPLETE",
+  "head": "8d3a375e6d7cba8f03afc65594d3937857230442",
+  "nodeSource": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-routing-f11-successor/.pr1275-routing-runtime/node-v22.23.4-darwin-arm64",
+  "node": "v22.23.4",
+  "nodeBinarySha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "inputs": {
+    "package": "49a5d19c384aa136867ae093093c303aa49c8f5078ac6e59b8a5a3ea88e3f59e",
+    "lock": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+  },
+  "startedAt": "2026-11-10T14:11:30.070320+00:00",
+  "exitCode": 0,
+  "seconds": 28.472,
+  "logSha256": "e8d84e9d75290b5c7e9b757a1c92f570b8d51ae2f01982c830f84d9ea795c568",
+  "finishedAt": "2026-11-10T14:11:58.545234+00:00",
+  "inputsUnchanged": true
+}

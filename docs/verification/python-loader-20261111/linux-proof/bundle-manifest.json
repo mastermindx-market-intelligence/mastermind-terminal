@@ -1,0 +1,71 @@
+{
+  "sourceBase": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "sourceTree": "6971516465096849a2edbf449a8589bd3ea23a7e",
+  "sourceFiles": {
+    "tests/test_trusted_migration_ownership.py": {
+      "sha256": "7a01e02775d13d8eb1fe28cdfa4197bf6cf27c0b4ab97d37120a5d612bcf6a19",
+      "bytes": 44728
+    },
+    "tests/test_migration_merge_group.py": {
+      "sha256": "9db121458353cc6bc060d5e27e08027273c7348e5b93e8a4fe76f2000522d81d",
+      "bytes": 23412
+    },
+    "tests/test_supabase_migration_namespace.py": {
+      "sha256": "1568dfc03c5c3960b6d7e2f9eb0041ffd60f2b217da3dda18b31e03c7d53468a",
+      "bytes": 81669
+    },
+    "tests/test_merge_on_green.py": {
+      "sha256": "959164d46053bad9a34320dfb7b077c6c6fd3fabfea8f48e1de71b8c8e6b99df",
+      "bytes": 74642
+    },
+    "scripts/trusted_migration_ownership.py": {
+      "sha256": "b08a92d2dbecf7834b94753b3eb26190ae451e6c382ccc068e966056e91dbd0a",
+      "bytes": 54975
+    },
+    "scripts/migration_ownership_transition.py": {
+      "sha256": "c322b344f46b26b99ba085028d730dc0e3ec03d8be9b607bb4d4477ff985c051",
+      "bytes": 13979
+    },
+    "scripts/migration_merge_group.py": {
+      "sha256": "2269c444faf590be6cf6231f2cf140d5cc4fa94206280dc30c6f8a467afc07ce",
+      "bytes": 19222
+    },
+    "scripts/check_supabase_migration_namespace.py": {
+      "sha256": "f7cec12d5caa915b77932ae1bbdcede37ad47986dad4fb12dfda68a9c86c0767",
+      "bytes": 55111
+    },
+    "scripts/merge_on_green.py": {
+      "sha256": "1955285ecadd73d73e0f4f6318156a80d64ee4fdbbaaf69208931c70d09336fa",
+      "bytes": 36600
+    },
+    "AGENTS.md": {
+      "sha256": "92f707f38c5f87f6cd3a970a71de5d5bd6a221dd0492f75d480c408c463fc256",
+      "bytes": 22541
+    },
+    "CLAUDE.md": {
+      "sha256": "dc5c90e49b17d676a8a4d773f288fd3f2f58df5fd7dfcb665da880fd54d3f4e5",
+      "bytes": 666
+    },
+    ".github/workflows/trusted-migration-ownership.yml": {
+      "sha256": "01e03d536473e39726c0d120a62b1dbf0e8bf28227acf50c86a6365d4deed2e4",
+      "bytes": 4666
+    },
+    ".github/workflows/merge-on-green.yml": {
+      "sha256": "629038d2e2935798a7179c7c9a133b9bdcd4a51922a04731fd7c5c4b90f7b8fc",
+      "bytes": 2557
+    },
+    ".github/workflows/ci.yml": {
+      "sha256": "409a2f4a29e73205838faada4b7a578aafc01f19c7d1ceb58c9a19549be639a4",
+      "bytes": 67756
+    },
+    "tests/conftest.py": {
+      "sha256": "e8b4643f06943e9247afcfa8f0e3c897f0b723e3d06e822c1e1a9a9cf3584dac",
+      "bytes": 2877
+    },
+    "scripts/ci_pytest_results.py": {
+      "sha256": "5e5166a77a4ee7b5a0c85e76d0ba6092f8ac4eee496928b562333f2ccad31078",
+      "bytes": 17835
+    }
+  },
+  "candidateSha256": "71744f2cff6e041d93dff90a9ded8a670525acf1b83b22c6c2360614b8dcd869"
+}

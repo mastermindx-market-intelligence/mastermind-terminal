@@ -6,6 +6,31 @@ const { existsSync, readFileSync, readdirSync } = require("node:fs");
 const { join } = require("node:path");
 const BASE = "11531481b0a540ee96bcd86df418fd1e42715363";
 const CURRENT_REVISION = "options-navigation-r4";
+
+// Browser-only successor. Retained native captures keep their original identities.
+const MOMENTUM_BROWSER_REVISION = "exposure-momentum-integration-20261110";
+const MOMENTUM_BROWSER_HEAD = "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7";
+const MOMENTUM_BROWSER_MASTER = "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185";
+const MOMENTUM_BROWSER_SOURCE_TREE = "28755f8133c5208c38ca7af4645e0eaee1610187";
+const MOMENTUM_BROWSER_DESCRIPTOR = "077a5a84a160e64f340dc326ee834d9408d35b822782df16f8f70125b1b6abf2";
+const MOMENTUM_BROWSER_QUALIFICATION = "fdb68045af826d208615fd3b2d54955961053312ba57d60895fdfa116b394c12";
+const MOMENTUM_EXPIRY_QUALIFICATION = "caffdecc46531a7da8f0173f6ccde0b43db30be16c7e91a2b6970e789c2b32e7";
+
+// Hosted R5 successor; its capture and later import identities are distinct.
+const R5_BROWSER_REVISION = "r5-alignment-20261110";
+const R5_BROWSER_HEAD = "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93";
+const R5_BROWSER_MASTER = "8967f977fc156fff6b3f849568d84e49ba61f7d6";
+const R5_BROWSER_CHECKOUT = "cb9722189b1a37e742a10aeff0c86cf6f30be7bf";
+const R5_BROWSER_SOURCE_TREE = "1a825666dc49b30e3288f4bf4f9d69cce8248898";
+const R5_BROWSER_EVENT_BASE = "18fabe9d3c1439c4185559ba5ce491518fe999c9";
+const R5_BROWSER_DESCRIPTOR = "0da98d3fa6a70e752421d2156552a41cf68e6be22bf86ec932f5833a71fe5193";
+const R5_RAW_EXPORT_INVENTORY = "c55db437247c442129e8b26b27afdc082d80a0f206d2b59478f12de9e8affd19";
+const R5_BROWSER_QUALIFICATION = "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d";
+const R5_EXPIRY_QUALIFICATION = "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e";
+const R5_BROWSER_EXPORTER = "terminal/e2e/tools/qualify_r5_alignment_browser.py";
+const R5_BROWSER_EXPORTER_SHA = "51a56f988c76e8db33c6e8ff2e0a2af04c8cc33f3d98a8b929ceea8596c3d44e";
+const R5_BROWSER_SNAPSHOT = "6776d53923408ddb8568f86f47b3925effb134c2511757ccbfa66150ad392d72";
+
 const PREVIOUS_PACKET_INVENTORY = {
     gex: "c9f0aa2c43cb06d0590fb065d7b0a97f019e247c13757cc9a672f665eed12670",
     eod: "4515093ab9ba4915341a7e163dd4623c4b2698368f4d1988e3d3a8c89135cb42",
@@ -419,6 +444,12 @@ function qualifiedOptionsExposurePacket(repo, kind, crops) {
         crops.every(name => /^[a-z0-9-]+\.png$/.test(name)), "EXPECTED_CROP_SET");
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
     const text = readFileSync(join(root, "EVIDENCE.yml"), "utf8");
+    if (text.includes(R5_BROWSER_REVISION) || text.includes("exposureR5Browser20261111") ||
+        existsSync(r5BrowserDirectory(repo)))
+        return readR5BrowserSuccessor(repo, kind, crops, text);
+    if (text.includes(MOMENTUM_BROWSER_REVISION) || text.includes("exposureMomentumBrowser20261110") ||
+        existsSync(momentumBrowserDirectory(repo)))
+        return readMomentumBrowserSuccessor(repo, kind, crops, text);
     if (text.includes(EXPIRY_INTEGRATION_REVISION) || text.includes("exposureExpiryGreeksIntegration20261110") || existsSync(expiryIntegrationDirectory(repo)))
         return readExpiryIntegration(repo, kind, crops, text);
     if (text.includes(OPTIONS_INTEGRATION_REVISION))
@@ -582,6 +613,10 @@ const EXPIRY_JOURNEY_SPECS = ["terminal/e2e/exposure-expiry-greeks.spec.ts", "te
 const EXPIRY_JOURNEY_INPUTS = ["terminal/components/gexdesk/ExpiryBars.tsx",
     "terminal/components/gexdesk/ExposureExpiryDrawer.tsx", "terminal/lib/expiryTermStructure.ts", ...EXPIRY_JOURNEY_SPECS];
 const expiryGreeksJourneyInputs = () => [...new Set([...optionsIntegrationBrowserInputs(), ...EXPIRY_JOURNEY_INPUTS])].sort();
+// Versioned extensions keep the immutable historical 71/76-path maps intact.
+const MOMENTUM_COMPONENT = "terminal/components/exposure-map/ExposureDivergence.tsx";
+const momentumBrowserInputs = () => [...new Set([...optionsIntegrationBrowserInputs(), MOMENTUM_COMPONENT])].sort();
+const momentumExpiryInputs = () => [...new Set([...expiryGreeksJourneyInputs(), MOMENTUM_COMPONENT])].sort();
 /** A failed full GEX run may still emit a manifest; its actual result is decisive. */
 function requireIntegrationExecution(value, kind, crops, identity = "indicator-guard") {
     check(["master-integration", "indicator-guard", "ui-copy-integration", "options-integration", "expiry-greeks-integration"].includes(identity), "INTEGRATION_CAPTURE_IDENTITY_KIND");
@@ -657,54 +692,10 @@ function exposurePrefix(dir) {
             qualifiedPacket: folder + "/native-packet.json", qualifiedPacketSha256: sha(join(dir, "native-packet.json")),
         }) + "\n";
 }
-function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
-    check(["master", "ui-copy", "options-integration", "expiry-greeks"].includes(revision), "INTEGRATION_BROWSER_REVISION");
-    const successor = revision === "ui-copy", expiry = revision === "expiry-greeks", options = revision === "options-integration" || expiry;
-    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
-    check(sha(join(dir, "qualification.json")) === (expiry ? EXPIRY_INTEGRATION_BROWSER : options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
-    const proof = json(join(dir, "qualification.json"));
-    check(proof.schema === "exposure_master_integration_browser.v1" &&
-        proof.branchHead === (expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
-        proof.protectedMaster === (expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
-        (!options || proof.integratedDependency === (expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
-        (!successor || proof.integratedDependency === UI_COPY_DEPENDENCY), "INTEGRATION_BROWSER_IDENTITY");
-    requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json",
-        ...((successor || options) ? ["browser.log"] : [])]);
-    for (const [name, digest] of Object.entries(proof.files))
-        check(sha(join(dir, name)) === digest, "INTEGRATION_BROWSER_FILE:" + name);
-    const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
-    check(proof.files["source-before.json"] === proof.files["source-after.json"], "INTEGRATION_BROWSER_SOURCE_STABILITY");
-    const currentInputs = options ? optionsIntegrationBrowserInputs() : successor ? uiCopyIntegrationBrowserInputs() : masterIntegrationBrowserInputs();
-    requireSourceKeys(proof.currentSources, currentInputs);
-    for (const [path, digest] of Object.entries(proof.currentSources))
-        check(before[path] === digest && after[path] === digest, "INTEGRATION_BROWSER_RECORDED_SOURCE:" + path);
-    if (requireCurrent && (successor || options)) {
-        const current = Object.fromEntries(currentInputs.map(path => [path, sha(join(repo, path))]));
-        selectWholeFingerprint([{ sources: proof.currentSources }], current);
-    }
-    const execution = json(join(dir, "browser-execution.json"));
-    check(execution.schema === "exposure_master_integration_browser_execution.v1" &&
-        execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
-        (!(successor || options) || (execution.integratedDependency === (expiry ? EXPIRY_INTEGRATION_DEPENDENCY : options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY) &&
-            execution.logSha256 === proof.files["browser.log"])), "INTEGRATION_BROWSER_EXECUTION_IDENTITY");
-    const overrideKeys = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
-        "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
-    check(sameKeys(Object.keys(execution.fixtureOverrides), overrideKeys) &&
-        overrideKeys.every(key => execution.fixtureOverrides[key] === null), "INTEGRATION_BROWSER_BUNDLED_FIXTURES");
-    check(execution.exit === 0 && execution.retries === 0 && execution.sourceStable && execution.ownedServerStopped &&
-        execution.failed === 0 && execution.flaky === 0 && execution.passed === proof.expectedPassed.length &&
-        execution.skipped === proof.expectedSkipped.length &&
-        (options ? OPTIONS_INTEGRATION_BROWSER_SPECS : MASTER_BROWSER_SPECS).every(path => execution.command.includes(path.replace(/^terminal\//, ""))), "INTEGRATION_BROWSER_RESULT");
-    if (options) check(execution.passed === 144 && execution.skipped === 0 &&
-        sameKeys(execution.command.filter(arg => arg.endsWith(".spec.ts")),
-            OPTIONS_INTEGRATION_BROWSER_SPECS.map(path => path.replace(/^terminal\//, ""))), "OPTIONS_INTEGRATION_BROWSER_COMMAND");
-    check(Object.keys(execution.artifactFiles).length > 0, "INTEGRATION_BROWSER_ARTIFACTS");
-    for (const [path, digest] of Object.entries(execution.artifactFiles))
-        check(path.startsWith("browser-artifacts/") && !path.split("/").includes("..") &&
-            /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "INTEGRATION_BROWSER_ARTIFACT:" + path);
-    const report = json(join(dir, "browser-report.json"));
-    check(!report.errors?.length && report.stats.expected === execution.passed && report.stats.unexpected === 0 &&
-        report.stats.skipped === execution.skipped && report.stats.flaky === 0, "INTEGRATION_BROWSER_REPORT");
+/** Shared report checks for immutable readers and the bounded capture exporter. */
+function requireIntegrationBrowserReport(report, proof) {
+    check(!report.errors?.length && report.stats.expected === proof.expectedPassed.length && report.stats.unexpected === 0 &&
+        report.stats.skipped === proof.expectedSkipped.length && report.stats.flaky === 0, "INTEGRATION_BROWSER_REPORT");
     const passed = [], skipped = [], chartCases = [];
     function visit(suite) {
         for (const spec of suite.specs ?? [])
@@ -739,6 +730,58 @@ function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
     check(sameKeys(passed, proof.expectedPassed) && new Set(passed).size === passed.length &&
         sameKeys(skipped, proof.expectedSkipped), "INTEGRATION_BROWSER_CASE_SET");
     check(sameKeys(chartCases, ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang => project + "|Connected exposure workspace " + lang + ": chart, comparison scopes, scanner and return"))), "INTEGRATION_CHART_CASE_SET");
+}
+function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
+    check(["master", "ui-copy", "options-integration", "expiry-greeks", "exposure-momentum", "r5-alignment"].includes(revision), "INTEGRATION_BROWSER_REVISION");
+    const r5 = revision === "r5-alignment";
+    const successor = revision === "ui-copy", momentum = revision === "exposure-momentum", expiry = revision === "expiry-greeks", options = revision === "options-integration" || expiry || momentum || r5;
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", r5 ? R5_BROWSER_REVISION : momentum ? MOMENTUM_BROWSER_REVISION : expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
+    check(sha(join(dir, "qualification.json")) === (r5 ? R5_BROWSER_QUALIFICATION : momentum ? MOMENTUM_BROWSER_QUALIFICATION : expiry ? EXPIRY_INTEGRATION_BROWSER : options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
+    const proof = json(join(dir, "qualification.json"));
+    check(proof.schema === "exposure_master_integration_browser.v1" &&
+        proof.branchHead === (r5 ? R5_BROWSER_HEAD : momentum ? MOMENTUM_BROWSER_HEAD : expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
+        proof.protectedMaster === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        (!options || proof.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
+        (!successor || proof.integratedDependency === UI_COPY_DEPENDENCY), "INTEGRATION_BROWSER_IDENTITY");
+    if (r5) requireR5HostedIdentity(proof);
+    requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json",
+        ...((successor || options) ? ["browser.log"] : [])]);
+    for (const [name, digest] of Object.entries(proof.files))
+        check(sha(join(dir, name)) === digest, "INTEGRATION_BROWSER_FILE:" + name);
+    const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
+    check(proof.files["source-before.json"] === proof.files["source-after.json"], "INTEGRATION_BROWSER_SOURCE_STABILITY");
+    const currentInputs = (momentum || r5) ? momentumBrowserInputs() : options ? optionsIntegrationBrowserInputs() : successor ? uiCopyIntegrationBrowserInputs() : masterIntegrationBrowserInputs();
+    requireSourceKeys(proof.currentSources, currentInputs);
+    for (const [path, digest] of Object.entries(proof.currentSources))
+        check(before[path] === digest && after[path] === digest, "INTEGRATION_BROWSER_RECORDED_SOURCE:" + path);
+    if (requireCurrent && (successor || options)) {
+        const current = Object.fromEntries(currentInputs.map(path => [path, sha(join(repo, path))]));
+        selectWholeFingerprint([{ sources: proof.currentSources }], current);
+    }
+    const execution = json(join(dir, "browser-execution.json"));
+    check(execution.schema === "exposure_master_integration_browser_execution.v1" &&
+        execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
+        (!(successor || options) || (execution.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY) &&
+            execution.logSha256 === proof.files["browser.log"])), "INTEGRATION_BROWSER_EXECUTION_IDENTITY");
+    if (r5) requireR5HostedIdentity(execution);
+    const overrideKeys = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
+        "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
+    check(sameKeys(Object.keys(execution.fixtureOverrides), overrideKeys) &&
+        overrideKeys.every(key => execution.fixtureOverrides[key] === null), "INTEGRATION_BROWSER_BUNDLED_FIXTURES");
+    check(execution.exit === 0 && execution.retries === 0 && execution.sourceStable && execution.ownedServerStopped &&
+        execution.failed === 0 && execution.flaky === 0 && execution.passed === proof.expectedPassed.length &&
+        execution.skipped === proof.expectedSkipped.length &&
+        (options ? OPTIONS_INTEGRATION_BROWSER_SPECS : MASTER_BROWSER_SPECS).every(path => execution.command.includes(path.replace(/^terminal\//, ""))), "INTEGRATION_BROWSER_RESULT");
+    if (options) check(execution.passed === 144 && execution.skipped === 0 &&
+        sameKeys(execution.command.filter(arg => arg.endsWith(".spec.ts")),
+            OPTIONS_INTEGRATION_BROWSER_SPECS.map(path => path.replace(/^terminal\//, ""))), "OPTIONS_INTEGRATION_BROWSER_COMMAND");
+    check(Object.keys(execution.artifactFiles).length > 0, "INTEGRATION_BROWSER_ARTIFACTS");
+    for (const [path, digest] of Object.entries(execution.artifactFiles))
+        check(path.startsWith("browser-artifacts/") && !path.split("/").includes("..") &&
+            /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "INTEGRATION_BROWSER_ARTIFACT:" + path);
+    const report = json(join(dir, "browser-report.json"));
+    if (r5) requireR5ReportOwner(report);
+    requireIntegrationBrowserReport(report, proof);
     return proof;
 }
 function verifyIntegrationBrowser(repo, requireCurrent = true) {
@@ -1047,31 +1090,36 @@ function requireExpiryGreeksScreenshotSet(artifactFiles) {
     check(screenshots.length === 27 && new Set(screenshots).size === 27 && sameKeys(screenshots, expectedScreenshots),
         "EXPIRY_INTEGRATION_JOURNEY_SCREENSHOT_SET");
 }
-function verifyExpiryGreeksJourneys(repo, joint) {
-    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", EXPIRY_INTEGRATION_REVISION, "expiry-journeys");
-    check(sha(join(dir, "qualification.json")) === EXPIRY_INTEGRATION_JOURNEYS, "EXPIRY_INTEGRATION_JOURNEY_QUALIFICATION");
+function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, revision = "expiry-greeks") {
+    check(["expiry-greeks", "exposure-momentum", "r5-alignment"].includes(revision), "EXPIRY_BROWSER_REVISION");
+    const momentum = revision === "exposure-momentum", r5 = revision === "r5-alignment";
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", r5 ? R5_BROWSER_REVISION : momentum ? MOMENTUM_BROWSER_REVISION : EXPIRY_INTEGRATION_REVISION, "expiry-journeys");
+    check(sha(join(dir, "qualification.json")) === (r5 ? R5_EXPIRY_QUALIFICATION : momentum ? MOMENTUM_EXPIRY_QUALIFICATION : EXPIRY_INTEGRATION_JOURNEYS), "EXPIRY_INTEGRATION_JOURNEY_QUALIFICATION");
     const proof = json(join(dir, "qualification.json"));
-    check(proof.schema === "exposure_expiry_greeks_browser.v1" && proof.branchHead === EXPIRY_INTEGRATION_PRIOR &&
-        proof.protectedMaster === EXPIRY_INTEGRATION_PROTECTED && proof.integratedDependency === EXPIRY_INTEGRATION_DEPENDENCY,
+    check(proof.schema === "exposure_expiry_greeks_browser.v1" && proof.branchHead === (r5 ? R5_BROWSER_HEAD : momentum ? MOMENTUM_BROWSER_HEAD : EXPIRY_INTEGRATION_PRIOR) &&
+        proof.protectedMaster === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_PROTECTED) &&
+        proof.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_DEPENDENCY),
         "EXPIRY_INTEGRATION_JOURNEY_IDENTITY");
+    if (r5) requireR5HostedIdentity(proof);
     requireExpiryGreeksBrowserCases(proof);
     requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json", "browser.log"]);
     for (const [name, digest] of Object.entries(proof.files))
         check(sha(join(dir, name)) === digest, "EXPIRY_INTEGRATION_JOURNEY_FILE:" + name);
     const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
-    const inputs = expiryGreeksJourneyInputs();
+    const inputs = (momentum || r5) ? momentumExpiryInputs() : expiryGreeksJourneyInputs();
     requireSourceKeys(proof.currentSources, inputs);
     check(proof.files["source-before.json"] === proof.files["source-after.json"], "EXPIRY_INTEGRATION_JOURNEY_SOURCE_STABILITY");
     for (const [path, digest] of Object.entries(proof.currentSources))
         check(before[path] === digest && after[path] === digest, "EXPIRY_INTEGRATION_JOURNEY_RECORDED_SOURCE:" + path);
-    for (const path of optionsIntegrationBrowserInputs())
+    for (const path of (momentum || r5) ? momentumBrowserInputs() : optionsIntegrationBrowserInputs())
         check(proof.currentSources[path] === joint.currentSources[path], "EXPIRY_INTEGRATION_JOINT_SOURCE:" + path);
-    selectWholeFingerprint([{ sources: proof.currentSources }], Object.fromEntries(inputs.map(path => [path, sha(join(repo, path))])));
+    if (requireCurrent) selectWholeFingerprint([{ sources: proof.currentSources }], Object.fromEntries(inputs.map(path => [path, sha(join(repo, path))])));
     const execution = json(join(dir, "browser-execution.json"));
     check(execution.schema === "exposure_expiry_greeks_browser_execution.v1" &&
         execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
         execution.integratedDependency === proof.integratedDependency && execution.logSha256 === proof.files["browser.log"],
         "EXPIRY_INTEGRATION_JOURNEY_EXECUTION");
+    if (r5) requireR5HostedIdentity(execution);
     const overrides = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
         "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
     check(sameKeys(Object.keys(execution.fixtureOverrides ?? {}), overrides) &&
@@ -1086,6 +1134,7 @@ function verifyExpiryGreeksJourneys(repo, joint) {
             /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "EXPIRY_INTEGRATION_JOURNEY_ARTIFACT:" + path);
     requireExpiryGreeksScreenshotSet(execution.artifactFiles);
     const report = json(join(dir, "browser-report.json")), passed = [];
+    if (r5) requireR5ReportOwner(report);
     check(!report.errors?.length && report.stats.expected === 9 && report.stats.unexpected === 0 &&
         report.stats.flaky === 0 && report.stats.skipped === 0, "EXPIRY_INTEGRATION_JOURNEY_REPORT");
     function visit(suite) {
@@ -1101,12 +1150,12 @@ function verifyExpiryGreeksJourneys(repo, joint) {
     check(sameKeys(passed, proof.expectedPassed), "EXPIRY_INTEGRATION_JOURNEY_REPORT_CASES");
     return proof;
 }
-function readExpiryIntegration(repo, kind, crops, text) {
+function readExpiryIntegrationPair(repo, kind, crops, rootTexts, requireCurrentBrowser) {
     const packet = readExpiryIntegrationDescriptor(repo);
     const roots = Object.fromEntries(["gex", "eod"].map(family => [family, packet.history.predecessors[family].rootText]));
     const historical = readOptionsIntegrationPair(repo, kind, crops, roots, false);
     for (const family of ["gex", "eod"]) {
-        const actual = family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8");
+        const actual = rootTexts[family];
         check(actual === expiryIntegrationDeclaration(family) + roots[family], "EXPIRY_INTEGRATION_ROOT:" + family);
     }
     const eod = readOptionsIntegrationDescriptor(repo, "eod");
@@ -1116,21 +1165,278 @@ function readExpiryIntegration(repo, kind, crops, text) {
     const freshGex = readIntegrationNativePayload(repo, packet.dir, "gex",
         kind === "gex" ? crops : require("./" + harness("gex").split("/").at(-1)).expectedFiles(),
         packet.descriptor, "expiry-greeks-integration", true);
-    const browser = verifyIntegrationBrowserRecord(repo, "expiry-greeks");
+    const browser = verifyIntegrationBrowserRecord(repo, "expiry-greeks", requireCurrentBrowser);
     requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
-    verifyExpiryGreeksJourneys(repo, browser);
+    verifyExpiryGreeksJourneys(repo, browser, requireCurrentBrowser);
     return kind === "eod" ? { ...historical.eod, ...retainedEod } :
         { ...historical.gex, ...freshGex, captureRevision: EXPIRY_INTEGRATION_REVISION, descriptorSha256: EXPIRY_INTEGRATION_PACKET };
 }
+
+function readExpiryIntegration(repo, kind, crops, text) {
+    const roots = Object.fromEntries(["gex", "eod"].map(family => [family,
+        family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    return readExpiryIntegrationPair(repo, kind, crops, roots, true);
+}
+function momentumBrowserDirectory(repo) {
+    return join(repo, "terminal/docs/verification/exposure-workspace-20261103", MOMENTUM_BROWSER_REVISION);
+}
+function momentumBrowserDeclaration(kind) {
+    return "# Current browser proof is the momentum successor; prior native captures retain their identities.\n" +
+        yamlBlock("exposureMomentumBrowser20261110", {
+            revision: MOMENTUM_BROWSER_REVISION, selectedFamily: kind,
+            descriptorSha256: MOMENTUM_BROWSER_DESCRIPTOR,
+            retainedEodDescriptorSha256: OPTIONS_INTEGRATION_PACKET.eod,
+            retainedGexDescriptorSha256: EXPIRY_INTEGRATION_PACKET,
+            branchHead: MOMENTUM_BROWSER_HEAD, protectedMaster: MOMENTUM_BROWSER_MASTER,
+            integratedDependency: MOMENTUM_BROWSER_MASTER,
+            browserQualificationSha256: MOMENTUM_BROWSER_QUALIFICATION,
+            expiryQualificationSha256: MOMENTUM_EXPIRY_QUALIFICATION,
+        }) + "\n";
+}
+function readMomentumBrowserPair(repo, kind, crops, rootTexts, requireCurrentBrowser) {
+    const dir = momentumBrowserDirectory(repo), file = join(dir, "browser-successor.json");
+    check(sha(file) === MOMENTUM_BROWSER_DESCRIPTOR, "BROWSER_SUCCESSOR_DESCRIPTOR");
+    const descriptor = json(file);
+    check(descriptor.schema === "exposure_browser_successor.v1" &&
+        descriptor.operation === "pr1427-exposure-momentum-integration-20261110" &&
+        descriptor.revision === MOMENTUM_BROWSER_REVISION &&
+        descriptor.branchHead === MOMENTUM_BROWSER_HEAD &&
+        descriptor.protectedMaster === MOMENTUM_BROWSER_MASTER &&
+        descriptor.integratedDependency === MOMENTUM_BROWSER_MASTER &&
+        descriptor.capturedSourceTree === MOMENTUM_BROWSER_SOURCE_TREE, "BROWSER_SUCCESSOR_IDENTITY");
+    check(descriptor.native?.eod?.revision === OPTIONS_INTEGRATION_REVISION &&
+        descriptor.native.eod.descriptorSha256 === OPTIONS_INTEGRATION_PACKET.eod &&
+        descriptor.native?.gex?.revision === EXPIRY_INTEGRATION_REVISION &&
+        descriptor.native.gex.descriptorSha256 === EXPIRY_INTEGRATION_PACKET, "BROWSER_SUCCESSOR_NATIVE_IDENTITY");
+    check(descriptor.history?.jointQualificationSha256 === EXPIRY_INTEGRATION_BROWSER &&
+        descriptor.history.expiryQualificationSha256 === EXPIRY_INTEGRATION_JOURNEYS &&
+        sameKeys(Object.keys(descriptor.history.roots ?? {}), ["gex", "eod"]), "BROWSER_SUCCESSOR_HISTORY");
+    const roots = {};
+    for (const family of ["gex", "eod"]) {
+        const prior = descriptor.history.roots[family];
+        check(prior.path === "prior-roots/" + family + ".EVIDENCE.yml" &&
+            /^[0-9a-f]{64}$/.test(prior.sha256) && sha(join(dir, prior.path)) === prior.sha256,
+            "BROWSER_SUCCESSOR_PRIOR_ROOT:" + family);
+        roots[family] = readFileSync(join(dir, prior.path), "utf8");
+        const actual = rootTexts[family];
+        check(actual === momentumBrowserDeclaration(family) + roots[family], "BROWSER_SUCCESSOR_ROOT:" + family);
+    }
+    // Only prior browser applicability is historical. Both retained native
+    // current fingerprints, producers, images and settlement checks still run.
+    const selected = readExpiryIntegrationPair(repo, kind, crops, roots, false);
+    check(sameKeys(Object.keys(descriptor.browser ?? {}), ["joint", "expiry"]), "BROWSER_SUCCESSOR_BROWSER_SET");
+    for (const stage of ["joint", "expiry"]) {
+        const binding = descriptor.browser[stage], relative = stage === "joint" ? "qualification.json" : "expiry-journeys/qualification.json";
+        const expected = stage === "joint" ? MOMENTUM_BROWSER_QUALIFICATION : MOMENTUM_EXPIRY_QUALIFICATION;
+        const stageDir = stage === "joint" ? dir : join(dir, "expiry-journeys");
+        check(binding.qualification === relative && binding.sha256 === expected &&
+            sha(join(dir, relative)) === expected, "BROWSER_SUCCESSOR_QUALIFICATION:" + stage);
+        const execution = json(join(stageDir, "browser-execution.json"));
+        check(/^[0-9a-f]{64}$/.test(binding.lifecycleSha256) &&
+            binding.lifecycleSha256 === execution.lifecycleSha256 &&
+            sha(join(stageDir, "lifecycle.json")) === binding.lifecycleSha256, "BROWSER_SUCCESSOR_LIFECYCLE:" + stage);
+        const lifecycle = json(join(stageDir, "lifecycle.json"));
+        check(lifecycle.state === "OWNED_SERVER_STOPPED" && lifecycle.listenerClosed === true &&
+            lifecycle.port === execution.port, "BROWSER_SUCCESSOR_SETTLEMENT:" + stage);
+    }
+    const browser = verifyIntegrationBrowserRecord(repo, "exposure-momentum", requireCurrentBrowser);
+    requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
+    verifyExpiryGreeksJourneys(repo, browser, requireCurrentBrowser, "exposure-momentum");
+    return selected;
+}
+function readMomentumBrowserSuccessor(repo, kind, crops, text) {
+    const roots = Object.fromEntries(["gex", "eod"].map(family => [family,
+        family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    return readMomentumBrowserPair(repo, kind, crops, roots, true);
+}
+function r5BrowserDirectory(repo) {
+    return join(repo, "terminal/docs/verification/exposure-workspace-20261103", R5_BROWSER_REVISION);
+}
+function r5BrowserDeclaration(kind) {
+    return "# Current browser proof is the hosted R5 successor; native capture identities are retained.\n" +
+        yamlBlock("exposureR5Browser20261111", {
+            revision: R5_BROWSER_REVISION, selectedFamily: kind,
+            descriptorSha256: R5_BROWSER_DESCRIPTOR,
+            retainedEodDescriptorSha256: OPTIONS_INTEGRATION_PACKET.eod,
+            retainedGexDescriptorSha256: EXPIRY_INTEGRATION_PACKET,
+            branchHead: R5_BROWSER_HEAD, protectedMaster: R5_BROWSER_MASTER,
+            integratedDependency: R5_BROWSER_MASTER,
+            checkoutCommit: R5_BROWSER_CHECKOUT, checkoutTree: R5_BROWSER_SOURCE_TREE,
+            browserQualificationSha256: R5_BROWSER_QUALIFICATION,
+            expiryQualificationSha256: R5_EXPIRY_QUALIFICATION,
+        }) + "\n";
+}
+function requireR5HostedIdentity(value) {
+    check(value.branchHead === R5_BROWSER_HEAD && value.protectedMaster === R5_BROWSER_MASTER &&
+        value.integratedDependency === R5_BROWSER_MASTER && value.checkoutCommit === R5_BROWSER_CHECKOUT &&
+        value.checkoutTree === R5_BROWSER_SOURCE_TREE &&
+        JSON.stringify(value.checkoutParents) === JSON.stringify([R5_BROWSER_MASTER, R5_BROWSER_HEAD]) &&
+        value.observedEventHead === R5_BROWSER_HEAD && value.observedEventBase === R5_BROWSER_EVENT_BASE &&
+        value.workflowRunId === "43000912478" && value.workflowRunAttempt === "1" &&
+        value.workflowJob === "terminal-e2e" && value.shard === "serial" &&
+        value.workflowUrl === "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43000912478" &&
+        value.exporter === R5_BROWSER_EXPORTER && value.exporterSha256 === R5_BROWSER_EXPORTER_SHA,
+        "R5_HOSTED_CHECKOUT_IDENTITY");
+    // The event base preceded the actual first parent. Preserve the exporter's
+    // successful ancestry proof instead of rewriting either immutable identity.
+    const relationship = value.baseRelationship;
+    check(relationship?.state === "EVENT_BASE_ANCESTOR" && relationship.ancestryExit === 0 &&
+        relationship.fetchAttempted === true && relationship.fetchExit === 0 &&
+        relationship.initialAncestryExit === 128, "R5_EVENT_BASE_ANCESTRY");
+}
+function requireR5ReportOwner(report) {
+    check(report.config?.workers === 1 && report.config.metadata?.actualWorkers === 1 &&
+        report.config.metadata.gitCommit?.hash === R5_BROWSER_CHECKOUT,
+        "R5_REPORT_EXECUTION_OWNER");
+}
+function requireR5Lifecycle(lifecycle, execution) {
+    check(lifecycle.state === "OWNED_SERVER_STOPPED" && lifecycle.listenerClosed === true &&
+        lifecycle.port === execution.port && lifecycle.port === 3108 && lifecycle.lockAbsent === true &&
+        Array.isArray(lifecycle.workspaceCwdHolders) && lifecycle.workspaceCwdHolders.length === 0 &&
+        lifecycle.error === undefined, "R5_BROWSER_SETTLEMENT");
+    if (lifecycle.lockPresent) {
+        const lock = lifecycle.lock, checks = lifecycle.checks;
+        check(lifecycle.lockUnlinked === true && /^[0-9a-f]{64}$/.test(lifecycle.lockSha256) &&
+            Number.isInteger(lock?.pid) && lock.pid > 1 && lock.port === execution.port &&
+            lock.hostname === "127.0.0.1" && lock.appUrl === "http://127.0.0.1:3108" &&
+            JSON.stringify(checks?.pid?.command) === JSON.stringify(["ps", "-p", String(lock.pid), "-o", "pid=,ppid=,comm="]) &&
+            checks.pid.exit === 1 && checks.pid.stdout === "" && checks.pid.stderr === "" &&
+            Array.isArray(checks.lock?.command) && checks.lock.command.length === 2 && checks.lock.command[0] === "lsof" &&
+            checks.lock.command[1].endsWith("/terminal/.next/dev/lock") &&
+            checks.lock.exit === 1 && checks.lock.stdout === "" && checks.lock.stderr === "",
+            "R5_BROWSER_LOCK_SETTLEMENT");
+    }
+}
+function readR5BrowserPair(repo, kind, crops, rootTexts, requireCurrentBrowser) {
+    const dir = r5BrowserDirectory(repo), file = join(dir, "browser-successor.json");
+    check(sha(file) === R5_BROWSER_DESCRIPTOR, "R5_SUCCESSOR_DESCRIPTOR");
+    const descriptor = json(file);
+    check(descriptor.schema === "exposure_browser_successor.v1" &&
+        descriptor.operation === "pr646-r5-alignment-successor-20261111" &&
+        descriptor.revision === R5_BROWSER_REVISION && descriptor.capturedSourceTree === R5_BROWSER_SOURCE_TREE,
+        "R5_SUCCESSOR_IDENTITY");
+    requireR5HostedIdentity(descriptor);
+    check(descriptor.native?.eod?.revision === OPTIONS_INTEGRATION_REVISION &&
+        descriptor.native.eod.descriptorSha256 === OPTIONS_INTEGRATION_PACKET.eod &&
+        descriptor.native?.gex?.revision === EXPIRY_INTEGRATION_REVISION &&
+        descriptor.native.gex.descriptorSha256 === EXPIRY_INTEGRATION_PACKET,
+        "R5_RETAINED_NATIVE_IDENTITY");
+    check(descriptor.history?.descriptorSha256 === MOMENTUM_BROWSER_DESCRIPTOR &&
+        descriptor.history.jointQualificationSha256 === MOMENTUM_BROWSER_QUALIFICATION &&
+        descriptor.history.expiryQualificationSha256 === MOMENTUM_EXPIRY_QUALIFICATION &&
+        sameKeys(Object.keys(descriptor.history.roots ?? {}), ["gex", "eod"]), "R5_SUCCESSOR_HISTORY");
+    const roots = {};
+    for (const family of ["gex", "eod"]) {
+        const prior = descriptor.history.roots[family];
+        check(prior.path === "prior-roots/" + family + ".EVIDENCE.yml" &&
+            /^[0-9a-f]{64}$/.test(prior.sha256) && sha(join(dir, prior.path)) === prior.sha256,
+            "R5_PRIOR_ROOT:" + family);
+        roots[family] = readFileSync(join(dir, prior.path), "utf8");
+        check(rootTexts[family] === r5BrowserDeclaration(family) + roots[family], "R5_CURRENT_ROOT:" + family);
+    }
+    // Only the predecessor browser applicability is historical. This call still
+    // requires BOTH active native source maps, producer pins and settlement proofs.
+    const selected = readMomentumBrowserPair(repo, kind, crops, roots, false);
+    const exported = descriptor.rawExport;
+    check(exported?.inventory === "raw-export-inventory.json" && exported.sha256 === R5_RAW_EXPORT_INVENTORY &&
+        sha(join(dir, exported.inventory)) === R5_RAW_EXPORT_INVENTORY, "R5_RAW_EXPORT_INVENTORY");
+    const inventory = json(join(dir, exported.inventory));
+    check(inventory.schema === "exposure_r5_hosted_export_inventory.v1" && inventory.artifactId === 13847929343 &&
+        inventory.workflowRunId === "43000912478" && inventory.workflowRunAttempt === "1" &&
+        inventory.archiveSha256 === "7cd74142011c889a0b3662cbd48a2160287ae30b9e6d97c567ac3b2cf40f75f2" &&
+        inventory.archiveBytes === 50189276 && Object.keys(inventory.files ?? {}).length === 545,
+        "R5_RAW_EXPORT_IDENTITY");
+    const capturePrefix = "terminal/docs/verification/exposure-workspace-20261103/" + R5_BROWSER_REVISION + "/";
+    const proofPrefix = "docs/verification/pr646-r5-browser-ci-20261110/";
+    for (const [relative, binding] of Object.entries(inventory.files)) {
+        check((relative.startsWith(capturePrefix) || relative.startsWith(proofPrefix)) &&
+            !relative.split("/").includes("..") && !relative.includes("\\") &&
+            /^[0-9a-f]{64}$/.test(binding.sha256) && Number.isInteger(binding.bytes) && binding.bytes > 0,
+            "R5_RAW_EXPORT_MEMBER");
+        const bytes = readFileSync(join(repo, relative));
+        check(bytes.length === binding.bytes && sha(join(repo, relative)) === binding.sha256,
+            "R5_RAW_EXPORT_BYTES:" + relative);
+    }
+    const hidden = [capturePrefix + "browser-artifacts/playwright/.last-run.json",
+        capturePrefix + "expiry-journeys/browser-artifacts/playwright/.last-run.json",
+        proofPrefix + "prior-browser-root-integration/.last-run.json",
+        proofPrefix + "prior-browser-root-expiry/.last-run.json"];
+    for (const relative of hidden) {
+        check(Object.hasOwn(inventory.files, relative), "R5_HIDDEN_EXPORT_MEMBER");
+        const lastRun = json(join(repo, relative));
+        check(lastRun.status === "passed" && Array.isArray(lastRun.failedTests) && lastRun.failedTests.length === 0,
+            "R5_HIDDEN_EXPORT_RESULT");
+    }
+    check(exported.validation === proofPrefix + "browser-validation.json" &&
+        exported.validationSha256 === inventory.files[exported.validation]?.sha256,
+        "R5_EXPORT_VALIDATION_BINDING");
+    const validation = json(join(repo, exported.validation));
+    requireR5HostedIdentity(validation);
+    check(validation.schema === "terminal_pr646_browser_successor_validation.v1" &&
+        validation.state === "BROWSER_PROOFS_QUALIFIED_PENDING_SUCCESSOR_READER" &&
+        validation.results?.integration?.state === "CAPTURE_QUALIFIED_PENDING_SUCCESSOR_READER" &&
+        validation.results.integration.passed === 144 && validation.results.integration.artifacts === 374 &&
+        validation.results.integration.qualificationSha256 === R5_BROWSER_QUALIFICATION &&
+        validation.results?.expiry?.state === "CAPTURE_QUALIFIED_PENDING_SUCCESSOR_READER" &&
+        validation.results.expiry.passed === 9 && validation.results.expiry.artifacts === 37 &&
+        validation.results.expiry.qualificationSha256 === R5_EXPIRY_QUALIFICATION, "R5_EXPORT_VALIDATION_RESULT");
+    check(sameKeys(Object.keys(descriptor.browser ?? {}), ["joint", "expiry"]), "R5_BROWSER_SET");
+    for (const stage of ["joint", "expiry"]) {
+        const binding = descriptor.browser[stage], relative = stage === "joint" ? "qualification.json" : "expiry-journeys/qualification.json";
+        const expected = stage === "joint" ? R5_BROWSER_QUALIFICATION : R5_EXPIRY_QUALIFICATION;
+        const stageDir = stage === "joint" ? dir : join(dir, "expiry-journeys");
+        check(binding.qualification === relative && binding.sha256 === expected && sha(join(dir, relative)) === expected,
+            "R5_BROWSER_QUALIFICATION:" + stage);
+        const execution = json(join(stageDir, "browser-execution.json"));
+        check(binding.lifecycleSha256 === execution.lifecycleSha256 &&
+            sha(join(stageDir, "lifecycle.json")) === binding.lifecycleSha256, "R5_LIFECYCLE_BINDING:" + stage);
+        requireR5Lifecycle(json(join(stageDir, "lifecycle.json")), execution);
+        for (const name of ["source-before.json", "source-after.json"]) {
+            check(sha(join(stageDir, name)) === R5_BROWSER_SNAPSHOT, "R5_WHOLE_SOURCE_STABILITY");
+            const snapshot = json(join(stageDir, name));
+            check(Object.keys(snapshot).length === 3716 && snapshot[R5_BROWSER_EXPORTER] === R5_BROWSER_EXPORTER_SHA &&
+                Object.values(snapshot).every(value => /^[0-9a-f]{64}$/.test(value)), "R5_WHOLE_SOURCE_SET");
+        }
+        if (stage === "expiry") check(Object.keys(execution.artifactFiles).filter(path => path.endsWith("/trace.zip")).length === 9,
+            "R5_EXPIRY_TRACE_SET");
+    }
+    const browser = verifyIntegrationBrowserRecord(repo, "r5-alignment", requireCurrentBrowser);
+    requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
+    verifyExpiryGreeksJourneys(repo, browser, requireCurrentBrowser, "r5-alignment");
+    return selected;
+}
+function readR5BrowserSuccessor(repo, kind, crops, text) {
+    const roots = Object.fromEntries(["gex", "eod"].map(family => [family,
+        family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    return readR5BrowserPair(repo, kind, crops, roots, true);
+}
+
+/** Validate retained native/history prerequisites; this never qualifies current browser proof. */
+function verifyExpiryIntegrationNativePrerequisites(repo) {
+    const kind = "gex", crops = require("./" + harness(kind).split("/").at(-1)).expectedFiles();
+    const roots = Object.fromEntries(["gex", "eod"].map(family => [family,
+        readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    if (existsSync(r5BrowserDirectory(repo)) || Object.values(roots).some(text =>
+        text.includes(R5_BROWSER_REVISION) || text.includes("exposureR5Browser20261111")))
+        readR5BrowserPair(repo, kind, crops, roots, false);
+    else readMomentumBrowserPair(repo, kind, crops, roots, false);
+    return {
+        state: "NATIVE_ONLY_VALIDATED",
+        currentBrowserQualified: false,
+        gex: { revision: EXPIRY_INTEGRATION_REVISION, descriptorSha256: EXPIRY_INTEGRATION_PACKET },
+        eod: { revision: OPTIONS_INTEGRATION_REVISION, descriptorSha256: OPTIONS_INTEGRATION_PACKET.eod },
+    };
+}
+
 /** Legacy is eligible only when neither a declaration nor any qualified operation history exists. */
 function optionalQualifiedOptionsExposurePacket(repo, kind, crops) {
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
-    const history = Object.values(OP).some(operation => existsSync(join(root, "operations", operation)));
+    const history = existsSync(r5BrowserDirectory(repo)) || existsSync(momentumBrowserDirectory(repo)) || Object.values(OP).some(operation => existsSync(join(root, "operations", operation)));
     let text;
     try { text = readFileSync(join(root, "EVIDENCE.yml"), "utf8"); }
     catch (error) { if (error.code === "ENOENT" && !history) return null; throw error; }
-    const declared = /exposureExpiryGreeksIntegration20261110|exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
+    const declared = /exposureR5Browser20261111|r5-alignment-20261110|exposureMomentumBrowser20261110|exposureExpiryGreeksIntegration20261110|exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
     return declared || history ? qualifiedOptionsExposurePacket(repo, kind, crops) : null;
 }
 
-module.exports = { requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases, expiryGreeksJourneyInputs, EXPIRY_JOURNEY_SPECS, requireExpiryGreeksBrowserCases, requireExpiryGreeksScreenshotSet };
+module.exports = { verifyExpiryIntegrationNativePrerequisites, requireIntegrationBrowserReport, momentumBrowserInputs, momentumExpiryInputs, requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases, expiryGreeksJourneyInputs, EXPIRY_JOURNEY_SPECS, requireExpiryGreeksBrowserCases, requireExpiryGreeksScreenshotSet };
