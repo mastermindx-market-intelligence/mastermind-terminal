@@ -539,6 +539,10 @@ describe("the entitled-then-preview generation walk (R2/R4, COO rulings 2026-11-
     const result = await response.json();
     expect(response.status).toBe(499);
     expect(result.receipt.failure).toBe("request_aborted");
+    // The failure receipt names the request that actually ran: the entitled
+    // read, never the preview path whose request 2 never started.
+    expect(result.receipt.path).toBe(SECTOR_GENERATION_PATH);
+    expect(result.receipt.path).not.toBe(SECTOR_GENERATION_PREVIEW_PATH);
     expect(upstream).toHaveBeenCalledTimes(1);
   });
 

@@ -64,7 +64,7 @@ def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     )
     # The split typecheck and unit-shard lanes share the evidence lane's gate:
     # mandatory browser selector, docs-only skip only, and no merge_group skip.
-    for job in ("terminal-typecheck", "terminal-unit-shards"):
+    for job in ("terminal-typecheck", "terminal-unit-shards", "terminal-f11-evidence"):
         assert all_jobs[job]["if"] == (
             "${{ !cancelled() && needs.e2e-scope.result == 'success' && !(" + docs + ") }}"
         )
@@ -78,9 +78,26 @@ def test_pl6_vi_capture_is_selective_while_f11_keeps_its_browser_prerequisite() 
     steps = jobs()["terminal-unit"]["steps"]
     by_name = {s["name"]: s for s in steps if "name" in s}
     condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+    # The PL6/VI capture is selective, but the E18 and active-inbox captures
+    # are unconditional browser captures in this job: Chromium installs on
+    # every event. F11 keeps its browser in its own job.
     assert "if" not in by_name["Prepare Chromium for original mock captures"]
+    assert "if" not in by_name["Capture current-source E18 alert-management evidence"]
+    assert "if" not in by_name["Capture current-source recurring inbox evidence"]
     assert not by_name["Prepare Chromium for original mock captures"].get("continue-on-error", False)
-    f11 = by_name["Capture provider-closed F11 theses entry on this checkout"]
+    assert "Capture provider-closed F11 theses entry on this checkout" not in by_name
+    f11_steps = jobs()["terminal-f11-evidence"]["steps"]
+    f11_by_name = {s["name"]: s for s in f11_steps if "name" in s}
+    assert "if" not in f11_by_name["Prepare Chromium for the F11 capture"]
+    assert not f11_by_name["Prepare Chromium for the F11 capture"].get("continue-on-error", False)
+    for step in f11_steps:
+        assert "if" not in step or step.get("uses", "").startswith("actions/upload-artifact"), (
+            "F11 must qualify every admitted checkout, including native merge groups")
+        assert "TERMINAL_EVIDENCE" not in str(step.get("run", ""))
+    names = [s.get("name") for s in f11_steps]
+    assert names.index("Prepare Chromium for the F11 capture") < names.index(
+        "Capture provider-closed F11 theses entry on this checkout")
+    f11 = f11_by_name["Capture provider-closed F11 theses entry on this checkout"]
     assert "if" not in f11
     assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
     assert f11["timeout-minutes"] == 8
@@ -151,24 +168,82 @@ def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
     assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
     assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
     assert "lib/__tests__/lexEvidenceProjection.test.ts" in expected
-    listed = subprocess.run(
-        ["bash", "scripts/ci/evidence-lock-suites.sh"],
-        cwd=root / "terminal", check=True, capture_output=True, text=True,
-        env={**os.environ, "LC_ALL": "C"},
-    ).stdout.split()
-    assert sorted(listed) == expected
+    def listed(*group: str) -> list[str]:
+        return subprocess.run(
+            ["bash", "scripts/ci/evidence-lock-suites.sh", *group],
+            cwd=root / "terminal", check=True, capture_output=True, text=True,
+            env={**os.environ, "LC_ALL": "C"},
+        ).stdout.split()
+    assert sorted(listed()) == expected
+    assert listed("all") == listed()
+    # The F11 group is exactly the suites that read the F11 packet, which only
+    # terminal-f11-evidence captures; the evidence group is the remainder.
+    f11_expected = sorted(
+        suite for suite in expected
+        if "b-f11-10-analysis-theses-entry" in (root / "terminal" / suite).read_text(encoding="utf-8")
+    )
+    assert "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts" in f11_expected
+    assert sorted(listed("f11")) == f11_expected
+    assert sorted(listed("evidence")) == sorted(set(expected) - set(f11_expected))
+    assert not set(listed("evidence")) & set(listed("f11"))
+    refused = subprocess.run(
+        ["bash", "scripts/ci/evidence-lock-suites.sh", "bogus"],
+        cwd=root / "terminal", capture_output=True, text=True,
+    )
+    assert refused.returncode != 0 and not refused.stdout
     lane = next(
         str(step["run"]) for step in jobs()["terminal-unit"]["steps"]
         if step.get("name") == "Validate fresh evidence through the unit readers"
     )
+    f11_steps = jobs()["terminal-f11-evidence"]["steps"]
+    f11_names = [step.get("name") for step in f11_steps]
+    f11_lane = next(
+        str(step["run"]) for step in f11_steps
+        if step.get("name") == "Validate fresh F11 evidence through the unit readers"
+    )
+    assert f11_names.index("Capture provider-closed F11 theses entry on this checkout") < f11_names.index(
+        "Validate fresh F11 evidence through the unit readers"
+    ), "F11 lock suites must run after the F11 capture"
     shard = next(
         str(step["run"]) for step in jobs()["terminal-unit-shards"]["steps"]
         if "npx vitest run --shard=" in str(step.get("run", ""))
     )
-    for command in (lane, shard):
-        assert "bash scripts/ci/evidence-lock-suites.sh" in command
+    for command, group in ((lane, "evidence"), (f11_lane, "f11"), (shard, "all")):
+        assert f"bash scripts/ci/evidence-lock-suites.sh {group})" in command
         assert 'exit 1' in command, "an empty list must fail, not run everything"
     assert '--exclude "$suite"' in shard
+    for step in f11_steps:
+        if step.get("name") == "Validate fresh F11 evidence through the unit readers":
+            assert "if" not in step and not step.get("continue-on-error", False)
+
+
+def test_every_f11_packet_suite_is_selected_by_the_f11_group() -> None:
+    """Independent cross-check of the f11 classification: it derives its
+    expectation from the F11 packet PATH, never from the script's classifier
+    regex, so the two signals cannot drift together. Any suite that references
+    the packet directory only terminal-f11-evidence captures must run in that
+    job's post-capture validation (the `f11` group) — running it in the
+    terminal-unit evidence lane or a parallel unit shard would read a packet
+    that lane never captured."""
+    root = Path(__file__).resolve().parents[1]
+    f11_packet = "b-f11-10-analysis-theses-entry"
+    referencing = {
+        "lib/__tests__/" + path.name
+        for pattern in ("*.test.ts", "*.test.tsx")
+        for path in (root / "terminal" / "lib" / "__tests__").glob(pattern)
+        if f11_packet in path.read_text(encoding="utf-8")
+    }
+    assert referencing, "the F11 capture's own lock suite must still exist"
+    f11_group = subprocess.run(
+        ["bash", "scripts/ci/evidence-lock-suites.sh", "f11"],
+        cwd=root / "terminal", check=True, capture_output=True, text=True,
+        env={**os.environ, "LC_ALL": "C"},
+    ).stdout.split()
+    missing = referencing - set(f11_group)
+    assert not missing, (
+        f"suites referencing the F11 packet are NOT in the f11 group (they would "
+        f"run where the packet was never captured): {sorted(missing)}"
+    )
 
 
 def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
@@ -251,8 +326,8 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
     assert set(aggregate["needs"]) == {
-        "pr_scope", "e2e-scope", "terminal-unit", "terminal-typecheck",
-        "terminal-unit-shards", "terminal-e2e",
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-f11-evidence",
+        "terminal-typecheck", "terminal-unit-shards", "terminal-e2e",
         "terminal-e2e-build", "terminal-e2e-prodbuild",
     }
     step = aggregate_assertion_step()
@@ -262,6 +337,7 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
         "PR_SCOPE": "${{ needs.pr_scope.result }}",
         "PR_MODE": "${{ needs.pr_scope.outputs.mode }}",
         "UNIT": "${{ needs.terminal-unit.result }}",
+        "F11": "${{ needs.terminal-f11-evidence.result }}",
         "TYPECHECK": "${{ needs.terminal-typecheck.result }}",
         "UNITS": "${{ needs.terminal-unit-shards.result }}",
         "E2E": "${{ needs.terminal-e2e.result }}",
@@ -303,7 +379,7 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": "success",
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": unit, "TYPECHECK": "success", "UNITS": "success",
+             "UNIT": unit, "F11": "success", "TYPECHECK": "success", "UNITS": "success",
              "E2E": e2e, **prod_lane_results(event)},
         capture_output=True,
         text=True,
@@ -314,7 +390,7 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
     )
 
 
-@pytest.mark.parametrize("lane", ["TYPECHECK", "UNITS"])
+@pytest.mark.parametrize("lane", ["F11", "TYPECHECK", "UNITS"])
 @pytest.mark.parametrize("event", ["pull_request", "merge_group"])
 @pytest.mark.parametrize("status", ["skipped", "failure", "cancelled", ""])
 def test_required_aggregate_refuses_an_incomplete_split_lane(
@@ -327,7 +403,7 @@ def test_required_aggregate_refuses_an_incomplete_split_lane(
         ["bash", "-e", "-c", aggregate_assertion_step()["run"]],
         env={**os.environ, "EVENT": event, "SCOPE": "success",
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": "success", "TYPECHECK": "success", "UNITS": "success",
+             "UNIT": "success", "F11": "success", "TYPECHECK": "success", "UNITS": "success",
              "E2E": "success" if event == "pull_request" else "skipped",
              lane: status, **prod_lane_results(event)},
         capture_output=True, text=True, check=False,
@@ -355,7 +431,7 @@ def test_merge_group_never_accepts_missing_empty_or_unsuccessful_production(
         ["bash", "-e", "-c", aggregate_assertion_step()["run"]],
         env={**os.environ, "EVENT": "merge_group", "SCOPE": "success",
              "PR_SCOPE": "success", "PR_MODE": "full", "UNIT": "success",
-             "TYPECHECK": "success", "UNITS": "success",
+             "F11": "success", "TYPECHECK": "success", "UNITS": "success",
              "E2E": "skipped", "BUILD": build, "PRODBUILD": prod,
              "PRODBUILD_COUNT": count},
         capture_output=True, text=True, check=False,
@@ -375,12 +451,78 @@ def test_unqualified_scope_can_never_pass_event_aggregate(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": scope_result,
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": "success", "TYPECHECK": "success", "UNITS": "success",
+             "UNIT": "success", "F11": "success", "TYPECHECK": "success", "UNITS": "success",
              "E2E": e2e, **prod_lane_results(event)},
         capture_output=True, text=True, check=False,
     )
     assert result.returncode != 0, (scope_result, event, result.stdout)
     assert "e2e-scope concluded" in result.stdout
+
+
+CAPTURE_SHARDS = ["pl6", "vi-desktop", "vi-tablet", "vi-mobile"]
+SELECTIVE = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+
+
+def test_evidence_capture_fans_out_and_terminal_unit_fans_in() -> None:
+    """PL6/legacy and three VI viewport captures run as one matrix on the same
+    SHA; terminal-unit downloads exactly those four shards and composes them."""
+    capture = jobs()["terminal-evidence-capture"]
+    assert capture["strategy"]["fail-fast"] is False
+    assert capture["strategy"]["matrix"]["shard"] == CAPTURE_SHARDS
+    by_name = {s["name"]: s for s in capture["steps"] if "name" in s}
+    # The shard lane's planner is merge-group-only: its outputs are consumed
+    # solely by the capture-skip conditions, and its pull_request branch
+    # requires EVIDENCE_PR_TOUCHED_FILE — which only terminal-unit records —
+    # so an unconditional run here failed every pull_request shard at the
+    # planner step before any capture started. terminal-unit keeps its own
+    # ungated planner (the drift gate) with the recording step ahead of it.
+    assert by_name["Plan current-source evidence capture"]["run"] == "node scripts/ci/plan-evidence-capture.cjs"
+    assert by_name["Plan current-source evidence capture"]["if"] == "github.event_name == 'merge_group'"
+    run = by_name["Capture this evidence shard"]
+    assert run["run"] == "node e2e/tools/capture_ci_evidence.cjs --shard ${{ matrix.shard }}"
+    assert run["if"] == SELECTIVE and not run.get("continue-on-error", False)
+    # The PL6 leg's legal worst case is 46-52 min: the step budget (55) covers
+    # it and the tool's internal deadline (54, below the step) can actually
+    # fire instead of the runner killing the step mid-write. Setup (npm ci +
+    # Chromium) can legally take ~13 min first, so the job allows 70.
+    assert run["timeout-minutes"] == 55
+    assert run["env"] == {"CI_CAPTURE_BUDGET_MINUTES": "54"}
+    assert capture["timeout-minutes"] == 70
+    upload = by_name["Retain this shard's bytes and receipt"]
+    assert upload["if"] == SELECTIVE
+    # Attempt-free names + overwrite keep "Re-run failed jobs" lawful: the
+    # rerun replaces failed legs' artifacts while succeeded legs keep theirs.
+    assert upload["with"]["name"] == "evidence-shard-${{ github.run_id }}-${{ matrix.shard }}"
+    assert upload["with"]["if-no-files-found"] == "error"
+    assert upload["with"]["overwrite"] is True
+    for step in capture["steps"]:
+        assert "TERMINAL_EVIDENCE" not in str(step.get("run", "")), "shards never select records"
+
+    steps = jobs()["terminal-unit"]["steps"]
+    names = [s.get("name") for s in steps]
+    unit = {s["name"]: s for s in steps if "name" in s}
+    downloads = [s for s in steps if str(s.get("uses", "")).startswith("actions/download-artifact")]
+    assert [d["with"]["name"] for d in downloads] == [
+        f"evidence-shard-${{{{ github.run_id }}}}-{shard}" for shard in CAPTURE_SHARDS]
+    assert [d["with"]["path"] for d in downloads] == [
+        f"${{{{ runner.temp }}}}/terminal-ci-evidence-shards/{shard}" for shard in CAPTURE_SHARDS]
+    assert all(d["if"] == SELECTIVE and not d.get("continue-on-error", False) for d in downloads)
+    fan = unit["Capture and validate evidence on this checkout"]
+    assert fan["run"] == "node e2e/tools/capture_ci_evidence.cjs --fan-in" and fan["if"] == SELECTIVE
+    guard = names.index("Require every evidence capture shard")
+    first_download = steps.index(downloads[0])
+    assert guard < first_download < steps.index(downloads[-1]) < names.index("Capture and validate evidence on this checkout") \
+        < names.index("Validate fresh evidence through the unit readers")
+    assert "if" not in unit["Require every evidence capture shard"]
+
+
+@pytest.mark.parametrize("result", ["success", "failure", "cancelled", "skipped", ""])
+def test_fan_in_fails_unless_every_capture_shard_succeeded(result: str) -> None:
+    step = next(s for s in jobs()["terminal-unit"]["steps"] if s.get("name") == "Require every evidence capture shard")
+    assert step["env"] == {"SHARDS": "${{ needs.terminal-evidence-capture.result }}"}
+    completed = subprocess.run(["bash", "-e", "-c", step["run"]], env={**os.environ, "SHARDS": result},
+                               capture_output=True, text=True, check=False)
+    assert (completed.returncode == 0) is (result == "success"), completed.stdout
 
 
 # --- trusted-base classifier wiring (pull request and whole merge group) ----
@@ -430,9 +572,10 @@ def test_the_classifier_is_always_executed_from_a_protected_base() -> None:
     # A base classifier too old for merge groups (the group that ships this
     # very change) is probed, never executed with flags it rejects, and the
     # group fails closed to a full run instead of a red classifier job.
-    assert "grep -q -- '--group-base-sha' \"${trusted}/ci_pr_scope.py\"" in run
+    # Match the parser declaration, not any mention of the flag.
+    assert "grep -qF -- 'add_argument(\"--group-base-sha\"' \"${trusted}/ci_pr_scope.py\"" in run
     assert 'mode=full\\nreason=CLASSIFIER_LACKS_GROUP_SUPPORT\\n' in run
-    assert run.index("--event merge-group") > run.index("grep -q -- '--group-base-sha'")
+    assert run.index("--event merge-group") > run.index("grep -qF -- 'add_argument(\"--group-base-sha\"'")
 
 
 def test_the_pull_request_path_guards_forks_in_the_shell_and_stays_vintage_safe() -> None:
@@ -464,7 +607,7 @@ def _gate(**overrides: str) -> subprocess.CompletedProcess:
         **os.environ,
         "EVENT": "merge_group", "SCOPE": "success",
         "PR_SCOPE": "success", "PR_MODE": "docs",
-        "UNIT": "skipped", "TYPECHECK": "skipped", "UNITS": "skipped",
+        "UNIT": "skipped", "F11": "skipped", "TYPECHECK": "skipped", "UNITS": "skipped",
         "E2E": "skipped", "BUILD": "skipped", "PRODBUILD": "skipped",
         "PRODBUILD_COUNT": "4",
         **overrides,
@@ -486,7 +629,7 @@ def test_a_qualified_docs_merge_group_may_skip_every_heavy_job() -> None:
         assert _gate(PRODBUILD_COUNT=count).returncode == 0
 
 
-@pytest.mark.parametrize("job", ["UNIT", "TYPECHECK", "UNITS", "E2E", "BUILD", "PRODBUILD"])
+@pytest.mark.parametrize("job", ["UNIT", "F11", "TYPECHECK", "UNITS", "E2E", "BUILD", "PRODBUILD"])
 @pytest.mark.parametrize("status", ["failure", "cancelled", ""])
 def test_a_docs_merge_group_cannot_launder_a_failed_result(
     job: str, status: str,

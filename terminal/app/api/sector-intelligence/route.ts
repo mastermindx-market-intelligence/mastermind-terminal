@@ -261,12 +261,15 @@ async function readIncumbent(req: Request): Promise<Response> {
     const steps = OWNER_STEPS[key] ?? [{ path: PATHS[key] }];
     for (let index = 0; index < steps.length; index += 1) {
       const step = steps[index]!;
-      fetchedReceipt = { ...baseReceipt, path: step.path };
       if (index > 0 && controller.signal.aborted) {
         // The caller aborted between the two owner requests: request 2 is not
         // started. Hand the abort to the shared transport classifier below.
+        // fetchedReceipt still names the entitled path — the only owner
+        // request that ran: a step claims its path only once its own
+        // request actually starts below.
         throw new Error("caller_aborted_between_owner_requests");
       }
+      fetchedReceipt = { ...baseReceipt, path: step.path };
       const response = await fetch(new URL(step.path, ownerOrigin), {
         signal: controller.signal, redirect: "manual", cache: "no-store",
         headers: { Cookie: authCookie, Accept: "application/json" },

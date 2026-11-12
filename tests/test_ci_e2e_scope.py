@@ -160,19 +160,24 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
     assert set(aggregate["needs"]) == {
-        "pr_scope", "e2e-scope", "terminal-unit", "terminal-typecheck",
-        "terminal-unit-shards", "terminal-e2e",
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-f11-evidence",
+        "terminal-typecheck", "terminal-unit-shards", "terminal-e2e",
         "terminal-e2e-build", "terminal-e2e-prodbuild",
     }
     run = next(step["run"] for step in aggregate["steps"]
                if step["name"] == "Assert all event-required Terminal checks passed")
-    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-typecheck:$TYPECHECK",
+    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-f11-evidence:$F11",
+                "terminal-typecheck:$TYPECHECK",
                 "terminal-unit-shards:$UNITS", "terminal-e2e:$E2E",
                 "terminal-e2e-build:$BUILD", "terminal-e2e-prodbuild:$PRODBUILD"]:
         assert dep in run
     assert '[ "$fail" -eq 0 ] || exit 1' in run
-    assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope", "terminal-evidence-capture"]
+    assert jobs["terminal-evidence-capture"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-evidence-capture"]["if"] == jobs["terminal-unit"]["if"]
     assert jobs["terminal-typecheck"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-f11-evidence"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-f11-evidence"]["if"] == jobs["terminal-unit"]["if"]
     assert jobs["terminal-unit-shards"]["needs"] == ["pr_scope", "e2e-scope"]
     assert jobs["terminal-e2e"]["needs"] == ["pr_scope", "e2e-scope"]
     # Full audited PR matrix or safe focused subset; a native merge group
@@ -197,10 +202,15 @@ def test_required_check_never_launders_skipped_or_failed_scope():
         "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
     )
     assert by_name["Capture and validate evidence on this checkout"]["if"] == condition
-    for name in ("Prepare Chromium for original mock captures",
+    # The E18 and active-inbox captures are unconditional browser captures in
+    # this job, so Chromium installs on every event; F11 has its own browser job.
+    assert "if" not in by_name["Prepare Chromium for original mock captures"]
+    assert "Capture provider-closed F11 theses entry on this checkout" not in by_name
+    f11_steps = {step["name"]: step for step in jobs["terminal-f11-evidence"]["steps"] if "name" in step}
+    for name in ("Prepare Chromium for the F11 capture",
                  "Capture provider-closed F11 theses entry on this checkout"):
-        assert "if" not in by_name[name]
-        assert not by_name[name].get("continue-on-error", False)
+        assert "if" not in f11_steps[name]
+        assert not f11_steps[name].get("continue-on-error", False)
     command = next(step["run"] for step in jobs["terminal-e2e"]["steps"]
                    if "test:e2e:responsive" in step.get("run", ""))
     assert "${{ matrix.projects }}" in command
@@ -708,7 +718,7 @@ def _execute_required_aggregate(**overrides):
     env = {
         **os.environ,
         "EVENT": "pull_request", "PR_SCOPE": "success", "PR_MODE": "full",
-        "SCOPE": "success", "UNIT": "success", "TYPECHECK": "success",
+        "SCOPE": "success", "UNIT": "success", "F11": "success", "TYPECHECK": "success",
         "UNITS": "success", "E2E": "success",
         # The production-build lane of an ordinary full run: built, four shards.
         "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
@@ -729,7 +739,7 @@ def test_qualified_docs_pr_can_skip_each_test_job(unit, e2e):
     assert result.returncode == 0, result.stdout
 
 
-@pytest.mark.parametrize("lane", ["UNIT", "TYPECHECK", "UNITS", "E2E"])
+@pytest.mark.parametrize("lane", ["UNIT", "F11", "TYPECHECK", "UNITS", "E2E"])
 def test_qualified_docs_pr_can_skip_each_split_lane(lane):
     # The split typecheck/unit-shard lanes earn the same docs-only skip as the
     # evidence lane; any non-success result still fails the required context.
